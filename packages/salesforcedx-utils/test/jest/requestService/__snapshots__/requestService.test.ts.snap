@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RequestService unit tests. execute() Should include proxy authorization info if defined. 1`] = `
+Array [
+  Object {
+    "data": "this-is-a-test-request-body",
+    "headers": Object {
+      "Accept": "application/json",
+      "Authorization": "OAuth totallyfake-access-token-not-real-1234",
+      "Content-Length": 27,
+      "Content-Type": "application/json;charset=utf-8",
+      "Proxy-Authorization": "this-is-fake-proxy-auth",
+      "Sforce-Call-Options": "client=sfdx-vscode",
+    },
+    "timeout": 20000,
+    "type": "POST",
+    "url": "https://where.is/the/instance/this.is.a.test/location",
+  },
+]
+`;
+
+exports[`RequestService unit tests. execute() Should include proxy info if defined. 1`] = `
+Array [
+  Object {
+    "data": "this-is-a-test-request-body",
+    "headers": Object {
+      "Accept": "application/json",
+      "Authorization": "OAuth totallyfake-access-token-not-real-1234",
+      "Content-Length": 27,
+      "Content-Type": "application/json;charset=utf-8",
+      "Sforce-Call-Options": "client=sfdx-vscode",
+    },
+    "timeout": 20000,
+    "type": "POST",
+    "url": "https://where.is/the/instance/this.is.a.test/location",
+  },
+]
+`;
+
+exports[`RequestService unit tests. execute() Should include query string if defined. 1`] = `
+Array [
+  Object {
+    "data": undefined,
+    "headers": Object {
+      "Accept": "application/json",
+      "Authorization": "OAuth totallyfake-access-token-not-real-1234",
+      "Content-Length": 0,
+      "Content-Type": "application/json;charset=utf-8",
+      "Sforce-Call-Options": "client=sfdx-vscode",
+    },
+    "timeout": 20000,
+    "type": "GET",
+    "url": "https://where.is/the/instance/this.is.a.test/location?hereIsAQuery",
+  },
+]
+`;

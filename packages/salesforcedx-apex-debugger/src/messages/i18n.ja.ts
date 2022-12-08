@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   command_error_help_text: 'コマンドは次のエラーを返しました。',
@@ -38,7 +38,9 @@ export const messages = {
   idle_warn_text:
     '%s 分間アイドル状態です。デバッガセッションを終了させない場合は、%s 分以内に、コードを実行またはステップ実行するか、変数を検査してください。',
   idle_terminated_text:
-    '%s 分間アイドル状態のため、デバッガセッションが終了されました。',
+    '%s 分間アイドル状態のため、デバッガセッションが終了されました。',
   invalid_isv_project_config:
-    'ISV デバッグ用のプロジェクト設定が無効か未完了です。設定の Apex デバッガのページに戻り、新しいパートナーデバッグセッションを開始し、再実行してください。'
+    'ISV デバッグ用のプロジェクト設定が無効か未完了です。設定の Apex デバッガのページに戻り、新しいパートナーデバッグセッションを開始し、再実行してください。',
+  unexpected_error_help_text:
+    'デバッガセッションを起動する際に予期せぬエラーが発生しました。詳細は、デバッグコンソールを参照してください。'
 };

@@ -5,31 +5,38 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Measurements,
-  Properties,
-  TelemetryData
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
   CliCommandExecutor,
   Command,
-  CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse,
-  ParametersGatherer,
+  CommandExecution, ContinueResponse, Measurements, ParametersGatherer,
   PostconditionChecker,
-  PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  PreconditionChecker, Properties,
+  TelemetryData
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { EmptyPostChecker } from '.';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
+import { EmptyPostChecker } from './emptyPostChecker';
+
+export enum CommandVersion {
+  Beta = 'beta',
+  Legacy = 'legacy',
+  Default = Beta
+}
 
 export interface FlagParameter<T> {
-  flag: T;
+  flag?: T;
+  commandVersion?: CommandVersion;
+}
+
+export interface CommandParams {
+  readonly command: string;
+  // handle to localized user facing help text, with entries for diff flags
+  description: Record<string, string>;
+  logName: Record<string, string>; // metric key
 }
 
 export interface CommandletExecutor<T> {
@@ -40,7 +47,7 @@ export interface CommandletExecutor<T> {
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected showChannelOutput = true;
-  protected executionCwd = getRootWorkspacePath();
+  protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();
@@ -151,6 +158,9 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
+    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+      channelService.clear();
+    }
     if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);

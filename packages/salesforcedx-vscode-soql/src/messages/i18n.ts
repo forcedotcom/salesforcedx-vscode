@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   soql_channel_name: 'SOQL Extension',
@@ -34,5 +34,10 @@ export const messages = {
   error_data_view_save:
     'ERROR: We can’t save the file to the specified directory. Make sure you have write permissions for the directory.',
   error_connection:
-    'ERROR: We can’t query your org. Make sure that you’re connected to this org and have permissions to view the object and fields.'
+    'ERROR: We can’t query your org. Make sure that you’re connected to this org and have permissions to view the object and fields.',
+  error_sobject_metadata_fs_request:
+    'ERROR: We can’t retrieve the fields for %s. Expected metadata file at: %s.',
+  error_sobjects_fs_request:
+    'ERROR: We can’t retrieve list of objects. Expected JSON files in directory: %s.',
+  error_no_workspace_folder: 'ERROR: Unable to find workspace SFDX folder'
 };

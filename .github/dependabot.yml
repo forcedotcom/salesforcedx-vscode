@@ -1,0 +1,49 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+# Notes:
+# - Use "redhat.vscode-yaml" extension for schema and config validation
+# - Must have a unique combination of 'package-ecosystem', 'directory', and 'target-branch'.
+
+version: 2
+updates:
+  # Minor, Patch updates (to be auto-merged using 'release-management/dependabot-automerge')
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
+    schedule:
+      # After the weekly release branch cut-off on Monday
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    open-pull-requests-limit: 10
+    rebase-strategy: disabled
+  # Major version updates (not to be auto-merged)
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
+    target-branch: "develop"
+    schedule:
+      # Monthly after the weekly minor,patch updates have been merged
+      interval: "monthly"
+      day: "friday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-minor", "version-update:semver-patch"]
+    open-pull-requests-limit: 10
+    rebase-strategy: disabled
+  # Exclude updates to doc tools
+  # TODO: Enable after adding automated check(s) for doc generation
+  - package-ecosystem: "bundler"
+    directory: "/docs" # Location of package manifests
+    ignore:
+      - dependency-name: "*"
+    schedule:
+      interval: "monthly"

@@ -16,7 +16,8 @@ import { MetadataObject } from './metadataType';
 export enum NodeType {
   Org = 'org',
   MetadataType = 'type',
-  MetadataCmp = 'component',
+  MetadataComponent = 'component',
+  MetadataField = 'field',
   EmptyNode = 'empty',
   Folder = 'folder'
 }
@@ -46,7 +47,8 @@ export class BrowserNode extends vscode.TreeItem
       case NodeType.Org:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         break;
-      case NodeType.MetadataCmp:
+      case NodeType.MetadataComponent:
+      case NodeType.MetadataField:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
         this.iconPath = vscode.ThemeIcon.File;
         break;
@@ -72,6 +74,7 @@ export class BrowserNode extends vscode.TreeItem
         new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
       );
     }
+
     fullNames.forEach(fullName => {
       const label =
         this.type === NodeType.Folder
@@ -131,7 +134,8 @@ export class BrowserNode extends vscode.TreeItem
     switch (this.type) {
       case NodeType.MetadataType:
         return RetrieveDescriberFactory.createTypeNodeDescriber(this);
-      case NodeType.MetadataCmp:
+      case NodeType.Folder:
+      case NodeType.MetadataComponent:
         return RetrieveDescriberFactory.createComponentNodeDescriber(this);
     }
     throw new Error(

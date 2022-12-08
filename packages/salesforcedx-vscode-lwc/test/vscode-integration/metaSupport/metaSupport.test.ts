@@ -13,7 +13,7 @@ import { metaSupport } from '../../../src/metasupport';
 import { strict as assert } from 'assert';
 import * as sinon from 'sinon';
 import * as path from 'path';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 
 let sandbox = sinon.createSandbox();
 let mockRhExtension: any;
@@ -82,54 +82,56 @@ describe('MetaSupport: Extension not found', () => {
   });
 });
 
-describe('MetaSupport: Extension function', () => {
-  beforeEach(() => {
-    rhExtension = new MockRedhatExtension('0.14.0');
-    mockRhExtension = sandbox
-      .stub(extensions, 'getExtension')
-      .returns(rhExtension);
-  });
+['0.14.0', '0.16.0', '1.0.0'].forEach(rhExtensionVersion => {
+  describe(`MetaSupport: Extension v${rhExtensionVersion} function`, () => {
+    beforeEach(() => {
+      rhExtension = new MockRedhatExtension(rhExtensionVersion);
+      mockRhExtension = sandbox
+        .stub(extensions, 'getExtension')
+        .returns(rhExtension);
+    });
 
-  afterEach(() => {
-    sandbox.restore();
-  });
+    afterEach(() => {
+      sandbox.restore();
+    });
 
-  it('Should pass correct catalog path to XML extension', async () => {
-    await metaSupport.getMetaSupport();
+    it('Should pass correct catalog path to XML extension', async () => {
+      await metaSupport.getMetaSupport();
 
-    const catalogPaths = [
-      path.join(
+      const catalogPaths = [
+        path.join(
+          'extension',
+          'local',
+          'path',
+          'resources',
+          'static',
+          'js-meta-home.xml'
+        )
+      ];
+      assert.strictEqual(rhExtension.api.listOfCatalogs[0], catalogPaths[0]);
+    });
+
+    it('Should pass correct file association path to XML extension', async () => {
+      await metaSupport.getMetaSupport();
+
+      const systemId = path.join(
         'extension',
         'local',
         'path',
         'resources',
         'static',
-        'js-meta-home.xml'
-      )
-    ];
-    assert.strictEqual(rhExtension.api.listOfCatalogs[0], catalogPaths[0]);
-  });
+        'js-meta.xsd'
+      );
+      const pattern = '**/*js-meta.xml';
 
-  it('Should pass correct file association path to XML extension', async () => {
-    await metaSupport.getMetaSupport();
-
-    const systemId = path.join(
-      'extension',
-      'local',
-      'path',
-      'resources',
-      'static',
-      'js-meta.xsd'
-    );
-    const pattern = '**/*js-meta.xml';
-
-    assert.strictEqual(
-      rhExtension.api.listOfAssociations[0]['systemId'],
-      systemId
-    );
-    assert.strictEqual(
-      rhExtension.api.listOfAssociations[0]['pattern'],
-      pattern
-    );
+      assert.strictEqual(
+        rhExtension.api.listOfAssociations[0]['systemId'],
+        systemId
+      );
+      assert.strictEqual(
+        rhExtension.api.listOfAssociations[0]['pattern'],
+        pattern
+      );
+    });
   });
 });

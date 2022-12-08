@@ -51,12 +51,12 @@ export const functionInvokeCodeLensProvider = new ForceFunctionInvokeCodeLensPro
 
 /**
  * Register Code Lens Provider with the extension context
- * @param context Extension context
+ * @param extensionContext Extension context
  */
 export function registerFunctionInvokeCodeLensProvider(
-  context: ExtensionContext
+  extensionContext: ExtensionContext
 ) {
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     languages.registerCodeLensProvider(
       FUNCTION_PAYLOAD_DOCUMENT_SELECTOR,
       functionInvokeCodeLensProvider

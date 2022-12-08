@@ -1,24 +1,49 @@
 - title:
-    en: Get Started
+    en: Salesforce Extensions for Desktop
     ja: 使用開始
-  baseUrl: /getting-started/
+  baseUrl: /vscode-desktop/
   children:
     - title:
         en: Salesforce Extensions for Desktop
         ja: インストール
-      url: /getting-started/install
+      url: /vscode-desktop/desktop-intro
     - title:
-        en: Recommended Extensions
+        en: Install Salesforce Extensions for Desktop
+        ja: インストール
+      url: /vscode-desktop/install
+    - title:
+        en: Other Recommended Extensions
         ja: 推奨の拡張機能
-      url: /getting-started/recommended-extensions
+      url: /vscode-desktop/recommended-extensions
     - title:
         en: Settings
         ja: 設定
-      url: /getting-started/settings
+      url: /vscode-desktop/settings
     - title:
         en: Tips & Tricks
         ja: ヒントとコツ
-      url: /getting-started/tips-and-tricks
+      url: /vscode-desktop/tips-and-tricks
+- title:
+    en: Code Builder (Beta)
+    ja: コードビルダー（ベータ版）
+  baseUrl: /codebuilder/
+  children:
+    - title:
+        en: Code Builder Overview
+        ja: コードビルダーの概要
+      url: /codebuilder/about
+    - title:
+        en: What's Different
+        ja: 何が違うの
+      url: /codebuilder/cb-diffs
+    - title:
+        en: Set Up Code Builder
+        ja: コードビルダーを設定する
+      url: /codebuilder/cb-setup
+    - title:
+        en: Get Started with Code Builder
+        ja: コードビルダーを使い始める
+      url: /codebuilder/cb-start
 - title:
     en: User Guide
     ja: ユーザガイド
@@ -45,10 +70,6 @@
         ja: ソースの差分
       url: /user-guide/source-diff
     - title:
-        en: Performance Enhancements
-        ja: パフォーマンスの改善
-      url: /user-guide/perf-enhancements
-    - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
       url: /user-guide/prettier
@@ -69,6 +90,10 @@
         ja: リモートコンテナ
       url: /user-guide/remote-development
     - title:
+        en: Custom Templates
+        ja: カスタムテンプレート
+      url: /user-guide/byotemplate
+    - title:
         en: Demo Mode
         ja: デモモード
       url: /user-guide/demo-mode
@@ -78,11 +103,19 @@
   baseUrl: /apex/
   children:
     - title:
-        en: Writing
+        en: Overview
+        ja: 概要
+      url: /apex/apex-overview
+    - title:
+        en: Apex Development Quick Start
+        ja: 始めましょう
+      url: /apex/apex-get-started
+    - title:
+        en: Tools for Writing Apex Code
         ja: 作成
       url: /apex/writing
     - title:
-        en: Testing
+        en: Testing Apex
         ja: テスト
       url: /apex/testing
     - title:
@@ -90,8 +123,12 @@
         ja: リファクタリング
       url: /apex/refactoring
     - title:
+        en: Debugging Apex
+        ja: Apex のデバッグ
+      url: /apex/apex-debugging
+    - title:
         en: Replay Debugger
-        ja: Replay Debugger
+        ja: Replay デバッガ
       url: /apex/replay-debugger
     - title:
         en: Interactive Debugger
@@ -101,6 +138,10 @@
         en: ISV Debugger
         ja: ISV デバッガ
       url: /apex/isv-debugger
+    - title:
+        en: Example Apex Tasks
+        ja: Example Apex Tasks
+      url: /apex/apex-tasks
 - title:
     en: Aura
     ja: Aura
@@ -110,6 +151,15 @@
         en: Overview
         ja: 作成
       url: /aura/writing
+- title:
+    en: Salesforce Functions
+    ja: Salesforce の機能
+  baseUrl: /functions/
+  children:
+    - title:
+        en: Overview
+        ja: 作成
+      url: /functions/overview
 - title:
     en: Lightning Web Components
     ja: Lightning Web コンポーネント
@@ -134,15 +184,15 @@
   children:
     - title:
         en: Overview
-        ja: Overview
+        ja: 概要
       url: /localdev/lwclocaldev
     - title:
         en: Set Up LWC Local Development
-        ja: Set Up LWC Local Development
+        ja: LWC ローカル開発の設定
       url: /localdev/set-up-lwc-local-dev
     - title:
         en: Supported and Unsupported Modules, Components, and Features
-        ja: Supported and Unsupported Modules, Components, and Features
+        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
       url: /localdev/lwc-localdev-supported-modules
 - title:
     en: Visualforce
@@ -160,12 +210,16 @@
   children:
     - title:
         en: SOQL Builder
-        ja: SOQL Builder
+        ja: SOQL ビルダー
       url: /soql/soql-builder
     - title:
         en: Writing
         ja: 作成
       url: /soql/writing
+    - title:
+        en: Example SOQL Tasks
+        ja: Example SOQL Tasks
+      url: /soql/soql-tasks/
 - title:
     en: FAQ
     ja: FAQ

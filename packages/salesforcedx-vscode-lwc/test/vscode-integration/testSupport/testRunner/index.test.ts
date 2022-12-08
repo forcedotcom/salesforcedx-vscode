@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
@@ -22,6 +22,7 @@ import {
   TestRunType
 } from '../../../../src/testSupport/testRunner';
 import { InputBuffer } from 'uuid/interfaces';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('LWC Test Runner', () => {
   describe('Jest Execution Info Unit Tests', () => {
@@ -35,8 +36,8 @@ describe('LWC Test Runner', () => {
       const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       uuidStub.returns(mockUuid);
       getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
-      getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
-        return path.join(vscodePath, '.sfdx', 'tools', 'testresults', testType);
+      getTempFolderStub.callsFake((testType: string) => {
+        return path.join(projectPaths.testResultsFolder(), testType);
       });
     });
     afterEach(() => {

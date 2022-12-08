@@ -14,12 +14,11 @@ import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import {
-  FauxClassGenerator,
-  INDENT
+  FauxClassGenerator
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
-import { customSObject } from './sObjectMockData';
+import { minimalCustomSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -58,35 +57,11 @@ describe('SObject faux class generator', () => {
     );
   });
 
-  it('Should parse a field inline comment', async () => {
-    let firstComment = `/* Please add a unique name${EOL}`;
-    firstComment += `    */${EOL}`;
-    let expectedFirstComment = `${INDENT}/*  Please add a unique name${EOL}`;
-    expectedFirstComment += `    ${EOL}${EOL}${INDENT}*/${EOL}`;
-    const parseFirstComment = FauxClassGenerator.commentToString(firstComment);
-    expect(expectedFirstComment).to.equal(parseFirstComment);
-
-    let secondComment = `/******** More complex **************/${EOL}`;
-    secondComment += `**************this is a test **************${EOL}`;
-    secondComment += `/**************/`;
-    let expectedSecondComment = `${INDENT}/*  More complex ${EOL}`;
-    expectedSecondComment += `**************this is a test **************${EOL}`;
-    expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;
-    const parseSecondComment = FauxClassGenerator.commentToString(
-      secondComment
-    );
-    expect(expectedSecondComment).to.equal(parseSecondComment);
-
-    const thirdComment = 'Bring a sweater and/or jacket';
-    let expectedThirdComment = `${INDENT}/* Bring a sweater and/or jacket`;
-    expectedThirdComment += `${EOL}${INDENT}*/${EOL}`;
-    const parseThirdComment = FauxClassGenerator.commentToString(thirdComment);
-    expect(expectedThirdComment).to.equal(parseThirdComment);
-  });
-
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
-    const customDef = declGenerator.generateSObjectDefinition(customSObject);
+    const customDef = declGenerator.generateSObjectDefinition(
+      minimalCustomSObject
+    );
     const classContent = gen.generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;

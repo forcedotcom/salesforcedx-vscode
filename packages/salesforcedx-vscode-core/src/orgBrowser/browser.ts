@@ -44,7 +44,8 @@ export class OrgBrowser {
     const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     this._dataProvider = new MetadataOutlineProvider(username);
     this._treeView = window.createTreeView(OrgBrowser.VIEW_ID, {
-      treeDataProvider: this._dataProvider
+      treeDataProvider: this._dataProvider,
+      canSelectMany: true
     });
     this._treeView.onDidChangeVisibility(async () => {
       if (this.treeView.visible) {

@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   sfdx_cli_not_found:
@@ -31,6 +31,8 @@ export const messages = {
 
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+  cannot_determine_workspace:
+    'Unable to determine workspace folders for workspace',
 
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
@@ -42,5 +44,7 @@ export const messages = {
   predicates_no_folder_opened_text:
     'No folder opened. Open a Salesforce DX project in VS Code.',
   predicates_no_sfdx_project_found_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.'
+    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
+  trace_flags_unknown_user: 'Unknown user',
+  trace_flags_failed_to_create_debug_level: 'Failed to create a debug level'
 };

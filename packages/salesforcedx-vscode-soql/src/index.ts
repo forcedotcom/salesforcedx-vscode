@@ -6,28 +6,32 @@
  */
 
 import * as vscode from 'vscode';
-import { startLanguageClient, stopLanguageClient } from './client/client';
+import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { workspaceContext, channelService } from './sfdx';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
-export async function activate(context: vscode.ExtensionContext): Promise<any> {
+export async function activate(
+  extensionContext: vscode.ExtensionContext
+): Promise<any> {
   const extensionHRStart = process.hrtime();
-  context.subscriptions.push(SOQLEditorProvider.register(context));
-  QueryDataViewService.register(context);
-  await workspaceContext.initialize(context);
+  extensionContext.subscriptions.push(
+    SOQLEditorProvider.register(extensionContext)
+  );
+  QueryDataViewService.register(extensionContext);
+  await workspaceContext.initialize(extensionContext);
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew)
   );
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle)
   );
 
-  await startLanguageClient(context);
-  startTelemetry(context, extensionHRStart).catch();
+  await startLanguageClient(extensionContext);
+  startTelemetry(extensionContext, extensionHRStart).catch();
   console.log('SOQL Extension Activated');
   return { workspaceContext, channelService };
 }

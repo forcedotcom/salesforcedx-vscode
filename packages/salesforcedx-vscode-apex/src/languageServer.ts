@@ -5,15 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   Executable,
   LanguageClient,
-  LanguageClientOptions
+  LanguageClientOptions,
+  RevealOutputChannelOn
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
+import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -26,12 +29,16 @@ declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 async function createServer(
-  context: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    deleteDbIfExists();
+    setupDB();
     const requirementsData = await requirements.resolveRequirements();
-    const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
+    const uberJar = path.resolve(
+      extensionContext.extensionPath,
+      extensionContext.extension.packageJSON.languageServerDir,
+      UBER_JAR_NAME
+    );
     const javaExecutable = path.resolve(
       `${requirementsData.java_home}/bin/java`
     );
@@ -51,18 +58,25 @@ async function createServer(
       uberJar,
       '-Ddebug.internal.errors=true',
       `-Ddebug.semantic.errors=${enableSemanticErrors}`,
-      `-Ddebug.completion.statistics=${enableCompletionStatistics}`
+      `-Ddebug.completion.statistics=${enableCompletionStatistics}`,
+      '-Dlwc.typegeneration.disabled=true'
     ];
 
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
+    telemetryService.sendEventData('apexLSPSettings', undefined, {
+      maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0
+    });
 
     if (DEBUG) {
       args.push(
         '-Dtrace.protocol=false',
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`
       );
+      if (process.env.YOURKIT_PROFILER_AGENT) {
+        args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
+      }
     }
 
     args.push(APEX_LANGUAGE_SERVER_MAIN);
@@ -82,19 +96,23 @@ async function createServer(
   }
 }
 
-function deleteDbIfExists(): void {
+export function setupDB(): void {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    const dbPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'apex.db'
-    );
+    const dbPath = projectPaths.apexLanguageServerDatabase();
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
+    }
+
+    try {
+      const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
+      if (fs.existsSync(systemDb)) {
+        fs.copyFileSync(systemDb, dbPath);
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 }
@@ -129,31 +147,14 @@ function protocol2CodeConverter(value: string) {
 }
 
 export async function createLanguageServer(
-  context: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext
 ): Promise<LanguageClient> {
-  const clientOptions: LanguageClientOptions = {
-    // Register the server for Apex documents
-    documentSelector: [{ language: 'apex', scheme: 'file' }],
-    synchronize: {
-      configurationSection: 'apex',
-      fileEvents: [
-        vscode.workspace.createFileSystemWatcher('**/*.cls'), // Apex classes
-        vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
-        vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
-      ]
-    },
-    uriConverters: {
-      code2Protocol: code2ProtocolConverter,
-      protocol2Code: protocol2CodeConverter
-    }
-  };
-
-  const server = await createServer(context);
+  const server = await createServer(extensionContext);
   const client = new LanguageClient(
     'apex',
     nls.localize('client_name'),
     server,
-    clientOptions
+    buildClientOptions()
   );
 
   client.onTelemetry(data =>
@@ -161,4 +162,41 @@ export async function createLanguageServer(
   );
 
   return client;
+}
+
+// exported only for testing
+export function buildClientOptions(): LanguageClientOptions {
+  const soqlExtensionInstalled = isSOQLExtensionInstalled();
+
+  return {
+    // Register the server for Apex documents
+    documentSelector: [
+      { language: 'apex', scheme: 'file' },
+      { language: 'apex-anon', scheme: 'file' }
+    ],
+    synchronize: {
+      configurationSection: 'apex',
+      fileEvents: [
+        vscode.workspace.createFileSystemWatcher('**/*.cls'), // Apex classes
+        vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
+        vscode.workspace.createFileSystemWatcher('**/*.apex'), // Apex anonymous scripts
+        vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
+      ]
+    },
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    uriConverters: {
+      code2Protocol: code2ProtocolConverter,
+      protocol2Code: protocol2CodeConverter
+    },
+    initializationOptions: {
+      enableEmbeddedSoqlCompletion: soqlExtensionInstalled
+    },
+    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {})
+  };
+}
+
+function isSOQLExtensionInstalled() {
+  const soqlExtensionName = 'salesforce.salesforcedx-vscode-soql';
+  const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
+  return soqlExtension !== undefined;
 }

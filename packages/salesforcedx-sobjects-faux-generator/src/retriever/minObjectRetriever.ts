@@ -7,26 +7,22 @@
 
 import * as minSObjectsFromFile from '../../src/data/minSObjects.json';
 import { SObjectShortDescription } from '../describe';
-import { MODIFIER } from '../generator/declarationGenerator';
 import {
-  SObjectDefinition,
+  SObject,
   SObjectDefinitionRetriever,
   SObjectRefreshOutput
 } from '../types';
 
+type minSObjectsFileFormat = {
+  typeNames: SObjectShortDescription[];
+  standard: SObject[];
+};
+
 export class MinObjectRetriever implements SObjectDefinitionRetriever {
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
-    const defs = (minSObjectsFromFile as SObjectDefinition[]) || [];
-
-    const typeNames: SObjectShortDescription[] = [];
-    defs.forEach(sobject => {
-      typeNames.push({ name: sobject.name, custom: false });
-      sobject.fields.forEach(field => {
-        field.modifier = MODIFIER;
-      });
-    });
-
-    output.addStandard(defs);
-    output.addTypeNames(typeNames);
+    // TODO: validate the file format at runtime
+    const minMetadata = minSObjectsFromFile as minSObjectsFileFormat;
+    output.addTypeNames(minMetadata.typeNames);
+    output.addStandard(minMetadata.standard);
   }
 }

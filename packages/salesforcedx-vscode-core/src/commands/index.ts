@@ -5,26 +5,35 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export {
-  forceAuthWebLogin,
+  AccessTokenParamsGatherer,
   AuthParams,
   AuthParamsGatherer,
-  createAuthWebLoginExecutor,
   DEFAULT_ALIAS,
-  ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor,
   OrgTypeItem,
+  INSTANCE_URL_PLACEHOLDER,
   PRODUCTION_URL,
   SANDBOX_URL
-} from './forceAuthWebLogin';
+} from './auth/authParamsGatherer';
+export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export {
+  forceAuthWebLogin,
+  createAuthWebLoginExecutor,
+  ForceAuthWebLoginDemoModeExecutor,
+  ForceAuthWebLoginExecutor,
+  ForceAuthWebLoginContainerExecutor,
+  DeviceCodeResponse
+} from './auth/forceAuthWebLogin';
 export {
   AuthDevHubParams,
   AuthDevHubParamsGatherer,
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor
-} from './forceAuthDevHub';
+  ForceAuthDevHubExecutor,
+  ForceAuthDevHubContainerExecutor
+} from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
+export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
   forceOrgCreate,
   AliasGatherer,
@@ -42,28 +51,19 @@ export {
   ForceSourceDeleteExecutor,
   ManifestChecker
 } from './forceSourceDelete';
+export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
-  forceSourceDeployManifest,
-  ForceSourceDeployManifestExecutor
-} from './forceSourceDeployManifest';
-export {
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
-  ForceSourceDeploySourcePathExecutor,
+  forceSourceDeploySourcePaths,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePath,
-  ForceSourceRetrieveSourcePathExecutor,
+  forceSourceRetrieveSourcePaths,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
-export {
-  forceSourceRetrieveManifest,
-  ForceSourceRetrieveManifestExecutor
-} from './forceSourceRetrieveManifest';
+export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export {
   forceSourceStatus,
   ForceSourceStatusExecutor,
@@ -130,7 +130,11 @@ export {
   turnOffLogging,
   ForceStopApexDebugLoggingExecutor
 } from './forceStopApexDebugLogging';
-export { forceAuthLogoutAll, ForceAuthLogoutAll } from './forceAuthLogout';
+export {
+  forceAuthLogoutAll,
+  ForceAuthLogoutAll,
+  forceAuthLogoutDefault
+} from './auth/forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet, ForceConfigSetExecutor } from './forceConfigSet';
@@ -145,18 +149,25 @@ export {
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
-  ForceSourceDiffExecutor,
-  handleDiffResponse
+  forceSourceFolderDiff,
+  handleCacheResults
 } from './forceSourceDiff';
+export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
-  forceFunctionStart,
+  forceFunctionContainerStartCommand,
+  forceFunctionContainerlessStartCommand,
   forceFunctionStop,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
   registerFunctionInvokeCodeLensProvider
 } from './functions';
-export { checkSObjectsAndRefresh, forceRefreshSObjects, initSObjectDefinitions } from './forceRefreshSObjects';
+export {
+  checkSObjectsAndRefresh,
+  forceRefreshSObjects,
+  initSObjectDefinitions
+} from './forceRefreshSObjects';
+export { forceRenameLightningComponent } from './forceRenameLightningComponent';

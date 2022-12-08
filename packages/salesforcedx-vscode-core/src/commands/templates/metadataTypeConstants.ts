@@ -36,4 +36,5 @@ export const LWC_TYPE = 'lightningcomponentbundle';
 export const ANALYTICS_TEMPLATE_TYPE = 'wavetemplatebundle';
 export const ANALYTICS_TEMPLATE_DIRECTORY = 'waveTemplates';
 
-export const FUNCTION_TYPE = 'function';
+export const FUNCTION_TYPE_JS = 'functionjs';
+export const FUNCTION_TYPE_JAVA = 'functionjava';

@@ -14,6 +14,7 @@ import {
   TelemetryService
 } from '../index';
 import { nls } from '../messages';
+import { SfdxSettingsService } from '../settings';
 import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
@@ -128,7 +129,7 @@ export abstract class LibraryCommandletExecutor<T>
   protected readonly telemetry = new TelemetryBuilder();
 
   /**
-   * @param name Name visible to user while executing.
+   * @param executionName Name visible to user while executing.
    * @param logName Name for logging purposes such as telemetry.
    * @param outputChannel VS Code output channel to report execution status to.
    */
@@ -161,6 +162,9 @@ export abstract class LibraryCommandletExecutor<T>
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
+    if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
+      channelService.clear();
+    }
 
     channelService.showCommandWithTimestamp(
       `${nls.localize('channel_starting_message')}${this.executionName}\n`
@@ -177,6 +181,13 @@ export abstract class LibraryCommandletExecutor<T>
           token.onCancellationRequested(() => {
             this.cancelled = true;
             notificationService.showCanceledExecution(this.executionName);
+
+            telemetryService.sendCommandEvent(
+              `${this.logName}_cancelled`,
+              startTime,
+              properties,
+              measurements
+            );
           });
           return this.run(response, progress, token);
         }
@@ -208,9 +219,11 @@ export abstract class LibraryCommandletExecutor<T>
         measurements
       );
     } catch (e) {
-      telemetryService.sendException(e.name, e.message);
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
+      if (e instanceof Error) {
+        telemetryService.sendException(e.name, e.message);
+        notificationService.showFailedExecution(this.executionName);
+        channelService.appendLine(e.message);
+      }
       channelService.showChannelOutput();
     }
   }

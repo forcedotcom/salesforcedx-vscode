@@ -9,35 +9,48 @@ import {
   ContinueResponse,
   LocalComponent,
   PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { basename, join, normalize } from 'path';
 import { channelService } from '../../channels';
 import {
-  ConflictDetectionConfig,
-  conflictDetector,
   conflictView,
-  DirectoryDiffResults
+  DirectoryDiffResults,
+  MetadataCacheService
 } from '../../conflict';
+import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
+import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { sfdxCoreSettings } from '../../settings';
-import { SfdxPackageDirectories } from '../../sfdxProject';
+import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import {
-  getRootWorkspacePath,
-  MetadataDictionary,
-  OrgAuthInfo
-} from '../../util';
+import { MetadataDictionary, workspaceUtils } from '../../util';
+import { ConflictDetectionMessages } from './conflictDetectionMessages';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
-export class EmptyPostChecker implements PostconditionChecker<any> {
+export class CompositePostconditionChecker<T>
+  implements PostconditionChecker<T> {
+  private readonly postcheckers: Array<PostconditionChecker<any>>;
+  public constructor(...postcheckers: Array<PostconditionChecker<any>>) {
+    this.postcheckers = postcheckers;
+  }
   public async check(
-    inputs: ContinueResponse<any> | CancelResponse
-  ): Promise<ContinueResponse<any> | CancelResponse> {
+    inputs: CancelResponse | ContinueResponse<T>
+  ): Promise<CancelResponse | ContinueResponse<T>> {
+    if (inputs.type === 'CONTINUE') {
+      const aggregatedData: any = {};
+      for (const postchecker of this.postcheckers) {
+        inputs = await postchecker.check(inputs);
+        if (inputs.type !== 'CONTINUE') {
+          return {
+            type: 'CANCEL'
+          };
+        }
+      }
+    }
     return inputs;
   }
 }
@@ -78,7 +91,7 @@ export class OverwriteComponentPrompt
       : PathStrategyFactory.createDefaultStrategy();
     return this.getFileExtensions(component).some(extension => {
       const path = join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         pathStrategy.getPathToSource(outputdir, fileName, extension)
       );
       return existsSync(path);
@@ -186,16 +199,13 @@ export class OverwriteComponentPrompt
   }
 }
 
-export interface ConflictDetectionMessages {
-  warningMessageKey: string;
-  commandHint: (input: string) => string;
-}
-
-export class ConflictDetectionChecker implements PostconditionChecker<string> {
+export class TimestampConflictChecker implements PostconditionChecker<string> {
+  private isManifest: boolean;
   private messages: ConflictDetectionMessages;
 
-  public constructor(messages: ConflictDetectionMessages) {
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages) {
     this.messages = messages;
+    this.isManifest = isManifest;
   }
 
   public async check(
@@ -206,43 +216,56 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
     }
 
     if (inputs.type === 'CONTINUE') {
-      const usernameOrAlias = await this.getDefaultUsernameOrAlias();
-      if (!usernameOrAlias) {
+      channelService.showChannelOutput();
+      channelService.showCommandWithTimestamp(
+        `${nls.localize('channel_starting_message')}${nls.localize(
+          'conflict_detect_execution_name'
+        )}\n`
+      );
+
+      const { username } = workspaceContext;
+      if (!username) {
         return {
           type: 'CANCEL',
           msg: nls.localize('conflict_detect_no_default_username')
         };
       }
 
-      const defaultPackageDir = await SfdxPackageDirectories.getDefaultPackageDir();
-      if (!defaultPackageDir) {
-        return {
-          type: 'CANCEL',
-          msg: nls.localize('conflict_detect_no_default_package_dir')
-        };
+      const componentPath = inputs.data;
+      const cacheService = new MetadataCacheService(username);
+
+      try {
+        const result = await cacheService.loadCache(
+          componentPath,
+          workspaceUtils.getRootWorkspacePath(),
+          this.isManifest
+        );
+        const detector = new TimestampConflictDetector();
+        const diffs = detector.createDiffs(result);
+
+        channelService.showCommandWithTimestamp(
+          `${nls.localize('channel_end')} ${nls.localize(
+            'conflict_detect_execution_name'
+          )}\n`
+        );
+        return await this.handleConflicts(inputs.data, username, diffs);
+      } catch (error) {
+        console.error(error);
+        const errorMsg = nls.localize(
+          'conflict_detect_error',
+          error.toString()
+        );
+        channelService.appendLine(errorMsg);
+        telemetryService.sendException('ConflictDetectionException', errorMsg);
+        await DeployQueue.get().unlock();
       }
-
-      const config: ConflictDetectionConfig = {
-        usernameOrAlias,
-        packageDir: defaultPackageDir,
-        manifest: inputs.data
-      };
-      const results = await conflictDetector.checkForConflicts(config);
-
-      return this.handleConflicts(
-        inputs.data,
-        usernameOrAlias,
-        defaultPackageDir,
-        results
-      );
     }
     return { type: 'CANCEL' };
   }
 
   public async handleConflicts(
-    manifest: string,
+    componentPath: string,
     usernameOrAlias: string,
-    defaultPackageDir: string,
     results: DirectoryDiffResults
   ): Promise<ContinueResponse<string> | CancelResponse> {
     const conflictTitle = nls.localize(
@@ -252,30 +275,25 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
     );
 
     if (results.different.size === 0) {
-      conflictDetector.clearCache(usernameOrAlias);
       conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
     } else {
       channelService.appendLine(
         nls.localize(
-          'conflict_detect_conflict_header',
-          results.different.size,
-          results.scannedRemote,
-          results.scannedLocal
+          'conflict_detect_conflict_header_timestamp',
+          results.different.size
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(join(defaultPackageDir, file));
+        channelService.appendLine(normalize(basename(file.localRelPath)));
       });
-      channelService.showChannelOutput();
 
       const choice = await notificationService.showWarningModal(
         nls.localize(this.messages.warningMessageKey),
-        nls.localize('conflict_detect_override'),
-        nls.localize('conflict_detect_show_conflicts')
+        nls.localize('conflict_detect_show_conflicts'),
+        nls.localize('conflict_detect_override')
       );
 
       if (choice === nls.localize('conflict_detect_override')) {
-        conflictDetector.clearCache(usernameOrAlias);
         conflictView.visualizeDifferences(
           conflictTitle,
           usernameOrAlias,
@@ -285,10 +303,9 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
         channelService.appendLine(
           nls.localize(
             'conflict_detect_command_hint',
-            this.messages.commandHint(manifest)
+            this.messages.commandHint(componentPath)
           )
         );
-        channelService.showChannelOutput();
 
         const doReveal =
           choice === nls.localize('conflict_detect_show_conflicts');
@@ -299,13 +316,10 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
           results
         );
 
+        await DeployQueue.get().unlock();
         return { type: 'CANCEL' };
       }
     }
-    return { type: 'CONTINUE', data: manifest };
-  }
-
-  public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+    return { type: 'CONTINUE', data: componentPath };
   }
 }

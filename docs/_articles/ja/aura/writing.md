@@ -1,25 +1,29 @@
 ---
-title: Aura コンポーネントの記述
+title: 概要
 lang: ja
 ---
 
-## 構文の強調表示
+VS Code の Aura コンポーネント拡張機能では、エディタに組み込まれたコードナビゲーションや言語機能を活用して、Aura コンポーネントを効率的に構築することができます。
 
-Aura コンポーネント拡張機能は、.cmp、.component、.app などのファイルの Aura マークアップ、HTML、CSS、JavaScript の構文を強調表示します。次の例では、JavaScript の構文が強調表示されています。
+以下の機能を利用できます。
 
-![Aura バンドルにある .js ファイルの構文の色分けされた強調表示](./images/V2_lightning_syntax.png)
+- [コード補完](./ja/aura/writing#code-completion)
+- [カーソルを置くとコンポーネントドキュメントを表示](./ja/aura/writing#view-component-documentation-on-hover)
+- [リンティング](./ja/aura/writing#linting)
+- [コードナビゲーション](./ja/aura/writing#code-navigation)
+- [アウトラインビュー](./ja/aura/writing/#outline-view)
 
 ## コード補完
 
-Aura マークアップで作業中に Ctrl+スペースキーを押すと、コード補完が起動します。タグの名前や属性に関する追加情報が直接エディタに表示されます。
+Aura コンポーネント拡張機能は、VS Code の [HTML](https://code.visualstudio.com/docs/languages/html) と [JavaScript](https://code.visualstudio.com/docs/languages/javascript) の言語機能をベースに、シンタックスハイライト、ブラケットマッチング、IntelliSense による言語固有のコード補完などを実現しています。この拡張機能は、以下の Aura コンポーネントリソースのコード補完を提供します。
 
-#### タグ
+### タグ
 
 ![Aura のタグ補完](./images/V2_aura_tag_completion.png)
 
 - **注意:** ワークスペースに Lightning Web コンポーネントがある場合は、それらのコンポーネントも補完候補のリストに表示されます。適切な Aura 構文とともに、Lightning Web コンポーネントの候補が表示されます。
 
-#### 属性
+### 属性
 
 ![Aura の属性補完](./images/V2_aura_attribute_completion.png)
 
@@ -30,17 +34,21 @@ Aura マークアップで作業中に Ctrl+スペースキーを押すと、コ
 以下は、`lightning:card` コンポーネントの参照ドキュメントです。
 ![Aura コンポーネントの参照](./images/V2_comp_reference_aura.png)
 
-## 定義の表示または定義への移動
+## リンティング
 
-次の定義をプレビューや表示したり、定義に移動することができます。
+編集中のコードが不正な形式であったり、疑わしい場合にエラーを表示します。VS Code は、Salesforce の ESLint ルールを適用します。ESLint を有効にするには、コマンドラインからインストールします。手順については、[Aura Components ESLint Plugin](https://github.com/salesforce/eslint-plugin-aura) のリポジトリを参照してください。
 
-- Aura タグ
-- LWC タグ
-- JavaScript
-  - メソッド
-  - 変数
+> **注意:** リンターは、CSS スタイル属性の中にテンプレートコーを含めるとエラーをスローします。例えば、次のコードサンプルはエラーをスローします。`<div style="{# 'background-image:url(' + v.url+ ')'}"> ... </div>` リンターはテンプレートコードを CSS として検証します。これは Aura の LSP の既知の不具合であり、このエラーは無視することができます。
 
-定義をプレビューするには、Ctrl キー \(Windows、Linux\) または Cmd キー \(macOS\) を押したまま、定義を表示する項目にカーソルを置きます。
+## コードナビゲーション
+
+VS Code には、現在作業中のコードを見失うことなく、コード内の定義をプレビューしたり、ジャンプしたりするためのショートカットが用意されています。詳細は、『VS Code ドキュメント』の [「Code Navigation」](https://code.visualstudio.com/docs/editor/editingevolved) セクションを参照してください。
+
+定義をプレビューするには、Ctrl キー \(Windows、Linux\) または Cmd キー \(macOS\) を押したまま、定義を表示する項目にカーソルを置きます。次の例は、 `c` 名前空間のコンポーネントのソースをプレビュー表示しています。
+
+これは、Aura の pubsub コンポーネント内で参照されている、 `AuraPubSub` Lightning Web コンポーネントの定義のプレビューです。
+
+![c 名前空間コンポーネントのソース表示](./images/vscode_aura_goto.png)
 
 定義を表示するには、項目を右クリックして [Peek Definition \(定義をここに表示\)] を選択するか、Alt+F12 キーを押します。
 

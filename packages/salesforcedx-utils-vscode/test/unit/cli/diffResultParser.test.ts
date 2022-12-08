@@ -100,8 +100,12 @@ describe('force:source:diff parser', () => {
       );
       fail('DiffResultParser should have failed');
     } catch (err) {
-      expect(err.name).to.be.equals('DiffResultParserFail');
-      expect(err.message).to.be.equals('Error parsing diff result');
+      if (err instanceof Error) {
+        expect(err.name).to.be.equals('DiffResultParserFail');
+        expect(err.message).to.be.equals('Error parsing diff result');
+      } else {
+        fail('Expected an error');
+      }
     }
   });
 });

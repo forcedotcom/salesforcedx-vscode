@@ -5,46 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
+import { ORG_OPEN_COMMAND } from '../../src/constants';
 import { nls } from '../messages';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
-const CONFIG_FILE = hasRootWorkspace()
-  ? path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
-  : path.join(os.homedir(), '.sfdx', 'sfdx-config.json');
+let statusBarItem: StatusBarItem | undefined;
 
-let statusBarItem: StatusBarItem;
-
-export function showOrg() {
-  if (!statusBarItem) {
-    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
-    statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
-    statusBarItem.command = 'sfdx.force.org.open';
-    statusBarItem.show();
-  }
-  displayDefaultUserName(CONFIG_FILE);
+export async function showOrg() {
+  await displayBrowserIcon();
 }
 
-export function monitorOrgConfigChanges() {
-  const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange(uri => {
-    displayDefaultUserName(uri.fsPath);
-  });
-  watcher.onDidCreate(uri => {
-    displayDefaultUserName(uri.fsPath);
-  });
-}
-
-function displayDefaultUserName(configPath: string) {
-  fs.readFile(configPath, (err, data) => {
-    if (!err) {
-      const config = JSON.parse(data.toString());
-      if (config['defaultusername']) {
-        statusBarItem.text = `$(browser)`;
-      }
+async function displayBrowserIcon() {
+  const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+  if (defaultUsernameOrAlias) {
+    if (!statusBarItem) {
+      statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
+      statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
+      statusBarItem.command = ORG_OPEN_COMMAND;
+      statusBarItem.show();
     }
-  });
+    statusBarItem.text = `$(browser)`;
+  } else if (!defaultUsernameOrAlias && statusBarItem) {
+    statusBarItem.dispose();
+    statusBarItem = undefined;
+  }
 }

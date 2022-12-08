@@ -6,6 +6,7 @@
  */
 
 export { AuthUtil } from './auth/authUtil';
+export * from './commands';
 export {
   CompositeParametersGatherer,
   EmptyParametersGatherer
@@ -21,7 +22,15 @@ export {
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
-export { OrgInfo, WorkspaceContextUtil } from './context/workspaceContextUtil';
+export {
+  SETTING_CLEAR_OUTPUT_TAB,
+  SFDX_CORE_CONFIGURATION_NAME,
+  SFDX_CORE_EXTENSION_NAME
+} from './constants';
+export {
+  OrgUserInfo,
+  WorkspaceContextUtil
+} from './context/workspaceContextUtil';
 export {
   TelemetryService,
   TelemetryBuilder,
@@ -29,11 +38,20 @@ export {
   Properties,
   Measurements
 } from './telemetry/telemetry';
+export * from './helpers';
+export { TraceFlags } from './helpers/traceFlags';
 export { TelemetryReporter } from './telemetry/telemetryReporter';
 export {
   hasRootWorkspace,
   getRootWorkspace,
   getRootWorkspacePath,
-  getRootWorkspaceSfdxPath
+  workspaceUtils
 } from './workspaces';
-export { getRelativeProjectPath } from './helpers';
+export * from './cli';
+export * from './cli/commandExecutor';
+export * from './i18n';
+export * from './types';
+export * from './date';
+export * from './output';
+export * from './predicates';
+export * from './providers';

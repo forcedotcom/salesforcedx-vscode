@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -42,7 +42,15 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
-
+  force_auth_access_token_authorize_org_text:
+    'SFDX: Authorize an Org using Session ID',
+  force_auth_access_token_login_bad_oauth_token_message:
+    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
+  force_auth_web_login_device_code_parse_error:
+    'There was an unexpected error authorizing to your org in a container environment.',
+  force_auth_device_login_enter_code:
+    'Enter %s user code in the verification URL %s',
+  action_required: '=== Action Required!',
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
 
@@ -56,6 +64,11 @@ export const messages = {
     'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
     'Enter a custom login URL or use the default URL',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
+  parameter_gatherer_enter_session_id: 'Enter Session ID',
+  parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message:
+    'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
@@ -94,11 +107,24 @@ export const messages = {
     'SFDX: Pull Source from Default Scratch Org',
   force_source_pull_force_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
+  force_source_legacy_pull_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org (Legacy)',
+  force_source_legacy_pull_force_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)',
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+  force_source_legacy_push_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org (Legacy)',
+  force_source_legacy_push_force_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
+
+  force_source_status_text:
+    'View All Changes (Local and in Default Scratch Org)',
+  force_source_legacy_status_text:
+    'View All Changes (Local and in Default Scratch Org) (Legacy)',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
@@ -121,10 +147,6 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
-
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
@@ -136,19 +158,21 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
-  force_function_start_text: 'SFDX: Start Function',
+  force_function_container_start_text: 'SFDX: Start Container Function',
+  force_function_containerless_start_text: 'SFDX: Start Local Function',
+  force_create_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
-    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
+    'No project.toml found. Create a project.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
-    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://github.com/forcedotcom/evergreen-docs/blob/master/Getting%20Started%20Guide/Evergreen%20Getting%20Started%20Guide.md#installing-the-salesforce-functions-sfdx-plugin).',
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/set-up.html).',
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
-    'SFDX: Start Function exited unexpectedly with code %s',
+    'SFDX: Start Function exited unexpectedly',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Invoke',
   force_function_debug_invoke_tooltip: 'Debug Invoke',
@@ -185,9 +209,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
@@ -198,8 +222,6 @@ export const messages = {
   force_project_create_analytics_template_display_text: 'Analytics',
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
-  force_project_create_functions_template_display_text: 'Functions',
-  force_project_create_functions_template: 'Functions project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
@@ -243,7 +265,13 @@ export const messages = {
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
-  manifest_editor_title_message: 'Manifest Editor',
+  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  manifest_input_dupe_error:
+    'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_input_save_placeholder:
+    'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt:
+    'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
@@ -262,6 +290,10 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
+  auth_logout_scratch_prompt:
+    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  auth_logout_scratch_logout: 'Logout',
+  auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
@@ -532,20 +564,21 @@ export const messages = {
   EmbeddedServiceMenuSettings: 'Embedded Service Menu Settings',
   CallCoachingMediaProvider: 'Call Coaching Media Providers',
 
+  conflict_detect_execution_name: 'Conflict Detection',
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
-  conflict_detect_retrieve_org_source:
-    'Conflict Detection: retrieving org source',
-  conflict_detect_convert_org_source:
-    'Conflict Detection: converting org source',
+  conflict_detect_initialization_error:
+    'Unexpected error initializing metadata cache',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
+    'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
-  conflict_detect_override: 'Override Conflicts',
-  conflict_detect_show_conflicts: 'Show Conflicts',
+  conflict_detect_override: 'Override Conflicts and Deploy',
+  conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_conflict_header_timestamp:
+    'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_no_default_username: 'No default username for this project',
@@ -557,15 +590,19 @@ export const messages = {
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %s file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
+  conflict_detect_no_differences: 'No differences',
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'Compare Files',
+  conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
+  conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
+  force_source_diff_components_not_in_org:
+    'Selected components are not available in the org',
   force_source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
-  force_source_diff_command_not_found:
-    'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).',
+  force_source_diff_folder_title: '%s - File Diffs',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
@@ -583,11 +620,43 @@ export const messages = {
     'Installing NPM dependencies',
   force_function_install_npm_dependencies_error:
     "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json",
+  force_function_install_mvn_dependencies_error:
+    "%s. Make sure you have Maven installed (https://maven.apache.org/) and then run 'mvn install' to install dependencies from pom.xml",
   sobjects_refresh_needed:
     "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  force_sobjects_no_refresh_if_already_active_error_text:
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
+  force_rename_lightning_component: 'SFDX: Rename Component',
+  rename_component_input_dup_error:
+    'Component name is already in use in LWC or Aura',
+  rename_component_input_dup_file_name_error:
+    'This file name is already in use in the current component directory. Choose a different name and try again.',
+  rename_component_input_placeholder: 'Enter a unique component name',
+  rename_component_input_prompt:
+    'Press Enter to confirm your input or Escape to cancel',
+  rename_component_warning:
+    'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  rename_component_error:
+    'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
+  error_function_type: 'Unable to determine type of executing function.',
+  error_unable_to_get_started_function:
+    'Unable to access the function in "{0}".',
+  pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
+  pending_org_expiration_notification_message:
+    'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
+  pending_org_expiration_output_channel_message:
+    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode'
 };

@@ -20,6 +20,7 @@ export class ConflictView {
 
   private _treeView?: TreeView<ConflictNode>;
   private _dataProvider?: ConflictOutlineProvider;
+  private diffsOnly: boolean = false;
 
   private constructor() {}
 
@@ -48,12 +49,17 @@ export class ConflictView {
     title: string,
     remoteLabel: string,
     reveal: boolean,
-    diffResults?: DirectoryDiffResults
+    diffResults?: DirectoryDiffResults,
+    diffsOnly: boolean = false
   ) {
+    this.diffsOnly = diffsOnly;
     const conflicts = diffResults
       ? this.createConflictEntries(diffResults, remoteLabel)
       : [];
-    this.dataProvider.reset(title, conflicts);
+    const emptyLabel = diffsOnly
+      ? nls.localize('conflict_detect_no_differences')
+      : nls.localize('conflict_detect_no_conflicts');
+    this.dataProvider.reset(title, conflicts, emptyLabel);
     this.updateEnablementMessage();
 
     if (reveal) {
@@ -71,10 +77,13 @@ export class ConflictView {
     diffResults.different.forEach(p => {
       conflicts.push({
         remoteLabel,
-        relPath: p,
-        fileName: path.basename(p),
+        localRelPath: p.localRelPath,
+        remoteRelPath: p.remoteRelPath,
+        fileName: path.basename(p.localRelPath),
         localPath: diffResults.localRoot,
-        remotePath: diffResults.remoteRoot
+        remotePath: diffResults.remoteRoot,
+        localLastModifiedDate: p.localLastModifiedDate,
+        remoteLastModifiedDate: p.remoteLastModifiedDate
       } as ConflictFile);
     });
 
@@ -98,9 +107,10 @@ export class ConflictView {
   }
 
   private updateEnablementMessage() {
-    this.treeView.message = sfdxCoreSettings.getConflictDetectionEnabled()
-      ? undefined
-      : nls.localize('conflict_detect_not_enabled');
+    this.treeView.message =
+      sfdxCoreSettings.getConflictDetectionEnabled() || this.diffsOnly
+        ? undefined
+        : nls.localize('conflict_detect_not_enabled');
   }
 
   private revealConflictNode() {

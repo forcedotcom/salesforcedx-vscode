@@ -24,15 +24,16 @@ export {
   SelectUsername
 } from './parameterGatherers';
 export {
-  ConflictDetectionChecker,
-  ConflictDetectionMessages,
-  EmptyPostChecker
-} from './postconditionCheckers';
+  ConflictDetectionMessages
+} from './conflictDetectionMessages';
+export {EmptyPostChecker} from './emptyPostChecker';
 export {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
+  CommandletExecutor,
+  CommandParams,
+  CommandVersion,
   FlagParameter,
-  CommandletExecutor
+  SfdxCommandlet,
+  SfdxCommandletExecutor
 } from './sfdxCommandlet';
 export {
   SfdxWorkspaceChecker,
@@ -41,3 +42,4 @@ export {
   EmptyPreChecker
 } from './preconditionCheckers';
 export { createComponentCount, formatException } from './betaDeployRetrieve';
+export { LibraryPathsGatherer } from './libraryPathsGatherer';

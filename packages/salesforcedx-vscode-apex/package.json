@@ -15,62 +15,95 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.11.0",
+  "version": "56.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "categories": [
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.1.20",
+    "@salesforce/apex-node": "^1.0.0",
     "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.11.0",
-    "@salesforce/source-deploy-retrieve": "1.1.17",
+    "@salesforce/core": "^3.31.18",
+    "@salesforce/salesforcedx-utils-vscode": "56.9.0",
+    "@salesforce/source-deploy-retrieve": "7.5.5",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
-    "shelljs": "0.8.3",
+    "shelljs": "0.8.5",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "5.1.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.11.0",
-    "@types/chai": "^4.0.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "56.9.0",
+    "@salesforce/ts-sinon": "1.4.0",
+    "@types/chai": "4.3.3",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
     "@types/path-exists": "^1.0.29",
     "@types/shelljs": "^0.7.8",
-    "@types/sinon": "^2.3.2",
-    "@types/vscode": "1.49.0",
+    "@types/sinon": "^2.3.7",
+    "@types/vscode": "^1.61.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "mocha": "^5",
-    "sinon": "^7.3.1",
-    "typescript": "3.8.3",
+    "mocha": "^10",
+    "sinon": "^13.0.1",
+    "typescript": "^4.7.4",
     "vscode-extension-telemetry": "0.0.17"
   },
   "scripts": {
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve --minify",
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
+  "packaging": {
+    "assets": [
+      "License.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "OSSREADME.json",
+      "resources",
+      "snippets",
+      "syntaxes",
+      "images",
+      "dist"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "languageServerDir": "dist",
+      "dependencies": {
+        "applicationinsights": "1.0.7",
+        "@salesforce/apex-tmlanguage": "1.4.0",
+        "@salesforce/core": "3.31.18",
+        "@salesforce/templates": "55.1.0",
+        "@salesforce/source-deploy-retrieve": "7.5.5",
+        "shelljs": "0.8.5"
+      },
+      "devDependencies": {}
+    }
+  },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
+  "languageServerDir": "out",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -125,11 +158,11 @@
       ],
       "commandPalette": [
         {
-          "command": "sfdx.force.apex.execute.selection",
+          "command": "sfdx.force.anon.apex.execute.selection",
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
-          "command": "sfdx.force.apex.execute.document",
+          "command": "sfdx.force.anon.apex.execute.document",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
@@ -154,6 +187,18 @@
         },
         {
           "command": "sfdx.force.apex.test.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.add",
           "when": "sfdx:project_opened"
         },
         {
@@ -184,12 +229,12 @@
     },
     "commands": [
       {
-        "command": "sfdx.force.apex.execute.document",
-        "title": "%force_apex_execute_document_text%"
+        "command": "sfdx.force.anon.apex.execute.document",
+        "title": "%force_anon_apex_execute_document_text%"
       },
       {
-        "command": "sfdx.force.apex.execute.selection",
-        "title": "%force_apex_execute_selection_text%"
+        "command": "sfdx.force.anon.apex.execute.selection",
+        "title": "%force_anon_apex_execute_selection_text%"
       },
       {
         "command": "sfdx.force.apex.log.get",
@@ -198,6 +243,18 @@
       {
         "command": "sfdx.force.apex.test.run",
         "title": "%force_apex_test_run_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.run",
+        "title": "%force_apex_test_suite_run_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.create",
+        "title": "%force_apex_test_suite_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.add",
+        "title": "%force_apex_test_suite_build_text%"
       },
       {
         "command": "sfdx.force.test.view.run",
@@ -286,6 +343,11 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_semantic_errors_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.enable-completion-statistics": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_code_completion_stats_description%"
         }
       }
     },

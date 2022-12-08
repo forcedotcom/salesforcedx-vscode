@@ -10,14 +10,14 @@ import {
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
+import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {
   CompositeParametersGatherer,
@@ -28,8 +28,7 @@ import {
 export enum projectTemplateEnum {
   standard = 'standard',
   empty = 'empty',
-  analytics = 'analytics',
-  functions = 'functions'
+  analytics = 'analytics'
 }
 
 type forceProjectCreateOptions = {
@@ -127,14 +126,6 @@ export class SelectProjectTemplate
         'force_project_create_analytics_template'
       )
     ];
-    if (sfdxCoreSettings.getFunctionsEnabled()) {
-      items.push(
-        new ProjectTemplateItem(
-          'force_project_create_functions_template_display_text',
-          'force_project_create_functions_template'
-        )
-      );
-    }
 
     const selection = await vscode.window.showQuickPick(items);
     let projectTemplate: string | undefined;
@@ -147,9 +138,6 @@ export class SelectProjectTemplate
         break;
       case nls.localize('force_project_create_analytics_template_display_text'):
         projectTemplate = projectTemplateEnum.analytics;
-        break;
-      case nls.localize('force_project_create_functions_template_display_text'):
-        projectTemplate = projectTemplateEnum.functions;
         break;
       default:
         break;
@@ -169,14 +157,13 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectName>
   > {
-    const projectNameInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_project_name')
-    } as vscode.InputBoxOptions;
-    if (this.prefillValueProvider) {
-      projectNameInputOptions.value = this.prefillValueProvider();
-    }
-    const projectName = await vscode.window.showInputBox(
-      projectNameInputOptions
+    const prompt = nls.localize('parameter_gatherer_enter_project_name');
+    const prefillValue = this.prefillValueProvider
+      ? this.prefillValueProvider()
+      : '';
+    const projectName = await InputUtils.getFormattedString(
+      prompt,
+      prefillValue
     );
     return projectName
       ? { type: 'CONTINUE', data: { projectName } }

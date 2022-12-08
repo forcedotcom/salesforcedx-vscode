@@ -10,9 +10,12 @@ import { nls } from '../messages';
 export type ConflictFile = {
   remoteLabel: string;
   fileName: string;
-  relPath: string;
+  localRelPath: string;
+  remoteRelPath: string;
   localPath: string;
   remotePath: string;
+  localLastModifiedDate: string | undefined;
+  remoteLastModifiedDate: string | undefined;
 };
 
 export class ConflictNode extends vscode.TreeItem {
@@ -23,11 +26,17 @@ export class ConflictNode extends vscode.TreeItem {
   constructor(
     label: string,
     collapsibleState: vscode.TreeItemCollapsibleState,
-    parent?: ConflictNode
+    parent?: ConflictNode,
+    description?: string | boolean
   ) {
     super(label, collapsibleState);
     this._children = [];
     this._parent = parent;
+    this.description = description;
+  }
+
+  public addChildConflictNode(conflictNode: ConflictNode) {
+    this._children.push(conflictNode);
   }
 
   get conflict() {
@@ -42,8 +51,27 @@ export class ConflictNode extends vscode.TreeItem {
     return this._children;
   }
 
+  // TODO: create issue to track this
+  // @ts-ignore
   get tooltip() {
-    return this._conflict ? this._conflict.relPath : this.label;
+    if (this._conflict) {
+      let tooltipMessage: string = '';
+      if (this._conflict.remoteLastModifiedDate) {
+        tooltipMessage += nls.localize(
+          'conflict_detect_remote_last_modified_date',
+          `${new Date(this._conflict.remoteLastModifiedDate).toLocaleString()}`
+        );
+      }
+      if (this._conflict.localLastModifiedDate) {
+        tooltipMessage += nls.localize(
+          'conflict_detect_local_last_modified_date',
+          `${new Date(this._conflict.localLastModifiedDate).toLocaleString()}`
+        );
+      }
+      return tooltipMessage;
+    } else {
+      return this.label;
+    }
   }
 }
 
@@ -64,15 +92,18 @@ export class ConflictFileNode extends ConflictNode {
 }
 
 export class ConflictGroupNode extends ConflictNode {
-  constructor(label: string) {
+  private emptyLabel?: string;
+
+  constructor(label: string, emptyLabel?: string) {
     super(label, vscode.TreeItemCollapsibleState.Expanded);
+    this.emptyLabel = emptyLabel;
   }
 
   public addChildren(conflicts: ConflictFile[]) {
     if (conflicts.length === 0) {
       this.children.push(
         new ConflictNode(
-          nls.localize('conflict_detect_no_conflicts'),
+          this.emptyLabel || '',
           vscode.TreeItemCollapsibleState.None
         )
       );

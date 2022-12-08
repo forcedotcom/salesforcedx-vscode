@@ -74,24 +74,6 @@
       }
     },
     {
-      "label": "Create Release Branch",
-      "command": "./scripts/create-release-branch-workflow.sh",
-      "type": "shell",
-      "args": ["${input:circleCiId}", "${input:publishType}"]
-    },
-    {
-      "label": "Create Change Log",
-      "command": "./scripts/change-log-generator.js",
-      "type": "shell",
-      "args": [
-        "${input:verboseOutput}",
-        "-i",
-        "${input:packagesToIgnore}",
-        "-o",
-        "${input:releaseOverride}"
-      ]
-    },
-    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
@@ -107,6 +89,12 @@
       "command": "./scripts/pre-publish-workflow.sh",
       "type": "shell",
       "args": ["${input:circleCiId}", "${input:releaseBranch}"]
+    },
+    {
+      "label": "Build Language Server Jar (Jorje)",
+      "command": "./scripts/build-jorje.js",
+      "type": "shell",
+      "args": ["${input:needSigning}"]
     },
     {
       "label": "Publish Extensions",
@@ -134,29 +122,11 @@
       "description": "CircleCi Token"
     },
     {
-      "id": "packagesToIgnore",
-      "type": "promptString",
-      "description": "Packages To Ignore: These are packages that are not to be included in the change log (Ex package1,package2)",
-      "default": "salesforcedx-vscode-soql"
-    },
-    {
-      "id": "publishType",
+      "id": "needSigning",
       "type": "pickString",
-      "description": "Type of version to publish",
-      "options": ["patch", "minor", "major"],
-      "default": "minor"
-    },
-    {
-      "id": "verboseOutput",
-      "type": "pickString",
-      "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
-      "options": ["", "-v"],
-      "default": "-v"
-    },
-    {
-      "id": "releaseOverride",
-      "type": "promptString",
-      "description": "Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 49.11.0)"
+      "description": "Are you publishing Jorje changes? (Need Signed Jar)",
+      "options": ["false", "true"],
+      "default": "false"
     },
     {
       "id": "releaseBranch",

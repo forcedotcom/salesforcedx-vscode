@@ -8,20 +8,25 @@
 import * as path from 'path';
 import { commands, Disposable, ExtensionContext, Uri, window } from 'vscode';
 import { nls } from '../messages';
-import { ConflictDetector } from './conflictDetectionService';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
 export {
-  ConflictDetectionConfig,
-  ConflictDetector
-} from './conflictDetectionService';
-export {
   CommonDirDirectoryDiffer,
+  diffFolder,
+  diffOneFile,
   DirectoryDiffer,
   DirectoryDiffResults
 } from './directoryDiffer';
+export {
+  MetadataCacheCallback,
+  MetadataCacheExecutor,
+  MetadataCacheResult,
+  MetadataCacheService,
+  MetadataContext,
+  PathType
+} from './metadataCacheService';
+export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
-export const conflictDetector = ConflictDetector.getInstance();
 
 export async function setupConflictView(
   extensionContext: ExtensionContext
@@ -49,8 +54,8 @@ export function registerConflictView(): Disposable {
 }
 
 function conflictDiff(file: ConflictFile) {
-  const local = Uri.file(path.join(file.localPath, file.relPath));
-  const remote = Uri.file(path.join(file.remotePath, file.relPath));
+  const local = Uri.file(path.join(file.localPath, file.localRelPath));
+  const remote = Uri.file(path.join(file.remotePath, file.remoteRelPath));
 
   const title = nls.localize(
     'conflict_detect_diff_title',
@@ -64,7 +69,7 @@ function conflictDiff(file: ConflictFile) {
 function openResource(node: ConflictNode) {
   const file = node.conflict;
   if (file) {
-    const local = Uri.file(path.join(file.localPath, file.relPath));
-    window.showTextDocument(local).then(() => {});
+    const local = Uri.file(path.join(file.localPath, file.localRelPath));
+    window.showTextDocument(local).then(() => { });
   }
 }

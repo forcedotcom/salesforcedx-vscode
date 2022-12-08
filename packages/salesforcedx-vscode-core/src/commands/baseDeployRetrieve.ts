@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
+  ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
+  LibraryCommandletExecutor,
   Row,
   Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   DeployResult,
@@ -27,14 +26,16 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { workspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
+import { OrgAuthInfo } from '../util';
+import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -61,6 +62,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
+      await this.setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -82,13 +84,30 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
+  private async setApiVersionOn(components: ComponentSet) {
+    // Check the SFDX configuration to see if there is an overridden api version.
+    // Project level local sfdx-config takes precedence over global sfdx-config at system level.
+    const userConfiguredApiVersion:
+      | string
+      | undefined = await ConfigUtil.getUserConfiguredApiVersion();
+
+    if (userConfiguredApiVersion) {
+      components.apiVersion = userConfiguredApiVersion;
+      return;
+    }
+
+    // If no user-configured Api Version is present, then get the version from the Org.
+    const orgApiVersion = await OrgAuthInfo.getOrgApiVersion();
+    components.apiVersion = orgApiVersion ?? components.apiVersion;
+  }
+
   protected setupCancellation(
     operation: DeployRetrieveOperation | undefined,
     token?: vscode.CancellationToken
   ) {
     if (token && operation) {
-      token.onCancellationRequested(() => {
-        operation.cancel();
+      token.onCancellationRequested(async () => {
+        await operation.cancel();
       });
     }
   }
@@ -110,13 +129,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = components.deploy({
+    const operation = await components.deploy({
       usernameOrConnection: await workspaceContext.getConnection()
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.start();
+    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -131,7 +150,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         channelService.appendLine(output);
 
         const success = result.response.status === RequestStatus.Succeeded;
-
         if (!success) {
           handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
         }
@@ -201,7 +219,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = components.retrieve({
+    const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true
@@ -209,7 +227,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     this.setupCancellation(operation, token);
 
-    return operation.start();
+    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -219,6 +237,9 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
+      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
+        result.response.fileProperties
+      );
     }
   }
 

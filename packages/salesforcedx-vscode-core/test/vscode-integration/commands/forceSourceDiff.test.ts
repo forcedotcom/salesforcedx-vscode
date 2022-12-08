@@ -5,94 +5,254 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { SinonStub, stub } from 'sinon';
+import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
+import * as vscode from 'vscode';
 import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
+import { forceSourceDiff } from '../../../src/commands';
+import * as conflictCommands from '../../../src/commands';
+import * as differ from '../../../src/conflict/directoryDiffer';
 import {
-  ForceSourceDiffExecutor,
-  handleDiffResponse
-} from '../../../src/commands';
+  MetadataCacheResult,
+  MetadataCacheService,
+  MetadataContext,
+  PathType
+} from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import Sinon = require('sinon');
+import {
+  FilePathGatherer,
+  SfdxWorkspaceChecker
+} from '../../../src/commands/util';
+import { workspaceContext } from '../../../src/context';
+import { telemetryService } from '../../../src/telemetry';
 
-// tslint:disable:no-unused-expression
+const sandbox = createSandbox();
+
 describe('Force Source Diff', () => {
-  let appendLineStub: SinonStub;
-  let uriFileSpy: SinonStub;
-  let vscodeDiffSpy: SinonStub;
-  let notificationStub: SinonStub;
-
-  beforeEach(() => {
-    appendLineStub = stub(channelService, 'appendLine');
-    uriFileSpy = stub(Uri, 'file');
-    vscodeDiffSpy = stub(commands, 'executeCommand');
-    notificationStub = stub(notificationService, 'showErrorMessage');
-  });
-
-  afterEach(() => {
-    appendLineStub.restore();
-    uriFileSpy.restore();
-    vscodeDiffSpy.restore();
-    notificationStub.restore();
-  });
-
-  it('Should build the source diff command', () => {
-    const apexTestClassPath = path.join('path', 'to', 'apex', 'testApex.cls');
-    const sourceDiff = new ForceSourceDiffExecutor();
-    const sourceDiffCommand = sourceDiff.build(apexTestClassPath);
-    expect(sourceDiffCommand.toCommand()).to.equal(
-      `sfdx force:source:diff --sourcepath ${apexTestClassPath} --json --loglevel fatal`
+  describe('Force Source File Diff', () => {
+    const mockAlias = 'vscodeOrg';
+    const mockUsername = 'admin@ut-sandbox.org';
+    const mockFilePath = path.join(
+      '/projects/trailheadapps/lwc-recipes/force-app/main/default/classes/mockFile.cls'
     );
-    expect(sourceDiffCommand.description).to.equal(
-      nls.localize('force_source_diff_text')
-    );
+    let vscodeExecuteCommandStub: SinonStub;
+    let workspaceContextAliasStub: SinonStub;
+    let workspaceContextUsernameStub: SinonStub;
+    let workspaceCheckerStub: SinonStub;
+    let filePathGathererStub: SinonStub;
+    let componentStub: sinon.SinonStub;
+    let operationStub: sinon.SinonStub;
+    let processStub: sinon.SinonStub;
+    let notificationStub: SinonStub;
+    let channelAppendLineStub: SinonStub;
+    let channelShowChannelOutputStub: SinonStub;
+    let mockComponentWalkContentStub: SinonStub;
+    let telemetryServiceSendExceptionStub: SinonStub;
+
+    beforeEach(() => {
+      workspaceContextUsernameStub = sandbox
+        .stub(workspaceContext, 'username')
+        .get(() => {
+          return mockUsername;
+        });
+      workspaceContextAliasStub = sandbox
+        .stub(workspaceContext, 'alias')
+        .get(() => {
+          return mockAlias;
+        });
+      workspaceCheckerStub = sandbox.stub(
+        SfdxWorkspaceChecker.prototype,
+        'check'
+      );
+      workspaceCheckerStub.returns(true);
+      filePathGathererStub = sandbox.stub(FilePathGatherer.prototype, 'gather');
+      filePathGathererStub.returns({ type: 'CONTINUE', data: mockFilePath });
+      operationStub = sandbox.stub(
+        MetadataCacheService.prototype,
+        'createRetrieveOperation'
+      );
+      componentStub = sandbox.stub(
+        MetadataCacheService.prototype,
+        'getSourceComponents'
+      );
+      processStub = sandbox.stub(
+        MetadataCacheService.prototype,
+        'processResults'
+      );
+      mockComponentWalkContentStub = sandbox.stub(
+        SourceComponent.prototype,
+        'walkContent'
+      );
+      notificationStub = sandbox.stub(notificationService, 'showErrorMessage');
+      channelAppendLineStub = sandbox.stub(channelService, 'appendLine');
+      channelShowChannelOutputStub = sandbox.stub(
+        channelService,
+        'showChannelOutput'
+      );
+      telemetryServiceSendExceptionStub = sandbox.stub(
+        telemetryService,
+        'sendException'
+      );
+      vscodeExecuteCommandStub = sandbox.stub(commands, 'executeCommand');
+    });
+
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    it('Should execute VS Code diff command', async () => {
+      const mockSourceComponent = new SourceComponent({
+        name: 'mockFile',
+        type: {
+          id: 'ApexClass',
+          name: 'ApexClass'
+        }
+      });
+      const mockResult: MetadataCacheResult = {
+        selectedType: PathType.Individual,
+        selectedPath: mockFilePath,
+        cache: {
+          baseDirectory: path.join(`/tmp/.sfdx/diff/${mockUsername}/`),
+          commonRoot: path.join('metadataPackage_100/main/default/classes'),
+          components: [mockSourceComponent]
+        },
+        project: {
+          baseDirectory: path.join('/projects/trailheadapps/lwc-recipes'),
+          commonRoot: path.join('force-app/main/default/classes'),
+          components: []
+        },
+        properties: []
+      };
+      const remoteFsPath = path.join(
+        mockResult.cache.baseDirectory,
+        mockResult.cache.commonRoot,
+        'mockFile.cls'
+      );
+      const localFsPath = mockFilePath;
+      mockComponentWalkContentStub.returns([remoteFsPath]);
+      processStub.returns(mockResult);
+
+      await forceSourceDiff(Uri.file(mockFilePath));
+
+      assert.calledOnce(vscodeExecuteCommandStub);
+      assert.calledWith(
+        vscodeExecuteCommandStub,
+        'vscode.diff',
+        match.has('fsPath', remoteFsPath),
+        match.has('fsPath', localFsPath),
+        nls.localize(
+          'force_source_diff_title',
+          mockUsername,
+          'mockFile.cls',
+          'mockFile.cls'
+        )
+      );
+    });
+
+    it('Should show message when diffing on unsupported file type', async () => {
+      const mockActiveTextEditor = {
+        document: {
+          uri: Uri.file(mockFilePath),
+          languageId: 'forcesourcemanifest'
+        }
+      };
+      sandbox.stub(vscode.window, 'activeTextEditor').get(() => {
+        return mockActiveTextEditor;
+      });
+
+      await forceSourceDiff();
+
+      assert.calledOnce(telemetryServiceSendExceptionStub);
+      assert.calledWith(
+        telemetryServiceSendExceptionStub,
+        'unsupported_type_on_diff',
+        nls.localize('force_source_diff_unsupported_type')
+      );
+      assert.calledOnce(notificationStub);
+      assert.calledWith(
+        notificationStub,
+        nls.localize('force_source_diff_unsupported_type')
+      );
+      assert.calledOnce(channelAppendLineStub);
+      assert.calledWith(
+        channelAppendLineStub,
+        nls.localize('force_source_diff_unsupported_type')
+      );
+      assert.calledOnce(channelShowChannelOutputStub);
+    });
   });
 
-  it('Should handle successful diff response', async () => {
-    const diffSuccessfulResponse = {
-      status: 0,
-      result: {
-        remote:
-          '/Users/testUser/testProject/.sfdx/orgs/user@example.com/diffCache/classes/testClass.cls',
-        local:
-          '/Users/testUser/testProject/force-app/main/default/classes/testClass.cls',
-        fileName: 'testClass.cls'
+  describe('Force Source Folder Diff', () => {
+    let notificationStub: SinonStub;
+    let diffOneFileStub: SinonSpy;
+    let diffFolderStub: SinonSpy;
+
+    beforeEach(() => {
+      notificationStub = stub(notificationService, 'showErrorMessage');
+      diffOneFileStub = stub(differ, 'diffOneFile');
+      diffFolderStub = stub(differ, 'diffFolder');
+    });
+
+    afterEach(() => {
+      notificationStub.restore();
+      diffOneFileStub.restore();
+      diffFolderStub.restore();
+    });
+
+    it('Should throw error for empty cache', async () => {
+      let expectedError = null;
+      try {
+        await conflictCommands.handleCacheResults('username', undefined);
+      } catch (error) {
+        expectedError = error;
       }
-    };
-    await handleDiffResponse(0, JSON.stringify(diffSuccessfulResponse));
-    expect(uriFileSpy.calledTwice).to.be.true;
-    expect(vscodeDiffSpy.calledOnce).to.be.true;
-    expect(vscodeDiffSpy.getCall(0).args[0]).to.equal('vscode.diff');
-  });
+      expect(expectedError.message).to.equal(
+        nls.localize('force_source_diff_components_not_in_org')
+      );
+      assert.calledOnce(notificationStub);
+      assert.calledWith(
+        notificationStub,
+        nls.localize('force_source_diff_components_not_in_org')
+      );
+    });
 
-  it('Should handle errors from diff reponse', async () => {
-    const diffErrorResponse = {
-      status: 1,
-      name: 'Error',
-      message:
-        'The path could not be found in the project. Specify a path that exists in the file system.',
-      exitCode: 1,
-      commandName: 'Diff',
-      stack:
-        'Error: The path could not be found in the project. Specify a path that exists in the file system.',
-      warnings: {}
-    };
-    await handleDiffResponse(0, JSON.stringify(diffErrorResponse));
-    expect(uriFileSpy.calledTwice).to.be.false;
-    expect(vscodeDiffSpy.calledOnce).to.be.false;
-    expect(appendLineStub.called).to.be.true;
-  });
+    it('Should diff one file', async () => {
+      const metadataCache: MetadataContext = {
+        baseDirectory: '.',
+        commonRoot: '.',
+        components: []
+      };
+      const cacheResult: MetadataCacheResult = {
+        selectedType: PathType.Individual,
+        selectedPath: '.',
+        cache: metadataCache,
+        project: metadataCache,
+        properties: []
+      };
+      await conflictCommands.handleCacheResults('username', cacheResult);
+      assert.calledOnce(diffOneFileStub);
+    });
 
-  it('Should display error message when diff plugin is not installed', async () => {
-    await handleDiffResponse(127, '');
-    expect(uriFileSpy.notCalled).to.be.true;
-    expect(vscodeDiffSpy.notCalled).to.be.true;
-    expect(appendLineStub.called).to.be.true;
-    expect(notificationStub.calledOnce).to.be.true;
-    expect(notificationStub.getCall(0).args[0]).to.equal(
-      nls.localize('force_source_diff_command_not_found')
-    );
+    it('Should diff folder', async () => {
+      const metadataCache: MetadataContext = {
+        baseDirectory: '.',
+        commonRoot: '.',
+        components: []
+      };
+      const cacheResult: MetadataCacheResult = {
+        selectedType: PathType.Folder,
+        selectedPath: '.',
+        cache: metadataCache,
+        project: metadataCache,
+        properties: []
+      };
+      await conflictCommands.handleCacheResults('username', cacheResult);
+      assert.calledOnce(diffFolderStub);
+    });
   });
 });

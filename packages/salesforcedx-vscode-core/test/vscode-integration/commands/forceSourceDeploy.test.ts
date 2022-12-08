@@ -11,18 +11,13 @@ import {
   ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  Row,
-  Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';
 import {
   BaseDeployExecutor,
-  ForceSourceDeployManifestExecutor,
-  ForceSourceDeploySourcePathExecutor,
   ForceSourcePushExecutor
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
@@ -74,87 +69,6 @@ describe('Correctly output deploy results', () => {
     errorsStub.restore();
     successesStub.restore();
     channelServiceStub.restore();
-  });
-
-  it('Should display correct headings and format for a deploy', () => {
-    const resultParser = new ForceDeployResultParser('{}');
-    successesStub.returns(deploySuccess);
-    errorsStub.returns(deployError);
-
-    let executor: BaseDeployExecutor = new ForceSourceDeployManifestExecutor();
-    executor.outputResult(resultParser);
-
-    const successTable = table.createTable(
-      (deploySuccess.result.deployedSource as unknown) as Row[],
-      [
-        { key: 'state', label: nls.localize('table_header_state') },
-        { key: 'fullName', label: nls.localize('table_header_full_name') },
-        { key: 'type', label: nls.localize('table_header_type') },
-        { key: 'filePath', label: nls.localize('table_header_project_path') }
-      ],
-      nls.localize('table_title_deployed_source')
-    );
-    const errorTable = table.createTable(
-      (deployError.result as unknown) as Row[],
-      [
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ],
-      nls.localize(`table_title_deploy_errors`)
-    );
-    const expectedOutput = `${successTable}\n${errorTable}\n`;
-
-    expect(output).to.be.equal(expectedOutput);
-
-    // Let's make sure ForceSourceDeploySourcePath returns the right DeployType
-    output = '';
-    executor = new ForceSourceDeploySourcePathExecutor();
-    executor.outputResult(resultParser);
-    expect(output).to.be.equal(expectedOutput);
-  });
-
-  it('Should only show deploy errors if no successes', () => {
-    successesStub.returns(undefined);
-    errorsStub.returns(deployError);
-
-    const executor = new ForceSourceDeployManifestExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'));
-
-    const errorTable = table.createTable(
-      (deployError.result as unknown) as Row[],
-      [
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ],
-      nls.localize(`table_title_deploy_errors`)
-    );
-    expect(output).to.be.equal(`${errorTable}\n`);
-  });
-
-  it('Should only show deploy successes if no errors', () => {
-    successesStub.returns(deploySuccess);
-    errorsStub.returns(undefined);
-
-    const executor = new ForceSourceDeployManifestExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'));
-
-    const successTable = table.createTable(
-      (deploySuccess.result.deployedSource as unknown) as Row[],
-      [
-        { key: 'state', label: nls.localize('table_header_state') },
-        { key: 'fullName', label: nls.localize('table_header_full_name') },
-        { key: 'type', label: nls.localize('table_header_type') },
-        { key: 'filePath', label: nls.localize('table_header_project_path') }
-      ],
-      nls.localize('table_title_deployed_source')
-    );
-    expect(output).to.be.equal(`${successTable}\n`);
   });
 
   it('Should show correct heading for source:push operation', () => {

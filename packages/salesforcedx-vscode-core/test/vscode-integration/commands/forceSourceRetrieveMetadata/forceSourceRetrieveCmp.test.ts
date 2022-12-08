@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver,
@@ -23,22 +27,18 @@ import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { LazyCollection } from '@salesforce/source-deploy-retrieve/lib/src/collections';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import {
-  ForceSourceRetrieveExecutor,
-  LibraryRetrieveSourcePathExecutor
-} from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
+import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -51,107 +51,6 @@ class TestDescriber implements RetrieveDescriber {
 }
 
 describe('Force Source Retrieve Component(s)', () => {
-  describe('CLI Executor', () => {
-    const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
-      new TestDescriber()
-    );
-
-    it('Should build source retrieve command', async () => {
-      const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
-      expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-        `sfdx force:source:retrieve --json --loglevel fatal -m TestType:Test1`
-      );
-    });
-
-    it('Should pass optional data to describer', () => {
-      const data = [{ fileName: 'Test2', outputdir: '', type: 'TestType2' }];
-      const forceSourceRetrieveCmd = forceSourceRetrieveExec.build(data);
-      expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-        `sfdx force:source:retrieve --json --loglevel fatal -m TestType2:Test2`
-      );
-    });
-
-    describe('Force Source Retrieve and open', () => {
-      const openAfterRetrieve: boolean = true;
-      const executor = new ForceSourceRetrieveExecutor(
-        new TestDescriber(),
-        openAfterRetrieve
-      );
-      let openTextDocumentStub: SinonStub;
-      let showTextDocumentStub: SinonStub;
-      const resultData = `{
-        "status": 0,
-        "result": {
-          "inboundFiles": [
-            {
-              "state": "Add",
-              "fullName": "TestClass",
-              "type": "ApexClass",
-              "filePath": "force-app/main/default/classes/TestClass.cls"}
-      ] }}`;
-      let getCmdResultStub: SinonStub;
-
-      beforeEach(() => {
-        openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
-        showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
-        getCmdResultStub = sb
-          .stub(CommandOutput.prototype, 'getCmdResult')
-          .returns(resultData);
-      });
-
-      afterEach(() => {
-        sb.restore();
-      });
-
-      it('Should build source retrieve command', async () => {
-        const response = [
-          {
-            type: 'CONTINUE',
-            data: [
-              {
-                fileName: 'DemoController',
-                outputdir:
-                  '/Users/testUser/testProject/force-app/main/default/classes/DemoController.cls',
-                type: 'ApexClass',
-                suffix: 'cls'
-              }
-            ]
-          }
-        ];
-
-        await executor.execute(response);
-
-        expect(getCmdResultStub.called).to.equal(true);
-        expect(openTextDocumentStub.called).to.equal(true);
-        expect(showTextDocumentStub.called).to.equal(true);
-      });
-
-      it('Should retrieve resource without defined file extensions', async () => {
-        const response = [
-          {
-            type: 'CONTINUE',
-            data: [
-              {
-                fileName: 'Account',
-                outputdir:
-                  '/Users/testUser/testProject/force-app/main/default/classes/Account.object-meta.xml',
-                type: 'customobject',
-                suffix: 'object',
-                directory: 'objects'
-              }
-            ]
-          }
-        ];
-
-        await executor.execute(response);
-
-        expect(getCmdResultStub.called).to.equal(true);
-        expect(openTextDocumentStub.called).to.equal(true);
-        expect(showTextDocumentStub.called).to.equal(true);
-      });
-    });
-  });
-
   describe('Library Executor', () => {
     const testData = new MockTestOrgData();
     const defaultPackageDir = 'test-app';
@@ -160,25 +59,22 @@ describe('Force Source Retrieve Component(s)', () => {
 
     let openTextDocumentStub: SinonStub;
     let showTextDocumentStub: SinonStub;
-    let startStub: SinonStub;
+    let pollStatusStub: SinonStub;
     let retrieveStub: SinonStub;
 
     beforeEach(async () => {
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
       sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
         defaultPackageDir
       );
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
-        path.join(getRootWorkspacePath(), defaultPackageDir)
+        path.join(workspaceUtils.getRootWorkspacePath(), defaultPackageDir)
       ]);
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         defaultPackageDir
@@ -187,15 +83,14 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
-      startStub = sb.stub();
+      pollStatusStub = sb.stub();
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
-        start: startStub
+        pollStatus: pollStatusStub
       });
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
-      sb.restore();
+      restoreContext($$);
     });
 
     it('should retrieve with given components', async () => {
@@ -221,7 +116,7 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
-        output: path.join(getRootWorkspacePath(), 'test-app'),
+        output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
         merge: true
       });
 
@@ -328,9 +223,10 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
+        fileProperties: [],
         status: RequestStatus.Succeeded
       };
-      startStub.resolves(
+      pollStatusStub.resolves(
         new RetrieveResult(
           retrieveResponse as MetadataApiRetrieveStatus,
           componentSet

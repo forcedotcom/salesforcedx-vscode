@@ -9,14 +9,14 @@ import {
   ContinueResponse,
   LocalComponent,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
 import glob = require('glob');
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
+import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
@@ -58,7 +58,7 @@ export class FilePathGatherer implements ParametersGatherer<string> {
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    if (hasRootWorkspace()) {
+    if (workspaceUtils.hasRootWorkspace()) {
       return { type: 'CONTINUE', data: this.filePath };
     }
     return { type: 'CANCEL' };
@@ -186,7 +186,10 @@ export class SelectLwcComponentDir
     const namePathMap = new Map();
     let fileName;
     if (packageDir) {
-      const pathToPkg = path.join(getRootWorkspacePath(), packageDir);
+      const pathToPkg = path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        packageDir
+      );
       const components = ComponentSet.fromSource(pathToPkg);
 
       const lwcNames = [];
@@ -201,10 +204,12 @@ export class SelectLwcComponentDir
         lwcNames,
         'parameter_gatherer_enter_lwc_name'
       );
-      const filePathToXml = namePathMap.get(chosenLwcName);
-      fileName = path.basename(filePathToXml, '.js-meta.xml');
-      // Path strategy expects a relative path to the output folder
-      outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
+      if (chosenLwcName) {
+        const filePathToXml = namePathMap.get(chosenLwcName);
+        fileName = path.basename(filePathToXml, '.js-meta.xml');
+        // Path strategy expects a relative path to the output folder
+        outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
+      }
     }
 
     return outputdir && fileName
@@ -258,7 +263,10 @@ export class SelectOutputDir
     let outputdir = await this.showMenu(dirOptions);
 
     if (outputdir === SelectOutputDir.customDirOption) {
-      dirOptions = this.getCustomOptions(packageDirs, getRootWorkspacePath());
+      dirOptions = this.getCustomOptions(
+        packageDirs,
+        workspaceUtils.getRootWorkspacePath()
+      );
       outputdir = await this.showMenu(dirOptions);
     }
 

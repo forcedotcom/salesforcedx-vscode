@@ -1,18 +1,18 @@
 ---
-title: Set Up LWC Local Development
+title: LWC ローカル開発の設定
 lang: ja
 ---
 
-To set up LWC Local Development, install the server, enable and authorize a Dev Hub org, and create a scratch org. To use the LWC Local Development, you must develop Lightning web components in a Salesforce DX project.
+LWC の ローカル開発を設定するには、サーバをインストールし、Dev Hub 組織を有効化して認証し、スクラッチ組織を作成します。LWC のローカル開発を使用するには、Salesforce DX プロジェクト内で Lightning Web コンポーネントを開発する必要があります。
 
-## Install the LWC Local Development Server
+## LWC ローカル開発サーバのインストール
 
-Run this command from a command-line interface.
+コマンドラインインターフェースから次のコマンドを実行します。
 
 ```
 sfdx plugins:install @salesforce/lwc-dev-server
 ```
 
-> **Troubleshooting Tip:** Due to a known issue, it's likely you'll see several errors when you install the plug-in. Run `sfdx plugins --core` to see if the plug-in is installed. If yes, try to start the Local Development server. If successful, you're good to proceed.
+> **トラブルシューティングのヒント:** 既知の問題のため、プラグインをインストールする際にエラーが表示される可能性があります。プラグインがインストールされているかどうかを確認するために、`sfdx plugins --core` を実行してください。インストールされていたら、ローカル開発サーバを起動してみてください。成功すれば、次に進むことができます。
 
-After you select **SFDX: Preview Component Locally**, the Command Palette displays a list of preview options. You can choose to preview your component in the desktop browser or in a virtual mobile device (iOS or Android). Mobile previews require additional setup. See [Preview Lightning Web Components on Mobile](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.mobile_extensions) in the _Lightning Web Components Dev Guide_.
+**SFDX: Preview Component Locally \(SFDX: コンポーネントをローカルでプレビュー\)** を選択すると、コマンドパレットにプレビューオプションのリストが表示されます。コンポーネントのプレビューをデスクトップのブラウザで行うか、仮想モバイルデバイス (iOS または Android) で行うかを選択できます。モバイルでのプレビューには追加設定が必要です。詳細は、『Lightning Web コンポーネント開発者ガイド』 の[「モバイルでの Lightning Web コンポーネントのプレビュー (ベータ)」](https://developer.salesforce.com/docs/component-library/documentation/ja-jp/lwc/lwc.mobile_extensions)を参照してください。

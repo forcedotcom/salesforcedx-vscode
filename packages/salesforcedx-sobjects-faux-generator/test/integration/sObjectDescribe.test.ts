@@ -10,7 +10,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import { SObjectDescribe } from '../../src/describe';
-import { mockDescribeResponse } from './mockData';
+import { mockAPIResponse, mockMinimizedResponseResult } from './mockData';
 
 const CONNECTION_DATA = {
   accessToken: '00Dxx000thisIsATestToken',
@@ -36,17 +36,19 @@ const env = createSandbox();
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
+  const USERNAME = 'test@example.com';
   let connection: Connection;
   let sobjectdescribe: SObjectDescribe;
   let describeGlobalStub: any;
 
   beforeEach(async () => {
-    env.stub(AuthInfo, 'create').returns({
-      getConnectionOptions: () => CONNECTION_DATA
+    env.stub(AuthInfo, 'create').resolves({
+      getConnectionOptions: () => CONNECTION_DATA,
+      getUsername: () => USERNAME
     });
     connection = await Connection.create({
       authInfo: await AuthInfo.create({
-        username: 'test@example.com'
+        username: USERNAME
       })
     });
     sobjectdescribe = new SObjectDescribe(connection);
@@ -141,16 +143,14 @@ describe('Fetch sObjects', () => {
 
   it('Should return sobjects when calling describeSObjectBatch', async () => {
     const sobjectTypes = ['ApexPageInfo'];
-    env.stub(connection, 'request').resolves(mockDescribeResponse);
+    env.stub(connection, 'request').resolves(mockAPIResponse);
 
     const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
       sobjectTypes
     );
 
     expect(batchResponse.length).to.be.equal(1);
-    expect(batchResponse[0]).to.deep.equal(
-      mockDescribeResponse.results[0].result
-    );
+    expect(batchResponse[0]).to.deep.equal(mockMinimizedResponseResult);
   });
 
   it('Should handle describe call returning no sobjects when calling describeSObjectBatch', async () => {

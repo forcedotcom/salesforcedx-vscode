@@ -13,3 +13,5 @@
 
 # If the change occurs within the docs directory, add the doc maintainers.
 /docs/ @forcedotcom/doc-maintainers
+#ECCN:Open Source
+#GUSINFO: Platform Dev Tools Scrum Team, Platform Dev Tools

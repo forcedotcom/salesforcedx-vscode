@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -12,17 +13,21 @@ import {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
+  forceAuthAccessToken,
   forceAuthDevHub,
   forceAuthLogoutAll,
+  forceAuthLogoutDefault,
   forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
+  forceCreateManifest,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceFunctionContainerlessStartCommand,
+  forceFunctionContainerStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
-  forceFunctionStart,
   forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
@@ -35,6 +40,7 @@ import {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
+  forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
   forceOrgDisplay,
@@ -43,17 +49,18 @@ import {
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
+  forceRenameLightningComponent,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
+  forceSourceDeploySourcePaths,
   forceSourceDiff,
+  forceSourceFolderDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
-  forceSourceRetrieveSourcePath,
+  forceSourceRetrieveSourcePaths,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -62,6 +69,7 @@ import {
   forceVisualforcePageCreate,
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
+  SourceStatusFlags,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
@@ -69,19 +77,31 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
+  CommandVersion,
   CompositeParametersGatherer,
   EmptyParametersGatherer,
+  FlagParameter,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands/util';
-import { registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
-import { getDefaultUsernameOrAlias } from './context';
-import { workspaceContext } from './context';
-import * as decorators from './decorators';
+import {
+  PersistentStorageService,
+  registerConflictView,
+  setupConflictView
+} from './conflict';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  ORG_OPEN_COMMAND
+} from './constants';
+import { workspaceContext, workspaceContextUtils } from './context';
+import {
+  decorators,
+  disposeTraceFlagExpiration,
+  showDemoMode
+} from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -90,13 +110,34 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled } from './util';
+import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+
+const flagOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite'
+};
+const flagLegacy: FlagParameter<null> = {
+  commandVersion: CommandVersion.Legacy
+};
+const flagLegacyOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite',
+  commandVersion: CommandVersion.Legacy
+};
+const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Local
+};
+const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Remote
+};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
+  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.accessToken',
+    forceAuthAccessToken
+  );
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
@@ -109,12 +150,20 @@ function registerCommands(
     'sfdx.force.auth.logout.all',
     forceAuthLogoutAll
   );
+  const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.logout.default',
+    forceAuthLogoutDefault
+  );
+  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.force.open.documentation',
+    forceOpenDocumentation
+  );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
     forceOrgCreate
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.open',
+    ORG_OPEN_COMMAND,
     forceOrgOpen
   );
   const forceSourceDeleteCmd = vscode.commands.registerCommand(
@@ -127,7 +176,7 @@ function registerCommands(
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
@@ -135,11 +184,11 @@ function registerCommands(
   );
   const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.multiple.source.paths',
-    forceSourceDeployMultipleSourcePaths
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.source.path',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -148,7 +197,17 @@ function registerCommands(
   const forceSourcePullForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull.force',
     forceSourcePull,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
+  );
+  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull',
+    forceSourcePull,
+    flagLegacy
+  );
+  const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull.force',
+    forceSourcePull,
+    flagLegacyOverwrite
   );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
@@ -157,15 +216,25 @@ function registerCommands(
   const forceSourcePushForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push.force',
     forceSourcePush,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
+  );
+  const forceSourceLegacyPushCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push',
+    forceSourcePush,
+    flagLegacy
+  );
+  const forceSourceLegacyPushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push.force',
+    forceSourcePush,
+    flagLegacyOverwrite
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.current.source.file',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
@@ -178,12 +247,17 @@ function registerCommands(
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
     forceSourceStatus,
-    { flag: '--local' }
+    flagStatusLocal
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
     forceSourceStatus,
-    { flag: '--remote' }
+    flagStatusRemote
+  );
+  const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.status',
+    forceSourceStatus,
+    flagLegacy
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -322,14 +396,24 @@ function registerCommands(
     forceSourceDiff
   );
 
+  const forceDiffFolder = vscode.commands.registerCommand(
+    'sfdx.force.folder.diff',
+    forceSourceFolderDiff
+  );
+
   const forceFunctionCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.function.create',
     forceFunctionCreate
   );
 
   const forceFunctionStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.start',
-    forceFunctionStart
+    'sfdx.force.function.containerless.start',
+    forceFunctionContainerlessStartCommand
+  );
+
+  const forceFunctionContainerStartCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.container.start',
+    forceFunctionContainerStartCommand
   );
 
   const forceFunctionInvokeCmd = vscode.commands.registerCommand(
@@ -352,10 +436,17 @@ function registerCommands(
     forceRefreshSObjects
   );
 
+  const forceRenameComponentCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.rename',
+    forceRenameLightningComponent
+  );
+
   return vscode.Disposable.from(
+    forceAuthAccessTokenCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
+    forceAuthLogoutDefaultCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceDiffFile,
@@ -363,7 +454,9 @@ function registerCommands(
     forceFunctionInvokeCmd,
     forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
+    forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
+    forceOpenDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
@@ -378,12 +471,19 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
+    forceSourceLegacyPullCmd,
+    forceSourceLegacyPullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceLegacyPushCmd,
+    forceSourceLegacyPushForceCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
     forceSourceStatusCmd,
+    forceSourceStatusLocalCmd,
+    forceSourceStatusRemoteCmd,
+    forceSourceLegacyStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
     forceAnalyticsTemplateCreateCmd,
@@ -395,8 +495,6 @@ function registerCommands(
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
-    forceSourceStatusLocalCmd,
-    forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
@@ -490,22 +588,27 @@ async function setupOrgBrowser(
       await forceSourceRetrieveCmp(trigger, true);
     }
   );
+
+  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const { name, aiKey, version } = require(context.asAbsolutePath(
-    './package.json'
-  ));
-  await telemetryService.initializeService(context, name, aiKey, version);
-  showTelemetryMessage(context);
+  const { name, aiKey, version } = extensionContext.extension.packageJSON;
+  await telemetryService.initializeService(
+    extensionContext,
+    name,
+    aiKey,
+    version
+  );
+  showTelemetryMessage(extensionContext);
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
     'sfdx.force.tasks.view',
     taskViewService
   );
-  context.subscriptions.push(treeDataProvider);
+  extensionContext.subscriptions.push(treeDataProvider);
 
   // Set internal dev context
   const internalDev = sfdxCoreSettings.getInternalDev();
@@ -518,8 +621,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (internalDev) {
     // Internal Dev commands
-    const internalCommands = registerInternalDevCommands(context);
-    context.subscriptions.push(internalCommands);
+    const internalCommands = registerInternalDevCommands(extensionContext);
+    extensionContext.subscriptions.push(internalCommands);
 
     // Api
     const internalApi: any = {
@@ -541,16 +644,9 @@ export async function activate(context: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  // Set functions enabled context
-  const functionsEnabled = sfdxCoreSettings.getFunctionsEnabled();
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:functions_enabled',
-    functionsEnabled
+  FunctionService.instance.handleDidStartTerminateDebugSessions(
+    extensionContext
   );
-  if (functionsEnabled) {
-    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
-  }
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -577,37 +673,19 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await workspaceContext.initialize(context);
-
-    // register org picker commands
-    const orgList = new OrgList();
-    context.subscriptions.push(registerOrgPickerCommands(orgList));
-
-    await setupOrgBrowser(context);
-    await setupConflictView(context);
-
-    // Register filewatcher for push or deploy on save
-
-    await registerPushOrDeployOnSave();
-    decorators.showOrg();
-    decorators.monitorOrgConfigChanges();
-
-    // Demo mode Decorator
-    if (isDemoMode()) {
-      decorators.showDemoMode();
-    }
+    await initializeProject(extensionContext);
   }
 
   // Commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
-  context.subscriptions.push(registerConflictView());
+  const commands = registerCommands(extensionContext);
+  extensionContext.subscriptions.push(commands);
+  extensionContext.subscriptions.push(registerConflictView());
 
   const api: any = {
     channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    getDefaultUsernameOrAlias,
+    getDefaultUsernameOrAlias: workspaceContextUtils.getDefaultUsernameOrAlias,
     getUserId,
     isCLIInstalled,
     notificationService,
@@ -624,15 +702,15 @@ export async function activate(context: vscode.ExtensionContext) {
     telemetryService
   };
 
-  registerFunctionInvokeCodeLensProvider(context);
+  registerFunctionInvokeCodeLensProvider(extensionContext);
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
 
   // Refresh SObject definitions if there aren't any faux classes
   const sobjectRefreshStartup: boolean = vscode.workspace
-  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
   if (sobjectRefreshStartup) {
     initSObjectDefinitions(
@@ -647,6 +725,30 @@ export async function activate(context: vscode.ExtensionContext) {
   return api;
 }
 
+async function initializeProject(extensionContext: vscode.ExtensionContext) {
+  await workspaceContext.initialize(extensionContext);
+
+  // Register org picker commands
+  const orgList = new OrgList();
+  extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
+
+  await setupOrgBrowser(extensionContext);
+  await setupConflictView(extensionContext);
+
+  PersistentStorageService.initialize(extensionContext);
+
+  // Register file watcher for push or deploy on save
+  await registerPushOrDeployOnSave();
+  await decorators.showOrg();
+
+  await setUpOrgExpirationWatcher(orgList);
+
+  // Demo mode decorator
+  if (isDemoMode()) {
+    showDemoMode();
+  }
+}
+
 export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
 
@@ -654,6 +756,6 @@ export function deactivate(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
 
-  decorators.disposeTraceFlagExpiration();
+  disposeTraceFlagExpiration();
   return turnOffLogging();
 }

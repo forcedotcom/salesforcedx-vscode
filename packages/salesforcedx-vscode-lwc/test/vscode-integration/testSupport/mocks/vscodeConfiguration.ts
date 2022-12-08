@@ -49,7 +49,7 @@ const mockDebugConfiguration: WorkspaceConfiguration = {
  * Mock "debug.javascript.usePreview" value
  * @param enabled is configuration enabled
  */
-export function mockPreviewJavaScriptDebugger(enabled: boolean) {
+export function mockPreviewJavaScriptDebugger(enabled?: boolean) {
   getConfigurationStub = stub(workspace, 'getConfiguration');
   mockDebugConfigurationJson['javascript.usePreview'] = enabled;
   getConfigurationStub.returns(mockDebugConfiguration);

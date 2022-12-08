@@ -22,7 +22,12 @@ export function getCliArgsFromJestArgs(
     .getConfiguration('debug')
     .get('javascript.usePreview');
 
-  if (testRunType === TestRunType.DEBUG && !usePreviewJavaScriptDebugger) {
+  // W-9883286
+  // Since VS Code 1.60, `debug.javascript.usePreview` setting is no longer available
+  if (
+    testRunType === TestRunType.DEBUG &&
+    usePreviewJavaScriptDebugger === false
+  ) {
     cliArgs.unshift('--debug');
   }
   return cliArgs;

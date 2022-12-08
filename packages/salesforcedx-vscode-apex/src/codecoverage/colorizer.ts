@@ -6,16 +6,10 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { join, sep } from 'path';
-import {
-  Range,
-  TextDocument,
-  TextEditor,
-  TextLine,
-  window,
-  workspace
-} from 'vscode';
+import { Range, TextDocument, TextEditor, TextLine, window } from 'vscode';
 import { nls } from '../messages';
 import {
   coveredLinesDecorationType,
@@ -23,13 +17,7 @@ import {
 } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-const apexDirPath = join(
-  workspace!.workspaceFolders![0].uri.fsPath,
-  '.sfdx',
-  'tools',
-  'testresults',
-  'apex'
-);
+export const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
 export function getLineRange(
   document: TextDocument,
@@ -66,7 +54,7 @@ export type CoverageItem = {
 };
 
 function getTestRunId(): string {
-  const testRunIdFile = join(apexDirPath, 'test-run-id.txt');
+  const testRunIdFile = join(pathToApexTestResultsFolder, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
@@ -75,7 +63,10 @@ function getTestRunId(): string {
 
 function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
   const testRunId = getTestRunId();
-  const testResultFilePath = join(apexDirPath, `test-result-${testRunId}.json`);
+  const testResultFilePath = join(
+    pathToApexTestResultsFolder,
+    `test-result-${testRunId}.json`
+  );
 
   if (!fs.existsSync(testResultFilePath)) {
     throw new Error(

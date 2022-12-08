@@ -51,8 +51,8 @@ export class QueryDataViewService {
     this.queryText = document.getText();
   }
 
-  public static register(context: vscode.ExtensionContext): void {
-    QueryDataViewService.extensionPath = context.extensionPath;
+  public static register(extensionContext: vscode.ExtensionContext): void {
+    QueryDataViewService.extensionPath = extensionContext.extensionPath;
   }
 
   private updateWebviewWith(queryData: QueryResult<JsonMap>) {

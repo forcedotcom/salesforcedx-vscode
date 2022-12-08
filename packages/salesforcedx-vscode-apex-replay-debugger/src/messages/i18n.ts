@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   config_name_text: 'Launch Apex Replay Debugger',
@@ -21,6 +21,8 @@ export const messages = {
     'Apex language server could not provide information about valid breakpoints.',
   up_to_five_checkpoints:
     'You have %s of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
+  no_enabled_checkpoints:
+    "You don't have any checkpoints enabled. Enable a checkpoint and try again.",
   checkpoints_can_only_be_on_valid_apex_source:
     'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%s',
   local_source_is_out_of_sync_with_the_server:
@@ -65,8 +67,6 @@ export const messages = {
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  trace_flags_unknown_user: 'Unknown user',
-  trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',

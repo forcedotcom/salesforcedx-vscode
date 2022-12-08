@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -40,6 +40,10 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
   force_auth_web_login_authorize_org_text: 'SFDX: 組織を認証',
+  force_auth_access_token_authorize_org_text:
+    'SFDX: Authorize an Org using Session ID',
+  force_auth_access_token_login_bad_oauth_token_message:
+    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
     '必要なメタデータフォルダ "%s" がこのワークスペースに存在しません。',
@@ -52,6 +56,11 @@ export const messages = {
     '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
   parameter_gatherer_enter_custom_url:
     'カスタムのログイン URL を入力またはデフォルトの URL を使用',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
+  parameter_gatherer_enter_session_id: 'Enter Session ID',
+  parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message:
+    'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'スクラッチ組織の有効日数を入力 (1 から 30 まで) またはデフォルト値 (7) を使用',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
@@ -145,9 +154,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   force_project_create_text: 'SFDX: プロジェクトを作成',
   force_project_create_open_dialog_create_label: 'プロジェクトを作成',
@@ -204,6 +213,7 @@ export const messages = {
   demo_mode_prompt:
     'デモモードまたは共有マシンで、ビジネスまたは本番組織を認証することは推奨されません。認証を続ける場合、組織を使用した後、必ず "SFDX: すべての認証済み組織からログアウト" を実行してください。',
   force_auth_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
+  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_editor_title_message: 'マニフェストエディタ',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
@@ -223,6 +233,10 @@ export const messages = {
   auth_custom_label: 'カスタム',
   auth_custom_detail: 'カスタムログイン URL を入力',
   auth_invalid_url: 'URL は http:// か https:// で始める必要があります。',
+  auth_logout_scratch_prompt:
+    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  auth_logout_scratch_logout: 'Logout',
+  auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_no_package_directories_found_on_setup_text:
@@ -495,12 +509,20 @@ export const messages = {
   conflict_detect_diff_command_title: 'ファイルを比較',
 
   force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
+  force_source_diff_components_not_in_org:
+    'Selected components are not available in the org',
   force_source_diff_unsupported_type:
     'このメタデータ型に対する差分は現在サポートされていません。',
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
-  force_source_diff_command_not_found:
-    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
-  package_id_gatherer_placeholder: '04t...'
+  package_id_gatherer_placeholder: '04t...',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
 };

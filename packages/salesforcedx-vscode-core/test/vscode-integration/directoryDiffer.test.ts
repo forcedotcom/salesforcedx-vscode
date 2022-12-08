@@ -55,11 +55,11 @@ describe('Directory Differ', () => {
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
-    ).to.equal(42);
+    ).to.equal(43);
     expect(
       results.scannedRemote,
       'incorrect number of files scanned in dirTwo'
-    ).to.equal(41);
+    ).to.equal(42);
   });
 
   it('Should detect text differences', () => {
@@ -87,15 +87,24 @@ describe('Directory Differ', () => {
     const differ = new CommonDirDirectoryDiffer();
     const results = differ.diff(dirOne, dirTwo);
 
-    expect(results.different).to.have.keys([cls1ToChange, layoutToChange]);
+    expect(results.different).to.eql(new Set([
+      {
+        localRelPath: cls1ToChange,
+        remoteRelPath: cls1ToChange
+      },
+      {
+        localRelPath: layoutToChange,
+        remoteRelPath: layoutToChange
+      }
+    ]));
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
-    ).to.equal(42);
+    ).to.equal(43);
     expect(
       results.scannedRemote,
       'incorrect number of files scanned in dirTwo'
-    ).to.equal(41);
+    ).to.equal(42);
   });
 
   it('Should detect binary differences', () => {
@@ -121,16 +130,19 @@ describe('Directory Differ', () => {
     shell.cp(source, target);
     const results = differ.diff(dirOne, dirTwo);
 
-    expect(results.different).to.have.keys([
-      path.join('staticresources', 'leaflet', 'images', 'marker-icon.png')
-    ]);
+    expect(results.different).to.eql(new Set([
+      {
+        localRelPath: path.join('staticresources', 'leaflet', 'images', 'marker-icon.png'),
+        remoteRelPath: path.join('staticresources', 'leaflet', 'images', 'marker-icon.png')
+      }
+    ]));
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
-    ).to.equal(42);
+    ).to.equal(43);
     expect(
       results.scannedRemote,
       'incorrect number of files scanned in dirTwo'
-    ).to.equal(41);
+    ).to.equal(42);
   });
 });

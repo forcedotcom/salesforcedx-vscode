@@ -13,13 +13,18 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
+  apex_execute_compile_success: '正常にコンパイルされました。',
+  apex_execute_runtime_success: '正常に実行されました。',
+  apex_execute_text: '匿名 Apex を実行',
+  apex_execute_unexpected_error: '予期せぬエラー',
   apex_language_server_failed_activate:
     'Apex 言語サーバを有効化できませんでした。',
   cannot_determine_workspace:
     'ワークスペースのフォルダを特定できませんでした。',
+  channel_name: 'Apex',
   client_name: 'Apex 言語サーバ',
   colorizer_no_code_coverage_on_project:
     'このプロジェクトでテスト実行の情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-core.retrieve-test-code-coverage" を true に設定してください。次に、Apex テストのサイドバーまたは、テストクラスファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行してください。',
@@ -31,20 +36,20 @@ export const messages = {
     'このファイルでコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-core.retrieve-test-code-coverage" を true に設定してください。次に、このファイルを含むApex テストを実行してください。Apex テストのサイドバーまたは、ファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行できます。',
   colorizer_statusbar_hover_text: 'Apex コードカバレッジを強調表示',
   force_sobjects_refresh: 'SFDX: SObject の定義を更新',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   force_apex_log_get_text: 'SFDX: Apex デバッグログを取得',
   force_apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
   force_apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
   force_apex_log_list_text: 'Apex デバッグログを取得しています',
   force_apex_test_run_all_test_label: 'すべてのテスト',
+  force_apex_test_run_all_local_test_label: 'すべてのローカルのテスト',
   force_apex_test_run_all_tests_description_text:
-    'Runs all tests in the current org',
-  force_apex_test_run_all_local_test_label: 'All Local Tests',
+    '現在の組織にあるすべてのテストを実行',
   force_apex_test_run_all_local_tests_description_text:
-    'Runs all tests in the current org except the ones that originate from installed managed packages',
+    'インストールされた管理パッケージに含まれるテストを除き、現在の組織にあるすべてのテストを実行',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'テストクラスがありません。@isTest アノテーションのあるクラスでコードアクションを実行してください。',
@@ -61,15 +66,21 @@ export const messages = {
     'プロジェクトに Apex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
   java_runtime_missing_text:
     'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java 設定](%s) を参照してください。',
-  sobject_refresh_all: 'すべてのオブジェクト',
-  sobject_refresh_custom: 'カスタムオブジェクト',
-  sobject_refresh_standard: '標準オブジェクト',
-  source_java_home_setting_text:
-    'VS Code の設定で定義される salesforcedx-vscode-apex.java.home の設定',
+  java_runtime_local_text:
+    'ローカルの Java ランタイム (%s) はサポートされていません。VS Code の設定の salesforcedx-vscode-apex.java.home に現在のプロジェクト以外のランタイムのパスを設定してください。詳細については、[Java 設定](%s) を参照してください。',
   source_jdk_home_env_var_text: '環境変数 JDK_HOME',
   source_java_home_env_var_text: '環境変数 JAVA_HOME',
+  source_java_home_setting_text:
+    'VS Code の設定で定義される salesforcedx-vscode-apex.java.home の設定',
   source_missing_text:
     '指定されたフォルダ %s は存在しません。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
   wrong_java_version_text:
-    '実行には Java 8 が必要です。https://java.com/ja/download/ からダウンロードしてインストールしてください。詳細については、[Java バージョンを設定する](%s) を参照してください。'
+    'サポートされていない Java のバージョンが検出されました。拡張機能を実行するには、[Java 8](https://java.com/en/download/)、[Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)、または [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) をダウンロードし、インストールしてください。詳細については、[Java バージョンを設定する](%s) を参照してください。',
+  force_apex_test_suite_build_text: 'SFDX: Apex テストスイートを作成',
+  unable_to_locate_editor:
+    'ソースファイルに対してのみこのコマンドを実行できます。',
+  unable_to_locate_document:
+    'ソースファイルに対してのみこのコマンドを実行できます。',
+  launch_apex_replay_debugger_unsupported_file:
+    '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。'
 };

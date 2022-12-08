@@ -45,10 +45,12 @@ export class ApexTestOutlineProvider
   private rootNode: TestNode | null;
   public testStrings: Set<string> = new Set<string>();
   private apexTestInfo: ApexTestMethod[] | null;
+  private testIndex: Map<string, string> = new Map<string, string>();
 
   constructor(apexTestInfo: ApexTestMethod[] | null) {
     this.rootNode = null;
     this.apexTestInfo = apexTestInfo;
+    this.createTestIndex();
     this.getAllApexTests();
   }
 
@@ -117,6 +119,7 @@ export class ApexTestOutlineProvider
     this.apexTestInfo = null;
     if (languageClientUtils.getStatus().isReady()) {
       this.apexTestInfo = await getApexTests();
+      this.createTestIndex();
     }
     this.getAllApexTests();
     this.onDidChangeTestData.fire(undefined);
@@ -128,13 +131,34 @@ export class ApexTestOutlineProvider
   ) {
     const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
     const testRunId = readFileSync(testRunIdFile);
-    const testResultFilePath = path.join(
-      apexTestPath,
-      `test-result-${testRunId}.json`
-    );
+    let testResultFilePath;
+    if (testRunId.toString() === '') {
+      testResultFilePath = path.join(apexTestPath, `test-result.json`);
+    } else {
+      testResultFilePath = path.join(
+        apexTestPath,
+        `test-result-${testRunId}.json`
+      );
+    }
     if (testResultFile === testResultFilePath) {
       await this.refresh();
       this.updateTestResults(testResultFile);
+    }
+  }
+
+  public getTestClassName(uri: vscode.Uri): string | undefined {
+    return this.testIndex.get(uri.toString());
+  }
+
+  private createTestIndex(): void {
+    this.testIndex.clear();
+    if (this.apexTestInfo) {
+      this.apexTestInfo.forEach(testMethod => {
+        this.testIndex.set(
+          testMethod.location.uri.toString(),
+          testMethod.definingType
+        );
+      });
     }
   }
 
@@ -246,6 +270,8 @@ export abstract class TestNode extends vscode.TreeItem {
     dark: DARK_BLUE_BUTTON
   };
 
+  // TODO: create a ticket to address this particular issue.
+  // @ts-ignore
   get tooltip(): string {
     return this.description;
   }
@@ -341,3 +367,5 @@ export class ApexTestNode extends TestNode {
 
   public contextValue = 'apexTest';
 }
+
+export const testOutlineProvider = new ApexTestOutlineProvider(null);

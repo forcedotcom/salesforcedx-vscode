@@ -44,10 +44,10 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
 
   /**
    * Register Test Indexer with extension context
-   * @param context extension context
+   * @param extensionContext extension context
    */
-  public register(context: vscode.ExtensionContext) {
-    context.subscriptions.push(this);
+  public register(extensionContext: vscode.ExtensionContext) {
+    extensionContext.subscriptions.push(this);
     // It's actually a synchronous function to start file watcher.
     // Finding test files will only happen when going into test explorer
     // Parsing test files will happen when expanding on the test group nodes,

@@ -9,7 +9,12 @@
 /tools/vscode/articles/*                                        /tools/vscode/en/:splat                                   301   
 /tools/vscode/articles-jp/*                                     /tools/vscode/ja/:splat                                   301
 /tools/vscode/jp/*                                              /tools/vscode/ja/:splat                                   301
-
+/tools/vscode/en/getting-started/install                        /tools/vscode/en/vscode-desktop/install                   301
+/tools/vscode/en/getting-started/recommended-extensions         /tools/vscode/en/vscode-desktop/recommended-extensions    301
+/tools/vscode/en/getting-started/settings                       /tools/vscode/en/vscode-desktop/settings                  301
+/tools/vscode/en/getting-started/tips-and-tricks                /tools/vscode/en/vscode-desktop/tips-and-tricks           301
+/tools/vscode/en/getting-started/java-setup                     /tools/vscode/en/vscode-desktop/java-setup                301
+/tools/vscode/en/getting-started                                /tools/vscode/en/vscode-desktop/desktop-intro            301
 # Temporary Redirects for convenience
 /tools/vscode/en/                               /tools/vscode/                          302
 /tools/vscode/en/aura                           /tools/vscode/en/aura/writing           302

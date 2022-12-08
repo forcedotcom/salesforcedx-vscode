@@ -115,6 +115,10 @@
   margin-left: 1rem;
 }
 
+.site-logo{
+  display: none;
+}
+
 @media (min-width: 30em) {
   .site .site-main-content ol:not(.slds-grid),
   .site .site-main-content ul:not(.slds-grid) {
@@ -821,7 +825,7 @@ html {
 @media (min-width: 48em) {
   .site-sidebar {
     position: absolute;
-    top: 0;
+    top: 84px;
     bottom: 0;
     left: 0;
     display: flex;
@@ -905,6 +909,7 @@ html {
 
 @media (min-width: 48em) {
   .site-logo {
+    display: block;
     margin-top: 0;
     padding-top: 1.5rem;
   }
@@ -1146,6 +1151,10 @@ html {
 }
 
 @media (min-width: 64em) {
+  .site.site-sidebar{
+    top: 36px;
+  }
+
   .site.site-masthead {
     min-height: 7.25rem;
   }

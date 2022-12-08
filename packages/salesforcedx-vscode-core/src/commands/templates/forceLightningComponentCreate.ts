@@ -8,7 +8,7 @@
 import {
   DirFileNameSelection,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -51,7 +51,7 @@ export class LibraryForceLightningComponentCreateExecutor extends LibraryBaseTem
     const templateOptions: LightningComponentOptions = {
       outputdir: data.outputdir,
       componentname: data.fileName,
-      template: 'DefaultLightningCmp',
+      template: 'default',
       type: 'aura',
       internal
     };

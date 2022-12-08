@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgInfo } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { OrgInfo, RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
@@ -203,7 +202,7 @@ describe('Debugger streaming service', () => {
       .forChannel(StreamingService.USER_EVENT_CHANNEL)
       .build();
 
-    before(async () => {
+    beforeAll(async () => {
       service = new StreamingService();
       clientSubscribeSpy = sinon
         .stub(StreamingClient.prototype, 'subscribe')
@@ -219,7 +218,7 @@ describe('Debugger streaming service', () => {
       );
     });
 
-    after(() => {
+    afterAll(() => {
       clientSubscribeSpy.restore();
       clientIsConnectedSpy.restore();
     });

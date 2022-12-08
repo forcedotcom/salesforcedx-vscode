@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
-import { SOBJECTS_DIR, TOOLS_DIR } from '../constants';
+import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import {
   FieldDeclaration,
@@ -17,31 +18,27 @@ import {
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
-import { MODIFIER } from './declarationGenerator';
+import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';
-const REL_BASE_FOLDER = [TOOLS_DIR, SOBJECTS_DIR];
+const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 
 export class FauxClassGenerator implements SObjectGenerator {
-  private definitionSelector: SObjectCategory;
+  private sobjectSelector: SObjectCategory;
   private relativePath: string;
+  private declGenerator: DeclarationGenerator;
 
-  public constructor(
-    definitionSelector: SObjectCategory,
-    relativePath: string
-  ) {
-    this.definitionSelector = definitionSelector;
+  public constructor(selector: SObjectCategory, relativePath: string) {
+    this.sobjectSelector = selector;
     this.relativePath = relativePath;
+    this.declGenerator = new DeclarationGenerator();
 
     if (
-      definitionSelector !== SObjectCategory.STANDARD &&
-      definitionSelector !== SObjectCategory.CUSTOM
+      selector !== SObjectCategory.STANDARD &&
+      selector !== SObjectCategory.CUSTOM
     ) {
-      throw nls.localize(
-        'unsupported_sobject_category',
-        String(definitionSelector)
-      );
+      throw nls.localize('unsupported_sobject_category', String(selector));
     }
   }
 
@@ -72,14 +69,17 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    const definitions =
-      this.definitionSelector === SObjectCategory.STANDARD
+    const sobjects =
+      this.sobjectSelector === SObjectCategory.STANDARD
         ? output.getStandard()
         : output.getCustom();
 
-    for (const objDef of definitions) {
-      if (objDef.name) {
-        this.generateFauxClass(outputFolderPath, objDef);
+    for (const sobj of sobjects) {
+      if (sobj.name) {
+        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
+          sobj
+        );
+        this.generateFauxClass(outputFolderPath, sobjDefinition);
       }
     }
   }

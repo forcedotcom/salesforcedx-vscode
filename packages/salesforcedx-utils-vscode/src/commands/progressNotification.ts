@@ -26,15 +26,15 @@ export class ProgressNotification {
         return new Promise(resolve => {
           cancellationToken.onCancellationRequested(() => {
             token.cancel();
-            return resolve();
+            return resolve(undefined);
           });
 
           execution.processExitSubject.subscribe(data => {
-            return resolve();
+            return resolve(undefined);
           });
 
           execution.processErrorSubject.subscribe(data => {
-            return resolve();
+            return resolve(undefined);
           });
 
           if (progressReporter) {
@@ -45,7 +45,7 @@ export class ProgressNotification {
 
               complete() {
                 progress.report({ increment: 100 });
-                resolve();
+                resolve(undefined);
               }
             });
           }

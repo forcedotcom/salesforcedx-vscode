@@ -20,7 +20,8 @@ import {
   WorkspaceConfiguration,
   commands
 } from 'vscode';
-import { clearDiagnostics } from '../../../src/client/client';
+import * as vscode from 'vscode';
+import { clearDiagnostics } from '../../../src/lspClient/client';
 import { stubMockConnection } from '../testUtilities';
 import {
   SOQL_CONFIGURATION_NAME,
@@ -34,10 +35,11 @@ async function sleep(ms: number = 0) {
   });
 }
 
-function waitUntil(predicate: () => boolean) {
+function waitUntil(predicate: () => boolean, tries = 5, msecsPerTry = 50) {
   return new Promise<void>(async resolve => {
-    for (let tries = 5; !predicate() && tries > 0; tries--) {
-      await sleep(50);
+    while (!predicate() && tries > 0) {
+      await sleep(msecsPerTry);
+      tries--;
     }
     resolve();
   });
@@ -62,11 +64,30 @@ describe('SOQL language client', () => {
 
   afterEach(async () => {
     sandbox.restore();
-    commands.executeCommand('workbench.action.closeActiveEditor');
-    await workspace.fs.delete(soqlFileUri);
+    await commands.executeCommand('workbench.action.closeActiveEditor');
+    try {
+      await workspace.fs.delete(soqlFileUri);
+    } catch (ignored) {}
   });
 
   it('should show diagnostics for syntax error', async () => {
+    soqlFileUri = await writeSOQLFile(
+      'testSyntaxError',
+      `SELECT Id
+      FRM Account
+      `
+    );
+    await window.showTextDocument(soqlFileUri);
+
+    const diagnostics = languages.getDiagnostics(soqlFileUri);
+
+    expect(diagnostics)
+      .to.be.an('array')
+      .to.have.lengthOf(1);
+    expect(diagnostics[0].message).to.equal(`missing 'from' at 'Account'`);
+  });
+
+  it('should show diagnostics for syntax error only if file is open', async () => {
     soqlFileUri = await writeSOQLFile(
       'testSyntaxError',
       `SELECT Id
@@ -80,12 +101,39 @@ describe('SOQL language client', () => {
       .to.be.an('array')
       .to.have.lengthOf(1);
     expect(diagnostics[0].message).to.equal(`missing 'from' at 'Account'`);
+
+    await commands.executeCommand('workbench.action.closeOtherEditors');
+    await commands.executeCommand('workbench.action.closeActiveEditor');
+
+    // NOTE: deleting the file should NOT be necessary to trigger the clearing of Diagnostics,
+    // and it reality, it isn't. However, for some reason, during automated tests
+    // the 'workbench.action.close*Editor' commands don't seem to fire the `onDidClose()` callback
+    // on the language server side
+    await workspace.fs.delete(soqlFileUri);
+    await waitUntil(
+      () => languages.getDiagnostics(soqlFileUri).length === 0,
+      10,
+      100
+    );
+
+    const fileDiags = languages.getDiagnostics(soqlFileUri);
+
+    expect(fileDiags)
+      .to.be.an('array')
+      .to.have.lengthOf(0);
   });
 
   it('should not create diagnostics based off of remote query validation by default', async () => {
     soqlFileUri = await writeSOQLFile(
       'testSemanticErrors_remoteRunDefault',
       'SELECT Ids FROM Account'
+    );
+    stubSOQLExtensionConfiguration(
+      sandbox,
+      {
+        // [SOQL_VALIDATION_CONFIG]: undefined
+      },
+      soqlExtension
     );
 
     const querySpy = sandbox.stub(mockConnection, 'query');

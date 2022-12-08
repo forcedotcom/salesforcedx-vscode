@@ -11,11 +11,11 @@ import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { FunctionService } from './functionService';
 
-const logName = 'force_function_stop';
+const LOG_NAME = 'force_function_stop';
 
 /**
  * Stop all running function containers.
- * Currently, we don't support stopping individual container,
+ * Currently, we don't support stopping individual containers,
  * because we don't support running multiple containers.
  */
 export async function forceFunctionStop() {
@@ -27,7 +27,9 @@ export async function forceFunctionStop() {
     notificationService
       .showSuccessfulExecution(nls.localize('force_function_stop_text'))
       .catch(() => {});
-    telemetryService.sendCommandEvent(logName, startTime);
+    telemetryService.sendCommandEvent(LOG_NAME, startTime, {
+      language: FunctionService.instance.getFunctionLanguage()
+    });
   } else {
     notificationService.showWarningMessage(
       nls.localize('force_function_stop_not_started')

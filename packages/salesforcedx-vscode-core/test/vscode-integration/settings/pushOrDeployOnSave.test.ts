@@ -5,71 +5,70 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import * as context from '../../../src/context';
+import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { DeployQueue, pathIsInPackageDirectory } from '../../../src/settings';
+import {
+  DeployQueue,
+  fileShouldNotBeDeployed,
+  pathIsInPackageDirectory
+} from '../../../src/settings';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
 
-const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
+
+const sandbox = createSandbox();
+const OrgType = workspaceContextUtils.OrgType;
 
 describe('Push or Deploy on Save', () => {
   let appendLineStub: SinonStub;
   let showErrorMessageStub: SinonStub;
   beforeEach(() => {
-    appendLineStub = stub(channelService, 'appendLine');
-    showErrorMessageStub = stub(notificationService, 'showErrorMessage');
+    appendLineStub = sandbox.stub(channelService, 'appendLine');
+    showErrorMessageStub = sandbox.stub(
+      notificationService,
+      'showErrorMessage'
+    );
   });
 
-  afterEach(() => {
-    appendLineStub.restore();
-    showErrorMessageStub.restore();
-  });
+  afterEach(() => sandbox.restore());
+
   describe('pathIsInPackageDirectory', () => {
     it('should return true if the path is in a package directory', async () => {
-      const isInPackageDirectoryStub = stub(
-        SfdxPackageDirectories,
-        'isInPackageDirectory'
-      ).returns(true);
-      const isInPackageDirectory = await pathIsInPackageDirectory(
-        vscode.Uri.file('test-path')
-      );
+      sandbox
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(true);
+      const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.true;
       expect(appendLineStub.called).to.be.false;
       expect(showErrorMessageStub.called).to.be.false;
-      isInPackageDirectoryStub.restore();
     });
 
     it('should return false if the path is not in a package directory', async () => {
-      const isInPackageDirectoryStub = stub(
-        SfdxPackageDirectories,
-        'isInPackageDirectory'
-      ).returns(false);
-      const isInPackageDirectory = await pathIsInPackageDirectory(
-        vscode.Uri.file('test-path')
-      );
+      sandbox
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(false);
+      const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.false;
       expect(appendLineStub.called).to.be.false;
       expect(showErrorMessageStub.called).to.be.false;
-      isInPackageDirectoryStub.restore();
     });
 
     it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
       const error = new Error();
       error.name = 'NoPackageDirectoriesFound';
-      const isInPackageDirectoryStub = stub(
-        SfdxPackageDirectories,
-        'isInPackageDirectory'
-      ).throws(error);
+      sandbox
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .throws(error);
       let errorWasThrown = false;
 
       try {
-        await pathIsInPackageDirectory(vscode.Uri.file('test-path'));
+        await pathIsInPackageDirectory('test-path');
       } catch (e) {
         errorWasThrown = true;
         expect(e.message).to.equal(
@@ -79,20 +78,18 @@ describe('Push or Deploy on Save', () => {
         expect(errorWasThrown).to.be.true;
         expect(appendLineStub.called).to.be.true;
         expect(showErrorMessageStub.called).to.be.true;
-        isInPackageDirectoryStub.restore();
       }
     });
 
     it('should throw an error if packageDirectories does not specify any paths', async () => {
       const error = new Error();
       error.name = 'NoPackageDirectoryPathsFound';
-      const isInPackageDirectoryStub = stub(
-        SfdxPackageDirectories,
-        'isInPackageDirectory'
-      ).throws(error);
+      sandbox
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .throws(error);
       let errorWasThrown = false;
       try {
-        await pathIsInPackageDirectory(vscode.Uri.file('test-path'));
+        await pathIsInPackageDirectory('test-path');
       } catch (error) {
         errorWasThrown = true;
         expect(error.message).to.equal(
@@ -102,7 +99,6 @@ describe('Push or Deploy on Save', () => {
         expect(errorWasThrown).to.be.true;
         expect(appendLineStub.called).to.be.true;
         expect(showErrorMessageStub.called).to.be.true;
-        isInPackageDirectoryStub.restore();
       }
     });
   });
@@ -113,13 +109,11 @@ describe('Push or Deploy on Save', () => {
 
     beforeEach(() => {
       DeployQueue.reset();
-      getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType');
-      executeCommandStub = stub(vscode.commands, 'executeCommand');
-    });
-
-    afterEach(() => {
-      getWorkspaceOrgTypeStub.restore();
-      executeCommandStub.restore();
+      getWorkspaceOrgTypeStub = sandbox.stub(
+        workspaceContextUtils,
+        'getWorkspaceOrgType'
+      );
+      executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
     });
 
     it('should not deploy if nothing has been queued', async () => {
@@ -129,7 +123,7 @@ describe('Push or Deploy on Save', () => {
 
     it('should stop additional files from deploying until queue is unlocked', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
-      const telemetryStub = stub(telemetryService, 'sendEventData');
+      const telemetryStub = sandbox.stub(telemetryService, 'sendEventData');
       const queue = DeployQueue.get();
 
       // start a deploy from an enqueue and lock deploys
@@ -162,8 +156,6 @@ describe('Push or Deploy on Save', () => {
       expect(telemArgs[1]).to.deep.equal({ deployType: 'Deploy' });
       expect(telemArgs[2]['documentsToDeploy']).to.equal(2);
       expect(telemArgs[2]['waitTimeForLastDeploy'] > 0).to.be.true;
-
-      telemetryStub.restore();
     });
 
     it('should display an error to the user when the defaultusername org info cannot be found', async () => {
@@ -196,8 +188,14 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
     });
 
-    it('should call force:source:push', async () => {
+    it('should call force:source:push when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+      sandbox
+        .stub(
+          SfdxCoreSettings.prototype,
+          'getPushOrDeployOnSaveOverrideConflicts'
+        )
+        .returns(false);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
@@ -207,7 +205,25 @@ describe('Push or Deploy on Save', () => {
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
-      executeCommandStub.restore();
+    });
+
+    it('should call force:source:push --forceoverwrite when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
+      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+      sandbox
+        .stub(
+          SfdxCoreSettings.prototype,
+          'getPushOrDeployOnSaveOverrideConflicts'
+        )
+        .returns(true);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.push.force'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
     });
 
     it('should call force:source:deploy on multiple paths', async () => {
@@ -221,6 +237,35 @@ describe('Push or Deploy on Save', () => {
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
+    });
+  });
+
+  describe('fileShouldNotBeDeployed', () => {
+    // verify which types of files we want to be deployed on save
+
+    it('should return true for dot files', async () => {
+      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/.env'
+      );
+      expect(stopDotFileFromBeingDeployed).to.be.true;
+    });
+    it('should return true for soql files', async () => {
+      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/AccountQuery.soql'
+      );
+      expect(stopSOQLFileFromBeingDeployed).to.be.true;
+    });
+    it('should return true for anonymous apex files', async () => {
+      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/GetAccounts.apex'
+      );
+      expect(stopAnonApexFileFromBeingDeployed).to.be.true;
+    });
+    it('should return false for class files', async () => {
+      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/MyAccountMap.cls'
+      );
+      expect(stopClassFileFromBeingDeployed).to.be.false;
     });
   });
 });

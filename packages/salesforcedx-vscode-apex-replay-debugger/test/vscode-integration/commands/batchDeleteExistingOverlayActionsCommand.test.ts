@@ -6,13 +6,13 @@
  */
 
 import {
-  RequestService,
-  RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
-import {
   INVALID_CROSS_REFERENCE_KEY,
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import {
+  RequestService,
+  RestHttpMethodEnum
+} from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';

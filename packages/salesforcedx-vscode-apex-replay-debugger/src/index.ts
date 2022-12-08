@@ -20,13 +20,13 @@ import {
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import * as path from 'path';
-import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
+import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
+  CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfdxCreateCheckpoints,
   sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
@@ -35,6 +35,7 @@ import { setupAndDebugTests } from './commands/quickLaunch';
 import { workspaceContext } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
+
 let extContext: vscode.ExtensionContext;
 
 export enum VSCodeWindowTypeEnum {
@@ -48,6 +49,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 );
 
 function registerCommands(): vscode.Disposable {
+  const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {
@@ -57,7 +59,7 @@ function registerCommands(): vscode.Disposable {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: getDialogStartingPath()
+        defaultUri: dialogStartingPathUri
       });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
@@ -67,7 +69,7 @@ function registerCommands(): vscode.Disposable {
   );
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.logfile',
-    editorUri => {
+    (editorUri: vscode.Uri) => {
       let logFile: string | undefined;
       if (!editorUri) {
         const editor = vscode.window.activeTextEditor;
@@ -82,6 +84,16 @@ function registerCommands(): vscode.Disposable {
       return launchFromLogFile(logFile);
     }
   );
+
+  const launchFromLogFilePathCmd = vscode.commands.registerCommand(
+    'sfdx.launch.replay.debugger.logfile.path',
+    logFilePath => {
+      if (logFilePath) {
+        launchFromLogFile(logFilePath, true);
+      }
+    }
+  );
+
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.last.logfile',
     lastLogFileUri => {
@@ -94,7 +106,7 @@ function registerCommands(): vscode.Disposable {
 
   const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
     'sfdx.create.checkpoints',
-    sfdxCreateCheckpoints
+    CheckpointService.sfdxCreateCheckpoints
   );
   const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
     'sfdx.toggle.checkpoint',
@@ -104,6 +116,7 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(
     promptForLogCmd,
     launchFromLogFileCmd,
+    launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
     sfdxCreateCheckpointsCmd,
     sfdxToggleCheckpointCmd
@@ -160,11 +173,11 @@ function registerDebugHandlers(): vscode.Disposable {
   return vscode.Disposable.from(customEventHandler);
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
 
-  extContext = context;
+  extContext = extensionContext;
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
@@ -180,7 +193,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Workspace Context
-  await workspaceContext.initialize(context);
+  await workspaceContext.initialize(extensionContext);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(
@@ -199,7 +212,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     commands,
     debugHandlers,
     debugConfigProvider,
@@ -218,39 +231,6 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
-
-function getDialogStartingPath(): vscode.Uri | undefined {
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    // If the user has already selected a document through getLogFileName then
-    // use that path if it still exists.
-    const lastOpenedLogFolder = extContext.workspaceState.get<string>(
-      LAST_OPENED_LOG_FOLDER_KEY
-    );
-    if (lastOpenedLogFolder && pathExists.sync(lastOpenedLogFolder)) {
-      return vscode.Uri.file(lastOpenedLogFolder);
-    }
-    // If lastOpenedLogFolder isn't defined or doesn't exist then use the
-    // same directory that the SFDX download logs command would download to
-    // if it exists.
-    const sfdxCommandLogDir = path.join(
-      vscode.workspace.workspaceFolders![0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'debug',
-      'logs'
-    );
-    if (pathExists.sync(sfdxCommandLogDir)) {
-      return vscode.Uri.file(sfdxCommandLogDir);
-    }
-    // If all else fails, fallback to the .sfdx directory in the workspace
-    return vscode.Uri.file(
-      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx')
-    );
-  }
 }
 
 export async function retrieveLineBreakpointInfo(): Promise<boolean> {

@@ -4,15 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import * as path from 'path';
 import {
   ERROR_EVENT,
   EXIT_EVENT,
   FAILURE_CODE,
-  SFDX_DIR,
-  SFDX_PROJECT_FILE,
   STDERR_EVENT,
   STDOUT_EVENT,
   SUCCESS_CODE
@@ -20,7 +18,7 @@ import {
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import {
-  SObjectDefinition,
+  SObject,
   SObjectDefinitionRetriever,
   SObjectGenerator,
   SObjectRefreshOutput as SObjectRefreshData,
@@ -33,8 +31,8 @@ export interface CancellationToken {
 
 export type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];
-  standard: SObjectDefinition[];
-  custom: SObjectDefinition[];
+  standard: SObject[];
+  custom: SObject[];
   error?: { message: string; stack?: string };
 };
 
@@ -58,18 +56,16 @@ export class SObjectTransformer {
     this.result = { data: { cancelled: false } };
   }
 
-  public async transform(projectPath: string): Promise<SObjectRefreshResult> {
-    const projectFile = path.join(projectPath, SFDX_PROJECT_FILE);
+  public async transform(): Promise<SObjectRefreshResult> {
+    const pathToStateFolder = projectPaths.stateFolder();
 
-    if (!fs.existsSync(projectPath) || !fs.existsSync(projectFile)) {
+    if (!fs.existsSync(pathToStateFolder)) {
       return this.errorExit(
-        nls.localize('no_generate_if_not_in_project', projectFile)
+        nls.localize('no_generate_if_not_in_project', pathToStateFolder)
       );
     }
 
-    const output: SObjectRefreshTransformData = this.initializeData(
-      projectPath
-    );
+    const output: SObjectRefreshData = this.initializeData(pathToStateFolder);
 
     for (const retriever of this.retrievers) {
       if (this.didCancel()) {
@@ -109,7 +105,7 @@ export class SObjectTransformer {
     return this.successExit();
   }
 
-  private initializeData(projectPath: string): SObjectRefreshTransformData {
+  private initializeData(pathToStateFolder: string): SObjectRefreshData {
     const output: SObjectRefreshTransformData = {
       addTypeNames: names => {
         output.typeNames = output.typeNames.concat(names);
@@ -134,7 +130,8 @@ export class SObjectTransformer {
         this.result.error = { message, stack };
       },
 
-      sfdxPath: path.join(projectPath, SFDX_DIR),
+      sfdxPath: pathToStateFolder,
+
       typeNames: [],
       custom: [],
       standard: []
