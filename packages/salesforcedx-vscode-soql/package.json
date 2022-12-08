@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "56.3.1",
+  "version": "56.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core": "^3.23.2",
+    "@salesforce/core": "^3.31.18",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
@@ -41,9 +41,9 @@
     "jsforce": "2.0.0-beta.18"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "56.3.1",
-    "@salesforce/salesforcedx-test-utils-vscode": "56.3.1",
-    "@salesforce/salesforcedx-utils-vscode": "56.3.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "56.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "56.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "56.9.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "1.5.13",
@@ -84,7 +84,7 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
     "test:ui:prepare": "extest get-vscode -s ~/.vscode-test-resources && extest get-chromedriver -s ~/.vscode-test-resources ",
-    "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-56.2.0.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
+    "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-*.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
     "test:ui:run": "extest run-tests -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
     "test:ui": "npm run test:ui:prepare && npm run test:ui:install && npm run test:ui:run",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
@@ -120,7 +120,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
-        "@salesforce/core": "3.30.9",
+        "@salesforce/core": "3.31.18",
         "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "0.2.0",
         "@salesforce/soql-data-view": "0.1.0",

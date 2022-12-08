@@ -1,0 +1,7 @@
+name: Integration Tests
+on:
+  workflow_call:
+
+jobs:
+  windows-integration-tests:
+    uses: ./.github/workflows/integrationTestsWindows.yml

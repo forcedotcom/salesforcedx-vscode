@@ -14,7 +14,7 @@ import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const ORGS = 'orgs';
 const METADATA = 'metadata';
-const TOOLS = 'tools';
+export const TOOLS = 'tools';
 const TEST_RESULTS = 'testresults';
 const APEX = 'apex';
 const DEBUG = 'debug';
@@ -146,6 +146,11 @@ function relativeStateFolder(): string {
   return Global.STATE_FOLDER;
 }
 
+function relativeToolsFolder(): string {
+  const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);
+  return relativePathToToolsFolder;
+}
+
 export const projectPaths = {
   stateFolder,
   metadataFolder,
@@ -156,5 +161,6 @@ export const projectPaths = {
   sfdxProjectConfig,
   toolsFolder,
   lwcTestResultsFolder,
-  relativeStateFolder
+  relativeStateFolder,
+  relativeToolsFolder
 };

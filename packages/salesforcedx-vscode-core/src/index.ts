@@ -92,10 +92,16 @@ import {
   registerConflictView,
   setupConflictView
 } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
-import { workspaceContextUtils } from './context';
-import { workspaceContext } from './context';
-import * as decorators from './decorators';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  ORG_OPEN_COMMAND
+} from './constants';
+import { workspaceContext, workspaceContextUtils } from './context';
+import {
+  decorators,
+  disposeTraceFlagExpiration,
+  showDemoMode
+} from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -157,7 +163,7 @@ function registerCommands(
     forceOrgCreate
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.open',
+    ORG_OPEN_COMMAND,
     forceOrgOpen
   );
   const forceSourceDeleteCmd = vscode.commands.registerCommand(
@@ -733,14 +739,13 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
 
   // Register file watcher for push or deploy on save
   await registerPushOrDeployOnSave();
-  decorators.showOrg();
-  decorators.monitorOrgConfigChanges();
+  await decorators.showOrg();
 
   await setUpOrgExpirationWatcher(orgList);
 
   // Demo mode decorator
   if (isDemoMode()) {
-    decorators.showDemoMode();
+    showDemoMode();
   }
 }
 
@@ -751,6 +756,6 @@ export function deactivate(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
 
-  decorators.disposeTraceFlagExpiration();
+  disposeTraceFlagExpiration();
   return turnOffLogging();
 }

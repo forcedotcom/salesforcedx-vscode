@@ -7,27 +7,19 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  Measurements,
-  Properties,
+  CommandExecution, ContinueResponse, Measurements, ParametersGatherer,
+  PostconditionChecker,
+  PreconditionChecker, Properties,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { EmptyPostChecker } from '.';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
+import { EmptyPostChecker } from './emptyPostChecker';
 
 export enum CommandVersion {
   Beta = 'beta',

@@ -8,6 +8,8 @@
 import { SfdxCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
+
+export const FORCE_CONFIG_GET_COMMAND = 'force:config:get';
 /**
  * @deprecated
  * NOTE: This code is deprecated in favor of using ConfigUtil.ts
@@ -17,7 +19,9 @@ export class ForceConfigGet {
     projectPath: string,
     ...keys: string[]
   ): Promise<Map<string, string>> {
-    const commandBuilder = new SfdxCommandBuilder().withArg('force:config:get');
+    const commandBuilder = new SfdxCommandBuilder().withArg(
+      FORCE_CONFIG_GET_COMMAND
+    );
     keys.forEach(key => commandBuilder.withArg(key));
 
     const execution = new CliCommandExecutor(
