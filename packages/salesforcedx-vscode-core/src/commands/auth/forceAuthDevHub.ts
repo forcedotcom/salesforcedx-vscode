@@ -72,6 +72,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     command
       .withArg(CLI.AUTH_WEB_LOGIN)
       .withLogName('force_auth_dev_hub')
+      .withFlag('--setalias', data.alias)
       .withArg('--setdefaultdevhubusername');
     return command.build();
   }
@@ -130,6 +131,7 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
         nls.localize('force_auth_web_login_authorize_dev_hub_text')
       )
       .withArg(CLI.AUTH_WEB_LOGIN)
+      .withFlag('--setalias', data.alias)
       .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
       .withJson()
