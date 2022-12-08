@@ -112,6 +112,16 @@
                 <xs:documentation>Enables a component to be used on a Lightning community page in Experience Builder.</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="lightningCommunity__Page_Layout">
+              <xs:annotation>
+                <xs:documentation>Enables a component to be used in Experience Builder as a page layout for an LWR site.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="lightningCommunity__Theme_Layout">
+              <xs:annotation>
+                <xs:documentation>Enables a component to be used in Experience Builder as a theme layout for an LWR site.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="lightningCommunity__Default">
               <xs:annotation>
                 <xs:documentation>Used together with lightningCommunity__Page. Enables a component that includes configurable properties to be used on a Lightning community page in Experience Builder. When the component is selected on the page, the properties appear.</xs:documentation>
