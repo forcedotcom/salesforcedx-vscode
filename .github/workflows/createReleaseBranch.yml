@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: create_release_branch
   schedule:
-  - cron: '0 13 * * 1'
+  - cron: '20 22 * * 1'
   workflow_dispatch:
     inputs:
       releaseType:
@@ -41,10 +41,10 @@ jobs:
       with:
         ref: 'develop'
         ssh-strict: false
-        token: ${{ secrets.SF_IDEE_BOT_GITHUB_TOKEN }}
+        token: ${{ secrets.IDEE_GH_TOKEN }}
     - uses: ./.github/actions/gitConfig
       with:
-        email: ${{ secrets.GH_EMAIL }}
+        email: ${{ secrets.IDEE_GH_EMAIL }}
     - name: Set NPM at the correct version for Lerna
       run: npm install -g npm@8.12.1
     - run: npm ci
