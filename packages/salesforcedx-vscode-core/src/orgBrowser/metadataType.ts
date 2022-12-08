@@ -40,13 +40,13 @@ export class TypeUtils {
     'Scontrol'
   ]);
 
-  public async getTypesFolder(): Promise<string> {
+  public async getTypesFolder(usernameOrAlias: string): Promise<string> {
     if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
-    const metadataTypesPath = projectPaths.metadataFolder();
+    const metadataTypesPath = projectPaths.metadataFolder(usernameOrAlias);
     return metadataTypesPath;
   }
 
@@ -90,9 +90,10 @@ export class TypeUtils {
   }
 
   public async loadTypes(
+    defaultOrg: string,
     forceRefresh?: boolean
   ): Promise<MetadataObject[]> {
-    const typesFolder = await this.getTypesFolder();
+    const typesFolder = await this.getTypesFolder(defaultOrg);
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
     let typesList: MetadataObject[];

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { projectPaths, workspaceUtils } from '../../../src/';
+import { projectPaths, WorkspaceContextUtil, workspaceUtils } from '../../../src/';
 import { TOOLS } from '../../../src/helpers/paths';
 
 jest.mock('@salesforce/core', () => {
@@ -16,7 +16,11 @@ describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_STATE_FOLDER = '.sfdx';
   const FAKE_CONFIG_FILE = 'sfdx-config.json';
+  const FAKE_USERNAME = 'testuser';
+  const FAKE_METADATA = 'metadata';
+  const FAKE_ORGS = 'orgs';
   const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
+  const FAKE_PATH_TO_METADATA_FOLDER = path.join(FAKE_PATH_TO_STATE_FOLDER, FAKE_ORGS, FAKE_USERNAME, FAKE_METADATA);
 
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
@@ -76,6 +80,28 @@ describe('test project paths', () => {
     it('should return a path to the relative tools folder', () => {
       const relativeToolsFolder = projectPaths.relativeToolsFolder();
       expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, TOOLS));
+    });
+  });
+
+  describe('test metadataFolder', () => {
+    let usernameStub: jest.SpyInstance;
+    let workspaceContextUtil: any;
+
+    beforeEach(() => {
+      workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
+      usernameStub = jest
+      .spyOn(workspaceContextUtil.prototype, 'username')
+      .mockReturnValue(FAKE_USERNAME)
+    });
+
+
+    it('should return a path to the metadata folder if the username is passed', () => {
+      hasRootWorkspaceStub.mockReturnValue(true);
+      expect(projectPaths.metadataFolder(FAKE_USERNAME)).toEqual(FAKE_PATH_TO_METADATA_FOLDER);
+    });
+
+    it('should return a path to the metadata folder if the username is not passed', () => {
+      expect(projectPaths.metadataFolder()).toEqual(FAKE_PATH_TO_METADATA_FOLDER);
     });
   });
 });

@@ -35,7 +35,7 @@ describe('get metadata types folder', () => {
   });
 
   it('should return the path for a given username', async () => {
-    expect(await typeUtil.getTypesFolder()).to.equal(metadataDirectoryPath);
+    expect(await typeUtil.getTypesFolder('test-username1@example.com')).to.equal(metadataDirectoryPath);
   });
 });
 
@@ -103,6 +103,7 @@ describe('load metadata types data', () => {
   let writeFileStub: SinonStub;
   let getTypesFolderStub: SinonStub;
   const typeUtil = new TypeUtils();
+  const defaultOrg = 'defaultOrg@test.com';
   let filePath = '/test/metadata/';
   beforeEach(() => {
     readFileStub = stub(fs, 'readFileSync');
@@ -139,7 +140,7 @@ describe('load metadata types data', () => {
       }
     });
     cmdOutputStub.returns(fileData);
-    const components = await typeUtil.loadTypes();
+    const components = await typeUtil.loadTypes(defaultOrg);
     expect(cmdOutputStub.called).to.equal(true);
     expect(buildTypesStub.calledWith(fileData, undefined)).to.be.true;
   });
@@ -147,14 +148,14 @@ describe('load metadata types data', () => {
   it('should load metadata types from file if file exists', async () => {
     fileExistsStub.returns(true);
     filePath = path.join(filePath, 'metadataTypes.json');
-    const components = await typeUtil.loadTypes();
+    const components = await typeUtil.loadTypes(defaultOrg);
     expect(cmdOutputStub.called).to.equal(false);
     expect(buildTypesStub.calledWith(undefined, filePath)).to.be.true;
   });
 
   it('should load metadata types through cli if file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
-    await typeUtil.loadTypes(true);
+    await typeUtil.loadTypes(defaultOrg, true);
     expect(cmdOutputStub.calledOnce).to.be.true;
   });
 });
