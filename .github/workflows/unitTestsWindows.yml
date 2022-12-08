@@ -1,3 +1,4 @@
+name: Unit Tests Windows
 on:
   workflow_call:
 

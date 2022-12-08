@@ -7,6 +7,6 @@ on:
 
 jobs:
   nightly-build-develop:
-    uses: ./.github/workflows/buildAll.yml
+    uses:  ./.github/workflows/nightlyBuild.yml
     with:
       branch: develop
