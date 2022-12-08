@@ -1,3 +1,4 @@
+name: Build All
 on:
   workflow_call:
 

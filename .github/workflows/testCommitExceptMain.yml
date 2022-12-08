@@ -1,4 +1,4 @@
-name: commit workflow
+name: Commit Workflow
 on:
   push:
     branches-ignore: [main, develop]
