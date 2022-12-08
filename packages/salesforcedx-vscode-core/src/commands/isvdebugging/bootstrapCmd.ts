@@ -13,6 +13,7 @@ import {
   CommandOutput,
   ContinueResponse,
   ParametersGatherer,
+  projectPaths,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'child_process';
@@ -53,20 +54,22 @@ export interface InstalledPackageInfo {
   versionNumber: string;
 }
 
+export const ISVDEBUGGER = 'isvdebuggermdapitmp';
+export const INSTALLED_PACKAGES = 'installed-packages';
+export const PACKAGE_XML = 'package.xml';
+
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
-    '.sfdx',
-    'tools',
-    'isvdebuggermdapitmp'
+    projectPaths.relativeToolsFolder(),
+    ISVDEBUGGER
   );
   public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
-    'package.xml'
+    PACKAGE_XML
   );
   public readonly relativeInstalledPackagesPath = path.join(
-    '.sfdx',
-    'tools',
-    'installed-packages'
+    projectPaths.relativeToolsFolder(),
+    INSTALLED_PACKAGES
   );
 
   public build(data: {}): Command {
