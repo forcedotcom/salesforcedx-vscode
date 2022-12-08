@@ -19,6 +19,9 @@ import { SfdxPackageDirectories } from '../../sfdxProject';
 import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
 
+export const CONTINUE = 'CONTINUE';
+export const CANCEL = 'CANCEL';
+
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: Array<ParametersGatherer<any>>;
   public constructor(...gatherers: Array<ParametersGatherer<any>>) {
@@ -28,18 +31,18 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
     const aggregatedData: any = {};
     for (const gatherer of this.gatherers) {
       const input = await gatherer.gather();
-      if (input.type === 'CONTINUE') {
+      if (input.type === CONTINUE) {
         Object.keys(input.data).map(
           key => (aggregatedData[key] = input.data[key])
         );
       } else {
         return {
-          type: 'CANCEL'
+          type: CANCEL
         };
       }
     }
     return {
-      type: 'CONTINUE',
+      type: CONTINUE,
       data: aggregatedData
     };
   }
@@ -47,7 +50,7 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return { type: 'CONTINUE', data: {} };
+    return { type: CONTINUE, data: {} };
   }
 }
 
@@ -59,9 +62,9 @@ export class FilePathGatherer implements ParametersGatherer<string> {
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
     if (workspaceUtils.hasRootWorkspace()) {
-      return { type: 'CONTINUE', data: this.filePath };
+      return { type: CONTINUE, data: this.filePath };
     }
-    return { type: 'CANCEL' };
+    return { type: CANCEL };
   }
 }
 
@@ -103,14 +106,14 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
     });
     if (fileItems.length === 0) {
       vscode.window.showErrorMessage(this.errorMessage);
-      return { type: 'CANCEL' };
+      return { type: CANCEL };
     }
     const selection = await vscode.window.showQuickPick(fileItems, {
       placeHolder: this.displayMessage
     });
     return selection
-      ? { type: 'CONTINUE', data: { file: selection.description.toString() } }
-      : { type: 'CANCEL' };
+      ? { type: CONTINUE, data: { file: selection.description.toString() } }
+      : { type: CANCEL };
   }
 }
 
@@ -141,9 +144,7 @@ export class SelectFileName
     } as vscode.InputBoxOptions;
 
     const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
-    return fileName
-      ? { type: 'CONTINUE', data: { fileName } }
-      : { type: 'CANCEL' };
+    return fileName ? { type: CONTINUE, data: { fileName } } : { type: CANCEL };
   }
 }
 
@@ -156,14 +157,12 @@ export class SelectUsername
       prompt: nls.localize('parameter_gatherer_enter_username_name')
     } as vscode.InputBoxOptions;
     const username = await vscode.window.showInputBox(usernameInputOptions);
-    return username
-      ? { type: 'CONTINUE', data: { username } }
-      : { type: 'CANCEL' };
+    return username ? { type: CONTINUE, data: { username } } : { type: CANCEL };
   }
 }
 
 export class DemoModePromptGatherer implements ParametersGatherer<{}> {
-  private readonly LOGOUT_RESPONSE = 'Cancel';
+  private readonly LOGOUT_RESPONSE = CANCEL;
   private readonly DO_NOT_LOGOUT_RESPONSE = 'Authorize Org';
   private readonly prompt = nls.localize('demo_mode_prompt');
 
@@ -175,8 +174,8 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
     );
 
     return response && response === this.LOGOUT_RESPONSE
-      ? { type: 'CONTINUE', data: {} }
-      : { type: 'CANCEL' };
+      ? { type: CONTINUE, data: {} }
+      : { type: CANCEL };
   }
 }
 
@@ -232,10 +231,10 @@ export class SelectLwcComponentDir
 
     return outputdir && fileName
       ? {
-          type: 'CONTINUE',
+          type: CONTINUE,
           data: { fileName, outputdir }
         }
-      : { type: 'CANCEL' };
+      : { type: CANCEL };
   }
 
   public async showMenu(
@@ -289,8 +288,8 @@ export class SelectOutputDir
     }
 
     return outputdir
-      ? { type: 'CONTINUE', data: { outputdir } }
-      : { type: 'CANCEL' };
+      ? { type: CONTINUE, data: { outputdir } }
+      : { type: CANCEL };
   }
 
   public getDefaultOptions(packageDirectories: string[]): string[] {
@@ -334,7 +333,7 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
 
   public async gather(): Promise<ContinueResponse<T>> {
     return {
-      type: 'CONTINUE',
+      type: CONTINUE,
       data: this.input
     };
   }
@@ -352,7 +351,7 @@ export class RetrieveComponentOutputGatherer
     CancelResponse | ContinueResponse<LocalComponent[]>
   > {
     return {
-      type: 'CONTINUE',
+      type: CONTINUE,
       data: await this.describer.gatherOutputLocations()
     };
   }
@@ -378,8 +377,8 @@ export class PromptConfirmGatherer
     const cancelOpt = nls.localize('parameter_gatherer_prompt_cancel_option');
     const choice = await this.showMenu([cancelOpt, confirmOpt]);
     return confirmOpt === choice
-      ? { type: 'CONTINUE', data: { choice } }
-      : { type: 'CANCEL' };
+      ? { type: CONTINUE, data: { choice } }
+      : { type: CANCEL };
   }
 
   public async showMenu(options: string[]): Promise<string | undefined> {
