@@ -32,7 +32,7 @@ jest.mock('../../../../src/commands/util/postconditionCheckers');
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
-const LibraryForceApexClassCreateExecutorMocked = jest.mocked(
+const libraryForceApexClassCreateExecutorMocked = jest.mocked(
   LibraryForceApexClassCreateExecutor
 );
 const sfdxWorkspaceCheckerMocked = jest.mocked(SfdxWorkspaceChecker);
@@ -64,7 +64,7 @@ describe('forceApexClassCreate Unit Tests.', () => {
     );
     expect(selectOutputDirMocked).toHaveBeenCalledWith(APEX_CLASS_DIRECTORY);
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
-    expect(LibraryForceApexClassCreateExecutorMocked).toHaveBeenCalled();
+    expect(libraryForceApexClassCreateExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
     expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();

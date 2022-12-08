@@ -44,19 +44,15 @@ function getGatherers() {
 }
 
 export async function forceApexTriggerCreate() {
-  const {
-    metadataTypeGatherer,
-    fileNameGatherer,
-    outputDirGatherer
-  } = getGatherers();
+  const gatherers = getGatherers();
 
   const createTemplateExecutor = new LibraryForceApexTriggerCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
+      gatherers.metadataTypeGatherer,
+      gatherers.fileNameGatherer,
+      gatherers.outputDirGatherer
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()

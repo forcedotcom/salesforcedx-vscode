@@ -44,19 +44,15 @@ function getParamGatherers() {
 }
 
 export async function forceApexClassCreate() {
-  const {
-    fileNameGatherer,
-    outputDirGatherer,
-    metadataTypeGatherer
-  } = getParamGatherers();
+  const gatherers = getParamGatherers();
 
   const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
+      gatherers.metadataTypeGatherer,
+      gatherers.fileNameGatherer,
+      gatherers.outputDirGatherer
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
