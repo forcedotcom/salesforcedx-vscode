@@ -14,6 +14,7 @@ jest.mock('@salesforce/core', () => {
 describe('test project paths', () => {
   const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
+  const FAKE_WORKSPACE_INSTANCE: any = {};
   const FAKE_STATE_FOLDER = '.sfdx';
   const FAKE_CONFIG_FILE = 'sfdx-config.json';
   const FAKE_USERNAME = 'testuser';
@@ -84,14 +85,20 @@ describe('test project paths', () => {
   });
 
   describe('test metadataFolder', () => {
+    let stateFolderStub: jest.SpyInstance;
     let usernameStub: jest.SpyInstance;
-    let workspaceContextUtil: any;
-
     beforeEach(() => {
-      workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
+      FAKE_WORKSPACE_INSTANCE.username = 'testuser';
+      stateFolderStub = jest
+        .spyOn(projectPaths, 'stateFolder')
+        .mockReturnValue(FAKE_PATH_TO_STATE_FOLDER);
+
       usernameStub = jest
-      .spyOn(workspaceContextUtil.prototype, 'username')
-      .mockReturnValue(FAKE_USERNAME);
+      .spyOn(WorkspaceContextUtil, 'getInstance')
+      .mockReturnValue(FAKE_WORKSPACE_INSTANCE);
+    });
+    it('should be defined', () => {
+      expect(projectPaths.metadataFolder).toBeDefined();
     });
 
     it('should return a path to the metadata folder if the username is passed', () => {
