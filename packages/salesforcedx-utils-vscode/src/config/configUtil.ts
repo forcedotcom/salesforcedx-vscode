@@ -149,7 +149,7 @@ export class ConfigUtil {
     if (usernameOrAlias) { // check if username is an empty string
       await Org.create({ aliasOrUsername: usernameOrAlias }); // check if username is valid
     }
-    config.set(DEFAULT_USERNAME_KEY, usernameOrAlias);
+    config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
     await config.write();
     process.chdir(originalDirectory);
   }
