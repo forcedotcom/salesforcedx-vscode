@@ -525,6 +525,6 @@ export const messages = {
   functions_doc_url:
     'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
-  parameter_gathere_file_name_max_length_validation_error_message:
+  parameter_gatherer_file_name_max_length_validation_error_message:
     'ファイル名は {0} 文字を超えることはできません'
 };

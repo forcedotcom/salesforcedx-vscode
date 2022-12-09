@@ -135,7 +135,7 @@ export class SelectFileName
           return value.length > this.maxFileNameLength
             ? nls
                 .localize(
-                  'parameter_gathere_file_name_max_length_validation_error_message'
+                  'parameter_gatherer_file_name_max_length_validation_error_message'
                 )
                 .replace('{0}', this.maxFileNameLength.toString())
             : null;
