@@ -1,6 +1,10 @@
 name: Build All
 on:
   workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
 
 jobs:
   build-all:
@@ -11,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}

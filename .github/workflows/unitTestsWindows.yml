@@ -1,7 +1,11 @@
 name: Unit Tests Windows
 on:
   workflow_call:
-
+    inputs:
+      branch:
+        type: string
+        required: false
+        
 jobs:
   windows-unit-tests:
     strategy:
@@ -13,6 +17,8 @@ jobs:
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}
