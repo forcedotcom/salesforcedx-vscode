@@ -3,7 +3,7 @@ name: Nightly Build Develop
 on:
   workflow_dispatch:
   schedule:
-    - cron: 10 20 * * *
+    - cron: 10 6 * * *
 
 jobs:
   nightly-build-develop:
