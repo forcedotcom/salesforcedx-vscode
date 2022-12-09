@@ -662,5 +662,7 @@ export const messages = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
   functions_doc_url:
     'https://developer.salesforce.com/tools/vscode/en/functions/overview',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode'
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode',
+  parameter_gatherer_file_name_max_length_validation_error_message:
+    'File name cannot exceed {0} characters'
 };
