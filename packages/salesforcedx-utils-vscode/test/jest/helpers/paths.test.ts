@@ -91,9 +91,8 @@ describe('test project paths', () => {
       workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
       usernameStub = jest
       .spyOn(workspaceContextUtil.prototype, 'username')
-      .mockReturnValue(FAKE_USERNAME)
+      .mockReturnValue(FAKE_USERNAME);
     });
-
 
     it('should return a path to the metadata folder if the username is passed', () => {
       hasRootWorkspaceStub.mockReturnValue(true);
