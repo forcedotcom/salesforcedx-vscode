@@ -104,7 +104,7 @@ export class MetadataOutlineProvider
   }
 
   public async getTypes(): Promise<MetadataObject[]> {
-    const username = this.defaultOrg;
+    const username = this.defaultOrg!;
     const typeUtil = new TypeUtils();
     try {
       return await typeUtil.loadTypes(username, this.toRefresh);
