@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import {
-  DirFileNameSelection,
-  LocalComponent
+  LocalComponent,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ApexTriggerOptions, TemplateType } from '@salesforce/templates';
-import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -20,46 +18,41 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+import { LibraryForceApexTriggerCreateExecutor } from './executors/libraryForceApexTriggerCreateExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,
+  APEX_TRIGGER_NAME_MAX_LENGTH,
   APEX_TRIGGER_TYPE
 } from './metadataTypeConstants';
 
-export class LibraryForceApexTriggerCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize('force_apex_trigger_create_text');
-  public telemetryName = 'force_apex_trigger_create';
-  public metadataTypeName = APEX_TRIGGER_TYPE;
-  public templateType = TemplateType.ApexTrigger;
-  public getOutputFileName(data: DirFileNameSelection) {
-    return data.fileName;
+let initialized = false;
+let fileNameGatherer: ParametersGatherer<any>;
+let outputDirGatherer: ParametersGatherer<any>;
+let metadataTypeGatherer: ParametersGatherer<any>;
+function getGatherers() {
+  if (!initialized) {
+    initialized = true;
+    fileNameGatherer = new SelectFileName(APEX_TRIGGER_NAME_MAX_LENGTH);
+    outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
+    metadataTypeGatherer = new MetadataTypeGatherer(APEX_TRIGGER_TYPE);
   }
-  public constructTemplateOptions(data: DirFileNameSelection) {
-    const templateOptions: ApexTriggerOptions = {
-      outputdir: data.outputdir,
-      triggername: data.fileName,
-      triggerevents: ['before insert'],
-      sobject: 'SOBJECT',
-      template: 'ApexTrigger'
-    };
-    return templateOptions;
-  }
+  return {
+    fileNameGatherer,
+    outputDirGatherer,
+    metadataTypeGatherer
+  };
 }
 
-const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
-const metadataTypeGatherer = new MetadataTypeGatherer(APEX_TRIGGER_TYPE);
-
 export async function forceApexTriggerCreate() {
+  const gatherers = getGatherers();
+
   const createTemplateExecutor = new LibraryForceApexTriggerCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
+      gatherers.metadataTypeGatherer,
+      gatherers.fileNameGatherer,
+      gatherers.outputDirGatherer
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()

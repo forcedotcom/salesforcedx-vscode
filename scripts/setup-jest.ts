@@ -56,6 +56,7 @@ const getMockVSCode = () => {
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
       showErrorMessage: jest.fn(),
+      showInputBox: jest.fn(),
       setStatusBarMessage: jest.fn(),
       withProgress: jest.fn(),
       createOutputChannel: jest.fn(),

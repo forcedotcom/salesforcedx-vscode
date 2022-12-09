@@ -1,10 +1,12 @@
 export const APEX_CLASS_DIRECTORY = 'classes';
 export const APEX_CLASS_EXTENSION = '.cls';
 export const APEX_CLASS_TYPE = 'apexclass';
+export const APEX_CLASS_NAME_MAX_LENGTH = 40;
 
 export const APEX_TRIGGER_DIRECTORY = 'triggers';
 export const APEX_TRIGGER_EXTENSION = '.trigger';
 export const APEX_TRIGGER_TYPE = 'apextrigger';
+export const APEX_TRIGGER_NAME_MAX_LENGTH = 40;
 
 export const VISUALFORCE_COMPONENT_DIRECTORY = 'components';
 export const VISUALFORCE_COMPONENT_EXTENSION = '.component';
