@@ -162,7 +162,7 @@ export class SelectUsername
 }
 
 export class DemoModePromptGatherer implements ParametersGatherer<{}> {
-  private readonly LOGOUT_RESPONSE = CANCEL;
+  private readonly LOGOUT_RESPONSE = 'Cancel';
   private readonly DO_NOT_LOGOUT_RESPONSE = 'Authorize Org';
   private readonly prompt = nls.localize('demo_mode_prompt');
 
