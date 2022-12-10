@@ -25,9 +25,6 @@ describe('Metadata', async () => {
   });
 
   step('what?', async () => {
-
-    debugger;
-
     // TODO: implement
     expect(1).toBe(1);
   });

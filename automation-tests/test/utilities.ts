@@ -33,7 +33,6 @@ async function openFolder(vscode: typeof vscodeType, folderPath: string): Promis
   const result = await vscode.commands.executeCommand('vscode.openFolder', folderPathUri);
 
   // TODO: verify return type
-  debugger;
 
   return result;
 }
