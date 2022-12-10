@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "types": [
+            "node",
+            "webdriverio/async",
+            "@wdio/mocha-framework",
+            "expect-webdriverio",
+            "wdio-vscode-service"
+        ],
+        "target": "es2019",
+        "moduleResolution": "node",
+        "esModuleInterop": true
+    }
+}
