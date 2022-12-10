@@ -15,24 +15,16 @@ export class EnvironmentSettings {
   }
 
   public static getInstance(): EnvironmentSettings {
-      if (!EnvironmentSettings._instance) {
-        EnvironmentSettings._instance = new EnvironmentSettings();
+    if (!EnvironmentSettings._instance) {
+      EnvironmentSettings._instance = new EnvironmentSettings();
 
-        // Each setting is required, so preload them and assert if one is not found.
-        EnvironmentSettings._instance._devHubAliasName = EnvironmentSettings._instance.getRequiredVariable(process.env.DEV_HUB_ALIAS_NAME, 'DEV_HUB_ALIAS_NAME');
-        EnvironmentSettings._instance._devHubUserName = EnvironmentSettings._instance.getRequiredVariable(process.env.DEV_HUB_USER_NAME, 'DEV_HUB_USER_NAME');
-        EnvironmentSettings._instance._throttleFactor = parseInt(EnvironmentSettings._instance.getRequiredVariable(process.env.THROTTLE_FACTOR, 'THROTTLE_FACTOR'));
-      }
-
-      return EnvironmentSettings._instance;
-  }
-
-  public getRequiredVariable(environmentVariable: string, name): string {
-    if (environmentVariable) {
-      return environmentVariable;
+      // Each setting is required, so preload them and assert if one is not found.
+      EnvironmentSettings._instance._devHubAliasName = process.env.DEV_HUB_ALIAS_NAME || 'vscodeOrg';
+      EnvironmentSettings._instance._devHubUserName = process.env.DEV_HUB_USER_NAME || 'svc_idee_bot@salesforce.com';
+      EnvironmentSettings._instance._throttleFactor = parseInt(process.env.THROTTLE_FACTOR || '1');
     }
 
-    throw new Error(`Required environment variable ${name} is not set`);
+    return EnvironmentSettings._instance;
   }
 
   public get devHubAliasName(): string {

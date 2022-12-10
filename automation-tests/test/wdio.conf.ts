@@ -13,6 +13,7 @@ const capabilities: VSCodeCapabilities = {
     browserName: 'vscode',
     browserVersion: 'stable',
     'wdio:vscodeOptions': {
+
         // point to the root directory of your project
         // extensionPath: path.join(__dirname, '..'),
 
@@ -107,7 +108,17 @@ export const config: Options.Testrunner = {
     // will be called from there.
     //
     specs: [
-        './test/specs/**/*.e2e.ts'
+        // Place outside the array to run in parallel
+        // './test/specs/**/*.e2e.ts'
+        [
+            // Place inside the array to run sequentially
+            // './test/specs/**/*.e2e.ts'
+            './test/specs/**/anInitialSuite.e2e.ts'
+            // './test/specs/**/debugApexTests.e2e.ts'
+            // './test/specs/**/functions.e2e.ts'
+            // './test/specs/**/metadata.e2e.ts'
+            // './test/specs/**/orgCreationAndAuthentication.e2e.ts'
+        ]
     ],
     // Patterns to exclude.
     exclude: [

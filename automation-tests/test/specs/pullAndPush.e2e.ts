@@ -9,7 +9,7 @@ import {
   ScratchOrg
 } from '../ScratchOrg';
 
-describe('Push and Pull', async () => {
+describe('Pull and Push', async () => {
   let scratchOrg: ScratchOrg = undefined;
 
   step('Set up the testing environment', async () => {

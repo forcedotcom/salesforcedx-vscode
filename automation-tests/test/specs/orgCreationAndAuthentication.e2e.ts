@@ -19,7 +19,7 @@ import {
   utilities
 } from '../utilities';
 
-describe.skip('Org Creation and Authentication', async () => {
+describe('Org Creation and Authentication', async () => {
   let tempFolderPath = undefined;
   let prompt: QuickOpenBox | InputBox = undefined;
   let scratchOrgAliasName: string = undefined;
@@ -90,6 +90,7 @@ describe.skip('Org Creation and Authentication', async () => {
   step('Run SFDX: Authorize a Dev Hub', async () => {
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.
     const workbench = await (await browser.getWorkbench()).wait();
+    await utilities.pause(1);
     const authFilePath = path.join(tempFolderPath, 'TempProject', 'authFile.json');
     const terminalView = await utilities.executeCommand(workbench, `sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json > ${authFilePath}`);
 
@@ -97,7 +98,7 @@ describe.skip('Org Creation and Authentication', async () => {
     expect(authFilePathFileExists).toEqual(true);
 
     await terminalView.executeCommand(`sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
-    const terminalText = await utilities.getTerminalViewText(terminalView, 10);
+    const terminalText = await utilities.getTerminalViewText(terminalView, 60);
     expect(terminalText).toContain(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`);
   });
 
@@ -146,7 +147,7 @@ describe.skip('Org Creation and Authentication', async () => {
     const month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
     const year = currentDate.getFullYear();
     const userName = utilities.currentUserName();
-    scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${userName}_${ticks}`;
+    scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${userName}_${ticks}_OrgAuth`;
 
     await prompt.setText(scratchOrgAliasName);
     await utilities.pause(1);
@@ -154,14 +155,14 @@ describe.skip('Org Creation and Authentication', async () => {
     // Press Enter/Return.
     await prompt.confirm();
 
-    // Enter number of days
+    // Enter the number of days.
     await prompt.setText('1');
     await utilities.pause(1);
 
     // Press Enter/Return.
     await prompt.confirm();
 
-    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Create a Default Scratch Org...', 2 * 60);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Create a Default Scratch Org...', 5 * 60);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Create a Default Scratch Org... successfully ran');
     if (successNotificationWasFound != true) {
@@ -234,7 +235,7 @@ describe.skip('Org Creation and Authentication', async () => {
     expect(scratchOrgStatusBarItem).not.toBeUndefined();
   });
 
-  step('Clean up', async () => {
+  step('Tear down', async () => {
     if (scratchOrgAliasName) {
       const workbench = await (await browser.getWorkbench()).wait();
       await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${scratchOrgAliasName} --noprompt`);

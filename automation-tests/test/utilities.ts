@@ -50,16 +50,6 @@ function removeFolder(folderPath: string): ChildProcess {
   return childProcess;
 }
 
-async function createProjectX(vscode: typeof vscodeType): Promise<unknown> {
-  const result = await vscode.commands.executeCommand('sfdx.force.project.create');
-
-  // TODO: verify return type
-  debugger;
-  // jab
-
-  return result;
-}
-
 async function pause(duration: number): Promise<void> {
   await sleep(duration * EnvironmentSettings.getInstance().throttleFactor * 1000);
 }
@@ -70,17 +60,18 @@ async function clickFilePathOkButton(): Promise<void> {
   await utilities.pause(1);
 }
 
-async function executeQuickPick(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
-  // const prompt = await this.openCommandPrompt()
-  // const workbench = await (await browser.getWorkbench()).wait();
-
-  // const prompt = await (await workbench.openCommandPrompt()).wait();
+async function openCommandPromptWithCommand(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
   const prompt = await workbench.openCommandPrompt();
   await prompt.wait(5000);
 
   await prompt.setText(`>${command}`)
   await pause(1);
 
+  return prompt;
+}
+
+async function executeQuickPick(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
+  const prompt = await openCommandPromptWithCommand(workbench, command);
   await selectQuickPickItem(prompt, command);
 
   return prompt;
@@ -114,8 +105,10 @@ async function getStatusBarItemWhichIncludes(statusBar: StatusBar, title: string
   throw new Error(`Status bar item containing ${title} was not found`);
 }
 
-// jab change timeout from milliseconds to seconds
 async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, timeout: number): Promise<void> {
+  // Change timeout from seconds to milliseconds
+  timeout *= 1000;
+
   pause(5);
   const startDate = new Date();
   while (true) {
@@ -162,7 +155,12 @@ async function textIsPresentInOutputPanel(workbench: Workbench, text: string): P
 }
 
 async function executeCommand(workbench: Workbench, command: string): Promise<TerminalView> {
+  console.log(`Executing the command, "${command}"`);
+
   const terminalView = await getTerminalView(workbench);
+  expect(terminalView).not.toBeNull();
+  expect(terminalView).not.toBeUndefined();
+
   await terminalView.executeCommand(command);
 
   return terminalView;
@@ -205,9 +203,9 @@ export const utilities = {
   openFolder,
   createFolder,
   removeFolder,
-  createProjectX,
   pause,
   clickFilePathOkButton,
+  openCommandPromptWithCommand,
   executeQuickPick,
   selectQuickPickItem,
   getStatusBarItemWhichIncludes,
