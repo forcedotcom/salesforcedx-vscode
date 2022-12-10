@@ -4,8 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import child_process from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import util from 'util';
 import {
   DefaultTreeItem,
   InputBox,
@@ -19,6 +21,8 @@ import {
   utilities
 } from './utilities';
 
+const exec = util.promisify(child_process.exec);
+
 export class ScratchOrg {
   private testSuiteSuffixName: string = undefined;
   private reuseScratchOrg = false;
@@ -31,54 +35,24 @@ export class ScratchOrg {
     this.reuseScratchOrg = reuseScratchOrg;
 
     // To have all scratch orgs be reused, uncomment the following line:
-    this.reuseScratchOrg = true;
+    // this.reuseScratchOrg = true;
   }
 
   public async setUp(): Promise<void> {
-
-    // jab
-    // debugger;
-    console.log('');
-    console.log(`${this.testSuiteSuffixName}-calling setUpTestingEnvironment()...`);
     await this.setUpTestingEnvironment();
-    console.log(`...${this.testSuiteSuffixName}-setUpTestingEnvironment() finished`);
-    console.log('');
-
-    // jab
-    // debugger;
-    console.log('');
-    console.log(`${this.testSuiteSuffixName}-calling createProject()...`);
     await this.createProject();
-    console.log(`...${this.testSuiteSuffixName}-createProject() finished`);
-    console.log('');
-
-    // jab
-    // debugger;
-    console.log('');
-    console.log(`${this.testSuiteSuffixName}-calling authorizeDevHub()...`);
     await this.authorizeDevHub();
-    console.log(`...${this.testSuiteSuffixName}-authorizeDevHub() finished`);
-    console.log('');
-
-    // jab
-    // debugger;
-    console.log('');
-    console.log(`${this.testSuiteSuffixName}-calling createDefaultScratchOrgViaCli()...`);
-    await this.createDefaultScratchOrgViaCli();
-    console.log(`...${this.testSuiteSuffixName}-createDefaultScratchOrgViaCli() finished`);
-    console.log('');
-
-
-    // jab
-    // debugger;
-
+    await this.createDefaultScratchOrg();
   }
 
   public async tearDown(): Promise<void> {
     if (this.scratchOrgAliasName && !this.reuseScratchOrg) {
-      // jab add back in
-      const workbench = await (await browser.getWorkbench()).wait();
-      await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
+      // To use VS Code's Terminal view, use:
+      // const workbench = await (await browser.getWorkbench()).wait();
+      // await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
+
+      // The Terminal view can be a but unreliable, so directly call exec() instead:
+      await exec(`sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
     }
 
     if (this.projectFolderPath) {
@@ -86,27 +60,36 @@ export class ScratchOrg {
     }
   }
 
-  private async setUpTestingEnvironment(): Promise<void> {
+  public async setUpTestingEnvironment(): Promise<void> {
+    console.log('');
+    console.log(`${this.testSuiteSuffixName} - Starting setUpTestingEnvironment()...`);
+
     const tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
     this.projectFolderPath = path.join(tempFolderPath, this.tempProjectName);
 
     // Clean up the temp folder, just in case there are stale files there.
     if (fs.existsSync(this.projectFolderPath)) {
-      utilities.removeFolder(this.projectFolderPath);
+      await utilities.removeFolder(this.projectFolderPath);
       await utilities.pause(1);
     }
 
     // Now create the folders
     if (!fs.existsSync(tempFolderPath)) {
-      utilities.createFolder(tempFolderPath);
+      await utilities.createFolder(tempFolderPath);
       await utilities.pause(1);
     }
 
-    utilities.createFolder(this.projectFolderPath);
+    await utilities.createFolder(this.projectFolderPath);
     await utilities.pause(1);
+
+    console.log(`${this.testSuiteSuffixName} - ...finished setUpTestingEnvironment()`);
+    console.log('');
   }
 
-  private async createProject(): Promise<void> {
+  public async createProject(): Promise<void> {
+    console.log('');
+    console.log(`${this.testSuiteSuffixName} - Starting createProject()...`);
+
     const workbench = await (await browser.getWorkbench()).wait();
 
     this.prompt = await utilities.executeQuickPick(workbench, 'SFDX: Create Project');
@@ -134,8 +117,8 @@ export class ScratchOrg {
     await utilities.clickFilePathOkButton();
 
     // Verify the project was created and was loaded.
-    const sidebar = workbench.getSideBar();
-    const content = sidebar.getContent();
+    const sidebar = await workbench.getSideBar();
+    const content = await sidebar.getContent();
     const treeViewSection = await content.getSection(this.tempProjectName.toUpperCase());
     expect(treeViewSection).not.toEqual(undefined);
 
@@ -146,53 +129,48 @@ export class ScratchOrg {
 
     // Yep, we need to wait a long time here.
     await utilities.pause(10);
+
+    console.log(`${this.testSuiteSuffixName} - ...finished createProject()`);
+    console.log('');
   }
 
   private async authorizeDevHub(): Promise<void> {
+    console.log('');
+    console.log(`${this.testSuiteSuffixName} - Starting authorizeDevHub()...`);
+
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.
-    const workbench = await (await browser.getWorkbench()).wait();
     const authFilePath = path.join(this.projectFolderPath, this.tempProjectName, 'authFile.json');
+    console.log(`${this.testSuiteSuffixName} - calling sfdx force:org:display...`);
+    const sfdxForceOrgDisplayResult = await exec(`sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json`);
+    const json = this.removedEscapedCharacters(sfdxForceOrgDisplayResult.stdout);
 
-    // jab
-    console.log(`${this.testSuiteSuffixName}-calling executeCommand(sfdx force:org:display)...`);
+    // Now write the file.
+    fs.writeFileSync(authFilePath, json);
+    console.log(`${this.testSuiteSuffixName} - finished writing the file...`);
 
-    // await utilities.pause(10);
-    // await utilities.pause(10);
+    // Call auth:sfdxurl:store and read in the JSON that was just created.
+    console.log(`${this.testSuiteSuffixName} - calling sfdx auth:sfdxurl:store...`);
+    const sfdxSfdxUrlStoreResult = await exec(`sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
+    expect(sfdxSfdxUrlStoreResult.stdout).toContain(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`);
 
-    const terminalView = await utilities.executeCommand(workbench, `sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json > ${authFilePath}`);
-    await utilities.pause(2);
-
-    const authFilePathFileExists = fs.existsSync(authFilePath);
-    expect(authFilePathFileExists).toEqual(true);
-
-    // jab
-    console.log(`${this.testSuiteSuffixName}-calling executeCommand(sfdx auth:sfdxurl:store)...`);
-
-    // await utilities.pause(10);
-
-    // jab await terminalView.executeCommand(`sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
-    await utilities.executeCommand(workbench, `sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
-    await utilities.pause(2);
-
-    // jab
-    console.log(`${this.testSuiteSuffixName}-calling getTerminalViewText()...`);
-    // await utilities.pause(10);
-
-    const terminalText = await utilities.getTerminalViewText(terminalView, 10);
-    expect(terminalText).toContain(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`);
+    console.log(`${this.testSuiteSuffixName} - ...finished authorizeDevHub()`);
+    console.log('');
   }
 
-  private async createDefaultScratchOrgViaCli(): Promise<void> {
+  private async createDefaultScratchOrg(): Promise<void> {
+    console.log('');
+    console.log(`${this.testSuiteSuffixName} - Starting createDefaultScratchOrg()...`);
+
     const userName = utilities.currentUserName();
     const workbench = await (await browser.getWorkbench()).wait();
 
     if (this.reuseScratchOrg) {
-      const orgListFilePath = path.join(this.projectFolderPath, `force_org_list_${this.testSuiteSuffixName}.json`);
-      await utilities.executeCommand(workbench, `sfdx force:org:list --json > ${orgListFilePath}`);
-      await utilities.pause(2);
+      console.log(`${this.testSuiteSuffixName} - looking for a scratch org to reuse...`);
 
-      const data = fs.readFileSync(orgListFilePath);
-      const scratchOrgs = JSON.parse(data.toString()).result.scratchOrgs;
+      const sfdxForceOrgListResult = await exec('sfdx force:org:list --json');
+      const resultJson = sfdxForceOrgListResult.stdout.replace(/\u001B\[\d\dm/g, '').replace(/\\n/g, '');
+      const scratchOrgs = JSON.parse(resultJson).result.scratchOrgs;
+
       for (const scratchOrg of scratchOrgs) {
         const alias = scratchOrg.alias as string;
         if (alias.includes('TempScratchOrg_') && alias.includes(userName) && alias.includes(this.testSuiteSuffixName)) {
@@ -201,60 +179,87 @@ export class ScratchOrg {
           // Set the current scratch org.
           await this.setDefaultOrg(workbench, this.scratchOrgAliasName);
 
+          console.log(`${this.testSuiteSuffixName} - found one: ${this.scratchOrgAliasName}`);
+          console.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
+          console.log('');
           return;
         }
       }
     }
 
-    const definitionFile = 'config/project-scratch-def.json';
+    const definitionFile = path.join(this.projectFolderPath, this.tempProjectName, 'config', 'project-scratch-def.json');
 
-    // Org alias format - TempScratchOrg_yyyy_mm_dd_username_ticks_testSuiteSuffixName
+    // Org alias format: TempScratchOrg_yyyy_mm_dd_username_ticks_testSuiteSuffixName
     const currentDate = new Date();
     const ticks = currentDate.getTime();
     const day = ('0' + currentDate.getDate()).slice(-2);
     const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
     const year = currentDate.getFullYear();
     this.scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${userName}_${ticks}_${this.testSuiteSuffixName}`;
+    console.log(`${this.testSuiteSuffixName} - temporary scratch org name is ${this.scratchOrgAliasName}...`);
 
     const startDate = Date.now();
     const durationDays = 1;
-    const command = `sfdx force:org:create -f ${definitionFile} --setalias ${this.scratchOrgAliasName} --durationdays ${durationDays} --setdefaultusername --json --loglevel fatal`;
-    const terminalView = await utilities.executeCommand(workbench, command);
-    await utilities.pause(2);
+
+    console.log(`${this.testSuiteSuffixName} - calling sfdx force:org:create...`);
+    const sfdxForceOrgCreateResult = await exec(`sfdx force:org:create -f ${definitionFile} --setalias ${this.scratchOrgAliasName} --durationdays ${durationDays} --setdefaultusername --json --loglevel fatal`);
+    const json = this.removedEscapedCharacters(sfdxForceOrgCreateResult.stdout);
+    const result = JSON.parse(json).result;
+
     const endDate = Date.now();
-    // const dateDifference1 = ((endDate.getTime() - startDate.getTime()) * 10000);
     const time = endDate - startDate;
     console.log(`Creating ${this.scratchOrgAliasName} took ${time} ticks (${time/1000.0} seconds)`);
 
-    const terminalText = await utilities.getTerminalViewText(terminalView, 10);
-    expect(terminalText).toContain('"status": 0');
-    expect(terminalText).toContain('"scratchOrgInfo": {');
-    expect(terminalText).toContain(`"SignupEmail": "${EnvironmentSettings.getInstance().devHubUserName}"`);
+    expect(result.authFields).not.toBeUndefined();
+    expect(result.authFields.accessToken).not.toBeUndefined();
+    expect(result.orgId).not.toBeUndefined();
+    expect(result.scratchOrgInfo.SignupEmail).toEqual(EnvironmentSettings.getInstance().devHubUserName);
 
-    // There is a bug with the CLI - if multiple scratch orgs are created at the same time, some of the
-    // scratch orgs have a missing (blank) alias.  Call FixAlias() to re-apply the alias.  If this bug
-    // gets fixed then FixAlias() can be removed.
-    // await utilities.pause(10);
-    // await this.fixAlias(workbench, terminalText);
-    // jab is this still needed?
+    // Run SFDX: Set a Default Org
+    console.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
+    const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
 
-    // Look for orgAliasName in the list of status bar items
+    // Wait for the quick list to appear.
+    await utilities.pause(1);
+
+    // Select this.scratchOrgAliasName from the list.
+    let scratchOrgQuickPickItemWasFound = false;
+    const quickPicks = await inputBox.getQuickPicks();
+    for (const quickPick of quickPicks) {
+      const label = await quickPick.getLabel();
+      // Find the org that was created.
+      if (label.includes(this.scratchOrgAliasName)) {
+        await quickPick.select();
+        await utilities.pause(3);
+        scratchOrgQuickPickItemWasFound = true;
+        break;
+      }
+    }
+    expect(scratchOrgQuickPickItemWasFound).toBe(true);
+    // Warning! This only works if the item (the scratch org) is visible.
+    // If there are many scratch orgs, not all of them may be displayed.
+    // If lots of scratch orgs are created and aren't deleted, this can
+    // result in this list growing one not being able to find the org
+    // they are looking for.
+
+    // Look for the success notification.
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
+    expect(successNotificationWasFound).toBe(true);
+
+    // Look for this.scratchOrgAliasName in the list of status bar items
     const statusBar = await workbench.getStatusBar();
     const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(statusBar, this.scratchOrgAliasName);
-
-
-    // jab todo
-    // debugger;
-    // verify the correct org is set
-
-
     expect(scratchOrgStatusBarItem).not.toBeUndefined();
+
+    console.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
+    console.log('');
   }
 
   private get tempProjectName(): string {
     return 'TempProject-' + this.testSuiteSuffixName;
   }
 
+  /*
   private async fixAlias(workbench: Workbench, terminalText: string): Promise<void> {
     const username = terminalText.match(/\"username\": \"(.*?)\"/i);
     expect(username).not.toEqual(undefined);
@@ -264,6 +269,7 @@ export class ScratchOrg {
     await utilities.executeCommand(workbench, command);
     await utilities.pause(2);
   }
+  */
 
   private async setDefaultOrg(workbench: Workbench, scratchOrgAliasName: string): Promise<void> {
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
@@ -310,5 +316,13 @@ export class ScratchOrg {
     const statusBar = await workbench.getStatusBar();
     const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(statusBar, scratchOrgAliasName);
     expect(scratchOrgStatusBarItem).not.toBeUndefined();
+  }
+
+  private removedEscapedCharacters(stdout: string): string {
+    // When calling exec(), the JSON returned contains escaped characters.
+    // Removed the extra escaped characters and carriage returns.
+    const resultJson = stdout.replace(/\u001B\[\d\dm/g, '').replace(/\\n/g, '');
+
+    return resultJson;
   }
 }

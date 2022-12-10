@@ -87,8 +87,6 @@ async function selectQuickPickItem(prompt: InputBox | QuickOpenBox, text: string
       }
   }
 
-  // jab verify the throw works in a promise
-  debugger;
   throw new Error(`Quick pick item ${text} was not found`);
 }
 
@@ -101,7 +99,6 @@ async function getStatusBarItemWhichIncludes(statusBar: StatusBar, title: string
     }
   }
 
-  // jab verify the throw works in a promise
   throw new Error(`Status bar item containing ${title} was not found`);
 }
 
