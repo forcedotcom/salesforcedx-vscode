@@ -34,7 +34,7 @@ describe('Org Creation and Authentication', async () => {
       await utilities.pause(1);
     }
 
-    // Now create the folder
+    // Now create the folder.
     utilities.createFolder(tempFolderPath);
     await utilities.pause(1);
   });

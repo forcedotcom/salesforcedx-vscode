@@ -51,7 +51,7 @@ export class ScratchOrg {
       // const workbench = await (await browser.getWorkbench()).wait();
       // await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
 
-      // The Terminal view can be a but unreliable, so directly call exec() instead:
+      // The Terminal view can be a bit unreliable, so directly call exec() instead:
       await exec(`sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
     }
 
@@ -73,7 +73,7 @@ export class ScratchOrg {
       await utilities.pause(1);
     }
 
-    // Now create the folders
+    // Now create the folders.
     if (!fs.existsSync(tempFolderPath)) {
       await utilities.createFolder(tempFolderPath);
       await utilities.pause(1);
@@ -219,7 +219,7 @@ export class ScratchOrg {
     console.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
 
-    // Wait for the quick list to appear.
+    // Wait for the quick pick list to appear.
     await utilities.pause(1);
 
     // Select this.scratchOrgAliasName from the list.
