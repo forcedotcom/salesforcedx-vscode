@@ -259,21 +259,13 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
 
     it('Should use ForceAuthDevHubContainerExecutor when container mode is defined', () => {
       process.env.SFDX_CONTAINER_MODE = 'true';
-      const authWebLogin = new ForceAuthDevHubContainerExecutor();
+      const authDevhubLogin = new ForceAuthDevHubContainerExecutor();
       expect(
         createAuthDevHubExecutor() instanceof ForceAuthDevHubContainerExecutor
       ).to.be.true;
-      const authWebLoginCommand = authWebLogin.build(({} as unknown) as AuthDevHubParams);
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:device:login --setalias  --setdefaultdevhubusername'
-      );
-    });
-
-    it('should build the force:auth:device:login command', () => {
-      const authDevHubLogin = new ForceAuthDevHubContainerExecutor();
-      const authDevhubLoginCommand = authDevHubLogin.build({});
+      const authDevhubLoginCommand = authDevhubLogin.build(({} as unknown) as AuthDevHubParams);
       expect(authDevhubLoginCommand.toCommand()).to.equal(
-        `sfdx force:auth:device:login --setdefaultdevhubusername --json --loglevel fatal`
+        'sfdx force:auth:device:login --setalias  --setdefaultdevhubusername --json --loglevel fatal'
       );
       expect(authDevhubLoginCommand.description).to.equal(
         nls.localize('force_auth_web_login_authorize_dev_hub_text')

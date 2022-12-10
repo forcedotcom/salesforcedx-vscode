@@ -44,13 +44,14 @@ import {
 } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
-  public build(data: {}): Command {
+  public build(data: AuthDevHubParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
     );
 
     command
       .withArg(CLI.AUTH_DEVICE_LOGIN)
+      .withFlag('--setalias', data.alias)
       .withArg('--setdefaultdevhubusername')
       .withLogName('force_auth_device_dev_hub')
       .withJson();
