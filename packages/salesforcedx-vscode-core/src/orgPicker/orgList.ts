@@ -78,6 +78,12 @@ export class OrgList implements vscode.Disposable {
     const authList = [];
     const today = new Date();
     for (const orgAuth of orgAuthorizations) {
+      if (orgAuth.error) {
+        console.warn(
+          `Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`
+        );
+        continue;
+      }
       const authFields: AuthFields = await this.getAuthFieldsFor(
         orgAuth.username
       );
