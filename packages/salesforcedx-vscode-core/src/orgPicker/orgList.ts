@@ -16,13 +16,6 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';
 
-export interface FileInfo {
-  scratchAdminUsername?: string;
-  isDevHub?: boolean;
-  username: string;
-  devHubUsername?: string;
-  expirationDate?: string;
-}
 export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
@@ -42,7 +35,7 @@ export class OrgList implements vscode.Disposable {
     this.displayDefaultUsername(alias || username);
   }
 
-  public displayDefaultUsername(defaultUsernameOrAlias?: string) {
+  private displayDefaultUsername(defaultUsernameOrAlias?: string) {
     if (defaultUsernameOrAlias) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameOrAlias}`;
     } else {
@@ -55,7 +48,7 @@ export class OrgList implements vscode.Disposable {
     return orgAuthorizations;
   }
 
-  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
+  private async getAuthFieldsFor(username: string): Promise<AuthFields> {
     const authInfo: AuthInfo = await AuthInfo.create({
       username
     });
@@ -122,7 +115,7 @@ export class OrgList implements vscode.Disposable {
     return authList;
   }
 
-  public async updateOrgList(): Promise<string[]> {
+  private async updateOrgList(): Promise<string[]> {
     const orgAuthorizations = await this.getOrgAuthorizations();
     if (orgAuthorizations && orgAuthorizations.length === 0) {
       return [];
