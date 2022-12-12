@@ -7,7 +7,7 @@ lang: en
 
 Whenever you save a local source file, you can enable immediate deployment of the changes to your default org. You might find this feature useful while trying various user interface and functional behavior or while trying to debug some behavior in an Apex class.
 
-To enable both push and deploy on save:
+To enable push or deploy on save:
 
 - Add `"salesforcedx-vscode-core.push-or-deploy-on-save.enabled": true` to the `.vscode/settings.json` file.
 - Or update Workspace settings:
