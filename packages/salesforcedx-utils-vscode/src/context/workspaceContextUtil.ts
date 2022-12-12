@@ -1,4 +1,3 @@
-import { StateAggregator } from '@salesforce/core';
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -6,9 +5,9 @@ import { StateAggregator } from '@salesforce/core';
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider, ConfigUtil } from '..';
+import { ConfigAggregatorProvider } from '..';
 import { AuthUtil } from '../auth/authUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
