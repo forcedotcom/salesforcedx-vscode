@@ -1,13 +1,6 @@
 
 import type { Options } from '@wdio/types'
-
-// import path from 'path'
-// import { path } from 'path'
-// import type { path } from 'path'
-// import path from 'path';
-import path from 'node:path'
-
-
+import { join } from 'path';
 import type { VSCodeCapabilities } from 'wdio-vscode-service/dist/types'
 
 const capabilities: VSCodeCapabilities = {
@@ -22,15 +15,8 @@ const capabilities: VSCodeCapabilities = {
   browserName: 'vscode',
   browserVersion: 'stable',
   'wdio:vscodeOptions': {
-
     // point to the root directory of your project
-    extensionPath: '/Users/jbeeghly/src/github.com/forcedotcom/salesforcedx-vscode-6/packages',
-    // extensionPath: path.join(__dirname, '..', 'packages'),
-    // extensionPath: path.join(__dirname, '..'),
-    // TODO: revisit this...
-    // ...at run time path.join() is causing an error:
-    // TypeError: Cannot read properties of undefined (reading 'join')
-    // which is odd b/c this is the same as https://github.com/webdriverio-community/wdio-vscode-service/blob/main/test/wdio.conf.ts
+    extensionPath: join(__dirname, '..', '..', 'packages')
   },
 
   acceptInsecureCerts: true
