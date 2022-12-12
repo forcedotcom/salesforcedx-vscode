@@ -40,7 +40,7 @@ or the location of a local copy:
 
 ```
 {
-  ""customOrgMetadataTemplates": "/Users/mydrive/github/devtools/salesforcedx-templates/packages/templates/src/templates"
+  "customOrgMetadataTemplates": "/Users/mydrive/github/devtools/salesforcedx-templates/packages/templates/src/templates"
 }
 ```
 
