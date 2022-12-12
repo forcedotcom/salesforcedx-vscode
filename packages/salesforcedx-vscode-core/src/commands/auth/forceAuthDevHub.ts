@@ -11,6 +11,8 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 
+import { DEFAULT_ALIAS } from './authParamsGatherer';
+
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -59,8 +61,6 @@ export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainer
     return command.build();
   }
 }
-
-export const DEFAULT_ALIAS = 'vscodeOrg';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
