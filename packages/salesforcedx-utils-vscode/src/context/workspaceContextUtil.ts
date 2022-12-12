@@ -1,3 +1,4 @@
+import { StateAggregator } from '@salesforce/core';
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -7,7 +8,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider } from '..';
+import { ConfigAggregatorProvider, ConfigUtil } from '..';
 import { AuthUtil } from '../auth/authUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
@@ -82,15 +83,27 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
+    // Core's types can return stale cached data at times when
+    // this handler is called right after modifying the config file.
+    // Reloading the Config Aggregator and StateAggregator here ensures
+    // that they are refreshed when the config file changes, and are
+    // loaded with the most recent data when used downstream in
+    // ConfigUtil and AuthUtil.
     await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
-    const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
+    StateAggregator.clearInstance();
+
+    const defaultUsernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
       false
     );
 
-    if (usernameOrAlias) {
-      this._username = await this.getAuthUtil().getUsername(usernameOrAlias);
+    if (defaultUsernameOrAlias) {
+      this._username = await this.getAuthUtil().getUsername(
+        defaultUsernameOrAlias
+      );
       this._alias =
-        usernameOrAlias !== this._username ? usernameOrAlias : undefined;
+        defaultUsernameOrAlias !== this._username
+          ? defaultUsernameOrAlias
+          : undefined;
     } else {
       this._username = undefined;
       this._alias = undefined;
