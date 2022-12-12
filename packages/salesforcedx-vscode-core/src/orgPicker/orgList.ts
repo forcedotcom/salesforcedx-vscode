@@ -72,7 +72,6 @@ export class OrgList implements vscode.Disposable {
     const today = new Date();
     for (const orgAuth of orgAuthorizations) {
       if (orgAuth.error) {
-        // todo: warn, log, or silent?
         console.warn(
           `Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`
         );
