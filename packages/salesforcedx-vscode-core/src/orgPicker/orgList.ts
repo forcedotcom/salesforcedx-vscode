@@ -48,7 +48,7 @@ export class OrgList implements vscode.Disposable {
     return orgAuthorizations;
   }
 
-  private async getAuthFieldsFor(username: string): Promise<AuthFields> {
+  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
     const authInfo: AuthInfo = await AuthInfo.create({
       username
     });
@@ -114,7 +114,7 @@ export class OrgList implements vscode.Disposable {
     return authList;
   }
 
-  private async updateOrgList(): Promise<string[]> {
+  public async updateOrgList(): Promise<string[]> {
     const orgAuthorizations = await this.getOrgAuthorizations();
     if (orgAuthorizations && orgAuthorizations.length === 0) {
       return [];
