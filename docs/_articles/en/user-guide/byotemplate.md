@@ -6,7 +6,7 @@ lang: en
 ## Overview
 Want your own code to appear in source files when you create a metadata object such as an Apex class? You can now use custom templates to do just that.
 
-Templates are essentially folders with files that contain your custom code. This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/packages/templates/src/templates) contains a collection of official Salesforce templates for metadata components. Simply clone this repo, keeping the same folder structure, then update relevant template files with your code. Remove the files that you don’t wish to override.
+Templates are essentially folders with files that contain your custom code. This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Simply clone this repo, keeping the same folder structure, then update relevant template files with your code. Remove the files that you don’t wish to override.
 
 **Note:** Only updates made to the files listed here show up in source files in VS Code. There’s no such restriction when you use the CLI to specify templates for metadata objects.
 
@@ -40,7 +40,7 @@ or the location of a local copy:
 
 ```
 {
-  ""customOrgMetadataTemplates": "/Users/mydrive/github/devtools/salesforcedx-templates/packages/templates/src/templates"
+  "customOrgMetadataTemplates": "/Users/mydrive/github/devtools/salesforcedx-templates/packages/templates/src/templates"
 }
 ```
 
