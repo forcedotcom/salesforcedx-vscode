@@ -83,7 +83,7 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
-    // Core's types can return stale cached data at times when
+    // Core's types can return stale cached data when
     // this handler is called right after modifying the config file.
     // Reloading the Config Aggregator and StateAggregator here ensures
     // that they are refreshed when the config file changes, and are
