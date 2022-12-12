@@ -24,6 +24,8 @@ export {
   DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
+  AuthDevHubParams,
+  AuthDevHubParamsGatherer,
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
