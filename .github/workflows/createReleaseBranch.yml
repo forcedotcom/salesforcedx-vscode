@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: create_release_branch
   schedule:
-  - cron: '20 22 * * 1'
+  - cron: '0 17 * * 1'
   workflow_dispatch:
     inputs:
       releaseType:
