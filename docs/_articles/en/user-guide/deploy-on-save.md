@@ -12,7 +12,7 @@ To enable push or deploy on save:
 - Add `"salesforcedx-vscode-core.push-or-deploy-on-save.enabled": true` to the `.vscode/settings.json` file.
 - Or update Workspace settings:
   - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-  - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`
+  - Under Salesforce Core Configuration, select `Push-or-deploy-on-save: Enabled`
   
 To bypass checking for conflicts on push or deploy when you also have conflict detection enabled:  
   - Select  `Push-or-deploy-on-save: Override Conflicts On Push` 
