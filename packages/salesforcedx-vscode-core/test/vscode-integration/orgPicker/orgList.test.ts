@@ -13,6 +13,7 @@ import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
 
+const AN_ALIAS = 'anAlias';
 const sandbox = createSandbox();
 
 describe('orgList Tests', () => {
@@ -66,6 +67,7 @@ describe('orgList Tests', () => {
       let stateAggregatorCreateStub: SinonStub;
       let getAllStub: SinonStub;
       let getAllAliasesForStub: SinonStub;
+      let getAuthFieldsForStub: SinonStub;
       const orgList = new OrgList();
 
       let fakeStateAggregator: any;
@@ -85,6 +87,10 @@ describe('orgList Tests', () => {
           .resolves(fakeStateAggregator);
 
         getAllAliasesForStub = sandbox.stub(ConfigUtil, 'getAllAliasesFor');
+        getAuthFieldsForStub = sandbox.stub(
+          OrgList.prototype,
+          'getAuthFieldsFor'
+        );
       });
 
       function getFakeOrgAuthorization(
@@ -140,7 +146,6 @@ describe('orgList Tests', () => {
           dummyOrgAuth1,
           dummyOrgAuth2
         ];
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
         getAuthFieldsForStub
           .withArgs(dummyOrgAuth1.username)
           .returns({ scratchAdminUsername: 'nonadmin@user.com' });
@@ -159,7 +164,6 @@ describe('orgList Tests', () => {
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
         ];
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
         getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
           devHubUsername: dummyDevHubUsername1
         });
@@ -180,7 +184,6 @@ describe('orgList Tests', () => {
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
         ];
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
         getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
           devHubUsername: dummyDevHubUsername1
         });
@@ -197,34 +200,9 @@ describe('orgList Tests', () => {
 
       it('should filter the list to remove org authorizations that have errors', async () => {
         const authInfoObjectsWithOneError: OrgAuthorization[] = [
-          {
-            aliases: ['pdt505'],
-            configs: ['target-org'],
-            username: 'ken@pdt5.com',
-            instanceUrl: 'https://pdt5com-dev-ed.my.salesforce.com',
-            isScratchOrg: false,
-            isDevHub: true,
-            isSandbox: false,
-            orgId: '00D4x000008YxtgEAC',
-            accessToken: 'anAccessToken',
-            oauthMethod: 'web',
-            isExpired: 'unknown'
-          },
-          {
-            aliases: [],
-            configs: [],
-            username: 'ken@pdt3.com',
-            orgId: '00D4x000007Juj2EAC',
-            instanceUrl: 'https://ksl2-dev-ed.my.salesforce.com',
-            oauthMethod: 'unknown',
-            error: 'No authorization information found for ken@pdt3.com.',
-            isExpired: 'unknown'
-          }
+          dummyScratchOrgAuth1,
+          dummyScratchOrgAuthWithError
         ];
-        const getAuthFieldsForStub = sandbox.stub(
-          OrgList.prototype,
-          'getAuthFieldsFor'
-        );
         getAuthFieldsForStub
           .withArgs(authInfoObjectsWithOneError[0].username)
           .returns({
@@ -233,15 +211,17 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves(dummyDevHubUsername1);
         getAllAliasesForStub
           .withArgs(authInfoObjectsWithOneError[0].username)
-          .returns(['anAlias']);
+          .returns([AN_ALIAS]);
 
         const authList = await orgList.filterAuthInfo(
           authInfoObjectsWithOneError
         );
         expect(defaultDevHubStub.calledOnce).to.equal(true);
         expect(authList.length).to.equal(1);
-        expect(authList[0].includes('anAlias')).to.equal(true);
-        expect(authList[0].includes('ken@pdt5.com')).to.equal(true);
+        expect(authList[0].includes(AN_ALIAS)).to.equal(true);
+        expect(authList[0].includes(dummyScratchOrgAuth1.username)).to.equal(
+          true
+        );
       });
 
       it('should display alias with username when alias is available', async () => {
@@ -255,10 +235,7 @@ describe('orgList Tests', () => {
         getAllAliasesForStub
           .withArgs(dummyOrgAuth1.username)
           .returns(['alias1']);
-        sandbox
-          .stub(orgList, 'getAuthFieldsFor')
-          .withArgs(authInfoObjects[0].username)
-          .returns({});
+        getAuthFieldsForStub.withArgs(authInfoObjects[0].username).returns({});
 
         // Act
         const authList = await orgList.filterAuthInfo(authInfoObjects);
@@ -288,7 +265,6 @@ describe('orgList Tests', () => {
           })
         ];
 
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
         getAuthFieldsForStub
           .withArgs('test-scratchorg-today@example.com')
           .returns({
