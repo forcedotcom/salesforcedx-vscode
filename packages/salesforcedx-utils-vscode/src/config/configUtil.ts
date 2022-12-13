@@ -13,7 +13,7 @@ import {
   SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { DEFAULT_USERNAME_KEY, getRootWorkspacePath } from '..';
+import { getRootWorkspacePath } from '..';
 import { ConfigAggregatorProvider } from '../providers';
 
 export enum ConfigSource {

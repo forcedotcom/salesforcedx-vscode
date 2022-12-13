@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, Org } from '@salesforce/core';
 import { ConfigUtil, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -64,17 +63,11 @@ describe('Force Config Set', () => {
     expect(formatOutput).to.contain(usernameOrAlias, String(true));
   });
 
-  it('should not set config with an invalid username or alias', async () => {
-    setDefaultUsernameOrAliasStub.throwsException();
-    await forceConfigSet(usernameOrAlias);
-    expect(channelSpy.callCount).to.equal(2);
-  });
-
   it('should display error message in output channel', async () => {
     setDefaultUsernameOrAliasStub.throws(new Error(errorMessage));
     await forceConfigSet(usernameOrAlias);
     expect(channelSpy.callCount).to.equal(2);
     expect(channelSpy.lastCall.args.length).to.equal(1);
     expect(channelSpy.lastCall.args[0]).to.contain(errorMessage);
-  }).timeout(10000);
+  });
 });
