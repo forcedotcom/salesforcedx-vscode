@@ -7,16 +7,23 @@ const shell = require('shelljs');
 // Installs a list of extensions passed on the command line
 var version = process.env.CODE_VERSION;
 
+console.log('### install-vsix-dependencies start');
 console.log('CODE_VERSION: ' + version);
 
 var isInsiders = version === 'insiders';
 
+const contentOfVscodeTest = fs.readdirSync(`${process.cwd()}/.vscode-test`);
+let vscodeDownloadDir = contentOfVscodeTest.find(file =>
+  file.startsWith('vscode-')
+);
+
+console.log('### where is VScode', { vscodeDownloadDir });
 // VSCode no longer downloads to a single directory name like 'stable'. The folder
 // name is dynamic base on the version number, so lets just use the first folder in .vscode-test dir
 // as the assumed place where vscode is extracted
 const testRunFolder = path.join(
   '.vscode-test',
-  isInsiders ? 'insiders' : fs.readdirSync(`${process.cwd()}/.vscode-test`)[0]
+  isInsiders ? 'insiders' : vscodeDownloadDir
 );
 const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 
@@ -37,6 +44,10 @@ const darwinExecutable = path.join(
   'bin',
   'code'
 );
+
+console.log('### darwin executable', {
+  testRunFolderAbsolute
+});
 const linuxExecutable = path.join(
   testRunFolderAbsolute,
   'VSCode-linux-x64',
@@ -64,15 +75,15 @@ for (let arg = 2; arg < process.argv.length; arg++) {
   if (process.platform === 'win32') {
     // Windows Powershell doesn't like the single quotes around the executable
     shell.exec(
-      `${executable} --extensions-dir ${extensionsDir} --install-extension ${
-        process.argv[arg]
-      }`
+      `${executable} --extensions-dir ${extensionsDir} --install-extension ${process.argv[arg]}`
     );
   } else {
+    console.log(
+      '### executing: ' +
+        `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process.argv[arg]}`
+    );
     shell.exec(
-      `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${
-        process.argv[arg]
-      }`
+      `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process.argv[arg]}`
     );
   }
 }
