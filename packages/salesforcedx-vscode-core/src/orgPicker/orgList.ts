@@ -14,7 +14,6 @@ import {
 import * as vscode from 'vscode';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { OrgAuthInfo } from '../util';
 
 export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
@@ -58,15 +57,7 @@ export class OrgList implements vscode.Disposable {
   public async filterAuthInfo(
     orgAuthorizations: OrgAuthorization[]
   ): Promise<string[]> {
-    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-      false
-    );
-    let defaultDevHubUsername: string | undefined;
-    if (defaultDevHubUsernameOrAlias) {
-      defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameOrAlias
-      );
-    }
+    const defaultDevHubUsername = await ConfigUtil.getDevHubUsername();
 
     const authList = [];
     const today = new Date();

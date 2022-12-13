@@ -65,15 +65,13 @@ describe('orgList Tests', () => {
       let getUsernameStub: SinonStub;
       let stateAggregatorCreateStub: SinonStub;
       let getAllStub: SinonStub;
+      let getAllAliasesForStub: SinonStub;
       const orgList = new OrgList();
 
       let fakeStateAggregator: any;
 
       beforeEach(() => {
-        defaultDevHubStub = sandbox.stub(
-          util.OrgAuthInfo,
-          'getDefaultDevHubUsernameOrAlias'
-        );
+        defaultDevHubStub = sandbox.stub(ConfigUtil, 'getDevHubUsername');
         getUsernameStub = sandbox.stub(util.OrgAuthInfo, 'getUsername');
 
         getAllStub = sandbox.stub();
@@ -85,6 +83,8 @@ describe('orgList Tests', () => {
         stateAggregatorCreateStub = sandbox
           .stub(StateAggregator, 'create')
           .resolves(fakeStateAggregator);
+
+        getAllAliasesForStub = sandbox.stub(ConfigUtil, 'getAllAliasesFor');
       });
 
       function getFakeOrgAuthorization(
@@ -123,6 +123,12 @@ describe('orgList Tests', () => {
       const dummyScratchOrgAuth2 = getFakeOrgAuthorization({
         orgId: '111',
         username: 'test-scratchorg2@example.com'
+      });
+      const dummyScratchOrgAuthWithError = getFakeOrgAuthorization({
+        orgId: '222',
+        username: 'test-scratchorg3@example.com',
+        error:
+          'No authorization information found for test-scratchorg3@example.com.'
       });
 
       const dummyDevHubUsername1 = 'test-devhub1@example.com';
@@ -169,7 +175,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
 
-      it('should filter the list to only show scratch orgs associated with current default dev hub with an alias', async () => {
+      it('should filter the list to only show scratch orgs associated with current default dev hub', async () => {
         const authInfoObjects: OrgAuthorization[] = [
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
@@ -181,12 +187,61 @@ describe('orgList Tests', () => {
         getAuthFieldsForStub
           .withArgs(dummyScratchOrgAuth2.username)
           .returns({ devHubUsername: dummyDevHubUsername2 });
-        defaultDevHubStub.returns('dev hub alias');
+        defaultDevHubStub.returns(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
 
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
+      });
+
+      it('should filter the list to remove org authorizations that have errors', async () => {
+        const authInfoObjectsWithOneError: OrgAuthorization[] = [
+          {
+            aliases: ['pdt505'],
+            configs: ['target-org'],
+            username: 'ken@pdt5.com',
+            instanceUrl: 'https://pdt5com-dev-ed.my.salesforce.com',
+            isScratchOrg: false,
+            isDevHub: true,
+            isSandbox: false,
+            orgId: '00D4x000008YxtgEAC',
+            accessToken: 'anAccessToken',
+            oauthMethod: 'web',
+            isExpired: 'unknown'
+          },
+          {
+            aliases: [],
+            configs: [],
+            username: 'ken@pdt3.com',
+            orgId: '00D4x000007Juj2EAC',
+            instanceUrl: 'https://ksl2-dev-ed.my.salesforce.com',
+            oauthMethod: 'unknown',
+            error: 'No authorization information found for ken@pdt3.com.',
+            isExpired: 'unknown'
+          }
+        ];
+        const getAuthFieldsForStub = sandbox.stub(
+          OrgList.prototype,
+          'getAuthFieldsFor'
+        );
+        getAuthFieldsForStub
+          .withArgs(authInfoObjectsWithOneError[0].username)
+          .returns({
+            devHubUsername: dummyDevHubUsername1
+          });
+        defaultDevHubStub.resolves(dummyDevHubUsername1);
+        getAllAliasesForStub
+          .withArgs(authInfoObjectsWithOneError[0].username)
+          .returns(['anAlias']);
+
+        const authList = await orgList.filterAuthInfo(
+          authInfoObjectsWithOneError
+        );
+        expect(defaultDevHubStub.calledOnce).to.equal(true);
+        expect(authList.length).to.equal(1);
+        expect(authList[0].includes('anAlias')).to.equal(true);
+        expect(authList[0].includes('ken@pdt5.com')).to.equal(true);
       });
 
       it('should display alias with username when alias is available', async () => {
@@ -197,11 +252,7 @@ describe('orgList Tests', () => {
           dummyOrgAuth2
         ];
         getAllStub.withArgs(dummyOrgAuth1.username).returns(['alias1']);
-        const configUtilGetAllAliasesForStub = sandbox.stub(
-          ConfigUtil,
-          'getAllAliasesFor'
-        );
-        configUtilGetAllAliasesForStub
+        getAllAliasesForStub
           .withArgs(dummyOrgAuth1.username)
           .returns(['alias1']);
         sandbox
