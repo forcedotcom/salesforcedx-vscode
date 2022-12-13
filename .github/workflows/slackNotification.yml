@@ -22,9 +22,9 @@ on:
         description: Caller workflow
         type: string
     secrets:
-      VSCODE_SLACK_WEBHOOK:
+      IDEE_RELEASE_SLACK_WEBHOOK:
         required: true
-      IDEE_RELEASE_ALERT_SLACK_WEBHOOK: 
+      IDEE_MAIN_SLACK_WEBHOOK:
         required: true
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
               "result": "Success"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_SLACK_WEBHOOK }}
 
   notification_on_failure:
     runs-on: ubuntu-latest
@@ -60,5 +60,5 @@ jobs:
               "result": "Failure"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
 
