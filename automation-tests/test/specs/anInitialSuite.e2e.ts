@@ -6,8 +6,8 @@
  */
 import { step } from 'mocha-steps';
 import {
-  ScratchOrg2 as ScratchOrg
-} from '../ScratchOrg2';
+  ScratchOrg
+} from '../ScratchOrg';
 import {
   utilities
 } from '../utilities';
