@@ -1,6 +1,10 @@
 name: Unit Tests Linux
 on:
   workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
 
 jobs:
   linux-unit-tests:
@@ -12,6 +16,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}

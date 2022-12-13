@@ -2,9 +2,16 @@ name: Unit Tests
 
 on:
   workflow_call:
-
+    inputs:
+      branch:
+        type: string
+        required: false
 jobs:
   linux-unit-tests:
     uses: ./.github/workflows/unitTestsLinux.yml
+    with:
+      branch: ${{ inputs.branch }}
   windows-unit-tests:
     uses: ./.github/workflows/unitTestsWindows.yml
+    with:
+      branch: ${{ inputs.branch }}
