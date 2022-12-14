@@ -61,8 +61,8 @@ export class ScratchOrg {
   }
 
   public async setUpTestingEnvironment(): Promise<void> {
-    console.log('');
-    console.log(`${this.testSuiteSuffixName} - Starting setUpTestingEnvironment()...`);
+    utilities.log('');
+    utilities.log(`${this.testSuiteSuffixName} - Starting setUpTestingEnvironment()...`);
 
     const tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
     this.projectFolderPath = path.join(tempFolderPath, this.tempProjectName);
@@ -82,13 +82,13 @@ export class ScratchOrg {
     await utilities.createFolder(this.projectFolderPath);
     await utilities.pause(1);
 
-    console.log(`${this.testSuiteSuffixName} - ...finished setUpTestingEnvironment()`);
-    console.log('');
+    utilities.log(`${this.testSuiteSuffixName} - ...finished setUpTestingEnvironment()`);
+    utilities.log('');
   }
 
   public async createProject(): Promise<void> {
-    console.log('');
-    console.log(`${this.testSuiteSuffixName} - Starting createProject()...`);
+    utilities.log('');
+    utilities.log(`${this.testSuiteSuffixName} - Starting createProject()...`);
 
     const workbench = await (await browser.getWorkbench()).wait();
 
@@ -130,42 +130,42 @@ export class ScratchOrg {
     // Yep, we need to wait a long time here.
     await utilities.pause(10);
 
-    console.log(`${this.testSuiteSuffixName} - ...finished createProject()`);
-    console.log('');
+    utilities.log(`${this.testSuiteSuffixName} - ...finished createProject()`);
+    utilities.log('');
   }
 
   private async authorizeDevHub(): Promise<void> {
-    console.log('');
-    console.log(`${this.testSuiteSuffixName} - Starting authorizeDevHub()...`);
+    utilities.log('');
+    utilities.log(`${this.testSuiteSuffixName} - Starting authorizeDevHub()...`);
 
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.
     const authFilePath = path.join(this.projectFolderPath, this.tempProjectName, 'authFile.json');
-    console.log(`${this.testSuiteSuffixName} - calling sfdx force:org:display...`);
+    utilities.log(`${this.testSuiteSuffixName} - calling sfdx force:org:display...`);
     const sfdxForceOrgDisplayResult = await exec(`sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json`);
     const json = this.removedEscapedCharacters(sfdxForceOrgDisplayResult.stdout);
 
     // Now write the file.
     fs.writeFileSync(authFilePath, json);
-    console.log(`${this.testSuiteSuffixName} - finished writing the file...`);
+    utilities.log(`${this.testSuiteSuffixName} - finished writing the file...`);
 
     // Call auth:sfdxurl:store and read in the JSON that was just created.
-    console.log(`${this.testSuiteSuffixName} - calling sfdx auth:sfdxurl:store...`);
+    utilities.log(`${this.testSuiteSuffixName} - calling sfdx auth:sfdxurl:store...`);
     const sfdxSfdxUrlStoreResult = await exec(`sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
     expect(sfdxSfdxUrlStoreResult.stdout).toContain(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`);
 
-    console.log(`${this.testSuiteSuffixName} - ...finished authorizeDevHub()`);
-    console.log('');
+    utilities.log(`${this.testSuiteSuffixName} - ...finished authorizeDevHub()`);
+    utilities.log('');
   }
 
   private async createDefaultScratchOrg(): Promise<void> {
-    console.log('');
-    console.log(`${this.testSuiteSuffixName} - Starting createDefaultScratchOrg()...`);
+    utilities.log('');
+    utilities.log(`${this.testSuiteSuffixName} - Starting createDefaultScratchOrg()...`);
 
     const userName = utilities.currentUserName();
     const workbench = await (await browser.getWorkbench()).wait();
 
     if (this.reuseScratchOrg) {
-      console.log(`${this.testSuiteSuffixName} - looking for a scratch org to reuse...`);
+      utilities.log(`${this.testSuiteSuffixName} - looking for a scratch org to reuse...`);
 
       const sfdxForceOrgListResult = await exec('sfdx force:org:list --json');
       const resultJson = sfdxForceOrgListResult.stdout.replace(/\u001B\[\d\dm/g, '').replace(/\\n/g, '');
@@ -179,9 +179,9 @@ export class ScratchOrg {
           // Set the current scratch org.
           await this.setDefaultOrg(workbench, this.scratchOrgAliasName);
 
-          console.log(`${this.testSuiteSuffixName} - found one: ${this.scratchOrgAliasName}`);
-          console.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
-          console.log('');
+          utilities.log(`${this.testSuiteSuffixName} - found one: ${this.scratchOrgAliasName}`);
+          utilities.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
+          utilities.log('');
           return;
         }
       }
@@ -196,19 +196,19 @@ export class ScratchOrg {
     const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
     const year = currentDate.getFullYear();
     this.scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${userName}_${ticks}_${this.testSuiteSuffixName}`;
-    console.log(`${this.testSuiteSuffixName} - temporary scratch org name is ${this.scratchOrgAliasName}...`);
+    utilities.log(`${this.testSuiteSuffixName} - temporary scratch org name is ${this.scratchOrgAliasName}...`);
 
     const startDate = Date.now();
     const durationDays = 1;
 
-    console.log(`${this.testSuiteSuffixName} - calling sfdx force:org:create...`);
+    utilities.log(`${this.testSuiteSuffixName} - calling sfdx force:org:create...`);
     const sfdxForceOrgCreateResult = await exec(`sfdx force:org:create -f ${definitionFile} --setalias ${this.scratchOrgAliasName} --durationdays ${durationDays} --setdefaultusername --json --loglevel fatal`);
     const json = this.removedEscapedCharacters(sfdxForceOrgCreateResult.stdout);
     const result = JSON.parse(json).result;
 
     const endDate = Date.now();
     const time = endDate - startDate;
-    console.log(`Creating ${this.scratchOrgAliasName} took ${time} ticks (${time/1000.0} seconds)`);
+    utilities.log(`Creating ${this.scratchOrgAliasName} took ${time} ticks (${time/1000.0} seconds)`);
 
     expect(result.authFields).not.toBeUndefined();
     expect(result.authFields.accessToken).not.toBeUndefined();
@@ -216,7 +216,7 @@ export class ScratchOrg {
     expect(result.scratchOrgInfo.SignupEmail).toEqual(EnvironmentSettings.getInstance().devHubUserName);
 
     // Run SFDX: Set a Default Org
-    console.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
+    utilities.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
 
     // Wait for the quick pick list to appear.
@@ -251,8 +251,8 @@ export class ScratchOrg {
     const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(statusBar, this.scratchOrgAliasName);
     expect(scratchOrgStatusBarItem).not.toBeUndefined();
 
-    console.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
-    console.log('');
+    utilities.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
+    utilities.log('');
   }
 
   private get tempProjectName(): string {

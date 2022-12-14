@@ -180,18 +180,18 @@ describe('Org Creation and Authentication', async () => {
       if (failureNotificationWasFound == true) {
         if (await utilities.textIsPresentInOutputPanel(workbench, 'organization has reached its daily scratch org signup limit')) {
           // This is a known issue...
-          console.log('Warning - creating the scratch org failed, but the failure was due to the daily signup limit');
+          utilities.log('Warning - creating the scratch org failed, but the failure was due to the daily signup limit');
         } else if (await utilities.textIsPresentInOutputPanel(workbench, 'is enabled as a Dev Hub')) {
             // This is a known issue...
-            console.log('Warning - Make sure that the org is enabled as a Dev Hub.');
-            console.log('Warning - To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.');
-            console.log('Warning - If you still see this error after enabling the Dev Hub feature, then re-authenticate to the org.');
+            utilities.log('Warning - Make sure that the org is enabled as a Dev Hub.');
+            utilities.log('Warning - To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.');
+            utilities.log('Warning - If you still see this error after enabling the Dev Hub feature, then re-authenticate to the org.');
         } else {
           // The failure notification is showing, but it's not due to maxing out the daily limit.  What to do...?
-          console.log('Warning - creating the scratch org failed... not sure why...');
+          utilities.log('Warning - creating the scratch org failed... not sure why...');
         }
       } else {
-        console.log('Warning - creating the scratch org failed... neither the success notification or the failure notification was found.');
+        utilities.log('Warning - creating the scratch org failed... neither the success notification or the failure notification was found.');
       }
     }
     expect(successNotificationWasFound).toBe(true);

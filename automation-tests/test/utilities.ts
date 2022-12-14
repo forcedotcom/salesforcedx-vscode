@@ -53,6 +53,10 @@ async function pause(duration: number): Promise<void> {
   await sleep(duration * EnvironmentSettings.getInstance().throttleFactor * 1000);
 }
 
+function log(message: string) {
+  console.log(message);
+}
+
 async function clickFilePathOkButton(): Promise<void> {
   const okButton = await $('*:not([style*="display: none"]).quick-input-action .monaco-button');
   await okButton.click();
@@ -151,7 +155,7 @@ async function textIsPresentInOutputPanel(workbench: Workbench, text: string): P
 }
 
 async function executeCommand(workbench: Workbench, command: string): Promise<TerminalView> {
-  console.log(`Executing the command, "${command}"`);
+  log(`Executing the command, "${command}"`);
 
   const terminalView = await getTerminalView(workbench);
   expect(terminalView).not.toBeNull();
@@ -200,6 +204,7 @@ export const utilities = {
   createFolder,
   removeFolder,
   pause,
+  log,
   clickFilePathOkButton,
   openCommandPromptWithCommand,
   executeQuickPick,
