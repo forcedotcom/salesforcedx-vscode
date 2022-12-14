@@ -63,6 +63,10 @@ export class OrgList implements vscode.Disposable {
     const authList = [];
     const today = new Date();
     for (const orgAuth of orgAuthorizations) {
+      // When this is called right after logging out of an org, there can
+      // still be a cached Org Auth in the list with a "No auth information found"
+      // error. This warning prevents that error from stopping the process, and
+      // should help in debugging if there are any other Org Auths with errors.
       if (orgAuth.error) {
         console.warn(
           `Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`
