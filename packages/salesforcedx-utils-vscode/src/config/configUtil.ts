@@ -12,6 +12,7 @@ import {
   SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
+import { AuthUtil } from '..';
 import { ConfigAggregatorProvider } from '../providers';
 
 export enum ConfigSource {
@@ -125,7 +126,9 @@ export class ConfigUtil {
       return;
     }
 
-    const username = await getUsernameFor(defaultUsernameOrAlias);
+    const username = await AuthUtil.getInstance().getUsername(
+      defaultUsernameOrAlias
+    );
     return username ? String(username) : undefined;
   }
 
@@ -141,15 +144,9 @@ export class ConfigUtil {
       return;
     }
 
-    const username = await getUsernameFor(defaultDevHubUsernameOrAlias);
+    const username = await AuthUtil.getInstance().getUsername(
+      defaultDevHubUsernameOrAlias
+    );
     return username ? String(username) : undefined;
   }
-}
-
-async function getUsernameFor(usernameOrAlias: string) {
-  const info = await StateAggregator.getInstance();
-  const username = usernameOrAlias
-    ? info.aliases.getUsername(String(usernameOrAlias))
-    : undefined;
-  return username ? String(username) : undefined;
 }
