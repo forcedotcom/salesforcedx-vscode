@@ -26,7 +26,7 @@ describe('WorkspaceContext', () => {
   let getUsernameOrAliasStub: jest.SpyInstance;
   let workspaceContextUtil: any; // TODO find a better way
 
-  let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any; };
+  let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any };
   let mockFileSystemWatcher: jest.SpyInstance;
   let reloadConfigAggregatorsMock: jest.SpyInstance;
 
@@ -36,7 +36,10 @@ describe('WorkspaceContext', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
-    reloadConfigAggregatorsMock = jest.spyOn(ConfigAggregatorProvider.prototype, 'reloadConfigAggregators');
+    reloadConfigAggregatorsMock = jest.spyOn(
+      ConfigAggregatorProvider.prototype,
+      'reloadConfigAggregators'
+    );
 
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
@@ -44,8 +47,10 @@ describe('WorkspaceContext', () => {
     const context = {
       subscriptions: []
     };
-    getUsernameOrAliasStub = (authUtilMock.prototype.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
-    getUsernameStub = (authUtilMock.prototype.getUsername as any).mockReturnValue(testUser);
+    getUsernameOrAliasStub = (authUtilMock.prototype
+      .getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
+    getUsernameStub = (authUtilMock.prototype
+      .getUsername as any).mockReturnValue(testUser);
     authUtilMock.getInstance.mockReturnValue(new AuthUtil());
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
@@ -55,11 +60,16 @@ describe('WorkspaceContext', () => {
   it('test for the constructor', () => {
     expect(workspaceContextUtil).toHaveProperty('sessionConnections');
     expect(workspaceContextUtil).toHaveProperty('onOrgChangeEmitter');
-    expect(workspaceContextUtil).toHaveProperty('cliConfigWatcher', mockWatcher);
+    expect(workspaceContextUtil).toHaveProperty(
+      'cliConfigWatcher',
+      mockWatcher
+    );
   });
 
   it('should return workspace context util instance', () => {
-    expect(WorkspaceContextUtil.getInstance(false)).toEqual(workspaceContextUtil);
+    expect(WorkspaceContextUtil.getInstance(false)).toEqual(
+      workspaceContextUtil
+    );
   });
 
   it('should load the default username and alias upon initialization', () => {
@@ -133,23 +143,27 @@ describe('WorkspaceContext', () => {
     let createConnectionStub: jest.SpyInstance;
 
     beforeEach(() => {
-      createAuthStub = jest
-        .spyOn(AuthInfo, 'create');
-      createConnectionStub = jest
-        .spyOn(Connection, 'create');
+      createAuthStub = jest.spyOn(AuthInfo, 'create');
+      createConnectionStub = jest.spyOn(Connection, 'create');
     });
 
     it('should return connection for the default org', async () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
+      connectionMock.create.mockResolvedValue(
+        (mockConnection as unknown) as Promise<Connection<any>>
+      );
       const connection = await workspaceContextUtil.getConnection();
-      expect(connectionMock.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
+      expect(connectionMock.create).toHaveBeenCalledWith({
+        authInfo: mockAuthInfo
+      });
       expect(connection).toEqual(mockConnection);
     });
 
     it('should return a cached connection for the default org if there is one', async () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
+      connectionMock.create.mockResolvedValue(
+        (mockConnection as unknown) as Promise<Connection<any>>
+      );
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
 
@@ -166,11 +180,11 @@ describe('WorkspaceContext', () => {
 
       await mockWatcher.onDidChange.mock.calls[0][0]();
 
-      try {
+      const message = nls.localize('error_no_default_username');
+      // tslint:disable-next-line:no-floating-promises
+      expect(async () => {
         await workspaceContextUtil.getConnection();
-      } catch (error) {
-        expect(error).toEqual(new Error(nls.localize('error_no_default_username')));
-      }
+      }).rejects.toThrowError(message);
     });
   });
 });
