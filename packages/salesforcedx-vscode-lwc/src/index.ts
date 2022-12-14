@@ -22,7 +22,7 @@ import {
   forceLightningLwcStart,
   forceLightningLwcStop
 } from './commands';
-import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -50,11 +50,11 @@ function protocol2CodeConverter(value: string) {
 
 export async function activate(extensionContext: ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  console.log('Activation Mode: ' + getActivationMode());
+  log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    console.log('LWC Language Server activationMode set to off, exiting...');
+    log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
 
@@ -69,7 +69,7 @@ export async function activate(extensionContext: ExtensionContext) {
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
-    console.log('No workspace, exiting extension');
+    log('No workspace, exiting extension');
     return;
   }
 
@@ -85,10 +85,10 @@ export async function activate(extensionContext: ExtensionContext) {
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    console.log(
+    log(
       'LWC LSP - autodetect did not find a valid project structure, exiting....'
     );
-    console.log('WorkspaceType detected: ' + workspaceType);
+    log('WorkspaceType detected: ' + workspaceType);
     return;
   }
   // If activationMode === always, ignore workspace type and continue activating
@@ -98,8 +98,8 @@ export async function activate(extensionContext: ExtensionContext) {
   extensionContext.subscriptions.push(ourCommands);
 
   // If we get here, we either passed autodetect validation or activationMode == always
-  console.log('Lightning Web Components Extension Activated');
-  console.log('WorkspaceType detected: ' + workspaceType);
+  log('Lightning Web Components Extension Activated');
+  log('WorkspaceType detected: ' + workspaceType);
 
   // Start the LWC Language Server
   const client = createLanguageClient(
@@ -125,7 +125,7 @@ export async function activate(extensionContext: ExtensionContext) {
     const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
     if (currentNodePath && currentNodePath.includes(LWC_EXTENSION_NAME)) {
       try {
-        console.log(
+        log(
           'Removing eslint.nodePath setting as the LWC Extension no longer manages this value'
         );
         await config.update(
@@ -158,7 +158,7 @@ export async function deactivate() {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     await DevServerService.instance.stopServer();
   }
-  console.log('Lightning Web Components Extension Deactivated');
+  log('Lightning Web Components Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
 }
 

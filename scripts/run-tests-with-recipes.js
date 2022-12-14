@@ -3,6 +3,7 @@
 const path = require('path');
 const { runIntegrationTests } = require('./vscode-integration-testrunner');
 
+console.log('### run-tests-with-recipes start');
 const cwd = process.cwd();
 runIntegrationTests({
   extensionDevelopmentPath: path.join(__dirname, '..', 'packages'),
