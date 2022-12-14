@@ -1,5 +1,6 @@
 import * as chai from 'chai';
 import { activate } from '../../../src/index';
+import * as constants from '../../../src/constants';
 import * as vscode from 'vscode';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import * as sinonChai from 'sinon-chai';
@@ -10,12 +11,11 @@ import { expect, assert } from 'chai';
 chai.use(sinonChai);
 
 describe('activation modes', () => {
-  let sandbox: sinon.SinonSandbox;
+  const sandbox = sinon.createSandbox();
   let mockExtensionContext: vscode.ExtensionContext;
 
   beforeEach(function() {
-    sandbox = sinon.createSandbox();
-    sandbox.spy(console, 'log');
+    sandbox.spy(constants, 'log');
 
     mockExtensionContext = stubInterface<vscode.ExtensionContext>();
 
@@ -97,8 +97,8 @@ describe('activation modes', () => {
     await activate(mockExtensionContext);
 
     // Verify that we do not call vscode.commands.registerCommand at all
-    // We can also verify that we console.log the message
-    expect(console.log).calledWith(logMessage);
+    // We can also verify that we logged the message
+    expect(constants.log).calledWith(logMessage);
   });
 
   it('conditionally activates when activationMode is set to autodetect for LWC projects', async function() {
