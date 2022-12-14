@@ -120,18 +120,36 @@ export class ConfigUtil {
    * @returns The username for the configured Org if it exists.
    */
   public static async getUsername(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_ORG
-    );
+    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
     if (!defaultUsernameOrAlias) {
       return;
     }
 
-    const info = await StateAggregator.getInstance();
-    const username = defaultUsernameOrAlias
-      ? info.aliases.getUsername(String(defaultUsernameOrAlias))
-      : undefined;
+    const username = await getUsernameFor(defaultUsernameOrAlias);
     return username ? String(username) : undefined;
   }
+
+  /**
+   * Get the username of the default dev hub for the project.
+   *
+   * @returns The username for the configured default dev hub
+   * Org if it exists.
+   */
+  public static async getDevHubUsername(): Promise<string | undefined> {
+    const defaultDevHubUsernameOrAlias = await ConfigUtil.getDefaultDevHubUsernameOrAlias();
+    if (!defaultDevHubUsernameOrAlias) {
+      return;
+    }
+
+    const username = await getUsernameFor(defaultDevHubUsernameOrAlias);
+    return username ? String(username) : undefined;
+  }
+}
+
+async function getUsernameFor(usernameOrAlias: string) {
+  const info = await StateAggregator.getInstance();
+  const username = usernameOrAlias
+    ? info.aliases.getUsername(String(usernameOrAlias))
+    : undefined;
+  return username ? String(username) : undefined;
 }
