@@ -1,0 +1,12 @@
+name: Nightly Build Develop
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 10 6 * * *
+
+jobs:
+  nightly-build-develop:
+    uses:  ./.github/workflows/nightlyBuild.yml
+    with:
+      branch: develop

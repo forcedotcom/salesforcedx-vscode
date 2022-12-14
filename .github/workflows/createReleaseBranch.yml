@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: create_release_branch
   schedule:
-  - cron: '20 22 * * 1'
+  - cron: '0 13 * * 1'
   workflow_dispatch:
     inputs:
       releaseType:
@@ -41,10 +41,10 @@ jobs:
       with:
         ref: 'develop'
         ssh-strict: false
-        token: ${{ secrets.SF_IDEE_BOT_GITHUB_TOKEN }}
+        token: ${{ secrets.IDEE_GH_TOKEN }}
     - uses: ./.github/actions/gitConfig
       with:
-        email: ${{ secrets.GH_EMAIL }}
+        email: ${{ secrets.IDEE_GH_EMAIL }}
     - name: Set NPM at the correct version for Lerna
       run: npm install -g npm@8.12.1
     - run: npm ci
@@ -64,3 +64,15 @@ jobs:
     - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
     - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
 
+  slack_notification:
+    if: ${{ always() }}
+    needs: create_branch
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Release Branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})"
+      failedEvent: "Create Release Branch"
+      successfulEvent: "${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}"
+      type: "created"
+      result: ${{ needs.create_branch.outputs.result }}
+      workflow: "create-release-branch.yml"
