@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { runTests } = require('vscode-test');
+const { runTests } = require('@vscode/test-electron');
 const path = require('path');
 
 /**
@@ -16,6 +16,7 @@ async function runIntegrationTests({
   extensionTestsPath,
   testWorkspace
 }) {
+  console.log('### runIntegrationTests');
   try {
     const {
       CODE_VERSION,
@@ -37,12 +38,20 @@ async function runIntegrationTests({
       '--crash-reporter-directory',
       _vscodeLogDir
     ];
-    await runTests({
+    console.log('### pre runTests', {
       version: _version,
       extensionDevelopmentPath: _extensionDevelopmentPath,
       extensionTestsPath: _extensionTestsPath,
       launchArgs
     });
+    const exitCode = await runTests({
+      version: _version,
+      extensionDevelopmentPath: _extensionDevelopmentPath,
+      extensionTestsPath: _extensionTestsPath,
+      launchArgs
+    });
+    console.log(`### runTests is complete.  Exiting with code ${exitCode}`);
+    process.exit(exitCode);
   } catch (error) {
     console.error('Test run failed with error:', error);
     console.log('Tests exist with error code: 1 when a test fails.');
