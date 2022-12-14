@@ -209,10 +209,10 @@ describe('orgList Tests', () => {
           .returns({
             devHubUsername: dummyDevHubUsername1
           });
-        getDevHubUsernameStub.resolves(dummyDevHubUsername1);
         getAllAliasesForStub
           .withArgs(authInfoObjectsWithOneError[0].username)
           .returns([AN_ALIAS]);
+        getDevHubUsernameStub.resolves(dummyDevHubUsername1);
 
         const authList = await orgList.filterAuthInfo(
           authInfoObjectsWithOneError
