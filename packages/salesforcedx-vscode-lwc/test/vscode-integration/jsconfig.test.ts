@@ -15,7 +15,10 @@ const CONFIG_FILENAME = 'jsconfig.json';
 const TEST_COMPONENT_NAME = 'testComponent';
 const CREATE_COMPONENT_NAME = 'createComponent';
 
-describe('jsconfig Test Suite', () => {
+// Skiping these tests due to ongoing flappiness due to a busy filesystem in CI.
+// Example failure
+// Unknown (FileSystemError) (FileSystemError): Error: EBUSY: resource busy or locked, rmdir 'd:\a\salesforcedx-vscode\salesforcedx-vscode\packages\system-tests\assets\lwc-recipes\force-app\main\default\lwc\testComponent'
+describe.skip('jsconfig Test Suite', () => {
   const lwcDir = path.join(
     workspace.workspaceFolders![0].uri.fsPath,
     'force-app',
