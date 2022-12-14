@@ -18,9 +18,6 @@ let vscodeDownloadDir = contentOfVscodeTest.find(file =>
 );
 
 console.log('### where is VScode', { vscodeDownloadDir });
-// VSCode no longer downloads to a single directory name like 'stable'. The folder
-// name is dynamic base on the version number, so lets just use the first folder in .vscode-test dir
-// as the assumed place where vscode is extracted
 const testRunFolder = path.join(
   '.vscode-test',
   isInsiders ? 'insiders' : vscodeDownloadDir

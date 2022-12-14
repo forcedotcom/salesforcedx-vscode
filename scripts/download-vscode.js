@@ -60,7 +60,7 @@ downloadAndUnzipVSCode(vscodeVersion)
 
       const userData = path.join(vscodeBasePath, VSCODE_TEST, USER_DATA);
       console.log('### userdata: ' + userData);
-      // Remove the previously generated user data to ensuer we can run the int tests
+      // Remove the previously generated user data to ensure we can run the int tests
       fs.rmSync(userData, { recursive: true, force: true });
     } else {
       console.log('### in the else');
