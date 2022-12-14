@@ -240,9 +240,11 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run tests from test file nodes', async () => {
-      const commandResult = (await forceLwcTestFileRun(actualFileNode as {
-        testExecutionInfo: TestExecutionInfo;
-      })) as SfdxTask;
+      const commandResult = (await forceLwcTestFileRun(
+        actualFileNode as {
+          testExecutionInfo: TestExecutionInfo;
+        }
+      )) as SfdxTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
@@ -297,9 +299,11 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a successful test case node', async () => {
-      const commandResult = (await forceLwcTestCaseRun(actualFileNode as {
-        testExecutionInfo: TestExecutionInfo;
-      })) as SfdxTask;
+      const commandResult = (await forceLwcTestCaseRun(
+        actualFileNode as {
+          testExecutionInfo: TestExecutionInfo;
+        }
+      )) as SfdxTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseSuccessResult);
       });
@@ -327,9 +331,11 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a failed test case node and generates diagnostics for the test uri', async () => {
-      const commandResult = (await forceLwcTestCaseRun(actualFileNode as {
-        testExecutionInfo: TestExecutionInfo;
-      })) as SfdxTask;
+      const commandResult = (await forceLwcTestCaseRun(
+        actualFileNode as {
+          testExecutionInfo: TestExecutionInfo;
+        }
+      )) as SfdxTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseFailureResult);
       });
@@ -363,7 +369,8 @@ describe('LWC Test Outline Provider', () => {
       });
     });
 
-    it('Should refresh test explorer', async () => {
+    it('Should refresh test explorer', async function() {
+      this.timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
       actualFileNodes = await outlineProvder.getChildren();
