@@ -59,11 +59,9 @@ downloadAndUnzipVSCode(vscodeVersion)
       // Do nothing, vscode is already downloaded and extracted in this package
 
       const userData = path.join(vscodeBasePath, VSCODE_TEST, USER_DATA);
-      console.log('### userdata: ' + userData);
       // Remove the previously generated user data to ensure we can run the int tests
       fs.rmSync(userData, { recursive: true, force: true });
     } else {
-      console.log('### in the else');
       // For each extension, copy over the vscode binary
       for (let i = 0; i < extensionDirectories.length; i++) {
         try {
