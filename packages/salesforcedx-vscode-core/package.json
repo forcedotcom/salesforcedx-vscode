@@ -214,11 +214,11 @@
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
