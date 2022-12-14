@@ -20,22 +20,31 @@ import {
 } from '../utilities';
 
 describe('Org Creation and Authentication', async () => {
-  let tempFolderPath = undefined;
+  const tempProjectName = 'TempProject-OrgCreationAndAuth';
+  // const reuseScratchOrg = false;
+  let projectFolderPath: string = undefined;
   let prompt: QuickOpenBox | InputBox = undefined;
   let scratchOrgAliasName: string = undefined;
 
   step('Set up the testing environment', async () => {
     // This is "set up the testing environment", not "set up the global variables".
 
+    const tempFolderPath = getTempFolderPath();
+    projectFolderPath = path.join(tempFolderPath, tempProjectName);
+
     // Clean up the temp folder, just in case there are stale files there.
-    tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
-    if (fs.existsSync(tempFolderPath)) {
-      utilities.removeFolder(tempFolderPath);
+    if (fs.existsSync(projectFolderPath)) {
+      utilities.removeFolder(projectFolderPath);
       await utilities.pause(1);
     }
 
     // Now create the folder.
-    utilities.createFolder(tempFolderPath);
+    if (!fs.existsSync(tempFolderPath)) {
+      await utilities.createFolder(tempFolderPath);
+      await utilities.pause(1);
+    }
+
+    await utilities.createFolder(projectFolderPath);
     await utilities.pause(1);
   });
 
@@ -57,8 +66,8 @@ describe('Org Creation and Authentication', async () => {
     await prompt.selectQuickPick('Standard');
     await utilities.pause(1);
 
-    // Enter "TempProject" for project name.
-    await prompt.setText('TempProject');
+    // Enter "TempProject-OrgCreationAndAuth" for the project name.
+    await prompt.setText(tempProjectName);
     await utilities.pause(1);
 
     // Press Enter/Return.
@@ -66,7 +75,7 @@ describe('Org Creation and Authentication', async () => {
 
     // Set the location of the project.
     const input = await prompt.input$;
-    await input.setValue(tempFolderPath);
+    await input.setValue(projectFolderPath);
     await utilities.pause(1);
 
     // Click the OK button.
@@ -75,7 +84,7 @@ describe('Org Creation and Authentication', async () => {
     // Verify the project was created and was loaded.
     const sidebar = workbench.getSideBar();
     const content = sidebar.getContent();
-    const treeViewSection = await content.getSection('TEMPPROJECT');
+    const treeViewSection = await content.getSection(tempProjectName.toUpperCase());
     expect(treeViewSection).not.toEqual(undefined);
 
     const forceAppTreeItem = await treeViewSection.findItem('force-app') as DefaultTreeItem;
@@ -91,7 +100,8 @@ describe('Org Creation and Authentication', async () => {
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.
     const workbench = await (await browser.getWorkbench()).wait();
     await utilities.pause(1);
-    const authFilePath = path.join(tempFolderPath, 'TempProject', 'authFile.json');
+
+    const authFilePath = path.join(projectFolderPath, tempProjectName, 'authFile.json');
     const terminalView = await utilities.executeCommand(workbench, `sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json > ${authFilePath}`);
 
     const authFilePathFileExists = fs.existsSync(authFilePath);
@@ -241,8 +251,13 @@ describe('Org Creation and Authentication', async () => {
       await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${scratchOrgAliasName} --noprompt`);
     }
 
+    const tempFolderPath = getTempFolderPath();
     if (tempFolderPath) {
       await utilities.removeFolder(tempFolderPath);
     }
   });
+
+  function getTempFolderPath(): string {
+    return path.join(__dirname, '..', 'e2e-temp');
+  }
 });
