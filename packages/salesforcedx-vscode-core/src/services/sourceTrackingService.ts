@@ -36,7 +36,8 @@ export class SourceTrackingService {
     // It is important to pass the connection from WorkspaceContext to
     // Org.create() here.  Without this, core uses its cached version
     // of State Aggregator and the "No auth info found" error can be
-    // thrown after creating a default scratch org.
+    // thrown when deploying or retrieving immediately after creating a
+    // default scratch org.
     const org: Org = await Org.create({ connection });
     const project = await SfProject.resolve(projectPath);
     const options: SourceTrackingOptions = {
