@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { projectPaths, WorkspaceContextUtil, workspaceUtils } from '../../../src/';
-import { TOOLS } from '../../../src/helpers/paths';
+import { METADATA, ORGS, SFDX_CONFIG_FILE, TOOLS } from '../../../src/helpers/paths';
 
 jest.mock('@salesforce/core', () => {
   return {
@@ -16,12 +16,9 @@ describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_WORKSPACE_INSTANCE: any = {};
   const FAKE_STATE_FOLDER = '.sfdx';
-  const FAKE_CONFIG_FILE = 'sfdx-config.json';
   const FAKE_USERNAME = 'testuser';
-  const FAKE_METADATA = 'metadata';
-  const FAKE_ORGS = 'orgs';
   const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
-  const FAKE_PATH_TO_METADATA_FOLDER = path.join(FAKE_PATH_TO_STATE_FOLDER, FAKE_ORGS, FAKE_USERNAME, FAKE_METADATA);
+  const FAKE_PATH_TO_METADATA_FOLDER = path.join(FAKE_PATH_TO_STATE_FOLDER, ORGS, FAKE_USERNAME, METADATA);
 
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
@@ -44,7 +41,7 @@ describe('test project paths', () => {
   });
   describe('test sfdxProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
-    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, FAKE_CONFIG_FILE);
+    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
 
     beforeEach(() => {
       stateFolderStub = jest
