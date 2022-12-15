@@ -31,7 +31,7 @@ jobs:
     steps: 
       - name: 'Slack Prepublish notification'
         uses: ./.github/workflows/slackNotification.yml
-        secrets: inherit
+        
         with:
           title: "Prepublish release step needs Approval for ${{inputs.releaseBranch}}"
           notification: "Create Release Branch"
@@ -43,13 +43,9 @@ jobs:
     environment: 'prepublish'
     needs: prepublish-notification
     steps: 
-      - name: 'Merge release into main'
-        uses: ./.github/workflows/mergeReleaseBranch.yml
-        secrets: inherit
-        inputs: inherit
+      - uses: ./.github/workflows/mergeReleaseBranch.yml
       - name: 'Notification for successful merge'
         uses: ./.github/workflows/slackNotification.yml
-        secrets: inherit
         with:
           title: "${{inputs.releaseBranch}} has been merged into main"
           notification: "Prepublish merge into main is complete"
@@ -62,3 +58,4 @@ jobs:
     needs: prepublish
     steps: 
       - name: 'Publish to VSCODE Marketplace'
+        run: echo "i am not really publishing yet"
