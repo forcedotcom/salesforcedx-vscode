@@ -19,16 +19,16 @@ jobs:
           email: ${{ secrect.IDEE_GH_EMAIL }}
       - name: 'Setup Node'
         uses: actions/setup-node@v3
-          with:
-            node-version: '16.13.x'
-            cache: npm
+        with:
+          node-version: '16.13.x'
+          cache: npm
       - name: 'Find And Set Version to ENV'
         id: version
         run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $BASH_ENV
       - id: souceBashEnv
         run: source $BASH_ENV
-      - id: echoVersion
-        run: echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
+      #- id: echoVersion
+        #run: echo "RELEASE_VERSION is: ${{ env.RELEASE_VERSION }}"
       - name: 'Verify the release branch is not older than main'
         id: verifyReleaseVersionValid    
         run: |
@@ -52,7 +52,6 @@ jobs:
           git push
       - name: 'Slack Prepublish notification'
         uses: ./.github/workflows/slackNotification.yml
-        secrets: inherit
         with:
           title: "Release branch successfully merged for ${{inputs.releaseBranch}}"
           notification: "Release branch successfully merged."
