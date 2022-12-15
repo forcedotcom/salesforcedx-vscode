@@ -1,0 +1,64 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs: 
+      'releaseBranch': 
+        description: 'The branch to be published.'
+        type: string
+        required: true
+
+jobs: 
+  build-and-test: 
+    runs-on: 'ubuntu-latest'
+    steps: 
+      - name: 'Unit tests'
+        uses: ./.github/workflows/unitTests.yml
+        with:
+          branch: ${{ inputs.releaseBranch }}
+      - name: 'Integration Tests'
+        uses: ./.github/workflows/integrationTests.yml
+        with:
+          branch: ${{ inputs.releaseBranch }}
+      - name: 'Build All'
+        uses: ./.github/workflows/buildAll.yml
+        with:
+          branch: ${{ inputs.releaseBranch }}
+
+  prepublish-notification: 
+    runs-on: 'ubuntu-latest'
+    needs: build-and-test
+    steps: 
+      - name: 'Slack Prepublish notification'
+        uses: ./.github/workflows/slackNotification.yml
+        secrets: inherit
+        with:
+          title: "Prepublish release step needs Approval for ${{inputs.releaseBranch}}"
+          notification: "Create Release Branch"
+          type: "notification"
+          workflow: "publish.yml"
+
+  prepublish: 
+    runs-on: 'ubuntu-latest'
+    environment: 'prepublish'
+    needs: prepublish-notification
+    steps: 
+      - name: 'Merge release into main'
+        uses: ./.github/workflows/mergeReleaseBranch.yml
+        secrets: inherit
+        inputs: inherit
+      - name: 'Notification for successful merge'
+        uses: ./.github/workflows/slackNotification.yml
+        secrets: inherit
+        with:
+          title: "${{inputs.releaseBranch}} has been merged into main"
+          notification: "Prepublish merge into main is complete"
+          type: "notification"
+          workflow: "publish.yml"
+
+  publish:
+    runs-on: ubuntu-latest
+    environment: publish
+    needs: prepublish
+    steps: 
+      - name: 'Publish to VSCODE Marketplace'
