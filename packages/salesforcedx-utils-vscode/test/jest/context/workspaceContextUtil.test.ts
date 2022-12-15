@@ -72,7 +72,9 @@ describe('WorkspaceContext', () => {
   });
 
   it('should return workspace context util instance', () => {
-    expect(WorkspaceContextUtil.getInstance(false)).toEqual(workspaceContextUtil);
+    expect(WorkspaceContextUtil.getInstance(false)).toEqual(
+      workspaceContextUtil
+    );
   });
 
   it('should load the default username and alias and clear the cache of the core types upon initialization', () => {
@@ -187,11 +189,11 @@ describe('WorkspaceContext', () => {
 
       await mockWatcher.onDidChange.mock.calls[0][0]();
 
-      try {
+      const message = nls.localize('error_no_default_username');
+      // tslint:disable-next-line:no-floating-promises
+      expect(async () => {
         await workspaceContextUtil.getConnection();
-      } catch (error) {
-        expect(error).toEqual(new Error(nls.localize('error_no_default_username')));
-      }
+      }).rejects.toThrowError(message);
     });
   });
 });
