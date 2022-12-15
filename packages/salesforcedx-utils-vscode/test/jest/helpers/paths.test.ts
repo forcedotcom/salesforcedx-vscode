@@ -243,7 +243,7 @@ describe('test project paths', () => {
     });
   });
 
-  describe('test fileExtensionsMatch IN PROGRESS', () => {
+  describe('test fileExtensionsMatch', () => {
     const mockEditor = {
       document: {
         uri: { path: 'foo.log' } as vscode.Uri
