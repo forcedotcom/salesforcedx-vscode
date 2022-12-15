@@ -1,0 +1,60 @@
+name: 'Merge Release branch'
+on: 
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+
+jobs: 
+  merge-release-branch:
+    name: 'Merge Release Branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          email: ${{ secrect.IDEE_GH_EMAIL }}
+      - name: 'Setup Node'
+        uses: actions/setup-node@v3
+          with:
+            node-version: '16.13.x'
+            cache: npm
+      - name: 'Find And Set Version to ENV'
+        id: version
+        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $BASH_ENV
+      - id: souceBashEnv
+        run: source $BASH_ENV
+      - id: echoVersion
+        run: echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
+      - name: 'Verify the release branch is not older than main'
+        id: verifyReleaseVersionValid    
+        run: |
+          git checkout main
+          echo "export MAIN_RELEASE_VERSION="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $BASH_ENV
+          source $BASH_ENV
+          echo "MAIN_RELEASE_VERSION is: ${MAIN_RELEASE_VERSION}"
+          LOWER_VERSION="`echo -e "${MAIN_RELEASE_VERSION}\n${RELEASE_VERSION}" | sort -V | cut --delimiter $'\n' --fields 1`"
+          echo "Lower version was: ${LOWER_VERSION}"
+          if [ ${LOWER_VERSION} != ${MAIN_RELEASE_VERSION} ]
+          then
+            echo "The release branch is older than main. We do not want to rebase off of an old branch. Exiting."
+            exit 1;
+          fi
+      
+      - name: 'Rebasing main off of release branch'
+        run: |
+          echo "Rebasing main off of release branch ${RELEASE_VERSION}"
+          git checkout main
+          git rebase -Xtheirs release/v${RELEASE_VERSION}
+          git push
+      - name: 'Slack Prepublish notification'
+        uses: ./.github/workflows/slackNotification.yml
+        secrets: inherit
+        with:
+          title: "Release branch successfully merged for ${{inputs.releaseBranch}}"
+          notification: "Release branch successfully merged."
+          type: "notification"
+          workflow: "mergeReleaseBranch.yml"

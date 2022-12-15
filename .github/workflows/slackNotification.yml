@@ -15,6 +15,9 @@ on:
       successfulEvent:
         description: URL for the successful event
         type: string
+      notification: 
+        description: The message to be displayed for a notification.
+        type: string
       type:
         description: Action type
         type: string
@@ -30,7 +33,7 @@ on:
 jobs:
   notification_on_success:
     runs-on: ubuntu-latest
-    if: ${{ inputs.result == 'success' }}
+    if: inputs.result == 'success' 
     steps:
       - name: Announce success
         uses: slackapi/slack-github-action@v1.22.0
@@ -47,7 +50,7 @@ jobs:
 
   notification_on_failure:
     runs-on: ubuntu-latest
-    if: ${{ inputs.result == 'failure' }}
+    if: inputs.result == 'failure'
     steps:
       - name: Announce failure
         uses: slackapi/slack-github-action@v1.22.0
@@ -58,6 +61,23 @@ jobs:
               "event": "${{ inputs.failedEvent }}, run: ${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}",
               "repo": "${{ github.event.repository.name }}",
               "result": "Failure"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
+
+  general_notification:
+    runs-on: ubuntu-latest
+    if: inputs.type == 'notification' 
+    steps:
+      - name: General Notification
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "text": "${{ inputs.title }}",
+              "event": "${{ inputs.notification }}, run: ${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}",
+              "repo": "${{ github.event.repository.name }}",
+              "result": "Notification"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
