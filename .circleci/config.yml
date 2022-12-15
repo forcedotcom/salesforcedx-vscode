@@ -507,18 +507,7 @@ jobs:
 
 workflows:
   version: 2.1
-
-  # run a build and a windows test on every commit
-  commit-workflow:
-    when:
-      and:
-        - not: << pipeline.parameters.publish >>
-        - not: << pipeline.parameters.pre-publish >>
-    jobs:
-      - build-all
-      - unit-tests
-      - integration-tests
-
+  
   pre-publish-workflow:
     when: << pipeline.parameters.pre-publish >>
     jobs:
