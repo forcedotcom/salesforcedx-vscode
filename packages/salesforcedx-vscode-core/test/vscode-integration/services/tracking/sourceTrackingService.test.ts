@@ -13,7 +13,20 @@ import { testData } from './testdata/sourceTracking';
 
 describe('SourceTrackingService', () => {
   describe('createSourceTracking', () => {
-    it('Should return an instance of SourceTracking', async () => {});
+    beforeEach(() => {
+      // Todo: stubs
+    });
+    it('Should return an instance of SourceTracking', async () => {
+      const sourceTrackingStub = sinon.createStubInstance(SourceTracking);
+      sourceTrackingStub.getStatus.returns(testData.statusOutputRows);
+      const sourceTrackingServiceSUT: SourceTrackingService = new SourceTrackingService(
+        sourceTrackingStub
+      );
+      // const sourceTracking = await sourceTrackingServiceSUT.createSourceTracking();
+
+      // expect(sourceTrackingStub.create.called).to.equal(true);
+      // todo: more expects
+    });
   });
   describe('getSourceStatusSummary', () => {
     it('Should return a properly formatted string when local and remote changes exist.', async () => {
