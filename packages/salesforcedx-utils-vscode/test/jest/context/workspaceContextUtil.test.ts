@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
 import { AuthUtil } from '../../../src/auth/authUtil';
@@ -26,9 +26,10 @@ describe('WorkspaceContext', () => {
   let getUsernameOrAliasStub: jest.SpyInstance;
   let workspaceContextUtil: any; // TODO find a better way
 
-  let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any; };
+  let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any };
   let mockFileSystemWatcher: jest.SpyInstance;
   let reloadConfigAggregatorsMock: jest.SpyInstance;
+  let stateAggregatorClearInstanceMock: jest.SpyInstance;
 
   beforeEach(async () => {
     mockWatcher = {
@@ -36,7 +37,14 @@ describe('WorkspaceContext', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
-    reloadConfigAggregatorsMock = jest.spyOn(ConfigAggregatorProvider.prototype, 'reloadConfigAggregators');
+    reloadConfigAggregatorsMock = jest.spyOn(
+      ConfigAggregatorProvider.prototype,
+      'reloadConfigAggregators'
+    );
+    stateAggregatorClearInstanceMock = jest.spyOn(
+      StateAggregator,
+      'clearInstance'
+    );
 
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
@@ -44,8 +52,10 @@ describe('WorkspaceContext', () => {
     const context = {
       subscriptions: []
     };
-    getUsernameOrAliasStub = (authUtilMock.prototype.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
-    getUsernameStub = (authUtilMock.prototype.getUsername as any).mockReturnValue(testUser);
+    getUsernameOrAliasStub = (authUtilMock.prototype
+      .getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
+    getUsernameStub = (authUtilMock.prototype
+      .getUsername as any).mockReturnValue(testUser);
     authUtilMock.getInstance.mockReturnValue(new AuthUtil());
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
@@ -55,20 +65,24 @@ describe('WorkspaceContext', () => {
   it('test for the constructor', () => {
     expect(workspaceContextUtil).toHaveProperty('sessionConnections');
     expect(workspaceContextUtil).toHaveProperty('onOrgChangeEmitter');
-    expect(workspaceContextUtil).toHaveProperty('cliConfigWatcher', mockWatcher);
+    expect(workspaceContextUtil).toHaveProperty(
+      'cliConfigWatcher',
+      mockWatcher
+    );
   });
 
   it('should return workspace context util instance', () => {
     expect(WorkspaceContextUtil.getInstance(false)).toEqual(workspaceContextUtil);
   });
 
-  it('should load the default username and alias upon initialization', () => {
+  it('should load the default username and alias and clear the cache of the core types upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
+    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
-  it('should update default username and alias upon config change', async () => {
+  it('should update default username and alias and clear the cache of the core types upon config change', async () => {
     getUsernameOrAliasStub.mockReturnValue(testUser2);
     getUsernameStub.mockReturnValue(testUser2);
 
@@ -79,6 +93,8 @@ describe('WorkspaceContext', () => {
 
     expect(workspaceContextUtil.username).toEqual(testUser2);
     expect(workspaceContextUtil.alias).toEqual(undefined);
+    expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
+    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
   it('should update default username to undefined if username is not set', async () => {
@@ -133,23 +149,28 @@ describe('WorkspaceContext', () => {
     let createConnectionStub: jest.SpyInstance;
 
     beforeEach(() => {
-      createAuthStub = jest
-        .spyOn(AuthInfo, 'create');
-      createConnectionStub = jest
-        .spyOn(Connection, 'create');
+      createAuthStub = jest.spyOn(AuthInfo, 'create');
+      createConnectionStub = jest.spyOn(Connection, 'create');
     });
 
     it('should return connection for the default org', async () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
+      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
+      connectionMock.create.mockResolvedValue(
+        (mockConnection as unknown) as Promise<Connection<any>>
+      );
       const connection = await workspaceContextUtil.getConnection();
-      expect(connectionMock.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
+      expect(connectionMock.create).toHaveBeenCalledWith({
+        authInfo: mockAuthInfo
+      });
       expect(connection).toEqual(mockConnection);
     });
 
     it('should return a cached connection for the default org if there is one', async () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
+      connectionMock.create.mockResolvedValue(
+        (mockConnection as unknown) as Promise<Connection<any>>
+      );
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
 
