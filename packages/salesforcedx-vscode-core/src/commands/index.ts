@@ -69,6 +69,11 @@ export {
   ForceSourceStatusExecutor,
   SourceStatusFlags
 } from './forceSourceStatus';
+export {
+  viewAllChanges,
+  viewLocalChanges,
+  viewRemoteChanges
+} from './viewChanges';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceAnalyticsTemplateCreate,
