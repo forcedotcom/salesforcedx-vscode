@@ -18,6 +18,42 @@
       "autoAttachChildProcesses": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Current Automation Test",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/node_modules/@wdio/cli/bin/wdio.js",
+      "args": [
+        "run",
+        "test/wdio.conf.ts",
+        "--spec",
+        "${file}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": true,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Run All Automation Tests",
+      "program": "${workspaceFolder}/app.js",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node",
+      "preLaunchTask": "Run All Automation Tests",
+    },
+    {
+      "name": "Run Current Automation Test",
+      "program": "${workspaceFolder}/app.js",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node",
+      "preLaunchTask": "Run Current Automation Test",
     }
   ]
 }
