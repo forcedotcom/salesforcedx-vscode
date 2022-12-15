@@ -58,7 +58,7 @@ export class SourceTrackingService {
       project,
       ignoreLocalCache: true,
       subscribeSDREvents: true,
-      ignoreConflicts: true
+      ignoreConflicts: false
     };
 
     // Change the environment to get the node process to use
