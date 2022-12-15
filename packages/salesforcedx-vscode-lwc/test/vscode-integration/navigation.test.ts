@@ -25,7 +25,7 @@ describe('LWC Definition Linking', () => {
 
   it('Should provide navigation to a selected LWC tag', async () => {
     // select the 'c-view-source' tag
-    testDefinitionNavigation(
+    return testDefinitionNavigation(
       path.join(lwcDir, 'hello', 'hello.html'),
       path.join(lwcDir, 'viewSource', 'viewSource.js'),
       new Position(6, 16)
@@ -56,11 +56,10 @@ async function testDefinitionNavigation(
   // allows a users to pick between the html, js or css files in a component to navigate to
   expect(locations).to.have.lengthOf(3);
 
-  const location = locations![0];
-
-  expect(location).to.have.property('uri');
-
+  const locationUris = locations.map(location => {
+    return location.uri.toString();
+  });
   const expectedURI = URI.file(endLocation);
-
-  expect(location.uri.toString()).to.equal(expectedURI.toString());
+  // The list should contain the js, css, and html file, but order is not guarenteed.
+  expect(locationUris.indexOf(expectedURI.toString())).to.not.equal(-1);
 }
