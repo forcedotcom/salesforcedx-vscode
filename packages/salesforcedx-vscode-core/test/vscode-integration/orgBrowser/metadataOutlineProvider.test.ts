@@ -316,14 +316,14 @@ describe('fetch nodes when org browser (cloud icon) is selected', () => {
     const node = new BrowserNode(username, NodeType.Org);
 
     await metadataProvider.getChildren(node);
-    expect(loadTypesStub.getCall(0).args[1]).to.be.false;
+    expect(loadTypesStub.getCall(0).args[0]).to.be.false;
 
     await metadataProvider.refresh();
     await metadataProvider.getChildren(node);
-    expect(loadTypesStub.getCall(1).args[1]).to.be.true;
+    expect(loadTypesStub.getCall(1).args[0]).to.be.true;
 
     await metadataProvider.getChildren(node);
-    expect(loadTypesStub.getCall(2).args[1]).to.be.false;
+    expect(loadTypesStub.getCall(2).args[0]).to.be.false;
     usernameStub.restore();
   });
 });
