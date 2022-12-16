@@ -56,11 +56,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: 'main'
+          token: ${{ IDEE_GH_TOKEN }}
       
       - name: 'Rebasing main off of release branch'
         run: |
           echo "Rebasing main off of release branch ${{env.RELEASE_VERSION}}"
-          git fetch upstream
           git rebase -Xtheirs release/v${{env.RELEASE_VERSION}}
           git push
           
