@@ -17,6 +17,19 @@ import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 
 export class OrgAuthInfo {
+  public static async getDevHubUsername() {
+    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      false
+    );
+    let defaultDevHubUsername: string | undefined;
+    if (defaultDevHubUsernameOrAlias) {
+      defaultDevHubUsername = await OrgAuthInfo.getUsername(
+        defaultDevHubUsernameOrAlias
+      );
+    }
+    return defaultDevHubUsername;
+  }
+
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
