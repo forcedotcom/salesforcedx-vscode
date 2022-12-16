@@ -6,7 +6,10 @@
  */
 
 import { Org, SfProject } from '@salesforce/core';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  getRootWorkspacePath,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   Row,
   Table
@@ -16,7 +19,6 @@ import {
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
 import { StatusOutputRow } from '@salesforce/source-tracking';
-import { WorkspaceContext } from '../context/workspaceContext';
 
 export class SourceTrackingService {
   private _sourceTracking: SourceTracking | undefined;
@@ -37,7 +39,7 @@ export class SourceTrackingService {
       process.chdir(projectPath);
     }
 
-    const connection = await WorkspaceContext.getInstance().getConnection();
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
     // It is important to pass the connection from WorkspaceContext to
     // Org.create() here.  Without this, core uses its cached version
     // of State Aggregator and the "No auth info found" error can be
