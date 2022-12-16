@@ -24,6 +24,7 @@ jobs:
           email: ${{ secrets.IDEE_GH_EMAIL }}
   merge-release-branch:
     uses: ./.github/workflows/mergeReleaseBranch.yml
+    needs: [checkout-code]
     secrets: inherit
     with: 
       releaseBranch: ${{ inputs.releaseBranch }}
