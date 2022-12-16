@@ -1,0 +1,12 @@
+name: Test, Build, and Publish
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/buildAndTest.yml
+  publish:
+    needs: [build-and-test]
+    uses: ./.github/workflows/publish.yml
+  

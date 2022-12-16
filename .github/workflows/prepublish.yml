@@ -1,0 +1,24 @@
+
+name: PrePublish
+
+# Have workflow for just merging into main
+# publish flow will trigger by a merge into main w/ approval 
+
+on:
+  workflow_dispatch:
+    inputs: 
+      'releaseBranch': 
+        description: 'The branch to be published.'
+        type: string
+        required: true
+
+jobs: 
+  merge-release-branch:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v3
+        with: 
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/workflows/mergeReleaseBranch.yml
+        with: 
+          releaseBanch: ${{ inputs.releaseBranch }}
