@@ -70,6 +70,7 @@ jobs:
         
   slack-prepublish-notification:
     uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
     needs: [merge-release-branch]
     with:
       title: "Release branch successfully merged for ${{inputs.releaseBranch}}"
