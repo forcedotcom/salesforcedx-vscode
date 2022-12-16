@@ -59,6 +59,9 @@ jobs:
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
       
       - name: 'Rebasing main off of release branch'
         run: |
