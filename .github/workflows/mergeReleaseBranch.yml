@@ -52,6 +52,10 @@ jobs:
             echo "The release branch is older than main. We do not want to rebase off of an old branch. Exiting."
             exit 1;
           fi
+          
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
       
       - name: 'Rebasing main off of release branch'
         run: |
