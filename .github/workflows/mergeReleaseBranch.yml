@@ -68,7 +68,7 @@ jobs:
           echo "Rebasing main off of release branch ${{env.RELEASE_VERSION}}"
           git fetch
           git branch
-          git pull
+          git pull origin main
           git rebase -Xtheirs origin/release/v${{env.RELEASE_VERSION}}
           git push
         
