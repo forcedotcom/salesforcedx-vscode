@@ -70,7 +70,7 @@ jobs:
           git branch
           git pull origin main
           git rebase -Xtheirs origin/release/v${{env.RELEASE_VERSION}}
-          git push
+          git push origin main
         
   slack-prepublish-notification:
     uses: ./.github/workflows/slackNotification.yml
