@@ -3,7 +3,7 @@
     "docs",
     "packages/*"
   ],
-  "version": "56.6.10",
+  "version": "56.10.0",
   "command": {
     "version": {
       "allowBranch": [
@@ -11,5 +11,6 @@
         "release/*"
       ]
     }
-  }
+  },
+  "useNx": true
 }
