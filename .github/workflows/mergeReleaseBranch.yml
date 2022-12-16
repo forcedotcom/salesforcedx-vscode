@@ -42,6 +42,24 @@ jobs:
       RELEASE_VERSION: ${{ needs.get_release_version.outputs.RELEASE_VERSION }}
       MAIN_VERSION: ${{ needs.get_main_version.outputs.MAIN_VERSION }}
     steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          email: ${{ secrect.IDEE_GH_EMAIL }}
+      - name: 'Setup Node'
+        uses: actions/setup-node@v3
+          with:
+            node-version: '16.13.x'
+            cache: npm
+      - name: 'Find And Set Version to ENV'
+        id: version
+        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $BASH_ENV
+      - id: souceBashEnv
+        run: source $BASH_ENV
+      - id: echoVersion
+        run: echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
       - name: 'Verify the release branch is not older than main'
         id: verifyReleaseVersionValid    
         run: |
