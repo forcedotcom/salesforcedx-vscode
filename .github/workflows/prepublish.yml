@@ -24,4 +24,4 @@ jobs:
           email: ${{ secrets.IDEE_GH_EMAIL }}
       - uses: ./.github/workflows/mergeReleaseBranch.yml
         with: 
-          releaseBanch: ${{ inputs.releaseBranch }}
+          releaseBranch: ${{ inputs.releaseBranch }}
