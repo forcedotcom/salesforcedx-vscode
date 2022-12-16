@@ -13,7 +13,7 @@ import {
   SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { getRootWorkspacePath } from '..';
+import { workspaceUtils } from '..';
 import { ConfigAggregatorProvider } from '../providers';
 
 export enum ConfigSource {
@@ -140,18 +140,20 @@ export class ConfigUtil {
   public static async setDefaultUsernameOrAlias(usernameOrAlias: string): Promise<void> {
     const originalDirectory = process.cwd();
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-    const workspacePath = getRootWorkspacePath(); // Get current workspace path
-    process.chdir(workspacePath); // Set process directory
+    const workspacePath = workspaceUtils.getRootWorkspacePath(); // Get current workspace path
 
-    const config = await Config.create(Config.getDefaultOptions());
-
-    // should only set if username is valid or an empty string (unset)
-    if (usernameOrAlias) { // check if username is an empty string
-      await Org.create({ aliasOrUsername: usernameOrAlias }); // check if username is valid
+    try {
+      process.chdir(workspacePath); // Set process directory
+      const config = await Config.create(Config.getDefaultOptions());
+      // should only set if username is valid or an empty string (unset)
+      if (usernameOrAlias) { // check if username is an empty string
+        await Org.create({ aliasOrUsername: usernameOrAlias }); // check if username is valid
+      }
+      config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
+      await config.write();
+    } finally {
+      process.chdir(originalDirectory);
     }
-    config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
-    await config.write();
-    process.chdir(originalDirectory);
   }
 
 }
