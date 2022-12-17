@@ -32,7 +32,7 @@ export class SourceTrackingService {
   public async createSourceTracking(): Promise<SourceTracking> {
     const origCwd = process.cwd();
     const projectPath = getRootWorkspacePath();
-    if (process.cwd() !== projectPath) {
+    if (origCwd !== projectPath) {
       // Change the environment to get the node process to use
       // the correct current working directory (process.cwd).
       // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
@@ -63,10 +63,10 @@ export class SourceTrackingService {
     return tracking;
   }
 
-  public getSourceStatusSummary = async ({
+  public async getSourceStatusSummary({
     local = true,
     remote = true
-  }): Promise<string> => {
+  }): Promise<string> {
     const statusResponse = await (await this.sourceTracking()).getStatus({
       local,
       remote
@@ -75,7 +75,7 @@ export class SourceTrackingService {
       statusResponse
     );
     return sourceStatusSummary.format();
-  };
+  }
 
   private async sourceTracking() {
     if (this._sourceTracking === undefined) {
