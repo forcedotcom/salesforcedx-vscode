@@ -1,0 +1,88 @@
+name: Publish
+
+on:
+  workflow_call
+
+jobs: 
+
+  publish-start-notification:
+    name: 'Publish Start Notification'
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: ./.github/workflows/slackNotification.yml
+        with:
+          title: "Publish waiting for approval in github."
+          notification: "Main has been merged and publish job is ready for approval."
+          type: "notification"
+          workflow: "publish.yml"
+
+  publish-approved-slack: 
+    runs-on: 'ubuntu-latest'
+    environment: publish
+    needs: publish-start-notification
+    steps: 
+      - uses: ./.github/workflows/slackNotification.yml
+        with:
+          title: "Publish Approved"
+          notification: "Publish job has been approved. Starting Publish"
+          type: "notification"
+          workflow: "publish.yml"
+  
+  prepare_environment:
+    name: 'Get Release Version'
+    runs-on: ubuntu-latest
+    needs: [publish-approved-slack]
+    outputs:
+      RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
+      GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
+      SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+      - id: getMainVersion
+        run: |
+          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+      - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
+      - id: getGusBuild
+        run: | 
+          echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+      - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
+      - id: getScheduledBuild
+        run: | 
+          echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+      - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"
+
+  ctc-open:
+    needs: [prepare_environment]
+    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
+    secrets: inherit
+
+  vscode-publish:
+    needs: [ctc-open]
+    uses: ./.github/workflows/publishVSCode.yml
+    with: 
+      version: ${{ needs.prepare_environment.outputs.RELEASE_VERSION }}
+    secrets: inherit
+
+
+  ctcCloseSuccess:
+    needs: [ctc-open, vscode-publish]
+    if: needs.ctc-open.result == 'success' && needs.vscode-publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+    secrets: inherit
+    with:
+      changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
+
+  ctcCloseFail:
+    needs: [ctc-open, vscode-publish]
+    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.vscode-publish.result != 'success')
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+    secrets: inherit
+    with:
+      changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
+      status: Not Implemented
+    
+      
+  
+  
