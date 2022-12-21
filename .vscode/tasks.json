@@ -85,22 +85,10 @@
       "isBackground": false
     },
     {
-      "label": "Launch Pre-Publish Steps",
-      "command": "./scripts/pre-publish-workflow.sh",
-      "type": "shell",
-      "args": ["${input:circleCiId}", "${input:releaseBranch}"]
-    },
-    {
       "label": "Build Language Server Jar (Jorje)",
       "command": "./scripts/build-jorje.js",
       "type": "shell",
       "args": ["${input:needSigning}"]
-    },
-    {
-      "label": "Publish Extensions",
-      "command": "./scripts/publish-workflow.sh",
-      "type": "shell",
-      "args": ["${input:circleCiId}"]
     },
     {
       "label": "Watch",
@@ -116,11 +104,6 @@
     }
   ],
   "inputs": [
-    {
-      "id": "circleCiId",
-      "type": "promptString",
-      "description": "CircleCi Token"
-    },
     {
       "id": "needSigning",
       "type": "pickString",
