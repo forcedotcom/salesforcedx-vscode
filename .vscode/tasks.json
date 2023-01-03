@@ -110,11 +110,6 @@
       "description": "Are you publishing Jorje changes? (Need Signed Jar)",
       "options": ["false", "true"],
       "default": "false"
-    },
-    {
-      "id": "releaseBranch",
-      "type": "promptString",
-      "description": "Provide the release version (Ex 49.11.0)"
     }
   ]
 }

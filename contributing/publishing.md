@@ -44,7 +44,7 @@ The Prepublish job will verify the version of the branch to be merged is newer t
 ## Publishing Main
 
 The merge into main will trigger a run of the 'Test, Build, and Publish' GHA workflow that will run the tests, build vsix files, and send a slack notification that a publish workflow has been initiated.
-After all tests have passed it will trigger a required approval for continueing the job.
+After all tests have passed it will trigger a required approval for continuing the job.
 
 Before approving the publish to the marketplace download the vsix files, install them locally and verify they are working as expected.
 
@@ -78,7 +78,7 @@ Note that the beta branch, because of the unique versioning, should not be merge
 
 # Manual Publish
 
-The steps used to execute a publish to the marketplace can be found in the assoicated github actions.
+The steps used to publish to the VS Code Marketplace can be found in the associated Github Actions.
 
 ## Generating a Major Release
 
@@ -88,7 +88,7 @@ The versioning we follow is intentionally mapped with Salesforce Core. When a ma
 
 ### Options
 
-- Download directly from the Github Action run. You will find artifacts that are assoicated with a run at the bottom of the summary screen
+- Download directly from the Github Action run. You will find artifacts that are associated with a run at the bottom of the summary screen
 - Use the gh cli to download artifacts. `gh run download --dir /dir/where/you/want/the/vsix/files/ 3746978326`. The last arg is the GHA job id. This can be found in the UI or by executing `gh run list`.
 
 **At this stage, it is possible to share the .vsix directly for manual

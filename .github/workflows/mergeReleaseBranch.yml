@@ -1,4 +1,4 @@
-name: 'Merge Release branch'
+name: 'Merge Release Branch'
 on: 
   workflow_call:
     inputs:

@@ -11,7 +11,7 @@ on:
         description: Set to published if the push to the VSCode marketplace was successful
         value: ${{ jobs.publish.outputs.result }}
       status: 
-        description: Set to complete if all tasks assoicated with the workflow were successful.
+        description: Set to complete if all tasks associated with the workflow were successful.
         value: ${{ jobs.mergeDevelop.outputs.status }}
 
 # There are two outputs that are a result of running this workflow
