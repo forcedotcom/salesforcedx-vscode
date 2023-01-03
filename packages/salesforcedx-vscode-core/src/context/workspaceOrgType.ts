@@ -9,8 +9,8 @@ import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export enum OrgType {
-  SourceTracked,
-  NonSourceTracked
+  ScratchOrg,
+  NonScratchOrg
 }
 
 export async function getWorkspaceOrgType(
@@ -28,12 +28,12 @@ export async function getWorkspaceOrgType(
       err.message
     )
   );
-  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  return isScratchOrg ? OrgType.ScratchOrg : OrgType.NonScratchOrg;
 }
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
-  setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
+  setDefaultUsernameHasChangeTracking(orgType === OrgType.ScratchOrg);
+  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonScratchOrg);
 }
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {

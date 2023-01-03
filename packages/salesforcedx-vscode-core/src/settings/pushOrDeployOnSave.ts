@@ -82,7 +82,7 @@ export class DeployQueue {
         const orgType = await workspaceContextUtils.getWorkspaceOrgType(
           defaultUsernameorAlias
         );
-        if (orgType === OrgType.SourceTracked) {
+        if (orgType === OrgType.ScratchOrg) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'
             : '';
@@ -98,7 +98,7 @@ export class DeployQueue {
         telemetryService.sendEventData(
           'deployOnSave',
           {
-            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
+            deployType: orgType === OrgType.ScratchOrg ? 'Push' : 'Deploy'
           },
           {
             documentsToDeploy: toDeploy.length,

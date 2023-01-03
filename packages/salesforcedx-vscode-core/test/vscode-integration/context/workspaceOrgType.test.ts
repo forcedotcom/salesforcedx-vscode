@@ -98,7 +98,7 @@ describe('workspaceOrgType unit tests', () => {
         defaultUsername
       );
 
-      expect(orgType).to.equal(OrgType.SourceTracked);
+      expect(orgType).to.equal(OrgType.ScratchOrg);
       expect(createStub.getCall(0).args[0]).to.eql({
         username: scratchOrgUser
       });
@@ -114,7 +114,7 @@ describe('workspaceOrgType unit tests', () => {
         defaultUsername
       );
 
-      expect(orgType).to.equal(OrgType.NonSourceTracked);
+      expect(orgType).to.equal(OrgType.NonScratchOrg);
       expect(createStub.getCall(0).args[0]).to.eql({
         username: defaultUsername
       });

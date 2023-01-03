@@ -87,7 +87,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
           // NOTE: there is a beta in which this command also allows users to create sandboxes
           // once it's GA this will have to be updated
           workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
-            OrgType.SourceTracked
+            OrgType.ScratchOrg
           );
         } else {
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
