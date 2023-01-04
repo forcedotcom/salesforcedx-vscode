@@ -4,25 +4,25 @@
 
 #### salesforcedx-vscode-core
 
-- Add alias prompt to authorize a devhub ([PR #4579](https://github.com/forcedotcom/salesforcedx-vscode/pull/4579))
+- You can now give an alias to the Devhub that you are authorizing. Thank you, [Andruts](https://github.com/andruts), for contributing this new feature! We love contributions from the community, and look forward to many more.([PR #4579](https://github.com/forcedotcom/salesforcedx-vscode/pull/4579), [ISSUE #2278](https://github.com/forcedotcom/salesforcedx-vscode/issues/2278))
 
-- Validate the max number of characters of an apex class or trigger ([PR #4580](https://github.com/forcedotcom/salesforcedx-vscode/pull/4580))
+- We now validate the maximum number of characters (40) for an apex class or trigger name and throw an error when this number is exceeded. ([PR #4580](https://github.com/forcedotcom/salesforcedx-vscode/pull/4580))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex-debugger
 
-- Update apex interactive debugger package step to include @salesforce/core ([PR #4538](https://github.com/forcedotcom/salesforcedx-vscode/pull/4538))
+- We updated the apex interactive debugger package to include the `@salesforce/core` library so the debugger now activates correctly. ([PR #4538](https://github.com/forcedotcom/salesforcedx-vscode/pull/4538))
 
 #### salesforcedx-vscode-core
 
-- Fix "No authorization information found" Error After Authenticating an Org ([PR #4584](https://github.com/forcedotcom/salesforcedx-vscode/pull/4584))
+- Clicking on the “No Default Org Set” in the status bar now displays a list of possible org authorization commands instead of throwing an unhelpful error.([PR #4584](https://github.com/forcedotcom/salesforcedx-vscode/pull/4584))
 
-- Fix extra line from default apex template ([PR #4581](https://github.com/forcedotcom/salesforcedx-vscode/pull/4581))
+- We updated the metadata for the API version for Apex classes and triggers created from the default apex template, to version 56. We also made minor fixes to the generated code outline. ([PR #4581](https://github.com/forcedotcom/salesforcedx-vscode/pull/4581))
 
 #### salesforcedx-vscode-lwc
 
-- Add missing Experience Cloud targets ([PR #4578](https://github.com/forcedotcom/salesforcedx-vscode/pull/4578))
+- We added missing Experience Cloud targets for LWR sites. ([PR #4578](https://github.com/forcedotcom/salesforcedx-vscode/pull/4578))
 
 # 56.5.1 - November 9, 2022
 
