@@ -145,6 +145,11 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
       if (result) {
         BaseDeployExecutor.errorCollection.clear();
 
+        // Fixup peristant storage
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+          result
+        );
+
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);

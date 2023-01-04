@@ -40,7 +40,9 @@ export class TimestampConflictDetector {
 
   private determineConflicts(components: CorrelatedComponent[]) {
     const cache = PersistentStorageService.getInstance();
-    const conflicts: Set<TimestampFileProperties> = new Set<TimestampFileProperties>();
+    const conflicts: Set<TimestampFileProperties> = new Set<
+      TimestampFileProperties
+    >();
     components.forEach(component => {
       let lastModifiedInOrg: string | undefined;
       let lastModifiedInCache: string | undefined;
@@ -51,8 +53,11 @@ export class TimestampConflictDetector {
         component.cacheComponent.fullName
       );
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
-      if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-        const differences = diffComponents(component.projectComponent, component.cacheComponent);
+      if (!lastModifiedInCache || lastModifiedInOrg > lastModifiedInCache) {
+        const differences = diffComponents(
+          component.projectComponent,
+          component.cacheComponent
+        );
         if (differences) {
           differences.forEach(difference => {
             const cachePathRelative = relative(
