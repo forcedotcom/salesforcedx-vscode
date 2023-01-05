@@ -3,10 +3,13 @@ on:
   push:
     branches: 
       - 'main'
+  workflow_dispatch:
 
 jobs:
   build-and-test:
     uses: ./.github/workflows/buildAndTest.yml
+    with: 
+      branch: 'main'
   publish:
     needs: [build-and-test]
     uses: ./.github/workflows/publish.yml
