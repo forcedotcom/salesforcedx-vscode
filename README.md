@@ -1,6 +1,5 @@
 # Salesforce Extensions for VS Code
 
-[![CircleCI](https://circleci.com/gh/forcedotcom/salesforcedx-vscode.svg?style=svg)](https://circleci.com/gh/forcedotcom/salesforcedx-vscode)
 [![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode/dev-status.svg)](contributing/dependencies.md)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 

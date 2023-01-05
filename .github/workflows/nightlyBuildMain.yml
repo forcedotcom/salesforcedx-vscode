@@ -7,6 +7,6 @@ on:
 
 jobs:
   nightly-build-main:
-    uses:  ./.github/workflows/nightlyBuild.yml
+    uses:  ./.github/workflows/buildAndTest.yml
     with:
       branch: main

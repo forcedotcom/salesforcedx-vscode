@@ -53,7 +53,6 @@
   "scripts": {
     "postinstall": "npm run bootstrap && npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock",
-    "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "clean": "lerna run clean && git clean -xfd",
@@ -64,7 +63,6 @@
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
-    "publish": "node scripts/publish-circleci.js",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test --if-present",
     "test:unit": "lerna run test:unit",
     "test:ui": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:ui --if-present",
