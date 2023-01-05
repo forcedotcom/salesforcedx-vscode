@@ -9,6 +9,7 @@ jobs:
     name: 'Publish Start Notification'
     runs-on: ubuntu-latest
     steps: 
+      - uses: actions/checkout@v3
       - uses: ./.github/workflows/slackNotification.yml
         with:
           title: "Publish waiting for approval in github."
@@ -21,6 +22,7 @@ jobs:
     environment: publish
     needs: publish-start-notification
     steps: 
+      - uses: actions/checkout@v3
       - uses: ./.github/workflows/slackNotification.yml
         with:
           title: "Publish Approved"
