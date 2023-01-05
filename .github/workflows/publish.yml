@@ -8,6 +8,7 @@ jobs:
   publish-start-notification:
     name: 'Publish Start Notification'
     uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
     with:
       title: "Publish waiting for approval in github."
       notification: "Main has been merged and publish job is ready for approval."
