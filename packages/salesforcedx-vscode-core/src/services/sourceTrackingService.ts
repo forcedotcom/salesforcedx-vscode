@@ -11,21 +11,16 @@ import {
   SourceTracking,
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
+import * as fs from 'fs';
 import { WorkspaceContext } from '../context/workspaceContext';
 
 export class SourceTrackingService {
   private _sourceTracking: SourceTracking | undefined;
 
-  public constructor(sourceTracking?: SourceTracking) {
-    if (sourceTracking !== undefined) {
-      this._sourceTracking = sourceTracking;
-    }
-  }
-
-  public async createSourceTracking(): Promise<SourceTracking> {
+  public async createSourceTracking(): Promise<void> {
     const origCwd = process.cwd();
     const projectPath = getRootWorkspacePath();
-    if (process.cwd() !== projectPath) {
+    if (fs.existsSync(origCwd) && origCwd !== projectPath) {
       // Change the environment to get the node process to use
       // the correct current working directory (process.cwd).
       // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
@@ -48,11 +43,11 @@ export class SourceTrackingService {
       ignoreConflicts: false
     };
 
-    const tracking = await SourceTracking.create(options);
+    this._sourceTracking = await SourceTracking.create(options);
+
     if (process.cwd() !== origCwd) {
       // Change the directory back to the orig dir
       process.chdir(origCwd);
     }
-    return tracking;
   }
 }

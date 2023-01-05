@@ -46,6 +46,7 @@ export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
   protected cancellable: boolean = true;
+  protected sourceTrackingService = new SourceTrackingService();
 
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
@@ -130,8 +131,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const service = new SourceTrackingService();
-    const sourceTracking = await service.createSourceTracking();
+    const sourceTracking = await this.sourceTrackingService.createSourceTracking();
     const operation = await components.deploy({
       usernameOrConnection: await workspaceContext.getConnection()
     });
@@ -222,8 +222,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const service = new SourceTrackingService();
-    const sourceTracking = await service.createSourceTracking();
+    const sourceTracking = await this.sourceTrackingService.createSourceTracking();
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
