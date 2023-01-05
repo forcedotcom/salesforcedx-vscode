@@ -7,33 +7,17 @@ jobs:
 
   publish-start-notification:
     name: 'Publish Start Notification'
-    runs-on: ubuntu-latest
-    steps: 
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/slackNotification.yml
-        with:
-          title: "Publish waiting for approval in github."
-          notification: "Main has been merged and publish job is ready for approval."
-          type: "notification"
-          workflow: "publish.yml"
-
-  publish-approved-slack: 
-    runs-on: 'ubuntu-latest'
-    environment: publish
-    needs: publish-start-notification
-    steps: 
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/slackNotification.yml
-        with:
-          title: "Publish Approved"
-          notification: "Publish job has been approved. Starting Publish"
-          type: "notification"
-          workflow: "publish.yml"
+    uses: ./.github/workflows/slackNotification.yml
+    with:
+      title: "Publish waiting for approval in github."
+      notification: "Main has been merged and publish job is ready for approval."
+      type: "notification"
+      workflow: "publish.yml"
   
   prepare_environment:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
-    needs: [publish-approved-slack]
+    environment: publish
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
       GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
