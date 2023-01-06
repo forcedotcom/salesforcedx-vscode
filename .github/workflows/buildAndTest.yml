@@ -8,6 +8,7 @@ on:
       label:
         type: string
         required: false
+        default: 'VS Code Extensions'
 
 jobs:
   unit-tests:
