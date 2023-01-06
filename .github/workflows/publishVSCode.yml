@@ -51,7 +51,7 @@ jobs:
     steps: 
       - uses: actions/download-artifact@v3
         with:
-          name: VS Code Extensions
+          name: ${{ inputs.version }}
           path: ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
