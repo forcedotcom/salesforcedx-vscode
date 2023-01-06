@@ -5,6 +5,9 @@ on:
       branch:
         type: string
         required: false
+      label:
+        type: string
+        required: false
 
 jobs:
   unit-tests:
@@ -19,3 +22,4 @@ jobs:
     uses: ./.github/workflows/buildAll.yml
     with:
       branch: ${{ inputs.branch }}
+      label: ${{ inputs.label }}

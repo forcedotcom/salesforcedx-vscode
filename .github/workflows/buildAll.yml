@@ -5,6 +5,10 @@ on:
       branch:
         type: string
         required: false
+      label:
+        type: string
+        required: false
+        default: 'VS Code Extensions'
 
 jobs:
   build-all:
@@ -33,6 +37,6 @@ jobs:
       - name: Upload Extensions
         uses: actions/upload-artifact@v3
         with:
-          name: VS Code Extensions
+          name: ${{ inputs.label }}
           path: ./extensions/
   
