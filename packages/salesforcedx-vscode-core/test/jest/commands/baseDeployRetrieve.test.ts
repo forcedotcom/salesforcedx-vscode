@@ -8,10 +8,10 @@ import {
 import { CancellationTokenSource } from 'vscode';
 import * as vscode from 'vscode';
 import {
-  DeployExecutor,
   DeployRetrieveExecutor,
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
+import { DeployExecutor } from '../../../src/commands/DeployExecutor';
 
 // todo: mock Source Tracking Service and confirm that it creates Source Tracking
 // instance before componentSet.deploy/retrieve are called inside Deploy/Retrieve Executors
