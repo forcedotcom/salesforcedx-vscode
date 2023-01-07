@@ -13,7 +13,7 @@ import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
@@ -28,7 +28,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<DeployResult | undefined> {
     const sourceTracking = await this.sourceTrackingService.createSourceTracking();
     const operation = await components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
     });
 
     this.setupCancellation(operation, token);

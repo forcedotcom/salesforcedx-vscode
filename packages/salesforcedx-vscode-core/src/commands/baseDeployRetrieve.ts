@@ -29,7 +29,7 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { SourceTrackingService } from '../services';
 import { SfdxPackageDirectories } from '../sfdxProject';
@@ -128,7 +128,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContext.getInstance().getConnection();
 
     const defaultOutput = join(
       getRootWorkspacePath(),
