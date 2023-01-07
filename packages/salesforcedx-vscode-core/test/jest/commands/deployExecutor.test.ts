@@ -44,6 +44,6 @@ describe('Deploy Executor', () => {
 
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
 
-    executor.run({ data: {}, type: 'CONTINUE' });
+    await executor.run({ data: {}, type: 'CONTINUE' });
   });
 });
