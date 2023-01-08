@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfProject, SfProjectJson } from '@salesforce/core';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { AnyJson } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -14,7 +15,6 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 
 /**
  * Class representing the local sfdx-project.json file.
@@ -33,7 +33,7 @@ export default class SfdxProjectConfig {
       !SfdxProjectConfig.instance &&
       isSfdxProjectOpened.apply(vscode.workspace).result
     ) {
-      const sfdxProjectPath = workspaceUtils.getRootWorkspacePath();
+      const sfdxProjectPath = getRootWorkspacePath();
       try {
         const sfdxProject = await SfProject.resolve(sfdxProjectPath);
         SfdxProjectConfig.instance = await sfdxProject.retrieveSfProjectJson();

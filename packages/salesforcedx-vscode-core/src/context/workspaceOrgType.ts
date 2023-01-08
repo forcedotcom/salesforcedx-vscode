@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 
 export enum OrgType {
   ScratchOrg,
@@ -89,7 +90,7 @@ function setHasDefaultUsername(val: boolean) {
 }
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
-  if (workspaceUtils.hasRootWorkspace()) {
+  if (hasRootWorkspace()) {
     return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
   }
 }
