@@ -712,14 +712,19 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
     .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-  if (sobjectRefreshStartup) {
-    initSObjectDefinitions(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
-  } else {
-    checkSObjectsAndRefresh(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    if (sobjectRefreshStartup) {
+      initSObjectDefinitions(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    } else {
+      checkSObjectsAndRefresh(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    }
   }
 
   return api;
