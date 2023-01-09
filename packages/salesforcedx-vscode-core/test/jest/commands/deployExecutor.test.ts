@@ -47,7 +47,7 @@ describe('Deploy Executor', () => {
   let mockConnection: Connection;
   // let connectionStub: jest.SpyInstance;
   // let getComponentsPathStub: jest.SpyInstance;
-  let getUsernameStub: jest.SpyInstance;
+  // let getUsernameStub: jest.SpyInstance;
   // let fileExistsStub: jest.SpyInstance;
   // let buildComponentsListStub: SinonStub;
   // let buildCustomObjectFieldsListStub: SinonStub;
@@ -100,14 +100,14 @@ describe('Deploy Executor', () => {
     const testData = new MockTestOrgData();
     await $$.stubAuths(testData);
     // mockConnection = await testData.getConnection();
-    const testConnection = await Connection.create({
+    mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({ username: testData.username })
     });
     console.log('created test  connection');
 
-    // jest
-    //   .spyOn(WorkspaceContextUtil.prototype, 'getConnection')
-    //   .mockResolvedValue(testConnection);
+    jest
+      .spyOn(WorkspaceContextUtil.prototype, 'getConnection')
+      .mockResolvedValue(mockConnection);
     // AuthInfo.prototype.init = jest.fn();
 
     // jest
