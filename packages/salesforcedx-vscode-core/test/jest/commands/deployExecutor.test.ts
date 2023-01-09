@@ -44,10 +44,10 @@ const $$ = instantiateContext();
 
 describe('Deploy Executor', () => {
   let mockConnection: Connection;
-  let connectionStub: jest.SpyInstance;
-  let getComponentsPathStub: jest.SpyInstance;
-  let getUsernameStub: jest.SpyInstance;
-  let fileExistsStub: jest.SpyInstance;
+  // let connectionStub: jest.SpyInstance;
+  // let getComponentsPathStub: jest.SpyInstance;
+  // let getUsernameStub: jest.SpyInstance;
+  // let fileExistsStub: jest.SpyInstance;
   // let buildComponentsListStub: SinonStub;
   // let buildCustomObjectFieldsListStub: SinonStub;
   // let fetchAndSaveMetadataComponentPropertiesStub: SinonStub;
@@ -95,8 +95,8 @@ describe('Deploy Executor', () => {
     jest
       .spyOn(ComponentSet, 'fromSource')
       .mockReturnValue({ sourceApiVersion: '56.0' } as any);
-    // const testData = new MockTestOrgData();
-    // mockConnection = await testData.getConnection();
+    const testData = new MockTestOrgData();
+    mockConnection = await testData.getConnection();
 
     // jest
     //   .spyOn(WorkspaceContextUtils, 'getConnection')
