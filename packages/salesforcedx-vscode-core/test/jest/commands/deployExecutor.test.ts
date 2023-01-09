@@ -1,11 +1,25 @@
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  ContinueResponse,
+  TelemetryBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import * as fs from 'fs';
 import * as path from 'path';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
+import { workspaceContext } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
+import { ComponentUtils } from '../../../src/orgBrowser';
 import { SourceTrackingService } from '../../../src/services';
 import SfdxProjectConfig from '../../../src/sfdxProject/sfdxProjectConfig';
+import { OrgAuthInfo } from '../../../src/util';
+// import { WorkspaceContext } from './../../../../salesforcedx-vscode-apex/src/context/workspaceContext';
 // import { workspaceContext } from './../../../../salesforcedx-vscode-soql/src/sfdx';
 
 // jest.mock('../../../src/services/SourceTrackingService');
@@ -26,7 +40,34 @@ const componentSetMocked = jest.mocked(ComponentSet);
 //   return { getInstance: jest.fn() };
 // });
 
+const $$ = instantiateContext();
+
 describe('Deploy Executor', () => {
+  let mockConnection: Connection;
+  let connectionStub: jest.SpyInstance;
+  let getComponentsPathStub: jest.SpyInstance;
+  let getUsernameStub: jest.SpyInstance;
+  let fileExistsStub: jest.SpyInstance;
+  // let buildComponentsListStub: SinonStub;
+  // let buildCustomObjectFieldsListStub: SinonStub;
+  // let fetchAndSaveMetadataComponentPropertiesStub: SinonStub;
+  // let fetchAndSaveSObjectFieldsPropertiesStub: SinonStub;
+  const cmpUtil = new ComponentUtils();
+  const defaultOrg = 'defaultOrg@test.com';
+  const metadataType = 'ApexClass';
+  const metadataTypeCustomObject = 'CustomObject';
+  const metadataTypeStandardValueSet = 'StandardValueSet';
+  const sObjectName = 'DemoCustomObject';
+  const folderName = 'DemoDashboard';
+  const metadataTypeDashboard = 'Dashboard';
+  const filePath = '/test/metadata/ApexClass.json';
+  const fileData = JSON.stringify({
+    status: 0,
+    result: [
+      { fullName: 'fakeName2', type: 'ApexClass' },
+      { fullName: 'fakeName1', type: 'ApexClass' }
+    ]
+  });
   // Current failure:
   /*
   FAIL  packages/salesforcedx-vscode-core/test/jest/commands/deployExecutor.test.ts
@@ -39,7 +80,7 @@ describe('Deploy Executor', () => {
     > 16 | export const workspaceContext = WorkspaceContext.getInstance();
     */
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // (SourceTrackingService.prototype as any).createSourceTracking.mockResolvedValue(
     //   sourceTrackingServiceMocked
     // );
@@ -54,6 +95,29 @@ describe('Deploy Executor', () => {
     jest
       .spyOn(ComponentSet, 'fromSource')
       .mockReturnValue({ sourceApiVersion: '56.0' } as any);
+    // const testData = new MockTestOrgData();
+    // mockConnection = await testData.getConnection();
+
+    // jest
+    //   .spyOn(WorkspaceContextUtils, 'getConnection')
+    //   .mockReturnValue({ sourceApiVersion: '56.0' } as any);
+    // const testData = new MockTestOrgData();
+    // stubContext($$);
+    // $$.setConfigStubContents('AuthInfoConfig', {
+    //   contents: await testData.getConfig()
+    // });
+    // mockConnection = await testData.getConnection();
+    // getComponentsPathStub = jest
+    //   .spyOn(ComponentUtils.prototype, 'getComponentsPath')
+    //   .mockResolvedValue(filePath);
+    // connectionStub = jest
+    //   .spyOn(workspaceContext, 'getConnection')
+    //   .mockResolvedValue(mockConnection);
+    // getUsernameStub = jest
+    //   .spyOn(OrgAuthInfo, 'getUsername')
+    //   .mockResolvedValue('test-username1@example.com');
+    // fileExistsStub = jest.spyOn(fs, 'existsSync');
+    // jest.spyOn(TelemetryBuilder.prototype, 'addProperty').mockReturnValue();
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
