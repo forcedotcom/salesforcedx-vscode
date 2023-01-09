@@ -5,18 +5,19 @@ import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SourceTrackingService } from '../../../src/services';
-import * as SfdxProjectConfig from '../../../src/sfdxProject/sfdxProjectConfig';
+import SfdxProjectConfig from '../../../src/sfdxProject/sfdxProjectConfig';
 // import { workspaceContext } from './../../../../salesforcedx-vscode-soql/src/sfdx';
 
 // jest.mock('../../../src/services/SourceTrackingService');
 // const sourceTrackingServiceMocked = jest.mocked(SourceTrackingService);
 
-jest.mock('../../../src/sfdxProject/sfdxProjectConfig', () => {
-  return {
-    getValue: '56.0'
-  };
-});
-const sfdxProjectConfigMocked = jest.mocked(SfdxProjectConfig);
+// jest.mock('../../../src/sfdxProject/sfdxProjectConfig', () => {
+//   return {
+//     getValue: '56.0'
+//   };
+// });
+jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+// const sfdxProjectConfigMocked = jest.mocked(SfdxProjectConfig);
 
 jest.mock('@salesforce/source-deploy-retrieve');
 const componentSetMocked = jest.mocked(ComponentSet);
@@ -47,6 +48,12 @@ describe('Deploy Executor', () => {
     // );
     // (WorkspaceContext.prototype as any).getConnection = jest.fn();
     // sfdxProjectConfigMocked.mockReturnValue();
+    // SfdxProjectConfig.getValue.mockResolvedValue();
+    // sfdxProjectConfigMocked
+    jest.spyOn(SfdxProjectConfig, 'getValue').mockResolvedValue('56.0');
+    jest
+      .spyOn(ComponentSet, 'fromSource')
+      .mockReturnValue({ sourceApiVersion: '56.0' } as any);
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
