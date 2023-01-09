@@ -1,4 +1,4 @@
-import { Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
@@ -6,7 +6,8 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
-  TelemetryBuilder
+  TelemetryBuilder,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
@@ -46,7 +47,7 @@ describe('Deploy Executor', () => {
   let mockConnection: Connection;
   // let connectionStub: jest.SpyInstance;
   // let getComponentsPathStub: jest.SpyInstance;
-  // let getUsernameStub: jest.SpyInstance;
+  let getUsernameStub: jest.SpyInstance;
   // let fileExistsStub: jest.SpyInstance;
   // let buildComponentsListStub: SinonStub;
   // let buildCustomObjectFieldsListStub: SinonStub;
@@ -81,6 +82,7 @@ describe('Deploy Executor', () => {
     */
 
   beforeEach(async () => {
+    $$.init();
     // (SourceTrackingService.prototype as any).createSourceTracking.mockResolvedValue(
     //   sourceTrackingServiceMocked
     // );
@@ -96,7 +98,17 @@ describe('Deploy Executor', () => {
       .spyOn(ComponentSet, 'fromSource')
       .mockReturnValue({ sourceApiVersion: '56.0' } as any);
     const testData = new MockTestOrgData();
-    mockConnection = await testData.getConnection();
+    await $$.stubAuths(testData);
+    // mockConnection = await testData.getConnection();
+    const testConnection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: testData.username })
+    });
+    console.log('created test  connection');
+
+    // jest
+    //   .spyOn(WorkspaceContextUtil.prototype, 'getConnection')
+    //   .mockResolvedValue(testConnection);
+    // AuthInfo.prototype.init = jest.fn();
 
     // jest
     //   .spyOn(WorkspaceContextUtils, 'getConnection')
