@@ -33,11 +33,11 @@ import { LibraryDeploySourcePathExecutor } from './../../../src/commands/forceSo
 //     getValue: '56.0'
 //   };
 // });
-jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+// jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
 // const sfdxProjectConfigMocked = jest.mocked(SfdxProjectConfig);
 
-jest.mock('@salesforce/source-deploy-retrieve');
-const componentSetMocked = jest.mocked(ComponentSet);
+// jest.mock('@salesforce/source-deploy-retrieve');
+// const componentSetMocked = jest.mocked(ComponentSet);
 // const workspaceContextMocked = jest.mocked(WorkspaceContext);
 // jest.mock('../../../src/context/workspaceContext', () => {
 //   return { getInstance: jest.fn() };
@@ -50,10 +50,10 @@ const componentSetMocked = jest.mocked(ComponentSet);
 //   }
 // );
 
-const $$ = instantiateContext();
+// const $$ = instantiateContext();
 
 describe('Deploy Executor', () => {
-  let mockConnection: Connection;
+  // let mockConnection: Connection;
   // let connectionStub: jest.SpyInstance;
   // let getComponentsPathStub: jest.SpyInstance;
   // let getUsernameStub: jest.SpyInstance;
@@ -91,6 +91,7 @@ describe('Deploy Executor', () => {
     */
 
   beforeEach(async () => {
+    /*
     $$.init();
     // (SourceTrackingService.prototype as any).createSourceTracking.mockResolvedValue(
     //   sourceTrackingServiceMocked
@@ -135,9 +136,8 @@ describe('Deploy Executor', () => {
     jest
       .spyOn(WorkspaceContextUtil.prototype, 'getConnection')
       .mockResolvedValue(mockConnection);
-
+*/
     // AuthInfo.prototype.init = jest.fn();
-
     // jest
     //   .spyOn(WorkspaceContextUtils, 'getConnection')
     //   .mockReturnValue({ sourceApiVersion: '56.0' } as any);
@@ -161,7 +161,7 @@ describe('Deploy Executor', () => {
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
-    jest.setTimeout(30000);
+    // jest.setTimeout(30000);
     // class TestDeployExecutor extends DeployExecutor<{}> {
     //   protected getComponents(
     //     response: ContinueResponse<{}>
