@@ -33,6 +33,12 @@ jobs:
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.version }}
+          path: ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
       - run: npm ci
       - run: npm run vscode:sha256
       - run: scripts/concatenate-sha256.js
