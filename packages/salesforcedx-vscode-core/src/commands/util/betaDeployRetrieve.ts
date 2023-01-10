@@ -18,6 +18,9 @@ export function formatException(e: Error): Error {
 }
 
 export function createComponentCount(components: Iterable<MetadataComponent>) {
+  console.log('components: ' + components);
+  // tslint:disable-next-line:no-debugger
+  debugger;
   const quantities: { [type: string]: number } = {};
   for (const component of components) {
     const { name: typeName } = component.type;

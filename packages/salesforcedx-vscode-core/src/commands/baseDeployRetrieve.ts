@@ -18,6 +18,7 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
+  MetadataComponent,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -60,15 +61,17 @@ export abstract class DeployRetrieveExecutor<
     let result: DeployRetrieveResult | undefined;
 
     try {
-      const components = await this.getComponents(response);
-      await this.setApiVersionOn(components);
+      const componentSet = await this.getComponents(response);
+      await this.setApiVersionOn(componentSet);
 
+      const d: Iterable<MetadataComponent> = componentSet.getSourceComponents();
+      const componentCount = createComponentCount(componentSet);
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
-        JSON.stringify(createComponentCount(components))
+        JSON.stringify(componentCount)
       );
 
-      result = await this.doOperation(components, token);
+      result = await this.doOperation(componentSet, token);
 
       const status = result?.response.status;
 

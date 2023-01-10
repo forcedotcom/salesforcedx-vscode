@@ -12,14 +12,16 @@ import {
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as path from 'path';
-import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
+import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
+import { createComponentCount } from '../../../src/commands/util/betaDeployRetrieve';
 import { workspaceContext } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { SourceTrackingService } from '../../../src/services';
 import SfdxProjectConfig from '../../../src/sfdxProject/sfdxProjectConfig';
 import { OrgAuthInfo } from '../../../src/util';
+import { LibraryDeploySourcePathExecutor } from './../../../src/commands/forceSourceDeploySourcePath';
 // import { WorkspaceContext } from './../../../../salesforcedx-vscode-apex/src/context/workspaceContext';
 // import { workspaceContext } from './../../../../salesforcedx-vscode-soql/src/sfdx';
 
@@ -40,6 +42,13 @@ const componentSetMocked = jest.mocked(ComponentSet);
 // jest.mock('../../../src/context/workspaceContext', () => {
 //   return { getInstance: jest.fn() };
 // });
+
+// jest.mock(
+//   '../../../src/commands/util/betaDeployRetrieve/createComponentCount',
+//   () => {
+//     return '';
+//   }
+// );
 
 const $$ = instantiateContext();
 
@@ -94,9 +103,23 @@ describe('Deploy Executor', () => {
     // SfdxProjectConfig.getValue.mockResolvedValue();
     // sfdxProjectConfigMocked
     jest.spyOn(SfdxProjectConfig, 'getValue').mockResolvedValue('56.0');
+    jest.spyOn(ComponentSet, 'fromSource').mockReturnValue({
+      sourceApiVersion: '56.0',
+      components: [
+        { fullName: 'MyClass', type: 'ApexClass' },
+        { fullName: 'MyTrigger', type: 'ApexTrigger' }
+      ]
+    } as any);
+    const dummyComponentSet = new ComponentSet([
+      { fullName: 'MyClass', type: 'ApexClass' },
+      { fullName: 'MyTrigger', type: 'ApexTrigger' }
+    ]);
+    dummyComponentSet.apiVersion = '56.0';
+    // jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(dummyComponentSet);
     jest
-      .spyOn(ComponentSet, 'fromSource')
-      .mockReturnValue({ sourceApiVersion: '56.0' } as any);
+      .spyOn(LibraryDeploySourcePathExecutor.prototype, 'getComponents')
+      .mockResolvedValue(dummyComponentSet);
+
     const testData = new MockTestOrgData();
     await $$.stubAuths(testData);
     // mockConnection = await testData.getConnection();
@@ -108,6 +131,7 @@ describe('Deploy Executor', () => {
     jest
       .spyOn(WorkspaceContextUtil.prototype, 'getConnection')
       .mockResolvedValue(mockConnection);
+
     // AuthInfo.prototype.init = jest.fn();
 
     // jest
@@ -133,6 +157,7 @@ describe('Deploy Executor', () => {
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
+    jest.setTimeout(30000);
     // class TestDeployExecutor extends DeployExecutor<{}> {
     //   protected getComponents(
     //     response: ContinueResponse<{}>
