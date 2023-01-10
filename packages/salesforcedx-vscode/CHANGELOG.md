@@ -1,5 +1,29 @@
 # 56.14.0 - January 11, 2023
 
+## Added
+
+#### salesforcedx-vscode-core
+
+- You can now give an alias to the Devhub that you are authorizing. Thank you, [Andruts](https://github.com/andruts), for contributing this new feature! We love contributions from the community, and look forward to many more.([PR #4579](https://github.com/forcedotcom/salesforcedx-vscode/pull/4579), [ISSUE #2278](https://github.com/forcedotcom/salesforcedx-vscode/issues/2278))
+
+- We now validate the maximum number of characters (40) for an apex class or trigger name and throw an error when this number is exceeded. ([PR #4580](https://github.com/forcedotcom/salesforcedx-vscode/pull/4580))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-debugger
+
+- We updated the apex interactive debugger package to include the `@salesforce/core` library so the debugger now activates correctly. ([PR #4538](https://github.com/forcedotcom/salesforcedx-vscode/pull/4538))
+
+#### salesforcedx-vscode-core
+
+- Clicking on the “No Default Org Set” in the status bar now displays a list of possible org authorization commands instead of throwing an unhelpful error.([PR #4584](https://github.com/forcedotcom/salesforcedx-vscode/pull/4584))
+
+- We updated the metadata for the API version for Apex classes and triggers created from the default apex template, to version 56. We also made minor fixes to the generated code outline. ([PR #4581](https://github.com/forcedotcom/salesforcedx-vscode/pull/4581))
+
+#### salesforcedx-vscode-lwc
+
+- We added missing Experience Cloud targets for LWR sites. ([PR #4578](https://github.com/forcedotcom/salesforcedx-vscode/pull/4578))
+
 # 56.5.1 - November 9, 2022
 
 - We made some large updates to the Quick Start and Overviews section of our Apex Documentation. ([PR #4522](https://github.com/forcedotcom/salesforcedx-vscode/pull/4522))
@@ -16,13 +40,14 @@
 - We continued some under the hood work on the `@salesforce/core` library. ([PR #4509](https://github.com/forcedotcom/salesforcedx-vscode/pull/4509), [PR #4510](https://github.com/forcedotcom/salesforcedx-vscode/pull/4510), [PR #4516](https://github.com/forcedotcom/salesforcedx-vscode/pull/4516), [PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517))
 - We updated contributing docs for the jest unit updates we made last week. ([PR #4503](https://github.com/forcedotcom/salesforcedx-vscode/pull/4503))
 - We updated our bundling of the core extension to exclude `functions-core`. ([PR #4532](https://github.com/forcedotcom/salesforcedx-vscode/pull/4532))
- 
+
 # 56.3.1 - October 29, 2022
 
 We made lots of under the hood updates in this release that involved:
-  - Addition of new jest unit tests for test infrastructure hardening.
-  - A major upgrade to the version of the `@salesforce/core` library to reach parity with CLI dependencies. 
-  - A new way of bundling extensions that resulted in a smaller increase in the size of the Extension Pack.
+
+- Addition of new jest unit tests for test infrastructure hardening.
+- A major upgrade to the version of the `@salesforce/core` library to reach parity with CLI dependencies.
+- A new way of bundling extensions that resulted in a smaller increase in the size of the Extension Pack.
 
 ## Added
 
@@ -52,12 +77,11 @@ We made lots of under the hood updates in this release that involved:
 
 - We fixed an issue that caused SOQL and Anonymous Apex files to deploy on save. ([PR #4410](https://github.com/forcedotcom/salesforcedx-vscode/pull/4410))
 
-
 #### salesforcedx-vscode-lightning
+
 #### salesforcedx-vscode-lwc
 
 - We fixed an issue that caused double logging from lwc language server on error. ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
-
 
 # 55.8.0 - August 4, 2022
 
@@ -65,11 +89,11 @@ We made lots of under the hood updates in this release that involved:
 
 #### salesforcedx-vscode-core
 
-- We added a notification that warns you about scratch org expiration in advance so that you can back up any relevant data  or settings. ([PR #4304](https://github.com/forcedotcom/salesforcedx-vscode/pull/4304))
+- We added a notification that warns you about scratch org expiration in advance so that you can back up any relevant data or settings. ([PR #4304](https://github.com/forcedotcom/salesforcedx-vscode/pull/4304))
 
 #### salesforcedx-vscode-core, salesforcedx-vscode-apex, salesforcedx-utils-vscode, salesforcedx-vscode-apex-replay-debugger
 
--  We added a setting that lets you choose the option to clear the current content of the output tab before a new command is executed. ([PR #4318](https://github.com/forcedotcom/salesforcedx-vscode/pull/4318))
+- We added a setting that lets you choose the option to clear the current content of the output tab before a new command is executed. ([PR #4318](https://github.com/forcedotcom/salesforcedx-vscode/pull/4318))
 
 # 55.7.0 - July 27, 2022
 
