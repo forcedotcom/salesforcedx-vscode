@@ -103,13 +103,17 @@ describe('Deploy Executor', () => {
     // SfdxProjectConfig.getValue.mockResolvedValue();
     // sfdxProjectConfigMocked
     jest.spyOn(SfdxProjectConfig, 'getValue').mockResolvedValue('56.0');
+    const dummyComponents = [
+      { fullName: 'MyClass', type: 'ApexClass' },
+      { fullName: 'MyTrigger', type: 'ApexTrigger' }
+    ];
     jest.spyOn(ComponentSet, 'fromSource').mockReturnValue({
       sourceApiVersion: '56.0',
-      components: [
-        { fullName: 'MyClass', type: 'ApexClass' },
-        { fullName: 'MyTrigger', type: 'ApexTrigger' }
-      ]
+      components: dummyComponents
     } as any);
+    jest
+      .spyOn(ComponentSet.prototype, 'getSourceComponents')
+      .mockReturnValue(dummyComponents as any);
     const dummyComponentSet = new ComponentSet([
       { fullName: 'MyClass', type: 'ApexClass' },
       { fullName: 'MyTrigger', type: 'ApexTrigger' }
