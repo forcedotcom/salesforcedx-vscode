@@ -53,6 +53,7 @@ const getMockVSCode = () => {
       Right: 2
     },
     window: {
+      activeTextEditor: jest.fn(),
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
       showErrorMessage: jest.fn(),

@@ -7,8 +7,9 @@
 
 import { StateAggregator } from '@salesforce/core';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, stub } from 'sinon';
-import { AuthUtil } from '../../../src';
+import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { TelemetryService } from '../../../src';
+import { AuthUtil, ConfigUtil } from '../../../src';
 
 describe('AuthUtil', () => {
   let env: SinonSandbox;
@@ -43,6 +44,49 @@ describe('AuthUtil', () => {
       expect(await AuthUtil.getInstance().getUsername(alias)).to.equal(
         username
       );
+    });
+  });
+
+  describe('getDefaultUsernameOrAlias', () => {
+    const username = 'user@test.test';
+    let errorStub: SinonStub;
+    let consoleStub: SinonStub;
+
+    it('should return undefined if there is no default username', async () => {
+      expect(await AuthUtil.getInstance().getDefaultUsernameOrAlias(true)).to.equal(
+        undefined
+      );
+    });
+
+    it('should return the default username', async () => {
+      env
+        .stub(ConfigUtil, 'getDefaultUsernameOrAlias')
+        .returns(username);
+      expect(await AuthUtil.getInstance().getDefaultUsernameOrAlias(true)).to.equal(
+        username
+      );
+    });
+
+    it('should send exception if error', async () => {
+      consoleStub = env.stub(console, 'log');
+      const error = new Error('sample error');
+      error.name = 'aFakeError';
+      errorStub = env.stub(
+        TelemetryService.getInstance(),
+        'sendException'
+      );
+      errorStub.throws({ error });
+      let defaultUsernameOrAlias;
+      try {
+        defaultUsernameOrAlias = await AuthUtil.getInstance().getDefaultUsernameOrAlias(true);
+      } catch (e) {
+        assert.calledOnce(errorStub);
+        assert.calledWith(errorStub, 'get_default_username_alias', error.message);
+        expect(defaultUsernameOrAlias).to.equal(
+          undefined
+        );
+        assert.calledWith(consoleStub, error);
+      }
     });
   });
 });
