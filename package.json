@@ -85,7 +85,7 @@
     "vscode:bundle:extension": "lerna run bundle:extension",
     "vscode:package": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension && lerna run vscode:package --concurrency 1 && npm run reformat",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} \\;",
-    "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
+    "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
     "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
