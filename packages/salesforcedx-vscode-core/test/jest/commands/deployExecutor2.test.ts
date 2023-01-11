@@ -2,9 +2,11 @@ import {
   ContinueResponse,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 // import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { nls } from '../../../src/messages';
@@ -14,21 +16,37 @@ jest.mock('../../../src/context/workspaceContext', () => {
 });
 
 const dummyProjectPath = '/a/project/path';
+// class TestChannelService extends ChannelService {}
+// jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+//   return {
+//     getRootWorkspacePath: () => dummyProjectPath,
+//     channelService: TestChannelService
+//   };
+// });
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-  return { getRootWorkspacePath: () => dummyProjectPath };
+  return {
+    getRootWorkspacePath: () => dummyProjectPath
+  };
 });
 // jest.mock('@salesforce/salesforcedx-utils-vscode/src/messages', () => {});
 jest.mock('../../../src/messages', () => {
-  return { loadMessageBundle: jest.fn() };
+  return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
-const n = nls;
-
+// jest.mock('ChannelService', () => {});
+// const n = nls;
+// vscode.window.createOutputChannel = jest.fn();
+// jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+//   return { channelService: () => dummyProjectPath };
+// });
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
 
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    // jest
+    //   .spyOn(DeployExecutor as any, 'postOperation')
+    //   .mockResolvedValue(() => Promise.resolve());
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
