@@ -7,7 +7,7 @@
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { FileProperties } from '@salesforce/source-deploy-retrieve';
 import { ExtensionContext, Memento } from 'vscode';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 
 interface ConflictFileProperties {
@@ -64,7 +64,7 @@ export class PersistentStorageService {
   }
 
   public makeKey(type: string, fullName: string): string {
-    const orgUserName = workspaceContext.username;
+    const orgUserName = WorkspaceContext.getInstance().username;
     const projectPath = getRootWorkspacePath();
     return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }
