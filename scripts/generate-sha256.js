@@ -1,19 +1,24 @@
 #!/usr/bin/env node
-
+const path = require('path');
 const shell = require('shelljs');
 
-// Generate the SHA256 for the .vsix that matches the version in package.json
+const cwd = process.cwd();
+const vsixfiles = path.join(cwd, 'extensions');
+const vsixes = shell.ls(vsixfiles);
 
-const packageVersion = JSON.parse(shell.cat('package.json')).version;
-const vsix = shell.ls().filter(file => file.match(`-${packageVersion}.vsix`));
-
-if (!vsix.length) {
-  shell.error('No VSIX found matching the requested version in package.json');
+if (!vsixes.length) {
+  shell.error(
+    'No VSIX files found matching the requested version in package.json'
+  );
   shell.exit(1);
 }
 
-if (/win32/.test(process.platform)) {
-  shell.exec(`CertUtil -hashfile ${vsix} SHA256`);
-} else {
-  shell.exec(`shasum -a 256 ${vsix}`);
+process.chdir('extensions');
+for (let i = 0; i < vsixes.length; i++) {
+  const vsix = vsixes[i];
+  if (/win32/.test(process.platform)) {
+    shell.exec(`CertUtil -hashfile ${vsix} SHA256`);
+  } else {
+    shell.exec(`shasum -a 256 ${vsix}`);
+  }
 }
