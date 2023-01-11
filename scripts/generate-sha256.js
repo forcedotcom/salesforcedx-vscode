@@ -3,8 +3,9 @@ const path = require('path');
 const shell = require('shelljs');
 
 const cwd = process.cwd();
-const vsixfiles = path.join(cwd, 'extensions');
-const vsixes = shell.ls(vsixfiles);
+const packageVersion = JSON.parse(shell.cat('lerna.json')).version;
+const vsixfilesLocation = path.join(cwd, 'extensions', packageVersion);
+const vsixes = shell.ls(vsixfilesLocation);
 
 if (!vsixes.length) {
   shell.error(
@@ -13,7 +14,7 @@ if (!vsixes.length) {
   shell.exit(1);
 }
 
-process.chdir('extensions');
+process.chdir(vsixfilesLocation);
 for (let i = 0; i < vsixes.length; i++) {
   const vsix = vsixes[i];
   if (/win32/.test(process.platform)) {
