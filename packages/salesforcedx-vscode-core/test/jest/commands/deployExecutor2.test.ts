@@ -16,18 +16,19 @@ jest.mock('../../../src/context/workspaceContext', () => {
 });
 
 const dummyProjectPath = '/a/project/path';
-// class TestChannelService extends ChannelService {}
-// jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-//   return {
-//     getRootWorkspacePath: () => dummyProjectPath,
-//     channelService: TestChannelService
-//   };
-// });
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
-    getRootWorkspacePath: () => dummyProjectPath
+    getRootWorkspacePath: () => dummyProjectPath,
+    ChannelService: jest.fn().mockImplementation(() => {
+      return {};
+    })
   };
 });
+// jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+//   return {
+//     getRootWorkspacePath: () => dummyProjectPath
+//   };
+// });
 // jest.mock('@salesforce/salesforcedx-utils-vscode/src/messages', () => {});
 jest.mock('../../../src/messages', () => {
   return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
