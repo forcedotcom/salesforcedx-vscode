@@ -60,6 +60,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.13.x'
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
       - uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.version }}
