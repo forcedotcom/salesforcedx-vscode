@@ -45,7 +45,7 @@ jobs:
       - run: rm ./SHA256
       - run: |
               git add SHA256.md
-              git commit -m "chore: updated SHA256 v${RELEASE_VERSION}"
+              git commit -m "chore: updated SHA256 v${{ inputs.version }}"
       - run: echo "SHA256.md successfully generated and committed."
       - run: git push origin main
   publish:
