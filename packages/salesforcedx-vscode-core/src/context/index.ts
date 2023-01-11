@@ -13,8 +13,7 @@ import {
   setWorkspaceOrgTypeWithOrgType
 } from './workspaceOrgType';
 
-// export const workspaceContext = WorkspaceContext.getInstance();
-export const workspaceContext: any = {};
+export const workspaceContext = WorkspaceContext.getInstance();
 export const workspaceContextUtils = {
   setWorkspaceOrgTypeWithOrgType,
   getDefaultUsernameOrAlias,

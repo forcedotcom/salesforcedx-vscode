@@ -6,7 +6,6 @@
  */
 
 import { channelService } from '../channels';
-import { OrgType } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -15,7 +14,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
-import { getWorkspaceOrgType } from '../context/workspaceOrgType';
+import { getWorkspaceOrgType, OrgType } from '../context/workspaceOrgType';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
