@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 /*
  * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
@@ -15,12 +16,19 @@ import * as fs from 'fs';
 import { WorkspaceContext } from '../context/workspaceContext';
 
 export class SourceTrackingService {
-  private _sourceTracking: SourceTracking | undefined;
+  private activeSourceTrackingMap = new Map();
 
   public async createSourceTracking(): Promise<void> {
-    const origCwd = process.cwd();
     const projectPath = getRootWorkspacePath();
-    if (fs.existsSync(origCwd) && origCwd !== projectPath) {
+    if (
+      this.activeSourceTrackingMap &&
+      this.activeSourceTrackingMap.has(projectPath)
+    ) {
+      return this.activeSourceTrackingMap.get(projectPath);
+    }
+
+    const origCwd = process.cwd();
+    if (origCwd !== projectPath && fs.existsSync(projectPath)) {
       // Change the environment to get the node process to use
       // the correct current working directory (process.cwd).
       // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
@@ -43,7 +51,10 @@ export class SourceTrackingService {
       ignoreConflicts: false
     };
 
-    this._sourceTracking = await SourceTracking.create(options);
+    const sourceTracker = await SourceTracking.create(options);
+    this.activeSourceTrackingMap.set(projectPath, sourceTracker);
+
+    console.log(`Source Tracking initialized for project at ${projectPath}`);
 
     if (process.cwd() !== origCwd) {
       // Change the directory back to the orig dir
