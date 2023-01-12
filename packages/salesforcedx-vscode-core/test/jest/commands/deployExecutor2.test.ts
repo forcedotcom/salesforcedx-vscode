@@ -5,10 +5,29 @@ import { DeployExecutor } from '../../../src/commands/DeployExecutor';
 import { SourceTrackingService } from '../../../src/services';
 
 jest.mock('../../../src/context/workspaceContext', () => {
-  return { getInstance: jest.fn() };
+  return {
+    ...jest.requireActual('../../../src/context/workspaceContext'),
+    getInstance: jest.fn().mockImplementation(() => {
+      return {
+        getConnection: () => {
+          return {} as any;
+        }
+      };
+    })
+  };
 });
 
 const dummyProjectPath = '/a/project/path';
+jest.mock('@salesforce/source-deploy-retrieve', () => {
+  return {
+    ...jest.requireActual('@salesforce/source-deploy-retrieve'),
+    ComponentSet: jest.fn().mockImplementation(() => {
+      return {
+        deploy: jest.fn()
+      };
+    })
+  };
+});
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
@@ -45,6 +64,6 @@ describe('Deploy Executor', () => {
       .mockResolvedValue();
 
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
-    (executor as any).doOperation();
+    (executor as any).doOperation(new ComponentSet(), {});
   });
 });

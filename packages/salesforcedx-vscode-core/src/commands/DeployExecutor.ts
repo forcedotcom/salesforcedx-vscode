@@ -28,8 +28,9 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
     const sourceTracking = await SourceTrackingService.createSourceTracking();
+    const connection = await WorkspaceContext.getInstance().getConnection();
     const operation = await components.deploy({
-      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
+      usernameOrConnection: connection
     });
 
     this.setupCancellation(operation, token);
