@@ -80,6 +80,8 @@ jobs:
   gitTag: 
     needs: ['publish']
     runs-on: ubuntu-latest
+    env: 
+      RELEASE_VERSION: ${{ inputs.version }}
     steps: 
       - name: Checkout
         uses: actions/checkout@v3
@@ -90,11 +92,13 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
       - run: |
-            git tag v${{ inputs.version }}
-            git push origin v${{ inputs.version }}
+            git tag v${{ env.RELEASE_VERSION }}
+            git push origin v${{ env.RELEASE_VERSION }}
   githubRelease:
     needs: [publish]
     runs-on: ubuntu-latest
+    env: 
+      RELEASE_VERSION: ${{ inputs.version }}
     steps: 
       - name: Checkout
         uses: actions/checkout@v3
@@ -110,7 +114,7 @@ jobs:
           path: ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - run: gh release create v${{ inputs.version }} ./extensions/**/*.vsix --title "Release v${{ inputs.version }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
+      - run: gh release create v${{ env.RELEASE_VERSION }} ./extensions/**/*.vsix --title "Release v${{ env.RELEASE_VERSION }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
 
