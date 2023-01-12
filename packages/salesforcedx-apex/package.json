@@ -7,7 +7,7 @@
   "main": "lib/src/index.js",
   "dependencies": {
     "@commitlint/config-conventional": "^17.2.0",
-    "@salesforce/core": "^3.31.18",
+    "@salesforce/core": "^3.32.12",
     "@types/istanbul-reports": "^3.0.1",
     "commitlint": "^17.2.0",
     "faye": "1.4.0",
