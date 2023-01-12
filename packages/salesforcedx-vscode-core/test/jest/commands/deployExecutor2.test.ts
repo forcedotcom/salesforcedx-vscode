@@ -2,20 +2,21 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
+import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SourceTrackingService } from '../../../src/services';
 
-jest.mock('../../../src/context/workspaceContext', () => {
-  return {
-    ...jest.requireActual('../../../src/context/workspaceContext'),
-    getInstance: jest.fn().mockImplementation(() => {
-      return {
-        getConnection: () => {
-          return {} as any;
-        }
-      };
-    })
-  };
-});
+// jest.mock('../../../src/context/workspaceContext', () => {
+//   return {
+//     // ...jest.requireActual('../../../src/context/workspaceContext'),
+//     getInstance: jest.fn().mockImplementation(() => {
+//       return {
+//         getConnection: () => {
+//           return {} as any;
+//         }
+//       };
+//     })
+//   };
+// });
 
 const dummyProjectPath = '/a/project/path';
 jest.mock('@salesforce/source-deploy-retrieve', () => {
@@ -49,6 +50,8 @@ describe('Deploy Executor', () => {
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const wkspcSpy = jest.spyOn(WorkspaceContext, 'getInstance');
+    wkspcSpy.mockReturnValue({ getConnection: jest.fn() } as any);
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
