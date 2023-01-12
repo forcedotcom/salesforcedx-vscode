@@ -2,6 +2,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
+import { SourceTrackingService } from '../../../src/services';
 
 jest.mock('../../../src/context/workspaceContext', () => {
   return { getInstance: jest.fn() };
@@ -26,7 +27,6 @@ jest.mock('../../../src/messages', () => {
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
-
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
@@ -40,6 +40,10 @@ describe('Deploy Executor', () => {
         return new Promise(resolve => resolve(new ComponentSet()));
       }
     }
+    const cSpy = jest
+      .spyOn(SourceTrackingService, 'createSourceTracking')
+      .mockResolvedValue();
+
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
     (executor as any).doOperation();
   });

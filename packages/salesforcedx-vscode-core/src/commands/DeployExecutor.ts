@@ -16,6 +16,7 @@ import { channelService } from '../channels';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
+import { SourceTrackingService } from '../services';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { BaseDeployExecutor } from './baseDeployCommand';
@@ -26,7 +27,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const sourceTracking = await this.sourceTrackingService.createSourceTracking();
+    const sourceTracking = await SourceTrackingService.createSourceTracking();
     const operation = await components.deploy({
       usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
     });

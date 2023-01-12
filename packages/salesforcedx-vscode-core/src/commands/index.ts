@@ -48,7 +48,7 @@ export {
 export {
   forceSourceDelete,
   ConfirmationAndSourcePathGatherer,
-  ForceSourceDeleteExecutor,
+ForceSourceDeleteExecutor,
   ManifestChecker
 } from './forceSourceDelete';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';

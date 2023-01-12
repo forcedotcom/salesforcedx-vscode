@@ -16,13 +16,13 @@ import * as fs from 'fs';
 import { WorkspaceContext } from '../context/workspaceContext';
 
 export class SourceTrackingService {
-  private activeSourceTrackingMap = new Map();
+  private static activeSourceTrackingMap = new Map();
 
-  public async createSourceTracking(): Promise<void> {
+  public static async createSourceTracking(): Promise<void> {
     const projectPath = getRootWorkspacePath();
     if (
-      this.activeSourceTrackingMap &&
-      this.activeSourceTrackingMap.has(projectPath)
+      SourceTrackingService.activeSourceTrackingMap &&
+      SourceTrackingService.activeSourceTrackingMap.has(projectPath)
     ) {
       return this.activeSourceTrackingMap.get(projectPath);
     }

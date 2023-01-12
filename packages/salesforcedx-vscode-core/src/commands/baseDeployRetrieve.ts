@@ -138,7 +138,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const sourceTracking = await this.sourceTrackingService.createSourceTracking();
+    const sourceTracking = await SourceTrackingService.createSourceTracking();
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
