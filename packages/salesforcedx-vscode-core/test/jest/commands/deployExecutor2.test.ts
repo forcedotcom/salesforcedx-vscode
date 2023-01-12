@@ -63,7 +63,7 @@ describe('Deploy Executor', () => {
         return new Promise(resolve => resolve(new ComponentSet()));
       }
     }
-    const cSpy = jest
+    const createSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'createSourceTracking')
       .mockResolvedValue();
 
