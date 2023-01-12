@@ -50,8 +50,9 @@ describe('Deploy Executor', () => {
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    const wkspcSpy = jest.spyOn(WorkspaceContext, 'getInstance');
-    wkspcSpy.mockReturnValue({ getConnection: jest.fn() } as any);
+    const workspaceSpy = jest.spyOn(WorkspaceContext, 'getInstance');
+    const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+    workspaceSpy.mockReturnValue(mockWorkspaceContext);
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
