@@ -5,31 +5,7 @@ import { DeployExecutor } from '../../../src/commands/DeployExecutor';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SourceTrackingService } from '../../../src/services';
 
-// jest.mock('../../../src/context/workspaceContext', () => {
-//   return {
-//     // ...jest.requireActual('../../../src/context/workspaceContext'),
-//     getInstance: jest.fn().mockImplementation(() => {
-//       return {
-//         getConnection: () => {
-//           return {} as any;
-//         }
-//       };
-//     })
-//   };
-// });
-
 const dummyProjectPath = '/a/project/path';
-jest.mock('@salesforce/source-deploy-retrieve', () => {
-  return {
-    ...jest.requireActual('@salesforce/source-deploy-retrieve'),
-    ComponentSet: jest.fn().mockImplementation(() => {
-      return {
-        deploy: jest.fn()
-      };
-    })
-  };
-});
-
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
     ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
@@ -41,6 +17,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
     TelemetryBuilder: jest.fn()
   };
 });
+
 jest.mock('../../../src/messages', () => {
   return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
@@ -67,7 +44,14 @@ describe('Deploy Executor', () => {
       .spyOn(SourceTrackingService, 'createSourceTracking')
       .mockResolvedValue();
 
+    const componentSetDeploySpy = jest
+      .spyOn(ComponentSet.prototype, 'deploy')
+      .mockImplementation(jest.fn());
+
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
     (executor as any).doOperation(new ComponentSet(), {});
+
+    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(componentSetDeploySpy).toHaveBeenCalled();
   });
 });
