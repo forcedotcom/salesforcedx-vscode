@@ -24,6 +24,11 @@ jest.mock('../../../src/messages', () => {
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
+  const workspaceContextGetInstanceSpy = jest.spyOn(
+    WorkspaceContext,
+    'getInstance'
+  );
+  const mockWorkspaceContext = { getConnection: jest.fn() } as any;
   const createSourceTrackingSpy = jest.spyOn(
     SourceTrackingService,
     'createSourceTracking'
@@ -31,26 +36,24 @@ describe('Deploy Executor', () => {
   const dummyComponentSet = new ComponentSet();
   const deploySpy = jest.spyOn(dummyComponentSet, 'deploy');
 
+  class TestDeployExecutor extends DeployExecutor<{}> {
+    protected getComponents(
+      response: ContinueResponse<{}>
+    ): Promise<ComponentSet> {
+      return new Promise(resolve => resolve(new ComponentSet()));
+    }
+  }
+
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    const workspaceSpy = jest.spyOn(WorkspaceContext, 'getInstance');
-    const mockWorkspaceContext = { getConnection: jest.fn() } as any;
-    workspaceSpy.mockReturnValue(mockWorkspaceContext);
+    workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
     createSourceTrackingSpy.mockResolvedValue();
     deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
     // Arrange
-    class TestDeployExecutor extends DeployExecutor<{}> {
-      protected getComponents(
-        response: ContinueResponse<{}>
-      ): Promise<ComponentSet> {
-        return new Promise(resolve => resolve(new ComponentSet()));
-      }
-    }
-
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
     (executor as any).setupCancellation = jest.fn();
 
