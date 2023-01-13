@@ -59,8 +59,6 @@ describe('Deploy Executor', () => {
 
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
-    // await Promise.resolve();
     expect(deploySpy).toHaveBeenCalled();
-    // expect(dummyComponentSet.deploy).toHaveBeenCalled();
   });
 });
