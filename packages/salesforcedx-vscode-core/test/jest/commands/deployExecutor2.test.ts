@@ -55,9 +55,12 @@ describe('Deploy Executor', () => {
     (executor as any).setupCancellation = jest.fn();
 
     // Act
-    (executor as any).doOperation(dummyComponentSet, {});
+    await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
+    // await Promise.resolve();
+    expect(deploySpy).toHaveBeenCalled();
+    // expect(dummyComponentSet.deploy).toHaveBeenCalled();
   });
 });
