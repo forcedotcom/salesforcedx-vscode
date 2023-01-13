@@ -18,26 +18,28 @@ on:
 # The steps.publsh.outputs.result is an indicator that the pulish to the vscode marketplace succeeded.
 # The steps.mergeDevelop.outputs.status is an indicator that all the publish steps completed.
 jobs: 
-  checkout-code: 
-    runs-on: ubuntu-latest
-    steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16.13.x'
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        ref: 'main'
-        token: ${{ secrets.IDEE_GH_TOKEN }}
-    - uses: ./.github/actions/gitConfig
-      with:
-        email: ${{ secrets.IDEE_GH_EMAIL }}
-    - run: npm ci
   updating-sha-for-publish: 
-    name: 'Update SHA256 File'
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.13.x'
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.version }}
+          path: ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
+      - run: npm ci
       - run: npm run vscode:sha256
       - run: scripts/concatenate-sha256.js
       - run: rm ./SHA256
@@ -45,25 +47,27 @@ jobs:
               git add SHA256.md
               git commit -m "chore: updated SHA256 v${RELEASE_VERSION}"
       - run: echo "SHA256.md successfully generated and committed."
-  get-artifacts:
-    name: 'Download Artifacts'
-    runs-on: ubuntu-latest
-    steps: 
-      - uses: actions/download-artifact@v3
-        with:
-          name: ${{ inputs.version }}
-          path: ./extensions
-      - name: Display downloaded vsix files
-        run: ls -R ./extensions
+      - run: git push origin main
   publish:
-    needs: ['get-artifacts', 'updating-sha-for-publish']
+    needs: ['updating-sha-for-publish']
     outputs: 
       result: ${{ steps.vsce.outputs.result }}
     runs-on: ubuntu-latest
     env: 
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
     steps: 
-      - run: find ./extensions -type f -name "*.vsix" -exec vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.13.x'
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.version }}
+          path: ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
+      - run: npm ci
+      - run: find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
       - id: vsce
         run: | 
           echo "result=published" >> $GITHUB_OUTPUT
@@ -72,27 +76,53 @@ jobs:
     needs: ['publish']
     runs-on: ubuntu-latest
     steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
       - run: |
-          git tag v${{ inputs.version }}
-          git push origin v${{ inputs.version }}
-  pushMain: 
+            git tag v${{ inputs.version }}
+            git push origin v${{ inputs.version }}
+  githubRelease:
     needs: [publish]
     runs-on: ubuntu-latest
     steps: 
-      - run: git push origin main
-  githubRelease:
-    needs: [pushMain]
-    runs-on: ubuntu-latest
-    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.version }}
+          path: ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
       - run: gh release create v${{ inputs.version }} ./extensions/*.vsix --title "Release v${{ inputs.version }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
   mergeDevelop:
     needs: [githubRelease]
     runs-on: ubuntu-latest
     outputs: 
       status: ${{ steps.complete.outputs.status }}
     steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
       - run: |
           git checkout develop
           git pull

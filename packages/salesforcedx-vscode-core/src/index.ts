@@ -707,19 +707,24 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
 
-  // Refresh SObject definitions if there aren't any faux classes
-  const sobjectRefreshStartup: boolean = vscode.workspace
-    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    // Refresh SObject definitions if there aren't any faux classes
+    const sobjectRefreshStartup: boolean = vscode.workspace
+      .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+      .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-  if (sobjectRefreshStartup) {
-    initSObjectDefinitions(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
-  } else {
-    checkSObjectsAndRefresh(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
+    if (sobjectRefreshStartup) {
+      initSObjectDefinitions(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    } else {
+      checkSObjectsAndRefresh(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    }
   }
 
   return api;
