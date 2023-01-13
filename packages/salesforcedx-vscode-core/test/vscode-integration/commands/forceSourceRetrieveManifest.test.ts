@@ -17,6 +17,7 @@ import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
 import { workspaceContext } from '../../../src/context';
+import { SourceTrackingService } from '../../../src/services';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
@@ -43,6 +44,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
     let pollStatusStub: SinonStub;
+    let sourceTrackingServiceStub: SinonStub;
 
     const executor = new LibrarySourceRetrieveManifestExecutor();
 
@@ -73,12 +75,21 @@ describe('Force Source Retrieve with Manifest Option', () => {
       retrieveStub = env.stub(mockComponents, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
+      sourceTrackingServiceStub = env
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     it('should retrieve components in a manifest', async () => {
+      // Act
       await executor.run({ data: manifestPath, type: 'CONTINUE' });
 
+      // Assert
+      expect(sourceTrackingServiceStub.calledOnce).to.equal(true);
       expect(retrieveStub.calledOnce).to.equal(true);
+      expect(sourceTrackingServiceStub.calledBefore(retrieveStub)).to.equal(
+        true
+      );
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: defaultPackagePath,
