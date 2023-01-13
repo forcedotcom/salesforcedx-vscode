@@ -1,4 +1,3 @@
-import { existsSync } from 'fs';
 /*
  * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
