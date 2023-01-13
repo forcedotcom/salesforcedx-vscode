@@ -39,11 +39,9 @@ import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
-import {
-  DeployRetrieveExecutor,
-  RetrieveExecutor
-} from '../../../src/commands/baseDeployRetrieve';
+import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { DeployExecutor } from '../../../src/commands/DeployExecutor';
+import { RetrieveExecutor } from '../../../src/commands/RetrieveExecutor';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { workspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
