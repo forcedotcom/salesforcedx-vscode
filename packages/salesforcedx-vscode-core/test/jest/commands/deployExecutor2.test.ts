@@ -33,6 +33,7 @@ describe('Deploy Executor', () => {
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
+    // Arrange
     class TestDeployExecutor extends DeployExecutor<{}> {
       protected getComponents(
         response: ContinueResponse<{}>
@@ -46,11 +47,15 @@ describe('Deploy Executor', () => {
 
     const componentSetDeploySpy = jest
       .spyOn(ComponentSet.prototype, 'deploy')
-      .mockImplementation(jest.fn());
+      .mockResolvedValue({ pollStatus: jest.fn() } as any);
 
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
     (executor as any).doOperation(new ComponentSet(), {});
 
+    // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
     expect(componentSetDeploySpy).toHaveBeenCalled();
   });
