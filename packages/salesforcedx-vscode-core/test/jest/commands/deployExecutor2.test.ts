@@ -30,8 +30,6 @@ describe('Deploy Executor', () => {
   );
   const dummyComponentSet = new ComponentSet();
   const deploySpy = jest.spyOn(dummyComponentSet, 'deploy');
-  //   // .spyOn(ComponentSet.prototype, 'deploy')
-  // const componentSetDeploySpy = jest.spyOn(ComponentSet.prototype, 'deploy');
 
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
@@ -41,7 +39,6 @@ describe('Deploy Executor', () => {
     workspaceSpy.mockReturnValue(mockWorkspaceContext);
     createSourceTrackingSpy.mockResolvedValue();
     deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
-    // componentSetDeploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
   it('should create an instance of Source Tracking before deploying', async () => {
@@ -62,6 +59,5 @@ describe('Deploy Executor', () => {
 
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
-    // expect(deploySpy).toHaveBeenCalled();
   });
 });
