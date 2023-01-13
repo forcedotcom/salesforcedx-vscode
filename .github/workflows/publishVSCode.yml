@@ -45,7 +45,7 @@ jobs:
       - run: rm ./SHA256
       - run: |
               git add SHA256.md
-              git commit -m "chore: updated SHA256 v${RELEASE_VERSION}"
+              git commit -m "chore: updated SHA256 v${{ inputs.version }}"
       - run: echo "SHA256.md successfully generated and committed."
       - run: git push origin main
   publish:
@@ -60,6 +60,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.13.x'
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
       - uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.version }}
@@ -105,7 +110,7 @@ jobs:
           path: ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - run: gh release create v${{ inputs.version }} ./extensions/*.vsix --title "Release v${{ inputs.version }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
+      - run: gh release create v${{ inputs.version }} ./extensions/**/*.vsix --title "Release v${{ inputs.version }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
 
