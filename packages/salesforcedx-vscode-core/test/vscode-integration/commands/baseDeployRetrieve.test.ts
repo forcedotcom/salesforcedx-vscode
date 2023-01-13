@@ -46,6 +46,7 @@ import { PersistentStorageService } from '../../../src/conflict/persistentStorag
 import { workspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
+import { SourceTrackingService } from '../../../src/services';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
@@ -246,6 +247,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
+    let createSourceTrackingStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -257,6 +259,9 @@ describe('Base Deploy Retrieve Commands', () => {
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      createSourceTrackingStub = sb
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -302,7 +307,11 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
+      expect(createSourceTrackingStub.calledOnce).to.equal(true);
       expect(executor.deployStub.calledOnce).to.equal(true);
+      expect(
+        createSourceTrackingStub.calledBefore(executor.deployStub)
+      ).to.equal(true);
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
@@ -514,6 +523,7 @@ describe('Base Deploy Retrieve Commands', () => {
         children: [basename(props.content), basename(props.xml)]
       }
     ]);
+    let createSourceTrackingStub: SinonStub;
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
@@ -547,6 +557,9 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      createSourceTrackingStub = sb
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     it('should call retrieve on component set', async () => {
@@ -558,7 +571,11 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
+      expect(createSourceTrackingStub.calledOnce).to.equal(true);
       expect(executor.retrieveStub.callCount).to.equal(1);
+      expect(
+        createSourceTrackingStub.calledBefore(executor.retrieveStub)
+      ).to.equal(true);
     });
 
     it('should call setup cancellation logic', async () => {

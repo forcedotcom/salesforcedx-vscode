@@ -52,8 +52,7 @@ export abstract class DeployRetrieveExecutor<
       const componentSet = await this.getComponents(response);
       await this.setApiVersionOn(componentSet);
 
-      const d: Iterable<MetadataComponent> = componentSet.getSourceComponents();
-      const componentCount = createComponentCount(d);
+      const componentCount = createComponentCount(componentSet);
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
         JSON.stringify(componentCount)
