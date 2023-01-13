@@ -4,9 +4,11 @@
 
 #### salesforcedx-vscode-core
 
-- You can now give an alias to the Devhub that you are authorizing. Thank you, [Andruts](https://github.com/andruts), for contributing this new feature! We love contributions from the community, and look forward to many more.([PR #4579](https://github.com/forcedotcom/salesforcedx-vscode/pull/4579), [ISSUE #2278](https://github.com/forcedotcom/salesforcedx-vscode/issues/2278))
+- You can now give an alias to the Devhub that you are authorizing. Thank you [Andruts](https://github.com/andruts) for contributing this new feature! ([PR #4579](https://github.com/forcedotcom/salesforcedx-vscode/pull/4579), [ISSUE #2278](https://github.com/forcedotcom/salesforcedx-vscode/issues/2278))
 
-- We now validate the maximum number of characters (40) for an apex class or trigger name and throw an error when this number is exceeded. ([PR #4580](https://github.com/forcedotcom/salesforcedx-vscode/pull/4580))
+- We now validate the maximum number of characters (40) for an apex class or trigger name and throw an error when this number is exceeded. Thank you [Allan Oricil](https://github.com/AllanOricil) for contributing this feature! ([PR #4580](https://github.com/forcedotcom/salesforcedx-vscode/pull/4580), [ISSUE #3624](https://github.com/forcedotcom/salesforcedx-vscode/issues/3624))
+
+We love contributions from the community, and look forward to many more.
 
 ## Fixed
 
