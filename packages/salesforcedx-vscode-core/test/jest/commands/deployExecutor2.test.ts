@@ -12,7 +12,7 @@ import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SourceTrackingService } from '../../../src/services';
 
 const dummyProjectPath = '/a/project/path';
-const sdrMock = jest.mock('@salesforce/source-deploy-retrieve', () => {
+jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
     ...jest.requireActual('@salesforce/source-deploy-retrieve'),
     getRootWorkspacePath: () => dummyProjectPath,
