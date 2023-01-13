@@ -30,8 +30,8 @@ describe('Deploy Executor', () => {
   );
   const dummyComponentSet = new ComponentSet();
   const deploySpy = jest.spyOn(dummyComponentSet, 'deploy');
+  deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   //   // .spyOn(ComponentSet.prototype, 'deploy')
-  //   .mockResolvedValue({ pollStatus: jest.fn() } as any);
   // const componentSetDeploySpy = jest.spyOn(ComponentSet.prototype, 'deploy');
 
   beforeEach(async () => {
