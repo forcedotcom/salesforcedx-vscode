@@ -30,7 +30,6 @@ describe('Deploy Executor', () => {
   );
   const dummyComponentSet = new ComponentSet();
   const deploySpy = jest.spyOn(dummyComponentSet, 'deploy');
-  deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   //   // .spyOn(ComponentSet.prototype, 'deploy')
   // const componentSetDeploySpy = jest.spyOn(ComponentSet.prototype, 'deploy');
 
@@ -41,6 +40,7 @@ describe('Deploy Executor', () => {
     const mockWorkspaceContext = { getConnection: jest.fn() } as any;
     workspaceSpy.mockReturnValue(mockWorkspaceContext);
     createSourceTrackingSpy.mockResolvedValue();
+    deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
     // componentSetDeploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
