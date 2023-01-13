@@ -52,7 +52,7 @@ describe('Deploy Executor', () => {
     deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
-  it('should create an instance of Source Tracking before deploying', async () => {
+  it('should create Source Tracking before deploying', async () => {
     // Arrange
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
     (executor as any).setupCancellation = jest.fn();
@@ -63,5 +63,9 @@ describe('Deploy Executor', () => {
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
+    const createSourceTrackingCallOrder =
+      createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
+    expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
   });
 });
