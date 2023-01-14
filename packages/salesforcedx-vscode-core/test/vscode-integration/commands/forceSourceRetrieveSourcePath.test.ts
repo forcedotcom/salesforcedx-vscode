@@ -35,6 +35,7 @@ import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourc
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { SourceTrackingService } from '../../../src/services';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig
@@ -55,6 +56,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
   describe('Library Executor', () => {
     let mockConnection: Connection;
+    let sourceTrackingServiceStub: SinonStub;
     let retrieveStub: SinonStub;
     let pollStatusStub: SinonStub;
 
@@ -76,6 +78,9 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
       pollStatusStub = sb.stub();
+      sourceTrackingServiceStub = sb
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     it('should retrieve with a file path', async () => {
@@ -102,7 +107,11 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         data: [fsPath]
       });
 
+      expect(sourceTrackingServiceStub.calledOnce).to.equal(true);
       expect(retrieveStub.calledOnce).to.equal(true);
+      expect(sourceTrackingServiceStub.calledBefore(retrieveStub)).to.equal(
+        true
+      );
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: path.join(
