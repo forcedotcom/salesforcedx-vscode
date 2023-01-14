@@ -34,6 +34,7 @@ import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../../src/context';
+import { SourceTrackingService } from '../../../../src/services';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
@@ -60,6 +61,7 @@ describe('Force Source Retrieve Component(s)', () => {
     let openTextDocumentStub: SinonStub;
     let showTextDocumentStub: SinonStub;
     let pollStatusStub: SinonStub;
+    let sourceTrackingServiceStub: SinonStub;
     let retrieveStub: SinonStub;
 
     beforeEach(async () => {
@@ -87,6 +89,9 @@ describe('Force Source Retrieve Component(s)', () => {
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
+      sourceTrackingServiceStub = sb
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     afterEach(() => {
@@ -113,7 +118,11 @@ describe('Force Source Retrieve Component(s)', () => {
 
       await executor.run(response);
 
+      expect(sourceTrackingServiceStub.calledOnce).to.equal(true);
       expect(retrieveStub.calledOnce).to.equal(true);
+      expect(sourceTrackingServiceStub.calledBefore(retrieveStub)).to.equal(
+        true
+      );
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
