@@ -14,6 +14,10 @@ export enum OrgType {
   NonSourceTracked
 }
 
+export const workspaceContextOrgTypeUtil = {
+  getWorkspaceOrgType
+};
+
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {

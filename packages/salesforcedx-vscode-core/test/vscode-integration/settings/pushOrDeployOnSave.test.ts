@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { workspaceContextUtils } from '../../../src/context';
+import * as workspaceOrgType from '../../../src/context/workspaceOrgType';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
@@ -23,7 +23,6 @@ import { telemetryService } from '../../../src/telemetry';
 /* tslint:disable:no-unused-expression */
 
 const sandbox = createSandbox();
-const OrgType = workspaceContextUtils.OrgType;
 
 describe('Push or Deploy on Save', () => {
   let appendLineStub: SinonStub;
@@ -110,7 +109,7 @@ describe('Push or Deploy on Save', () => {
     beforeEach(() => {
       DeployQueue.reset();
       getWorkspaceOrgTypeStub = sandbox.stub(
-        workspaceContextUtils,
+        workspaceOrgType,
         'getWorkspaceOrgType'
       );
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
@@ -122,7 +121,9 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should stop additional files from deploying until queue is unlocked', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
+      getWorkspaceOrgTypeStub.resolves(
+        workspaceOrgType.OrgType.NonSourceTracked
+      );
       const telemetryStub = sandbox.stub(telemetryService, 'sendEventData');
       const queue = DeployQueue.get();
 
@@ -189,7 +190,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should call force:source:push when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+      getWorkspaceOrgTypeStub.resolves(workspaceOrgType.OrgType.SourceTracked);
       sandbox
         .stub(
           SfdxCoreSettings.prototype,
@@ -208,7 +209,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should call force:source:push --forceoverwrite when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+      getWorkspaceOrgTypeStub.resolves(workspaceOrgType.OrgType.SourceTracked);
       sandbox
         .stub(
           SfdxCoreSettings.prototype,
@@ -227,7 +228,9 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should call force:source:deploy on multiple paths', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
+      getWorkspaceOrgTypeStub.resolves(
+        workspaceOrgType.OrgType.NonSourceTracked
+      );
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
