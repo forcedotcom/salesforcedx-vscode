@@ -122,7 +122,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should stop additional files from deploying until queue is unlocked', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.NonScratchOrg);
+      getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
       const telemetryStub = sandbox.stub(telemetryService, 'sendEventData');
       const queue = DeployQueue.get();
 
@@ -189,7 +189,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should call force:source:push when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.ScratchOrg);
+      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
           SfdxCoreSettings.prototype,
@@ -208,7 +208,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should call force:source:push --forceoverwrite when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.ScratchOrg);
+      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
           SfdxCoreSettings.prototype,
@@ -227,7 +227,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should call force:source:deploy on multiple paths', async () => {
-      getWorkspaceOrgTypeStub.resolves(OrgType.NonScratchOrg);
+      getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 

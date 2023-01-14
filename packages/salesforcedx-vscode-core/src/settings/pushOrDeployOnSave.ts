@@ -14,7 +14,8 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
-import { getWorkspaceOrgType, OrgType } from '../context/workspaceOrgType';
+import { workspaceContextUtils } from '../context';
+import { OrgType } from '../context/workspaceOrgType';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
@@ -79,8 +80,10 @@ export class DeployQueue {
             false
           );
         }
-        const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
-        if (orgType === OrgType.ScratchOrg) {
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+          defaultUsernameorAlias
+        );
+        if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'
             : '';
@@ -96,7 +99,7 @@ export class DeployQueue {
         telemetryService.sendEventData(
           'deployOnSave',
           {
-            deployType: orgType === OrgType.ScratchOrg ? 'Push' : 'Deploy'
+            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
           },
           {
             documentsToDeploy: toDeploy.length,
