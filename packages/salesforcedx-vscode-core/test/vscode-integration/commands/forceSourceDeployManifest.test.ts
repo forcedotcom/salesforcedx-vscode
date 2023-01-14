@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
@@ -15,9 +15,10 @@ import {
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { workspaceContext } from '../../../src/context';
+import { SourceTrackingService } from '../../../src/services';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
@@ -44,6 +45,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
     let mockConnection: Connection;
     let deployStub: SinonStub;
     let pollStatusStub: SinonStub;
+    let sourceTrackingServiceStub: SinonStub;
 
     const executor = new LibrarySourceDeployManifestExecutor();
 
@@ -71,6 +73,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
       deployStub = env.stub(mockComponents, 'deploy').returns({
         pollStatus: pollStatusStub
       });
+      sourceTrackingServiceStub = env
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     afterEach(() => {
@@ -80,7 +85,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
     it('should deploy components in a manifest', async () => {
       await executor.run({ data: manifestPath, type: 'CONTINUE' });
 
+      expect(sourceTrackingServiceStub.calledOnce).to.equal(true);
       expect(deployStub.calledOnce).to.equal(true);
+      expect(sourceTrackingServiceStub.calledBefore(deployStub)).to.equal(true);
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
