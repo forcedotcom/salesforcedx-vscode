@@ -28,6 +28,7 @@ import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 import { workspaceContext } from '../../../src/context';
+import { SourceTrackingService } from '../../../src/services';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig
@@ -47,6 +48,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     let getComponentsFromPathStub: SinonStub;
     let pollStatusStub: SinonStub;
+    let sourceTrackingServiceStub: SinonStub;
     let deployStub: SinonStub;
 
     beforeEach(async () => {
@@ -74,6 +76,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         });
 
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      sourceTrackingServiceStub = sb
+        .stub(SourceTrackingService, 'createSourceTracking')
+        .resolves({});
     });
 
     afterEach(() => {
@@ -91,7 +96,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
       expect(getComponentsFromPathStub.calledOnce).to.equal(true);
       expect(getComponentsFromPathStub.firstCall.args[0]).to.equal(filePath);
+      expect(sourceTrackingServiceStub.calledOnce).to.equal(true);
       expect(deployStub.calledOnce).to.equal(true);
+      expect(sourceTrackingServiceStub.calledBefore(deployStub)).to.equal(true);
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
@@ -113,7 +120,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect(getComponentsFromPathStub.firstCall.args[0]).to.equal(filePath1);
       expect(getComponentsFromPathStub.secondCall.args[0]).to.equal(filePath2);
       expect(getComponentsFromPathStub.thirdCall.args[0]).to.equal(filePath3);
+      expect(sourceTrackingServiceStub.calledOnce).to.equal(true);
       expect(deployStub.calledOnce).to.equal(true);
+      expect(sourceTrackingServiceStub.calledBefore(deployStub)).to.equal(true);
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
