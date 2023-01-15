@@ -7,8 +7,8 @@ import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
-import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
+import { workspaceContextOrgTypeUtil } from '../../../src/context/workspaceOrgType';
 import { decorators } from '../../../src/decorators';
 import { workspaceUtils } from '../../../src/util';
 
@@ -109,7 +109,7 @@ describe('WorkspaceContext', () => {
 
   beforeEach(async () => {
     setupWorkspaceOrgTypeStub = env
-      .stub(workspaceContextUtils, 'setupWorkspaceOrgType')
+      .stub(workspaceContextOrgTypeUtil, 'setupWorkspaceOrgType')
       .resolves();
 
     workspaceContextUtil = TestWorkspaceContextUtil.getInstance();

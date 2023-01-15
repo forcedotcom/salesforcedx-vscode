@@ -15,7 +15,8 @@ export enum OrgType {
 }
 
 export const workspaceContextOrgTypeUtil = {
-  getWorkspaceOrgType
+  getWorkspaceOrgType,
+  setupWorkspaceOrgType
 };
 
 export async function getWorkspaceOrgType(
