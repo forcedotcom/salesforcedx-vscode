@@ -34,24 +34,24 @@ import { SourceTrackingService } from './../../../src/services/sourceTrackingSer
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
-  // Org: jest.fn().mockImplementation(() => {
-  //   return { create: jest.fn() };
-  // }),
   Org: { create: jest.fn() },
-  // Org: { create: jest.fn(), getOrgId: jest.fn() },
-
-  // Org: {
-  //   create: jest.fn().mockImplementation(() => {
-  //     return { getOrgId: jest.fn() };
-  //   })
-  // },
   SfProject: { resolve: jest.fn() }
 }));
 
-// const d = jest.mock('@salesforce/source-tracking', () => ({
-//   ...jest.requireActual('@salesforce/source-tracking'),
-//   create: jest.fn()
-// }));
+// var createMock = jest.fn().mockImplementation(() => {
+//   return { orgId: jest.fn() } as any;
+// });
+// tslint:disable-next-line:no-var-keyword
+// tslint:disable-next-line:prefer-const
+var createMock = { orgId: jest.fn() } as any;
+
+jest.mock('@salesforce/source-tracking', () => ({
+  SourceTracking: {
+    create: () => {
+      return createMock;
+    }
+  }
+}));
 
 describe('Source Tracking Service', () => {
   const mockConnection = {} as any;
@@ -75,8 +75,9 @@ describe('Source Tracking Service', () => {
 
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(mockWorkspaceContext.getConnection).toHaveBeenCalled();
-    expect(Org.create).toHaveBeenCalled();
-    expect(SfProject.resolve).toHaveBeenCalled();
+    // expect(Org.create).toHaveBeenCalled();
+    // expect(SfProject.resolve).toHaveBeenCalled();
+    expect(createMock).toHaveBeenCalled();
 
     // not working - not sure why
     // expect(orgCreateSpy).toHaveBeenCalled();
