@@ -43,16 +43,24 @@ jest.mock('@salesforce/core', () => ({
 // });
 // tslint:disable-next-line:no-var-keyword
 // tslint:disable-next-line:prefer-const
-var createMock = { orgId: jest.fn() } as any;
+var sourceTrackingMock = { orgId: jest.fn() } as any;
+// tslint:disable-next-line:no-var-keyword
+// tslint:disable-next-line:prefer-const
+var stClassMock = {
+  create: jest.fn().mockImplementation(() => {
+    return sourceTrackingMock;
+  })
+};
+
+// jest.mock('@salesforce/source-tracking', () => ({
+//   SourceTracking: jest.fn().mockImplementation(() => {
+//     return stClassMock;
+//   })
+// }));
 
 jest.mock('@salesforce/source-tracking', () => ({
-  SourceTracking: {
-    create: () => {
-      return createMock;
-    }
-  }
+  SourceTracking: { create: jest.fn() }
 }));
-
 describe('Source Tracking Service', () => {
   const mockConnection = {} as any;
   const getConnectionStub = jest.fn().mockImplementation(() => {
@@ -77,8 +85,9 @@ describe('Source Tracking Service', () => {
     expect(mockWorkspaceContext.getConnection).toHaveBeenCalled();
     // expect(Org.create).toHaveBeenCalled();
     // expect(SfProject.resolve).toHaveBeenCalled();
-    expect(createMock).toHaveBeenCalled();
-
+    // expect(createMock).toHaveBeenCalled();
+    // expect(SourceTracking.create).toHaveBeenCalled();
+    expect(stClassMock.create).toHaveBeenCalled();
     // not working - not sure why
     // expect(orgCreateSpy).toHaveBeenCalled();
     // expect(mockCore.Org).toHaveBeenCalled();
