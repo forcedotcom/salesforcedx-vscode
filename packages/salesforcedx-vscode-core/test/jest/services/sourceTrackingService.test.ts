@@ -10,10 +10,10 @@ import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SourceTrackingService } from './../../../src/services/sourceTrackingService';
 
 // const stCreateMock = jest.fn();
-// jest.mock('@salesforce/source-tracking', () => {
+// jest.mock('@salesforce/source-deploy-retrieve', () => {
 //   return {
-//     // ...jest.requireActual('@salesforce/source-tracking'),
-//     create: jest.fn()
+//     ...jest.requireActual('@salesforce/source-deploy-retrieve'),
+//     importMessagesDirectory: jest.fn()
 //   };
 // });
 // const mockCore = {
@@ -26,24 +26,58 @@ import { SourceTrackingService } from './../../../src/services/sourceTrackingSer
 // jest.mock('@salesforce/core', () => {
 //   return mockCore;
 // });
+// Org: {
+//   create: jest.fn().mockImplementation(() => {
+//     return { init: jest.fn() };
+//   })
+// },
+
+jest.mock('@salesforce/core', () => ({
+  ...jest.requireActual('@salesforce/core'),
+  // Org: jest.fn().mockImplementation(() => {
+  //   return { create: jest.fn() };
+  // }),
+  Org: { create: jest.fn() },
+  // Org: { create: jest.fn(), getOrgId: jest.fn() },
+
+  // Org: {
+  //   create: jest.fn().mockImplementation(() => {
+  //     return { getOrgId: jest.fn() };
+  //   })
+  // },
+  SfProject: { resolve: jest.fn() }
+}));
+
+// const d = jest.mock('@salesforce/source-tracking', () => ({
+//   ...jest.requireActual('@salesforce/source-tracking'),
+//   create: jest.fn()
+// }));
 
 describe('Source Tracking Service', () => {
-  const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+  const mockConnection = {} as any;
+  const getConnectionStub = jest.fn().mockImplementation(() => {
+    return mockConnection;
+  });
+  const mockWorkspaceContext = { getConnection: getConnectionStub } as any;
   const workspaceContextGetInstanceSpy = jest.spyOn(
     WorkspaceContext,
     'getInstance'
   );
-  const orgCreateSpy = jest.spyOn(Org, 'create');
-  const sfProjectResolveSpy = jest.spyOn(SfProject, 'resolve');
-  const sourceTrackingCreateSpy = jest.spyOn(SourceTracking, 'create');
+  // const sourceTrackingCreateSpy = jest.spyOn(SourceTracking, 'create');
 
   beforeEach(() => {
     workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
-    sourceTrackingCreateSpy.mockResolvedValue({} as any);
+    // sourceTrackingCreateSpy.mockResolvedValue({} as any);
   });
 
   it('Should return an instance of SourceTracking', async () => {
     const sts = SourceTrackingService.createSourceTracking();
+
+    expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
+    expect(mockWorkspaceContext.getConnection).toHaveBeenCalled();
+    expect(Org.create).toHaveBeenCalled();
+    expect(SfProject.resolve).toHaveBeenCalled();
+
     // not working - not sure why
     // expect(orgCreateSpy).toHaveBeenCalled();
     // expect(mockCore.Org).toHaveBeenCalled();
