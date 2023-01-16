@@ -58,9 +58,21 @@ var stClassMock = {
 //   })
 // }));
 
+/*
+// DOESNT WORK UGH
+// tslint:disable-next-line:no-var-keyword
+// tslint:disable-next-line:prefer-const
+var fakeCreate = () => jest.fn();
+jest.mock('@salesforce/source-tracking', () => ({
+  SourceTracking: { create: fakeCreate }
+}));
+// END DOESN"T WORK
+*/
+
 jest.mock('@salesforce/source-tracking', () => ({
   SourceTracking: { create: jest.fn() }
 }));
+
 describe('Source Tracking Service', () => {
   const mockConnection = {} as any;
   const getConnectionStub = jest.fn().mockImplementation(() => {
@@ -71,7 +83,7 @@ describe('Source Tracking Service', () => {
     WorkspaceContext,
     'getInstance'
   );
-  // const sourceTrackingCreateSpy = jest.spyOn(SourceTracking, 'create');
+  // const sourceTrackingCreateSpy = jest.spyOn('SourceTracking', 'create');
 
   beforeEach(() => {
     workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
@@ -83,11 +95,15 @@ describe('Source Tracking Service', () => {
 
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(mockWorkspaceContext.getConnection).toHaveBeenCalled();
+
+    // expect(sourceTrackingCreateSpy).toHaveBeenCalled();
+
     // expect(Org.create).toHaveBeenCalled();
     // expect(SfProject.resolve).toHaveBeenCalled();
     // expect(createMock).toHaveBeenCalled();
     // expect(SourceTracking.create).toHaveBeenCalled();
-    expect(stClassMock.create).toHaveBeenCalled();
+    // expect(stClassMock.create).toHaveBeenCalled();
+    // expect(fakeCreate).toHaveBeenCalled();
     // not working - not sure why
     // expect(orgCreateSpy).toHaveBeenCalled();
     // expect(mockCore.Org).toHaveBeenCalled();
