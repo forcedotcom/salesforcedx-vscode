@@ -20,6 +20,8 @@ on:
 jobs: 
   updating-sha-for-publish: 
     runs-on: ubuntu-latest
+    env: 
+      RELEASE_VERSION: ${{ inputs.version }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -45,7 +47,7 @@ jobs:
       - run: rm ./SHA256
       - run: |
               git add SHA256.md
-              git commit -m "chore: updated SHA256 v${{ inputs.version }} [skip ci]"
+              git commit -m "chore: updated SHA256 v${{ env.RELEASE_VERSION }} [skip ci]"
       - run: echo "SHA256.md successfully generated and committed."
       - run: git push origin main
   publish:
