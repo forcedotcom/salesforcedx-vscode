@@ -134,8 +134,8 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
 }
 
 /**
- * Perform file diff and execute VS Code diff comand to show in UI.
- * It matches the correspondent file in compoennt.
+ * Perform file diff and execute VS Code diff command to show in UI.
+ * It matches the correspondent file in component.
  * @param localFile local file
  * @param remoteComponent remote source component
  * @param defaultUsernameorAlias username/org info to show in diff
