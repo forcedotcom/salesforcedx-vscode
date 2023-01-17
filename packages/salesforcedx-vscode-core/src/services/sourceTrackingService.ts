@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -52,8 +52,6 @@ export class SourceTrackingService {
 
     const sourceTracker = await SourceTracking.create(options);
     this.activeSourceTrackingMap.set(projectPath, sourceTracker);
-
-    console.log(`Source Tracking initialized for project at ${projectPath}`);
 
     if (process.cwd() !== origCwd) {
       // Change the directory back to the orig dir
