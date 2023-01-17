@@ -9,6 +9,7 @@ import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
 import { AuthUtil } from '../../../src/auth/authUtil';
+import { nls } from '../../../src/messages';
 jest.mock('@salesforce/core');
 jest.mock('../../../src/auth/authUtil');
 
@@ -69,6 +70,13 @@ describe('WorkspaceContext', () => {
       mockWatcher
     );
   });
+
+  it('should return workspace context util instance', () => {
+    expect(WorkspaceContextUtil.getInstance(false)).toEqual(
+      workspaceContextUtil
+    );
+  });
+
   it('should load the default username and alias and clear the cache of the core types upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
@@ -169,6 +177,23 @@ describe('WorkspaceContext', () => {
       await workspaceContextUtil.getConnection();
 
       expect(connectionMock.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not throw error if there is a username set', async () => {
+      const connection = await workspaceContextUtil.getConnection();
+      expect(() => connection).not.toThrow();
+    });
+
+    it('should throw error if there is no username set', async () => {
+      getUsernameStub.mockReturnValue(undefined);
+
+      await mockWatcher.onDidChange.mock.calls[0][0]();
+
+      const message = nls.localize('error_no_default_username');
+      // tslint:disable-next-line:no-floating-promises
+      expect(async () => {
+        await workspaceContextUtil.getConnection();
+      }).rejects.toThrowError(message);
     });
   });
 });
