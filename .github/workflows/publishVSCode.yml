@@ -1,62 +1,59 @@
-name: VSCode Publish
-
+name: Publish in Microsoft Marketplace
 on:
-  workflow_call:
-    inputs:
-      version:
-        type: string
-        required: true
-    outputs:
-      result:
-        description: Set to published if the push to the VSCode marketplace was successful
-        value: ${{ jobs.publish.outputs.result }}
-      status: 
-        description: Set to complete if all tasks associated with the workflow were successful.
-        value: ${{ jobs.mergeDevelop.outputs.status }}
+  release:
+    types: [published]
 
-# There are two outputs that are a result of running this workflow
-# The steps.publsh.outputs.result is an indicator that the pulish to the vscode marketplace succeeded.
-# The steps.mergeDevelop.outputs.status is an indicator that all the publish steps completed.
-jobs: 
-  updating-sha-for-publish: 
+jobs:
+
+  publish-start-notification:
+    name: 'Publish Start Notification'
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Publish waiting for approval in github."
+      notification: "New Release triggered publish build and job is ready for approval."
+      type: "notification"
+      workflow: "publishVSCode.yml"
+  
+  prepare_environment:
+    name: 'Get Release Version'
     runs-on: ubuntu-latest
-    env: 
-      RELEASE_VERSION: ${{ inputs.version }}
+    environment: publish
+    outputs:
+      RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
+      GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
+      SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16.13.x'
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           ref: 'main'
-          token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: ${{ inputs.version }}
-          path: ./extensions
-      - name: Display downloaded vsix files
-        run: ls -R ./extensions
-      - run: npm ci
-      - run: npm run vscode:sha256
-      - run: scripts/concatenate-sha256.js
-      - run: rm ./SHA256
-      - run: |
-              git add SHA256.md
-              git commit -m "chore: updated SHA256 v${{ env.RELEASE_VERSION }} [skip ci]"
-      - run: echo "SHA256.md successfully generated and committed."
-      - run: git push origin main
+      - id: getMainVersion
+        run: |
+          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+      - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
+      - id: getGusBuild
+        run: | 
+          echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+      - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
+      - id: getScheduledBuild
+        run: | 
+          echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+      - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
+
+  ctc-open:
+    needs: [prepare_environment]
+    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
+    secrets: inherit
+
   publish:
-    needs: ['updating-sha-for-publish']
+    needs: ['ctc-open']
     outputs: 
       result: ${{ steps.vsce.outputs.result }}
+      
     runs-on: ubuntu-latest
     env: 
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
+      PUBLISH_VERSION: ${{ needs.prepare_environment.outputs.RELEASE_VERSION }}
     steps: 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -67,10 +64,10 @@ jobs:
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: ${{ inputs.version }}
-          path: ./extensions
+      - name: downloadExtensionsFromRelease
+        run: | 
+          mkdir ./extensions
+          gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - run: npm ci
@@ -79,70 +76,21 @@ jobs:
         run: | 
           echo "result=published" >> $GITHUB_OUTPUT
       - run: echo "SUCCESSFULLY published"
-  gitTag: 
-    needs: ['publish']
-    runs-on: ubuntu-latest
-    env: 
-      RELEASE_VERSION: ${{ inputs.version }}
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'main'
-          token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
-      - run: |
-            git tag v${{ env.RELEASE_VERSION }}
-            git push origin v${{ env.RELEASE_VERSION }}
-  githubRelease:
-    needs: [publish]
-    runs-on: ubuntu-latest
-    env: 
-      RELEASE_VERSION: ${{ inputs.version }}
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'main'
-          token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: ${{ inputs.version }}
-          path: ./extensions
-      - name: Display downloaded vsix files
-        run: ls -R ./extensions
-      - run: gh release create v${{ env.RELEASE_VERSION }} ./extensions/**/*.vsix --title "Release v${{ env.RELEASE_VERSION }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
 
-  mergeDevelop:
-    needs: [githubRelease]
-    runs-on: ubuntu-latest
-    outputs: 
-      status: ${{ steps.complete.outputs.status }}
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'main'
-          token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
-      - run: |
-          git checkout develop
-          git pull
-          git merge main --commit --no-edit
-          git push origin develop
-      - id: complete
-        run: |
-         echo "status=complete" >> $GITHUB_OUTPUT
-      - id: finish
-        run: |
-         echo "VSCode Publish Success"
-         
+  ctcCloseSuccess:
+    needs: [ctc-open, publish]
+    if: needs.ctc-open.result == 'success' && needs.vscode-release.result == 'published' && needs.ctc-open.outputs.changeCaseId
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+    secrets: inherit
+    with:
+      changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
+
+  ctcCloseFail:
+    needs: [ctc-open, publish]
+    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'published')
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+    secrets: inherit
+    with:
+      changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
+      status: Not Implemented
+    
