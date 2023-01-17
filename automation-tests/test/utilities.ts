@@ -67,7 +67,7 @@ async function openCommandPromptWithCommand(workbench: Workbench, command: strin
   const prompt = await workbench.openCommandPrompt();
   await prompt.wait(5000);
 
-  await prompt.setText(`>${command}`)
+  await prompt.setText(`>${command}`);
   await pause(1);
 
   return prompt;
@@ -175,11 +175,11 @@ async function getTerminalView(workbench: Workbench): Promise<TerminalView> {
 }
 
 async function getTerminalViewText(terminalView: TerminalView, seconds: number): Promise<string> {
-  for (let i=0; i<seconds; i++) {
+  for (let i = 0; i < seconds; i++) {
     await pause(1);
     const terminalText = await terminalView.getText();
     if (terminalText && terminalText !== '') {
-      return terminalText
+      return terminalText;
     }
   }
 
@@ -216,5 +216,5 @@ export const utilities = {
   executeCommand,
   getTerminalView,
   getTerminalViewText,
-  currentUserName,
+  currentUserName
 };
