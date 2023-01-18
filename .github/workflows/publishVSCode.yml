@@ -6,7 +6,7 @@ on:
 jobs:
 
   publish-start-notification:
-    name: 'Publish Start Notification'
+    name: "Publish Start Notification"
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
