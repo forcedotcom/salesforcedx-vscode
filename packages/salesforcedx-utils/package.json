@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/jest": "28.1.7",
-    "@typescript-eslint/eslint-plugin": "5.38.1",
+    "@typescript-eslint/eslint-plugin": "5.48.2",
     "@typescript-eslint/parser": "5.36.1",
     "eslint": "8.23.0",
     "jest": "28.1.3",
