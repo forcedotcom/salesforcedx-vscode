@@ -33,7 +33,7 @@ describe('Source Tracking Service', () => {
     sourceTrackingCreateSpy.mockResolvedValue({} as any);
   });
 
-  it('Should return an instance of SourceTracking', async () => {
+  it('Should create an instance of SourceTracking', async () => {
     await SourceTrackingService.createSourceTracking();
 
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
