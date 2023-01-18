@@ -1,14 +1,14 @@
 
-name: PrePublish
+name: PreRelease
 
 # Have workflow for just merging into main
-# publish flow will trigger by a merge into main w/ approval 
+# Release flow will trigger by a merge into main w/ approval 
 
 on:
   workflow_dispatch:
     inputs: 
       releaseBranch: 
-        description: 'The branch to be published.'
+        description: 'The branch to be released.'
         type: string
         required: true
 

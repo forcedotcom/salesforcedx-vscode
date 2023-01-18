@@ -1,9 +1,8 @@
-name: Test, Build, and Publish
+name: Test, Build, and Release
 on:
   push:
     branches: 
       - 'main'
-  workflow_dispatch:
 
 jobs:
   get-version:
@@ -25,7 +24,7 @@ jobs:
     with: 
       branch: 'main'
       label: ${{ needs.get-version.outputs.RELEASE_VERSION }}
-  publish:
+  release:
     needs: [build-and-test]
     secrets: inherit
-    uses: ./.github/workflows/publish.yml
+    uses: ./.github/workflows/release.yml
