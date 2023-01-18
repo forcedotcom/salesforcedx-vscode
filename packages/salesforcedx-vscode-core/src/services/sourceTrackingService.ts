@@ -17,14 +17,7 @@ import { WorkspaceContext } from '../context/workspaceContext';
 export class SourceTrackingService {
   public static async createSourceTracking(): Promise<SourceTracking> {
     const projectPath = getRootWorkspacePath();
-
-    const origCwd = process.cwd();
-    if (origCwd !== projectPath && fs.existsSync(projectPath)) {
-      // Change the environment to get the node process to use
-      // the correct current working directory (process.cwd).
-      // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
-      process.chdir(projectPath);
-    }
+    const project = await SfProject.resolve(projectPath);
 
     const connection = await WorkspaceContext.getInstance().getConnection();
     // It is important to pass the connection from WorkspaceContext to
@@ -33,7 +26,7 @@ export class SourceTrackingService {
     // thrown when deploying or retrieving immediately after creating a
     // default scratch org.
     const org: Org = await Org.create({ connection });
-    const project = await SfProject.resolve(projectPath);
+
     const options: SourceTrackingOptions = {
       org,
       project,
@@ -41,14 +34,7 @@ export class SourceTrackingService {
       subscribeSDREvents: true,
       ignoreConflicts: false
     };
-
     const sourceTracking = await SourceTracking.create(options);
-
-    if (process.cwd() !== origCwd) {
-      // Change the directory back to the orig dir
-      process.chdir(origCwd);
-    }
-
     return sourceTracking;
   }
 }

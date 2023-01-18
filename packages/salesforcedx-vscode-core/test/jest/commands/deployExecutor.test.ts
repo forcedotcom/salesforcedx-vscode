@@ -72,7 +72,7 @@ describe('Deploy Executor', () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
-    createSourceTrackingSpy.mockResolvedValue();
+    createSourceTrackingSpy.mockResolvedValue({} as any);
     deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
