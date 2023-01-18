@@ -2,12 +2,14 @@ name: Publish in Microsoft Marketplace
 on:
   release:
     types: [published]
-
+    
 jobs:
 
   publish-start-notification:
     name: "Publish Start Notification"
     uses: ./.github/workflows/slackNotification.yml
+    # Only run this job is not a prerelease
+    if: ${{ !github.event.release.prerelease }}
     secrets: inherit
     with:
       title: "Publish waiting for approval in github."
@@ -18,6 +20,7 @@ jobs:
   prepare_environment:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
+    if: ${{ !github.event.release.prerelease }}
     environment: publish
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
