@@ -44,6 +44,8 @@ jest.mock('../../../src/messages', () => {
 
 jest.mock('../../../src/commands/util/postconditionCheckers');
 
+jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+
 describe('Retrieve Executor', () => {
   const dummyProcessCwd = '/';
   const workspaceContextGetInstanceSpy = jest.spyOn(
