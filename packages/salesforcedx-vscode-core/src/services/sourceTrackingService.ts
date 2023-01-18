@@ -15,16 +15,8 @@ import * as fs from 'fs';
 import { WorkspaceContext } from '../context/workspaceContext';
 
 export class SourceTrackingService {
-  private static activeSourceTrackingMap = new Map();
-
-  public static async createSourceTracking(): Promise<void> {
+  public static async createSourceTracking(): Promise<SourceTracking> {
     const projectPath = getRootWorkspacePath();
-    if (
-      SourceTrackingService.activeSourceTrackingMap &&
-      SourceTrackingService.activeSourceTrackingMap.has(projectPath)
-    ) {
-      return this.activeSourceTrackingMap.get(projectPath);
-    }
 
     const origCwd = process.cwd();
     if (origCwd !== projectPath && fs.existsSync(projectPath)) {
@@ -50,12 +42,13 @@ export class SourceTrackingService {
       ignoreConflicts: false
     };
 
-    const sourceTracker = await SourceTracking.create(options);
-    this.activeSourceTrackingMap.set(projectPath, sourceTracker);
+    const sourceTracking = await SourceTracking.create(options);
 
     if (process.cwd() !== origCwd) {
       // Change the directory back to the orig dir
       process.chdir(origCwd);
     }
+
+    return sourceTracking;
   }
 }
