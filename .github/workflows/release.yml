@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  workflow_call
+
+jobs: 
+  release-start-notification:
+    name: 'Release Start Notification'
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Release waiting for approval in github."
+      notification: "Main has been merged and release job is ready for approval."
+      type: "notification"
+      workflow: "release.yml"
+  
+  prepare_environment:
+    name: 'Get Release Version'
+    runs-on: ubuntu-latest
+    environment: publish
+    outputs:
+      RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+      - id: getMainVersion
+        run: |
+          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+      - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
+
+  release:
+    needs: [prepare_environment]
+    uses: ./.github/workflows/tagAndRelease.yml
+    with: 
+      version: ${{ needs.prepare_environment.outputs.RELEASE_VERSION }}
+    secrets: inherit
