@@ -1,10 +1,10 @@
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   getRelativeProjectPath,
   getRootWorkspacePath,
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import {
   ComponentSet,
   RetrieveResult
