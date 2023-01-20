@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   getRelativeProjectPath,
+  getRootWorkspacePath,
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
@@ -27,8 +28,15 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const sourceTracking = await SourceTrackingService.createSourceTracking();
     const connection = await WorkspaceContext.getInstance().getConnection();
+    const username = connection.getUsername();
+    const projectPath = getRootWorkspacePath();
+    if (username) {
+      const sourceTracking = await SourceTrackingService.createSourceTracking(
+        username,
+        projectPath
+      );
+    }
     const operation = await components.deploy({
       usernameOrConnection: connection
     });

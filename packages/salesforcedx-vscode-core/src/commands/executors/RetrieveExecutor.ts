@@ -1,10 +1,11 @@
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   getRelativeProjectPath,
+  getRootWorkspace,
   getRootWorkspacePath,
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import {
   ComponentSet,
   RetrieveResult
@@ -25,13 +26,20 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const connection = await WorkspaceContext.getInstance().getConnection();
+    const projectPath = getRootWorkspacePath();
 
     const defaultOutput = join(
-      getRootWorkspacePath(),
+      projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const sourceTracking = await SourceTrackingService.createSourceTracking();
+    const username = connection.getUsername();
+    if (username) {
+      const sourceTracking = await SourceTrackingService.createSourceTracking(
+        username,
+        projectPath
+      );
+    }
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,

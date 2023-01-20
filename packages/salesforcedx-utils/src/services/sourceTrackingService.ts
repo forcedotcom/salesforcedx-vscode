@@ -7,22 +7,17 @@
 
 import { Org, SfProject } from '@salesforce/core';
 import {
-  ConfigUtil,
-  getRootWorkspacePath
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
   SourceTracking,
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
 
 export class SourceTrackingService {
-  public static async createSourceTracking(): Promise<SourceTracking> {
-    const projectPath = getRootWorkspacePath();
+  public static async createSourceTracking(
+    projectPath: string,
+    aliasOrUsername: string
+  ): Promise<SourceTracking> {
     const project = await SfProject.resolve(projectPath);
-
-    const aliasOrUsername = await ConfigUtil.getDefaultUsernameOrAlias();
-    const org: Org = await Org.create({ aliasOrUsername });
-
+    const org = await Org.create({ aliasOrUsername });
     const options: SourceTrackingOptions = {
       org,
       project,
