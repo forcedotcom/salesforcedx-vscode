@@ -294,7 +294,7 @@ export class ScratchOrg {
           break;
         }
       } else {
-        // If the scratch or was already created (and not deleted),
+        // If the scratch org was already created (and not deleted),
         // and the "Run SFDX: Create a Default Scratch Org" step was skipped,
         // scratchOrgAliasName is undefined and as such, search for the first org
         // that starts with "TempScratchOrg_" and also has the current user's name.
