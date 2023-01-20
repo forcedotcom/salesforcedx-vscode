@@ -94,9 +94,7 @@ describe('workspaceOrgType unit tests', () => {
         })
       });
 
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-        defaultUsername
-      );
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
 
       expect(orgType).to.equal(OrgType.SourceTracked);
       expect(createStub.getCall(0).args[0]).to.eql({
@@ -110,9 +108,7 @@ describe('workspaceOrgType unit tests', () => {
       createStub.resolves({
         getFields: () => ({})
       });
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-        defaultUsername
-      );
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
 
       expect(orgType).to.equal(OrgType.NonSourceTracked);
       expect(createStub.getCall(0).args[0]).to.eql({
@@ -124,7 +120,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = undefined;
       let errorWasThrown = false;
       try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
+        await workspaceContextUtils.getWorkspaceOrgType();
       } catch (error) {
         if (error instanceof Error) {
           errorWasThrown = true;
@@ -146,7 +142,7 @@ describe('workspaceOrgType unit tests', () => {
 
       let errorWasThrown = false;
       try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
+        await workspaceContextUtils.getWorkspaceOrgType();
       } catch (error) {
         if (error instanceof Error) {
           errorWasThrown = true;
@@ -170,7 +166,7 @@ describe('workspaceOrgType unit tests', () => {
 
       let errorWasThrown = false;
       try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
+        await workspaceContextUtils.getWorkspaceOrgType();
       } catch (error) {
         if (error instanceof Error) {
           errorWasThrown = true;

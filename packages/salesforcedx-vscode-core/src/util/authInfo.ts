@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, Org, StateAggregator } from '@salesforce/core';
 import {
   ConfigSource,
   ConfigUtil
@@ -106,12 +106,11 @@ export class OrgAuthInfo {
     return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 
-  public static async isAScratchOrg(username: string): Promise<boolean> {
-    const authInfo = await AuthInfo.create({ username });
-    const authInfoFields = authInfo.getFields();
-    return Promise.resolve(
-      typeof authInfoFields.devHubUsername !== 'undefined'
-    );
+  public static async isAScratchOrg(): Promise<boolean> {
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const org: Org = await Org.create({ connection });
+    const isAScratchOrg = org.isScratch();
+    return isAScratchOrg;
   }
 
   public static async getConnection(

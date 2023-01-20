@@ -128,7 +128,7 @@ async function resolveDefaultUsername(): Promise<{
     let isScratch = false;
 
     try {
-      isScratch = await OrgAuthInfo.isAScratchOrg(username);
+      isScratch = await OrgAuthInfo.isAScratchOrg();
     } catch (err) {
       return { error: err as Error, isScratch: false };
     }
