@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 import {
   utilities
 } from '../utilities';

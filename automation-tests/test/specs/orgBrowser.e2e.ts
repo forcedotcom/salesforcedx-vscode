@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Org Browser', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,11 +17,9 @@ describe('Org Browser', async () => {
     await scratchOrg.setUp();
   });
 
-  step('sub-category', async () => {
-    step('what?', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('what?', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
   });
 
   step('what?', async () => {

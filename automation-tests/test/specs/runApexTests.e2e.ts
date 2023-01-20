@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Run Apex Tests', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,7 +17,7 @@ describe('Run Apex Tests', async () => {
     await scratchOrg.setUp();
   });
 
-  step('Run All Tests via Apex Class', async () => {
+  // Run All Tests via Apex Class
     step('Open an existing apex test (e.g. BotTest.cls, search for @isTest)', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -32,9 +32,8 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Run Single Test via Apex Class', async () => {
+  // Run Single Test via Apex Class
     step('Open an existing apex test (e.g. BotTest.cls)', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -49,9 +48,8 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Run Tests via Command Palette', async () => {
+  // Run Tests via Command Palette
     step('Open command palette and run "SFDX: Run Apex Tests"', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -66,9 +64,8 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Re-run Last Apex Test Class', async () => {
+  // Re-run Last Apex Test Class
     step('Open an existing apex test and modify it', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -83,9 +80,8 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Run all Apex tests via Test Sidebar', async () => {
+  // Run all Apex tests via Test Sidebar
     step('Open the Test Sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -115,9 +111,8 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Run all Apex Tests on a Class via the Test Sidebar', async () => {
+  // Run all Apex Tests on a Class via the Test Sidebar
     step('Open the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -147,9 +142,8 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Run a Single Apex Test via the Test Sidebar', async () => {
+  // Run a Single Apex Test via the Test Sidebar
     step('Open the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -179,7 +173,6 @@ describe('Run Apex Tests', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
   step('Tear down and clean up the testing environment', async () => {
     await scratchOrg.tearDown();

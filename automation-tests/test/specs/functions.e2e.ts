@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Functions', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,7 +17,7 @@ describe('Functions', async () => {
     await scratchOrg.setUp();
   });
 
-  step('Java Functions', async () => {
+  // Java Functions
     step('Create a Java function', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -42,9 +42,8 @@ describe('Functions', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('JavaScript Functions', async () => {
+  // JavaScript Functions
     step('Create a JavaScript function', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -69,9 +68,8 @@ describe('Functions', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('TypeScript Functions', async () => {
+  // TypeScript Functions
     step('Create a TypeScript function', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -96,7 +94,6 @@ describe('Functions', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
   step('Tear down and clean up the testing environment', async () => {
     await scratchOrg.tearDown();

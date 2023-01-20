@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Pull and Push', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,7 +17,7 @@ describe('Pull and Push', async () => {
     await scratchOrg.setUp();
   });
 
-  step('Pull Source', async () => {
+  // Pull Source
     step('Open vscode (with the extensions already installed) on an existing sfdx project (e.g. dreamhouse)', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -37,9 +37,8 @@ describe('Pull and Push', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Push Source', async () => {
+  // Push Source
     step('Open your scratch org and modify a piece of code (e.g. apex class, layout, etc)', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -74,7 +73,6 @@ describe('Pull and Push', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
   step('Tear down and clean up the testing environment', async () => {
     await scratchOrg.tearDown();
