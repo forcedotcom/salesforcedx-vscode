@@ -1,10 +1,14 @@
-name: Nightly Build
+name: Build and Test
 on:
   workflow_call:
     inputs:
       branch:
         type: string
-        required: true
+        required: false
+      label:
+        type: string
+        required: false
+        default: 'VS Code Extensions'
 
 jobs:
   unit-tests:
@@ -19,3 +23,4 @@ jobs:
     uses: ./.github/workflows/buildAll.yml
     with:
       branch: ${{ inputs.branch }}
+      label: ${{ inputs.label }}
