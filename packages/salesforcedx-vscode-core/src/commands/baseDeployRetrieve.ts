@@ -14,14 +14,12 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  MetadataComponent,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { SourceTrackingService } from '../services';
 import { OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
@@ -32,7 +30,6 @@ export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
   protected cancellable: boolean = true;
-  protected sourceTrackingService = new SourceTrackingService();
 
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
