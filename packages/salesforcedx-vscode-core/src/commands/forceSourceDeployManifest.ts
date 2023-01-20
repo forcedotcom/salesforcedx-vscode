@@ -18,7 +18,7 @@ import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { DeployExecutor } from './DeployExecutor';
+import { DeployExecutor } from './executors/DeployExecutor';
 import {
   ConflictDetectionMessages,
   FilePathGatherer,

@@ -7,7 +7,7 @@
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import { DeployExecutor } from '../../../src/commands/DeployExecutor';
+import { DeployExecutor } from '../../../src/commands/executors/DeployExecutor';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SourceTrackingService } from '../../../src/services';
 

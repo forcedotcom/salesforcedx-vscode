@@ -12,15 +12,15 @@ import {
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
-import { WorkspaceContext } from '../context/workspaceContext';
-import { handleDeployDiagnostics } from '../diagnostics';
-import { nls } from '../messages';
-import { SourceTrackingService } from '../services';
-import { DeployQueue } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
-import { BaseDeployExecutor } from './baseDeployCommand';
-import { DeployRetrieveExecutor } from './baseDeployRetrieve';
+import { channelService } from '../../channels';
+import { WorkspaceContext } from '../../context/workspaceContext';
+import { handleDeployDiagnostics } from '../../diagnostics';
+import { nls } from '../../messages';
+import { SourceTrackingService } from '../../services';
+import { DeployQueue } from '../../settings';
+import { SfdxPackageDirectories } from '../../sfdxProject';
+import { BaseDeployExecutor } from '../baseDeployCommand';
+import { DeployRetrieveExecutor } from '../baseDeployRetrieve';
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(

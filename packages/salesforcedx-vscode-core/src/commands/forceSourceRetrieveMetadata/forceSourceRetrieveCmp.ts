@@ -19,7 +19,7 @@ import { RetrieveMetadataTrigger } from '.';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { workspaceUtils } from '../../util';
-import { RetrieveExecutor } from '../RetrieveExecutor';
+import { RetrieveExecutor } from '../executors/RetrieveExecutor';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';

@@ -11,13 +11,13 @@ import {
 import { ComponentStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
-import { PersistentStorageService } from '../conflict/persistentStorageService';
-import { WorkspaceContext } from '../context/workspaceContext';
-import { nls } from '../messages';
-import { SourceTrackingService } from '../services';
-import { SfdxPackageDirectories } from '../sfdxProject';
-import { DeployRetrieveExecutor } from './baseDeployRetrieve';
+import { channelService } from '../../channels';
+import { PersistentStorageService } from '../../conflict/persistentStorageService';
+import { WorkspaceContext } from '../../context/workspaceContext';
+import { nls } from '../../messages';
+import { SourceTrackingService } from '../../services';
+import { SfdxPackageDirectories } from '../../sfdxProject';
+import { DeployRetrieveExecutor } from '../baseDeployRetrieve';
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(

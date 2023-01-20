@@ -19,7 +19,7 @@ import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { RetrieveExecutor } from './RetrieveExecutor';
+import { RetrieveExecutor } from './executors/RetrieveExecutor';
 import {
   FilePathGatherer,
   SfdxCommandlet,

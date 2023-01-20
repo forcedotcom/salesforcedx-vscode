@@ -13,7 +13,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { DeployExecutor } from './DeployExecutor';
+import { DeployExecutor } from './executors/DeployExecutor';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
   ConflictDetectionMessages,
