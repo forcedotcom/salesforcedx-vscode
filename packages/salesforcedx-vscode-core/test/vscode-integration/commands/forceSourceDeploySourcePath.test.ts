@@ -12,11 +12,11 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ContinueResponse,
   fileUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ComponentSet,
   MetadataResolver
