@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Org } from '@salesforce/core';
-import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  hasRootWorkspace
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
@@ -22,8 +25,8 @@ export const workspaceContextOrgTypeUtil = {
 };
 
 export async function getWorkspaceOrgType(): Promise<OrgType> {
-  const connection = await WorkspaceContext.getInstance().getConnection();
-  const org: Org = await Org.create({ connection });
+  const aliasOrUsername = await getDefaultUsernameOrAlias();
+  const org: Org = await Org.create({ aliasOrUsername });
   if (org.isScratch) {
     // If the Org is a scratch org, return quickly - no need to
     // check the org for source tracking status like we have to
