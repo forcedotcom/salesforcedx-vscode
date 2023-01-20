@@ -12,6 +12,7 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ContinueResponse,
   LocalComponent
@@ -34,7 +35,6 @@ import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../../src/context';
-import { SourceTrackingService } from '../../../../src/services';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 

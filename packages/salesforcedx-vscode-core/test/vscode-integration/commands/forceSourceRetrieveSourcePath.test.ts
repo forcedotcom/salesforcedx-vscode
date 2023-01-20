@@ -12,6 +12,7 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -35,7 +36,6 @@ import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourc
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SourceTrackingService } from '../../../src/services';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig

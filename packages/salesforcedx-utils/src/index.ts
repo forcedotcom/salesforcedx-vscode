@@ -4,4 +4,5 @@ export * from './constants';
 export * from './helpers';
 export * from './i18n';
 export * from './requestService';
+export * from './services';
 export * from './types';

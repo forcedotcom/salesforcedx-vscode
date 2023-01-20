@@ -6,26 +6,29 @@
  */
 
 import { Org, SfProject } from '@salesforce/core';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  getRootWorkspacePath
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   SourceTracking,
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
-import * as fs from 'fs';
-import { WorkspaceContext } from '../context/workspaceContext';
 
 export class SourceTrackingService {
   public static async createSourceTracking(): Promise<SourceTracking> {
     const projectPath = getRootWorkspacePath();
     const project = await SfProject.resolve(projectPath);
 
-    const connection = await WorkspaceContext.getInstance().getConnection();
+    // const connection = await WorkspaceContextUtil.getInstance().getConnection();
     // It is important to pass the connection from WorkspaceContext to
     // Org.create() here.  Without this, core uses its cached version
     // of State Aggregator and the "No auth info found" error can be
     // thrown when deploying or retrieving immediately after creating a
     // default scratch org.
-    const org: Org = await Org.create({ connection });
+    // TODO: See if the No auth info found error can be reproduced building the org this way
+    const aliasOrUsername = await ConfigUtil.getDefaultUsernameOrAlias();
+    const org: Org = await Org.create({ aliasOrUsername });
 
     const options: SourceTrackingOptions = {
       org,

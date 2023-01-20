@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   getRelativeProjectPath,
   Row,
@@ -16,7 +17,6 @@ import { channelService } from '../../channels';
 import { WorkspaceContext } from '../../context/workspaceContext';
 import { handleDeployDiagnostics } from '../../diagnostics';
 import { nls } from '../../messages';
-import { SourceTrackingService } from '../../services';
 import { DeployQueue } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { BaseDeployExecutor } from '../baseDeployCommand';

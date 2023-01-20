@@ -4,6 +4,7 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import {
   ComponentSet,
   RetrieveResult
@@ -15,7 +16,6 @@ import { channelService } from '../../channels';
 import { PersistentStorageService } from '../../conflict/persistentStorageService';
 import { WorkspaceContext } from '../../context/workspaceContext';
 import { nls } from '../../messages';
-import { SourceTrackingService } from '../../services';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { DeployRetrieveExecutor } from '../baseDeployRetrieve';
 

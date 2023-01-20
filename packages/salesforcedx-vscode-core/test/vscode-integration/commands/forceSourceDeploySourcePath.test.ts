@@ -16,6 +16,7 @@ import {
   ContinueResponse,
   fileUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ComponentSet,
   MetadataResolver
@@ -28,7 +29,6 @@ import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 import { workspaceContext } from '../../../src/context';
-import { SourceTrackingService } from '../../../src/services';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig

@@ -11,6 +11,7 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   ContinueResponse,
@@ -46,7 +47,6 @@ import { PersistentStorageService } from '../../../src/conflict/persistentStorag
 import { workspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
-import { SourceTrackingService } from '../../../src/services';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
