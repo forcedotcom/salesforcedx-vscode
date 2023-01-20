@@ -27,7 +27,7 @@ export const workspaceContextOrgTypeUtil = {
 export async function getWorkspaceOrgType(): Promise<OrgType> {
   const aliasOrUsername = await getDefaultUsernameOrAlias();
   const org: Org = await Org.create({ aliasOrUsername });
-  if (org.isScratch) {
+  if (org.isScratch()) {
     // If the Org is a scratch org, return quickly - no need to
     // check the org for source tracking status like we have to
     // do for sandboxes below.
