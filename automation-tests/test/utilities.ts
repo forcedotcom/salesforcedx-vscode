@@ -157,23 +157,6 @@ async function attemptToFindNotification(workbench: Workbench, notificationMessa
   return false;
 }
 
-async function textIsPresentInOutputPanel(workbench: Workbench, text: string): Promise<boolean> {
-  const bottomBar = await workbench.getBottomBar();
-
-  // const outputView = await (await bottomBar.openOutputView()).wait();
-  const outputView = await bottomBar.openOutputView();
-  await outputView.wait(5000);
-
-  const outputViewText = await outputView.getText();
-  for (const outputLine of outputViewText) {
-    if (outputLine.includes(text)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 async function selectChannel(outputView: OutputView, name: string): Promise<void> {
   // Open the Output panel's dropdown menu.
   const select = await outputView.parent.$('select.monaco-select-box');
@@ -341,7 +324,6 @@ export const utilities = {
   waitForNotificationToGoAway,
   notificationIsPresent,
   attemptToFindNotification,
-  textIsPresentInOutputPanel,
   selectChannel,
   getOutputPanelText,
   attemptToFindOutputPanelText,
