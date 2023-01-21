@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/executors/DeployExecutor';
@@ -56,10 +56,7 @@ describe('Deploy Executor', () => {
     'getInstance'
   );
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
-  const createSourceTrackingSpy = jest.spyOn(
-    SourceTrackingService,
-    'createSourceTracking'
-  );
+  let createSourceTrackingSpy: jest.SpyInstance;
   const dummyComponentSet = new ComponentSet();
   const deploySpy = jest.spyOn(dummyComponentSet, 'deploy');
 
@@ -78,7 +75,9 @@ describe('Deploy Executor', () => {
     jest
       .spyOn(ConfigUtil, 'getUsername')
       .mockResolvedValue('test@username.com');
-    createSourceTrackingSpy.mockResolvedValue({} as any);
+    createSourceTrackingSpy = jest
+      .spyOn(SourceTrackingService, 'createSourceTracking')
+      .mockResolvedValue({} as any);
     deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
