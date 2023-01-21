@@ -70,6 +70,9 @@ export {
   SourceStatusFlags
 } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
+export { DeployExecutor } from './executors/DeployExecutor';
+export { RetrieveExecutor } from './executors/RetrieveExecutor';
+export { DeployRetrieveExecutor } from './baseDeployRetrieve';
 export {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,

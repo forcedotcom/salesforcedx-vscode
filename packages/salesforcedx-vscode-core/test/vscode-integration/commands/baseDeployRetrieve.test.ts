@@ -39,10 +39,12 @@ import { basename, dirname, join, sep } from 'path';
 import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands';
-import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
-import { DeployExecutor } from '../../../src/commands/executors/DeployExecutor';
-import { RetrieveExecutor } from '../../../src/commands/executors/RetrieveExecutor';
+import {
+  BaseDeployExecutor,
+  DeployExecutor,
+  DeployRetrieveExecutor,
+  RetrieveExecutor
+} from '../../../src/commands';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { workspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
