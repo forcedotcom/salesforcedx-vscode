@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/executors/DeployExecutor';
@@ -72,6 +75,9 @@ describe('Deploy Executor', () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
+    jest
+      .spyOn(ConfigUtil, 'getUsername')
+      .mockResolvedValue('test@username.com');
     createSourceTrackingSpy.mockResolvedValue({} as any);
     deploySpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
