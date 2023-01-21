@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   Row,
@@ -29,7 +30,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const username = connection.getUsername();
+    const username = await ConfigUtil.getUsername();
     const projectPath = getRootWorkspacePath();
     if (username) {
       const sourceTracking = await SourceTrackingService.createSourceTracking(

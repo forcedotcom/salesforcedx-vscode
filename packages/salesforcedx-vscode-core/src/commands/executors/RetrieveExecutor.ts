@@ -1,6 +1,6 @@
 import {
+  ConfigUtil,
   getRelativeProjectPath,
-  getRootWorkspace,
   getRootWorkspacePath,
   Row,
   Table
@@ -33,7 +33,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const username = connection.getUsername();
+    const username = await ConfigUtil.getUsername();
     if (username) {
       const sourceTracking = await SourceTrackingService.createSourceTracking(
         username,
