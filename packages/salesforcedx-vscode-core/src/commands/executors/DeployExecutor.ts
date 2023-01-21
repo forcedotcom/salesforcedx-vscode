@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   getRelativeProjectPath,
@@ -11,7 +12,6 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';

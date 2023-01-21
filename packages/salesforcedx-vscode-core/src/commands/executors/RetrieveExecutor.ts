@@ -1,3 +1,4 @@
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   getRelativeProjectPath,
@@ -5,7 +6,6 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import {
   ComponentSet,
   RetrieveResult

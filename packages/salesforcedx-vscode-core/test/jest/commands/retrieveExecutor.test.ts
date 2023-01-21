@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceTrackingService } from '@salesforce/salesforcedx-utils/src/services';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/executors/RetrieveExecutor';
