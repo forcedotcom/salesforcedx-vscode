@@ -29,15 +29,16 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const connection = await WorkspaceContext.getInstance().getConnection();
-    const username = await ConfigUtil.getUsername();
     const projectPath = getRootWorkspacePath();
+    const username = await ConfigUtil.getUsername();
     if (username) {
       const sourceTracking = await SourceTrackingService.createSourceTracking(
-        username,
-        projectPath
+        projectPath,
+        username
       );
     }
+
+    const connection = await WorkspaceContext.getInstance().getConnection();
     const operation = await components.deploy({
       usernameOrConnection: connection
     });

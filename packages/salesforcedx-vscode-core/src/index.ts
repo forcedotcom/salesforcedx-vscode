@@ -596,7 +596,11 @@ async function setupOrgBrowser(
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const rootWorkspacePath = getRootWorkspacePath();
-  if (rootWorkspacePath && fs.existsSync(rootWorkspacePath)) {
+  if (
+    rootWorkspacePath &&
+    process.cwd() !== rootWorkspacePath &&
+    fs.existsSync(rootWorkspacePath)
+  ) {
     try {
       // Switch to the project directory so that the main @salesforce
       // node libraries work correctly.  @salesforce/core,
