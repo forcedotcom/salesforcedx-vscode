@@ -173,7 +173,7 @@ export class ScratchOrg {
 
       for (const scratchOrg of scratchOrgs) {
         const alias = scratchOrg.alias as string;
-        if (alias.includes('TempScratchOrg_') && alias.includes(userName) && alias.includes(this.testSuiteSuffixName)) {
+        if (alias && alias.includes('TempScratchOrg_') && alias.includes(userName) && alias.includes(this.testSuiteSuffixName)) {
           this.scratchOrgAliasName = alias;
 
           // Set the current scratch org.
