@@ -14,15 +14,19 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 describe('Source Tracking Service', () => {
-  const sourceTrackingCreateSpy = jest.spyOn(SourceTracking, 'create');
+  describe('createSourceTracking', () => {
+    let sourceTrackingCreateSpy: jest.SpyInstance;
 
-  beforeEach(() => {
-    sourceTrackingCreateSpy.mockResolvedValue({} as any);
-  });
+    beforeEach(() => {
+      sourceTrackingCreateSpy = jest
+        .spyOn(SourceTracking, 'create')
+        .mockResolvedValue({} as any);
+    });
 
-  it('Should create an instance of SourceTracking', async () => {
-    await SourceTrackingService.createSourceTracking('', '');
+    it('Should create an instance of SourceTracking', async () => {
+      await SourceTrackingService.createSourceTracking('', '');
 
-    expect(sourceTrackingCreateSpy).toHaveBeenCalled();
+      expect(sourceTrackingCreateSpy).toHaveBeenCalled();
+    });
   });
 });
