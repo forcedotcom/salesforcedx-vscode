@@ -1,0 +1,110 @@
+name: Tag and Release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+jobs: 
+  updating-sha-for-release: 
+    runs-on: ubuntu-latest
+    env: 
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.13.x'
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.version }}
+          path: ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
+      - run: npm ci
+      - run: npm run vscode:sha256
+      - run: scripts/concatenate-sha256.js
+      - run: rm ./SHA256
+      - run: |
+              git add SHA256.md
+              git commit -m "chore: updated SHA256 v${{ env.RELEASE_VERSION }} [skip ci]"
+      - run: echo "SHA256.md successfully generated and committed."
+      - run: git push origin main
+
+  gitTag: 
+    needs: ['updating-sha-for-release']
+    runs-on: ubuntu-latest
+    env: 
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - run: |
+            git tag v${{ env.RELEASE_VERSION }}
+            git push origin v${{ env.RELEASE_VERSION }}
+  githubRelease:
+    needs: ['updating-sha-for-release']
+    runs-on: ubuntu-latest
+    env: 
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.version }}
+          path: ./extensions
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
+      - run: gh release create v${{ env.RELEASE_VERSION }} ./extensions/**/*.vsix --title "Release v${{ env.RELEASE_VERSION }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
+  mergeDevelop:
+    needs: [githubRelease]
+    runs-on: ubuntu-latest
+    outputs: 
+      status: ${{ steps.complete.outputs.status }}
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - run: |
+          git checkout develop
+          git pull
+          git merge main --commit --no-edit
+          git push origin develop
+      - id: complete
+        run: |
+         echo "status=complete" >> $GITHUB_OUTPUT
+      - id: finish
+        run: |
+         echo "VSCode Tag and Release Success"
+         
