@@ -24,31 +24,9 @@ module.exports = {
     }
   },
 
-  checkCircleCiToken: () => {
-    if (!process.env['CIRCLECI_TOKEN']) {
-      logger.error(`You must set environment variable 'CIRCLECI_TOKEN'.`);
-      logger.info(
-        `To set: 'export CIRCLECI_TOKEN=token'. This token allows us to pull the artifacts that will be released.`
-      );
-      process.exit(-1);
-    }
-  },
-
-  checkCircleCiBuild: () => {
-    if (!process.env['CIRCLECI_BUILD']) {
-      logger.error(`You must set environment variable 'CIRCLECI_BUILD'.`);
-      logger.info(
-        `To set: 'export CIRCLECI_BUILD=build_num'. Where build_num contains the artifacts that will be released.`
-      );
-      process.exit(-1);
-    }
-  },
-
   checkEnvironmentVariables: () => {
     logger.header('\nVerifying environment variables have been set.');
     module.exports.checkVSCodeVersion();
-    module.exports.checkCircleCiToken();
-    module.exports.checkCircleCiBuild();
   },
 
   checkNodeVersion: () => {
@@ -140,13 +118,20 @@ module.exports = {
     }
 
     try {
-      if (!fs.statSync(JORJE_DEV_DIR).isDirectory() || !JORJE_DEV_DIR.includes('apex-jorje')) {
-        logger.error(`JORJE_DEV_DIR environment variable does not direct to apex-jorje: ${JORJE_DEV_DIR}. Check your bash profile.`);
+      if (
+        !fs.statSync(JORJE_DEV_DIR).isDirectory() ||
+        !JORJE_DEV_DIR.includes('apex-jorje')
+      ) {
+        logger.error(
+          `JORJE_DEV_DIR environment variable does not direct to apex-jorje: ${JORJE_DEV_DIR}. Check your bash profile.`
+        );
         process.exit(-1);
       }
     } catch (error) {
       logger.error(`Apex Jorje source repository not found.`);
-      logger.error(`Verify the path of the environment variable JORJE_DEV_DIR: ${JORJE_DEV_DIR}`);
+      logger.error(
+        `Verify the path of the environment variable JORJE_DEV_DIR: ${JORJE_DEV_DIR}`
+      );
       process.exit(-1);
     }
     return JORJE_DEV_DIR;
@@ -163,22 +148,31 @@ module.exports = {
     }
     try {
       if (!fs.statSync(KEYSTORE).isFile() || !KEYSTORE.includes('.jks')) {
-        logger.error(`SFDC_KEYSTORE environment variable does not point to a .jks file: ${KEYSTORE}. Check your bash profile.`);
+        logger.error(
+          `SFDC_KEYSTORE environment variable does not point to a .jks file: ${KEYSTORE}. Check your bash profile.`
+        );
         process.exit(-1);
       }
     } catch (error) {
-      logger.error(`File ${KEYSTORE} not found. Verify the path of the SFDC_KEYSTORE environment variable`);
+      logger.error(
+        `File ${KEYSTORE} not found. Verify the path of the SFDC_KEYSTORE environment variable`
+      );
       logger.info(`Verify the path of the SFDC_KEYSTORE environment variable`);
       process.exit(-1);
     }
 
     if (!process.env['SFDC_KEYPASS']) {
-      logger.error(`You must set environment 'SFDC_KEYPASS'. Refer to LSP FAQ Quip doc for more info.`);
+      logger.error(
+        `You must set environment 'SFDC_KEYPASS'. Refer to LSP FAQ Quip doc for more info.`
+      );
       logger.info(
         `To set: Add 'export SFDC_KEYSTORE=PASS' to your bash profile, where PASS is the passphrase for the keystore.`
       );
       process.exit(-1);
     }
-    return {SFDC_KEYSTORE: KEYSTORE, SFDC_KEYPASS: process.env['SFDC_KEYPASS']};
+    return {
+      SFDC_KEYSTORE: KEYSTORE,
+      SFDC_KEYPASS: process.env['SFDC_KEYPASS']
+    };
   }
 };
