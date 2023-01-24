@@ -1,11 +1,15 @@
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import {
+  getRootWorkspacePath,
+  SFDX_CORE_CONFIGURATION_NAME
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
@@ -595,32 +599,19 @@ async function setupOrgBrowser(
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
-  const rootWorkspacePath = getRootWorkspacePath();
-  if (
-    rootWorkspacePath &&
-    process.cwd() !== rootWorkspacePath &&
-    fs.existsSync(rootWorkspacePath)
-  ) {
-    try {
-      // Switch to the project directory so that the main @salesforce
-      // node libraries work correctly.  @salesforce/core,
-      // @salesforce/source-tracking, etc. all use process.cwd()
-      // internally.  This causes issues when used from VSCE, as VSCE
-      // processes can run with a path that does not reflect the current
-      // project path (it often returns '/' from process.cwd()).
-      // Switching to the project path here at activation time ensures that
-      // commands are run with the project path returned from process.cwd(),
-      // thus avoiding the potential errors surfaced when the libs call
-      // process.cwd().
-      process.chdir(rootWorkspacePath);
-    } catch (error) {
-      console.log(
-        'There was an error switching to the root project path on activation.'
-      );
-    }
-  }
-
   const extensionHRStart = process.hrtime();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Switch to the project directory so that the main @salesforce
+  // node libraries work correctly.  @salesforce/core,
+  // @salesforce/source-tracking, etc. all use process.cwd()
+  // internally.  This causes issues when used from VSCE, as VSCE
+  // processes can run with a path that does not reflect the current
+  // project path (it often returns '/' from process.cwd()).
+  // Switching to the project path here at activation time ensures that
+  // commands are run with the project path returned from process.cwd(),
+  // thus avoiding the potential errors surfaced when the libs call
+  // process.cwd().
+  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   const { name, aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
