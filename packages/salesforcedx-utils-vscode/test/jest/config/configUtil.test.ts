@@ -41,7 +41,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
   });
 
-  it('should set username or alias as default if it is an empty string', async () => {
+  it('should be able to set username or alias to an empty string', async () => {
     const username = '';
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).not.toHaveBeenCalled();

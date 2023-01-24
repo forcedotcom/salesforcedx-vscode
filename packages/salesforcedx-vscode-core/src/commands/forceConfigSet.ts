@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigUtil, LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { ConfigUtil, ContinueResponse, LibraryCommandletExecutor, Row, Table} from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,

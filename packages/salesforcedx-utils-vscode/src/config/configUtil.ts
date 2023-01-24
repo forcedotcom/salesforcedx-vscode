@@ -152,10 +152,12 @@ export class ConfigUtil {
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const workspacePath = workspaceUtils.getRootWorkspacePath();
     try {
-      if (usernameOrAlias) { // check if username is an empty string
-        await Org.create({ aliasOrUsername: usernameOrAlias }); // check if username is valid
+      // checks if the usernameOrAlias is non-empty and active.
+      if (usernameOrAlias) {
+      // throws an error if the org associated with the usernameOrAlias is expired.
+        await Org.create({ aliasOrUsername: usernameOrAlias });
       }
-      process.chdir(workspacePath); // Set process directory
+      process.chdir(workspacePath);
       await this.setUsernameOrAlias(usernameOrAlias);
     } finally {
       process.chdir(originalDirectory);
