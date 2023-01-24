@@ -1,4 +1,3 @@
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
