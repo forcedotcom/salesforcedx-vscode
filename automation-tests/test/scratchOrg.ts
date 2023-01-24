@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -66,6 +66,7 @@ export class ScratchOrg {
 
     const tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
     this.projectFolderPath = path.join(tempFolderPath, this.tempProjectName);
+    utilities.log(`${this.testSuiteSuffixName} - creating project files in ${this.projectFolderPath}`);
 
     // Clean up the temp folder, just in case there are stale files there.
     if (fs.existsSync(this.projectFolderPath)) {
