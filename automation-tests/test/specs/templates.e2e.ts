@@ -59,7 +59,7 @@ describe('Templates', async () => {
     expect(filteredTreeViewItems.includes('auraComponent1Renderer.js')).toBe(true);
 
     // Could also check for .auradoc, .css, .design, and .svg, but not as critical
-    // and since this could change w/o our knowing, only heck for what we need to here.
+    // and since this could change w/o our knowing, only check for what we need to here.
   });
 
   step('Verify the contents of the Aura Component', async () => {
