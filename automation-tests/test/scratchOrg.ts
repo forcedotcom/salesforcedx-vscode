@@ -47,7 +47,7 @@ export class ScratchOrg {
 
   public async tearDown(): Promise<void> {
     if (this.scratchOrgAliasName && !this.reuseScratchOrg) {
-      // To use VS Code's Terminal view to delete instead, use:
+      // To use VS Code's Terminal view to delete the scratch org, use:
       // const workbench = await (await browser.getWorkbench()).wait();
       // await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
 
@@ -259,18 +259,6 @@ export class ScratchOrg {
   private get tempProjectName(): string {
     return 'TempProject-' + this.testSuiteSuffixName;
   }
-
-  /*
-  private async fixAlias(workbench: Workbench, terminalText: string): Promise<void> {
-    const username = terminalText.match(/\"username\": \"(.*?)\"/i);
-    expect(username).not.toEqual(undefined);
-    expect(username.length).toBeGreaterThanOrEqual(2);
-
-    const command = `sfdx alias:set ${this.scratchOrgAliasName}=${username[1]}`;
-    await utilities.executeCommand(workbench, command);
-    await utilities.pause(2);
-  }
-  */
 
   private async setDefaultOrg(workbench: Workbench, scratchOrgAliasName: string): Promise<void> {
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
