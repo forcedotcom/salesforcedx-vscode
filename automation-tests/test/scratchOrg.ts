@@ -47,7 +47,7 @@ export class ScratchOrg {
 
   public async tearDown(): Promise<void> {
     if (this.scratchOrgAliasName && !this.reuseScratchOrg) {
-      // To use VS Code's Terminal view, use:
+      // To use VS Code's Terminal view to delete instead, use:
       // const workbench = await (await browser.getWorkbench()).wait();
       // await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
 
