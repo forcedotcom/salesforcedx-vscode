@@ -26,8 +26,6 @@ describe('Org Creation and Authentication', async () => {
   let scratchOrgAliasName: string = undefined;
 
   step('Set up the testing environment', async () => {
-    // This is "set up the testing environment", not "set up the global variables".
-
     const tempFolderPath = getTempFolderPath();
     projectFolderPath = path.join(tempFolderPath, tempProjectName);
 
