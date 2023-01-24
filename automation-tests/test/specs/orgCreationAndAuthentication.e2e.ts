@@ -21,7 +21,6 @@ import {
 
 describe('Org Creation and Authentication', async () => {
   const tempProjectName = 'TempProject-OrgCreationAndAuth';
-  // const reuseScratchOrg = false;
   let projectFolderPath: string = undefined;
   let prompt: QuickOpenBox | InputBox = undefined;
   let scratchOrgAliasName: string = undefined;
