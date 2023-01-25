@@ -45,22 +45,22 @@
         ja: コードビルダーを使い始める
       url: /codebuilder/cb-start
 - title:
-    en: Development Models
+    en: Salesforce Development Models
     ja: 開発モデル
-  baseurl: /development-models/
+  baseurl: /sf-dev-models/
   children:
     - title:
-        en: Salesforce Development Models
+        en: Overview
         ja: Salesforce  開発モデル
-      url: /development-models/development-models
+      url: /sf-dev-models/development-models
     - title:
         en: Org Development Model
         ja: Salesforce  開発モデル
-      url: /development-models/orgdev
+      url: /sf-dev-models/orgdev
     - title:
         en: Package Development Model
         ja: Salesforce  開発モデル
-      url: /development-models/packagedev
+      url: /sf-dev-models/packagedev
       
 - title:
     en: User Guide
