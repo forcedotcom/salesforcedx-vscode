@@ -1,5 +1,5 @@
 ---
-title: Package Development Model
+title: Salesforce Package Development Model
 lang: en
 ---
 
