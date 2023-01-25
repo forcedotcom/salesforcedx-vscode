@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -21,14 +21,11 @@ import {
 
 describe('Org Creation and Authentication', async () => {
   const tempProjectName = 'TempProject-OrgCreationAndAuth';
-  // const reuseScratchOrg = false;
   let projectFolderPath: string = undefined;
   let prompt: QuickOpenBox | InputBox = undefined;
   let scratchOrgAliasName: string = undefined;
 
   step('Set up the testing environment', async () => {
-    // This is "set up the testing environment", not "set up the global variables".
-
     const tempFolderPath = getTempFolderPath();
     projectFolderPath = path.join(tempFolderPath, tempProjectName);
 
@@ -108,6 +105,7 @@ describe('Org Creation and Authentication', async () => {
     expect(authFilePathFileExists).toEqual(true);
 
     await terminalView.executeCommand(`sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
+
     const terminalText = await utilities.getTerminalViewText(terminalView, 60);
     expect(terminalText).toContain(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`);
   });
@@ -134,8 +132,8 @@ describe('Org Creation and Authentication', async () => {
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
     expect(successNotificationWasFound).toBe(true);
 
-    const expectedOutputWasFound = await utilities.textIsPresentInOutputPanel(workbench, `defaultusername ${EnvironmentSettings.getInstance().devHubAliasName} true`);
-    expect(expectedOutputWasFound).toBe(true);
+    const expectedOutputWasFound = await utilities.attemptToFindOutputPanelText('Salesforce CLI', `defaultusername ${EnvironmentSettings.getInstance().devHubAliasName} true`, 5);
+    expect(expectedOutputWasFound).not.toBeUndefined();
 
     // Look for "vscodeOrg" in the status bar.
     const vscodeOrgItem = await statusBar.getItem(`plug  ${EnvironmentSettings.getInstance().devHubAliasName}, Change Default Org`);
@@ -178,14 +176,14 @@ describe('Org Creation and Authentication', async () => {
     if (successNotificationWasFound != true) {
       const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Create a Default Scratch Org... failed to run');
       if (failureNotificationWasFound == true) {
-        if (await utilities.textIsPresentInOutputPanel(workbench, 'organization has reached its daily scratch org signup limit')) {
+        if (await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'organization has reached its daily scratch org signup limit', 5)) {
           // This is a known issue...
           utilities.log('Warning - creating the scratch org failed, but the failure was due to the daily signup limit');
-        } else if (await utilities.textIsPresentInOutputPanel(workbench, 'is enabled as a Dev Hub')) {
-            // This is a known issue...
-            utilities.log('Warning - Make sure that the org is enabled as a Dev Hub.');
-            utilities.log('Warning - To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.');
-            utilities.log('Warning - If you still see this error after enabling the Dev Hub feature, then re-authenticate to the org.');
+        } else if (await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'is enabled as a Dev Hub', 5)) {
+          // This is a known issue...
+          utilities.log('Warning - Make sure that the org is enabled as a Dev Hub.');
+          utilities.log('Warning - To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.');
+          utilities.log('Warning - If you still see this error after enabling the Dev Hub feature, then re-authenticate to the org.');
         } else {
           // The failure notification is showing, but it's not due to maxing out the daily limit.  What to do...?
           utilities.log('Warning - creating the scratch org failed... not sure why...');
@@ -221,7 +219,7 @@ describe('Org Creation and Authentication', async () => {
           break;
         }
       } else {
-        // If the scratch or was already created (and not deleted),
+        // If the scratch org was already created (and not deleted),
         // and the "Run SFDX: Create a Default Scratch Org" step was skipped,
         // scratchOrgAliasName is undefined and as such, search for the first org
         // that starts with "TempScratchOrg_" and also has the current user's name.

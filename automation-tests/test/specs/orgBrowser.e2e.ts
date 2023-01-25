@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Org Browser', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,11 +17,9 @@ describe('Org Browser', async () => {
     await scratchOrg.setUp();
   });
 
-  step('sub-category', async () => {
-    step('what?', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('what?', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
   });
 
   step('what?', async () => {
