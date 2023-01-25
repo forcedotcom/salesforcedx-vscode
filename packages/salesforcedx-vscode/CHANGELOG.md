@@ -1,4 +1,9 @@
 # 56.16.0 - January 25, 2023
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- You can now run the `SFDX: Create Project` command in a new VS Code window without creating a local workspace in advance. Previously, the command would throw an error when it didn't find a workspace folder. ([PR #4622](https://github.com/forcedotcom/salesforcedx-vscode/pull/4622))
 
 # 56.14.0 - January 11, 2023
 
