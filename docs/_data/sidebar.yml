@@ -46,20 +46,20 @@
       url: /codebuilder/cb-start
 - title:
     en: Salesforce Development Models
-    ja: 開発モデル
+    ja: Salesforce 開発モデル
   baseurl: /sf-dev-models/
   children:
     - title:
-        en: Overview
-        ja: Salesforce  開発モデル
+        en: Development Models Overview
+        ja: 開発モデル
       url: /sf-dev-models/development-models
     - title:
         en: Org Development Model
-        ja: Salesforce  開発モデル
+        ja: 開発モデル
       url: /sf-dev-models/orgdev
     - title:
         en: Package Development Model
-        ja: Salesforce  開発モデル
+        ja: 開発モデル
       url: /sf-dev-models/packagedev
       
 - title:
