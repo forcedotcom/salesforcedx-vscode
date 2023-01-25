@@ -1,24 +1,31 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ChildProcess, exec } from 'child_process';
+import clipboard from 'clipboardy'
 import os from 'os';
 import vscode from 'vscode';
 import vscodeType from 'vscode';
 import {
+  DefaultTreeItem,
   InputBox,
+  OutputView,
   QuickOpenBox,
   sleep,
   StatusBar,
   TerminalView,
+  TreeItem,
+  ViewItem,
   Workbench
 } from 'wdio-vscode-service';
+import { CMD_KEY } from 'wdio-vscode-service/dist/constants';
 import {
   EnvironmentSettings
 } from './environmentSettings';
+
 
 async function openFile(vscode: typeof vscodeType, file: string): Promise<vscode.TextEditor> {
   const filePath = vscode.Uri.parse(file).fsPath;
@@ -67,7 +74,7 @@ async function openCommandPromptWithCommand(workbench: Workbench, command: strin
   const prompt = await workbench.openCommandPrompt();
   await prompt.wait(5000);
 
-  await prompt.setText(`>${command}`)
+  await prompt.setText(`>${command}`);
   await pause(1);
 
   return prompt;
@@ -137,21 +144,76 @@ async function notificationIsPresent(workbench: Workbench, notificationMessage: 
   return false;
 }
 
-async function textIsPresentInOutputPanel(workbench: Workbench, text: string): Promise<boolean> {
-  const bottomBar = await workbench.getBottomBar();
-
-  // const outputView = await (await bottomBar.openOutputView()).wait();
-  const outputView = await bottomBar.openOutputView();
-  await outputView.wait(5000);
-
-  const outputViewText = await outputView.getText();
-  for (const outputLine of outputViewText) {
-    if (outputLine.includes(text)) {
+async function attemptToFindNotification(workbench: Workbench, notificationMessage: string, attempts: number): Promise<boolean> {
+  while (attempts > 0) {
+    if (notificationIsPresent(workbench, notificationMessage)) {
       return true;
     }
+
+    pause(1);
+    attempts--;
   }
 
   return false;
+}
+
+async function selectChannel(outputView: OutputView, name: string): Promise<void> {
+  // Open the Output panel's dropdown menu.
+  const select = await outputView.parent.$('select.monaco-select-box');
+  await select.click();
+
+  // const channels = await outputView1.parent.$$(`${outputView1.locatorMap.BottomBarViews.outputChannels} option`);
+  const channels = await select.$$('option');
+  for (const channel of channels) {
+    const val = await channel.getValue();
+    if (val === name) {
+        await channel.click();
+        // eslint-disable-next-line wdio/no-pause
+        await browser.pause(200);
+        await browser.keys(['Escape']);
+        return;
+    }
+  }
+
+  throw new Error(`Channel ${name} not found`);
+}
+
+async function getOutputPanelText(outputChannelName: string): Promise<string> {
+  const workbench = await (await browser.getWorkbench()).wait();
+  const bottomBar = await workbench.getBottomBar(); // selector is 'div[id="workbench.parts.panel"]'
+  const outputView = await bottomBar.openOutputView(); // selector is 'div[id="workbench.panel.output"]'
+  await utilities.pause(2);
+
+  selectChannel(outputView, outputChannelName);
+  await utilities.pause(1);
+
+  // Set focus to the contents in the Output panel.
+  await (await outputView.elem).click();
+  await utilities.pause(1);
+
+  // Select all of the text within the panel.
+  await browser.keys([CMD_KEY, 'a', 'c']);
+  // Should be able to use Keys.Ctrl, but Keys is not exported from webdriverio
+  // See https://webdriver.io/docs/api/browser/keys/
+
+  const outputPanelText = await clipboard.read();
+
+  return outputPanelText;
+}
+
+// If found, this function returns the entire text that's in the Output panel
+async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number) : Promise<string> {
+  while (attempts > 0) {
+    const outputPanelText = await getOutputPanelText(outputChannelName);
+    if (outputPanelText.includes(searchString)) {
+      return outputPanelText;
+    }
+
+    pause(1);
+    attempts--;
+  }
+
+  return undefined;
 }
 
 async function executeCommand(workbench: Workbench, command: string): Promise<TerminalView> {
@@ -177,13 +239,62 @@ async function getTerminalView(workbench: Workbench): Promise<TerminalView> {
 async function getTerminalViewText(terminalView: TerminalView, seconds: number): Promise<string> {
   for (let i=0; i<seconds; i++) {
     await pause(1);
-    const terminalText = await terminalView.getText();
+
+    // const terminalText = await terminalView.getText();
+    // terminalView.getText() no longer works
+
+    const workbench = await (await browser.getWorkbench()).wait();
+    await browser.keys([CMD_KEY, 'a', 'c']);
+    // Should be able to use Keys.Ctrl, but Keys is not exported from webdriverio
+    // See https://webdriver.io/docs/api/browser/keys/
+    const terminalText = await clipboard.read();
+
     if (terminalText && terminalText !== '') {
       return terminalText
     }
   }
 
   throw new Error('Exceeded time limit - text in the terminal was not found');
+}
+
+async function getFilteredVisibleTreeViewItems(workbench: Workbench, projectName: string, searchString: string): Promise<ViewItem[]> {
+  const sidebar = workbench.getSideBar();
+  const treeViewSection = await sidebar.getContent().getSection(projectName);
+  await treeViewSection.expand();
+
+  // Warning, we can only retrieve the items which are visible.
+  const visibleItems = (await treeViewSection.getVisibleItems()) as DefaultTreeItem[];
+  const filteredItems = (await visibleItems.reduce(async (previousPromise: Promise<ViewItem[]>, currentItem: ViewItem) => {
+    const results = await previousPromise;
+    const label = await (currentItem as TreeItem).getLabel();
+    if (label.startsWith(searchString)) {
+      results.push(currentItem);
+    }
+
+    return results;
+  }, Promise.resolve([])) as ViewItem[]);
+
+  return filteredItems;
+}
+
+async function getFilteredVisibleTreeViewItemLabels(workbench: Workbench, projectName: string, searchString: string): Promise<string[]> {
+  const sidebar = workbench.getSideBar();
+  const treeViewSection = await sidebar.getContent().getSection(projectName);
+  await treeViewSection.expand();
+
+  // Warning, we can only retrieve the items which are visible.
+  const visibleItems = (await treeViewSection.getVisibleItems()) as DefaultTreeItem[];
+  const filteredItems = (await visibleItems.reduce(async (previousPromise: Promise<string[]>, currentItem: ViewItem) => {
+    const results = await previousPromise;
+    const label = await (currentItem as TreeItem).getLabel();
+    if (label.startsWith(searchString)) {
+      results.push(label);
+    }
+
+    return results;
+  }, Promise.resolve([])) as string[]);
+
+  return filteredItems;
 }
 
 function currentUserName(): string {
@@ -212,9 +323,14 @@ export const utilities = {
   getStatusBarItemWhichIncludes,
   waitForNotificationToGoAway,
   notificationIsPresent,
-  textIsPresentInOutputPanel,
+  attemptToFindNotification,
+  selectChannel,
+  getOutputPanelText,
+  attemptToFindOutputPanelText,
   executeCommand,
   getTerminalView,
   getTerminalViewText,
+  getFilteredVisibleTreeViewItems,
+  getFilteredVisibleTreeViewItemLabels,
   currentUserName,
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -47,7 +47,7 @@ export class ScratchOrg {
 
   public async tearDown(): Promise<void> {
     if (this.scratchOrgAliasName && !this.reuseScratchOrg) {
-      // To use VS Code's Terminal view, use:
+      // To use VS Code's Terminal view to delete the scratch org, use:
       // const workbench = await (await browser.getWorkbench()).wait();
       // await utilities.executeCommand(workbench, `sfdx force:org:delete -u ${this.scratchOrgAliasName} --noprompt`);
 
@@ -66,6 +66,7 @@ export class ScratchOrg {
 
     const tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
     this.projectFolderPath = path.join(tempFolderPath, this.tempProjectName);
+    utilities.log(`${this.testSuiteSuffixName} - creating project files in ${this.projectFolderPath}`);
 
     // Clean up the temp folder, just in case there are stale files there.
     if (fs.existsSync(this.projectFolderPath)) {
@@ -173,7 +174,7 @@ export class ScratchOrg {
 
       for (const scratchOrg of scratchOrgs) {
         const alias = scratchOrg.alias as string;
-        if (alias.includes('TempScratchOrg_') && alias.includes(userName) && alias.includes(this.testSuiteSuffixName)) {
+        if (alias && alias.includes('TempScratchOrg_') && alias.includes(userName) && alias.includes(this.testSuiteSuffixName)) {
           this.scratchOrgAliasName = alias;
 
           // Set the current scratch org.
@@ -259,18 +260,6 @@ export class ScratchOrg {
     return 'TempProject-' + this.testSuiteSuffixName;
   }
 
-  /*
-  private async fixAlias(workbench: Workbench, terminalText: string): Promise<void> {
-    const username = terminalText.match(/\"username\": \"(.*?)\"/i);
-    expect(username).not.toEqual(undefined);
-    expect(username.length).toBeGreaterThanOrEqual(2);
-
-    const command = `sfdx alias:set ${this.scratchOrgAliasName}=${username[1]}`;
-    await utilities.executeCommand(workbench, command);
-    await utilities.pause(2);
-  }
-  */
-
   private async setDefaultOrg(workbench: Workbench, scratchOrgAliasName: string): Promise<void> {
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
     await utilities.pause(2);
@@ -294,7 +283,7 @@ export class ScratchOrg {
           break;
         }
       } else {
-        // If the scratch or was already created (and not deleted),
+        // If the scratch org was already created (and not deleted),
         // and the "Run SFDX: Create a Default Scratch Org" step was skipped,
         // scratchOrgAliasName is undefined and as such, search for the first org
         // that starts with "TempScratchOrg_" and also has the current user's name.

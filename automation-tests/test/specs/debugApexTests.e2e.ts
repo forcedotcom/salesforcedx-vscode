@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Debug Apex Tests', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,11 +17,22 @@ describe('Debug Apex Tests', async () => {
     await scratchOrg.setUp();
   });
 
-  step('sub-category', async () => {
-    step('what?', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Enable the Apex debugger', async () => {
+    // Open the command palette
+
+    // type in "SFDX: Turn Apex debugging on"
+
+    // press return
+
+    // wait 10 seconds
+
+    // etc...
+
+    // etc...
+
+    // etc...
+
+    expect(1).toBe(1);
   });
 
   step('what?', async () => {

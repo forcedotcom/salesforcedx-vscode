@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,7 +7,7 @@
 import { step } from 'mocha-steps';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 
 describe('Pull and Push', async () => {
   let scratchOrg: ScratchOrg = undefined;
@@ -17,7 +17,7 @@ describe('Pull and Push', async () => {
     await scratchOrg.setUp();
   });
 
-  step('Pull Source', async () => {
+  // Pull Source
     step('Open vscode (with the extensions already installed) on an existing sfdx project (e.g. dreamhouse)', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -37,9 +37,8 @@ describe('Pull and Push', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
-  step('Push Source', async () => {
+  // Push Source
     step('Open your scratch org and modify a piece of code (e.g. apex class, layout, etc)', async () => {
       // TODO: implement
       expect(1).toBe(1);
@@ -74,7 +73,6 @@ describe('Pull and Push', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
-  });
 
   step('Tear down and clean up the testing environment', async () => {
     await scratchOrg.tearDown();
