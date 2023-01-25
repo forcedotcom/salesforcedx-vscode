@@ -3,6 +3,7 @@
 import * as glob from 'glob';
 import * as paths from 'path';
 
+// tslint:disable:no-var-requires
 // tslint:disable-next-line:variable-name
 const Mocha = require('mocha');
 
