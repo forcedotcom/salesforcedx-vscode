@@ -297,8 +297,14 @@ export class ScratchOrg {
       }
     }
     expect(scratchOrgQuickPickItemWasFound).toBe(true);
-
+    if (scratchOrgQuickPickItemWasFound !== true) {
+      debugger;
+    }
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
+    if (successNotificationWasFound !== true) {
+      debugger;
+      // notify jeff
+    }
     expect(successNotificationWasFound).toBe(true);
 
     // Look for orgAliasName in the list of status bar items
