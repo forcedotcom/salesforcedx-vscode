@@ -56,8 +56,8 @@ function removeFolder(folderPath: string): ChildProcess {
   return childProcess;
 }
 
-async function pause(duration: number): Promise<void> {
-  await sleep(duration * EnvironmentSettings.getInstance().throttleFactor * 1000);
+async function pause(durationSeconds: number): Promise<void> {
+  await sleep(durationSeconds * EnvironmentSettings.getInstance().throttleFactor * 1000);
 }
 
 function log(message: string) {
