@@ -21,9 +21,9 @@ import {
 
 describe('Org Creation and Authentication', async () => {
   const tempProjectName = 'TempProject-OrgCreationAndAuth';
-  let projectFolderPath: string = undefined;
-  let prompt: QuickOpenBox | InputBox = undefined;
-  let scratchOrgAliasName: string = undefined;
+  let projectFolderPath: string;
+  let prompt: QuickOpenBox | InputBox;
+  let scratchOrgAliasName: string;
 
   step('Set up the testing environment', async () => {
     const tempFolderPath = getTempFolderPath();

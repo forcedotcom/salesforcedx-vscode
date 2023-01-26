@@ -15,9 +15,8 @@ import {
   utilities
 } from '../utilities';
 
-
 describe('Templates', async () => {
-  let scratchOrg: ScratchOrg = undefined;
+  let scratchOrg: ScratchOrg;
 
   // Set up
   step('Set up the testing environment', async () => {

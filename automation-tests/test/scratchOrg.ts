@@ -24,11 +24,11 @@ import {
 const exec = util.promisify(child_process.exec);
 
 export class ScratchOrg {
-  private testSuiteSuffixName: string = undefined;
+  private testSuiteSuffixName: string;
   private reuseScratchOrg = false;
-  private projectFolderPath: string = undefined;
-  private prompt: QuickOpenBox | InputBox = undefined;
-  private scratchOrgAliasName: string = undefined;
+  private projectFolderPath: string | undefined = undefined;
+  private prompt: QuickOpenBox | InputBox | undefined;
+  private scratchOrgAliasName: string | undefined;
 
   public constructor(testSuiteSuffixName: string, reuseScratchOrg: boolean) {
     this.testSuiteSuffixName = testSuiteSuffixName;
@@ -111,7 +111,7 @@ export class ScratchOrg {
 
     // Set the location of the project.
     const input = await this.prompt.input$;
-    await input.setValue(this.projectFolderPath);
+    await input.setValue(this.projectFolderPath!);
     await utilities.pause(1);
 
     // Click the OK button.
@@ -144,7 +144,7 @@ export class ScratchOrg {
     utilities.log(`${this.testSuiteSuffixName} - Starting authorizeDevHub()...`);
 
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.
-    const authFilePath = path.join(this.projectFolderPath, this.tempProjectName, 'authFile.json');
+    const authFilePath = path.join(this.projectFolderPath!, this.tempProjectName, 'authFile.json');
     utilities.log(`${this.testSuiteSuffixName} - calling sfdx force:org:display...`);
     const sfdxForceOrgDisplayResult = await exec(`sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json`);
     const json = this.removedEscapedCharacters(sfdxForceOrgDisplayResult.stdout);
@@ -194,7 +194,7 @@ export class ScratchOrg {
       }
     }
 
-    const definitionFile = path.join(this.projectFolderPath, this.tempProjectName, 'config', 'project-scratch-def.json');
+    const definitionFile = path.join(this.projectFolderPath!, this.tempProjectName, 'config', 'project-scratch-def.json');
 
     // Org alias format: TempScratchOrg_yyyy_mm_dd_username_ticks_testSuiteSuffixName
     const currentDate = new Date();

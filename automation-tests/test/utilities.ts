@@ -202,7 +202,7 @@ async function getOutputPanelText(outputChannelName: string): Promise<string> {
 }
 
 // If found, this function returns the entire text that's in the Output panel
-async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number) : Promise<string> {
+async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number) : Promise<string | undefined> {
   while (attempts > 0) {
     const outputPanelText = await getOutputPanelText(outputChannelName);
     if (outputPanelText.includes(searchString)) {
@@ -300,12 +300,12 @@ async function getFilteredVisibleTreeViewItemLabels(workbench: Workbench, projec
 
 function currentUserName(): string {
   const userName = os.userInfo().username ||
-    process.env.SUDO_USER ||
-    process.env.C9_USER ||
-    process.env.LOGNAME ||
-    process.env.USER ||
-    process.env.LNAME ||
-    process.env.USERNAME;
+    process.env.SUDO_USER! ||
+    process.env.C9_USER! ||
+    process.env.LOGNAME! ||
+    process.env.USER! ||
+    process.env.LNAME! ||
+    process.env.USERNAME!;
 
   return userName;
 }

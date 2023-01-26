@@ -24,7 +24,7 @@ suites run in alphabetical order, this suite has been named so it runs first.
 */
 
 describe('An Initial Suite', async () => {
-  let scratchOrg: ScratchOrg = undefined;
+  let scratchOrg: ScratchOrg;
 
   step('Verify our extensions are not initially loaded', async () => {
     const workbench = await (await browser.getWorkbench()).wait();
