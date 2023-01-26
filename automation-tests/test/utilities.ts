@@ -146,7 +146,7 @@ async function notificationIsPresent(workbench: Workbench, notificationMessage: 
 
 async function attemptToFindNotification(workbench: Workbench, notificationMessage: string, attempts: number): Promise<boolean> {
   while (attempts > 0) {
-    if (notificationIsPresent(workbench, notificationMessage)) {
+    if (await notificationIsPresent(workbench, notificationMessage)) {
       return true;
     }
 
