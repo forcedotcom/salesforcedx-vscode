@@ -78,7 +78,7 @@ jobs:
           path: ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - run: gh release create v${{ env.RELEASE_VERSION }} ./extensions/**/*.vsix --title "Release v${{ env.RELEASE_VERSION }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
+      - run: gh release create v${{ env.RELEASE_VERSION }} ./extensions/*.vsix --title "Release v${{ env.RELEASE_VERSION }}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
 
