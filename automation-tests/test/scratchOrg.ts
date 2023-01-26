@@ -91,7 +91,7 @@ export class ScratchOrg {
     utilities.log('');
     utilities.log(`${this.testSuiteSuffixName} - Starting createProject()...`);
 
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
 
     this.prompt = await utilities.executeQuickPick(workbench, 'SFDX: Create Project');
     // Selecting "SFDX: Create Project" causes the extension to be loaded, and this takes a while.
@@ -169,7 +169,7 @@ export class ScratchOrg {
     utilities.log(`${this.testSuiteSuffixName} - Starting createDefaultScratchOrg()...`);
 
     const userName = utilities.currentUserName();
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
 
     if (this.reuseScratchOrg) {
       utilities.log(`${this.testSuiteSuffixName} - looking for a scratch org to reuse...`);

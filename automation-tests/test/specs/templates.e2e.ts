@@ -27,7 +27,7 @@ describe('Templates', async () => {
   // Aura Component
   step('Create an Aura Component', async () => {
     // Using the Command palette, run SFDX: Create Aura Component.
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Create Aura Component');
     await utilities.pause(1);
 
@@ -67,7 +67,7 @@ describe('Templates', async () => {
       '',
       '</aura:component>'
     ].join('\n');
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const editorView = await workbench.getEditorView();
     const textEditor = await editorView.openEditor('auraComponent1.cmp') as TextEditor;
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd();
@@ -76,7 +76,7 @@ describe('Templates', async () => {
 
   step('Push the Aura Component', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     await utilities.executeQuickPick(workbench, 'SFDX: Push Source to Default Scratch Org');
     await utilities.pause(5);
 
@@ -92,7 +92,7 @@ describe('Templates', async () => {
   // Aura Event
   step('Create an Aura Event', async () => {
     // Using the Command palette, run SFDX: Create Aura Component.
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Create Aura Event');
     await utilities.pause(1);
 
@@ -129,7 +129,7 @@ describe('Templates', async () => {
     const expectedText = [
       '<aura:event type="APPLICATION" description="Event template"/>'
     ].join('\n');
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const editorView = await workbench.getEditorView();
     const textEditor = await editorView.openEditor('auraEvent1.evt') as TextEditor;
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd();
@@ -138,7 +138,7 @@ describe('Templates', async () => {
 
   step('Push the Aura Event', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     await utilities.executeQuickPick(workbench, 'SFDX: Push Source to Default Scratch Org');
     await utilities.pause(5);
 
@@ -154,7 +154,7 @@ describe('Templates', async () => {
   // Apex Class
   step('Create an Apex Class', async () => {
     // Using the Command palette, run SFDX: Create Apex Class.
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Create Apex Class');
     await utilities.pause(1);
 
@@ -194,7 +194,7 @@ describe('Templates', async () => {
       '    }',
       '}'
     ].join('\n');
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const editorView = await workbench.getEditorView();
     const textEditor = await editorView.openEditor('apexClass1.cls') as TextEditor;
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd();
@@ -203,7 +203,7 @@ describe('Templates', async () => {
 
   step('Push the Apex Class', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     await utilities.executeQuickPick(workbench, 'SFDX: Push Source to Default Scratch Org');
     await utilities.pause(5);
 
@@ -219,7 +219,7 @@ describe('Templates', async () => {
   // Lightning Web Component
   step('Create Lightning Web Component', async () => {
     // Using the Command palette, run SFDX: Create Apex Class.
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Create Lightning Web Component');
     await utilities.pause(1);
 
@@ -259,7 +259,7 @@ describe('Templates', async () => {
       '',
       'export default class LightningWebComponent1 extends LightningElement {}'
     ].join('\n');
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const editorView = await workbench.getEditorView();
     const textEditor = await editorView.openEditor('lightningWebComponent1.js') as TextEditor;
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd();
@@ -268,7 +268,7 @@ describe('Templates', async () => {
 
   step('Push the Lightning Web Component', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     await utilities.executeQuickPick(workbench, 'SFDX: Push Source to Default Scratch Org');
     await utilities.pause(5);
 

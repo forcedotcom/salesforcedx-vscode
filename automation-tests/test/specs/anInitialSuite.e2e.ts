@@ -27,7 +27,7 @@ describe('An Initial Suite', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Verify our extensions are not initially loaded', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     await utilities.executeQuickPick(workbench, 'Developer: Show Running Extensions');
     await utilities.pause(2);
 
@@ -53,7 +53,7 @@ describe('An Initial Suite', async () => {
   });
 
   step('Verify the default SFDX commands are present when no project is loaded', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const prompt = await utilities.openCommandPromptWithCommand(workbench, 'SFDX:');
 
     let quickPicks = await prompt.getQuickPicks();
@@ -89,7 +89,7 @@ describe('An Initial Suite', async () => {
   });
 
   step('Verify our extensions are loaded after creating an SFDX project', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     await utilities.executeQuickPick(workbench, 'Developer: Show Running Extensions');
     await utilities.pause(2);
 
@@ -111,7 +111,7 @@ describe('An Initial Suite', async () => {
   });
 
   step('Verify that SFDX commands are present after SFDX project has been created', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
     const prompt = await utilities.openCommandPromptWithCommand(workbench, 'SFDX:');
     let quickPicks = await prompt.getQuickPicks();
     let commands: string[] = [];
