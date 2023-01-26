@@ -150,7 +150,7 @@ async function attemptToFindNotification(workbench: Workbench, notificationMessa
       return true;
     }
 
-    pause(1);
+    await pause(1);
     attempts--;
   }
 
@@ -179,7 +179,7 @@ async function selectChannel(outputView: OutputView, name: string): Promise<void
 }
 
 async function getOutputPanelText(outputChannelName: string): Promise<string> {
-  const workbench = await (await browser.getWorkbench()).wait();
+  const workbench = await browser.getWorkbench();
   const bottomBar = await workbench.getBottomBar(); // selector is 'div[id="workbench.parts.panel"]'
   const outputView = await bottomBar.openOutputView(); // selector is 'div[id="workbench.panel.output"]'
   await utilities.pause(2);
@@ -244,7 +244,6 @@ async function getTerminalViewText(terminalView: TerminalView, seconds: number):
     // const terminalText = await terminalView.getText();
     // terminalView.getText() no longer works
 
-    const workbench = await (await browser.getWorkbench()).wait();
     await browser.keys([CMD_KEY, 'a', 'c']);
     // Should be able to use Keys.Ctrl, but Keys is not exported from webdriverio
     // See https://webdriver.io/docs/api/browser/keys/
