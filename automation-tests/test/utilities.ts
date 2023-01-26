@@ -220,8 +220,9 @@ async function executeCommand(workbench: Workbench, command: string): Promise<Te
   log(`Executing the command, "${command}"`);
 
   const terminalView = await getTerminalView(workbench);
-  expect(terminalView).not.toBeNull();
-  expect(terminalView).not.toBeUndefined();
+  if (!terminalView) {
+    throw new Error('In executeCommand(), the terminal view returned from getTerminalView() was null (or undefined)');
+  }
 
   await terminalView.executeCommand(command);
 

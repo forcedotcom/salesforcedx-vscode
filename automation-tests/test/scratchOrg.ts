@@ -121,10 +121,14 @@ export class ScratchOrg {
     const sidebar = await workbench.getSideBar();
     const content = await sidebar.getContent();
     const treeViewSection = await content.getSection(this.tempProjectName.toUpperCase());
-    expect(treeViewSection).not.toEqual(undefined);
+    if (!treeViewSection) {
+      throw new Error('In createProject(), getSection() returned a treeViewSection with a value of null (or undefined)');
+    }
 
     const forceAppTreeItem = await treeViewSection.findItem('force-app') as DefaultTreeItem;
-    expect(forceAppTreeItem).not.toEqual(undefined);
+    if (!forceAppTreeItem) {
+      throw new Error('In createProject(), findItem() returned a forceAppTreeItem with a value of null (or undefined)');
+    }
 
     await forceAppTreeItem.expand();
 
@@ -152,7 +156,9 @@ export class ScratchOrg {
     // Call auth:sfdxurl:store and read in the JSON that was just created.
     utilities.log(`${this.testSuiteSuffixName} - calling sfdx auth:sfdxurl:store...`);
     const sfdxSfdxUrlStoreResult = await exec(`sfdx auth:sfdxurl:store -d -f ${authFilePath}`);
-    expect(sfdxSfdxUrlStoreResult.stdout).toContain(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`);
+    if (!sfdxSfdxUrlStoreResult.stdout.includes(`Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID`)) {
+      throw new Error(`In authorizeDevHub(), sfdxSfdxUrlStoreResult does not contain "Successfully authorized ${EnvironmentSettings.getInstance().devHubUserName} with org ID"`);
+    }
 
     utilities.log(`${this.testSuiteSuffixName} - ...finished authorizeDevHub()`);
     utilities.log('');
@@ -211,10 +217,21 @@ export class ScratchOrg {
     const time = endDate - startDate;
     utilities.log(`Creating ${this.scratchOrgAliasName} took ${time} ticks (${time/1000.0} seconds)`);
 
-    expect(result.authFields).not.toBeUndefined();
-    expect(result.authFields.accessToken).not.toBeUndefined();
-    expect(result.orgId).not.toBeUndefined();
-    expect(result.scratchOrgInfo.SignupEmail).toEqual(EnvironmentSettings.getInstance().devHubUserName);
+    if (!result.authFields) {
+      throw new Error('In createDefaultScratchOrg(), result.authFields is null (or undefined)');
+    }
+
+    if (!result.authFields.accessToken) {
+      throw new Error('In createDefaultScratchOrg(), result.authFields.accessToken is null (or undefined)');
+    }
+
+    if (!result.orgId) {
+      throw new Error('In createDefaultScratchOrg(), result.orgId is null (or undefined)');
+    }
+
+    if (!result.scratchOrgInfo.SignupEmail) {
+      throw new Error('In createDefaultScratchOrg(), result.scratchOrgInfo.SignupEmail is null (or undefined)');
+    }
 
     // Run SFDX: Set a Default Org
     utilities.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
@@ -236,7 +253,10 @@ export class ScratchOrg {
         break;
       }
     }
-    expect(scratchOrgQuickPickItemWasFound).toBe(true);
+
+    if (!scratchOrgQuickPickItemWasFound) {
+      throw new Error(`In createDefaultScratchOrg(), the scratch org's pick list item was not found`);
+    }
     // Warning! This only works if the item (the scratch org) is visible.
     // If there are many scratch orgs, not all of them may be displayed.
     // If lots of scratch orgs are created and aren't deleted, this can
@@ -245,12 +265,16 @@ export class ScratchOrg {
 
     // Look for the success notification.
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
-    expect(successNotificationWasFound).toBe(true);
+    if (!successNotificationWasFound) {
+      throw new Error('In createDefaultScratchOrg(), the notification of "SFDX: Set a Default Org successfully ran" was not found');
+    }
 
     // Look for this.scratchOrgAliasName in the list of status bar items
     const statusBar = await workbench.getStatusBar();
     const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(statusBar, this.scratchOrgAliasName);
-    expect(scratchOrgStatusBarItem).not.toBeUndefined();
+    if (!scratchOrgStatusBarItem) {
+      throw new Error('In createDefaultScratchOrg(), getStatusBarItemWhichIncludes() returned a scratchOrgStatusBarItem with a value of null (or undefined)');
+    }
 
     utilities.log(`${this.testSuiteSuffixName} - ...finished createDefaultScratchOrg()`);
     utilities.log('');
@@ -296,15 +320,21 @@ export class ScratchOrg {
         }
       }
     }
-    expect(scratchOrgQuickPickItemWasFound).toBe(true);
+    if (!scratchOrgQuickPickItemWasFound) {
+      throw new Error(`In setDefaultOrg(), the scratch org's quick pick item was not found`);
+    }
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
-    expect(successNotificationWasFound).toBe(true);
+    if (!successNotificationWasFound) {
+      throw new Error('In setDefaultOrg(), the notification of "SFDX: Set a Default Org successfully ran" was not found');
+    }
 
     // Look for orgAliasName in the list of status bar items
     const statusBar = await workbench.getStatusBar();
     const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(statusBar, scratchOrgAliasName);
-    expect(scratchOrgStatusBarItem).not.toBeUndefined();
+    if (!scratchOrgStatusBarItem) {
+      throw new Error('In setDefaultOrg(), getStatusBarItemWhichIncludes() returned a scratchOrgStatusBarItem with a value of null (or undefined)');
+    }
   }
 
   private removedEscapedCharacters(stdout: string): string {
