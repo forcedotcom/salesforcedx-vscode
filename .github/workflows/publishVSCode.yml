@@ -5,7 +5,7 @@ on:
     # From the docs: A release was published, or a pre-release was changed to a release.
     types: [ released ]
   #  Button for publishing main branch in case there is a failure on the release.
-  workflow_call:
+  workflow_dispatch:
     
 jobs:
 
