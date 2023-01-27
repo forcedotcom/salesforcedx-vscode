@@ -84,7 +84,7 @@ jobs:
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
-    if: needs.ctc-open.result == 'success' && needs.vscode-release.result == 'published' && needs.ctc-open.outputs.changeCaseId
+    if: needs.ctc-open.result == 'success' && needs.publish.result == 'published' && needs.ctc-open.outputs.changeCaseId
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
