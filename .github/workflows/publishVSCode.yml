@@ -50,7 +50,7 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: ['ctc-open']
+    needs: [ 'ctc-open', 'prepare-environment-from-main' ]
     outputs: 
       result: ${{ steps.vsce.outputs.result }}
       
