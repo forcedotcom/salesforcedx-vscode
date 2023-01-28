@@ -145,7 +145,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
       if (result) {
         BaseDeployExecutor.errorCollection.clear();
 
-        // Fixup peristant storage
+        // Update Persistent Storage for the files that were deployed
         PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
           result
         );
