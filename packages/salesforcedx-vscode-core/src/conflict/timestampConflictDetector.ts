@@ -53,7 +53,10 @@ export class TimestampConflictDetector {
         component.cacheComponent.fullName
       );
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
-      if (!lastModifiedInCache || lastModifiedInOrg > lastModifiedInCache) {
+      if (
+        !lastModifiedInCache ||
+        this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)
+      ) {
         const differences = diffComponents(
           component.projectComponent,
           component.cacheComponent
@@ -79,6 +82,12 @@ export class TimestampConflictDetector {
       }
     });
     this.diffs.different = conflicts;
+  }
+
+  private dateIsGreater(dateStrOne: string, dateStrTwo: string): boolean {
+    const dateNumOne = new Date(dateStrOne).getTime();
+    const dateNumTwo = new Date(dateStrTwo).getTime();
+    return dateNumOne > dateNumTwo;
   }
 
   private createRootPaths(result: MetadataCacheResult) {
