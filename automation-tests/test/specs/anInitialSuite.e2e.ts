@@ -27,9 +27,7 @@ describe('An Initial Suite', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Verify our extensions are not initially loaded', async () => {
-    const workbench = await browser.getWorkbench();
-    await utilities.executeQuickPick(workbench, 'Developer: Show Running Extensions');
-    await utilities.pause(2);
+    await utilities.runCommandFromCommandPalette('Developer: Show Running Extensions', 2);
 
     const extensionNameDivs = await $$('div.name');
     let sfdxKeywordWasFound = false;
@@ -89,10 +87,7 @@ describe('An Initial Suite', async () => {
   });
 
   step('Verify our extensions are loaded after creating an SFDX project', async () => {
-    const workbench = await browser.getWorkbench();
-    await utilities.executeQuickPick(workbench, 'Developer: Show Running Extensions');
-    await utilities.pause(2);
-
+    await utilities.runCommandFromCommandPalette('Developer: Show Running Extensions', 2);
     const extensionNameDivs = await $$('div.name');
     let matchesFound = 0;
     for (const extensionNameDiv of extensionNameDivs) {

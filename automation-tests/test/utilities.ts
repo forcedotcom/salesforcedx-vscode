@@ -56,8 +56,8 @@ function removeFolder(folderPath: string): ChildProcess {
   return childProcess;
 }
 
-async function pause(durationSeconds: number): Promise<void> {
-  await sleep(durationSeconds * EnvironmentSettings.getInstance().throttleFactor * 1000);
+async function pause(durationInSeconds: number): Promise<void> {
+  await sleep(durationInSeconds * EnvironmentSettings.getInstance().throttleFactor * 1000);
 }
 
 function log(message: string) {
@@ -72,7 +72,7 @@ async function clickFilePathOkButton(): Promise<void> {
 
 async function openCommandPromptWithCommand(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
   const prompt = await workbench.openCommandPrompt();
-  await prompt.wait(5000);
+  await pause(5);
 
   await prompt.setText(`>${command}`);
   await pause(1);
@@ -80,9 +80,14 @@ async function openCommandPromptWithCommand(workbench: Workbench, command: strin
   return prompt;
 }
 
-async function executeQuickPick(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
+async function runCommandFromCommandPalette(command: string, durationInSeconds: number = 0): Promise<InputBox | QuickOpenBox> {
+  const workbench = await browser.getWorkbench();
   const prompt = await openCommandPromptWithCommand(workbench, command);
   await selectQuickPickItem(prompt, command);
+
+  if (durationInSeconds > 0) {
+    await utilities.pause(durationInSeconds);
+  }
 
   return prompt;
 }
@@ -112,11 +117,11 @@ async function getStatusBarItemWhichIncludes(statusBar: StatusBar, title: string
   throw new Error(`Status bar item containing ${title} was not found`);
 }
 
-async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, timeout: number): Promise<void> {
+async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, durationInSeconds: number): Promise<void> {
   // Change timeout from seconds to milliseconds
-  timeout *= 1000;
+  durationInSeconds *= 1000;
 
-  pause(5);
+  await pause(5);
   const startDate = new Date();
   while (true) {
     let notificationWasFound = await notificationIsPresent(workbench, notificationMessage);
@@ -126,7 +131,7 @@ async function waitForNotificationToGoAway(workbench: Workbench, notificationMes
 
     const currentDate = new Date();
     const secondsPassed = Math.abs(currentDate.getTime() - startDate.getTime()) / 1000;
-    if (secondsPassed >= timeout) {
+    if (secondsPassed >= durationInSeconds) {
       throw new Error(`Exceeded time limit - notification "${notificationMessage}" is still present`);
     }
   }
@@ -209,7 +214,7 @@ async function attemptToFindOutputPanelText(outputChannelName: string, searchStr
       return outputPanelText;
     }
 
-    pause(1);
+    await pause(1);
     attempts--;
   }
 
@@ -318,7 +323,7 @@ export const utilities = {
   log,
   clickFilePathOkButton,
   openCommandPromptWithCommand,
-  executeQuickPick,
+  runCommandFromCommandPalette,
   selectQuickPickItem,
   getStatusBarItemWhichIncludes,
   waitForNotificationToGoAway,

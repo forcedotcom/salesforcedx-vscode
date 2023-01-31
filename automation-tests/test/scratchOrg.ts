@@ -91,14 +91,10 @@ export class ScratchOrg {
     utilities.log('');
     utilities.log(`${this.testSuiteSuffixName} - Starting createProject()...`);
 
-    const workbench = await browser.getWorkbench();
-
-    this.prompt = await utilities.executeQuickPick(workbench, 'SFDX: Create Project');
+    this.prompt = await utilities.runCommandFromCommandPalette('SFDX: Create Project', 10);
     // Selecting "SFDX: Create Project" causes the extension to be loaded, and this takes a while.
-    await utilities.pause(10);
 
     // Select the "Standard" project type.
-    await this.prompt.getQuickPicks();
     await this.prompt.selectQuickPick('Standard');
     await utilities.pause(1);
 
@@ -118,6 +114,7 @@ export class ScratchOrg {
     await utilities.clickFilePathOkButton();
 
     // Verify the project was created and was loaded.
+    const workbench = await browser.getWorkbench();
     const sidebar = await workbench.getSideBar();
     const content = await sidebar.getContent();
     const treeViewSection = await content.getSection(this.tempProjectName.toUpperCase());
@@ -235,10 +232,7 @@ export class ScratchOrg {
 
     // Run SFDX: Set a Default Org
     utilities.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
-    const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
-
-    // Wait for the quick pick list to appear.
-    await utilities.pause(1);
+    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Set a Default Org', 1);
 
     // Select this.scratchOrgAliasName from the list.
     let scratchOrgQuickPickItemWasFound = false;
@@ -285,8 +279,7 @@ export class ScratchOrg {
   }
 
   private async setDefaultOrg(workbench: Workbench, scratchOrgAliasName: string): Promise<void> {
-    const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
-    await utilities.pause(2);
+    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Set a Default Org', 2);
 
     let scratchOrgQuickPickItemWasFound = false;
 

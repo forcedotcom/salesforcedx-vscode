@@ -46,11 +46,8 @@ describe('Org Creation and Authentication', async () => {
   });
 
   step('Run SFDX: Create Project', async () => {
-    const workbench = await browser.getWorkbench();
-
-    prompt = await utilities.executeQuickPick(workbench, 'SFDX: Create Project');
+    prompt = await utilities.runCommandFromCommandPalette('SFDX: Create Project', 10);
     // Selecting "SFDX: Create Project" causes the extension to be loaded, and this takes a while.
-    await utilities.pause(10);
 
     // Select the "Standard" project type.
     let quickPicks = await prompt.getQuickPicks();
@@ -79,6 +76,7 @@ describe('Org Creation and Authentication', async () => {
     await utilities.clickFilePathOkButton();
 
     // Verify the project was created and was loaded.
+    const workbench = await browser.getWorkbench();
     const sidebar = workbench.getSideBar();
     const content = sidebar.getContent();
     const treeViewSection = await content.getSection(tempProjectName.toUpperCase());
@@ -141,8 +139,7 @@ describe('Org Creation and Authentication', async () => {
   });
 
   step('Run SFDX: Create a Default Scratch Org', async () => {
-    const workbench = await browser.getWorkbench();
-    await utilities.executeQuickPick(workbench, 'SFDX: Create a Default Scratch Org...');
+    await utilities.runCommandFromCommandPalette('SFDX: Create a Default Scratch Org...', 1);
 
     // Select a project scratch definition file (config/project-scratch-def.json)
     // Press Enter/Return to use the default (config/project-scratch-def.json)
@@ -170,6 +167,7 @@ describe('Org Creation and Authentication', async () => {
     // Press Enter/Return.
     await prompt.confirm();
 
+    const workbench = await browser.getWorkbench();
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Create a Default Scratch Org...', 5 * 60);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Create a Default Scratch Org... successfully ran');
@@ -201,9 +199,7 @@ describe('Org Creation and Authentication', async () => {
   });
 
   step('Run SFDX: Set a Default Org', async () => {
-    const workbench = await browser.getWorkbench();
-    const inputBox = await utilities.executeQuickPick(workbench, 'SFDX: Set a Default Org');
-    await utilities.pause(1);
+    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Set a Default Org', 1);
 
     let scratchOrgQuickPickItemWasFound = false;
     const userName = await utilities.currentUserName();
@@ -234,6 +230,7 @@ describe('Org Creation and Authentication', async () => {
     }
     expect(scratchOrgQuickPickItemWasFound).toBe(true);
 
+    const workbench = await browser.getWorkbench();
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
     expect(successNotificationWasFound).toBe(true);
 
