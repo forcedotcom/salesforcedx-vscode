@@ -1,7 +1,7 @@
 
 import type { Options } from '@wdio/types'
 import { join } from 'path';
-import type { VSCodeCapabilities } from 'wdio-vscode-service/dist/types'
+import type { VSCodeCapabilities } from 'wdio-vscode-service/dist/types';
 
 const capabilities: VSCodeCapabilities = {
 

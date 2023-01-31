@@ -10,7 +10,7 @@ import {
 } from '../scratchOrg';
 
 describe('Run Apex Tests', async () => {
-  let scratchOrg: ScratchOrg = undefined;
+  let scratchOrg: ScratchOrg;
 
   step('Set up the testing environment', async () => {
     scratchOrg = new ScratchOrg('RunApexTests', false);
