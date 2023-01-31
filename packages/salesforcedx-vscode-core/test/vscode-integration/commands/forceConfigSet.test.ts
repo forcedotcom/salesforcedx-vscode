@@ -5,35 +5,69 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { ForceConfigSetExecutor } from '../../../src/commands';
+import * as sinon from 'sinon';
+import { channelService } from '../../../src/channels';
+import { forceConfigSet, ForceConfigSetExecutor } from '../../../src/commands';
+import { CONFIG_SET_NAME, DEFAULT_USERNAME_KEY } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
-describe('Force Config Set', () => {
-  it('should build the force config set command', async () => {
-    const usernameOrAlias = 'test-username1@gmail.com';
-    const forceConfigSet = new ForceConfigSetExecutor(usernameOrAlias);
-    const forceConfigSetCommand = forceConfigSet.build({});
-    expect(forceConfigSetCommand.toCommand()).to.equal(
-      `sfdx force:config:set defaultusername=${usernameOrAlias}`
-    );
-    expect(forceConfigSetCommand.description).to.equal(
-      nls.localize('force_config_set_org_text')
-    );
-  });
-});
+const sandbox = sinon.createSandbox();
+let channelSpy: sinon.SinonSpy;
+let setDefaultUsernameOrAliasStub: sinon.SinonStub;
+let tableSpy: sinon.SinonSpy;
 
-describe('Force Config Set using multiple aliases for a single username', () => {
-  it('should build the force config set command with first alias', async () => {
+describe('Force Config Set', () => {
+  const errorMessage = 'An error occurred.';
+  const usernameOrAlias = 'test-username1@gmail.com';
+
+  beforeEach(() => {
+    channelSpy = sandbox.spy(channelService, 'appendLine');
+    setDefaultUsernameOrAliasStub = sandbox.stub(ConfigUtil, 'setDefaultUsernameOrAlias');
+    tableSpy = sandbox.spy(Table.prototype, 'createTable');
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  it('should set config with the given username or alias', async () => {
+    await forceConfigSet(usernameOrAlias);
+    expect(setDefaultUsernameOrAliasStub.callCount).to.equal(1);
+    expect(setDefaultUsernameOrAliasStub.calledWith(usernameOrAlias)).to.equal(true);
+  });
+
+  it('should set config with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
-    const forceConfigSet = new ForceConfigSetExecutor(aliases.join(','));
-    const forceConfigSetCommand = forceConfigSet.build({});
-    expect(forceConfigSetCommand.toCommand()).to.equal(
-      `sfdx force:config:set defaultusername=${expectedAlias}`
-    );
-    expect(forceConfigSetCommand.description).to.equal(
-      nls.localize('force_config_set_org_text')
-    );
+    await forceConfigSet(aliases.join(','));
+    expect(setDefaultUsernameOrAliasStub.callCount).to.equal(1);
+    expect(setDefaultUsernameOrAliasStub.calledWith(expectedAlias)).to.equal(true);
+  });
+
+  it('should display formatted output in output channel', async () => {
+    const expectedOutput = 'Successful table row';
+    sandbox.stub(ForceConfigSetExecutor.prototype as any, 'formatOutput').returns(expectedOutput);
+    await forceConfigSet(usernameOrAlias);
+    expect(channelSpy.callCount).to.equal(1);
+    expect(channelSpy.calledWith(expectedOutput)).to.equal(true);
+  });
+
+  it('should display correct output to user', async () => {
+    const outputTableRow = { name: DEFAULT_USERNAME_KEY, val: usernameOrAlias, success: String(true) };
+    const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
+    const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
+    expect(tableSpy.callCount).to.equal(1);
+    expect(formatOutput).to.contain(nls.localize(CONFIG_SET_NAME), DEFAULT_USERNAME_KEY);
+    expect(formatOutput).to.contain(usernameOrAlias, String(true));
+  });
+
+  it('should display error message in output channel', async () => {
+    setDefaultUsernameOrAliasStub.throws(new Error(errorMessage));
+    await forceConfigSet(usernameOrAlias);
+    expect(channelSpy.callCount).to.equal(2);
+    expect(channelSpy.lastCall.args.length).to.equal(1);
+    expect(channelSpy.lastCall.args[0]).to.contain(errorMessage);
   });
 });
