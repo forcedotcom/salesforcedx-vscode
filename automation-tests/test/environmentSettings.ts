@@ -7,9 +7,9 @@
 export class EnvironmentSettings {
   private static _instance: EnvironmentSettings;
 
-  private _devHubAliasName: string; // vscodeOrg
-  private _devHubUserName: string; // svc_idee_bot@salesforce.com
-  private _throttleFactor: number; // 1
+  private _devHubAliasName = 'vscodeOrg';
+  private _devHubUserName = 'svc_idee_bot@salesforce.com';
+  private _throttleFactor = 1;
 
   private constructor() {
   }
@@ -19,9 +19,9 @@ export class EnvironmentSettings {
       EnvironmentSettings._instance = new EnvironmentSettings();
 
       // Each setting is required, so preload them and assert if one is not found.
-      EnvironmentSettings._instance._devHubAliasName = process.env.DEV_HUB_ALIAS_NAME || 'vscodeOrg';
-      EnvironmentSettings._instance._devHubUserName = process.env.DEV_HUB_USER_NAME || 'svc_idee_bot@salesforce.com';
-      EnvironmentSettings._instance._throttleFactor = parseInt(process.env.THROTTLE_FACTOR || '1');
+      EnvironmentSettings._instance._devHubAliasName = process.env.DEV_HUB_ALIAS_NAME || EnvironmentSettings._instance._devHubAliasName;
+      EnvironmentSettings._instance._devHubUserName = process.env.DEV_HUB_USER_NAME || EnvironmentSettings._instance._devHubUserName;
+      EnvironmentSettings._instance._throttleFactor = parseInt(process.env.THROTTLE_FACTOR!) || EnvironmentSettings._instance._throttleFactor;
     }
 
     return EnvironmentSettings._instance;

@@ -26,6 +26,7 @@ import {
   EnvironmentSettings
 } from './environmentSettings';
 
+// tslint:disable-next-line:no-shadowed-variable
 async function openFile(vscode: typeof vscodeType, file: string): Promise<vscode.TextEditor> {
   const filePath = vscode.Uri.parse(file).fsPath;
   const textDocument = await vscode.workspace.openTextDocument(filePath);
@@ -34,6 +35,7 @@ async function openFile(vscode: typeof vscodeType, file: string): Promise<vscode
   return textEditor;
 }
 
+// tslint:disable-next-line:no-shadowed-variable
 async function openFolder(vscode: typeof vscodeType, folderPath: string): Promise<unknown> {
   const folderPathUri = vscode.Uri.parse(folderPath);
   const result = await vscode.commands.executeCommand('vscode.openFolder', folderPathUri);
@@ -55,8 +57,8 @@ function removeFolder(folderPath: string): ChildProcess {
   return childProcess;
 }
 
-async function pause(duration: number): Promise<void> {
-  await sleep(duration * EnvironmentSettings.getInstance().throttleFactor * 1000);
+async function pause(durationInSeconds: number): Promise<void> {
+  await sleep(durationInSeconds * EnvironmentSettings.getInstance().throttleFactor * 1000);
 }
 
 function log(message: string) {
@@ -71,7 +73,7 @@ async function clickFilePathOkButton(): Promise<void> {
 
 async function openCommandPromptWithCommand(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
   const prompt = await workbench.openCommandPrompt();
-  await prompt.wait(5000);
+  await pause(5);
 
   await prompt.setText(`>${command}`);
   await pause(1);
@@ -79,9 +81,14 @@ async function openCommandPromptWithCommand(workbench: Workbench, command: strin
   return prompt;
 }
 
-async function executeQuickPick(workbench: Workbench, command: string): Promise<InputBox | QuickOpenBox> {
+async function runCommandFromCommandPalette(command: string, durationInSeconds: number = 0): Promise<InputBox | QuickOpenBox> {
+  const workbench = await browser.getWorkbench();
   const prompt = await openCommandPromptWithCommand(workbench, command);
   await selectQuickPickItem(prompt, command);
+
+  if (durationInSeconds > 0) {
+    await utilities.pause(durationInSeconds);
+  }
 
   return prompt;
 }
@@ -111,11 +118,11 @@ async function getStatusBarItemWhichIncludes(statusBar: StatusBar, title: string
   throw new Error(`Status bar item containing ${title} was not found`);
 }
 
-async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, timeout: number): Promise<void> {
+async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, durationInSeconds: number): Promise<void> {
   // Change timeout from seconds to milliseconds
-  timeout *= 1000;
+  durationInSeconds *= 1000;
 
-  pause(5);
+  await pause(5);
   const startDate = new Date();
   while (true) {
     const notificationWasFound = await notificationIsPresent(workbench, notificationMessage);
@@ -125,7 +132,7 @@ async function waitForNotificationToGoAway(workbench: Workbench, notificationMes
 
     const currentDate = new Date();
     const secondsPassed = Math.abs(currentDate.getTime() - startDate.getTime()) / 1000;
-    if (secondsPassed >= timeout) {
+    if (secondsPassed >= durationInSeconds) {
       throw new Error(`Exceeded time limit - notification "${notificationMessage}" is still present`);
     }
   }
@@ -145,11 +152,11 @@ async function notificationIsPresent(workbench: Workbench, notificationMessage: 
 
 async function attemptToFindNotification(workbench: Workbench, notificationMessage: string, attempts: number): Promise<boolean> {
   while (attempts > 0) {
-    if (notificationIsPresent(workbench, notificationMessage)) {
+    if (await notificationIsPresent(workbench, notificationMessage)) {
       return true;
     }
 
-    pause(1);
+    await pause(1);
     attempts--;
   }
 
@@ -178,7 +185,7 @@ async function selectChannel(outputView: OutputView, name: string): Promise<void
 }
 
 async function getOutputPanelText(outputChannelName: string): Promise<string> {
-  const workbench = await (await browser.getWorkbench()).wait();
+  const workbench = await browser.getWorkbench();
   const bottomBar = await workbench.getBottomBar(); // selector is 'div[id="workbench.parts.panel"]'
   const outputView = await bottomBar.openOutputView(); // selector is 'div[id="workbench.panel.output"]'
   await utilities.pause(2);
@@ -201,14 +208,14 @@ async function getOutputPanelText(outputChannelName: string): Promise<string> {
 }
 
 // If found, this function returns the entire text that's in the Output panel
-async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number): Promise<string> {
+async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number): Promise<string | undefined> {
   while (attempts > 0) {
     const outputPanelText = await getOutputPanelText(outputChannelName);
     if (outputPanelText.includes(searchString)) {
       return outputPanelText;
     }
 
-    pause(1);
+    await pause(1);
     attempts--;
   }
 
@@ -219,8 +226,9 @@ async function executeCommand(workbench: Workbench, command: string): Promise<Te
   log(`Executing the command, "${command}"`);
 
   const terminalView = await getTerminalView(workbench);
-  expect(terminalView).not.toBeNull();
-  expect(terminalView).not.toBeUndefined();
+  if (!terminalView) {
+    throw new Error('In executeCommand(), the terminal view returned from getTerminalView() was null (or undefined)');
+  }
 
   await terminalView.executeCommand(command);
 
@@ -242,7 +250,6 @@ async function getTerminalViewText(terminalView: TerminalView, seconds: number):
     // const terminalText = await terminalView.getText();
     // terminalView.getText() no longer works
 
-    const workbench = await (await browser.getWorkbench()).wait();
     await browser.keys([CMD_KEY, 'a', 'c']);
     // Should be able to use Keys.Ctrl, but Keys is not exported from webdriverio
     // See https://webdriver.io/docs/api/browser/keys/
@@ -298,12 +305,12 @@ async function getFilteredVisibleTreeViewItemLabels(workbench: Workbench, projec
 
 function currentUserName(): string {
   const userName = os.userInfo().username ||
-    process.env.SUDO_USER ||
-    process.env.C9_USER ||
-    process.env.LOGNAME ||
-    process.env.USER ||
-    process.env.LNAME ||
-    process.env.USERNAME;
+    process.env.SUDO_USER! ||
+    process.env.C9_USER! ||
+    process.env.LOGNAME! ||
+    process.env.USER! ||
+    process.env.LNAME! ||
+    process.env.USERNAME!;
 
   return userName;
 }
@@ -317,7 +324,7 @@ export const utilities = {
   log,
   clickFilePathOkButton,
   openCommandPromptWithCommand,
-  executeQuickPick,
+  runCommandFromCommandPalette,
   selectQuickPickItem,
   getStatusBarItemWhichIncludes,
   waitForNotificationToGoAway,
