@@ -31,24 +31,29 @@ One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/team
 
 ## Merging the Release Branch into Main
 
-After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. A Github Action workflow is exectued to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in main.
+After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. A Github Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in main.
 
 ### To run the merge process:
 
-1. From the github repository navigate to the Action Tab and Select the PrePublish workflow on the left
+1. From the github repository navigate to the Action Tab and Select the PreRelease workflow on the left
 1. Click the 'Run Workflow' button and input the branch to be merged into the input box.
 1. Click the `Run Workflow` button.
 
-The Prepublish job will verify the version of the branch to be merged is newer then what is currently in main and update main with the release branch.
+The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in main and update main with the release branch.
 
 ## Publishing Main
 
-The merge into main will trigger a run of the 'Test, Build, and Publish' GHA workflow that will run the tests, build vsix files, and send a slack notification that a publish workflow has been initiated.
-After all tests have passed it will trigger a required approval for continuing the job.
+The merge into main will trigger a run of the 'Test, Build, and Release' GHA workflow that will:
+- run the tests
+- build vsix files
+- send a slack notification that a release workflow has been initiated
+- create a tag and release in Github
 
-Before approving the publish to the marketplace download the vsix files, install them locally and verify they are working as expected.
+After the release has been created, it will trigger a publish action that will send a notification to slack to request approval to publish the vsix files to the marketplace.
 
-After you feel comfortable publishing to the marketplace approve the publish jobs in the Github Action UI.
+Before approving the release to the marketplace, download the vsix files, install them locally and verify they are working as expected.
+
+After you feel comfortable publishing to the marketplace, approve the publish job in the Github Action UI.
 
 ## Post-Publishing the .vsix
 
