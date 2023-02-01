@@ -8,7 +8,7 @@ We made some updates under the hood.([PR #4568](https://github.com/forcedotcom/s
 
 ## Fixed
 
-#### salesforcedx-utils, #### salesforcedx-vscode-core
+#### salesforcedx-vscode-core
 
 - We fixed an issue with conflict detection at sync so that more recent changes are correctly deployed. Thank you [Ralph Callaway](https://github.com/ralphcallaway) for creating the issue, and [RanGroen](https://github.com/rangroen) for helping us test it! ([PR #4616](https://github.com/forcedotcom/salesforcedx-vscode/pull/4616), [ISSUE #4585](https://github.com/forcedotcom/salesforcedx-vscode/issues/4585))
 
