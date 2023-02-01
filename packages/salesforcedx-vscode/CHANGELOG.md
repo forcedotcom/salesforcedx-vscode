@@ -1,5 +1,17 @@
 # 57.0.1 - February 3, 2023
 
+## Added
+
+#### salesforcedx-vscode-core
+
+chore: force config set remove cli dependency (#4568)
+
+## Fixed
+
+fix: Fix Conflict Detection at Sync (#4616) 
+- We should shout out to the user that opened issue #4585 as well as an external user that helped us test the fix RanGroen. 
+
+
 # 56.16.0 - January 25, 2023
 ## Fixed
 
