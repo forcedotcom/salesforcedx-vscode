@@ -112,9 +112,6 @@ function run(testsRoot: any, clb: any): any {
           .on('end', (): void => {
             console.log(`Tests ended with ${failureCount} failure(s)`);
             clb(undefined, failureCount);
-            // if (!isNullOrUndefined(coverageRunner)) {
-            //   coverageRunner.reportCoverage();
-            // }
           });
       } catch (error) {
         console.error('An error occured: ' + error);
