@@ -24,6 +24,8 @@ import { nls } from '../../../src/messages';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Timestamp Conflict Detector Execution', () => {
+  const TODAY = '2023-01-28T00:15:28.000Z';
+  const YESTERDAY = '2023-01-27T00:15:28.000Z';
   const PROJ_ROOT = path.join(
     __dirname,
     '..',
@@ -104,7 +106,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       properties: [
         {
           fullName: 'HandlerCostCenter',
-          lastModifiedDate: 'Today',
+          lastModifiedDate: TODAY,
           type: 'ApexClass'
         }
       ] as FileProperties[]
@@ -118,7 +120,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     ] as differ.ComponentDiff[];
 
     const storageResult = {
-      lastModifiedDate: 'Yesteday'
+      lastModifiedDate: YESTERDAY
     };
 
     differStub.returns(diffResults);
@@ -145,12 +147,16 @@ describe('Timestamp Conflict Detector Execution', () => {
       }
     ]);
 
-    expect(results.different).to.eql(new Set([{
-      localRelPath: path.normalize('classes/HandlerCostCenter.cls'),
-      remoteRelPath: path.normalize('classes/HandlerCostCenter.cls'),
-      localLastModifiedDate: 'Yesteday',
-      remoteLastModifiedDate: 'Today'
-    }]));
+    expect(results.different).to.eql(
+      new Set([
+        {
+          localRelPath: path.normalize('classes/HandlerCostCenter.cls'),
+          remoteRelPath: path.normalize('classes/HandlerCostCenter.cls'),
+          localLastModifiedDate: YESTERDAY,
+          remoteLastModifiedDate: TODAY
+        }
+      ])
+    );
   });
 
   it('Should not report differences if the component is only local', async () => {
@@ -175,7 +181,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       properties: [
         {
           fullName: 'HandlerCostCenter',
-          lastModifiedDate: 'Today',
+          lastModifiedDate: TODAY,
           type: 'ApexClass'
         }
       ] as FileProperties[]
@@ -211,7 +217,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       properties: [
         {
           fullName: 'HandlerCostCenter',
-          lastModifiedDate: 'Today',
+          lastModifiedDate: TODAY,
           type: 'ApexClass'
         }
       ] as FileProperties[]
@@ -254,14 +260,14 @@ describe('Timestamp Conflict Detector Execution', () => {
       properties: [
         {
           fullName: 'HandlerCostCenter',
-          lastModifiedDate: 'Today',
+          lastModifiedDate: TODAY,
           type: 'ApexClass'
         }
       ] as FileProperties[]
     } as MetadataCacheResult;
 
     const storageResult = {
-      lastModifiedDate: 'Today'
+      lastModifiedDate: TODAY
     };
 
     cacheStub.returns(storageResult);
@@ -303,7 +309,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       properties: [
         {
           fullName: 'HandlerCostCenter',
-          lastModifiedDate: 'Today',
+          lastModifiedDate: TODAY,
           type: 'ApexClass'
         }
       ] as FileProperties[]
@@ -312,7 +318,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     const diffResults = [] as differ.ComponentDiff[];
 
     const storageResult = {
-      lastModifiedDate: 'Yesteday'
+      lastModifiedDate: YESTERDAY
     };
 
     differStub.returns(diffResults);
