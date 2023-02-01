@@ -6,7 +6,9 @@ lang: en
 ## Overview
 Want your own code to appear in source files when you create a metadata object such as an Apex class? You can now use custom templates to do just that.
 
-Templates are essentially folders with files that contain your custom code. This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Simply clone this repo, keeping the same folder structure, then update relevant template files with your code. Remove the files that you don’t wish to override.
+Templates are essentially folders with files that contain your custom code. This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Simply clone this repo, delete all folders except the folder that contains the template you want to update. Make updates to template files directly in the repo.
+
+You can also choose to only pull specific files that you wish to override to your local project, make your updates and then push your changes back to your cloned repo.
 
 **Note:** Only updates made to the files listed here show up in source files in VS Code. There’s no such restriction when you use the CLI to specify templates for metadata objects.
 
@@ -46,37 +48,10 @@ or the location of a local copy:
 
 **Note:** You can also use the CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
 
-## Create a Apex Class with Custom Code
-1. Clone the sample GitHub repo.
-2. Delete all folders except the `apexclass` folder. Also delete all the files except the `DefaultApexClass.cls` file from the `apexclass` folder.
-3. Edit the `DefaultApexClass.cls` file with your custom code:
 
-```
-public with sharing class <%= apiName %> {
-    		public <%= apiName %>(String prop) {
-			this.prop = prop;
-    		}
-
-		@AuraEnabled public String prop { get;set; }
-	}
-``` 
-**Note:** If you edit the file locally, remember to push changes to your repo. You can also choose to make changes directly in your repo. 
-
-4. Update the `sfdx-config.json` file to point to your cloned repo (or local directory).
-5. Run the `SFDX: Create Apex Class` command from the Command Palette.
-6. Enter `ApexClass` for filename.
-7. Accept the default directory location.
-8. Confirm that the `ApexClass.cls` file contains your custom code:
-```
-public with sharing class ApexClass {
-    		public ApexClass(String prop) {
-			this.prop = prop;
-    		}
-
-		@AuraEnabled public String prop { get;set; }
-	}
-```
-9. Share your config file with your teammates so that you’re all using the same config setting.  
 
 ## Make an Update to a Template
 VS Code downloads the template files locally (`~/.sfdx/custom-templates` on macOS/Linux or `%USERPROFILE%\.sfdx\custom-templates` on Windows) the first time the template repository is accessed. To use updated templates, clear the local cached files to download the template files again.
+
+## Additional Resources
+[Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets)
