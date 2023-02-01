@@ -4,12 +4,13 @@
 
 #### salesforcedx-vscode-core
 
-chore: force config set remove cli dependency (#4568)
+We made some updates under the hood.([PR #4568](https://github.com/forcedotcom/salesforcedx-vscode/pull/4568))
 
 ## Fixed
 
-fix: Fix Conflict Detection at Sync (#4616) 
-- We should shout out to the user that opened issue #4585 as well as an external user that helped us test the fix RanGroen. 
+#### salesforcedx-utils, #### salesforcedx-vscode-core
+
+- We fixed an issue with conflict detection at sync so that more recent changes are correctly deployed. Thank you [Ralph Callaway](https://github.com/ralphcallaway) for creating the issue, and [RanGroen](https://github.com/rangroen) for helping us test it! ([PR #4616](https://github.com/forcedotcom/salesforcedx-vscode/pull/4616), [ISSUE #4585](https://github.com/forcedotcom/salesforcedx-vscode/issues/4585))
 
 
 # 56.16.0 - January 25, 2023
