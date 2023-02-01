@@ -72,7 +72,7 @@
     "sinon": "13.0.1",
     "typescript": "^4.7.4",
     "vscode-extension-tester": "^5.0.0",
-    "vscode-languageclient": "6.1.3"
+    "vscode-languageclient": "8.0.2"
   },
   "scripts": {
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",

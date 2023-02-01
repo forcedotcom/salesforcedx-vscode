@@ -35,7 +35,7 @@
     "path-exists": "3.0.0",
     "shelljs": "0.8.5",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "5.1.1"
+    "vscode-languageclient": "8.0.2"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "57.0.0",
