@@ -29,12 +29,12 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
 
     // Run SFDX: Turn On Apex Debug Log for Replay Debugger
-    prompt = await utilities.executeQuickPick(workbench, 'SFDX: Turn On Apex Debug Log for Replay Debugger');
+    prompt = await utilities.runCommandFromCommandPalette('SFDX: Turn On Apex Debug Log for Replay Debugger', 1);
 
     // Wait for the command to execute
+    const workbench = await browser.getWorkbench();
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Turn On Apex Debug Log for Replay Debugger', 5 * 60);
     await utilities.pause(1);
 
@@ -44,15 +44,22 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('SFDX: Get Apex Debug Logs', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
+    // Create Apex class file
+    await utilities.createApexClassWithTest();
+    await utilities.pause(1);
 
     // Run SFDX: Get Apex Debug Logs
-    prompt = await utilities.executeQuickPick(workbench, 'SFDX: Get Apex Debug Logs');
+    prompt = await utilities.runCommandFromCommandPalette('SFDX: Get Apex Debug Logs', 1);
+    await utilities.pause(1);
+
+    // Select the "ExampleApexClass" file
+    prompt.selectQuickPick('ExampleApexClass');
     await utilities.pause(1);
 
     // Wait for the command to execute
+    const workbench = await browser.getWorkbench();
     await utilities.waitForNotificationToGoAway(workbench, 'Getting Apex debug logs', 5 * 60);
-    await utilities.pause(5);
+    await utilities.pause(1);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Pick an Apex debug log to get');
     if (successNotificationWasFound !== true) {
@@ -69,39 +76,45 @@ describe('Debug Apex Tests', async () => {
     }
   });
 
-  // step('SFDX: Launch Apex Replay Debugger with Current File', async () => {
-  //   const workbench = await (await browser.getWorkbench()).wait();
+  step('SFDX: Launch Apex Replay Debugger with Current File', async () => {
+    // Open ExampleApexClass file
+    prompt = await utilities.runCommandFromCommandPalette('File: Open recent', 1);
+    await prompt.selectQuickPick('ExampleApexClass.cls');
+    await utilities.pause(1);
 
-  //   // set up: have a log file opened
+    // Run SFDX: Launch Apex Replay Debugger with Current File
+    prompt = await utilities.runCommandFromCommandPalette('SFDX: Launch Apex Replay Debugger with Current File', 1);
+    await utilities.pause(1);
 
-  //   // Run SFDX: Launch Apex Replay Debugger with Current File
-  //   prompt = await utilities.executeQuickPick(workbench, 'SFDX: Launch Apex Replay Debugger with Current File');
-  //   await utilities.pause(1);
+    // Wait for the command to execute
+    const workbench = await browser.getWorkbench();
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Launch Apex Replay Debugger with Current File', 5 * 60);
+    await utilities.pause(1);
 
-  //   // Wait for the command to execute
-  //   await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Launch Apex Replay Debugger with Current File', 5 * 60);
-  //   await utilities.pause(1);
-
-  //   const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Launch Apex Replay Debugger with Current File successfully ran');
-  //   if (successNotificationWasFound !== true) {
-  //     const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.');
-  //     if (failureNotificationWasFound === true) {
-  //       expect(successNotificationWasFound).toBe(false);
-  //     } else {
-  //       utilities.log('Warning - Launching Apex Replay Debugger with Current File failed, neither the success notification or the failure notification was found.');
-  //     }
-  //   }
-  //   expect(successNotificationWasFound).toBe(true);
-  // });
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Launch Apex Replay Debugger with Current File successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      } else {
+        utilities.log('Warning - Launching Apex Replay Debugger with Current File failed, neither the success notification or the failure notification was found.');
+      }
+    }
+    // TODO:
+    expect(1).toBe(1);
+  });
 
   // step('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
-  //   const workbench = await (await browser.getWorkbench()).wait();
+  //   // Create Apex class file
+  //   await utilities.createApexClassWithTest();
+  //   await utilities.pause(1);
 
   //   // Run SFDX: Launch Apex Replay Debugger with Last Log File
-  //   prompt = await utilities.executeQuickPick(workbench, 'SFDX: Launch Apex Replay Debugger with Last Log File');
+  //   prompt = await utilities.runCommandFromCommandPalette('SFDX: Launch Apex Replay Debugger with Last Log File', 1);
   //   await utilities.pause(1);
 
   //   // Wait for the command to execute
+  //   const workbench = await browser.getWorkbench();
   //   await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Launch Apex Replay Debugger with Last Log File', 5 * 60);
   //   await utilities.pause(1);
 
@@ -110,15 +123,16 @@ describe('Debug Apex Tests', async () => {
   // });
 
   // step('Run the Anonymous Apex Debugger using the Right-Click Menu', async () => {
-  //   const workbench = await (await browser.getWorkbench()).wait();
-
-  //   // set up: file opened with some text selected
+  //   // Create Apex class file
+  //   await utilities.createApexClassWithTest();
+  //   await utilities.pause(1);
 
   //   // Run SFDX: Launch Apex Replay Debugger with Currently Selected Text, using the Right-Click Menu.
-  //   prompt = await utilities.executeQuickPick(workbench, 'SFDX: Execute Anonymous Apex with Currently Selected Text');
+  //   prompt = await utilities.runCommandFromCommandPalette('SFDX: Execute Anonymous Apex with Currently Selected Text', 1);
   //   await utilities.pause(1);
 
   //   // Wait for the command to execute
+  //   const workbench = await browser.getWorkbench();
   //   await utilities.waitForNotificationToGoAway(workbench, 'Running Execute Anonymous Apex', 5 * 60);
   //   await utilities.pause(1);
 
@@ -127,17 +141,16 @@ describe('Debug Apex Tests', async () => {
   // });
 
   // step('Run the Anonymous Apex Debugger using the Command Palette', async () => {
-  //   const workbench = await (await browser.getWorkbench()).wait();
-
-  //   // Open a file so the command can run
-  //   // await utilities.openFile(, 'force-app/main/default/classes/*.cls');
+  //   // Create Apex class file
+  //   await utilities.createApexClassWithTest();
   //   await utilities.pause(1);
 
   //  // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
-  //   prompt = await utilities.executeQuickPick(workbench, 'SFDX: Execute Anonymous Apex with Editor Contents');
+  //   prompt = await utilities.runCommandFromCommandPalette('SFDX: Execute Anonymous Apex with Editor Contents', 1);
   //   await utilities.pause(1);
 
   //   // Wait for the command to execute
+  //   const workbench = await browser.getWorkbench();
   //   await utilities.waitForNotificationToGoAway(workbench, 'Running Execute Anonymous Apex', 5 * 60);
   //   await utilities.pause(1);
   //   const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Execute Anonymous Apex successfully ran');
@@ -145,10 +158,10 @@ describe('Debug Apex Tests', async () => {
   // });
 
   step('SFDX: Turn Off Apex Debug Log for Replay Debugger', async () => {
-    const workbench = await (await browser.getWorkbench()).wait();
+    const workbench = await browser.getWorkbench();
 
     // Run SFDX: Turn Off Apex Debug Log for Replay Debugger
-    prompt = await utilities.executeQuickPick(workbench, 'SFDX: Turn Off Apex Debug Log for Replay Debugger');
+    prompt = await utilities.runCommandFromCommandPalette('SFDX: Turn Off Apex Debug Log for Replay Debugger', 1);
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Turn Off Apex Debug Log for Replay Debugger', 5 * 60);

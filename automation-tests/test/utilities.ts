@@ -7,6 +7,7 @@
 import { ChildProcess, exec } from 'child_process';
 import clipboard from 'clipboardy';
 import os from 'os';
+import { text } from 'stream/consumers';
 import vscode from 'vscode';
 import vscodeType from 'vscode';
 import {
@@ -17,6 +18,7 @@ import {
   sleep,
   StatusBar,
   TerminalView,
+  TextEditor,
   TreeItem,
   ViewItem,
   Workbench
@@ -339,6 +341,47 @@ async function getFilteredVisibleTreeViewItemLabels(workbench: Workbench, projec
   return filteredItems;
 }
 
+async function createApexClassWithTest(): Promise<void> {
+  const workbench = await browser.getWorkbench();
+  let textEditor: TextEditor;
+
+  // Using the Command palette, run SFDX: Create Apex Class to create the main class
+  const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Create Apex Class', 1);
+
+  // Set the name of the new Apex Class
+  await inputBox.setText('ExampleApexClass');
+  await inputBox.confirm();
+
+  // Select the default directory (press Enter/Return).
+  await inputBox.confirm();
+  await utilities.pause(1);
+
+  // Modify class content
+  const editorView = workbench.getEditorView();
+  textEditor = await editorView.openEditor('ExampleApexClass.cls') as TextEditor;
+  await textEditor.setText('public with sharing class ExampleApexClass {\n\tpublic static void SayHello(string name){\n\t\tSystem.debug(\'Hello, \' + name + \'!\');\t\n}\n}');
+  await textEditor.save();
+  await textEditor.toggleBreakpoint(4);
+  await utilities.pause(1);
+
+  // Using the Command palette, run SFDX: Create Apex Class to create the Test
+  await utilities.runCommandFromCommandPalette('SFDX: Create Apex Class', 1);
+
+  // Set the name of the new Apex Class Test
+  await inputBox.setText('ExampleApexClassTest');
+  await inputBox.confirm();
+
+  // Select the default directory (press Enter/Return).
+  await inputBox.confirm();
+  await utilities.pause(1);
+
+  // Modify class content
+  textEditor = await editorView.openEditor('ExampleApexClassTest.cls') as TextEditor;
+  await textEditor.setText('@isTest\npublic class ExampleApexClassTest {\n\t@isTest\n\tpublic validateSayHello(string name) {\n\t\tSystem.debug(\'Starting validate\');\n\t\tExampleApexClass.SayHello(\'Cody\');\n\t\tSystem.assertEquals(1, 1, \'all good\');\n\t}\n}');
+  await textEditor.save();
+  await utilities.pause(1);
+}
+
 function currentUserName(): string {
   const userName = os.userInfo().username ||
     process.env.SUDO_USER! ||
@@ -376,5 +419,6 @@ export const utilities = {
   getTerminalViewText,
   getFilteredVisibleTreeViewItems,
   getFilteredVisibleTreeViewItemLabels,
+  createApexClassWithTest,
   currentUserName
 };
