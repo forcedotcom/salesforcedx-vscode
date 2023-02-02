@@ -162,13 +162,37 @@ async function attemptToFindNotification(workbench: Workbench, notificationMessa
   return false;
 }
 
-async function selectChannel(outputView: OutputView, name: string): Promise<void> {
-  // Open the Output panel's dropdown menu.
-  const select = await outputView.parent.$('select.monaco-select-box');
-  await select.click();
+async function dismissAllNotifications(): Promise<void> {
+  const workbench = await browser.getWorkbench();
+  await browser.waitUntil(async () => {
+    const notifications = await workbench.getNotifications();
+    for (const notification of notifications) {
+        await notification.dismiss();
+    }
 
-  // const channels = await outputView1.parent.$$(`${outputView1.locatorMap.BottomBarViews.outputChannels} option`);
-  const channels = await select.$$('option');
+    return !(await workbench.hasNotifications());
+  });
+}
+
+async function selectOutputChannel(outputView: OutputView, name: string): Promise<void> {
+  // Wait for all notifications to go away.  If there is a notification that is overlapping and hiding the Output channel's
+  // dropdown menu, calling select.click() doesn't work, so dismiss all notifications first before clicking the dropdown
+  // menu and opening it.
+  await dismissAllNotifications();
+
+  // Find the channel the Output view is current set to.
+  const dropDownMenu = await outputView.parent.$('select.monaco-select-box');
+  const currentChannelName = await dropDownMenu.getValue();
+  if (currentChannelName === name) {
+    // If the output channel is already set, don't do anything and just return.
+    return;
+  }
+
+  // Open the Output panel's dropdown menu.
+  await dropDownMenu.click();
+
+  // Click the target channel.
+  const channels = await dropDownMenu.$$('option');
   for (const channel of channels) {
     const val = await channel.getValue();
     if (val === name) {
@@ -176,6 +200,7 @@ async function selectChannel(outputView: OutputView, name: string): Promise<void
         // eslint-disable-next-line wdio/no-pause
         await browser.pause(200);
         await browser.keys(['Escape']);
+        await utilities.pause(1);
         return;
     }
   }
@@ -183,14 +208,22 @@ async function selectChannel(outputView: OutputView, name: string): Promise<void
   throw new Error(`Channel ${name} not found`);
 }
 
-async function getOutputPanelText(outputChannelName: string): Promise<string> {
+async function openOutputView(): Promise<OutputView> {
   const workbench = await browser.getWorkbench();
   const bottomBar = await workbench.getBottomBar(); // selector is 'div[id="workbench.parts.panel"]'
   const outputView = await bottomBar.openOutputView(); // selector is 'div[id="workbench.panel.output"]'
   await utilities.pause(2);
 
-  selectChannel(outputView, outputChannelName);
-  await utilities.pause(1);
+  return outputView;
+}
+
+async function getOutputPanelText(outputChannelName: string = ''): Promise<string> {
+  const outputView = await openOutputView();
+
+  // Set the output channel, but only if the value is passed in.
+  if (outputChannelName) {
+    await selectOutputChannel(outputView, outputChannelName);
+  }
 
   // Set focus to the contents in the Output panel.
   await (await outputView.elem).click();
@@ -206,10 +239,13 @@ async function getOutputPanelText(outputChannelName: string): Promise<string> {
   return outputPanelText;
 }
 
-// If found, this function returns the entire text that's in the Output panel
+// If found, this function returns the entire text that's in the Output panel.
 async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number) : Promise<string | undefined> {
+  const outputView = await openOutputView();
+  await selectOutputChannel(outputView, outputChannelName);
+
   while (attempts > 0) {
-    const outputPanelText = await getOutputPanelText(outputChannelName);
+    const outputPanelText = await getOutputPanelText();
     if (outputPanelText.includes(searchString)) {
       return outputPanelText;
     }
@@ -329,7 +365,9 @@ export const utilities = {
   waitForNotificationToGoAway,
   notificationIsPresent,
   attemptToFindNotification,
-  selectChannel,
+  dismissAllNotifications,
+  selectOutputChannel,
+  openOutputView,
   getOutputPanelText,
   attemptToFindOutputPanelText,
   executeCommand,
