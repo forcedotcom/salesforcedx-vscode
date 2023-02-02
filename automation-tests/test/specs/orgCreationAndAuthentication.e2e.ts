@@ -21,28 +21,26 @@ import {
 
 describe('Org Creation and Authentication', async () => {
   const tempProjectName = 'TempProject-OrgCreationAndAuth';
+  let tempFolderPath: string;
   let projectFolderPath: string;
   let prompt: QuickOpenBox | InputBox;
   let scratchOrgAliasName: string;
 
   step('Set up the testing environment', async () => {
-    const tempFolderPath = getTempFolderPath();
+    tempFolderPath = getTempFolderPath();
     projectFolderPath = path.join(tempFolderPath, tempProjectName);
 
-    // Clean up the temp folder, just in case there are stale files there.
+    // Remove the project folder, just in case there are stale files there.
     if (fs.existsSync(projectFolderPath)) {
       utilities.removeFolder(projectFolderPath);
       await utilities.pause(1);
     }
 
-    // Now create the folder.
+    // Now create the temp folder.  It should exists but create the folder if it is missing.
     if (!fs.existsSync(tempFolderPath)) {
       await utilities.createFolder(tempFolderPath);
       await utilities.pause(1);
     }
-
-    await utilities.createFolder(projectFolderPath);
-    await utilities.pause(1);
   });
 
   step('Run SFDX: Create Project', async () => {
@@ -69,7 +67,7 @@ describe('Org Creation and Authentication', async () => {
 
     // Set the location of the project.
     const input = await prompt.input$;
-    await input.setValue(projectFolderPath);
+    await input.setValue(tempFolderPath);
     await utilities.pause(1);
 
     // Click the OK button.
@@ -96,7 +94,7 @@ describe('Org Creation and Authentication', async () => {
     const workbench = await browser.getWorkbench();
     await utilities.pause(1);
 
-    const authFilePath = path.join(projectFolderPath, tempProjectName, 'authFile.json');
+    const authFilePath = path.join(projectFolderPath, 'authFile.json');
     const terminalView = await utilities.executeCommand(workbench, `sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json > ${authFilePath}`);
 
     const authFilePathFileExists = fs.existsSync(authFilePath);
@@ -130,7 +128,7 @@ describe('Org Creation and Authentication', async () => {
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
     expect(successNotificationWasFound).toBe(true);
 
-    const expectedOutputWasFound = await utilities.attemptToFindOutputPanelText('Salesforce CLI', `defaultusername ${EnvironmentSettings.getInstance().devHubAliasName} true`, 5);
+    const expectedOutputWasFound = await utilities.attemptToFindOutputPanelText('Salesforce CLI', `defaultusername  ${EnvironmentSettings.getInstance().devHubAliasName}  true`, 5);
     expect(expectedOutputWasFound).not.toBeUndefined();
 
     // Look for "vscodeOrg" in the status bar.
@@ -253,6 +251,6 @@ describe('Org Creation and Authentication', async () => {
   });
 
   function getTempFolderPath(): string {
-    return path.join(__dirname, '..', 'e2e-temp');
+    return path.join(__dirname, '..', '..', 'e2e-temp');
   }
 });

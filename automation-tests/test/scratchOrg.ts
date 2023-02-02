@@ -26,6 +26,7 @@ const exec = util.promisify(child_process.exec);
 export class ScratchOrg {
   private testSuiteSuffixName: string;
   private reuseScratchOrg = false;
+  private tempFolderPath: string | undefined = undefined;
   private projectFolderPath: string | undefined = undefined;
   private prompt: QuickOpenBox | InputBox | undefined;
   private scratchOrgAliasName: string | undefined;
@@ -64,24 +65,21 @@ export class ScratchOrg {
     utilities.log('');
     utilities.log(`${this.testSuiteSuffixName} - Starting setUpTestingEnvironment()...`);
 
-    const tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
-    this.projectFolderPath = path.join(tempFolderPath, this.tempProjectName);
+    this.tempFolderPath = path.join(__dirname, '..', 'e2e-temp');
+    this.projectFolderPath = path.join(this.tempFolderPath, this.tempProjectName);
     utilities.log(`${this.testSuiteSuffixName} - creating project files in ${this.projectFolderPath}`);
 
-    // Clean up the temp folder, just in case there are stale files there.
+    // Remove the project folder, just in case there are stale files there.
     if (fs.existsSync(this.projectFolderPath)) {
       await utilities.removeFolder(this.projectFolderPath);
       await utilities.pause(1);
     }
 
-    // Now create the folders.
-    if (!fs.existsSync(tempFolderPath)) {
-      await utilities.createFolder(tempFolderPath);
+    // Now create the temp folder.  It should exists but create the folder if it is missing.
+    if (!fs.existsSync(this.tempFolderPath)) {
+      await utilities.createFolder(this.tempFolderPath);
       await utilities.pause(1);
     }
-
-    await utilities.createFolder(this.projectFolderPath);
-    await utilities.pause(1);
 
     utilities.log(`${this.testSuiteSuffixName} - ...finished setUpTestingEnvironment()`);
     utilities.log('');
@@ -107,7 +105,7 @@ export class ScratchOrg {
 
     // Set the location of the project.
     const input = await this.prompt.input$;
-    await input.setValue(this.projectFolderPath!);
+    await input.setValue(this.tempFolderPath!);
     await utilities.pause(1);
 
     // Click the OK button.
@@ -141,7 +139,7 @@ export class ScratchOrg {
     utilities.log(`${this.testSuiteSuffixName} - Starting authorizeDevHub()...`);
 
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.
-    const authFilePath = path.join(this.projectFolderPath!, this.tempProjectName, 'authFile.json');
+    const authFilePath = path.join(this.projectFolderPath!, 'authFile.json');
     utilities.log(`${this.testSuiteSuffixName} - calling sfdx force:org:display...`);
     const sfdxForceOrgDisplayResult = await exec(`sfdx force:org:display -u ${EnvironmentSettings.getInstance().devHubAliasName} --verbose --json`);
     const json = this.removedEscapedCharacters(sfdxForceOrgDisplayResult.stdout);
@@ -191,7 +189,7 @@ export class ScratchOrg {
       }
     }
 
-    const definitionFile = path.join(this.projectFolderPath!, this.tempProjectName, 'config', 'project-scratch-def.json');
+    const definitionFile = path.join(this.projectFolderPath!, 'config', 'project-scratch-def.json');
 
     // Org alias format: TempScratchOrg_yyyy_mm_dd_username_ticks_testSuiteSuffixName
     const currentDate = new Date();
