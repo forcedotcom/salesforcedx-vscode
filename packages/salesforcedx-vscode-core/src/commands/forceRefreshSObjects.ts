@@ -4,35 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import {
-  SOBJECTS_DIR,
-  STANDARDOBJECTS_DIR
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { SObjectTransformerFactory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
-  SObjectRefreshSource
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
+  SObjectRefreshSource,
+  SOBJECTS_DIR,
+  SObjectTransformerFactory,
+  STANDARDOBJECTS_DIR
+} from '@salesforce/salesforcedx-sobjects-faux-generator';
 import {
+  CancelResponse,
   Command,
+  ContinueResponse,
   LocalCommandExecution,
-  projectPaths,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
   notificationService,
-  ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
+  ParametersGatherer,
+  ProgressNotification,
+  projectPaths,
+  SfdxCommandBuilder,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -240,10 +231,7 @@ function getStandardSObjectsDirectory() {
 }
 
 export async function checkSObjectsAndRefresh(projectPath: string) {
-  if (
-    projectPath &&
-    !fs.existsSync(getStandardSObjectsDirectory())
-  ) {
+  if (projectPath && !fs.existsSync(getStandardSObjectsDirectory())) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',
       { type: SObjectRefreshSource.StartupMin },

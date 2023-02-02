@@ -1,3 +1,4 @@
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -5,7 +6,6 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { ContinueResponse } from '../../../../../salesforcedx-utils-vscode/out/src/types';
 import { projectTemplateEnum } from '../../../../src/commands/forceProjectCreate';
 import {
   EnterForceIdeUri,
