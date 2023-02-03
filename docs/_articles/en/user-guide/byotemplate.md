@@ -13,8 +13,8 @@ This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/
 
 ## Set Default Template Location
  You can store template files in a local directory, or in a github project. Set ``customOrgMetadataTemplates`` to your custom template location:
-- Run ``sfdx config:set customOrgMetadataTemplates=<github repo or local template directory>`` command from the terminal inside VS Code.
-- Open the `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder and confirm that it has a new entry in the format,`` "customOrgMetadataTemplates": "<github repo or local template directory>"``.
+1. Run ``sfdx config:set customOrgMetadataTemplates=<github repo or local template directory>`` command from the terminal inside VS Code.
+2. Open the `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder and confirm that it has a new entry in the format,`` "customOrgMetadataTemplates": "<github repo or local template directory>"``.
 
 **Note:** You can also use the CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
 
