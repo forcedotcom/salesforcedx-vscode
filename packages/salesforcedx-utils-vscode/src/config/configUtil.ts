@@ -173,7 +173,8 @@ export class ConfigUtil {
     // Force the ConfigAggregatorProvider to reload its stored
     // ConfigAggregators so that this config file change is accounted
     // for and the ConfigAggregators are updated with the latest info.
-    ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+    const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
+    await configAggregatorProvider.reloadConfigAggregators();
   }
 }
 

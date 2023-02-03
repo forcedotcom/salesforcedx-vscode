@@ -1,5 +1,6 @@
 import { Config, Org, OrgConfigProperties } from '@salesforce/core';
 import { ConfigUtil, workspaceUtils } from '../../../src';
+import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
 describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlias', () => {
   const fakeOriginalDirectory = 'test/directory';
@@ -12,23 +13,37 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
   let chdirStub: jest.SpyInstance;
   let setMock: jest.SpyInstance;
   let writeMock: jest.SpyInstance;
+  let mockConfigAggregatorProvider: jest.SpyInstance;
+  const mockConfigAggregatorProviderInstance = {
+    reloadConfigAggregators: jest.fn()
+  };
 
   beforeEach(() => {
-    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-    originalDirectoryStub = jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
+    workspacePathStub = jest
+      .spyOn(workspaceUtils, 'getRootWorkspacePath')
+      .mockReturnValue(fakeWorkspace);
+    originalDirectoryStub = jest
+      .spyOn(process, 'cwd')
+      .mockReturnValue(fakeOriginalDirectory);
     setMock = jest.fn();
     writeMock = jest.fn();
     configStub = jest.spyOn(Config, 'create');
-    configStub.mockResolvedValue({set: setMock, write: writeMock});
+    configStub.mockResolvedValue({ set: setMock, write: writeMock });
     orgStub = jest.spyOn(Org, 'create').mockResolvedValue(undefined as any);
     chdirStub = jest.spyOn(process, 'chdir').mockReturnValue();
+    mockConfigAggregatorProvider = jest
+      .spyOn(ConfigAggregatorProvider, 'getInstance')
+      .mockReturnValue(mockConfigAggregatorProviderInstance as any);
   });
 
   it('should set provided username or alias as default configs', async () => {
     const username = 'vscodeOrgs';
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).toHaveBeenCalled();
-    expect(setMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG, username);
+    expect(setMock).toHaveBeenCalledWith(
+      OrgConfigProperties.TARGET_ORG,
+      username
+    );
     expect(writeMock).toHaveBeenCalled();
   });
 
@@ -45,7 +60,19 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     const username = '';
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).not.toHaveBeenCalled();
-    expect(setMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG, username);
+    expect(setMock).toHaveBeenCalledWith(
+      OrgConfigProperties.TARGET_ORG,
+      username
+    );
     expect(writeMock).toHaveBeenCalled();
+    expect(mockConfigAggregatorProvider).toHaveBeenCalled();
+    expect(
+      mockConfigAggregatorProviderInstance.reloadConfigAggregators
+    ).toHaveBeenCalled();
+    const writeCallOrder = writeMock.mock.invocationCallOrder[0];
+    const reloadCallOrder =
+      mockConfigAggregatorProviderInstance.reloadConfigAggregators.mock
+        .invocationCallOrder[0];
+    expect(writeCallOrder).toBeLessThan(reloadCallOrder);
   });
 });
