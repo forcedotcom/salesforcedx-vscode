@@ -25,7 +25,32 @@ Out of the box snippets for Salesforce development are available in these reposi
 - [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
 - [Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc.json) 
 
-If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
+
+### Example Custom Snippet
+The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a custom Apex snippet that lets you quickly write a simple SOQL query:
+
+1. Run the `SFDX: Configure User Snippets` command from the Command Palette. 
+2. Select ``apex.json`` to open the file.
+3. Add this snippet code to the file:
+   
+   ```
+   "SOQL" : {
+        "prefix": "soql",
+        "body": [
+            "[SELECT ${1:field1, field2} FROM ${2:SobjectName} WHERE ${3:clause}];"
+        ],
+        "description": "Apex SOQL query"
+    }
+   ```
+4. Save the file.
+5.  Use this snippet in your Apex class file by simply typing "soql" and selecting to add this snippet to your code.
+6.  The code snippet is added to your apex file: 
+
+   ` [SELECT field1, field2 FROM SobjectName WHERE clause];`
+  
+
+
+See [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets) for more information about snippets.
 
 ## Custom Metadata Templates
 
