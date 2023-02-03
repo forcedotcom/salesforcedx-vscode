@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { step } from 'mocha-steps';
+import {
+  step
+} from 'mocha-steps';
 import {
   ScratchOrg
 } from '../scratchOrg';
-import {
-  utilities
-} from '../utilities';
+import * as utilities from '../utilities';
 
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
@@ -27,7 +27,8 @@ describe('An Initial Suite', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Verify our extensions are not initially loaded', async () => {
-    await utilities.runCommandFromCommandPalette('Developer: Show Running Extensions', 2);
+    const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'Developer: Show Running Extensions', 2);
 
     const extensionNameDivs = await $$('div.name');
     let sfdxKeywordWasFound = false;
@@ -87,9 +88,11 @@ describe('An Initial Suite', async () => {
   });
 
   step('Verify our extensions are loaded after creating an SFDX project', async () => {
-    await utilities.runCommandFromCommandPalette('Developer: Show Running Extensions', 2);
-    const extensionNameDivs = await $$('div.name');
+    const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'Developer: Show Running Extensions', 2);
+
     let matchesFound = 0;
+    const extensionNameDivs = await $$('div.name');
     for (const extensionNameDiv of extensionNameDivs) {
       const text = await extensionNameDiv.getText();
 

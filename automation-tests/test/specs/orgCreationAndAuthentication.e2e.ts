@@ -4,8 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import fs from 'fs';
-import { step } from 'mocha-steps';
+import {
+  step
+} from 'mocha-steps';
 import path from 'path';
 import {
   DefaultTreeItem,
@@ -15,9 +18,7 @@ import {
 import {
   EnvironmentSettings
 } from '../environmentSettings';
-import {
-  utilities
-} from '../utilities';
+import * as utilities from '../utilities';
 
 describe('Org Creation and Authentication', async () => {
   const tempProjectName = 'TempProject-OrgCreationAndAuth';
@@ -44,7 +45,8 @@ describe('Org Creation and Authentication', async () => {
   });
 
   step('Run SFDX: Create Project', async () => {
-    prompt = await utilities.runCommandFromCommandPalette('SFDX: Create Project', 10);
+    const workbench = await browser.getWorkbench();
+    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Project', 10);
     // Selecting "SFDX: Create Project" causes the extension to be loaded, and this takes a while.
 
     // Select the "Standard" project type.
@@ -74,7 +76,6 @@ describe('Org Creation and Authentication', async () => {
     await utilities.clickFilePathOkButton();
 
     // Verify the project was created and was loaded.
-    const workbench = await browser.getWorkbench();
     const sidebar = workbench.getSideBar();
     const content = sidebar.getContent();
     const treeViewSection = await content.getSection(tempProjectName.toUpperCase());
@@ -137,7 +138,8 @@ describe('Org Creation and Authentication', async () => {
   });
 
   step('Run SFDX: Create a Default Scratch Org', async () => {
-    await utilities.runCommandFromCommandPalette('SFDX: Create a Default Scratch Org...', 1);
+    const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create a Default Scratch Org...', 1);
 
     // Select a project scratch definition file (config/project-scratch-def.json)
     // Press Enter/Return to use the default (config/project-scratch-def.json)
@@ -149,8 +151,8 @@ describe('Org Creation and Authentication', async () => {
     const day = ("0" + currentDate.getDate()).slice(-2);
     const month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
     const year = currentDate.getFullYear();
-    const userName = utilities.currentUserName();
-    scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${userName}_${ticks}_OrgAuth`;
+    const currentOsUserName = utilities.currentOsUserName();
+    scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${currentOsUserName}_${ticks}_OrgAuth`;
 
     await prompt.setText(scratchOrgAliasName);
     await utilities.pause(1);
@@ -165,7 +167,6 @@ describe('Org Creation and Authentication', async () => {
     // Press Enter/Return.
     await prompt.confirm();
 
-    const workbench = await browser.getWorkbench();
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Create a Default Scratch Org...', 5 * 60);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Create a Default Scratch Org... successfully ran');
@@ -197,10 +198,11 @@ describe('Org Creation and Authentication', async () => {
   });
 
   step('Run SFDX: Set a Default Org', async () => {
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Set a Default Org', 1);
+    const workbench = await browser.getWorkbench();
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Set a Default Org', 1);
 
     let scratchOrgQuickPickItemWasFound = false;
-    const userName = await utilities.currentUserName();
+    const currentOsUserName = await utilities.currentOsUserName();
     const quickPicks = await inputBox.getQuickPicks();
     for (const quickPick of quickPicks) {
       const label = await quickPick.getLabel();
@@ -217,7 +219,7 @@ describe('Org Creation and Authentication', async () => {
         // and the "Run SFDX: Create a Default Scratch Org" step was skipped,
         // scratchOrgAliasName is undefined and as such, search for the first org
         // that starts with "TempScratchOrg_" and also has the current user's name.
-        if (label.startsWith('TempScratchOrg_') && label.includes(userName)) {
+        if (label.startsWith('TempScratchOrg_') && label.includes(currentOsUserName)) {
           scratchOrgAliasName = label.split(' - ')[0];
           await quickPick.select();
           await utilities.pause(3);
@@ -228,7 +230,6 @@ describe('Org Creation and Authentication', async () => {
     }
     expect(scratchOrgQuickPickItemWasFound).toBe(true);
 
-    const workbench = await browser.getWorkbench();
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
     expect(successNotificationWasFound).toBe(true);
 
