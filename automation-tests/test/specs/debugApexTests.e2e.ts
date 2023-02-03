@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import fs from 'fs';
 import { step } from 'mocha-steps';
-import path from 'path';
 import {
   InputBox,
   QuickOpenBox,
@@ -79,8 +77,8 @@ describe('Debug Apex Tests', async () => {
 
   step('SFDX: Launch Apex Replay Debugger with Current File', async () => {
     // Open ExampleApexClass file
-    prompt = await utilities.runCommandFromCommandPalette('File: Open recent...', 1);
-    await prompt.selectQuickPick('ExampleApexClass.cls');
+    prompt = await utilities.runCommandFromCommandPalette('Quick Open Previous Editor from History', 1);
+    await utilities.selectQuickPickItem(prompt, 'ExampleApexClass.cls');
     await utilities.pause(1);
 
     // Run SFDX: Launch Apex Replay Debugger with Current File
@@ -125,11 +123,6 @@ describe('Debug Apex Tests', async () => {
     let textEditor: TextEditor;
     textEditor = await editorView.openEditor('ExampleApexClassTest.cls') as TextEditor;
 
-    // // Open ExampleApexClassTest file
-    // prompt = await utilities.runCommandFromCommandPalette('File: Open recent', 1);
-    // await prompt.selectQuickPick('ExampleApexClassTest.cls');
-    // await utilities.pause(1);
-
     // Select text
     await textEditor.selectText('ExampleApexClass.SayHello(\'Cody\');');
     await utilities.pause(1);
@@ -147,13 +140,10 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('Run the Anonymous Apex Debugger using the Command Palette', async () => {
-    // Open ExampleApexClassTest file
-    prompt = await utilities.runCommandFromCommandPalette('File: Open recent', 1);
-    await prompt.selectQuickPick('ExampleApexClassTest.cls');
-    await utilities.pause(1);
-
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     prompt = await utilities.runCommandFromCommandPalette('SFDX: Execute Anonymous Apex with Editor Contents', 1);
+    // tslint:disable-next-line:no-debugger
+    debugger;
     await utilities.pause(1);
 
     // Wait for the command to execute
