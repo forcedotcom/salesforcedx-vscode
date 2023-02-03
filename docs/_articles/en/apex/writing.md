@@ -29,29 +29,32 @@ If you want to define your own code snippets, read [Snippets in Visual Studio Co
 
 ## Custom Metadata Templates
 
-In addition to the generic snippets feature available in VS Code, you can use custom templates to create new metadata for an Apex class or trigger. See [Custom Code Templates](../user-guide/byotemplate.md) for information on how to set up your custom templates repository. Here's an example of an update to an Apex class:
+In addition to the generic snippets feature available in VS Code, you can use custom templates to create new metadata for an Apex class or trigger. See [Custom Code Templates](../user-guide/byotemplate.md) for information on how to set up your custom templates. Here's an example of an update to an Apex class:
 
-1. Clone the sample GitHub repo.
-2. Delete all folders except the `apexclass` folder. Also delete all the files except the `DefaultApexClass.cls` file from the `apexclass` folder.
-3. Edit the `DefaultApexClass.cls` file with your custom code:
+1. Edit the `DefaultApexClass.cls` file with your custom code:
 
 ```
+//Copyright (c) <year><copyright holder>
+
 public with sharing class <%= apiName %> {
     		public <%= apiName %>(String prop) {
 			this.prop = prop;
     		}
-
-		@AuraEnabled public String prop { get;set; }
-	}
+		@AuraEnabled
+    public static List<SObject> getRecords(){
+      try {
+          return [Select Id from Sobject];
+      } catch (Exception e){
+          throw new AuraHandledException(e.getMessage());
+      }
+    }
+}
 ```
-
-**Note:** If you edit the file locally, remember to push changes to your repo. You can also choose to make changes directly in your repo.
-
-4. Update the `sfdx-config.json` file to point to your cloned repo (or local directory).
-5. Run the `SFDX: Create Apex Class` command from the Command Palette.
-6. Enter `ApexClass` for filename.
-7. Accept the default directory location.
-8. Confirm that the `ApexClass.cls` file contains your custom code:
+1. Run the `SFDX: Create Apex Class` command from the Command Palette.
+2. Enter `ApexClass` for filename.
+3. Accept the default directory location.
+   
+Confirm that the `ApexClass.cls` file contains your custom code:
 
 ```
 public with sharing class ApexClass {
@@ -62,8 +65,6 @@ public with sharing class ApexClass {
 		@AuraEnabled public String prop { get;set; }
 	}
 ```
-
-9. Share your config file with your teammates so that you’re all using the same config setting.
 
 ## Intellisense for SObjects
 
