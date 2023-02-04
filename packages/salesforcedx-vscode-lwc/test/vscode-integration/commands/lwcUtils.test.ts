@@ -670,7 +670,7 @@ describe('lwcUtils', () => {
     doExecuteSFDXCommandTest(true, true);
   });
 
-  function doExecuteSFDXCommandTest(isAndroid: Boolean, isErrorCase: Boolean) {
+  function doExecuteSFDXCommandTest(isAndroid: boolean, isErrorCase: boolean) {
     const platform: LWCPlatformQuickPickItem = isAndroid
     ? {
       label: nls.localize('force_lightning_lwc_android_label'),
