@@ -7,13 +7,9 @@
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
 import {
-  CliCommandExecutor,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import {
   EmptyParametersGatherer,
+  notificationService,
+  SfdxCommandBuilder,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -27,119 +23,31 @@ import { PreviewService } from '../service/previewService';
 import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
+import {
+  DevicePlatformName,
+  DevicePlatformType,
+  LWCPlatformQuickPickItem,
+  LWCUtils,
+  OperationCancelledException
+} from './lwcUtils';
 
-enum PreviewPlatformType {
-  Desktop = 1,
-  Android,
-  iOS
-}
-
-export const enum PlatformName {
-  Desktop = 'Desktop',
-  Android = 'Android',
-  iOS = 'iOS'
-}
-
-interface IOSSimulatorDevice {
-  name: string;
-  udid: string;
-  state: string;
-  runtimeId: string;
-  isAvailable: boolean;
-}
-
-interface AndroidVirtualDevice {
-  name: string;
-  displayName: string;
-  deviceName: string;
-  path: string;
-  target: string;
-  api: string;
-}
-
-interface PreviewQuickPickItem extends vscode.QuickPickItem {
-  label: string;
-  detail: string;
-  alwaysShow: boolean;
-  picked: boolean;
-  id: PreviewPlatformType;
-  defaultTargetName: string;
-  platformName: keyof typeof PlatformName;
-}
-
-export interface DeviceQuickPickItem extends vscode.QuickPickItem {
-  name: string;
-}
-
-export const platformOptions: PreviewQuickPickItem[] = [
-  {
-    label: nls.localize('force_lightning_lwc_desktop_label'),
-    detail: nls.localize('force_lightning_lwc_desktop_description'),
-    alwaysShow: true,
-    picked: true,
-    id: PreviewPlatformType.Desktop,
-    platformName: PlatformName.Desktop,
-    defaultTargetName: ''
-  },
-  {
-    label: nls.localize('force_lightning_lwc_android_label'),
-    detail: nls.localize('force_lightning_lwc_android_description'),
-    alwaysShow: true,
-    picked: false,
-    id: PreviewPlatformType.Android,
-    platformName: PlatformName.Android,
-    defaultTargetName: 'SFDXEmulator'
-  },
-  {
-    label: nls.localize('force_lightning_lwc_ios_label'),
-    detail: nls.localize('force_lightning_lwc_ios_description'),
-    alwaysShow: true,
-    picked: false,
-    id: PreviewPlatformType.iOS,
-    platformName: PlatformName.iOS,
-    defaultTargetName: 'SFDXSimulator'
-  }
-];
-
-const logName = 'force_lightning_lwc_preview';
-const commandName = nls.localize('force_lightning_lwc_preview_text');
-const sfdxDeviceListCommand = 'force:lightning:local:device:list';
-const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-const androidSuccessString = 'Launching... Opening Browser';
-
-export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
+export async function forceLightningLwcPreview(sourceUri: vscode.Uri): Promise<void> {
+  const logName = 'force_lightning_lwc_preview';
+  const commandName = nls.localize('force_lightning_lwc_preview_text');
   const startTime = process.hrtime();
+  const resourceUri = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
+  const resourcePath = sourceUri?.fsPath;
 
-  if (!sourceUri) {
-    if (vscode.window.activeTextEditor) {
-      sourceUri = vscode.window.activeTextEditor.document.uri;
-    } else {
-      const message = nls.localize(
-        'force_lightning_lwc_file_undefined',
-        sourceUri
-      );
-      showError(new Error(message), logName, commandName);
-      return;
-    }
+  if (!resourceUri) {
+    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_undefined', resourceUri);
   }
 
-  const resourcePath = sourceUri.fsPath;
   if (!resourcePath) {
-    const message = nls.localize(
-      'force_lightning_lwc_file_undefined',
-      resourcePath
-    );
-    showError(new Error(message), logName, commandName);
-    return;
+    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_undefined', resourcePath);
   }
 
   if (!fs.existsSync(resourcePath)) {
-    const message = nls.localize(
-      'force_lightning_lwc_file_nonexist',
-      resourcePath
-    );
-    showError(new Error(message), logName, commandName);
-    return;
+    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_nonexist', resourcePath);
   }
 
   const isSFDX = true; // TODO support non SFDX projects
@@ -148,15 +56,10 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
     : componentUtil.moduleFromFile(resourcePath, isSFDX);
   if (!componentName) {
-    const message = nls.localize(
-      'force_lightning_lwc_unsupported',
-      resourcePath
-    );
-    showError(new Error(message), logName, commandName);
-    return;
+    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_unsupported', resourcePath);
   }
 
-  await executePreview(startTime, componentName, resourcePath);
+  return executeCommand(logName, commandName, startTime, componentName, resourcePath);
 }
 
 /**
@@ -169,66 +72,82 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
  * @param componentName name of the lwc
  * @param resourcePath path to the lwc
  */
-async function executePreview(
+async function executeCommand(
+  logName: string,
+  commandName: string,
   startTime: [number, number],
   componentName: string,
   resourcePath: string
-) {
-  const commandCancelledMessage = nls.localize(
-    'force_lightning_lwc_operation_cancelled'
-  );
-
-  // 1. Prompt user to select a platform
-  const platformSelection = await selectPlatform();
-  if (!platformSelection) {
-    vscode.window.showWarningMessage(commandCancelledMessage);
-    return;
-  }
-
-  if (platformSelection.id === PreviewPlatformType.Desktop) {
-    await startServer(true, componentName, startTime);
-    return;
-  }
-
-  // 2. Prompt user to select a target device
-  let targetDevice: string;
+): Promise<void> {
   try {
-    const targetName = await selectTargetDevice(platformSelection);
-    if (targetName === undefined) {
-      vscode.window.showInformationMessage(commandCancelledMessage);
-      return;
-    } else {
-      targetDevice = targetName;
+    // 1. Prompt user to select a platform
+    const platformOptions: LWCPlatformQuickPickItem[] = [
+      {
+        label: nls.localize('force_lightning_lwc_desktop_label'),
+        detail: nls.localize('force_lightning_lwc_desktop_description'),
+        alwaysShow: true,
+        picked: true,
+        id: DevicePlatformType.Desktop,
+        platformName: DevicePlatformName.Desktop,
+        defaultTargetName: ''
+      },
+      {
+        label: nls.localize('force_lightning_lwc_android_label'),
+        detail: nls.localize('force_lightning_lwc_android_description'),
+        alwaysShow: true,
+        picked: false,
+        id: DevicePlatformType.Android,
+        platformName: DevicePlatformName.Android,
+        defaultTargetName: 'SFDXEmulator'
+      },
+      {
+        label: nls.localize('force_lightning_lwc_ios_label'),
+        detail: nls.localize('force_lightning_lwc_ios_description'),
+        alwaysShow: true,
+        picked: false,
+        id: DevicePlatformType.iOS,
+        platformName: DevicePlatformName.iOS,
+        defaultTargetName: 'SFDXSimulator'
+      }
+    ];
+    const selectedPlatform = await LWCUtils.selectPlatform(platformOptions);
+    if (selectedPlatform.id === DevicePlatformType.Desktop) {
+      return startServer(true, componentName, logName, commandName, startTime);
     }
-  } catch {
-    // exception has already been logged
-    return;
+
+    // 2. Prompt user to select a target device for the platform
+    const targetDevice = await LWCUtils.selectTargetDevice(selectedPlatform);
+
+    // 3. Determine project root directory and path to the config file (if any)
+    const projectRootDir = LWCUtils.getProjectRootDirectory(resourcePath);
+    const configFilePath = projectRootDir && path.join(projectRootDir, 'mobile-apps.json');
+
+    // 4. Prompt user to select a target app (if any)
+    const targetApp = await selectTargetApp(selectedPlatform, configFilePath);
+
+    // 5. Start the local dev server
+    await startServer(false, componentName, logName, commandName, startTime);
+
+    // 6. Preview on mobile device
+    await executeMobilePreview(
+      selectedPlatform,
+      targetDevice,
+      targetApp,
+      projectRootDir,
+      configFilePath,
+      componentName,
+      logName,
+      commandName,
+      startTime
+    );
+  } catch (err) {
+    if (err instanceof OperationCancelledException) {
+      vscode.window.showWarningMessage(err.message);
+    } else {
+      showError(err, logName, commandName);
+      return Promise.reject(err);
+    }
   }
-
-  // 3. Determine project root directory and path to the config file
-  const projectRootDir = getProjectRootDirectory(resourcePath);
-  const configFilePath =
-    projectRootDir && path.join(projectRootDir, 'mobile-apps.json');
-
-  // 4. Prompt user to select a target app (if any)
-  const targetApp = await selectTargetApp(platformSelection, configFilePath);
-  if (targetApp === undefined) {
-    vscode.window.showInformationMessage(commandCancelledMessage);
-    return;
-  }
-
-  await startServer(false, componentName, startTime);
-
-  // 5. Preview on mobile device
-  await executeMobilePreview(
-    platformSelection,
-    targetDevice,
-    targetApp,
-    projectRootDir,
-    configFilePath,
-    componentName,
-    startTime
-  );
 }
 
 /**
@@ -241,48 +160,38 @@ async function executePreview(
 async function startServer(
   isDesktop: boolean,
   componentName: string,
+  logName: string,
+  commandName: string,
   startTime: [number, number]
-) {
-  if (!DevServerService.instance.isServerHandlerRegistered()) {
-    console.log(`${logName}: server was not running, starting...`);
-    const preconditionChecker = new SfdxWorkspaceChecker();
-    const parameterGatherer = new EmptyParametersGatherer();
-    const executor = new ForceLightningLwcStartExecutor({
-      openBrowser: isDesktop,
-      componentName
-    });
+): Promise<void> {
+  try {
+    if (!DevServerService.instance.isServerHandlerRegistered()) {
+      const preconditionChecker = new SfdxWorkspaceChecker();
+      const parameterGatherer = new EmptyParametersGatherer();
+      const executor = new ForceLightningLwcStartExecutor({
+        openBrowser: isDesktop,
+        componentName
+      });
 
-    const commandlet = new SfdxCommandlet(
-      preconditionChecker,
-      parameterGatherer,
-      executor
-    );
+      const commandlet = new SfdxCommandlet(
+        preconditionChecker,
+        parameterGatherer,
+        executor
+      );
 
-    await commandlet.run();
-    telemetryService.sendCommandEvent(logName, startTime);
-  } else if (isDesktop) {
-    try {
+      await commandlet.run();
+      telemetryService.sendCommandEvent(logName, startTime);
+    } else if (isDesktop) {
       const fullUrl = DevServerService.instance.getComponentPreviewUrl(
         componentName
       );
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
-    } catch (e) {
-      showError(e, logName, commandName);
     }
+  } catch (err) {
+    showError(err, logName, commandName);
+    return Promise.reject(err);
   }
-}
-
-/**
- * Prompts the user to select a platform to preview the LWC on.
- * @returns the selected platform or undefined if no selection was made.
- */
-async function selectPlatform(): Promise<PreviewQuickPickItem | undefined> {
-  const platformSelection = await vscode.window.showQuickPick(platformOptions, {
-    placeHolder: nls.localize('force_lightning_lwc_platform_selection')
-  });
-
-  return platformSelection;
 }
 
 /**
@@ -291,10 +200,10 @@ async function selectPlatform(): Promise<PreviewQuickPickItem | undefined> {
  * @param platformSelection the selected platform
  * @returns the name of the selected device or undefined if no selection was made.
  */
-async function selectTargetDevice(
-  platformSelection: PreviewQuickPickItem
+/*async function selectTargetDevice(
+  platformSelection: LWCPlatformQuickPickItem
 ): Promise<string | undefined> {
-  const isAndroid = platformSelection.id === PreviewPlatformType.Android;
+  const isAndroid = platformSelection.id === DevicePlatformType.Android;
   const lastTarget = PreviewService.instance.getRememberedDevice(
     platformSelection.platformName
   );
@@ -398,7 +307,8 @@ async function selectTargetDevice(
     selectedItem = await vscode.window.showQuickPick(items, {
       placeHolder: nls.localize(
         'force_lightning_lwc_select_virtual_device'
-      )
+      ),
+      ignoreFocusOut: true
     });
 
     if (selectedItem === undefined) {
@@ -413,7 +323,8 @@ async function selectTargetDevice(
   // a new device then show an inputbox and ask for further info.
   if (targetName === undefined || selectedItem === createNewDeviceItem) {
     targetName = await vscode.window.showInputBox({
-      placeHolder: createDevicePlaceholderText
+      placeHolder: createDevicePlaceholderText,
+      ignoreFocusOut: true
     });
 
     if (targetName === undefined) {
@@ -433,7 +344,7 @@ async function selectTargetDevice(
   }
 
   return target;
-}
+}*/
 
 /**
  * Prompts the user to select an app to preview the LWC on. Defaults to browser.
@@ -443,57 +354,31 @@ async function selectTargetDevice(
  * @returns the name of the selected device or undefined if user cancels selection.
  */
 async function selectTargetApp(
-  platformSelection: PreviewQuickPickItem,
+  platformSelection: LWCPlatformQuickPickItem,
   configFile: string | undefined
-): Promise<string | undefined> {
-  let targetApp: string | undefined = 'browser';
-  const items: vscode.QuickPickItem[] = [];
+): Promise<string> {
+  let targetApp: string = 'browser';
+  const items = LWCUtils.getAppOptionsFromPreviewConfigFile(
+    platformSelection,
+    configFile
+  );
+
+  if (items.length === 0) {
+    return targetApp;
+  }
+
   const browserItem: vscode.QuickPickItem = {
     label: nls.localize('force_lightning_lwc_browserapp_label'),
     detail: nls.localize('force_lightning_lwc_browserapp_description')
   };
+  items.unshift(browserItem);
 
-  if (configFile === undefined || fs.existsSync(configFile) === false) {
-    return targetApp;
-  }
+  const selectedItem = await LWCUtils.selectItem(items, nls.localize('force_lightning_lwc_select_target_app'));
 
-  try {
-    const fileContent = fs.readFileSync(configFile, 'utf8');
-    const json = JSON.parse(fileContent);
-    const appDefinitionsForSelectedPlatform =
-      platformSelection.id === PreviewPlatformType.Android
-        ? json.apps.android
-        : json.apps.ios;
-
-    const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
-
-    apps.forEach(app => {
-      const label: string = app.name;
-      const detail: string = app.id;
-      items.push({ label, detail });
-    });
-  } catch {
-    // silengtly fail and default to previewing on browser
-  }
-
-  // if there are any devices available, show a pick list.
-  if (items.length > 0) {
-    items.unshift(browserItem);
-
-    const selectedItem = await vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('force_lightning_lwc_select_target_app')
-    });
-
-    if (selectedItem) {
-      // if user did not select the browser option then take the app id
-      // from the detail property of the selected item
-      if (selectedItem !== browserItem) {
-        targetApp = selectedItem.detail;
-      }
-    } else {
-      // user cancelled operation
-      targetApp = undefined;
-    }
+  // if user did not select the browser option then take the app id
+  // from the detail property of the selected item
+  if (selectedItem !== browserItem) {
+    targetApp = selectedItem.detail ?? '';
   }
 
   return targetApp;
@@ -511,15 +396,18 @@ async function selectTargetApp(
  * @param startTime start time of the preview command
  */
 async function executeMobilePreview(
-  platformSelection: PreviewQuickPickItem,
+  platformSelection: LWCPlatformQuickPickItem,
   targetDevice: string,
   targetApp: string,
   projectDir: string | undefined,
   configFile: string | undefined,
   componentName: string,
+  logName: string,
+  commandName: string,
   startTime: [number, number]
-) {
-  const isAndroid = platformSelection.id === PreviewPlatformType.Android;
+): Promise<void> {
+  const isAndroid = platformSelection.id === DevicePlatformType.Android;
+  const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 
   let commandBuilder = new SfdxCommandBuilder()
     .withDescription(commandName)
@@ -541,96 +429,25 @@ async function executeMobilePreview(
     .withFlag('--loglevel', PreviewService.instance.getLogLevel())
     .build();
 
-  const previewExecutor = new CliCommandExecutor(previewCommand, {
-    env: { SFDX_JSON_TO_STDOUT: 'true' }
-  });
-  const previewCancellationTokenSource = new vscode.CancellationTokenSource();
-  const previewCancellationToken = previewCancellationTokenSource.token;
-  const previewExecution = previewExecutor.execute(previewCancellationToken);
-  telemetryService.sendCommandEvent(logName, startTime);
-  channelService.streamCommandOutput(previewExecution);
-  channelService.showChannelOutput();
+  const onError = () => {
+    const message = isAndroid
+      ? nls.localize('force_lightning_lwc_android_failure', targetDevice)
+      : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
+    showError(new Error(message), logName, commandName);
+  };
 
-  previewExecution.processExitSubject.subscribe(async exitCode => {
-    if (exitCode !== 0) {
-      const message = isAndroid
-        ? nls.localize('force_lightning_lwc_android_failure', targetDevice)
-        : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
-      showError(new Error(message), logName, commandName);
-    } else if (!isAndroid) {
-      notificationService
-        .showSuccessfulExecution(
-          previewExecution.command.toString(),
-          channelService
-        )
-        .catch();
-      vscode.window.showInformationMessage(
-        nls.localize('force_lightning_lwc_ios_start', targetDevice)
-      );
-    }
-  });
+  const onSuccess = () => {
+    notificationService
+    .showSuccessfulExecution(
+      previewCommand.toString(),
+      channelService
+    )
+    .catch();
+    const message = isAndroid
+      ? nls.localize('force_lightning_lwc_android_start', targetDevice)
+      : nls.localize('force_lightning_lwc_ios_start', targetDevice);
+    vscode.window.showInformationMessage(message);
+  };
 
-  // TODO: Remove this when SFDX Plugin launches Android Emulator as separate process.
-  // listen for Android Emulator finished
-  if (isAndroid) {
-    previewExecution.stdoutSubject.subscribe(async data => {
-      if (data && data.toString().includes(androidSuccessString)) {
-        notificationService
-          .showSuccessfulExecution(
-            previewExecution.command.toString(),
-            channelService
-          )
-          .catch();
-        vscode.window.showInformationMessage(
-          nls.localize('force_lightning_lwc_android_start', targetDevice)
-        );
-      }
-    });
-  }
-}
-
-/**
- * Given a path, it recursively goes through that directory and upwards, until it finds
- * a config file named sfdx-project.json and returns the path to the folder containg it.
- *
- * @param startPath starting path to search for the config file.
- * @returns the path to the folder containing the config file, or undefined if config file not found
- */
-export function getProjectRootDirectory(startPath: string): string | undefined {
-  if (!fs.existsSync(startPath)) {
-    return undefined;
-  }
-
-  const searchingForFile = 'sfdx-project.json';
-  let dir: string | undefined = fs.lstatSync(startPath).isDirectory()
-    ? startPath
-    : path.dirname(startPath);
-  while (dir) {
-    const fileName = path.join(dir, searchingForFile);
-    if (fs.existsSync(fileName)) {
-      return dir;
-    } else {
-      dir = directoryLevelUp(dir);
-    }
-  }
-
-  // couldn't determine the root dir
-  return undefined;
-}
-
-/**
- * Given a path to a directory, returns a path that is one level up.
- *
- * @param directory path to a directory
- * @returns path to a directory that is one level up, or undefined if cannot go one level up.
- */
-export function directoryLevelUp(directory: string): string | undefined {
-  const levelUp = path.dirname(directory);
-
-  if (levelUp === directory) {
-    // we're at the root and can't go any further up
-    return undefined;
-  }
-
-  return levelUp;
+  LWCUtils.executeSFDXCommand(previewCommand, logName, startTime, isAndroid, onSuccess, onError);
 }

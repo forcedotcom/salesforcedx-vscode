@@ -37,11 +37,13 @@ export const messages = {
   force_lightning_lwc_stop_in_progress: 'Stopping local development server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_test_ui_mobile_run_text: 'SFDX: Run Using UI Test Automation Model',
+  force_lightning_lwc_test_ui_mobile_run_success: 'Successfully ran test using UTAM.',
+  force_lightning_lwc_test_ui_mobile_run_failure: 'Failed to run test using UTAM.',
   force_lightning_lwc_file_undefined:
-    "Can't find the Lightning Web Components module. Check that %s is the correct file path.",
-    force_lightning_lwc_file_nonexist:
-    "Can't find the Lightning Web Components module in %s. Check that the module exists.",
-    force_lightning_lwc_unsupported:
+    "Can't find the Lightning Web Components module. Check that '%s' is the correct file path.",
+  force_lightning_lwc_file_nonexist:
+    "Can't find the Lightning Web Components module in '%s'. Check that the module exists.",
+  force_lightning_lwc_unsupported:
     "Something's not right with the filepath. The local development server doesn't recognize the Lightning Web Components module '%s.'",
   force_lightning_lwc_open_text:
     'SFDX: Open Local Development Server in Browser',
@@ -65,21 +67,19 @@ export const messages = {
   force_lightning_lwc_no_mobile_plugin:
     'To run this command, install the @salesforce/lwc-dev-mobile plugin.',
   force_lightning_lwc_platform_selection:
-    'Select the platform for previewing the component',
-  force_lightning_lwc_android_target_default:
-    'Enter a name for the Android emulator (leave blank for default)',
-  force_lightning_lwc_ios_target_default:
-    'Enter a name for the iOS simulator (leave blank for default)',
-  force_lightning_lwc_android_target_remembered:
-    "Enter a name for the Android emulator (leave blank for '%s')",
-  force_lightning_lwc_ios_target_remembered:
-    "Enter a name for the iOS simulator (leave blank for '%s')",
+    'Select a platform',
+  force_lightning_lwc_android_target_name:
+    'Enter a name for the Android emulator',
+  force_lightning_lwc_ios_target_name:
+    'Enter a name for the iOS simulator',
   force_lightning_lwc_operation_cancelled:
-    'Preview operation cancelled by user.',
+    'Operation cancelled by the user.',
   force_lightning_lwc_ios_label: 'Use iOS Simulator',
-  force_lightning_lwc_ios_description: 'Preview component on iOS',
+  force_lightning_lwc_ios_description: 'Perform the task on an iOS simulator.',
   force_lightning_lwc_android_label: 'Use Android Emulator',
-  force_lightning_lwc_android_description: 'Preview component on Android',
+  force_lightning_lwc_android_description: 'Perform the task on an Android emulator.',
+  force_lightning_lwc_desktop_label: 'Use Desktop Browser',
+  force_lightning_lwc_desktop_description: 'Perform the task on the desktop browser.',
   force_lightning_lwc_android_failure: "Failed to start Android Emulator '%s'.",
   force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
   force_lightning_lwc_android_start: "Starting Android Emulator '%s'.",
@@ -89,13 +89,36 @@ export const messages = {
   force_lightning_lwc_create_virtual_device_label: 'New...',
   force_lightning_lwc_create_virtual_device_detail:
     'Create a Virtual Device',
-    force_lightning_lwc_select_virtual_device:
+  force_lightning_lwc_generating_device_list:
+    'Generating list of available devices, please wait...',
+  force_lightning_lwc_select_virtual_device:
     'Select a Virtual Device...',
-    force_lightning_lwc_select_target_app:
+  force_lightning_lwc_select_target_app:
     'Select a Target Application...',
-    force_lightning_lwc_desktop_label: 'Use Desktop Browser',
-    force_lightning_lwc_desktop_description:
-    'Preview component on desktop browser',
+  force_lightning_lwc_app_bundle:
+    'Please provide the path to the app bundle',
+  force_lightning_lwc_file_browse:
+    'Browse for file',
+  force_lightning_lwc_provide_app_activity:
+    'Please provide the name of the app activity (eg: com.example.myapp.MyActivity)',
+  force_lightning_lwc_provide_app_package:
+    'Please provide the name of the app package (eg: com.example.myapp)',
+  force_lightning_lwc_select_test_framework:
+    'Select a Test Framework...',
+  force_lightning_lwc_test_runner_port:
+    'Please provide the Test Runner port number (leave blank for default port)',
+  force_lightning_lwc_test_runner_baseUrl:
+    'Please provide the Test Runner base URL (leave blank for default value)',
+  force_lightning_lwc_test_injection_config_file_title:
+    'Injection Config File for UTAM WebdriverIO Service',
+  force_lightning_lwc_test_injection_config_file_detail:
+    'Please provide the path to the injection config file (leave blank for no config file)',
+  force_lightning_lwc_test_wdio_config_file:
+    'Please provide the path for your WDIO config file',
+  force_lightning_lwc_test_wdio_output_config_file_title:
+    'Please provide the path for the output WDIO config file',
+  force_lightning_lwc_test_wdio_output_config_file_detail:
+    'Or leave blank for wdio.conf.js at project root level',
   lwc_output_channel_name: 'LWC Extension',
   force_lightning_lwc_no_redhat_extension_found:
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
@@ -104,5 +127,6 @@ export const messages = {
   force_lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   force_lightning_lwc_fail_redhat_extension:
-    'Failed to setup Red Hat XML extension'
+    'Failed to setup Red Hat XML extension',
+  user_input_invalid: 'Please provide a valid input.'
 };

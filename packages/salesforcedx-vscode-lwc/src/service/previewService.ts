@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { PlatformName } from '../commands/forceLightningLwcPreview';
+import { DevicePlatformName } from '../commands/lwcUtils';
 import { WorkspaceUtils } from '../util/workspaceUtils';
 
 export class PreviewService {
@@ -21,7 +21,7 @@ export class PreviewService {
     return PreviewService._instance;
   }
 
-  public getRememberedDevice(platform: keyof typeof PlatformName): string {
+  public getRememberedDevice(platform: keyof typeof DevicePlatformName): string {
     const store = WorkspaceUtils.instance.getGlobalStore();
     if (store === undefined) {
       return '';
@@ -31,7 +31,7 @@ export class PreviewService {
   }
 
   public updateRememberedDevice(
-    platform: keyof typeof PlatformName,
+    platform: keyof typeof DevicePlatformName,
     deviceName: string
   ): void {
     const store = WorkspaceUtils.instance.getGlobalStore();
