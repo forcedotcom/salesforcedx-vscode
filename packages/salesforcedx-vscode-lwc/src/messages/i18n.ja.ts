@@ -37,11 +37,11 @@ export const messages = {
   force_lightning_lwc_stop_in_progress: 'ローカルの開発サーバを停止しています',
   force_lightning_lwc_preview_text:
     'SFDX: コンポーネントをローカルでプレビュー',
-  force_lightning_lwc_preview_file_undefined:
+  force_lightning_lwc_file_undefined:
     'Lightning Web Component モジュールが見つかりません。ファイルパス %s が正しいか確認してください。',
-  force_lightning_lwc_preview_file_nonexist:
+  force_lightning_lwc_file_nonexist:
     '%s 内に Lightning Web Component モジュールが見つかりません。モジュールが存在することを確認してください。',
-  force_lightning_lwc_preview_unsupported:
+  force_lightning_lwc_unsupported:
     "ファイルパスが正しくありません。ローカルの開発サーバは Lightning Web Components module '%s.' を認識できません。",
   force_lightning_lwc_open_text: 'SFDX: ブラウザでローカルの開発サーバを開く',
   prompt_option_open_browser: 'ブラウザを開く',
@@ -89,14 +89,14 @@ export const messages = {
   force_lightning_lwc_ios_start: "iOS シミュレータ '%s' を起動しています。",
   force_lightning_lwc_browserapp_label: 'ブラウザ',
   force_lightning_lwc_browserapp_description: 'モバイルブラウザ',
-  force_lightning_lwc_preview_create_virtual_device_label: '新規...',
-  force_lightning_lwc_preview_create_virtual_device_detail:
+  force_lightning_lwc_create_virtual_device_label: '新規...',
+  force_lightning_lwc_create_virtual_device_detail:
     '仮想デバイスを作成',
-  force_lightning_lwc_preview_select_virtual_device: '仮想デバイスを選択...',
-  force_lightning_lwc_preview_select_target_app:
+  force_lightning_lwc_select_virtual_device: '仮想デバイスを選択...',
+  force_lightning_lwc_select_target_app:
     'ターゲットアプリケーションを選択...',
-  force_lightning_lwc_preview_desktop_label: 'デスクトップブラウザを使用',
-  force_lightning_lwc_preview_desktop_description:
+  force_lightning_lwc_desktop_label: 'デスクトップブラウザを使用',
+  force_lightning_lwc_desktop_description:
     'デスクトップブラウザ上でコンポーネントをプレビュー',
   lwc_output_channel_name: 'LWC Extension',
   force_lightning_lwc_no_redhat_extension_found:

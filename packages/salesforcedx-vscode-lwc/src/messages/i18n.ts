@@ -37,11 +37,11 @@ export const messages = {
   force_lightning_lwc_stop_in_progress: 'Stopping local development server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_test_ui_mobile_run_text: 'SFDX: Run Using UI Test Automation Model',
-  force_lightning_lwc_preview_file_undefined:
+  force_lightning_lwc_file_undefined:
     "Can't find the Lightning Web Components module. Check that %s is the correct file path.",
-  force_lightning_lwc_preview_file_nonexist:
+    force_lightning_lwc_file_nonexist:
     "Can't find the Lightning Web Components module in %s. Check that the module exists.",
-  force_lightning_lwc_preview_unsupported:
+    force_lightning_lwc_unsupported:
     "Something's not right with the filepath. The local development server doesn't recognize the Lightning Web Components module '%s.'",
   force_lightning_lwc_open_text:
     'SFDX: Open Local Development Server in Browser',
@@ -86,15 +86,15 @@ export const messages = {
   force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
   force_lightning_lwc_browserapp_label: 'Browser',
   force_lightning_lwc_browserapp_description: 'Your mobile browser.',
-  force_lightning_lwc_preview_create_virtual_device_label: 'New...',
-  force_lightning_lwc_preview_create_virtual_device_detail:
+  force_lightning_lwc_create_virtual_device_label: 'New...',
+  force_lightning_lwc_create_virtual_device_detail:
     'Create a Virtual Device',
-  force_lightning_lwc_preview_select_virtual_device:
+    force_lightning_lwc_select_virtual_device:
     'Select a Virtual Device...',
-  force_lightning_lwc_preview_select_target_app:
+    force_lightning_lwc_select_target_app:
     'Select a Target Application...',
-  force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
-  force_lightning_lwc_preview_desktop_description:
+    force_lightning_lwc_desktop_label: 'Use Desktop Browser',
+    force_lightning_lwc_desktop_description:
     'Preview component on desktop browser',
   lwc_output_channel_name: 'LWC Extension',
   force_lightning_lwc_no_redhat_extension_found:

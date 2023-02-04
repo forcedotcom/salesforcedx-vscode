@@ -538,7 +538,7 @@ describe('forceLightningLwcPreview', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
+          `force_lightning_lwc_unsupported`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -557,7 +557,7 @@ describe('forceLightningLwcPreview', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
+          `force_lightning_lwc_file_nonexist`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -714,7 +714,7 @@ describe('forceLightningLwcPreview', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
+          `force_lightning_lwc_unsupported`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -736,7 +736,7 @@ describe('forceLightningLwcPreview', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
+          `force_lightning_lwc_file_nonexist`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )

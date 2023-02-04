@@ -73,8 +73,8 @@ export interface DeviceQuickPickItem extends vscode.QuickPickItem {
 
 export const platformOptions: PreviewQuickPickItem[] = [
   {
-    label: nls.localize('force_lightning_lwc_preview_desktop_label'),
-    detail: nls.localize('force_lightning_lwc_preview_desktop_description'),
+    label: nls.localize('force_lightning_lwc_desktop_label'),
+    detail: nls.localize('force_lightning_lwc_desktop_description'),
     alwaysShow: true,
     picked: true,
     id: PreviewPlatformType.Desktop,
@@ -115,7 +115,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
       sourceUri = vscode.window.activeTextEditor.document.uri;
     } else {
       const message = nls.localize(
-        'force_lightning_lwc_preview_file_undefined',
+        'force_lightning_lwc_file_undefined',
         sourceUri
       );
       showError(new Error(message), logName, commandName);
@@ -126,7 +126,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const resourcePath = sourceUri.fsPath;
   if (!resourcePath) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_file_undefined',
+      'force_lightning_lwc_file_undefined',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -135,7 +135,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 
   if (!fs.existsSync(resourcePath)) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_file_nonexist',
+      'force_lightning_lwc_file_nonexist',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -149,7 +149,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     : componentUtil.moduleFromFile(resourcePath, isSFDX);
   if (!componentName) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_unsupported',
+      'force_lightning_lwc_unsupported',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -333,13 +333,13 @@ async function selectTargetDevice(
   const items: DeviceQuickPickItem[] = [];
   const createNewDeviceItem: DeviceQuickPickItem = {
     label: nls.localize(
-      'force_lightning_lwc_preview_create_virtual_device_label'
+      'force_lightning_lwc_create_virtual_device_label'
     ),
     detail: nls.localize(
-      'force_lightning_lwc_preview_create_virtual_device_detail'
+      'force_lightning_lwc_create_virtual_device_detail'
     ),
     name: nls.localize(
-      'force_lightning_lwc_preview_create_virtual_device_label'
+      'force_lightning_lwc_create_virtual_device_label'
     )
   };
   let targetName: string | undefined;
@@ -397,7 +397,7 @@ async function selectTargetDevice(
 
     selectedItem = await vscode.window.showQuickPick(items, {
       placeHolder: nls.localize(
-        'force_lightning_lwc_preview_select_virtual_device'
+        'force_lightning_lwc_select_virtual_device'
       )
     });
 
@@ -481,7 +481,7 @@ async function selectTargetApp(
     items.unshift(browserItem);
 
     const selectedItem = await vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('force_lightning_lwc_preview_select_target_app')
+      placeHolder: nls.localize('force_lightning_lwc_select_target_app')
     });
 
     if (selectedItem) {
