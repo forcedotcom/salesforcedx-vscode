@@ -36,6 +36,7 @@ export const messages = {
     'The local development server is not running.',
   force_lightning_lwc_stop_in_progress: 'Stopping local development server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
+  force_lightning_lwc_test_ui_mobile_run_text: 'SFDX: Run Using UI Test Automation Model',
   force_lightning_lwc_preview_file_undefined:
     "Can't find the Lightning Web Components module. Check that %s is the correct file path.",
   force_lightning_lwc_preview_file_nonexist:

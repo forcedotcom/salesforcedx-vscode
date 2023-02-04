@@ -20,7 +20,8 @@ import {
   forceLightningLwcOpen,
   forceLightningLwcPreview,
   forceLightningLwcStart,
-  forceLightningLwcStop
+  forceLightningLwcStop,
+  forceLightningLwcTestUIMobileRun
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -184,6 +185,10 @@ function registerCommands(_extensionContext: ExtensionContext): Disposable {
     commands.registerCommand(
       'sfdx.force.lightning.lwc.preview',
       forceLightningLwcPreview
+    ),
+    commands.registerCommand(
+      'sfdx.force.lightning.lwc.test.ui.mobile.run',
+      forceLightningLwcTestUIMobileRun
     )
   );
 }
