@@ -137,7 +137,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.ui.mobile.run",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/.+.test.js$/"
+          "when": "sfdx:project_opened && resource =~ /^.*/(lwc|modules)/(.*/)*.+\\.(test|spec)\\.js$/"
         }
       ],
       "editor/title": [
@@ -169,7 +169,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.ui.mobile.run",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/.+.test.js$/"
+          "when": "sfdx:project_opened && resource =~ /^.*/(lwc|modules)/(.*/)*.+\\.(test|spec)\\.js$/"
         }
       ],
       "view/title": [
@@ -217,7 +217,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.ui.mobile.run",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/.+.test.js$/"
+          "when": "sfdx:project_opened && resource =~ /^.*/(lwc|modules)/(.*/)*.+\\.(test|spec)\\.js$/"
         }
       ],
       "commandPalette": [
@@ -239,7 +239,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.ui.mobile.run",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/.+.test.js$/"
+          "when": "sfdx:project_opened && resource =~ /^.*/(lwc|modules)/(.*/)*.+\\.(test|spec)\\.js$/"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
