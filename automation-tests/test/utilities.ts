@@ -361,7 +361,7 @@ async function createApexClassWithTest(): Promise<void> {
   textEditor = await editorView.openEditor('ExampleApexClass.cls') as TextEditor;
   await textEditor.setText('public with sharing class ExampleApexClass {\n\tpublic static void SayHello(string name){\n\t\tSystem.debug(\'Hello, \' + name + \'!\');\n\t}\n}');
   await textEditor.save();
-  await textEditor.toggleBreakpoint(4);
+  await textEditor.toggleBreakpoint(3);
   await utilities.pause(1);
 
   // Using the Command palette, run SFDX: Create Apex Class to create the Test
@@ -377,9 +377,15 @@ async function createApexClassWithTest(): Promise<void> {
 
   // Modify class content
   textEditor = await editorView.openEditor('ExampleApexClassTest.cls') as TextEditor;
-  await textEditor.setText('@isTest\npublic class ExampleApexClassTest {\n\t@isTest\n\tpublic validateSayHello(string name) {\n\t\tSystem.debug(\'Starting validate\');\n\t\tExampleApexClass.SayHello(\'Cody\');\n\t\tSystem.assertEquals(1, 1, \'all good\');\n\t}\n}');
+  await textEditor.setText('@isTest\npublic class ExampleApexClassTest {\n\t@isTest\n\tstatic void validateSayHello() {\n\t\tSystem.debug(\'Starting validate\');\n\t\tExampleApexClass.SayHello(\'Cody\');\n\t\tSystem.assertEquals(1, 1, \'all good\');\n\t}\n}');
+  await textEditor.toggleBreakpoint(6);
   await textEditor.save();
   await utilities.pause(1);
+
+  // Push source to scratch org
+  await utilities.runCommandFromCommandPalette('SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
+  await utilities.pause(1);
+
 }
 
 function currentUserName(): string {
