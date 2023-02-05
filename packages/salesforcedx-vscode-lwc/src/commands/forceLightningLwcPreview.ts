@@ -140,6 +140,12 @@ async function executeCommand(
       commandName,
       startTime
     );
+
+    notificationService.showSuccessfulExecution(commandName, channelService).catch();
+    const message = selectedPlatform.id === DevicePlatformType.Android
+      ? nls.localize('force_lightning_lwc_android_start', targetDevice)
+      : nls.localize('force_lightning_lwc_ios_start', targetDevice);
+    vscode.window.showInformationMessage(message);
   } catch (err) {
     if (err instanceof OperationCancelledException) {
       vscode.window.showWarningMessage(err.message);
@@ -406,48 +412,41 @@ async function executeMobilePreview(
   commandName: string,
   startTime: [number, number]
 ): Promise<void> {
-  const isAndroid = platformSelection.id === DevicePlatformType.Android;
-  const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
+  return new Promise((resolve, reject) => {
+    const isAndroid = platformSelection.id === DevicePlatformType.Android;
+    const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 
-  let commandBuilder = new SfdxCommandBuilder()
-    .withDescription(commandName)
-    .withArg(sfdxMobilePreviewCommand)
-    .withFlag('-p', platformSelection.platformName)
-    .withFlag('-t', targetDevice)
-    .withFlag('-n', componentName)
-    .withFlag('-a', targetApp);
+    let commandBuilder = new SfdxCommandBuilder()
+      .withDescription(commandName)
+      .withArg(sfdxMobilePreviewCommand)
+      .withFlag('-p', platformSelection.platformName)
+      .withFlag('-t', targetDevice)
+      .withFlag('-n', componentName)
+      .withFlag('-a', targetApp);
 
-  if (projectDir) {
-    commandBuilder = commandBuilder.withFlag('-d', projectDir);
-  }
+    if (projectDir) {
+      commandBuilder = commandBuilder.withFlag('-d', projectDir);
+    }
 
-  if (configFile && targetApp !== 'browser') {
-    commandBuilder = commandBuilder.withFlag('-f', configFile);
-  }
+    if (configFile && targetApp !== 'browser') {
+      commandBuilder = commandBuilder.withFlag('-f', configFile);
+    }
 
-  const previewCommand = commandBuilder
-    .withFlag('--loglevel', PreviewService.instance.getLogLevel())
-    .build();
+    const previewCommand = commandBuilder
+      .withFlag('--loglevel', PreviewService.instance.getLogLevel())
+      .build();
 
-  const onError = () => {
-    const message = isAndroid
-      ? nls.localize('force_lightning_lwc_android_failure', targetDevice)
-      : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
-    showError(new Error(message), logName, commandName);
-  };
+    const onError = () => {
+      const message = isAndroid
+        ? nls.localize('force_lightning_lwc_android_failure', targetDevice)
+        : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
+      reject(new Error(message));
+    };
 
-  const onSuccess = () => {
-    notificationService
-    .showSuccessfulExecution(
-      previewCommand.toString(),
-      channelService
-    )
-    .catch();
-    const message = isAndroid
-      ? nls.localize('force_lightning_lwc_android_start', targetDevice)
-      : nls.localize('force_lightning_lwc_ios_start', targetDevice);
-    vscode.window.showInformationMessage(message);
-  };
+    const onSuccess = () => {
+      resolve();
+    };
 
-  LWCUtils.executeSFDXCommand(previewCommand, logName, startTime, isAndroid, onSuccess, onError);
+    LWCUtils.executeSFDXCommand(previewCommand, logName, startTime, isAndroid, onSuccess, onError);
+  });
 }

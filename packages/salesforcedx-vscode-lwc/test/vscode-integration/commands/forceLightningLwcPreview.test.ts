@@ -6,13 +6,8 @@
  */
 
 import {
-  CancellationToken,
   ChannelService,
-  CliCommandExecution,
-  CliCommandExecutor,
   Command,
-  CommandBuilder,
-  CommandExecution,
   SfdxCommandBuilder,
   SfdxCommandlet,
   notificationService
@@ -20,7 +15,6 @@ import {
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
@@ -91,37 +85,15 @@ describe('forceLightningLwcPreview', () => {
   const mockLwcFilePathUri = URI.file(mockLwcFilePath);
 
   let sandbox: sinon.SinonSandbox;
-  let mockExecution: MockExecution;
-  let cmdWithArgSpy: sinon.SinonSpy<[string], CommandBuilder>;
-  let cmdWithFlagSpy: sinon.SinonSpy<[string, string], CommandBuilder>;
-  let mobileExecutorStub: sinon.SinonStub<[(CancellationToken | undefined)?], CliCommandExecution | MockExecution>;
+  let commands: Command[];
   let showErrorStub: sinon.SinonStub<[e: Error, logName: string, commandName: string], void>;
   let showInformationMessageStub: sinon.SinonStub<[message: string, options: vscode.MessageOptions, ...items: vscode.MessageItem[]], Thenable<vscode.MessageItem | undefined>>;
   let showSuccessfulExecutionStub: sinon.SinonStub<[executionName: string, channelService: ChannelService | undefined], Promise<void>>;
   let devServiceStub: sinon.SinonStubbedInstance<DevServerService>
 
-  class MockExecution implements CommandExecution {
-    public command: Command;
-    public processExitSubject: Subject<number>;
-    public processErrorSubject: Subject<Error>;
-    public stdoutSubject: Subject<string>;
-    public stderrSubject: Subject<string>;
-
-    constructor(command: Command) {
-      this.command = command;
-      this.processExitSubject = new Subject<number>();
-      this.processErrorSubject = new Subject<Error>();
-      this.stdoutSubject = new Subject<string>();
-      this.stderrSubject = new Subject<string>();
-    }
-
-    public killExecution(): Promise<void> {
-      return Promise.resolve();
-    }
-  }
-
   beforeEach(() => {
     sandbox = sinon.createSandbox();
+    commands = [];
   });
 
   afterEach(() => {
@@ -180,7 +152,7 @@ describe('forceLightningLwcPreview', () => {
 
     sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 
-    sandbox.stub(LWCUtils, 'selectPlatform').callsFake((options) => Promise.resolve(desktopPlatform));
+    sandbox.stub(LWCUtils, 'selectPlatform').resolves(desktopPlatform);
 
     const openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');
     openBrowserStub.rejects(new Error('test error'));
@@ -255,7 +227,6 @@ describe('forceLightningLwcPreview', () => {
     setupMobilePreviewCommand(androidPlatform, false, false);
     const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
     await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.processExitSubject.next(0);
     sinon.assert.calledOnce(commandletStub);
   });
 
@@ -283,9 +254,25 @@ describe('forceLightningLwcPreview', () => {
 
     setupMobilePreviewCommand(iosPlatform, true);
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
-    mockExecution.processExitSubject.next(0);
 
-    expect(cmdWithFlagSpy.getCall(cmdWithFlagSpy.callCount - 1).args).to.have.same.members(['--loglevel', 'CustomLogLevel']);
+    expect(commands.length).to.be.equal(1);
+    expect(commands[0].args).to.have.same.members([
+      sfdxMobilePreviewCommand,
+      '-p',
+      iosPlatform.platformName,
+      '-t',
+      'testDeviceUDID',
+      '-n',
+      'c/foo',
+      '-a',
+      'com.example.app',
+      '-d',
+      mockLwcFileDirectoryUri.fsPath,
+      '-f',
+      path.join(mockLwcFileDirectoryUri.fsPath, 'mobile-apps.json'),
+      '--loglevel',
+      'CustomLogLevel'
+    ]);
   });
 
   async function doPathTests(simulateFileExists: boolean, errorMessageLabel: string) {
@@ -320,53 +307,58 @@ describe('forceLightningLwcPreview', () => {
   }
 
   async function doExecuteMobilePreview(isErrorCase: boolean, urlIsDirectory: boolean) {
-    setupMobilePreviewCommand(iosPlatform, urlIsDirectory);
-    await forceLightningLwcPreview(urlIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri);
-    const exitCode = isErrorCase ? -1 : 0;
-    mockExecution.processExitSubject.next(exitCode);
+    setupMobilePreviewCommand(iosPlatform, urlIsDirectory, true, isErrorCase);
 
-    expect(cmdWithArgSpy.callCount).to.equal(1);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(7);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', iosPlatform.platformName]);
-    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members(['-t', 'testDeviceUDID']);
-    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members(['-n', 'c/foo']);
-    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members(['-a', 'com.example.app']);
-    expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members(['-d', mockLwcFileDirectoryUri.fsPath]);
-    expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members(['-f', path.join(mockLwcFileDirectoryUri.fsPath, 'mobile-apps.json')]);
-    expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members(['--loglevel', 'warn']);
+    let err: Error | null = null;
+    try {
+      await forceLightningLwcPreview(urlIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri);
+    } catch (e) {
+      err = e;
+    }
     
-    sinon.assert.calledOnce(mobileExecutorStub);
+    expect(commands.length).to.be.equal(1);
+    expect(commands[0].args).to.have.same.members([
+      sfdxMobilePreviewCommand,
+      '-p',
+      iosPlatform.platformName,
+      '-t',
+      'testDeviceUDID',
+      '-n',
+      'c/foo',
+      '-a',
+      'com.example.app',
+      '-d',
+      mockLwcFileDirectoryUri.fsPath,
+      '-f',
+      path.join(mockLwcFileDirectoryUri.fsPath, 'mobile-apps.json'),
+      '--loglevel',
+      'warn'
+    ]);
 
     if (isErrorCase) {
+      expect(err).not.to.be.equal(null);
       expect(showErrorStub).to.have.been.called;
     } else {
+      expect(err).to.be.equal(null);
       expect(showSuccessfulExecutionStub).to.have.been.called;
       expect(showInformationMessageStub).to.have.been.called;
     }
   }
 
-  function setupMobilePreviewCommand(platform: LWCPlatformQuickPickItem, urlIsDirectory: boolean, devServerStarted: boolean = true) {
+  function setupMobilePreviewCommand(platform: LWCPlatformQuickPickItem, urlIsDirectory: boolean, devServerStarted: boolean = true, isErrorCase: boolean = false) {
     devServiceStub = sinon.createStubInstance(DevServerService);
     devServiceStub.isServerHandlerRegistered.returns(devServerStarted);
     sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 
-    const existsSyncStub = sandbox.stub(fs, 'existsSync');
-    existsSyncStub.returns(true);
-
-    const lstatSyncStub = sandbox.stub(fs, 'lstatSync');
-    lstatSyncStub.returns({
-      isDirectory() {
-        return urlIsDirectory;
-      }
-    } as fs.Stats);
+    sandbox.stub(fs, 'existsSync').returns(true);
+    sandbox.stub(fs, 'lstatSync').returns({ isDirectory() { return urlIsDirectory; } } as fs.Stats);
 
     const previewUrl = `${DEV_SERVER_DEFAULT_BASE_URL}/${DEV_SERVER_PREVIEW_ROUTE}/c/foo`;
     devServiceStub.getComponentPreviewUrl.returns(previewUrl);
 
-    sandbox.stub(LWCUtils, 'selectPlatform').callsFake((options) => Promise.resolve(platform));
+    sandbox.stub(LWCUtils, 'selectPlatform').callsFake(() => Promise.resolve(platform));
     sandbox.stub(LWCUtils, 'selectTargetDevice').callsFake(() => Promise.resolve('testDeviceUDID'));
-    sandbox.stub(LWCUtils, 'getAppOptionsFromPreviewConfigFile').callsFake((platform, config) => [ { label: 'My App', detail: 'com.example.app' } ]);
+    sandbox.stub(LWCUtils, 'getAppOptionsFromPreviewConfigFile').callsFake(() => [ { label: 'My App', detail: 'com.example.app' } ]);
     sandbox.stub(LWCUtils, 'selectItem').callsFake((options) => Promise.resolve(options[options.length - 1]));
 
     showErrorStub = sandbox.stub(commandUtils, 'showError');
@@ -374,11 +366,14 @@ describe('forceLightningLwcPreview', () => {
     showSuccessfulExecutionStub = sandbox.stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
 
-    cmdWithArgSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withArg');
-    cmdWithFlagSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withFlag');
-    mockExecution = new MockExecution(new SfdxCommandBuilder().build());
-    mobileExecutorStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
-    mobileExecutorStub.returns(mockExecution);
+    sandbox.stub(LWCUtils, 'executeSFDXCommand').callsFake((command, logName, startTime, monitorAndroidEmulatorProcess, onSuccess, onError) => { 
+      commands.push(command);
+      if (isErrorCase) {
+        onError();
+      } else {
+        onSuccess();
+      }
+    });
   }
 
   async function doOpenBrowserTest(urlIsDirectory: boolean) {
