@@ -54,7 +54,7 @@ See [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/u
 
 ## Custom Metadata Templates
 
-In addition to the generic snippets feature available in VS Code, you can use custom templates to create new metadata for an Apex class or trigger. See [Custom Code Templates](./en/user-guide/byotemplate.md) for information on how to set up your custom templates. Here's an example of an update to an Apex class:
+In addition to the generic snippets feature available in VS Code, you can use custom templates to create new metadata for an Apex class or trigger. See [Custom Code Templates](./en/user-guide/byotemplate) for information on how to set up your custom templates. Here's an example of an update to an Apex class:
 
 1. Edit the `DefaultApexClass.cls` file with your custom code:
 
