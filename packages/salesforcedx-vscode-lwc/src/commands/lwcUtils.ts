@@ -393,9 +393,11 @@ export class LWCUtils {
       name: nls.localize('force_lightning_lwc_create_virtual_device_label')
     };
 
+    // Show a device pick list with a busy indicator while device-list is being generated
     const selectedItem = await new Promise<DeviceQuickPickItem | undefined>(async (resolve, reject) => {
       let userSelectedItem: DeviceQuickPickItem | undefined;
 
+      // 1. show a pick list with placeholder text and busy progress animation
       const deviceQuickPick = vscode.window.createQuickPick();
       deviceQuickPick.busy = true;
       deviceQuickPick.placeholder = nls.localize('force_lightning_lwc_generating_device_list');
@@ -414,12 +416,14 @@ export class LWCUtils {
         resolve(userSelectedItem);
       });
 
+      // 2. generate device list
       const items = await LWCUtils.getDeviceList(platformSelection);
 
       if (allowCreatingDevice) {
         items.unshift(createNewDeviceItem);
       }
 
+      // 3. turn off busy animation and show the device list
       deviceQuickPick.busy = false;
       deviceQuickPick.placeholder = nls.localize('force_lightning_lwc_select_virtual_device');
       deviceQuickPick.enabled = true;

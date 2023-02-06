@@ -29,6 +29,7 @@ import {
 import {
   desktopPlatform,
   androidPlatform,
+  iOSPlatform,
   OperationCancelledException,
   LWCPlatformQuickPickItem,
   LWCUtils
@@ -222,14 +223,14 @@ describe('forceLightningLwcPreview', () => {
     }
     getConfigurationStub.returns(config);
 
-    setupMobilePreviewCommand(iosPlatform, true);
+    setupMobilePreviewCommand(iOSPlatform, true);
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 
     expect(commands.length).to.be.equal(1);
     expect(commands[0].args).to.have.same.members([
       sfdxMobilePreviewCommand,
       '-p',
-      iosPlatform.platformName,
+      iOSPlatform.platformName,
       '-t',
       'testDeviceUDID',
       '-n',
@@ -277,7 +278,7 @@ describe('forceLightningLwcPreview', () => {
   }
 
   async function doExecuteMobilePreview(isErrorCase: boolean, urlIsDirectory: boolean) {
-    setupMobilePreviewCommand(iosPlatform, urlIsDirectory, true, isErrorCase);
+    setupMobilePreviewCommand(iOSPlatform, urlIsDirectory, true, isErrorCase);
 
     let err: Error | null = null;
     try {
@@ -290,7 +291,7 @@ describe('forceLightningLwcPreview', () => {
     expect(commands[0].args).to.have.same.members([
       sfdxMobilePreviewCommand,
       '-p',
-      iosPlatform.platformName,
+      iOSPlatform.platformName,
       '-t',
       'testDeviceUDID',
       '-n',
