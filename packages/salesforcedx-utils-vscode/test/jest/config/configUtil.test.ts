@@ -1,4 +1,9 @@
-import { Config, Org, OrgConfigProperties } from '@salesforce/core';
+import {
+  Config,
+  Org,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import { ConfigUtil, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
@@ -17,6 +22,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
   const mockConfigAggregatorProviderInstance = {
     reloadConfigAggregators: jest.fn()
   };
+  let stateAggregatorClearInstanceMock: jest.SpyInstance;
 
   beforeEach(() => {
     workspacePathStub = jest
@@ -34,6 +40,10 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     mockConfigAggregatorProvider = jest
       .spyOn(ConfigAggregatorProvider, 'getInstance')
       .mockReturnValue(mockConfigAggregatorProviderInstance as any);
+    stateAggregatorClearInstanceMock = jest.spyOn(
+      StateAggregator,
+      'clearInstance'
+    );
   });
 
   it('should set provided username or alias as default configs', async () => {
@@ -50,7 +60,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
   it('should change the current working directory to the original working directory', async () => {
     const username = 'vscodeO';
     await ConfigUtil.setDefaultUsernameOrAlias(username);
-    expect(workspacePathStub).toHaveBeenCalledTimes(1);
+    expect(workspacePathStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
     expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
@@ -69,10 +79,16 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     expect(
       mockConfigAggregatorProviderInstance.reloadConfigAggregators
     ).toHaveBeenCalled();
+    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
+
     const writeCallOrder = writeMock.mock.invocationCallOrder[0];
     const reloadCallOrder =
       mockConfigAggregatorProviderInstance.reloadConfigAggregators.mock
         .invocationCallOrder[0];
+    const clearInstanceCallOrder =
+      stateAggregatorClearInstanceMock.mock.invocationCallOrder[0];
+
     expect(writeCallOrder).toBeLessThan(reloadCallOrder);
+    expect(reloadCallOrder).toBeLessThan(clearInstanceCallOrder);
   });
 });

@@ -175,6 +175,8 @@ export class ConfigUtil {
     // for and the ConfigAggregators are updated with the latest info.
     const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
     await configAggregatorProvider.reloadConfigAggregators();
+    // Also force the StateAggregator to reload to have the latest
+    // authorization info.
     StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
 }
