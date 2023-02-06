@@ -9,7 +9,7 @@ Use custom templates to quickly add your own code template to source files when 
 - Add default code to Aura or LWC enable a new Apex class. etc.
 
 **Note**:
-This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates)contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this repo show up in source files in VS Code. You can clone this repo, or store your custom templates locally. We require your templates to follow the exact folder structure and nomenclature as this repo. For example, your Apex class templates must be in a folder named ``apexclass`` in a file named ``DefaultApexClass.cls``. There’s no such restriction when you use the CLI to specify templates for metadata objects.
+This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this repo show up in source files in VS Code. You can clone this repo, or store your custom templates locally. We require your templates to follow the exact folder structure and nomenclature as this repo. For example, your Apex class templates must be in a folder named ``apexclass`` in a file named ``DefaultApexClass.cls``. There’s no such restriction when you use the CLI to specify templates for metadata objects.
 
 ## Set Default Template Location
  You can store template files in a local directory, or in a github project. Set ``customOrgMetadataTemplates`` to your custom template location:
@@ -34,4 +34,4 @@ This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/
 VS Code downloads the template files locally (`~/.sfdx/custom-templates` on macOS/Linux or `%USERPROFILE%\.sfdx\custom-templates` on Windows) the first time the template repository is accessed. To use updated templates, clear the local cached files to download the template files again.
 
 ## Make an Update to a Local Template
-A change I make locally to the template file doesn't just take. Need @randi274 to tell me if there are specific steps to make this work.
+If your template file is on a your machine, any changes that you make to the template are ready for use immediately.
