@@ -25,7 +25,7 @@ This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/
 4. Check that ``customOrgMetadataTemplates`` points to this repo.
 
 ## Use Local Custom Templates
-1. Create a folder in your VS Code project directory that'll hold your custom templates. Name the folder some intuitive, for example ``MyCustomTemplates".
+1. Create a folder in your VS Code project directory that'll hold your custom templates. Name the folder something intuitive, for example ``MyCustomTemplates".
 2. Carefully check folder and file names in this [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates), and create sub-folders of the same names that contain the files you wish to customize. For example, create a sub-folder named ``lightningapp`` and add a file named ``DefaultLightningController.js`` to customize the default lightning controller JavaScript file, and a sub-folder named ``apexclass`` and add a file named ``DefaultApexClass.cls`` to add custom code to an Apex class. 
 3. Make updates to your custom template files.
 4. Check that ``customOrgMetadataTemplates`` points to your custom templates directory.
