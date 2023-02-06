@@ -79,17 +79,7 @@ public with sharing class <%= apiName %> {
 2. Enter `ApexClass` for filename.
 3. Accept the default directory location.
    
-Confirm that the `ApexClass.cls` file contains your custom code:
-
-```
-public with sharing class ApexClass {
-    		public ApexClass(String prop) {
-			this.prop = prop;
-    		}
-
-		@AuraEnabled public String prop { get;set; }
-	}
-```
+Confirm that the `ApexClass.cls` file contains your custom code.
 
 ## Intellisense for SObjects
 
