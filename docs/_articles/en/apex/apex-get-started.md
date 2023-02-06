@@ -9,7 +9,7 @@ Complete this Quick Start to create, test and debug a workflow that is created u
 You’ll create a custom object called `Book`, and add a custom field called `Price` to that custom object. You’ll update and test the updated Price field using Apex and learn how to work with Apex Code using the Salesforce Extensions.
 
 
-Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-desktop/install) or [Set Up Code Builder](./en/../../codebuilder/cb-setup)
+Before you start, install [Salesforce Extensions for Desktop](./en/vscode-desktop/install) or [Set Up Code Builder](./en/codebuilder/cb-setup)
 
 
 ### Create a Custom Object
@@ -27,7 +27,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 12. Click **Save**.
 
 ### Add an Apex Class
-1. In VS Code, connect to the org that you added the custom object to using [Org Picker or Command Palette](../user-guide/default-org).
+1. In VS Code, connect to the org that you added the custom object to using [Org Picker or Command Palette](./en/user-guide/default-org).
 2. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette to get code completion suggestions for your SObjects related code.
 3. Click the Cloud icon in the Activity Bar to open the Org Browser.
 4. Scroll down to Custom Object and locate the `Book_c` object. Click the retrieve icon to run **SFDX: Retrieve Source from Org**.
