@@ -175,6 +175,7 @@ export class ConfigUtil {
     // for and the ConfigAggregators are updated with the latest info.
     const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
     await configAggregatorProvider.reloadConfigAggregators();
+    StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
 }
 
