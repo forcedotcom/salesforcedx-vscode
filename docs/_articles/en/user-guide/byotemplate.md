@@ -19,7 +19,7 @@ This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/
 **Note:** You can also use the CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
 
 ## Use Custom Templates On GitHub
-1. Clone this [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates).
+1. Clone this [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates).
 2. In your cloned repo, delete all folders except the folders that contains the templates you want to use. 
 3. Make updates to the custom templates in your repo.
 4. Check that ``customOrgMetadataTemplates`` points to this repo.
