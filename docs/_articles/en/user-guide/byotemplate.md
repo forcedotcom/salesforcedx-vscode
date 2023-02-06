@@ -6,7 +6,7 @@ lang: en
 ## Overview
 Use custom templates to quickly add your own code template to source files when you create a metadata object such as an Apex class in VS Code. Templates are files that contain your custom code. You can use custom templates to -
 - Add default copyright information to new files in your project.
-- Add default code to Aura or LWC enable a new Apex class. etc.
+- Add default code to Aura or LWC enable a new Apex class, etc.
 
 **Note**:
 This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this repo show up in source files in VS Code. You can clone this repo, or store your custom templates locally. We require your templates to follow the exact folder structure and nomenclature as this repo. For example, your Apex class templates must be in a folder named ``apexclass`` in a file named ``DefaultApexClass.cls``. There’s no such restriction when you use the CLI to specify templates for metadata objects.
