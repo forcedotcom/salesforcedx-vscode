@@ -201,6 +201,8 @@ describe('forceLightningLwcTestUIMobileRun', () => {
       configFile,
       '--testframework',
       'jasmine',
+      '--injectionconfigs',
+      'salesforce-pageobjects/utam-salesforceapp-pageobjects.config.json',
       '--appactivity',
       'com.salesforce.chatter.Chatter',
       '--apppackage',

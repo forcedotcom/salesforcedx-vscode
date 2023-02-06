@@ -158,12 +158,17 @@ async function executeConfigureCommand(resourcePath: string): Promise<string> {
   const baseUrl = await LWCUtils.getUserInput(undefined, nls.localize('force_lightning_lwc_test_runner_baseUrl'), undefined, true);
 
   // 7. Prompt user to provide the path to injection config file for UTAM WebdriverIO service (if any)
-  const injectionConfigs = await LWCUtils.getFilePath(
-    nls.localize('force_lightning_lwc_test_injection_config_file_title'),
-    nls.localize('force_lightning_lwc_test_injection_config_file_detail'),
-    FileBrowseKind.Open,
-    true
-  );
+  let injectionConfigs = '';
+  if (targetApp.name === nls.localize('salesforce_mobile_app')) {
+    injectionConfigs = 'salesforce-pageobjects/utam-salesforceapp-pageobjects.config.json';
+  } else {
+    injectionConfigs = await LWCUtils.getFilePath(
+      nls.localize('force_lightning_lwc_test_injection_config_file_title'),
+      nls.localize('force_lightning_lwc_test_injection_config_file_detail'),
+      FileBrowseKind.Open,
+      true
+    );
+  }
 
   // 8. Prompt user to provide the path for the output config file
   let output = await LWCUtils.getFilePath(
@@ -329,7 +334,7 @@ async function generateConfigFile(
     }
 
     if (injectionConfigs && injectionConfigs.trim().length > 0) {
-      commandBuilder = commandBuilder.withFlag('--injectionconfigs', `'${injectionConfigs.trim()}'`);
+      commandBuilder = commandBuilder.withFlag('--injectionconfigs', `${injectionConfigs.trim()}`);
     }
 
     if (isAndroid && targetApp.appActivity && targetApp.appActivity.trim().length > 0) {
