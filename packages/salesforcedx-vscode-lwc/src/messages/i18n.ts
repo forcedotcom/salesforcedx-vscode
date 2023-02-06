@@ -18,6 +18,10 @@
 export const messages = {
   command_failure: '%s failed to run.',
   command_canceled: '%s was canceled.',
+  salesforce_mobile_app: 'Salesforce Mobile',
+  salesforce_field_services_app: 'Salesforce Field Services',
+  salesforce_test_harness_app: 'Salesforce Test Harness',
+  other: 'Other',
   force_lightning_lwc_start_text: 'SFDX: Start Local Development Server',
   force_lightning_lwc_start_not_found:
     'To run this command, install the @salesforce/lwc-dev-server plugin. For more info, see [Set Up LWC Local Development](https://developer.salesforce.com/tools/vscode/en/localdev/set-up-lwc-local-dev).',

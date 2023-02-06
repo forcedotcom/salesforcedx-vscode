@@ -42,6 +42,11 @@ export const enum DevicePlatformName {
   iOS = 'iOS'
 }
 
+export const enum FileBrowseKind {
+  Open = 1, // Use vscode.window.showOpenDialog() when browsing for file
+  Save = 2  // Use vscode.window.showSaveDialog() when browsing for file
+}
+
 export interface LWCPlatformQuickPickItem extends vscode.QuickPickItem {
   id: DevicePlatformType;
   defaultTargetName: string;
@@ -74,16 +79,35 @@ export interface InputBoxButton {
   callback: (parent: vscode.InputBox) => Promise<void>;
 }
 
-export enum FileBrowseKind {
-  /**
-   * Indicates that vscode.window.showOpenDialog() should be used when browsing for file
-   */
-  Open = 1,
-  /**
-   * Indicates that vscode.window.showSaveDialog() should be used when browsing for file
-   */
-  Save = 2
-}
+export const desktopPlatform: LWCPlatformQuickPickItem = {
+  label: nls.localize('force_lightning_lwc_desktop_label'),
+  detail: nls.localize('force_lightning_lwc_desktop_description'),
+  alwaysShow: true,
+  picked: true,
+  id: DevicePlatformType.Desktop,
+  platformName: DevicePlatformName.Desktop,
+  defaultTargetName: ''
+};
+
+export const iOSPlatform: LWCPlatformQuickPickItem = {
+  label: nls.localize('force_lightning_lwc_ios_label'),
+  detail: nls.localize('force_lightning_lwc_ios_description'),
+  alwaysShow: true,
+  picked: false,
+  id: DevicePlatformType.iOS,
+  platformName: DevicePlatformName.iOS,
+  defaultTargetName: 'sfdxdebug'
+};
+
+export const androidPlatform: LWCPlatformQuickPickItem = {
+  label: nls.localize('force_lightning_lwc_android_label'),
+  detail: nls.localize('force_lightning_lwc_android_description'),
+  alwaysShow: true,
+  picked: false,
+  id: DevicePlatformType.Android,
+  platformName: DevicePlatformName.Android,
+  defaultTargetName: 'sfdxdebug'
+};
 
 export class LWCUtils {
   /**

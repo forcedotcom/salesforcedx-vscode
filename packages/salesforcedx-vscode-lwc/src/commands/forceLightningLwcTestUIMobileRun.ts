@@ -16,9 +16,10 @@ import { channelService } from '../channel';
 import { nls } from '../messages';
 import { showError } from './commandUtils';
 import {
-  DevicePlatformName,
+  androidPlatform,
   DevicePlatformType,
   FileBrowseKind,
+  iOSPlatform,
   LWCPlatformQuickPickItem,
   LWCUtils,
   OperationCancelledException
@@ -134,24 +135,8 @@ async function getConfigFile(resourcePath: string): Promise<string> {
  */
 async function executeConfigureCommand(resourcePath: string): Promise<string> {
   const platformOptions: LWCPlatformQuickPickItem[] = [
-    {
-      label: nls.localize('force_lightning_lwc_android_label'),
-      detail: nls.localize('force_lightning_lwc_android_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.Android,
-      platformName: DevicePlatformName.Android,
-      defaultTargetName: 'SFDXEmulator'
-    },
-    {
-      label: nls.localize('force_lightning_lwc_ios_label'),
-      detail: nls.localize('force_lightning_lwc_ios_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.iOS,
-      platformName: DevicePlatformName.iOS,
-      defaultTargetName: 'SFDXSimulator'
-    }
+    androidPlatform,
+    iOSPlatform
   ];
 
   // 1. Prompt user to select a platform
@@ -219,15 +204,15 @@ async function executeConfigureCommand(resourcePath: string): Promise<string> {
 async function selectTargetApp(
   platformSelection: LWCPlatformQuickPickItem
 ): Promise<UTAMTargetApp> {
-  const labelSApp = 'Salesforce Mobile';
-  const labelSFSApp = 'Salesforce Field Services';
-  const labelTestHarnessApp = 'Salesforce Test Harness';
-  const labelOther = 'Other';
+  const labelSApp = nls.localize('salesforce_mobile_app');
+  const labelSFSApp = nls.localize('salesforce_field_services_app');
+  const labelTestHarnessApp = nls.localize('salesforce_test_harness_app');
+  const labelOther = nls.localize('other');
 
   const items: vscode.QuickPickItem[] = [
     { label: labelSApp },
-    { label: labelSFSApp },
-    { label: labelTestHarnessApp },
+    // { label: labelSFSApp }, // TODO: add support for SFS App
+    // { label: labelTestHarnessApp }, // TODO: add support for Test Harness App
     { label: labelOther }
   ];
 
@@ -237,7 +222,7 @@ async function selectTargetApp(
 
   const appBundlePath = await LWCUtils.getFilePath(
     nls.localize('force_lightning_lwc_app_bundle'),
-    isAndroid ? 'eg: /path/to/my.apk' : 'eg: /path/to/my.app',
+    isAndroid ? '/path/to/my.apk' : '/path/to/my.app',
     FileBrowseKind.Open
   );
 
@@ -247,12 +232,13 @@ async function selectTargetApp(
     if (selectedItem.label === labelSApp) {
       activity = 'com.salesforce.chatter.Chatter';
       pkg = 'com.salesforce.chatter';
-    } else if (selectedItem.label === labelSFSApp) {
+    // TODO: add support for SFS and TestHarness Apps
+    /*} else if (selectedItem.label === labelSFSApp) {
       activity = 'com.salesforce.fieldservice.ui.launcher.FieldServicePrerequisiteActivity';
       pkg = 'com.salesforce.fieldservice.app';
     } else if (selectedItem.label === labelTestHarnessApp) {
       activity = 'com.salesforce.lsdktestharness.MainActivity';
-      pkg = 'com.salesforce.lsdktestharness';
+      pkg = 'com.salesforce.lsdktestharness';*/
     } else {
       activity = await LWCUtils.getUserInput(undefined, nls.localize('force_lightning_lwc_provide_app_activity'));
       pkg = await LWCUtils.getUserInput(undefined, nls.localize('force_lightning_lwc_provide_app_package'));

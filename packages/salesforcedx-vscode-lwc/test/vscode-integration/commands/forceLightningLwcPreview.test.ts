@@ -27,8 +27,8 @@ import {
   forceLightningLwcPreview
 } from '../../../src/commands/forceLightningLwcPreview';
 import {
-  DevicePlatformName,
-  DevicePlatformType,
+  desktopPlatform,
+  androidPlatform,
   OperationCancelledException,
   LWCPlatformQuickPickItem,
   LWCUtils
@@ -39,36 +39,6 @@ import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
 
 describe('forceLightningLwcPreview', () => {
   const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-
-  const desktopPlatform: LWCPlatformQuickPickItem = {
-    label: nls.localize('force_lightning_lwc_desktop_label'),
-    detail: nls.localize('force_lightning_lwc_desktop_description'),
-    alwaysShow: true,
-    picked: true,
-    id: DevicePlatformType.Desktop,
-    platformName: DevicePlatformName.Desktop,
-    defaultTargetName: ''
-  };
-
-  const iosPlatform: LWCPlatformQuickPickItem = {
-    label: nls.localize('force_lightning_lwc_ios_label'),
-    detail: nls.localize('force_lightning_lwc_ios_description'),
-    alwaysShow: true,
-    picked: false,
-    id: DevicePlatformType.iOS,
-    platformName: DevicePlatformName.iOS,
-    defaultTargetName: 'SFDXSimulator'
-  };
-
-  const androidPlatform: LWCPlatformQuickPickItem = {
-    label: nls.localize('force_lightning_lwc_android_label'),
-    detail: nls.localize('force_lightning_lwc_android_description'),
-    alwaysShow: true,
-    picked: false,
-    id: DevicePlatformType.Android,
-    platformName: DevicePlatformName.Android,
-    defaultTargetName: 'SFDXEmulator'
-  };
 
   const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(

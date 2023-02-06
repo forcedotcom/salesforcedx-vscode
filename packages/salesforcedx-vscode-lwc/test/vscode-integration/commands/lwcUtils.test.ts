@@ -30,7 +30,9 @@ import {
   FileBrowseKind,
   LWCPlatformQuickPickItem,
   OperationCancelledException,
-  LWCUtils
+  LWCUtils,
+  androidPlatform,
+  iOSPlatform
 } from '../../../src/commands/lwcUtils';
 import { Emitter } from 'vscode-languageclient';
 
@@ -343,25 +345,7 @@ describe('lwcUtils', () => {
   async function doGetDeviceListTest(isAndroid: boolean) {
     const sfdxDeviceListCommand = 'force:lightning:local:device:list'
 
-    const platform: LWCPlatformQuickPickItem = isAndroid 
-    ? {
-      label: nls.localize('force_lightning_lwc_android_label'),
-      detail: nls.localize('force_lightning_lwc_android_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.Android,
-      platformName: DevicePlatformName.Android,
-      defaultTargetName: 'SFDXEmulator'
-    }
-    : {
-      label: nls.localize('force_lightning_lwc_ios_label'),
-      detail: nls.localize('force_lightning_lwc_ios_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.iOS,
-      platformName: DevicePlatformName.iOS,
-      defaultTargetName: 'SFDXSimulator'
-    };
+    const platform: LWCPlatformQuickPickItem = isAndroid  ? androidPlatform : iOSPlatform;
 
     const deviceListJsonResponse = isAndroid 
     ? `
@@ -452,16 +436,6 @@ describe('lwcUtils', () => {
   it('getDeviceList - command not found', async () => {
     const sfdxDeviceListCommand = 'force:lightning:local:device:list'
 
-    const platform: LWCPlatformQuickPickItem =  {
-      label: nls.localize('force_lightning_lwc_android_label'),
-      detail: nls.localize('force_lightning_lwc_android_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.Android,
-      platformName: DevicePlatformName.Android,
-      defaultTargetName: 'SFDXEmulator'
-    };
-
     const mockExecution = new MockExecution(new SfdxCommandBuilder().build());
     const mobileExecutorStub: sinon.SinonStub<[(CancellationToken | undefined)?], CliCommandExecution | MockExecution> = sinon.stub(CliCommandExecutor.prototype, 'execute');
     mobileExecutorStub.returns(mockExecution);
@@ -470,7 +444,7 @@ describe('lwcUtils', () => {
 
     let err: Error | null = null;
     try {
-      await LWCUtils.getDeviceList(platform);
+      await LWCUtils.getDeviceList(androidPlatform);
     } catch (e) {
       err = e;
     }
@@ -491,16 +465,6 @@ describe('lwcUtils', () => {
   });
 
   async function doSelectTargetDeviceTest(selectedIndex: number, isCancelling: boolean, isCreating: boolean) {
-    const platform: LWCPlatformQuickPickItem =  {
-      label: nls.localize('force_lightning_lwc_ios_label'),
-      detail: nls.localize('force_lightning_lwc_ios_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.iOS,
-      platformName: DevicePlatformName.iOS,
-      defaultTargetName: 'SFDXSimulator'
-    };
-
     const devices: DeviceQuickPickItem[] = [
       {
         name: '6CC16032-2671-4BD2-8FF1-0E314945010C',
@@ -526,7 +490,7 @@ describe('lwcUtils', () => {
     createQuickPickStub.returns(mockQuickPick);
 
     try {
-      selectedDeviceName = await LWCUtils.selectTargetDevice(platform);
+      selectedDeviceName = await LWCUtils.selectTargetDevice(iOSPlatform);
     } catch (e) {
       err = e;
     }
@@ -589,26 +553,6 @@ describe('lwcUtils', () => {
   });
 
   it('getAppOptionsFromPreviewConfigFile', async () => {
-    const androidPlatform: LWCPlatformQuickPickItem =  {
-      label: nls.localize('force_lightning_lwc_android_label'),
-      detail: nls.localize('force_lightning_lwc_android_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.Android,
-      platformName: DevicePlatformName.Android,
-      defaultTargetName: 'SFDXEmulator'
-    };
-
-    const iosPlatform: LWCPlatformQuickPickItem =  {
-      label: nls.localize('force_lightning_lwc_ios_label'),
-      detail: nls.localize('force_lightning_lwc_ios_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.iOS,
-      platformName: DevicePlatformName.iOS,
-      defaultTargetName: 'SFDXSimulator'
-    };
-
     const appConfigFileJson = `
       {
         "apps": {
@@ -642,7 +586,7 @@ describe('lwcUtils', () => {
     const existsSyncStub = sandbox.stub(fs, 'readFileSync');
     existsSyncStub.returns(appConfigFileJson);
 
-    const iosApps = LWCUtils.getAppOptionsFromPreviewConfigFile(iosPlatform, 'mobile-apps.json');
+    const iosApps = LWCUtils.getAppOptionsFromPreviewConfigFile(iOSPlatform, 'mobile-apps.json');
     const androidApps = LWCUtils.getAppOptionsFromPreviewConfigFile(androidPlatform, 'mobile-apps.json');
 
     expect(iosApps.length).to.be.equal(1);
@@ -671,25 +615,7 @@ describe('lwcUtils', () => {
   });
 
   function doExecuteSFDXCommandTest(isAndroid: boolean, isErrorCase: boolean) {
-    const platform: LWCPlatformQuickPickItem = isAndroid
-    ? {
-      label: nls.localize('force_lightning_lwc_android_label'),
-      detail: nls.localize('force_lightning_lwc_android_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.Android,
-      platformName: DevicePlatformName.Android,
-      defaultTargetName: 'SFDXEmulator'
-    }
-    : {
-      label: nls.localize('force_lightning_lwc_ios_label'),
-      detail: nls.localize('force_lightning_lwc_ios_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.iOS,
-      platformName: DevicePlatformName.iOS,
-      defaultTargetName: 'SFDXSimulator'
-    };
+    const platform: LWCPlatformQuickPickItem = isAndroid ? androidPlatform : iOSPlatform;
 
     const cmdWithArgSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withArg');
     const cmdWithFlagSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withFlag');

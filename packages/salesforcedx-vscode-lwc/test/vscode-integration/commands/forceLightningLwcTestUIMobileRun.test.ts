@@ -17,10 +17,8 @@ import {
   forceLightningLwcTestUIMobileRun
 } from '../../../src/commands/forceLightningLwcTestUIMobileRun';
 import {
-  DevicePlatformName,
-  DevicePlatformType,
+  androidPlatform,
   OperationCancelledException,
-  LWCPlatformQuickPickItem,
   LWCUtils
 } from '../../../src/commands/lwcUtils';
 import { nls } from '../../../src/messages';
@@ -150,15 +148,6 @@ describe('forceLightningLwcTestUIMobileRun', () => {
   it('runUTAMTest - Success (create new WDIO config)', async () => {
     const configFile = '/path/to/wdio.conf.js';
     const appBundle = '/path/to/my.apk';
-    const androidPlatform: LWCPlatformQuickPickItem = {
-      label: nls.localize('force_lightning_lwc_android_label'),
-      detail: nls.localize('force_lightning_lwc_android_description'),
-      alwaysShow: true,
-      picked: false,
-      id: DevicePlatformType.Android,
-      platformName: DevicePlatformName.Android,
-      defaultTargetName: 'SFDXEmulator'
-    };
 
     let commands: Command[] = [];
 

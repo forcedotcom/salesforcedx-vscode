@@ -24,8 +24,10 @@ import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 import {
-  DevicePlatformName,
+  androidPlatform,
+  desktopPlatform,
   DevicePlatformType,
+  iOSPlatform,
   LWCPlatformQuickPickItem,
   LWCUtils,
   OperationCancelledException
@@ -82,33 +84,9 @@ async function executeCommand(
   try {
     // 1. Prompt user to select a platform
     const platformOptions: LWCPlatformQuickPickItem[] = [
-      {
-        label: nls.localize('force_lightning_lwc_desktop_label'),
-        detail: nls.localize('force_lightning_lwc_desktop_description'),
-        alwaysShow: true,
-        picked: true,
-        id: DevicePlatformType.Desktop,
-        platformName: DevicePlatformName.Desktop,
-        defaultTargetName: ''
-      },
-      {
-        label: nls.localize('force_lightning_lwc_android_label'),
-        detail: nls.localize('force_lightning_lwc_android_description'),
-        alwaysShow: true,
-        picked: false,
-        id: DevicePlatformType.Android,
-        platformName: DevicePlatformName.Android,
-        defaultTargetName: 'SFDXEmulator'
-      },
-      {
-        label: nls.localize('force_lightning_lwc_ios_label'),
-        detail: nls.localize('force_lightning_lwc_ios_description'),
-        alwaysShow: true,
-        picked: false,
-        id: DevicePlatformType.iOS,
-        platformName: DevicePlatformName.iOS,
-        defaultTargetName: 'SFDXSimulator'
-      }
+      desktopPlatform,
+      androidPlatform,
+      iOSPlatform
     ];
     const selectedPlatform = await LWCUtils.selectPlatform(platformOptions);
     if (selectedPlatform.id === DevicePlatformType.Desktop) {
