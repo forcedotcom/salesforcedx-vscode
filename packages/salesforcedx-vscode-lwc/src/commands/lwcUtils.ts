@@ -249,14 +249,17 @@ export class LWCUtils {
    *
    * @param title An optional string to show as the title of the input box.
    * @param placeholder An optional string to show as the placeholder text of the input box.
+   * @param browseKind Indicates whether an Open or Save dialog should be displayed.
    * @param allowEmptyInput Indicates whether an empty/whitespace string is considered as valid input.
+   * @param defaultPath The default path to be used when showing Open/Save dialog.
    * @return A promise that resolves to a string the user provided.
    */
   public static async getFilePath(
     title: string | undefined,
     placeholder: string | undefined,
     browseKind: FileBrowseKind,
-    allowEmptyInput: boolean = false
+    allowEmptyInput: boolean = false,
+    defaultPath?: string | undefined
   ): Promise<string> {
     const browseButton: InputBoxButton = {
       button: {
@@ -268,9 +271,16 @@ export class LWCUtils {
         let fileUri: vscode.Uri[] | undefined;
 
         if (browseKind === FileBrowseKind.Open) {
-          fileUri = await vscode.window.showOpenDialog({ canSelectMany: false });
+          const options: vscode.OpenDialogOptions = {
+            canSelectMany: false,
+            defaultUri: defaultPath ? vscode.Uri.file(defaultPath) : undefined
+          };
+          fileUri = await vscode.window.showOpenDialog(options);
         } else {
-          const uri = await vscode.window.showSaveDialog();
+          const options: vscode.SaveDialogOptions = {
+            defaultUri: defaultPath ? vscode.Uri.file(defaultPath) : undefined
+          };
+          const uri = await vscode.window.showSaveDialog(options);
           if (uri) {
             fileUri = [uri];
           }

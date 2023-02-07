@@ -66,8 +66,10 @@ export async function forceLightningLwcTestUIMobileRun(sourceUri: vscode.Uri): P
  */
 async function executeCommand(resourcePath: string): Promise<void> {
   try {
+    const projectRootDir = path.normalize(LWCUtils.getProjectRootDirectory(resourcePath) ?? './');
+
     // 1. Prompt user to provide a UTAM WDIO config file
-    const configFile = await getConfigFile(resourcePath);
+    const configFile = await getConfigFile(resourcePath, projectRootDir);
 
     // 2. Run the test
     await runUTAMTest(configFile, resourcePath);
@@ -94,7 +96,7 @@ async function executeCommand(resourcePath: string): Promise<void> {
  *
  * @returns The path to the config file.
  */
-async function getConfigFile(resourcePath: string): Promise<string> {
+async function getConfigFile(resourcePath: string, projectRootDir: string): Promise<string> {
   const createOption: vscode.QuickPickItem = {
     label: 'Create a new config file'
   };
@@ -109,9 +111,12 @@ async function getConfigFile(resourcePath: string): Promise<string> {
 
   let configFile: string | undefined;
   if (selectedItem === createOption) {
-    configFile = await executeConfigureCommand(resourcePath);
+    configFile = await executeConfigureCommand(projectRootDir);
   } else {
-    const uri = await vscode.window.showOpenDialog({ canSelectMany: false });
+    const uri = await vscode.window.showOpenDialog({
+      canSelectMany: false,
+      defaultUri: vscode.Uri.file(projectRootDir)
+    });
     configFile = uri && uri[0] && uri[0].fsPath;
   }
 
@@ -133,7 +138,7 @@ async function getConfigFile(resourcePath: string): Promise<string> {
  * @param startTime The start time of the root command invoking this method.
  * @param resourcePath The path to the test/spec file
  */
-async function executeConfigureCommand(resourcePath: string): Promise<string> {
+async function executeConfigureCommand(projectRootDir: string): Promise<string> {
   const platformOptions: LWCPlatformQuickPickItem[] = [
     androidPlatform,
     iOSPlatform
@@ -171,19 +176,20 @@ async function executeConfigureCommand(resourcePath: string): Promise<string> {
   }
 
   // 8. Prompt user to provide the path for the output config file
+  const defaultOutput = path.normalize(path.resolve(projectRootDir, 'wdio.conf.js'));
   let output = await LWCUtils.getFilePath(
     nls.localize('force_lightning_lwc_test_wdio_output_config_file_title'),
     nls.localize('force_lightning_lwc_test_wdio_output_config_file_detail'),
     FileBrowseKind.Save,
-    true
+    true,
+    defaultOutput
   );
 
   if (!output) {
     output = 'wdio.conf.js';
   }
 
-  const projectRootDir = LWCUtils.getProjectRootDirectory(resourcePath) ?? './';
-  const configFilePath = path.normalize(path.resolve(projectRootDir, output));
+  const configFilePath = output ?? defaultOutput;
 
   // 9. Generate WDIO config file
   await generateConfigFile(
