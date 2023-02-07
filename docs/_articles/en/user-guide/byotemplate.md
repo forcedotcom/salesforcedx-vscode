@@ -20,8 +20,8 @@ This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templat
 
  See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information about configuration settings.
 
-## Sample Commands for Setting customOrgMetadataTemplates Value
--  ``sfdx config:set customOrgMetadataTemplates=https://github.com/vscodeuser/salesforcedx-templates/tree/main``sets the ``customOrgMetadataTemplates`` configuration value to a directory on user ``vscodeuser``'s github repo.
+## Set ``customOrgMetadataTemplates`` Value Example Commands
+-  ``sfdx config:set customOrgMetadataTemplates=https://github.com/vscodeuser/salesforcedx-templates/tree/main ``sets the ``customOrgMetadataTemplates`` configuration value to a directory on user ``vscodeuser``'s github repo.
 -   ``sfdx config:set customOrgMetadataTemplates=/Users/vscodeuser/CustomTemplateProject/MyCustomTemplates`` sets the ``customOrgMetadataTemplates`` configuration value to the ``MyCustomTemplates`` directory on a local machine.
 
 ## Use Custom Templates On GitHub
