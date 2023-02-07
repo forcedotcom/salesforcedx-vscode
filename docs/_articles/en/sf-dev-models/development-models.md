@@ -5,7 +5,7 @@ lang: en
 
 ## Overview
 
-Salesforce Extensions for VS Code supports Org Development and Package Development models to authorize, create, and switch orgs in your project. At a high level, both development models follow the same ALM process. But the models differ in the way that they let you manage changes to your org. Controlling change is a significant deal in software development, and you can choose the development model that best suits your situation if you understand your options.
+Salesforce Extensions for VS Code support Org Development and Package Development models to authorize, create, and switch orgs in your project. At a high level, both development models follow the same ALM process. But the models differ in the way that they let you manage changes to your org. Controlling change is a significant deal in software development, and you can choose the development model that best suits your situation if you understand your options.
 
  Choosing which model works for you depends on a number of things: 
 The complexity of the change
