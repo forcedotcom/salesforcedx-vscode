@@ -44,11 +44,7 @@ The real power of snippets lies in being able to customize snippets for your own
    ```
 4. Save the file.
 5.  Use this snippet in your Apex class file by simply typing "soql" and selecting to add this snippet to your code.
-6.  The code snippet is added to your apex file: 
-
-   ` [SELECT field1, field2 FROM SobjectName WHERE clause];`
-  
-
+6.  The code snippet `` [SELECT field1, field2 FROM SobjectName WHERE clause];`` is added to your apex file. 
 
 See [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets) for more information about snippets.
 
