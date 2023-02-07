@@ -37,8 +37,8 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri): Promise<v
   const logName = 'force_lightning_lwc_preview';
   const commandName = nls.localize('force_lightning_lwc_preview_text');
   const startTime = process.hrtime();
-  const resourceUri = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
-  const resourcePath = sourceUri?.fsPath;
+  const resourceUri: vscode.Uri | undefined = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
+  const resourcePath: string | undefined = resourceUri?.fsPath;
 
   if (!resourceUri) {
     return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_undefined', resourceUri);
@@ -129,7 +129,6 @@ async function executeCommand(
       vscode.window.showWarningMessage(err.message);
     } else {
       showError(err, logName, commandName);
-      return Promise.reject(err);
     }
   }
 }

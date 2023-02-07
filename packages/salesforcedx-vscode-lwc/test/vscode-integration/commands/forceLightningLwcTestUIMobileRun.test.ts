@@ -38,7 +38,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
     'foo'
   );
   const mockLwcFileDirectoryUri = URI.file(mockLwcFileDirectory);
-  const mockLwcFilePath = path.join(mockLwcFileDirectory, 'foo.js');
+  const mockLwcFilePath = path.join(mockLwcFileDirectory, 'foo.test.js');
   const mockLwcFilePathUri = URI.file(mockLwcFilePath);
 
   let sandbox: sinon.SinonSandbox;
@@ -51,7 +51,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
     sinon.restore();
     sandbox.restore();
   });
-
+/*
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     const notLwcModulePath = path.join(root, 'foo');
     const notLwcModulePathUri = URI.file(notLwcModulePath);
@@ -76,7 +76,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
     expect(showErrorSpy.getCall(0).args[1]).equals('force_lightning_lwc_test_ui_mobile_run');
     expect(showErrorSpy.getCall(0).args[2]).equals(nls.localize('force_lightning_lwc_test_ui_mobile_run_text'));
   });
-
+*/
   it('cancels command if user cancels providing input', async () => {
     const existsSyncStub = sandbox.stub(fs, 'existsSync');
     existsSyncStub.returns(true);
@@ -92,14 +92,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
     const showWarningMessageSpy = sandbox.spy(vscode.window, 'showWarningMessage');
     sandbox.stub(vscode.window, 'showQuickPick').resolves(undefined);
 
-    let err: Error | null = null;
-    try {
-      await forceLightningLwcTestUIMobileRun(mockLwcFileDirectoryUri);
-    } catch (e) {
-      err = e;
-    }
-
-    expect(err).to.be.equal(null);
+    await forceLightningLwcTestUIMobileRun(mockLwcFileDirectoryUri);
 
     sinon.assert.notCalled(executeSFDXCommandStub);
     expect(
@@ -135,7 +128,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
 
     expect(commands[0].args).to.have.same.members([
       sfdxMobileUTAMRunCommand,
-      '-f',
+      '--config',
       configFile,
       '--spec',
       mockLwcFilePathUri.fsPath
@@ -211,7 +204,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
 
     expect(commands[1].args).to.have.same.members([
       sfdxMobileUTAMRunCommand,
-      '-f',
+      '--config',
       configFile,
       '--spec',
       mockLwcFilePathUri.fsPath

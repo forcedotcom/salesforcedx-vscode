@@ -239,7 +239,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.ui.mobile.run",
-          "when": "sfdx:project_opened && resource =~ /^.*/(lwc|modules)/(.*/)*.+(\\.(test|spec)\\.js|/__tests__(.*/)*)$/"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",

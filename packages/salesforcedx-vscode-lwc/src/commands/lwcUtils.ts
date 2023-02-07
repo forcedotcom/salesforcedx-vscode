@@ -572,7 +572,7 @@ export class LWCUtils {
     channelService.streamCommandOutput(cmdExecution);
     channelService.showChannelOutput();
 
-    cmdExecution.processExitSubject.subscribe(async exitCode => {
+    cmdExecution.processExitSubject.subscribe(exitCode => {
       if (exitCode !== 0) {
         onError();
       } else {
@@ -592,9 +592,4 @@ export class LWCUtils {
       });
     }
   }
-}
-
-export function Log(msg: string) {
-  channelService.appendLine(msg);
-  channelService.showChannelOutput();
 }

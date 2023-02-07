@@ -280,12 +280,7 @@ describe('forceLightningLwcPreview', () => {
   async function doExecuteMobilePreview(isErrorCase: boolean, urlIsDirectory: boolean) {
     setupMobilePreviewCommand(iOSPlatform, urlIsDirectory, true, isErrorCase);
 
-    let err: Error | null = null;
-    try {
-      await forceLightningLwcPreview(urlIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri);
-    } catch (e) {
-      err = e;
-    }
+    await forceLightningLwcPreview(urlIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri);
     
     expect(commands.length).to.be.equal(1);
     expect(commands[0].args).to.have.same.members([
@@ -307,10 +302,8 @@ describe('forceLightningLwcPreview', () => {
     ]);
 
     if (isErrorCase) {
-      expect(err).not.to.be.equal(null);
       expect(showErrorStub).to.have.been.called;
     } else {
-      expect(err).to.be.equal(null);
       expect(showSuccessfulExecutionStub).to.have.been.called;
       expect(showInformationMessageStub).to.have.been.called;
     }

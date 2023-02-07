@@ -9,7 +9,6 @@ import {
   notificationService,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
@@ -32,25 +31,23 @@ export interface UTAMTargetApp {
   appPackage: string;
 }
 
+const resourceMatchingRegEx = new RegExp('^.*/(lwc|modules)/(.*/)*.+(\\.(test|spec)\\.js|/__tests__(.*/)*)$');
 const logName = 'force_lightning_lwc_test_ui_mobile_run';
 const commandName = nls.localize('force_lightning_lwc_test_ui_mobile_run_text');
 let startTime: [number, number] = [0, 0];
 
 export async function forceLightningLwcTestUIMobileRun(sourceUri: vscode.Uri): Promise<void> {
   startTime = process.hrtime();
-  const resourceUri = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
-  const resourcePath = sourceUri?.fsPath;
+  const resourceUri: vscode.Uri | undefined = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
+  let resourcePath: string | undefined = resourceUri?.fsPath;
 
-  if (!resourceUri) {
-    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_undefined', resourceUri);
-  }
-
-  if (!resourcePath) {
-    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_undefined', resourcePath);
-  }
-
-  if (!fs.existsSync(resourcePath)) {
-    return LWCUtils.showFailure(logName, commandName, 'force_lightning_lwc_file_nonexist', resourcePath);
+  if (resourcePath) {
+    // The command may have been called from the command palette from any editor window.
+    // So we need to ensure that the path is indeed to a test file or a __test__ folder,
+    // otherwise we will ignore the path and continue.
+    if (!resourceMatchingRegEx.test(resourcePath)) {
+      resourcePath = undefined;
+    }
   }
 
   return executeCommand(resourcePath);
@@ -64,12 +61,13 @@ export async function forceLightningLwcTestUIMobileRun(sourceUri: vscode.Uri): P
  *
  * @param resourcePath The path to the test/spec file
  */
-async function executeCommand(resourcePath: string): Promise<void> {
+async function executeCommand(resourcePath: string | undefined): Promise<void> {
   try {
-    const projectRootDir = path.normalize(LWCUtils.getProjectRootDirectory(resourcePath) ?? './');
+    const startingPath = path.normalize(resourcePath ?? (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0].uri.fsPath) ?? '');
+    const projectRootDir = LWCUtils.getProjectRootDirectory(startingPath) ?? './';
 
     // 1. Prompt user to provide a UTAM WDIO config file
-    const configFile = await getConfigFile(resourcePath, projectRootDir);
+    const configFile = await getConfigFile(projectRootDir);
 
     // 2. Run the test
     await runUTAMTest(configFile, resourcePath);
@@ -83,7 +81,6 @@ async function executeCommand(resourcePath: string): Promise<void> {
       vscode.window.showWarningMessage(err.message);
     } else {
       showError(err, logName, commandName);
-      return Promise.reject(err);
     }
   }
 }
@@ -96,7 +93,7 @@ async function executeCommand(resourcePath: string): Promise<void> {
  *
  * @returns The path to the config file.
  */
-async function getConfigFile(resourcePath: string, projectRootDir: string): Promise<string> {
+async function getConfigFile(projectRootDir: string): Promise<string> {
   const createOption: vscode.QuickPickItem = {
     label: 'Create a new config file'
   };
@@ -373,17 +370,19 @@ async function generateConfigFile(
  */
 async function runUTAMTest(
   wdioConfigFile: string,
-  resourcePath: string
+  resourcePath: string | undefined
 ): Promise<void> {
   return new Promise((resolve, reject) => {
       const sfdxMobileUTAMRunCommand = 'force:lightning:lwc:test:ui:mobile:run';
 
-      const runCommand = new SfdxCommandBuilder()
+      let runCommandBuilder = new SfdxCommandBuilder()
         .withDescription(commandName)
         .withArg(sfdxMobileUTAMRunCommand)
-        .withFlag('-f', wdioConfigFile)
-        .withFlag('--spec', resourcePath)
-        .build();
+        .withFlag('--config', wdioConfigFile);
+
+      if (resourcePath) {
+        runCommandBuilder = runCommandBuilder.withFlag('--spec', resourcePath);
+      }
 
       const onError = () => {
         reject(new Error(nls.localize('force_lightning_lwc_test_ui_mobile_run_failure')));
@@ -393,6 +392,6 @@ async function runUTAMTest(
         resolve();
       };
 
-      LWCUtils.executeSFDXCommand(runCommand, logName, startTime, false, onSuccess, onError);
+      LWCUtils.executeSFDXCommand(runCommandBuilder.build(), logName, startTime, false, onSuccess, onError);
   });
 }
