@@ -27,7 +27,7 @@ Out of the box snippets for Salesforce development are available in these reposi
 
 
 ### Example Custom Snippet
-The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a simple custom Apex snippet that lets you quickly write a simple SOQL query:
+The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a custom Apex snippet that lets you quickly write a simple SOQL query:
 
 1. Run the `SFDX: Configure User Snippets` command from the Command Palette. 
 2. Select ``apex.json`` to open the file.
