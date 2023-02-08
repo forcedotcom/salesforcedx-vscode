@@ -29,7 +29,7 @@ Out of the box snippets for Salesforce development are available in these reposi
 ### Example Custom Snippet
 The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a custom Apex snippet that lets you quickly write a simple SOQL query:
 
-1. Run the `SFDX: Configure User Snippets` command from the Command Palette. 
+1. Run the **SFDX: Configure User Snippet** command from the Command Palette. 
 2. Select ``apex.json`` to open the file.
 3. Add this snippet code to the file:
    
@@ -71,7 +71,7 @@ public with sharing class <%= apiName %> {
     }
 }
 ```
-1. Run the `SFDX: Create Apex Class` command from the Command Palette.
+1. Run the **SFDX: Create Apex Class** command from the Command Palette.
 2. Enter `ApexClass` for filename.
 3. Accept the default directory location.
    
@@ -101,7 +101,7 @@ When you refresh SObject definitions, the extension uses the default org to gene
 
 Whenever you refresh SObject definitions, the representative Apex classes are deleted and regenerated. You can modify the SObjects either by updating the objects’ `.object-meta.xml` and `.field-meta.xml` files; Or by making changes declaratively in the default org. After modifying the SObjects, make sure to sync your local project and the default org.
 
-When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, `SFDX: Refresh SObject Definitions` command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
+When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, **SFDX: Refresh SObject Definitions** command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
 
 ## Go To Definitions
 
