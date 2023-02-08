@@ -36,7 +36,7 @@ This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templat
 3. Make updates to your custom template files.
 4. Check that ``customOrgMetadataTemplates`` points to your custom templates directory.
 
-## Make an Update to a Remote Template in Github
+## Make an Update to a Remote Template in GitHub
 VS Code downloads the template files locally (`~/.sfdx/custom-templates` on macOS/Linux or `%USERPROFILE%\.sfdx\custom-templates` on Windows) the first time the template repository is accessed. To use updated templates, clear the local cached files to download the template files again.
 
 ## Make an Update to a Local Template
