@@ -150,7 +150,7 @@ describe('TestView', () => {
         expect(testChild.name).to.deep.equal(fullName);
         expect(testChild.location).to.deep.equal(apexTestInfo[0].location);
         expect(
-          testOutline.getTestClassName(apexTestInfo[0].location.uri)
+          testOutline.getTestClassName(apexTestInfo[0].location.uri.toString())
         ).to.equal(apexTestInfo[0].definingType);
       }
     });
@@ -182,10 +182,10 @@ describe('TestView', () => {
           expect(test2.location).to.deep.equal(testInfo2.location);
           i++;
 
-          expect(testOutline.getTestClassName(testInfo1.location.uri)).to.equal(
+          expect(testOutline.getTestClassName(testInfo1.location.uri.toString())).to.equal(
             testInfo1.definingType
           );
-          expect(testOutline.getTestClassName(testInfo2.location.uri)).to.equal(
+          expect(testOutline.getTestClassName(testInfo2.location.uri.toString())).to.equal(
             testInfo2.definingType
           );
         }
@@ -223,17 +223,17 @@ describe('TestView', () => {
 
       expect(
         testOutline.getTestClassName(
-          vscode.Uri.file('/force-app/test/Test1.cls')
+          'file:///force-app/test/Test1.cls'
         )
       ).to.equal('Test1');
       expect(
         testOutline.getTestClassName(
-          vscode.Uri.file('/force-app/test/Test2.cls')
+          'file:///force-app/test/Test2.cls'
         )
       ).to.equal('Test2');
       expect(
         testOutline.getTestClassName(
-          vscode.Uri.file('/force-app/test/Test3.cls')
+          'file:///force-app/test/Test3.cls'
         )
       ).to.be.undefined;
     });
