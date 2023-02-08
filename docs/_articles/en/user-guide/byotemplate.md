@@ -12,7 +12,7 @@ Use custom templates to quickly add your own code template to source files when 
 This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this directory show up in source files in VS Code. You can clone this subdirectory, or store your custom templates locally. Keeping the same folder structure, just update relevant template files with your code. Remove the files that you don’t wish to override. The Salesforce Extensions require your templates to follow the exact folder structure and nomenclature as this repo. For example, your Apex class templates must be in a folder named ``apexclass`` in a file named ``DefaultApexClass.cls``. There’s no such restriction when you use the CLI to specify templates for metadata objects. You do not need the rest of the repo `salesforcedx-templates`.
 
 ## Set Default Template Location
- You can store template files in a local directory, or in a github project. Set ``customOrgMetadataTemplates`` to your custom template location:
+ You can store template files in a local directory, or in a GitHub project. Set ``customOrgMetadataTemplates`` to your custom template location:
 1. Run ``sfdx config:set customOrgMetadataTemplates=<github repo or local template directory>`` command from the terminal inside VS Code. 
 2. Run ``sfdx config:list`` to confirm that the configuration setting is updated. 
 
