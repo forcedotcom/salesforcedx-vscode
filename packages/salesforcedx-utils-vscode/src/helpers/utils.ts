@@ -24,6 +24,7 @@ export function extractJsonObject(str: string): any {
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
 export function flushFilePath(filePath: string): string {
+  // filePath is in the format of "/Users/{user-name}/{path-to-apex-file.cls}"
   if (filePath === '') {
     return filePath;
   }
