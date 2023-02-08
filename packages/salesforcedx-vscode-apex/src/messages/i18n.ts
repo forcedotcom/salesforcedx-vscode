@@ -76,5 +76,6 @@ export const messages = {
   force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
-  launch_apex_replay_debugger_unsupported_file: 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.'
+  launch_apex_replay_debugger_unsupported_file: 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
+  unknown_error_when_launching_apex_replay_debugger: 'We couldn\'t launch the Apex Replay Debugger. For more information, see the Output panel.'
 };

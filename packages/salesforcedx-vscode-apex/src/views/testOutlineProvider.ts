@@ -146,8 +146,23 @@ export class ApexTestOutlineProvider
     }
   }
 
-  public getTestClassName(uri: vscode.Uri): string | undefined {
-    return this.testIndex.get(uri.toString());
+  public getTestClassName(filePath: string): string | undefined {
+    // filePath is in the format of "file:///Users/{user-name}/{path-to-apex-file.cls}"
+
+    // Convert to lowercase to match file names and paths.  There is an issue with VisualStudio Code
+    // ...after one renames a file (changing only the casing of the characters), VSCode's APIs return
+    // back to us paths with the stale/old filename.  Convert both the file path that's passed into
+    // us as well as the hash keys in the map to lowercase so we can compare whether the name of the
+    // class is known and in testIndex.
+    filePath = filePath.toLowerCase();
+
+    for (const [key, value] of this.testIndex.entries()) {
+      if (key.toLowerCase() === filePath) {
+        return value;
+      }
+    }
+
+    return undefined;
   }
 
   private createTestIndex(): void {
