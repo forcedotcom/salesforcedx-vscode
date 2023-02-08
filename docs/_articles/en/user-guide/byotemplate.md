@@ -16,7 +16,7 @@ This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templat
 1. Run ``sfdx config:set customOrgMetadataTemplates=<github repo or local template directory>`` command from the terminal inside VS Code. 
 2. Run ``sfdx config:list`` to confirm that the configuration setting is updated. 
 
-**Note:** The `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder now has a new entry in the format,`` "customOrgMetadataTemplates": "<github repo or local template directory>"``.
+**Note:** The `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder is updated with a new entry in the format,`` "customOrgMetadataTemplates": "<github repo or local template directory>"``.
 
  See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information about configuration settings.
 
