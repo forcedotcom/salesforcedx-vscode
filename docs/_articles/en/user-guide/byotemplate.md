@@ -40,4 +40,4 @@ This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templat
 VS Code downloads the template files locally (`~/.sfdx/custom-templates` on macOS/Linux or `%USERPROFILE%\.sfdx\custom-templates` on Windows) the first time the template repository is accessed. To use updated templates, clear the local cached files to download the template files again.
 
 ## Make an Update to a Local Template
-If your template location is on your machine, any changes that you make to the template are ready for use immediately after save. If you're not seeing an immediate change, refresh your VS Code window to clear the VS Code cache and you will then see changes reflected.
+If your template location is on your machine, any changes that you make to the template are ready for use immediately after save. If you're not seeing an immediate change, refresh your VS Code window to clear the VS Code cache to then see the changes reflected.
