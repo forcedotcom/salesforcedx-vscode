@@ -8,10 +8,6 @@ on:
 
 jobs:
   windows-integration-tests:
-    strategy:
-      matrix:
-        node_version: [lts/*]
-      fail-fast: false
     runs-on: windows-latest
     timeout-minutes: 60
     env:
@@ -23,7 +19,7 @@ jobs:
           ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version-file: '.nvmrc'
           cache: npm
       - run: npm config set scripts-prepend-node-path true
       - run: npm install -g sfdx-cli
