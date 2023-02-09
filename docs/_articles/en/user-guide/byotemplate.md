@@ -9,7 +9,7 @@ Use custom templates to quickly add your own code template to source files when 
 - Add default code to Aura or LWC to enable a new Apex class, and so on.
 
 **Note**:
-This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this directory show up in source files in VS Code. You can clone this subdirectory, or replicate it locally. Keeping the same folder structure, just update relevant template files with your code. Remove the files that you don’t wish to override.
+This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this directory show up in source files in VS Code. You can clone this subdirectory, or replicate it locally. You must keep the same folder structure. Just update relevant template files with your code, and remove the files that you don’t wish to override.
 
 ## Set Default Template Location
  You can store template files in a local directory, or in a GitHub project. Set ``customOrgMetadataTemplates`` to your custom template location:
