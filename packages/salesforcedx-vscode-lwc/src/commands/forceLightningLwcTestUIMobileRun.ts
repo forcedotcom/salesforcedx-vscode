@@ -165,8 +165,8 @@ async function executeConfigureCommand(projectRootDir: string): Promise<string> 
     injectionConfigs = 'salesforce-pageobjects/utam-salesforceapp-pageobjects.config.json';
   } else {
     injectionConfigs = await LWCUtils.getFilePath(
-      nls.localize('force_lightning_lwc_test_injection_config_file_title'),
-      nls.localize('force_lightning_lwc_test_injection_config_file_detail'),
+      nls.localize('force_lightning_lwc_test_utam_pageobjects_config_file_title'),
+      nls.localize('force_lightning_lwc_test_utam_pageobjects_config_file_detail'),
       FileBrowseKind.Open,
       true
     );

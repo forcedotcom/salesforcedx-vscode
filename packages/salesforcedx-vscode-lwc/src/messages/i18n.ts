@@ -41,8 +41,8 @@ export const messages = {
   force_lightning_lwc_stop_in_progress: 'Stopping local development server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_test_ui_mobile_run_text: 'SFDX: Run Using UI Test Automation Model',
-  force_lightning_lwc_test_ui_mobile_run_success: 'Successfully ran test using UTAM.',
-  force_lightning_lwc_test_ui_mobile_run_failure: 'Failed to run test using UTAM.',
+  force_lightning_lwc_test_ui_mobile_run_success: 'Successfully ran tests using UTAM.',
+  force_lightning_lwc_test_ui_mobile_run_failure: 'Failed to run tests using UTAM.',
   force_lightning_lwc_file_undefined:
     "Can't find the Lightning Web Components module. Check that '%s' is the correct file path.",
   force_lightning_lwc_file_nonexist:
@@ -113,10 +113,10 @@ export const messages = {
     'Please provide the Test Runner port number (leave blank for default port)',
   force_lightning_lwc_test_runner_baseUrl:
     'Please provide the Test Runner base URL (leave blank for default value)',
-  force_lightning_lwc_test_injection_config_file_title:
-    'Injection Config File for UTAM WebdriverIO Service',
-  force_lightning_lwc_test_injection_config_file_detail:
-    'Please provide the path to the injection config file (leave blank for no config file)',
+  force_lightning_lwc_test_utam_pageobjects_config_file_title:
+    'Page Objects Config File for UTAM WebdriverIO Service',
+  force_lightning_lwc_test_utam_pageobjects_config_file_detail:
+    'Please provide the path to the page objects config file (leave blank if no config file)',
   force_lightning_lwc_test_wdio_config_file:
     'Please provide the path for your WDIO config file',
   force_lightning_lwc_test_wdio_output_config_file_title:
