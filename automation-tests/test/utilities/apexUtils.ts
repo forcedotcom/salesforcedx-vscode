@@ -55,3 +55,22 @@ export async function createApexClassWithTest(): Promise<void> {
     await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
     await utilities.pause(1);
 }
+
+export async function createAnonymousApexFile(): Promise<void> {
+    const workbench = await browser.getWorkbench();
+    let textEditor: TextEditor;
+    const editorView = workbench.getEditorView();
+
+    // Using the Command palette, run File: New File...
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'Create: New File...', 1);
+
+    // Set the name of the new Anonymous Apex file
+    await inputBox.setText('Anonymous.apex');
+    await inputBox.confirm();
+    await inputBox.confirm();
+    textEditor = await editorView.openEditor('Anonymous.apex') as TextEditor;
+
+    await textEditor.setText('System.debug(\'¡Hola mundo!\');');
+    await textEditor.save();
+    await utilities.pause(1);
+}

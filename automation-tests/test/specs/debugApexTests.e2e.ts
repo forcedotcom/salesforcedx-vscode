@@ -40,7 +40,7 @@ describe('Debug Apex Tests', async () => {
     expect(successNotificationWasFound).toBe(true);
   });
 
-  step('Run the Anonymous Apex Debugger using the Right-Click Menu', async () => {
+  step('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
     const workbench = await browser.getWorkbench();
 
     // Get open text editor
@@ -58,7 +58,7 @@ describe('Debug Apex Tests', async () => {
     await textEditor.selectText('ExampleApexClass.SayHello(\'Cody\');');
     await utilities.pause(1);
 
-    // Run SFDX: Launch Apex Replay Debugger with Currently Selected Text, using the Right-Click Menu.
+    // Run SFDX: Launch Apex Replay Debugger with Currently Selected Text.
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Execute Anonymous Apex with Currently Selected Text', 1);
     await utilities.pause(1);
 
@@ -137,10 +137,6 @@ describe('Debug Apex Tests', async () => {
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Launch Apex Replay Debugger with Current File', 1);
     await utilities.pause(1);
 
-    // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Launch Apex Replay Debugger with Current File', 5 * 60);
-    await utilities.pause(1);
-
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Launch Apex Replay Debugger with Current File successfully ran');
     if (successNotificationWasFound !== true) {
       const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.');
@@ -154,13 +150,52 @@ describe('Debug Apex Tests', async () => {
     }
   });
 
+  // step('SFDX: Launch Apex Replay Debugger using the Right-Click Menu', async () => {
+  //   const workbench = await browser.getWorkbench();
+
+  //   // Get open text editor
+  //   const editorView = workbench.getEditorView();
+  //   let textEditor: TextEditor;
+  //   textEditor = await editorView.openEditor('ExampleApexClass.cls') as TextEditor;
+  //   prompt = await utilities.runCommandFromCommandPrompt(workbench, 'View: Open Last Editor in Group', 1);
+
+  //   // Open right-click menu
+  //   const contextMenu = await textEditor.openContextMenu();
+  //   // tslint:disable-next-line:no-debugger
+  //   debugger;
+  //   await utilities.pause(1);
+
+  //   // tslint:disable-next-line:no-debugger
+  //   debugger;
+  //   // Select SFDX: Launch Apex Replay Debugger with Current File
+  //   const menuItem = await contextMenu.getItem('SFDX: Launch Apex Replay Debugger with Current File');
+  //   await menuItem?.select();
+  //   await utilities.pause(1);
+
+  //   // Continue with the debug session
+  //   await browser.keys(['F5']);
+  //   await utilities.pause(1);
+  //   await browser.keys(['F5']);
+  //   await utilities.pause(1);
+
+  //   const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Launch Apex Replay Debugger with Current File successfully ran');
+  //   if (successNotificationWasFound !== true) {
+  //     const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.');
+  //     if (failureNotificationWasFound === true) {
+  //       expect(successNotificationWasFound).toBe(false);
+  //     } else {
+  //       utilities.log('Warning - Launching Apex Replay Debugger using the Right-Click Menu failed, neither the success notification or the failure notification was found.');
+  //     }
+  //   } else {
+  //     expect(successNotificationWasFound).toBe(true);
+  //   }
+  // });
+
   step('Run the Anonymous Apex Debugger using the Command Palette', async () => {
     const workbench = await browser.getWorkbench();
-    const editorView = workbench.getEditorView();
-    let textEditor: TextEditor;
 
-    // Open test file
-    textEditor = await editorView.openEditor('ExampleApexClass.cls') as TextEditor;
+    // Create anonymous apex file
+    await utilities.createAnonymousApexFile();
 
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Execute Anonymous Apex with Editor Contents', 1);
