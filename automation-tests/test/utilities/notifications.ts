@@ -19,7 +19,7 @@ export async function waitForNotificationToGoAway(workbench: Workbench, notifica
   await pause(5);
   const startDate = new Date();
   while (true) {
-    let notificationWasFound = await notificationIsPresent(workbench, notificationMessage);
+    const notificationWasFound = await notificationIsPresent(workbench, notificationMessage);
     if (!notificationWasFound) {
       return;
     }

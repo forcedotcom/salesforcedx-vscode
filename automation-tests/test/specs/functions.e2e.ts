@@ -18,82 +18,82 @@ describe('Functions', async () => {
   });
 
   // Java Functions
-    step('Create a Java function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Create a Java function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Start Java function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Start Java function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Stop Java function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Stop Java function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Start Java function in container', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Start Java function in container', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Stop Java function in container', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Stop Java function in container', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-  // JavaScript Functions
-    step('Create a JavaScript function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+// JavaScript Functions
+  step('Create a JavaScript function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Start JavaScript function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Start JavaScript function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Stop JavaScript function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Stop JavaScript function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Start JavaScript function in container', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Start JavaScript function in container', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Stop JavaScript function in container', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Stop JavaScript function in container', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-  // TypeScript Functions
-    step('Create a TypeScript function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+// TypeScript Functions
+  step('Create a TypeScript function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Start TypeScript function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Start TypeScript function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Stop TypeScript function', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Stop TypeScript function', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Start TypeScript function in container', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Start TypeScript function in container', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
-    step('Stop TypeScript function in container', async () => {
-      // TODO: implement
-      expect(1).toBe(1);
-    });
+  step('Stop TypeScript function in container', async () => {
+    // TODO: implement
+    expect(1).toBe(1);
+  });
 
   step('Tear down and clean up the testing environment', async () => {
     await scratchOrg.tearDown();

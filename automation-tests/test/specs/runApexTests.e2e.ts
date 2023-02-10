@@ -18,158 +18,158 @@ describe('Run Apex Tests', async () => {
   });
 
   // Run All Tests via Apex Class
-    step('Open an existing apex test (e.g. BotTest.cls, search for @isTest)', async () => {
+  step('Open an existing apex test (e.g. BotTest.cls, search for @isTest)', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Click the "Run All Tests" code lens at the top of the class', async () => {
+  step('Click the "Run All Tests" code lens at the top of the class', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify test results are listed on vscode\'s Output section', async () => {
+  step('Verify test results are listed on vscode\'s Output section', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
   // Run Single Test via Apex Class
-    step('Open an existing apex test (e.g. BotTest.cls)', async () => {
+  step('Open an existing apex test (e.g. BotTest.cls)', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Click the "Run Test" code lens at the top of one of the test methods', async () => {
+  step('Click the "Run Test" code lens at the top of one of the test methods', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify test results are listed on vscode\'s Output section', async () => {
+  step('Verify test results are listed on vscode\'s Output section', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
   // Run Tests via Command Palette
-    step('Open command palette and run "SFDX: Run Apex Tests"', async () => {
+  step('Open command palette and run "SFDX: Run Apex Tests"', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Select a Test Class', async () => {
+  step('Select a Test Class', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify test results are listed on vscode\'s Output section', async () => {
+  step('Verify test results are listed on vscode\'s Output section', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
   // Re-run Last Apex Test Class
-    step('Open an existing apex test and modify it', async () => {
+  step('Open an existing apex test and modify it', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Open command palette and run "SFDX: Push Source to Default Scratch Org"', async () => {
+  step('Open command palette and run "SFDX: Push Source to Default Scratch Org"', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Once push is successful, open command palette and run "SFDX: Re-Run Last Run Apex Test Class"', async () => {
+  step('Once push is successful, open command palette and run "SFDX: Re-Run Last Run Apex Test Class"', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
   // Run all Apex tests via Test Sidebar
-    step('Open the Test Sidebar', async () => {
+  step('Open the Test Sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Make sure all Apex tests in the project are listed', async () => {
+  step('Make sure all Apex tests in the project are listed', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Click the run tests button on the top right corner of the Test sidebar', async () => {
+  step('Click the run tests button on the top right corner of the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify test results are listed on vscode\'s Output section', async () => {
+  step('Verify test results are listed on vscode\'s Output section', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify the tests that are passing are labeled with a green dot on the Test sidebar', async () => {
+  step('Verify the tests that are passing are labeled with a green dot on the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify the tests that are failing have a red dot', async () => {
+  step('Verify the tests that are failing have a red dot', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
   // Run all Apex Tests on a Class via the Test Sidebar
-    step('Open the Test sidebar', async () => {
+  step('Open the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Make sure all Apex tests in the project are listed', async () => {
+  step('Make sure all Apex tests in the project are listed', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Click the run test button that is shown to the right when you hover a test class name on the Test sidebar', async () => {
+  step('Click the run test button that is shown to the right when you hover a test class name on the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify test results are listed on vscode\'s Output section', async () => {
+  step('Verify test results are listed on vscode\'s Output section', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify the tests that are passing are labeled with a green dot on the Test sidebar', async () => {
+  step('Verify the tests that are passing are labeled with a green dot on the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify the tests that are failing have a red dot', async () => {
+  step('Verify the tests that are failing have a red dot', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
   // Run a Single Apex Test via the Test Sidebar
-    step('Open the Test sidebar', async () => {
+  step('Open the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Make sure all Apex tests in the project are listed', async () => {
+  step('Make sure all Apex tests in the project are listed', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Hover a test name under one of the test class sections and click the run button that is shown to the right of the test name on the Test sidebar', async () => {
+  step('Hover a test name under one of the test class sections and click the run button that is shown to the right of the test name on the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify test results are listed on vscode\'s Output section', async () => {
+  step('Verify test results are listed on vscode\'s Output section', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify the tests that are passing are labeled with a green dot on the Test sidebar', async () => {
+  step('Verify the tests that are passing are labeled with a green dot on the Test sidebar', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
 
-    step('Verify the tests that are failing have a red dot', async () => {
+  step('Verify the tests that are failing have a red dot', async () => {
       // TODO: implement
       expect(1).toBe(1);
     });
@@ -178,7 +178,3 @@ describe('Run Apex Tests', async () => {
     await scratchOrg.tearDown();
   });
 });
-
-
-
-

@@ -6,7 +6,7 @@
  */
 
 import {
-  StatusBar,
+  StatusBar
 } from 'wdio-vscode-service';
 
 export async function getStatusBarItemWhichIncludes(statusBar: StatusBar, title: string): Promise<WebdriverIO.Element> {

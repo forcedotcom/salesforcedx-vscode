@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export * from './apexUtils';
 export * from './commandPrompt';
 export * from './fileSystem';
 export * from './miscellaneous';

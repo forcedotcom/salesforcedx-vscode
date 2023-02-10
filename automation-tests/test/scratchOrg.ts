@@ -26,7 +26,7 @@ export class ScratchOrg {
   private testSuiteSuffixName: string;
   private reuseScratchOrg = false;
   private tempFolderPath: string | undefined = undefined;
-  private projectFolderPath: string | undefined = undefined;
+  public projectFolderPath: string | undefined = undefined;
   private prompt: QuickOpenBox | InputBox | undefined;
   private scratchOrgAliasName: string | undefined;
 
@@ -312,15 +312,11 @@ export class ScratchOrg {
     }
 
     if (!scratchOrgQuickPickItemWasFound) {
-      // tslint:disable-next-line:no-debugger
-      debugger;
       throw new Error(`In setDefaultOrg(), the scratch org's quick pick item was not found`);
     }
-
+    await utilities.pause(1);
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Set a Default Org successfully ran');
     if (!successNotificationWasFound) {
-      // tslint:disable-next-line:no-debugger
-      debugger; // notify jeff
       throw new Error('In setDefaultOrg(), the notification of "SFDX: Set a Default Org successfully ran" was not found');
     }
 

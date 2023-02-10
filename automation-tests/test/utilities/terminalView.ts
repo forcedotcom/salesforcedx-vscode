@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import clipboard from 'clipboardy'
+import clipboard from 'clipboardy';
 import {
   TerminalView,
   Workbench
@@ -25,7 +25,7 @@ export async function getTerminalView(workbench: Workbench): Promise<TerminalVie
 }
 
 export async function getTerminalViewText(terminalView: TerminalView, seconds: number): Promise<string> {
-  for (let i=0; i<seconds; i++) {
+  for (let i = 0; i < seconds; i++) {
     await pause(1);
 
     // const terminalText = await terminalView.getText();
@@ -37,7 +37,7 @@ export async function getTerminalViewText(terminalView: TerminalView, seconds: n
     const terminalText = await clipboard.read();
 
     if (terminalText && terminalText !== '') {
-      return terminalText
+      return terminalText;
     }
   }
 
