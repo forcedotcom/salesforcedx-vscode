@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import child_process from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -17,9 +18,7 @@ import {
 import {
   EnvironmentSettings
 } from './environmentSettings';
-import {
-  utilities
-} from './utilities';
+import * as utilities from './utilities';
 
 const exec = util.promisify(child_process.exec);
 
@@ -89,7 +88,8 @@ export class ScratchOrg {
     utilities.log('');
     utilities.log(`${this.testSuiteSuffixName} - Starting createProject()...`);
 
-    this.prompt = await utilities.runCommandFromCommandPalette('SFDX: Create Project', 10);
+    const workbench = await browser.getWorkbench();
+    this.prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Project', 10);
     // Selecting "SFDX: Create Project" causes the extension to be loaded, and this takes a while.
 
     // Select the "Standard" project type.
@@ -112,7 +112,6 @@ export class ScratchOrg {
     await utilities.clickFilePathOkButton();
 
     // Verify the project was created and was loaded.
-    const workbench = await browser.getWorkbench();
     const sidebar = await workbench.getSideBar();
     const content = await sidebar.getContent();
     const treeViewSection = await content.getSection(this.tempProjectName.toUpperCase());
@@ -163,7 +162,7 @@ export class ScratchOrg {
     utilities.log('');
     utilities.log(`${this.testSuiteSuffixName} - Starting createDefaultScratchOrg()...`);
 
-    const userName = utilities.currentUserName();
+    const currentOsUserName = await utilities.currentOsUserName();
     const workbench = await browser.getWorkbench();
 
     if (this.reuseScratchOrg) {
@@ -175,7 +174,7 @@ export class ScratchOrg {
 
       for (const scratchOrg of scratchOrgs) {
         const alias = scratchOrg.alias as string;
-        if (alias && alias.includes('TempScratchOrg_') && alias.includes(userName) && alias.includes(this.testSuiteSuffixName)) {
+        if (alias && alias.includes('TempScratchOrg_') && alias.includes(currentOsUserName) && alias.includes(this.testSuiteSuffixName)) {
           this.scratchOrgAliasName = alias;
 
           // Set the current scratch org.
@@ -197,7 +196,7 @@ export class ScratchOrg {
     const day = ('0' + currentDate.getDate()).slice(-2);
     const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
     const year = currentDate.getFullYear();
-    this.scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${userName}_${ticks}_${this.testSuiteSuffixName}`;
+    this.scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${currentOsUserName}_${ticks}_${this.testSuiteSuffixName}`;
     utilities.log(`${this.testSuiteSuffixName} - temporary scratch org name is ${this.scratchOrgAliasName}...`);
 
     const startDate = Date.now();
@@ -230,7 +229,7 @@ export class ScratchOrg {
 
     // Run SFDX: Set a Default Org
     utilities.log(`${this.testSuiteSuffixName} - selecting SFDX: Set a Default Org...`);
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Set a Default Org', 1);
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Set a Default Org', 1);
 
     // Select this.scratchOrgAliasName from the list.
     let scratchOrgQuickPickItemWasFound = false;
@@ -277,11 +276,11 @@ export class ScratchOrg {
   }
 
   private async setDefaultOrg(workbench: Workbench, scratchOrgAliasName: string): Promise<void> {
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Set a Default Org', 2);
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Set a Default Org', 2);
 
     let scratchOrgQuickPickItemWasFound = false;
 
-    const userName = await utilities.currentUserName();
+    const currentOsUserName = await utilities.currentOsUserName();
     await utilities.pause(1);
 
     const quickPicks = await inputBox.getQuickPicks();
@@ -302,7 +301,7 @@ export class ScratchOrg {
         // and the "Run SFDX: Create a Default Scratch Org" step was skipped,
         // scratchOrgAliasName is undefined and as such, search for the first org
         // that starts with "TempScratchOrg_" and also has the current user's name.
-        if (label.startsWith('TempScratchOrg_') && label.includes(userName)) {
+        if (label.startsWith('TempScratchOrg_') && label.includes(currentOsUserName)) {
           scratchOrgAliasName = label.split(' - ')[0];
           await quickPick.select();
           await utilities.pause(3);
@@ -311,6 +310,7 @@ export class ScratchOrg {
         }
       }
     }
+
     if (!scratchOrgQuickPickItemWasFound) {
       throw new Error(`In setDefaultOrg(), the scratch org's quick pick item was not found`);
     }

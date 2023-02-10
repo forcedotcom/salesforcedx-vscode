@@ -4,16 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { step } from 'mocha-steps';
+
+import {
+  step
+} from 'mocha-steps';
 import {
   TextEditor
 } from 'wdio-vscode-service';
 import {
   ScratchOrg
 } from '../scratchOrg';
-import {
-  utilities
-} from '../utilities';
+import * as utilities from '../utilities';
 
 describe('Templates', async () => {
   let scratchOrg: ScratchOrg;
@@ -27,7 +28,8 @@ describe('Templates', async () => {
   // Aura Component
   step('Create an Aura Component', async () => {
     // Using the Command palette, run SFDX: Create Aura Component.
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Create Aura Component', 1);
+    const workbench = await browser.getWorkbench();
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Aura Component', 1);
 
     // Set the name of the new component to auraComponent1.
     await inputBox.setText('auraComponent1');
@@ -37,7 +39,6 @@ describe('Templates', async () => {
     // Select the default directory (press Enter/Return).
     await inputBox.confirm();
 
-    const workbench = await browser.getWorkbench();
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Create Aura Component successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -75,9 +76,9 @@ describe('Templates', async () => {
 
   step('Push the Aura Component', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    await utilities.runCommandFromCommandPalette('SFDX: Push Source to Default Scratch Org', 5);
-
     const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org', 5);
+
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Push Source to Default Scratch Org successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -90,7 +91,8 @@ describe('Templates', async () => {
   // Aura Event
   step('Create an Aura Event', async () => {
     // Using the Command palette, run SFDX: Create Aura Component.
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Create Aura Event', 1);
+    const workbench = await browser.getWorkbench();
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Aura Event', 1);
 
     // Set the name of the new component to auraComponent1.
     await inputBox.setText('auraEvent1');
@@ -100,7 +102,6 @@ describe('Templates', async () => {
     // Select the default directory (press Enter/Return).
     await inputBox.confirm();
 
-    const workbench = await browser.getWorkbench();
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Create Aura Event successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -135,9 +136,9 @@ describe('Templates', async () => {
 
   step('Push the Aura Event', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    await utilities.runCommandFromCommandPalette('SFDX: Push Source to Default Scratch Org', 5);
-
     const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org', 5);
+
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Push Source to Default Scratch Org successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -150,7 +151,8 @@ describe('Templates', async () => {
   // Apex Class
   step('Create an Apex Class', async () => {
     // Using the Command palette, run SFDX: Create Apex Class.
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Create Apex Class', 1);
+    const workbench = await browser.getWorkbench();
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Class', 1);
 
     // Set the name of the new component to auraComponent1.
     await inputBox.setText('apexClass1');
@@ -160,7 +162,6 @@ describe('Templates', async () => {
     // Select the default directory (press Enter/Return).
     await inputBox.confirm();
 
-    const workbench = await browser.getWorkbench();
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Create Apex Class successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -198,9 +199,9 @@ describe('Templates', async () => {
 
   step('Push the Apex Class', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    await utilities.runCommandFromCommandPalette('SFDX: Push Source to Default Scratch Org', 5);
-
     const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org', 5);
+
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Push Source to Default Scratch Org successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -213,7 +214,8 @@ describe('Templates', async () => {
   // Lightning Web Component
   step('Create Lightning Web Component', async () => {
     // Using the Command palette, run SFDX: Create Apex Class.
-    const inputBox = await utilities.runCommandFromCommandPalette('SFDX: Create Lightning Web Component', 1);
+    const workbench = await browser.getWorkbench();
+    const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Lightning Web Component', 1);
 
     // Set the name of the new component to auraComponent1.
     await inputBox.setText('lightningWebComponent1');
@@ -223,7 +225,6 @@ describe('Templates', async () => {
     // Select the default directory (press Enter/Return).
     await inputBox.confirm();
 
-    const workbench = await browser.getWorkbench();
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Create Lightning Web Component successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
@@ -261,9 +262,9 @@ describe('Templates', async () => {
 
   step('Push the Lightning Web Component', async () => {
     // Run "SFDX: Push Source to Default Scratch Org".
-    await utilities.runCommandFromCommandPalette('SFDX: Push Source to Default Scratch Org', 5);
-
     const workbench = await browser.getWorkbench();
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org', 5);
+
     const successNotificationWasFound = await utilities.attemptToFindNotification(workbench, 'SFDX: Push Source to Default Scratch Org successfully ran', 10);
     expect(successNotificationWasFound).toBe(true);
 
