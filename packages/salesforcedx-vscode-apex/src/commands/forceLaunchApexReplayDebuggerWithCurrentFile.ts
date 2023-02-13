@@ -95,7 +95,8 @@ async function getApexTestClassName(
   await testOutlineProvider.refresh();
 
   const filePath = sourceUri.toString();
-  // filePath is in the format of "file:///Users/{user-name}/{path-to-apex-file.cls}"
+  // filePath is in the format of "file:///Users/{user-name}/{path-to-apex-file.cls}" on Mac OSX
+  // filePath is in the format of "file:///c%3A/Users/{user-name}/{path-to-apex-file.cls}" on Windows
 
   const testClassName = testOutlineProvider.getTestClassName(filePath);
 

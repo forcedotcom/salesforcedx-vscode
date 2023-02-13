@@ -147,7 +147,8 @@ export class ApexTestOutlineProvider
   }
 
   public getTestClassName(filePath: string): string | undefined {
-    // filePath is in the format of "file:///Users/{user-name}/{path-to-apex-file.cls}"
+    // filePath is in the format of "file:///Users/{user-name}/{path-to-apex-file.cls}" on Mac OSX
+    // filePath is in the format of "file:///c%3A/Users/{user-name}/{path-to-apex-file.cls}" on Windows
 
     // Convert to lowercase to match file names and paths.  There is an issue with VisualStudio Code
     // ...after one renames a file (changing only the casing of the characters), VSCode's APIs return
