@@ -137,7 +137,7 @@ export class MetadataCacheService {
 
     await setApiVersionOn(components);
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const operation = components.retrieve({
+    const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: this.cachePath,
       merge: false
