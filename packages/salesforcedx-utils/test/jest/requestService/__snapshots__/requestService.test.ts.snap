@@ -7,7 +7,7 @@ Array [
     "headers": Object {
       "Accept": "application/json",
       "Authorization": "OAuth totallyfake-access-token-not-real-1234",
-      "Content-Length": 27,
+      "Content-Length": "27",
       "Content-Type": "application/json;charset=utf-8",
       "Proxy-Authorization": "this-is-fake-proxy-auth",
       "Sforce-Call-Options": "client=sfdx-vscode",
@@ -26,7 +26,7 @@ Array [
     "headers": Object {
       "Accept": "application/json",
       "Authorization": "OAuth totallyfake-access-token-not-real-1234",
-      "Content-Length": 27,
+      "Content-Length": "27",
       "Content-Type": "application/json;charset=utf-8",
       "Sforce-Call-Options": "client=sfdx-vscode",
     },
@@ -44,7 +44,7 @@ Array [
     "headers": Object {
       "Accept": "application/json",
       "Authorization": "OAuth totallyfake-access-token-not-real-1234",
-      "Content-Length": 0,
+      "Content-Length": "0",
       "Content-Type": "application/json;charset=utf-8",
       "Sforce-Call-Options": "client=sfdx-vscode",
     },

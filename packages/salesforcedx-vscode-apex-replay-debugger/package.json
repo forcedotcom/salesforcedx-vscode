@@ -31,7 +31,7 @@
     "@salesforce/salesforcedx-utils-vscode": "57.2.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
-    "request-light": "0.2.4",
+    "request-light": "^0.7.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {

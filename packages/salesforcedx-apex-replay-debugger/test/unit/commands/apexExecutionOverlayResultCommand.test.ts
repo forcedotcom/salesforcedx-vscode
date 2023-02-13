@@ -684,8 +684,8 @@ export function createExpectedXHROptions(
       Accept: 'application/json',
       Authorization: `OAuth 123`,
       'Content-Length': requestBody
-        ? Buffer.byteLength(requestBody, 'utf-8')
-        : 0,
+        ? String(Buffer.byteLength(requestBody, 'utf-8'))
+        : '0',
       'Sforce-Call-Options': `client=${CLIENT_ID}`
     },
     data: requestBody
