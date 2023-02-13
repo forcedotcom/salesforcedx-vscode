@@ -51,32 +51,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
     sinon.restore();
     sandbox.restore();
   });
-/*
-  it('shows an error when source path is not recognized as an lwc module file', async () => {
-    const notLwcModulePath = path.join(root, 'foo');
-    const notLwcModulePathUri = URI.file(notLwcModulePath);
 
-    const expectedErrorMessage = nls.localize('force_lightning_lwc_file_nonexist', /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo');
-    const showErrorSpy = sandbox.spy(commandUtils, 'showError');
-    
-    sandbox.stub(fs, 'existsSync').returns(false);
-    sandbox.stub(fs, 'lstatSync').returns({ isDirectory() { return false; } } as fs.Stats);
-
-    let err: Error | null = null;
-    try {
-      await forceLightningLwcTestUIMobileRun(notLwcModulePathUri);
-    } catch (e) {
-      err = e;
-    }
-
-    expect(err?.message).to.be.equal(expectedErrorMessage);
-
-    expect(showErrorSpy.callCount).to.equal(1);
-    expect(showErrorSpy.getCall(0).args[0].message).equals(expectedErrorMessage);
-    expect(showErrorSpy.getCall(0).args[1]).equals('force_lightning_lwc_test_ui_mobile_run');
-    expect(showErrorSpy.getCall(0).args[2]).equals(nls.localize('force_lightning_lwc_test_ui_mobile_run_text'));
-  });
-*/
   it('cancels command if user cancels providing input', async () => {
     const existsSyncStub = sandbox.stub(fs, 'existsSync');
     existsSyncStub.returns(true);
@@ -129,7 +104,7 @@ describe('forceLightningLwcTestUIMobileRun', () => {
     expect(commands[0].args).to.have.same.members([
       sfdxMobileUTAMRunCommand,
       '--config',
-      configFile,
+      path.normalize(configFile),
       '--spec',
       mockLwcFilePathUri.fsPath
     ]);
