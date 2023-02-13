@@ -15,7 +15,7 @@
     "@salesforce/salesforcedx-utils": "57.2.0",
     "async-lock": "1.0.0",
     "faye": "1.1.2",
-    "request-light": "0.2.4",
+    "request-light": "^0.7.0",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0"
   },
