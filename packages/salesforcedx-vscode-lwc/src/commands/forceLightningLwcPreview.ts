@@ -85,9 +85,12 @@ async function executeCommand(
     // 1. Prompt user to select a platform
     const platformOptions: LWCPlatformQuickPickItem[] = [
       desktopPlatform,
-      androidPlatform,
-      iOSPlatform
+      androidPlatform
     ];
+    if (!LWCUtils.isWindowsOS()) {
+      platformOptions.push(iOSPlatform);
+    }
+
     const selectedPlatform = await LWCUtils.selectPlatform(platformOptions);
     if (selectedPlatform.id === DevicePlatformType.Desktop) {
       return startServer(true, componentName, logName, commandName, startTime);

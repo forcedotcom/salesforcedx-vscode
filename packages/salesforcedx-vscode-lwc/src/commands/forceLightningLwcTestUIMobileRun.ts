@@ -45,7 +45,7 @@ export async function forceLightningLwcTestUIMobileRun(sourceUri: vscode.Uri): P
     // The command may have been called from the command palette from any editor window.
     // So we need to ensure that the path is indeed to a test file or a __test__ folder,
     // otherwise we will ignore the path and continue.
-    if (!resourceMatchingRegEx.test(resourcePath)) {
+    if (!resourceMatchingRegEx.test(LWCUtils.convertToUnixPath(resourcePath))) {
       resourcePath = undefined;
     }
   }
@@ -137,9 +137,11 @@ async function getConfigFile(projectRootDir: string): Promise<string> {
  */
 async function executeConfigureCommand(projectRootDir: string): Promise<string> {
   const platformOptions: LWCPlatformQuickPickItem[] = [
-    androidPlatform,
-    iOSPlatform
+    androidPlatform
   ];
+  if (!LWCUtils.isWindowsOS()) {
+    platformOptions.push(iOSPlatform);
+  }
 
   // 1. Prompt user to select a platform
   const selectedPlatform = await LWCUtils.selectPlatform(platformOptions);

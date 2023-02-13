@@ -111,6 +111,25 @@ export const androidPlatform: LWCPlatformQuickPickItem = {
 
 export class LWCUtils {
   /**
+   * Checks whether the current process is running on Windows OS.
+   *
+   * @return A boolean indicating whether the current process is running on Windows OS.
+   */
+  public static isWindowsOS(): boolean {
+    return process.platform === 'win32';
+  }
+
+  /**
+   * Takes a file path and converts it to a UNIX file path.
+   *
+   * @param filePath A file path.
+   * @return A string containg the file path in UNIX path style.
+   */
+    public static convertToUnixPath(filePath: string): string {
+      return filePath.replace(/\\/g, '/');
+    }
+
+  /**
    * Sends an error to telemetryService + notificationService + channelService, and
    * returns a rejected promise containing the error object.
    *
@@ -142,6 +161,10 @@ export class LWCUtils {
     items: readonly T[],
     placeholder: string
   ): Promise<T> {
+    if (items.length === 1) {
+      return Promise.resolve(items[0]);
+    }
+
     const selectedItem = await vscode.window.showQuickPick(items, {
       placeHolder: placeholder,
       ignoreFocusOut: true
