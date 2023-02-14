@@ -19,7 +19,31 @@ describe('SObjects Definitions', async () => {
     scratchOrg = new ScratchOrg('sObjectsDefinitions', false);
     await scratchOrg.setUp();
   });
+  // Create a custom object
+  // Push the object to org
+  // Refresh SObject definitions for Custom SObjects
+  step('Refresh SObject Definitions for Custom SObjects', async () => {
+    // Type'Sfdx: Refresh SObject Definitions in the Command Pallette'
+    const workbench = await browser.getWorkbench();
+    const prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Refresh SObject Definitions', 10);
 
+    // Select "Custom SObjects" from the Drop down menu .
+    await prompt.selectQuickPick('Custom SObjects');
+    await utilities.pause(1);
+    expect(1).toBe(1);
+  });
+  // Refresh SObject definitions for Standard SObjects
+  step('Refresh SObject Definitions for Standard SObjects', async () => {
+    // Type'Sfdx: Refresh SObject Definitions in the Command Pallette'
+    const workbench = await browser.getWorkbench();
+    const prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Refresh SObject Definitions', 10);
+
+    // Select "Standard SObjects" from the Drop down menu .
+    await prompt.selectQuickPick('Standard SObjects');
+    await utilities.pause(1);
+    expect(1).toBe(1);
+  });
+  // Refresh SObject definitions for All SObjects.
   step('Refresh SObject Definitions for All SObjects', async () => {
     // Type'Sfdx: Refresh SObject Definitions in the Command Pallette'
     const workbench = await browser.getWorkbench();
@@ -39,6 +63,9 @@ describe('SObjects Definitions', async () => {
 
     // Search for 'Processed xxx Standard sObjects'
     const matchedResults = outputPanelText?.match(/Processed [0-9]{1,} Standard sObjects/gm);
+    expect(matchedResults).not.toBe(undefined);
+    // @ts-ignore: Object is possibly 'null'
+    expect(matchedResults.length).toBeGreaterThanOrEqual(2)
     // @ts-ignore: Object is possibly 'null'
     const sObjectCount = parseInt(matchedResults[matchedResults.length - 1].match(/[0-9]{1,}/)[0]);
     expect(sObjectCount).toBeGreaterThan(100);
@@ -51,29 +78,28 @@ describe('SObjects Definitions', async () => {
     // Verify if '.sfdx' folder is in side panel
     const sfdxTreeItem = await treeViewSection.findItem('.sfdx') as DefaultTreeItem;
     expect(sfdxTreeItem).not.toEqual(undefined);
-    // Expand '.sfdx'
     await sfdxTreeItem.expand();
+    expect(await sfdxTreeItem.isExpanded()).toBe(true);
     await utilities.pause(1);
 
     // Verify if 'tools' folder is within '.sfdx'
     const toolsTreeItem = await sfdxTreeItem.findChildItem('tools') as TreeItem;
     expect(toolsTreeItem).not.toEqual(undefined);
-    // Expand 'tools'
     await toolsTreeItem.expand();
+    expect(await toolsTreeItem.isExpanded()).toBe(true);
     await utilities.pause(1);
 
     // Verify if 'sobjects' folder is within 'tools'
     const sobjectsTreeItem = await toolsTreeItem.findChildItem('sobjects') as TreeItem;
     expect(sobjectsTreeItem).not.toEqual(undefined);
-    // Expand 'sobjects'
     await sobjectsTreeItem.expand();
+    expect(await sobjectsTreeItem.isExpanded()).toBe(true);
     await utilities.pause(1);
 
     // Verify if 'standardObjects' folder is within 'sobjects'
     const standardObjectsTreeItem = await sobjectsTreeItem.findChildItem('standardObjects') as TreeItem;
-    expect(standardObjectsTreeItem).not.toEqual(undefined);
-    // Expand 'standardObjects'
     await standardObjectsTreeItem.expand();
+    expect(await standardObjectsTreeItem.isExpanded()).toBe(true);
     await utilities.pause(1);
     
     // Expectation: Get list of leaf nodes and validate Account.cls is present
