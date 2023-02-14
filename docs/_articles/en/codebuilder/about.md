@@ -18,7 +18,7 @@ You can install Code Builder as a managed package in any supported Salesforce or
 ### Important Considerations for Code Builder Beta
 * We've capped usage for beta at 20 hours for a maximum of 30 days. 
 * We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using Code Builder.
-* Code Builder is in open beta and is available to try on a first-come, first-served basis. If no spots are available, you're added to a waitlist, and receive an email when a spot opens up for you.
+* Throughout the beta, Code Builder environments could be deleted. All beta environments will be removed before GA.
 
 ## Additional Resources
 
