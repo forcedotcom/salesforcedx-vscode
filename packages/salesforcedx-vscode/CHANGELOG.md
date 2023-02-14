@@ -1,12 +1,18 @@
 # 57.2.1 - February 16, 2023
 
+## Fixed
+
+#### salesforcedx-utils-vscode, salesforcedx-utils
+
+We made some updates under the hood. ([PR #4661](https://github.com/forcedotcom/salesforcedx-vscode/pull/4661))
+
 # 57.0.1 - February 3, 2023
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-We made some updates under the hood.([PR #4568](https://github.com/forcedotcom/salesforcedx-vscode/pull/4568))
+We made some updates under the hood. ([PR #4568](https://github.com/forcedotcom/salesforcedx-vscode/pull/4568))
 
 ## Fixed
 
