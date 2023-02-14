@@ -4,7 +4,7 @@ lang: en
 ---
 
 ## Overview
-Complete this Quick Start to become familiar with the Code Builder interface and perform some simple tasks in your Code Builder environment. Before you start, see [Code Builder Overview](./about) for more information and important considerations.
+Complete this Quick Start to become familiar with the Code Builder interface and perform some simple tasks in your Code Builder environment. Before you start, see [Code Builder Overview](./en/codebuilder/about) for more information and important considerations.
 
 ### Don’t Forget to Save Your Work
 Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Save your work before you close the Code Builder tab on your browser so you don’t lose it. 
