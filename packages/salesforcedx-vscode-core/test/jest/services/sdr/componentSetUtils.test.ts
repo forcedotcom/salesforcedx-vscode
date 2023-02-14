@@ -7,26 +7,42 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { WorkspaceContext } from '../../../../src/context/workspaceContext';
 import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
+
+const getApiVersionMock = jest.fn().mockReturnValue('55.0');
+const contextMockInstance = {
+  ...jest.requireActual('../../../../src/context'),
+  WorkspaceContext: {
+    getConnection: jest
+      .fn()
+      .mockResolvedValue({ getApiVersion: getApiVersionMock })
+  } as any
+};
+
+const contextMock = jest.mock('../../../../src/context', () => {
+  return contextMockInstance;
+});
+
+// const workspaceContextGetInstanceMock = jest
+// .spyOn(WorkspaceContext, 'getInstance')
+// .mockReturnValue({
+//   getConnection: jest.fn().mockResolvedValue({ getApiVersion: orgApiVersion })
+// } as any);
 
 describe('componentSetUtils', () => {
   const configApiVersion = '56.0';
-  const orgApiVersion = '55.0';
   let getUserConfiguredApiVersionMock: jest.SpyInstance;
-  let workspaceContextGetInstanceMock: jest.SpyInstance;
+  // const workspaceContextGetInstanceSpy = jest.spyOn(
+  //   WorkspaceContext,
+  //   'getInstance'
+  // );
+  // const mockWorkspaceContext = { getConnection: jest.fn() } as any;
 
   beforeEach(() => {
+    // workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
     getUserConfiguredApiVersionMock = jest
       .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
       .mockResolvedValue(configApiVersion);
-    workspaceContextGetInstanceMock = jest
-      .spyOn(WorkspaceContext, 'getInstance')
-      .mockReturnValue({
-        getConnection: jest
-          .fn()
-          .mockResolvedValue({ getApiVersion: orgApiVersion })
-      } as any);
   });
 
   describe('setApiVersionOn', () => {
@@ -45,8 +61,8 @@ describe('componentSetUtils', () => {
       await setApiVersionOn(dummyComponentSet);
 
       expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
-      expect(workspaceContextGetInstanceMock).toHaveBeenCalled();
-      expect(dummyComponentSet.apiVersion).toEqual(orgApiVersion);
+      expect(getApiVersionMock).toHaveBeenCalled();
+      expect(dummyComponentSet.apiVersion).toEqual('55.0');
     });
 
     // it('should not override api version if getComponents set it already', async () => {
