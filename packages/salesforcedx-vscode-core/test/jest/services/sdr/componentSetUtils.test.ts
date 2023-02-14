@@ -7,7 +7,7 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-// import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
+import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 
 describe('componentSetUtils', () => {
   beforeEach(() => {});
@@ -20,7 +20,7 @@ describe('componentSetUtils', () => {
         .mockResolvedValue(configApiVersion);
 
       const dummyComponentSet = new ComponentSet();
-      // await setApiVersionOn(dummyComponentSet);
+      await setApiVersionOn(dummyComponentSet);
 
       expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
       expect(dummyComponentSet.apiVersion).toEqual(configApiVersion);
