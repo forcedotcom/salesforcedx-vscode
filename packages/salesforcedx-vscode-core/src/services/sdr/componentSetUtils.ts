@@ -12,9 +12,7 @@ import { WorkspaceContext } from '../../context/workspaceContext';
 export async function setApiVersionOn(components: ComponentSet) {
   // Check the SFDX configuration to see if there is an overridden api version.
   // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-  const userConfiguredApiVersion:
-    | string
-    | undefined = await ConfigUtil.getUserConfiguredApiVersion();
+  const userConfiguredApiVersion = await ConfigUtil.getUserConfiguredApiVersion();
 
   if (userConfiguredApiVersion) {
     components.apiVersion = userConfiguredApiVersion;
@@ -26,8 +24,8 @@ export async function setApiVersionOn(components: ComponentSet) {
   components.apiVersion = orgApiVersion ?? components.apiVersion;
 }
 
-async function getOrgApiVersion(): Promise<string | undefined> {
+async function getOrgApiVersion(): Promise<string> {
   const connection = await WorkspaceContext.getInstance().getConnection();
   const apiVersion = connection.getApiVersion();
-  return apiVersion ? String(apiVersion) : undefined;
+  return apiVersion;
 }
