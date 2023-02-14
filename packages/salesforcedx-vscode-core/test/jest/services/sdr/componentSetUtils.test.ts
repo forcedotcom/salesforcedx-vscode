@@ -7,18 +7,30 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { WorkspaceContext } from '../../../../src/context/workspaceContext';
 import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 
 describe('componentSetUtils', () => {
-  beforeEach(() => {});
+  const configApiVersion = '56.0';
+  const orgApiVersion = '55.0';
+  let getUserConfiguredApiVersionMock: jest.SpyInstance;
+  let workspaceContextGetInstanceMock: jest.SpyInstance;
+
+  beforeEach(() => {
+    getUserConfiguredApiVersionMock = jest
+      .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
+      .mockResolvedValue(configApiVersion);
+    workspaceContextGetInstanceMock = jest
+      .spyOn(WorkspaceContext, 'getInstance')
+      .mockReturnValue({
+        getConnection: jest
+          .fn()
+          .mockResolvedValue({ getApiVersion: orgApiVersion })
+      } as any);
+  });
 
   describe('setApiVersionOn', () => {
     it('should use the api version from SFDX configuration', async () => {
-      const configApiVersion = '30.0';
-      const getUserConfiguredApiVersionMock = jest
-        .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
-        .mockResolvedValue(configApiVersion);
-
       const dummyComponentSet = new ComponentSet();
       await setApiVersionOn(dummyComponentSet);
 
@@ -26,19 +38,16 @@ describe('componentSetUtils', () => {
       expect(dummyComponentSet.apiVersion).toEqual(configApiVersion);
     });
 
-    // it('should use the api version from the Org when no User-configured api version is set', async () => {
-    //   const executor = new TestDeployRetrieve();
-    //   const getUserConfiguredApiVersionStub = sb
-    //     .stub(ConfigUtil, 'getUserConfiguredApiVersion')
-    //     .resolves(undefined);
+    it('should use the api version from the Org when no User-configured api version is set', async () => {
+      getUserConfiguredApiVersionMock.mockResolvedValue(undefined);
 
-    //   await executor.run({ data: {}, type: 'CONTINUE' });
-    //   const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+      const dummyComponentSet = new ComponentSet();
+      await setApiVersionOn(dummyComponentSet);
 
-    //   expect(components.apiVersion).to.equal(dummyOrgApiVersion);
-    //   expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
-    //   expect(getOrgApiVersionStub.calledOnce).to.equal(true);
-    // });
+      expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
+      expect(workspaceContextGetInstanceMock).toHaveBeenCalled();
+      expect(dummyComponentSet.apiVersion).toEqual(orgApiVersion);
+    });
 
     // it('should not override api version if getComponents set it already', async () => {
     //   const executor = new TestDeployRetrieve();
