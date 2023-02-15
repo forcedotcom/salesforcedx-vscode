@@ -7,7 +7,7 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { workspaceContext } from '../../context';
+import { WorkspaceContext } from '../../context/workspaceContext';
 
 export async function setApiVersionOn(components: ComponentSet) {
   // Check the SFDX configuration to see if there is an overridden api version.
@@ -25,7 +25,7 @@ export async function setApiVersionOn(components: ComponentSet) {
 }
 
 async function getOrgApiVersion(): Promise<string> {
-  const connection = await workspaceContext.getConnection();
+  const connection = await WorkspaceContext.getInstance().getConnection();
   const apiVersion = connection.getApiVersion();
   return apiVersion;
 }

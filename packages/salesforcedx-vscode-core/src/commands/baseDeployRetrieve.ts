@@ -28,7 +28,7 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
@@ -112,7 +112,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
     const operation = await components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
     });
 
     this.setupCancellation(operation, token);
@@ -199,7 +199,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContext.getInstance().getConnection();
 
     const defaultOutput = join(
       getRootWorkspacePath(),
