@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  extensionUris,
+  projectPaths
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -15,7 +18,7 @@ import {
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
-import { LSP_ERR } from './constants';
+import { LSP_ERR, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
@@ -107,7 +110,13 @@ export function setupDB(): void {
     }
 
     try {
-      const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
+      const extensionUri = extensionUris.extensionUri(
+        VSCODE_APEX_EXTENSION_NAME
+      );
+      const systemDb = extensionUris
+        .join(extensionUri, path.join('resources', 'apex.db'))
+        .toString();
+
       if (fs.existsSync(systemDb)) {
         fs.copyFileSync(systemDb, dbPath);
       }

@@ -199,7 +199,6 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -209,7 +208,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -232,8 +231,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    const breakpointId1 = breakpointId + '1';
-    (breakpoint1 as any)._id = breakpointId1;
+
     bpAdd.push(breakpoint1);
     const breakpoint2 = new vscode.SourceBreakpoint(
       location,
@@ -241,8 +239,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    const breakpointId2 = breakpointId + '2';
-    (breakpoint2 as any)._id = breakpointId2;
+
     bpAdd.push(breakpoint2);
 
     await processBreakpointChangedForCheckpoints({
@@ -253,22 +250,22 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     const theNode1 = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId1
+      breakpoint1.id
     );
     if (!theNode1) {
       assert.fail(
         'Should have created a node in the checkpointService with id: ' +
-          breakpointId1
+          breakpoint1.id
       );
     }
 
     const theNode2 = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId2
+      breakpoint2.id
     );
     if (!theNode2) {
       assert.fail(
         'Should have created a node in the checkpointService with id: ' +
-          breakpointId2
+          breakpoint1.id
       );
     }
     expect(lockSpy.calledTwice).to.equal(true);
@@ -286,7 +283,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -296,7 +293,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -313,7 +310,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     });
 
     const deletedNote = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     // The node should be undefined as it was deleted
     if (deletedNote) {
@@ -335,7 +332,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -345,7 +342,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -363,7 +360,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       '4'
     );
-    (breakpoint2 as any)._id = breakpointId;
+
     bpChange.push(breakpoint2);
     await processBreakpointChangedForCheckpoints({
       added: bpEmpty,
@@ -374,7 +371,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     // Verify that the checkpoint has been updated, that the enabled flag is set to false and
     // the iterations has been updated from 1 to 4
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -401,7 +398,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -411,7 +408,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -426,7 +423,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       undefined, // change the condition from 'checkpoint' to undefined
       undefined
     );
-    (breakpoint2 as any)._id = breakpointId;
+
     bpChange.push(breakpoint2);
     await processBreakpointChangedForCheckpoints({
       added: bpEmpty,
@@ -436,7 +433,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that the checkpoint has been updated and that the enabled flag is set to false
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       assert.fail(
@@ -459,7 +456,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -469,7 +466,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -484,7 +481,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT, // keep the checkpoint condition
       undefined
     );
-    (breakpoint2 as any)._id = breakpointId;
+
     bpChange.push(breakpoint2);
     await processBreakpointChangedForCheckpoints({
       added: bpEmpty,
@@ -494,7 +491,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that the checkpoint has been updated and that the enabled flag is set to false
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       assert.fail(
@@ -517,7 +514,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -527,7 +524,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // The first breakpoint should have no ActionScript or ActionScriptType
     let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       expect(theNode.getActionScriptType()).to.be.equal(ActionScriptEnum.None);
@@ -547,7 +544,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     });
 
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       expect(theNode.getActionScriptType()).to.be.equal(ActionScriptEnum.Apex);
@@ -568,7 +565,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     });
 
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       expect(theNode.getActionScriptType()).to.be.equal(ActionScriptEnum.SOQL);

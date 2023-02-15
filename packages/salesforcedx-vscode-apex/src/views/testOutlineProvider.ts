@@ -8,23 +8,14 @@ import { TestResult } from '@salesforce/apex-node';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  APEX_GROUP_RANGE,
-  DARK_BLUE_BUTTON,
-  DARK_GREEN_BUTTON,
-  DARK_ORANGE_BUTTON,
-  DARK_RED_BUTTON,
-  LIGHT_BLUE_BUTTON,
-  LIGHT_GREEN_BUTTON,
-  LIGHT_ORANGE_BUTTON,
-  LIGHT_RED_BUTTON
-} from '../constants';
+import { APEX_GROUP_RANGE } from '../constants';
 import {
   getApexTests,
   LanguageClientStatus,
   languageClientUtils
 } from '../languageClientUtils';
 import { nls } from '../messages';
+import { iconHelpers, IconsEnum } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
 // Message
@@ -266,8 +257,8 @@ export abstract class TestNode extends vscode.TreeItem {
   }
 
   public iconPath = {
-    light: LIGHT_BLUE_BUTTON,
-    dark: DARK_BLUE_BUTTON
+    light: iconHelpers.getIconPath(IconsEnum.LIGHT_BLUE_BUTTON),
+    dark: iconHelpers.getIconPath(IconsEnum.DARK_BLUE_BUTTON)
   };
 
   // TODO: create a ticket to address this particular issue.
@@ -280,20 +271,20 @@ export abstract class TestNode extends vscode.TreeItem {
     if (outcome === 'Pass') {
       // Passed Test
       this.iconPath = {
-        light: LIGHT_GREEN_BUTTON,
-        dark: DARK_GREEN_BUTTON
+        light: iconHelpers.getIconPath(IconsEnum.LIGHT_GREEN_BUTTON),
+        dark: iconHelpers.getIconPath(IconsEnum.DARK_GREEN_BUTTON)
       };
     } else if (outcome === 'Fail') {
       // Failed test
       this.iconPath = {
-        light: LIGHT_RED_BUTTON,
-        dark: DARK_RED_BUTTON
+        light: iconHelpers.getIconPath(IconsEnum.LIGHT_RED_BUTTON),
+        dark: iconHelpers.getIconPath(IconsEnum.DARK_RED_BUTTON)
       };
     } else if (outcome === 'Skip') {
       // Skipped test
       this.iconPath = {
-        light: LIGHT_ORANGE_BUTTON,
-        dark: DARK_ORANGE_BUTTON
+        light: iconHelpers.getIconPath(IconsEnum.LIGHT_ORANGE_BUTTON),
+        dark: iconHelpers.getIconPath(IconsEnum.DARK_ORANGE_BUTTON)
       };
     }
 
@@ -368,4 +359,11 @@ export class ApexTestNode extends TestNode {
   public contextValue = 'apexTest';
 }
 
-export const testOutlineProvider = new ApexTestOutlineProvider(null);
+let testOutlineProviderInst: ApexTestOutlineProvider;
+
+export const getTestOutlineProvider = () => {
+  if (!testOutlineProviderInst) {
+    testOutlineProviderInst = new ApexTestOutlineProvider(null);
+  }
+  return testOutlineProviderInst;
+};
