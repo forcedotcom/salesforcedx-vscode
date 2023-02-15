@@ -14,7 +14,11 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
     WorkspaceContextUtil: {
       getInstance: jest.fn().mockReturnValue({})
-    }
+    },
+    TelemetryService: { getInstance: jest.fn() },
+    ChannelService: jest.fn().mockImplementation(() => {
+      return {};
+    })
   };
 });
 
