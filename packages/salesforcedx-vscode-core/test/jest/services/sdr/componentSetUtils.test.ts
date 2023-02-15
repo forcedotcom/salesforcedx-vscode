@@ -1,4 +1,3 @@
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -17,6 +16,10 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
       getInstance: jest.fn().mockReturnValue({})
     }
   };
+});
+
+jest.mock('../../../../src/messages', () => {
+  return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
 
 describe('componentSetUtils', () => {
