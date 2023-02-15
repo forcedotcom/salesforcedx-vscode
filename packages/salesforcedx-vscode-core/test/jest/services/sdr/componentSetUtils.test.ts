@@ -1,3 +1,4 @@
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -9,37 +10,20 @@ import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 
-// const getApiVersionMock = jest.fn().mockReturnValue('55.0');
-const contextMockInstance = {
-  // ...jest.requireActual('../../../../src/context'),
-};
-
-const contextMock = jest.mock('../../../../src/context', () => {
+jest.mock('../../../../src/context');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
-    WorkspaceContext: {
-      getConnection: jest.fn().mockResolvedValue({ getApiVersion: '55.0' })
-    } as any
+    WorkspaceContextUtil: {
+      getInstance: jest.fn().mockReturnValue({})
+    }
   };
-  // return contextMockInstance;
 });
-
-// const workspaceContextGetInstanceMock = jest
-// .spyOn(WorkspaceContext, 'getInstance')
-// .mockReturnValue({
-//   getConnection: jest.fn().mockResolvedValue({ getApiVersion: orgApiVersion })
-// } as any);
 
 describe('componentSetUtils', () => {
   const configApiVersion = '56.0';
   let getUserConfiguredApiVersionMock: jest.SpyInstance;
-  // const workspaceContextGetInstanceSpy = jest.spyOn(
-  //   WorkspaceContext,
-  //   'getInstance'
-  // );
-  // const mockWorkspaceContext = { getConnection: jest.fn() } as any;
 
   beforeEach(() => {
-    // workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
     getUserConfiguredApiVersionMock = jest
       .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
       .mockResolvedValue(configApiVersion);
