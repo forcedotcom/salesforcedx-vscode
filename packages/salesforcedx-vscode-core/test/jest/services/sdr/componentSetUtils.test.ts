@@ -12,13 +12,15 @@ import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils'
 // const getApiVersionMock = jest.fn().mockReturnValue('55.0');
 const contextMockInstance = {
   // ...jest.requireActual('../../../../src/context'),
-  WorkspaceContext: {
-    getConnection: jest.fn().mockResolvedValue({ getApiVersion: '55.0' })
-  } as any
 };
 
 const contextMock = jest.mock('../../../../src/context', () => {
-  return contextMockInstance;
+  return {
+    WorkspaceContext: {
+      getConnection: jest.fn().mockResolvedValue({ getApiVersion: '55.0' })
+    } as any
+  };
+  // return contextMockInstance;
 });
 
 // const workspaceContextGetInstanceMock = jest
