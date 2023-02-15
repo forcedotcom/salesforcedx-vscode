@@ -21,7 +21,7 @@ import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import {
   disableCLITelemetry,
   isCLIInstalled,
@@ -196,7 +196,7 @@ describe('SFDX CLI Configuration utility', () => {
         res = resolveFunc;
         rej = rejectsFunc;
       });
-      workspaceContext.onOrgChange(async orgUserInfo => {
+      WorkspaceContext.prototype.onOrgChange(async orgUserInfo => {
         try {
           // Act
           const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
