@@ -28,7 +28,7 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { WorkspaceContext } from '../context/workspaceContext';
+import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';

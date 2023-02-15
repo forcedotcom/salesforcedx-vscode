@@ -10,7 +10,7 @@ import {
   FileProperties
 } from '@salesforce/source-deploy-retrieve';
 import { ExtensionContext, Memento } from 'vscode';
-import { WorkspaceContext } from '../context/workspaceContext';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 
 interface ConflictFileProperties {

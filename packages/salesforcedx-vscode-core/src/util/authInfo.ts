@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext } from '../context/workspaceContext';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';

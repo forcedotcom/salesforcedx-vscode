@@ -19,7 +19,7 @@ import {
   MetadataCacheService
 } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
-import { WorkspaceContext } from '../../context/workspaceContext';
+import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
