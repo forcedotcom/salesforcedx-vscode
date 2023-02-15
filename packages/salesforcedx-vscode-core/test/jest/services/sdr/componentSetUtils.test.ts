@@ -10,6 +10,10 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 
 jest.mock('../../../../src/context');
+jest.mock('../../../../src/commands/baseDeployRetrieve.ts');
+jest.mock('../../../../src/commands/util/postconditionCheckers.ts');
+jest.mock('../../../../src/conflict/metadataCacheService.ts');
+jest.mock('../../../../src/util/metaDataDictionary.ts');
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
     WorkspaceContextUtil: {
