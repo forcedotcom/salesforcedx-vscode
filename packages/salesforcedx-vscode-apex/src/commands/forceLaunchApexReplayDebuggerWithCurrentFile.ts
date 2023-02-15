@@ -81,14 +81,13 @@ async function getApexTestClassName(
   }
 
   await testOutlineProvider.refresh();
-  const testClassName = testOutlineProvider.getTestClassName(sourceUri);
+  let testClassName = testOutlineProvider.getTestClassName(sourceUri);
   // This is a little bizarre.  Intellisense is reporting that getTestClassName() returns a string,
   // but it actually it returns string | undefined.  Well, regardless, since flushFilePath() takes
   // a string (and guards against empty strings) using the Non-null assertion operator
   // (https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)
   // fixes the issue.
-  // cico
-  // testClassName = fileUtils.flushFilePath(testClassName || '');
+  testClassName = fileUtils.flushFilePath(testClassName || '');
 
   return testClassName;
 }
