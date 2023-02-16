@@ -196,7 +196,7 @@ describe('SFDX CLI Configuration utility', () => {
         res = resolveFunc;
         rej = rejectsFunc;
       });
-      WorkspaceContext.prototype.onOrgChange(async orgUserInfo => {
+      WorkspaceContext.getInstance().onOrgChange(async orgUserInfo => {
         try {
           // Act
           const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
