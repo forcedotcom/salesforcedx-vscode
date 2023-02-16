@@ -58,7 +58,7 @@ describe('componentSetUtils', () => {
   });
 
   describe('setApiVersionOn', () => {
-    it('should use the api version from SFDX configuration', async () => {
+    it('should use the api version from SFDX configuration when it is set', async () => {
       const dummyComponentSet = new ComponentSet();
       await setApiVersionOn(dummyComponentSet);
 
@@ -77,23 +77,5 @@ describe('componentSetUtils', () => {
       expect(workspaceContextGetConnectionMock).toHaveBeenCalled();
       expect(dummyComponentSet.apiVersion).toEqual(orgApiVersion);
     });
-
-    // it('should not override api version if getComponents set it already', async () => {
-    //   const executor = new TestDeployRetrieve();
-
-    //   const getComponentsResult = new ComponentSet();
-    //   getComponentsResult.apiVersion = '41.0';
-    //   executor.lifecycle.getComponentsStub.returns(getComponentsResult);
-
-    //   const configApiVersion = '45.0';
-    //   sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').returns(
-    //     configApiVersion
-    //   );
-
-    //   await executor.run({ data: {}, type: 'CONTINUE' });
-    //   const components = executor.lifecycle.doOperationStub.firstCall.args[0];
-
-    //   expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
-    // });
   });
 });
