@@ -8,7 +8,7 @@ import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   registry,
@@ -37,7 +37,7 @@ import {
 } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 
@@ -267,7 +267,7 @@ describe('Parameter Gatherers', () => {
       const selector = new SelectOutputDir('test');
       const options = selector.getCustomOptions(
         packageDirs,
-        getRootWorkspacePath()
+        workspaceUtils.getRootWorkspacePath()
       );
       expect(options.length).to.be.equal(SFDX_SIMPLE_NUM_OF_DIRS);
     });
@@ -276,7 +276,7 @@ describe('Parameter Gatherers', () => {
       const selector = new SelectOutputDir('aura', true);
       const options = selector.getCustomOptions(
         packageDirs,
-        getRootWorkspacePath()
+        workspaceUtils.getRootWorkspacePath()
       );
 
       expect(
@@ -292,7 +292,7 @@ describe('Parameter Gatherers', () => {
       const defaultOptions = selector.getDefaultOptions(packageDirs);
       const customOptions = selector.getCustomOptions(
         packageDirs,
-        getRootWorkspacePath()
+        workspaceUtils.getRootWorkspacePath()
       );
       const getPackageDirPathsStub = sinon.stub(
         SfdxPackageDirectories,
@@ -339,7 +339,9 @@ describe('Parameter Gatherers', () => {
       );
       const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
       getLwcsStub
-        .withArgs(path.join(getRootWorkspacePath(), packageDirs[0]))
+        .withArgs(
+          path.join(workspaceUtils.getRootWorkspacePath(), packageDirs[0])
+        )
         .returns(mockComponents);
       const showMenuStub = sinon.stub(selector, 'showMenu');
       getPackageDirPathsStub.returns(packageDirs);
@@ -381,7 +383,9 @@ describe('Parameter Gatherers', () => {
       );
       const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
       getLwcsStub
-        .withArgs(path.join(getRootWorkspacePath(), packageDirs[0]))
+        .withArgs(
+          path.join(workspaceUtils.getRootWorkspacePath(), packageDirs[0])
+        )
         .returns(mockComponents);
       const showMenuStub = sinon.stub(selector, 'showMenu');
       getPackageDirPathsStub.returns(packageDirs);

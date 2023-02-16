@@ -16,52 +16,44 @@ For more information about publishing take a look at:
 
 # Prerequisites
 
-1. Publisher has a valid CircleCI token for the forcedotcom organization. See [Create a Personal API token](https://circleci.com/docs/2.0/managing-api-tokens/#creating-a-personal-api-token) in the CircleCI docs.
 1. Publisher is a part of the GitHub team 'PDT'.
 
 # Steps
 
 ## Creating a Release Branch
 
-The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format `release/vxx.yy.zz`.
+The release branch is typically created from a scheduled job in Github Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format `release/vxx.yy.zz`.
 Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
 
 ## Verifying the Change Log
 
-One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) would review the changelog and make any changes to the release branch.
+One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) would review the changelog and make any changes to the release branch. A pull request will be opened against the release branch with updates to be included.
 
 ## Merging the Release Branch into Main
 
-After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. We currently use a CircleCI workflow that rebases `main` off of the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in main.
+After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. A Github Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in main.
 
-To run the merge process:
+### To run the merge process:
 
-1. Switch local branch to develop
-1. Perform a git pull
-1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
-1. Search for `Tasks: Run Task`.
-1. Select `Launch Pre-Publish Steps`.
-1. Approve the workflow in CircleCI:
-   1. Navigate to the `#pdt_releases` channel in Slack.
-   1. Soon you'll see a `Pending Approval for merge of release branch into main` option. Click the `Visit Workflow` button to navigate to CircleCI.
-   1. Click the selection for `hold`.
-   1. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
+1. From the github repository navigate to the Action Tab and Select the PreRelease workflow on the left
+1. Click the 'Run Workflow' button and input the branch to be merged into the input box.
+1. Click the `Run Workflow` button.
+
+The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in main and update main with the release branch.
 
 ## Publishing Main
 
-After the pre-publish steps have run and main has been rebased off of the release branch, it's now time to publish main.
+The merge into main will trigger a run of the 'Test, Build, and Release' GHA workflow that will:
+- run the tests
+- build vsix files
+- send a slack notification that a release workflow has been initiated
+- create a tag and release in Github
 
-1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
-1. Search for `Tasks: Run Task`.
-1. Select `Publish Extensions`.
-   1. You will be need the generated [CircleCI token](https://app.circleci.com/settings/user/tokens)
-1. Approve the workflow in CircleCI:
-   1. Navigate to the `#pdt_releases` channel in Slack.
-   2. Soon you'll see a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCI.
-   3. Wait for all tests to pass.
-   4. Click the selection for `hold`.
-   5. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
-   6. Check that [the extension](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) has been updated and `main` is merged back into `develop` by the publish job.
+After the release has been created, it will trigger a publish action that will send a notification to slack to request approval to publish the vsix files to the marketplace.
+
+Before approving the release to the marketplace, download the vsix files, install them locally and verify they are working as expected.
+
+After you feel comfortable publishing to the marketplace, approve the publish job in the Github Action UI.
 
 ## Post-Publishing the .vsix
 
@@ -72,74 +64,45 @@ After the pre-publish steps have run and main has been rebased off of the releas
 
 ---
 
+# Publishing a Beta Pre-Release
+
+If there is a release with high-risk or large-scale changes, we can publish a pre-release to allow advanced users to test early. VSIX artifacts are uploaded to a github release as with our usual release but there is no publish to NPM or the VS Code Marketplace (yet).
+
+## Steps
+
+1. Create a release branch, and increment the version using Lerna, as shown in the `create-release-branch.js` file, starting at the creation of the release branch.
+2. For the version number, keep the minor version the same and set the patch to use the following format: year month day hour minute. For example, v55.11.202208260522.
+3. Push the branch to remote.
+4. From the Actions tab in Github select the workflow 'Publish Beta Release to Github Only'.
+5. Select 'Run Workflow', and run the workflow from the beta branch. The workflow can only be run someone with write privileges of this repo.
+6. The workflow will create the git tag, the release, and attach the individual VSIX files to the release where they can be downloaded and tested.
+
+Note that the beta branch, because of the unique versioning, should not be merged back to develop. When the code is ready for a standard release, the regular release branching process should be followed.
+
+---
+
 # Manual Publish
 
-In the event that CircleCI is not a viable option for publishing, see the following...
-
-The scripts/publish-circleci.js contains the end-to-end flow. You run this from the
-**top-level** directory.
-
-The files under scripts use [shelljs/shx](https://github.com/shelljs/shx) and
-[shelljs/shelljs](https://github.com/shelljs/shelljs) to write scripts in a
-portable manner across platforms.
-
-1. `git checkout -t origin release/vxx.yy.zz`
-1. `npm install`
-1. `export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz` (must match the branch version)
-1. `export CIRCLECI_TOKEN=zyx` (must be a CircleCI admin in order to generate it)
-1. `export CIRCLECI_BUILD=1234` (the build-all CircleCI build number)
-1. `scripts/publish-circleci.js`
-
-It is possible to run each step manually as illustrated below.
-
-## Creating a Release Branch Manually
-
-<b>Note that this isn't typically required due to the scheduled job in CircleCI</b>
-
-1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
-1. Search for `Tasks: Run Task`.
-1. Select `Create Release Branch`.
-1. Approve the workflow in CircleCI:
-   1. Navigate to the `#pdt_releases` channel in Slack.
-   1. Soon you'll see a `Pending Approval for Creation of Release Branch` option. Click the `Visit Workflow` button to navigate to CircleCI.
-   1. Click the selection for `hold`.
-   1. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
-1. Continue release normally, generating the change log.
+The steps used to publish to the VS Code Marketplace can be found in the associated Github Actions.
 
 ## Generating a Major Release
 
 The versioning we follow is intentionally mapped with Salesforce Core. When a major version bump occurs, such as 53.0 -> 54.0, we release a major version update as well.
 
-1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
-1. Search for `Tasks: Run Task`.
-1. Select `Create Release Branch`.
-1. Select 'Major' as the version.
-1. Continue the rest of the release branch process documented above.
-1. When generating the change log, manually input the major release version (ex: 54.0.0)
-1. Do not publish the minor version generated in CircleCI.
+## Downloading the .vsix from Github Action
 
-## Downloading the .vsix from CircleCI
+### Options
 
-### Prerequisite
-
-- Lerna is properly installed (`npm install -g lerna@3.13.1`).
-- You've created a CircleCI token that grants you access to the artifacts generated per build. More info on CircleCI's doc [Create a Personal API token](https://circleci.com/docs/2.0/managing-api-tokens/#creating-a-personal-api-token).
-- All tests have been run prior to publishing. We don't run the tests during the
-  publishing cycle since it generates artifacts that we do not want to include
-  in the packaged extensions.
-
-### Steps
-
-1. `npm install` to install all the dependencies and to symlink interdependent
-   local modules.
-1. You have set the `SALESFORCEDX_VSCODE_VERSION`, `CIRCLECI_TOKEN` and
-   `CIRCLECI_BUILD` environment variables that give you access to download the
-   CircleCI artifacts.
-1. `npm run circleci:artifacts` downloads _each_ extension artifact as a .vsix
-   and stores it in the corresponding packages/salesforcedx-vscode-\* path.
+- Download directly from the Github Action run. You will find artifacts that are associated with a run at the bottom of the summary screen
+- Use the gh cli to download artifacts. `gh run download --dir /dir/where/you/want/the/vsix/files/ 3746978326`. The last arg is the GHA job id. This can be found in the UI or by executing `gh run list`.
 
 **At this stage, it is possible to share the .vsix directly for manual
 installation.**
+
+To manually install vsix files you can use the `code` or `code-insiders` cli.
+
+- `code-insiders --install-extension /path/to/the/vsix/iama.vsix`
+- or install all downloaded vsix files `find ./vsix/download/path -type f -name "*.vsix" -exec code --install-extension {} \;`
 
 ## Generating SHA256
 
@@ -148,24 +111,11 @@ the .vsix are neither signed nor verified. To ensure that they have not been
 tampered with, we generate a SHA256 of the contents and publish that to
 https://developer.salesforce.com/media/vscode/SHA256
 
-### Prerequisite
-
-- You have access to our S3 bucket at s3://dfc-data-production/media/vscode
-- You have the [AWS CLI](https://aws.amazon.com/cli/) installed and configured
-  via `aws configure` or have the `AWS_ACCESS_KEY_ID` and
-  `AWS_SECRET_ACCESS_KEY` exported as environment variables.
-- Verify you have access to our S3 bucket:
-
-```
-$ aws s3 ls s3://dfc-data-production/media/vscode/
-```
-
 ### Steps
 
 1. `npm run vscode:sha256` will compute the SHA256 for the .vsix generated in
    the previous stage.
 1. The SHA256 are appended to the top-level SHA256 file.
-1. This file is then copied over to our S3 bucket.
 1. Finally the file is added to git so that it can be committed.
 
 ## Pushing .vsix to Visual Studio Marketplace
@@ -212,11 +162,6 @@ from Atlassian on the flow. These steps are manual because you might encounter m
 1. `git push`
 
 # Tips
-
-1. After publishing, you will need to run `npm run bootstrap` again to continue
-   development. This is because the `npm run vscode:package` step does a `npm prune --production`. This is required due to the way Lerna does symlinking.
-   See [vscode-vsce#52](https://github.com/Microsoft/vscode-vsce/issues/52) for
-   more information.
 
 1. In order to make a previously unpublished extension publishable there are a
    few things that need to get updated:

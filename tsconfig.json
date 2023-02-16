@@ -17,6 +17,9 @@
       "path": "packages/salesforcedx-test-utils-vscode"
     },
     {
+      "path": "packages/salesforcedx-utils"
+    },
+    {
       "path": "packages/salesforcedx-utils-vscode"
     },
     {

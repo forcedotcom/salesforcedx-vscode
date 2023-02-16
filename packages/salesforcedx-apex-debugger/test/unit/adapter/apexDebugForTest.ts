@@ -7,7 +7,7 @@
 // This is only done in tests because we are mocking things
 // tslint:disable:no-floating-promises
 
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
@@ -216,7 +216,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.variablesRequest(response, args);
   }
 
-  public getIdleTimers(): NodeJS.Timer[] {
+  public getIdleTimers(): Array<ReturnType<typeof setTimeout>> {
     return this.idleTimers;
   }
 }

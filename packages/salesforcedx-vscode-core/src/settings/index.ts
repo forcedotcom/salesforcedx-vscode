@@ -11,5 +11,6 @@ export const sfdxCoreSettings = SfdxCoreSettings.getInstance();
 export {
   DeployQueue,
   registerPushOrDeployOnSave,
-  pathIsInPackageDirectory
+  pathIsInPackageDirectory,
+  fileShouldNotBeDeployed
 } from './pushOrDeployOnSave';

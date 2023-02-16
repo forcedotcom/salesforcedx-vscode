@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import {
+  getRootWorkspacePath,
+  SFDX_CORE_CONFIGURATION_NAME
+} from '@salesforce/salesforcedx-utils-vscode';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -40,6 +45,7 @@ import {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
+  forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
   forceOrgDisplay,
@@ -92,11 +98,15 @@ import {
   setupConflictView
 } from './conflict';
 import {
-  ENABLE_SOBJECT_REFRESH_ON_STARTUP
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  ORG_OPEN_COMMAND
 } from './constants';
-import { getDefaultUsernameOrAlias } from './context';
-import { workspaceContext } from './context';
-import * as decorators from './decorators';
+import { workspaceContext, workspaceContextUtils } from './context';
+import {
+  decorators,
+  disposeTraceFlagExpiration,
+  showDemoMode
+} from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -149,12 +159,16 @@ function registerCommands(
     'sfdx.force.auth.logout.default',
     forceAuthLogoutDefault
   );
+  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.force.open.documentation',
+    forceOpenDocumentation
+  );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
     forceOrgCreate
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.open',
+    ORG_OPEN_COMMAND,
     forceOrgOpen
   );
   const forceSourceDeleteCmd = vscode.commands.registerCommand(
@@ -447,6 +461,7 @@ function registerCommands(
     forceFunctionStartCmd,
     forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
+    forceOpenDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
@@ -579,17 +594,24 @@ async function setupOrgBrowser(
     }
   );
 
-  vscode.commands.registerCommand(
-    'sfdx.create.manifest',
-    forceCreateManifest
-  );
+  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
-    './package.json'
-  ));
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Switch to the project directory so that the main @salesforce
+  // node libraries work correctly.  @salesforce/core,
+  // @salesforce/source-tracking, etc. all use process.cwd()
+  // internally.  This causes issues when used from VSCE, as VSCE
+  // processes can run with a path that does not reflect the current
+  // project path (it often returns '/' from process.cwd()).
+  // Switching to the project path here at activation time ensures that
+  // commands are run with the project path returned from process.cwd(),
+  // thus avoiding the potential errors surfaced when the libs call
+  // process.cwd().
+  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  const { name, aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     name,
@@ -680,7 +702,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    getDefaultUsernameOrAlias,
+    getDefaultUsernameOrAlias: workspaceContextUtils.getDefaultUsernameOrAlias,
     getUserId,
     isCLIInstalled,
     notificationService,
@@ -702,19 +724,24 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
 
-  // Refresh SObject definitions if there aren't any faux classes
-  const sobjectRefreshStartup: boolean = vscode.workspace
-    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    // Refresh SObject definitions if there aren't any faux classes
+    const sobjectRefreshStartup: boolean = vscode.workspace
+      .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+      .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-  if (sobjectRefreshStartup) {
-    initSObjectDefinitions(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
-  } else {
-    checkSObjectsAndRefresh(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
+    if (sobjectRefreshStartup) {
+      initSObjectDefinitions(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    } else {
+      checkSObjectsAndRefresh(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    }
   }
 
   return api;
@@ -734,14 +761,13 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
 
   // Register file watcher for push or deploy on save
   await registerPushOrDeployOnSave();
-  decorators.showOrg();
-  decorators.monitorOrgConfigChanges();
+  await decorators.showOrg();
 
   await setUpOrgExpirationWatcher(orgList);
 
   // Demo mode decorator
   if (isDemoMode()) {
-    decorators.showDemoMode();
+    showDemoMode();
   }
 }
 
@@ -752,6 +778,6 @@ export function deactivate(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
 
-  decorators.disposeTraceFlagExpiration();
+  disposeTraceFlagExpiration();
   return turnOffLogging();
 }

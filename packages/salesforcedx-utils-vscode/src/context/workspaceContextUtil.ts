@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
-import { join } from 'path';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { AuthUtil } from '..';
+import { ConfigAggregatorProvider } from '..';
+import { AuthUtil } from '../auth/authUtil';
+import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
-import { getRootWorkspacePath } from '../workspaces';
-
-export interface OrgInfo {
+export interface OrgUserInfo {
   username?: string;
   alias?: string;
 }
@@ -26,23 +24,19 @@ export class WorkspaceContextUtil {
 
   protected cliConfigWatcher: vscode.FileSystemWatcher;
   protected sessionConnections: Map<string, Connection>;
-  protected onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
+  protected onOrgChangeEmitter: vscode.EventEmitter<OrgUserInfo>;
   protected _username?: string;
   protected _alias?: string;
 
-  public readonly onOrgChange: vscode.Event<OrgInfo>;
+  public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     this.sessionConnections = new Map<string, Connection>();
-    this.onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
+    this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(
-      getRootWorkspacePath(),
-      SFDX_FOLDER,
-      SFDX_CONFIG_FILE
-    );
+    const cliConfigPath = projectPaths.sfdxProjectConfig();
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
       cliConfigPath
     );
@@ -88,14 +82,27 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
-    const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
+    // Core's types can return stale cached data when
+    // this handler is called right after modifying the config file.
+    // Reloading the Config Aggregator and StateAggregator here ensures
+    // that they are refreshed when the config file changes, and are
+    // loaded with the most recent data when used downstream in
+    // ConfigUtil and AuthUtil.
+    await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+    StateAggregator.clearInstance();
+
+    const defaultUsernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
       false
     );
 
-    if (usernameOrAlias) {
-      this._username = await this.getAuthUtil().getUsername(usernameOrAlias);
+    if (defaultUsernameOrAlias) {
+      this._username = await this.getAuthUtil().getUsername(
+        defaultUsernameOrAlias
+      );
       this._alias =
-        usernameOrAlias !== this._username ? usernameOrAlias : undefined;
+        defaultUsernameOrAlias !== this._username
+          ? defaultUsernameOrAlias
+          : undefined;
     } else {
       this._username = undefined;
       this._alias = undefined;
@@ -114,8 +121,4 @@ export class WorkspaceContextUtil {
   get alias(): string | undefined {
     return this._alias;
   }
-}
-
-export function getLogDirPath(): string {
-  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }

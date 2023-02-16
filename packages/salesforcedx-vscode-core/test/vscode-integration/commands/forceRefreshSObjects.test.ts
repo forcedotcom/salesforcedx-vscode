@@ -6,23 +6,23 @@
  */
 /* tslint:disable:no-unused-expression */
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
   SObjectTransformer,
   SObjectTransformerFactory,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
+  STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
+  ContinueResponse,
   notificationService,
-  ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  ProgressNotification,
+  projectPaths,
+  SfdxCommandlet
+} from '@salesforce/salesforcedx-utils-vscode';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
@@ -41,6 +41,7 @@ import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('ForceGenerateFauxClasses', () => {
+  const sobjectsPath = path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
   describe('initSObjectDefinitions', () => {
     let sandboxStub: SinonSandbox;
     let existsSyncStub: SinonStub;
@@ -49,12 +50,6 @@ describe('ForceGenerateFauxClasses', () => {
     let notificationStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
-    const sobjectsPath = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
-    );
 
     beforeEach(() => {
       sandboxStub = createSandbox();
@@ -115,13 +110,7 @@ describe('ForceGenerateFauxClasses', () => {
     let telemetryEventStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
-    const sobjectsPath = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR,
-      STANDARDOBJECTS_DIR
-    );
+    const standardSobjectsPath = path.join(sobjectsPath, STANDARDOBJECTS_DIR);
 
     beforeEach(() => {
       sandboxStub = createSandbox();
@@ -138,14 +127,14 @@ describe('ForceGenerateFauxClasses', () => {
 
       await checkSObjectsAndRefresh(projectPath);
 
-      expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(
-        telemetryEventStub.calledWith(
-          'sObjectRefreshNotification',
-          { type: SObjectRefreshSource.StartupMin },
-          undefined
-        )
-      ).to.be.true;
+      expect(existsSyncStub.calledWith(standardSobjectsPath)).to.be.true;
+      expect(telemetryEventStub.callCount).to.equal(1);
+      const telemetryCallArgs = telemetryEventStub.getCall(0).args;
+      expect(telemetryCallArgs[0]).to.equal('sObjectRefreshNotification');
+      expect(telemetryCallArgs[1]).to.deep.equal({
+        type: SObjectRefreshSource.StartupMin
+      });
+      expect(telemetryCallArgs[2]).to.equal(undefined);
     });
 
     it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
@@ -153,7 +142,7 @@ describe('ForceGenerateFauxClasses', () => {
 
       await checkSObjectsAndRefresh(projectPath);
 
-      expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
+      expect(existsSyncStub.calledWith(standardSobjectsPath)).to.be.true;
       expect(telemetryEventStub.notCalled).to.be.true;
     });
   });
@@ -206,7 +195,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should pass response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      expect(factoryStub.firstCall.args.slice(3)).to.eql([
+      expect(factoryStub.firstCall.args.slice(2)).to.eql([
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
       ]);
@@ -214,7 +203,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should pass minimal response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.CUSTOM);
-      expect(factoryStub.firstCall.args.slice(3)).to.eql([
+      expect(factoryStub.firstCall.args.slice(2)).to.eql([
         SObjectCategory.STANDARD,
         SObjectRefreshSource.StartupMin
       ]);
@@ -250,7 +239,7 @@ describe('ForceGenerateFauxClasses', () => {
       expect(notificationStub.notCalled).to.be.true;
     });
 
-    it('Should log correct information to telemetry', async () => {
+    it('Should log correct information to telemetry on success.', async () => {
       // Success
       transformerStub.returns({ data: expectedData });
       await doExecute(SObjectRefreshSource.Startup);
@@ -261,12 +250,20 @@ describe('ForceGenerateFauxClasses', () => {
         standardObjects: expectedData.standardObjects,
         customObjects: expectedData.customObjects
       });
+    });
 
+    it('Should log correct information to telemetry on error.', async () => {
       // Error
-      const error = { message: 'sample error', stack: 'sample stack' };
+      const error = new Error('sample error');
+      error.name = 'aFakeError';
       transformerStub.throws({ data: expectedData, error });
-      await doExecute(SObjectRefreshSource.Startup);
-      expect(errorStub.calledWith(error, expectedData));
+      try {
+        await doExecute(SObjectRefreshSource.Startup);
+        fail('should have thown an error.');
+      } catch (e) {
+        expect(errorStub.calledWith(error.name, error.message));
+        expect(e.error).to.equal(error);
+      }
     });
 
     async function doExecute(

@@ -6,19 +6,20 @@
  */
 
 export {
+  TOOLS,
   ensureDirectoryExists,
   fileExtensionsMatch,
   getTestResultsFolder,
-  getRelativeProjectPath
+  getRelativeProjectPath,
+  projectPaths
 } from './paths';
 export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
   asyncFilter,
   extractJsonObject,
-  flushFilePath,
-  flushFilePaths,
-  isNullOrUndefined
+  isNullOrUndefined,
+  fileUtils
 } from './utils';
 export {
   isAlphaNumSpaceString,

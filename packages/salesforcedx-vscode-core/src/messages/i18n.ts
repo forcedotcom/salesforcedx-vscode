@@ -308,6 +308,10 @@ export const messages = {
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
+  force_config_set_title: 'Set Config',
+  table_header_name: 'Name',
+  table_header_value: 'Value',
+  table_header_success: 'Success',
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
@@ -650,5 +654,15 @@ export const messages = {
   pending_org_expiration_notification_message:
     'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
   pending_org_expiration_output_channel_message:
-    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.'
+    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode',
+  parameter_gatherer_file_name_max_length_validation_error_message:
+    'File name cannot exceed {0} characters'
 };

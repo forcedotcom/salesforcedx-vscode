@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   LocalComponent,
   PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import { join, normalize } from 'path';
@@ -27,16 +27,13 @@ import {
   CompositePostconditionChecker,
   TimestampConflictChecker
 } from '../../../../src/commands/util/postconditionCheckers';
-import {
-  conflictView,
-  DirectoryDiffResults
-} from '../../../../src/conflict';
+import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath, MetadataDictionary } from '../../../../src/util';
+import { MetadataDictionary, workspaceUtils } from '../../../../src/util';
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
@@ -92,7 +89,10 @@ describe('Postcondition Checkers', () => {
         })()
       );
 
-      const response = await compositePostconditionChecker.check({ type: 'CONTINUE', data: 'package.xml' });
+      const response = await compositePostconditionChecker.check({
+        type: 'CONTINUE',
+        data: 'package.xml'
+      });
       expect(response.type).to.equal('CONTINUE');
     });
 
@@ -114,7 +114,10 @@ describe('Postcondition Checkers', () => {
         })()
       );
 
-      await compositePostconditionChecker.check({ type: 'CONTINUE', data: 'package.xml' });
+      await compositePostconditionChecker.check({
+        type: 'CONTINUE',
+        data: 'package.xml'
+      });
     });
 
     // tslint:disable:no-unused-expression
@@ -416,7 +419,7 @@ describe('Postcondition Checkers', () => {
       withExtension: string
     ) {
       const path = join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         `package/tests/${forComponent.fileName}${withExtension}`
       );
       existsStub.withArgs(path).returns(value);
@@ -490,7 +493,9 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.handleConflicts(
         'manifest.xml',
         'admin@example.com',
-        { different: new Set<TimestampFileProperties>() } as DirectoryDiffResults
+        {
+          different: new Set<TimestampFileProperties>()
+        } as DirectoryDiffResults
       );
 
       expect(response.type).to.equal('CONTINUE');
@@ -505,13 +510,18 @@ describe('Postcondition Checkers', () => {
       const results = {
         different: new Set<TimestampFileProperties>([
           {
-            localRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
-            remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+            localRelPath:
+              'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
+            remoteRelPath:
+              'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           },
           {
-            localRelPath: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
-            remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
-          }]),
+            localRelPath:
+              'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
+            remoteRelPath:
+              'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+          }
+        ]),
         scannedLocal: 4,
         scannedRemote: 6
       } as DirectoryDiffResults;
@@ -546,7 +556,8 @@ describe('Postcondition Checkers', () => {
           {
             localRelPath: 'MyClass.cls',
             remoteRelPath: 'MyClass.cls'
-          }])
+          }
+        ])
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_override'));
 
@@ -570,7 +581,8 @@ describe('Postcondition Checkers', () => {
           {
             localRelPath: 'MyClass.cls',
             remoteRelPath: 'MyClass.cls'
-          }])
+          }
+        ])
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
 

@@ -14,11 +14,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "55.10.0",
+  "version": "57.2.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",

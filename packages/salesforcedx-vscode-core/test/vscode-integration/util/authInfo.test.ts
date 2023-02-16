@@ -6,19 +6,26 @@
  */
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
+import { OrgAuthInfo } from '../../../src/util';
 
 describe('OrgAuthInfo', () => {
-  let sandbox: SinonSandbox;
+  const sandbox = createSandbox();
+
   const username = 'user@test.test';
+  let getDefaultDevHubUsernameOrAliasStub: SinonStub;
 
   beforeEach(async () => {
-    sandbox = createSandbox();
+    getDefaultDevHubUsernameOrAliasStub = sandbox.stub(
+      ConfigUtil,
+      'getDefaultDevHubUsernameOrAlias'
+    );
   });
+
   afterEach(() => sandbox.restore());
 
   describe('getUsername', () => {
@@ -46,8 +53,7 @@ describe('OrgAuthInfo', () => {
 
   describe('getDefaultDevHubUsernameOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(undefined);
+      getDefaultDevHubUsernameOrAliasStub.resolves(undefined);
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -56,13 +62,10 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(true);
-      configUtilStub.restore();
-      infoMessageStub.restore();
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(undefined);
+      getDefaultDevHubUsernameOrAliasStub.resolves(undefined);
       const showMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -79,15 +82,10 @@ describe('OrgAuthInfo', () => {
         true
       );
       expect(showMessageStub.calledOnce).to.equal(true);
-
-      configUtilStub.restore();
-      showMessageStub.restore();
-      executeCommandStub.restore();
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns('username');
+      getDefaultDevHubUsernameOrAliasStub.resolves('username');
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -95,9 +93,8 @@ describe('OrgAuthInfo', () => {
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
+      expect(getDefaultDevHubUsernameOrAliasStub.calledOnce).to.equal(true);
       expect(infoMessageStub.calledOnce).to.equal(false);
-      configUtilStub.restore();
-      infoMessageStub.restore();
     });
   });
 
@@ -132,7 +129,10 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(
+        ConfigUtil,
+        'getDefaultUsernameOrAlias'
+      );
       configUtilStub.returns(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
@@ -145,8 +145,6 @@ describe('OrgAuthInfo', () => {
       expect(
         connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
       ).to.equal(true);
-
-      configUtilStub.restore();
     });
   });
 });

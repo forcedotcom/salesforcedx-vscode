@@ -4,37 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryData } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
-  RetrieveResult,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
-import { SourceRetrieveResult } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+  RetrieveResult} from '@salesforce/source-deploy-retrieve';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { channelService } from '../../channels';
+import { RetrieveMetadataTrigger } from '.';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, MetadataDictionary } from '../../util';
+import { workspaceUtils } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
@@ -80,7 +66,10 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       if (componentToOpen) {
         const dirPath =
           (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
-        const defaultOutput = path.join(getRootWorkspacePath(), dirPath);
+        const defaultOutput = path.join(
+          workspaceUtils.getRootWorkspacePath(),
+          dirPath
+        );
         const compSet = ComponentSet.fromSource(defaultOutput);
         await this.openResources(this.findResources(componentToOpen, compSet));
       }
