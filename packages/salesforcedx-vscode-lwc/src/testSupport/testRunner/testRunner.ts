@@ -95,7 +95,7 @@ export class TestRunner {
       runTestsByPathArgs = [];
     }
     const testNamePatternArgs = testName
-      ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
+      ? ['--testNamePattern', `${escapeStrForRegex(testName)}`]
       : [];
 
     let runModeArgs: string[];
