@@ -13,7 +13,11 @@ import {
 import { existsSync } from 'fs';
 import { basename, join, normalize } from 'path';
 import { channelService } from '../../channels';
-import { conflictView, DirectoryDiffResults } from '../../conflict';
+import {
+  conflictView,
+  DirectoryDiffResults,
+  MetadataCacheService
+} from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
@@ -21,7 +25,6 @@ import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { MetadataDictionary, workspaceUtils } from '../../util';
-import { MetadataCacheService } from './../../conflict/metadataCacheService';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
 import { PathStrategyFactory } from './sourcePathStrategies';
 

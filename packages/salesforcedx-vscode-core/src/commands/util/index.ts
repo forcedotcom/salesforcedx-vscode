@@ -8,6 +8,7 @@ export {
   SourcePathStrategy,
   PathStrategyFactory
 } from './sourcePathStrategies';
+export { OverwriteComponentPrompt } from './postconditionCheckers';
 export {
   SimpleGatherer,
   EmptyParametersGatherer,
@@ -22,8 +23,10 @@ export {
   SelectFileName,
   SelectUsername
 } from './parameterGatherers';
-export { ConflictDetectionMessages } from './conflictDetectionMessages';
-export { EmptyPostChecker } from './emptyPostChecker';
+export {
+  ConflictDetectionMessages
+} from './conflictDetectionMessages';
+export {EmptyPostChecker} from './emptyPostChecker';
 export {
   CommandletExecutor,
   CommandParams,

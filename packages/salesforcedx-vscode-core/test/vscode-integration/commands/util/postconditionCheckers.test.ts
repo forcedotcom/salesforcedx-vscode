@@ -19,12 +19,12 @@ import {
   CommandletExecutor,
   ConflictDetectionMessages,
   EmptyPostChecker,
+  OverwriteComponentPrompt,
   PathStrategyFactory,
   SfdxCommandlet
 } from '../../../../src/commands/util';
 import {
   CompositePostconditionChecker,
-  OverwriteComponentPrompt,
   TimestampConflictChecker
 } from '../../../../src/commands/util/postconditionCheckers';
 import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
