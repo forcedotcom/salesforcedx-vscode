@@ -20,7 +20,7 @@ If conflicts aren’t detected, the deploy operation is completed.
 You must enable the conflict detection feature to use it:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under Salesforce Feature Previews, select **Detect Conflicts At Sync**.
+2. Under Salesforce Core Configuration, select **Detect Conflicts At Sync**.
 
 You can also enter conflict detection in the search box to find the feature and then enable it.
 
@@ -30,6 +30,6 @@ When enabled, conflict detection will check for potential conflicts for all Depl
 
 You can either select to override conflicts or cancel the operation and view the conflicts in the Org Differences view.
 
-You can use [Source Diff](source-diff.md)  if you are interested in detecting conflicts in advance of any retrieve operation. 
+You can use [Source Diff](./en/user-guide/source-diff) if you are interested in detecting conflicts in advance of any retrieve operation. 
 
 ![Retrieve metadata flow](../../../images/RetrieveMetadataFlow.gif)

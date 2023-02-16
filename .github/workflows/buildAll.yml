@@ -1,0 +1,42 @@
+name: Build All
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+      label:
+        type: string
+        required: false
+        default: 'VS Code Extensions'
+
+jobs:
+  build-all:
+    strategy:
+      matrix:
+        node_version: [lts/-1]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm --version
+      - run: node --version
+      - run: npm run compile
+      - run: npm run vscode:package
+      - name: Stage Artifacts
+        run: |
+          mkdir extensions
+          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+      - name: Upload Extensions
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.label }}
+          path: ./extensions/
+  

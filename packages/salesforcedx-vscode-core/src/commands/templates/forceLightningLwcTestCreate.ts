@@ -5,22 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Command,
-  SfdxCommandBuilder
+  Command, DirFileNameSelection, LocalComponent, SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as path from 'path';
 import { nls } from '../../messages';
 import { workspaceUtils } from '../../util';
 import {
-  CompositeParametersGatherer,
-  PathStrategyFactory,
+  CompositeParametersGatherer, MetadataTypeGatherer, PathStrategyFactory,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
-import { MetadataTypeGatherer } from '../util';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';

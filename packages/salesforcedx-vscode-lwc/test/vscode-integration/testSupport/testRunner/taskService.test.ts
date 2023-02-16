@@ -68,7 +68,8 @@ describe('Task Service Unit Tests', () => {
     runOptions: {},
     definition: {
       type: 'sfdxLwcTest'
-    }
+    },
+    scope: undefined
   };
 
   describe('Create Tasks', () => {

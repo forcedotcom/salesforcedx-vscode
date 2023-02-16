@@ -7,6 +7,10 @@
 
 import { Command } from './command';
 
+export const JSON_FLAG = '--json';
+export const LOG_LEVEL_FLAG = '--loglevel';
+export const FATAL = 'fatal';
+
 export class CommandBuilder {
   public readonly command: string;
   public description?: string;
@@ -23,7 +27,7 @@ export class CommandBuilder {
   }
 
   public withArg(arg: string): CommandBuilder {
-    if (arg === '--json') {
+    if (arg === JSON_FLAG) {
       this.withJson();
     } else {
       this.args.push(arg);
@@ -37,8 +41,8 @@ export class CommandBuilder {
   }
 
   public withJson(): CommandBuilder {
-    this.args.push('--json');
-    this.args.push('--loglevel', 'fatal');
+    this.args.push(JSON_FLAG);
+    this.args.push(LOG_LEVEL_FLAG, FATAL);
     return this;
   }
 

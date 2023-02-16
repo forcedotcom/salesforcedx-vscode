@@ -1,0 +1,29 @@
+name: Integration Tests Windows
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+
+jobs:
+  windows-integration-tests:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      CODE_VERSION: 1.74.3
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm config set scripts-prepend-node-path true
+      - run: npm install -g sfdx-cli
+      - run: npm install -g junit-merge
+      - run: npm ci
+      - run: npm run compile
+      - run: npm run test:integration-tests-without-system-tests

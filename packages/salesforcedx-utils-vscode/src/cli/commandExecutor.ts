@@ -6,7 +6,6 @@
  */
 
 import { ChildProcess, SpawnOptions } from 'child_process';
-import * as cross_spawn from 'cross-spawn';
 import * as os from 'os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
@@ -14,8 +13,11 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
-// tslint:disable-next-line:no-var-requires
+// Below two dependancies are not structured correcly for import unless require is used.
+/* tslint:disable */
 const kill = require('tree-kill');
+const cross_spawn = require('cross-spawn');
+/* tslint:enable */
 
 import { Command } from './';
 
