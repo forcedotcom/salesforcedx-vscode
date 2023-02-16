@@ -109,7 +109,7 @@ describe('LWC Test Runner', () => {
         testExecutionInfo,
         TestRunType.RUN
       ).getJestExecutionInfo(mockWorkspaceFolder as vscode.WorkspaceFolder);
-      const escapedMockTestName = 'Mock \\Test \\Name \\(\\+\\.\\*\\)';
+      const escapedMockTestName = 'Mock Test Name \\(\\+\\.\\*\\)';
       if (/^win32/.test(process.platform)) {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
