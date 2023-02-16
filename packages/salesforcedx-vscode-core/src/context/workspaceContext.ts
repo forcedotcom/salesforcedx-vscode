@@ -11,8 +11,8 @@ import {
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { workspaceContextUtils } from '.';
 import { decorators } from '../decorators';
-import { setupWorkspaceOrgType } from './workspaceOrgType';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -43,7 +43,7 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    setupWorkspaceOrgType(orgInfo.username).catch(e =>
+    workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
