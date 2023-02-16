@@ -22,7 +22,7 @@
     "@tsconfig/node14": "1.0.3",
     "@types/jest": "28.1.7",
     "@vscode/test-electron": "2.2.1",
-    "acorn": "8.8.0",
+    "acorn": "8.8.2",
     "ajv": "6.12.6",
     "check-peer-dependencies": "4.1.0",
     "commitizen": "^4.2.5",
