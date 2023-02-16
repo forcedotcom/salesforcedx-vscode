@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
+import { decorators } from '../../../src/decorators';
 import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
@@ -98,15 +99,11 @@ describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
-  const cliConfigPath = join(
-    workspaceUtils.getRootWorkspacePath(),
-    SFDX_FOLDER,
-    SFDX_CONFIG_FILE
-  );
 
   let setupWorkspaceOrgTypeStub: SinonStub;
   let usernameStub: SinonStub;
   let aliasStub: SinonStub;
+  let showOrgStub: SinonStub;
   let workspaceContextUtil: WorkspaceContextUtil;
   let workspaceContext: WorkspaceContext;
 
@@ -121,6 +118,7 @@ describe('WorkspaceContext', () => {
       .stub(workspaceContextUtil, 'username')
       .get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
+    showOrgStub = env.stub(decorators, 'showOrg').resolves();
 
     const extensionContext = ({
       subscriptions: []
@@ -191,6 +189,7 @@ describe('WorkspaceContext', () => {
     ]);
 
     expect(someLogic.callCount).to.equal(3);
+    expect(showOrgStub.called).to.equal(true);
   });
 
   describe('getConnection', () => {

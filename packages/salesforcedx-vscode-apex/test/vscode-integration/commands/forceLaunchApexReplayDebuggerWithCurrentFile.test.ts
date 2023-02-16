@@ -103,7 +103,9 @@ describe('Force Launch Replay Debugger', () => {
       }
     }));
 
-    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    const executeCommandSpy = sb
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -144,7 +146,9 @@ describe('Force Launch Replay Debugger', () => {
 
     flushFilePathStub.returns('foo.cls');
 
-    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    const executeCommandSpy = sb
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 

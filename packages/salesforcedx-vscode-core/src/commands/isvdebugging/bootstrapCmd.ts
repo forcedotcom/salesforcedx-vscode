@@ -6,24 +6,20 @@
  */
 
 import {
+  CancelResponse,
   CliCommandExecutor,
   Command,
   CommandExecution,
   CommandOutput,
+  ContinueResponse,
+  ParametersGatherer,
+  projectPaths,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as AdmZip from 'adm-zip';
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
-import sanitizeFilename = require('sanitize-filename');
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
@@ -43,6 +39,11 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from '../util';
+import sanitizeFilename = require('sanitize-filename');
+// below uses require due to bundling restrictions
+/* tslint:disable */
+const AdmZip = require('adm-zip');
+/* tslint:enable */
 
 export interface InstalledPackageInfo {
   id: string;
@@ -53,20 +54,22 @@ export interface InstalledPackageInfo {
   versionNumber: string;
 }
 
+export const ISVDEBUGGER = 'isvdebuggermdapitmp';
+export const INSTALLED_PACKAGES = 'installed-packages';
+export const PACKAGE_XML = 'package.xml';
+
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
-    '.sfdx',
-    'tools',
-    'isvdebuggermdapitmp'
+    projectPaths.relativeToolsFolder(),
+    ISVDEBUGGER
   );
   public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
-    'package.xml'
+    PACKAGE_XML
   );
   public readonly relativeInstalledPackagesPath = path.join(
-    '.sfdx',
-    'tools',
-    'installed-packages'
+    projectPaths.relativeToolsFolder(),
+    INSTALLED_PACKAGES
   );
 
   public build(data: {}): Command {

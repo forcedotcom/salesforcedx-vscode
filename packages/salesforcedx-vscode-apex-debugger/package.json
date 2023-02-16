@@ -14,27 +14,27 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "55.13.0",
+  "version": "57.2.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "55.13.0",
+    "@salesforce/salesforcedx-apex-debugger": "57.2.1",
     "vscode-debugprotocol": "1.28.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "55.13.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.2.1",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "1.49.0",
+    "@types/vscode": "^1.61.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^10",
@@ -45,8 +45,11 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
+    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexdebug.js ./dist/",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -56,13 +59,36 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
+    "test:unit": "jest --coverage"
   },
   "activationEvents": [
     "onDebugResolve:apex",
     "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
+  "packaging": {
+    "assets": [
+      "License.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "images",
+      "dist"
+    ],
+    "debuggers": [
+      "./dist/apexdebug.js"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "dependencies": {
+        "applicationinsights": "1.0.7",
+        "@salesforce/core": "3.31.18"
+      },
+      "devDependencies": {}
+    }
+  },
   "contributes": {
     "breakpoints": [
       {

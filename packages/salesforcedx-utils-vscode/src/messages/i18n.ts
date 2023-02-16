@@ -31,6 +31,8 @@ export const messages = {
 
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+  cannot_determine_workspace:
+    'Unable to determine workspace folders for workspace',
 
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',

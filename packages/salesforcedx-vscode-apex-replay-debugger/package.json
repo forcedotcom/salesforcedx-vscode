@@ -14,28 +14,28 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "55.13.0",
+  "version": "57.2.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
     "@salesforce/apex-node": "^1.0.0",
-    "@salesforce/core": "^3.23.2",
-    "@salesforce/salesforcedx-apex-replay-debugger": "55.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "55.13.0",
-    "@salesforce/salesforcedx-utils": "55.13.0",
+    "@salesforce/core": "^3.31.18",
+    "@salesforce/salesforcedx-apex-replay-debugger": "57.2.1",
+    "@salesforce/salesforcedx-utils": "57.2.1",
+    "@salesforce/salesforcedx-utils-vscode": "57.2.1",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
-    "request-light": "0.2.4",
+    "request-light": "^0.7.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "55.13.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "4.3.3",
@@ -44,7 +44,7 @@
     "@types/node": "12.0.12",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "1.49.0",
+    "@types/vscode": "^1.61.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^10",
@@ -55,8 +55,11 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
+    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --external:applicationinsights --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -65,6 +68,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
+    "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
@@ -74,6 +78,30 @@
     "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
+  "packaging": {
+    "assets": [
+      "OSSREADME.json",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "images",
+      "resources",
+      "syntaxes",
+      "dist"
+    ],
+    "debuggers": [
+      "./dist/apexreplaydebug.js"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "dependencies": {
+        "applicationinsights": "1.0.7",
+        "@salesforce/core": "3.31.18"
+      },
+      "devDependencies": {}
+    }
+  },
   "contributes": {
     "breakpoints": [
       {
