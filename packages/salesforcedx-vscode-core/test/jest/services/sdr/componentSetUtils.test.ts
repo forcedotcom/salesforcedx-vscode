@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
@@ -16,19 +15,16 @@ jest.mock('../../../../src/commands/baseDeployRetrieve.ts');
 jest.mock('../../../../src/commands/util/postconditionCheckers.ts');
 jest.mock('../../../../src/conflict/metadataCacheService.ts');
 jest.mock('../../../../src/util/metaDataDictionary.ts');
-jest.mock('vscode');
+// jest.mock('vscode');
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
-    // WorkspaceContextUtil: {
-    // getInstance: jest.fn().mockReturnValue({ onOrgChange: jest.fn() })
-    // },
     ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
     TelemetryService: { getInstance: jest.fn() },
     ChannelService: jest.fn().mockImplementation(() => {
       return {};
     }),
     ConfigUtil: {
-      getUserConfiguredApiVersion: jest.fn().mockResolvedValue('56.0')
+      getUserConfiguredApiVersion: jest.fn().mockResolvedValue('55.0')
     }
   };
 });
@@ -37,29 +33,39 @@ jest.mock('../../../../src/messages', () => {
   return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
 
+jest.mock('../../../../src/context/workspaceContext');
+
 describe('componentSetUtils', () => {
-  const configApiVersion = '56.0';
-  // let getUserConfiguredApiVersionMock: jest.SpyInstance;
+  const userConfigApiVersion = '49.0';
+  const orgApiVersion = '56.0';
   let createFileSystemWatcherMock: jest.SpyInstance;
+  let getUserConfiguredApiVersionMock: jest.SpyInstance;
   let workspaceContextGetConnectionMock: jest.SpyInstance;
-  let mockWatcher: any;
+  const mockConnection = {
+    getApiVersion: jest.fn().mockReturnValue(orgApiVersion)
+  } as any;
+  const mockWatcher = {
+    onDidChange: jest.fn(),
+    onDidCreate: jest.fn(),
+    onDidDelete: jest.fn()
+  };
 
   beforeEach(() => {
     workspaceContextGetConnectionMock = jest
       .spyOn(WorkspaceContext.prototype, 'getConnection')
-      .mockResolvedValue({
-        getApiVersion: jest.fn().mockReturnValue('55.0')
-      } as any);
-    // getUserConfiguredApiVersionMock = jest
-    //   .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
-    //   .mockResolvedValue(configApiVersion);
-    mockWatcher = {
-      onDidChange: jest.fn(),
-      onDidCreate: jest.fn(),
-      onDidDelete: jest.fn()
-    };
+      .mockResolvedValue(mockConnection);
     createFileSystemWatcherMock = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    getUserConfiguredApiVersionMock = jest
+      .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
+      .mockResolvedValue(userConfigApiVersion);
+    workspaceContextGetConnectionMock = jest
+      .spyOn(WorkspaceContext, 'getInstance')
+      .mockReturnValue({
+        getConnection: jest.fn().mockResolvedValue({
+          getApiVersion: jest.fn().mockReturnValue(orgApiVersion)
+        })
+      } as any);
   });
 
   describe('setApiVersionOn', () => {
@@ -67,19 +73,20 @@ describe('componentSetUtils', () => {
       const dummyComponentSet = new ComponentSet();
       await setApiVersionOn(dummyComponentSet);
 
-      // expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
-      expect(dummyComponentSet.apiVersion).toEqual(configApiVersion);
+      expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
+      expect(mockConnection.getApiVersion).not.toHaveBeenCalled();
+      expect(dummyComponentSet.apiVersion).toEqual(userConfigApiVersion);
     });
 
     it('should use the api version from the Org when no User-configured api version is set', async () => {
-      // getUserConfiguredApiVersionMock.mockResolvedValue(undefined);
+      getUserConfiguredApiVersionMock.mockResolvedValue(undefined);
 
       const dummyComponentSet = new ComponentSet();
       await setApiVersionOn(dummyComponentSet);
 
-      // expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
-      // expect(getApiVersionMock).toHaveBeenCalled();
-      expect(dummyComponentSet.apiVersion).toEqual('55.0');
+      expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
+      expect(workspaceContextGetConnectionMock).toHaveBeenCalled();
+      expect(dummyComponentSet.apiVersion).toEqual(orgApiVersion);
     });
 
     // it('should not override api version if getComponents set it already', async () => {
