@@ -22,38 +22,44 @@ For more information about publishing take a look at:
 
 ## Creating a Release Branch
 
-The release branch is typically created from a scheduled job in Github Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format `release/vxx.yy.zz`.
-Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
+The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
+Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` file with the correct format and commits being staged.
 
 ## Verifying the Change Log
 
-One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) would review the changelog and make any changes to the release branch. A pull request will be opened against the release branch with updates to be included.
+One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) will review the changelog and make any changes to the release branch. A pull request will be opened against the release branch with updates to be included.
 
 ## Merging the Release Branch into Main
 
-After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. A Github Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in main.
+After the change log has been approved and merged into your release branch, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
 
 ### To run the merge process:
 
-1. From the github repository navigate to the Action Tab and Select the PreRelease workflow on the left
-1. Click the 'Run Workflow' button and input the branch to be merged into the input box.
-1. Click the `Run Workflow` button.
+1. From the GitHub repository navigate to the Action Tab, and Select the PreRelease workflow on the left
+1. Click the 'Run Workflow' dropdown button on the right
+1. In the form that appears, set the branch to `develop`, and set the 'branch to be released' input box to the name of the release (eg `release/v56.0.0`)
+1. Click the 'Run Workflow' button.
 
-The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in main and update main with the release branch.
+The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in the `main` branch and update `main` with the release branch.
 
 ## Publishing Main
 
-The merge into main will trigger a run of the 'Test, Build, and Release' GHA workflow that will:
+The merge into `main` will trigger a run of the 'Test, Build, and Release' GHA workflow (https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml) that will:
 - run the tests
 - build vsix files
 - send a slack notification that a release workflow has been initiated
-- create a tag and release in Github
+- create a tag and release in GitHub
+
+In the 'Test, Build, and Release' workflow:
+1. click Review deployments button
+1. click the publish checkbox
+1. click the approve and deploy button
 
 After the release has been created, it will trigger a publish action that will send a notification to slack to request approval to publish the vsix files to the marketplace.
 
 Before approving the release to the marketplace, download the vsix files, install them locally and verify they are working as expected.
 
-After you feel comfortable publishing to the marketplace, approve the publish job in the Github Action UI.
+After you feel comfortable publishing to the marketplace, approve the publish job in the GitHub Action UI.
 
 ## Post-Publishing the .vsix
 
@@ -66,14 +72,14 @@ After you feel comfortable publishing to the marketplace, approve the publish jo
 
 # Publishing a Beta Pre-Release
 
-If there is a release with high-risk or large-scale changes, we can publish a pre-release to allow advanced users to test early. VSIX artifacts are uploaded to a github release as with our usual release but there is no publish to NPM or the VS Code Marketplace (yet).
+If there is a release with high-risk or large-scale changes, we can publish a pre-release to allow advanced users to test early. VSIX artifacts are uploaded to a GitHub release as with our usual release but there is no publish to NPM or the VS Code Marketplace (yet).
 
 ## Steps
 
 1. Create a release branch, and increment the version using Lerna, as shown in the `create-release-branch.js` file, starting at the creation of the release branch.
 2. For the version number, keep the minor version the same and set the patch to use the following format: year month day hour minute. For example, v55.11.202208260522.
 3. Push the branch to remote.
-4. From the Actions tab in Github select the workflow 'Publish Beta Release to Github Only'.
+4. From the Actions tab in GitHub select the workflow 'Publish Beta Release to GitHub Only'.
 5. Select 'Run Workflow', and run the workflow from the beta branch. The workflow can only be run someone with write privileges of this repo.
 6. The workflow will create the git tag, the release, and attach the individual VSIX files to the release where they can be downloaded and tested.
 
@@ -83,17 +89,17 @@ Note that the beta branch, because of the unique versioning, should not be merge
 
 # Manual Publish
 
-The steps used to publish to the VS Code Marketplace can be found in the associated Github Actions.
+The steps used to publish to the VS Code Marketplace can be found in the associated GitHub Actions.
 
 ## Generating a Major Release
 
 The versioning we follow is intentionally mapped with Salesforce Core. When a major version bump occurs, such as 53.0 -> 54.0, we release a major version update as well.
 
-## Downloading the .vsix from Github Action
+## Downloading the .vsix from GitHub Action
 
 ### Options
 
-- Download directly from the Github Action run. You will find artifacts that are associated with a run at the bottom of the summary screen
+- Download directly from the GitHub Action run. You will find artifacts that are associated with a run at the bottom of the summary screen
 - Use the gh cli to download artifacts. `gh run download --dir /dir/where/you/want/the/vsix/files/ 3746978326`. The last arg is the GHA job id. This can be found in the UI or by executing `gh run list`.
 
 **At this stage, it is possible to share the .vsix directly for manual
