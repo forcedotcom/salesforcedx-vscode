@@ -1,33 +1,6 @@
 .vscode/**
 .vscode-test/**
-out/test/**
-test/**
-src/**
 **/*.map
-.gitignore
-tsconfig.json
-
-# salesforcedx-utils-vscode files to ignore 
-#node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
-node_modules/@salesforce/salesforcedx-utils-vscode/src/**
-node_modules/@salesforce/salesforcedx-utils-vscode/test/**
-node_modules/@salesforce/salesforcedx-utils-vscode/.vscode
-node_modules/@salesforce/salesforcedx-utils-vscode/.vscodeignore
-node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
-node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
-node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
-node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
-
-# salesforcedx-sobjects-faux-generator files to ignore 
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/node_modules/**
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/src/**
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/test/**
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/.vscode
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/.vscodeignore
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/package-lock.json
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/tsconfig.json
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/webpack.config.js
-node_modules/@salesforce/salesforcedx-sobjects-faux-generator/out/test/**
 
 # ignore unused rxjs code 
 node_modules/rxjs/src/**
@@ -38,6 +11,10 @@ node_modules/inquirer/node_modules/rxjs/src/**
 node_modules/inquirer/node_modules/rxjs/bundles/**
 node_modules/inquirer/node_modules/rxjs/_esm5/**
 node_modules/inquirer/node_modules/rxjs/_esm2015/**
+node_modules/**/rxjs/src/**
+node_modules/**/rxjs/bundles/**
+node_modules/**/rxjs/_esm5/**
+node_modules/**/rxjs/_esm2015/**
 
 # ignore unused jsforce code
 node_modules/jsforce/test/**

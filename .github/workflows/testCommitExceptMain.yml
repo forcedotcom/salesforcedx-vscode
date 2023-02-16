@@ -1,0 +1,9 @@
+name: Commit Workflow
+on:
+  push:
+    branches-ignore: [main, develop]
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/buildAndTest.yml
+  

@@ -72,9 +72,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await workspaceContext.initialize(extensionContext);
 
   // Telemetry
-  const extensionPackage = require(extensionContext.asAbsolutePath(
-    './package.json'
-  ));
+  const extensionPackage = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     APEX_EXTENSION_NAME,
