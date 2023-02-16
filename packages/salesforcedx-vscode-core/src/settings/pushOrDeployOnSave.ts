@@ -6,7 +6,7 @@
  */
 
 import { channelService } from '../channels';
-import { OrgType } from '../context';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
@@ -15,7 +15,6 @@ import { NotificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
-import { getWorkspaceOrgType } from '../context/workspaceOrgType';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
@@ -80,7 +79,9 @@ export class DeployQueue {
             false
           );
         }
-        const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+          defaultUsernameorAlias
+        );
         if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'
