@@ -21,10 +21,6 @@ import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
   private process: LocalRunProcess | undefined | void;
 
-  public async setupFunctionListeners(): Promise<void> {
-    console.log('No listeners for containerless function.');
-  }
-
   public async cancelFunction(
     registeredStartedFunctionDisposable: Disposable
   ): Promise<void> {
@@ -33,10 +29,6 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
       this.process = undefined;
     }
     registeredStartedFunctionDisposable.dispose();
-  }
-
-  public async buildFunction(): Promise<void> {
-    console.log('No build for containerless function');
   }
 
   public async startFunction(functionName: string, functionDirPath: string): Promise<void> {

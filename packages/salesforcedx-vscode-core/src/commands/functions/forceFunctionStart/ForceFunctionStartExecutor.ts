@@ -91,11 +91,6 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
       FunctionService.instance.getFunctionLanguage()
     );
 
-    await this.setupFunctionListeners(
-      functionDirPath,
-      registeredStartedFunctionDisposable
-    );
-
     token?.onCancellationRequested(() => {
       this.cancelFunction(registeredStartedFunctionDisposable);
       registeredStartedFunctionDisposable.dispose();
@@ -107,25 +102,13 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
     );
     const functionName = descriptor.com.salesforce.id;
 
-    this.buildFunction(functionName, functionDirPath);
-
     channelService.appendLine(`Starting ${functionName}`);
     await this.startFunction(functionName, functionDirPath);
     return true;
   }
 
-  public abstract setupFunctionListeners(
-    functionDirPath: string,
-    functionDisposable: vscode.Disposable
-  ): Promise<void>;
-
   public abstract cancelFunction(
     registeredStartedFunctionDisposable: vscode.Disposable
-  ): void;
-
-  public abstract buildFunction(
-    functionName: string,
-    functionDirPath: string
   ): void;
 
   public abstract startFunction(

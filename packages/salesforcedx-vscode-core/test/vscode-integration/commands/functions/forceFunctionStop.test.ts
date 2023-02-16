@@ -9,7 +9,7 @@ import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
 import { channelService } from '../../../../src/channels';
-import { forceFunctionContainerStartCommand } from '../../../../src/commands/functions/forceFunctionContainerStartCommand';
+import { forceFunctionContainerlessStartCommand } from '../../../../src/commands/functions/forceFunctionContainerlessStartCommand';
 import { forceFunctionStop } from '../../../../src/commands/functions/forceFunctionStop';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
@@ -80,7 +80,7 @@ describe('Force Function Stop Integration Tests', () => {
       )
     );
 
-    await forceFunctionContainerStartCommand(srcUri);
+    await forceFunctionContainerlessStartCommand(srcUri);
 
     const mockStartTime = [1234, 5678];
     hrtimeStub.returns(mockStartTime);
@@ -125,7 +125,7 @@ describe('Force Function Stop Integration Tests', () => {
       )
     );
 
-    await forceFunctionContainerStartCommand(srcUri);
+    await forceFunctionContainerlessStartCommand(srcUri);
 
     const mockStartTime = [1234, 5678];
     hrtimeStub.returns(mockStartTime);

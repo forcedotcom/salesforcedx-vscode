@@ -214,17 +214,6 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     expect(executor).to.not.equal(undefined);
   });
 
-  it('Should be able to call methods that are no-ops for containerless mode.', async () => {
-    const executor = new ForceFunctionContainerlessStartExecutor(
-      START_KEY,
-      LOG_NAME
-    );
-    const listenerResult = await executor.setupFunctionListeners('funDirPath');
-    expect(listenerResult).to.equal(undefined);
-    const buildResult = await executor.buildFunction('nameMe', 'funDirPath');
-    expect(buildResult).to.equal(undefined);
-  });
-
   it('Should be able to start a local function.', async () => {
     const fakeType = 'typescript';
     getFunctionTypeStub.returns(fakeType);
