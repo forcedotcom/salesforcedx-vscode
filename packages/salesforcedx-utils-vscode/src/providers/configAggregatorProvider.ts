@@ -82,12 +82,14 @@ export class ConfigAggregatorProvider {
 
   private ensureCurrentDirectoryInsideProject(path: string) {
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-    if (path !== rootWorkspacePath) {
+    if (rootWorkspacePath && path !== rootWorkspacePath) {
       this.changeCurrentDirectoryTo(rootWorkspacePath);
     }
   }
 
   private changeCurrentDirectoryTo(path: string) {
-    process.chdir(path);
+    if (path) {
+      process.chdir(path);
+    }
   }
 }

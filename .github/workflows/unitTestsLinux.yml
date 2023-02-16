@@ -1,0 +1,27 @@
+name: Unit Tests Linux
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+
+jobs:
+  linux-unit-tests:
+    strategy:
+      matrix:
+        node_version: [lts/-1, lts/*]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run compile
+      - run: npm run test:unit

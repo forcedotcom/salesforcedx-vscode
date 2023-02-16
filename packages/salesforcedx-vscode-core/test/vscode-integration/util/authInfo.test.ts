@@ -6,11 +6,12 @@
  */
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
+import { OrgAuthInfo } from '../../../src/util';
 
 describe('OrgAuthInfo', () => {
   const sandbox = createSandbox();

@@ -25,6 +25,7 @@ import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { MetadataDictionary, workspaceUtils } from '../../util';
+import { ConflictDetectionMessages } from './conflictDetectionMessages';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
@@ -50,14 +51,6 @@ export class CompositePostconditionChecker<T>
         }
       }
     }
-    return inputs;
-  }
-}
-
-export class EmptyPostChecker implements PostconditionChecker<any> {
-  public async check(
-    inputs: ContinueResponse<any> | CancelResponse
-  ): Promise<ContinueResponse<any> | CancelResponse> {
     return inputs;
   }
 }
@@ -204,11 +197,6 @@ export class OverwriteComponentPrompt
     }
     return choices;
   }
-}
-
-export interface ConflictDetectionMessages {
-  warningMessageKey: string;
-  commandHint: (input: string | string[]) => string;
 }
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {

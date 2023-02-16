@@ -7,13 +7,13 @@
 import { ExecuteService } from '@salesforce/apex-node';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  getRootWorkspacePath,
-  SFDX_CORE_CONFIGURATION_NAME
+  ChannelService,
+  ContinueResponse,
+  projectPaths,
+  SFDX_CORE_CONFIGURATION_NAME,
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -85,8 +85,7 @@ describe('Force Apex Execute', () => {
   describe('AnonApexGatherer', async () => {
     it('should return the selected file to execute anonymous apex', async () => {
       const fileName = path.join(
-        getRootWorkspacePath(),
-        '.sfdx',
+        projectPaths.stateFolder(),
         'tools',
         'tempApex.input'
       );
@@ -112,8 +111,7 @@ describe('Force Apex Execute', () => {
     it('should return the text in file if file has not been created yet', async () => {
       const text = 'System.assert(true);';
       const fileName = path.join(
-        getRootWorkspacePath(),
-        '.sfdx',
+        projectPaths.stateFolder(),
         'tools',
         'tempApex.input'
       );
@@ -170,6 +168,7 @@ describe('Force Apex Execute', () => {
     let outputStub: SinonStub;
     let showChannelOutputStub: SinonSpy;
     let setDiagnosticStub: SinonStub;
+    let debugLogsfolder: SinonStub;
     const file = '/test';
 
     beforeEach(() => {
@@ -182,6 +181,10 @@ describe('Force Apex Execute', () => {
         AnonApexLibraryExecuteExecutor.diagnostics,
         'set'
       );
+      debugLogsfolder = sb.stub(
+        projectPaths,
+        'debugLogsFolder'
+      ).returns('.sfdx/tools/debug/logs');
     });
 
     it('should format result correctly for a successful execution', async () => {
