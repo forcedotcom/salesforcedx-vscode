@@ -8,9 +8,11 @@ import * as path from 'path';
 import {
   EnvironmentVariableCollection,
   EnvironmentVariableMutator,
+  Extension,
   ExtensionContext,
   ExtensionMode,
   Memento,
+  SecretStorage,
   Uri
 } from 'vscode';
 
@@ -19,6 +21,9 @@ class MockMemento implements Memento {
 
   constructor(setGlobalState: boolean) {
     this.telemetryGS = setGlobalState;
+  }
+  keys(): readonly string[] {
+    throw new Error('Method not implemented.');
   }
 
   public get(key: string): any {
@@ -31,10 +36,17 @@ class MockMemento implements Memento {
   public update(key: string, value: any): Promise<void> {
     return Promise.resolve();
   }
+
+  public setKeysForSync(keys: readonly string[]): void {
+    return;
+  }
 }
 
 class MockEnvironmentVariableCollection
   implements EnvironmentVariableCollection {
+  [Symbol.iterator](): Iterator<[variable: string, mutator: EnvironmentVariableMutator], any, undefined> {
+    throw new Error('Method not implemented.');
+  }
   public persistent = true;
   public replace(variable: string, value: string): void {
     throw new Error('Method not implemented.');
@@ -69,7 +81,28 @@ class MockEnvironmentVariableCollection
 export class MockExtensionContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
+    this.secrets = {
+      onDidChange: {} as any,
+      get(key: string): Thenable<string | undefined> {
+        return Promise.resolve(undefined);
+      },
+      store(key: string, value: string): Thenable<void> {
+        return Promise.resolve();
+      },
+      delete(key: string): Thenable<void> {
+        return Promise.resolve();
+      },
+    };
+    this.extension = {
+      packageJSON: {
+        version: 'v55.5.5',
+        aiKey: 'fakeAIKey',
+        name: 'salesforcedx-vscode-lwc'
+      }
+    } as any;
   }
+  secrets: SecretStorage;
+  extension: Extension<any>;
   public storageUri: Uri | undefined;
   public globalStorageUri: Uri = Uri.parse('file://globalStorage');
   public logUri = Uri.parse('file://logUri');
@@ -78,7 +111,7 @@ export class MockExtensionContext implements ExtensionContext {
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
   public subscriptions: Array<{ dispose(): any }> = [];
   public workspaceState!: Memento;
-  public globalState: Memento;
+  public globalState: Memento & { setKeysForSync(keys: readonly string[]): void; };
   public extensionPath: string = 'myExtensionPath';
   public globalStoragePath = 'globalStatePath';
   public logPath = 'logPath';

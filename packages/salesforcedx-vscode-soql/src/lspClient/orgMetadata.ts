@@ -14,10 +14,9 @@ import {
   SObjectShortDescription,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
-  toMinimalSObject,
-  TOOLS_DIR
+  toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { getRootWorkspaceSfdxPath } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nls } from '../messages';
@@ -32,13 +31,13 @@ export interface OrgDataSource {
 
 export class FileSystemOrgDataSource implements OrgDataSource {
   private getLocalDatapath(): string | undefined {
-    const sfdxPath = getRootWorkspaceSfdxPath();
-    if (!sfdxPath) {
+    const stateFolder = projectPaths.stateFolder();
+    if (!stateFolder) {
       const message = nls.localize('error_no_workspace_folder');
       channelService.appendLine(message);
       return undefined;
     }
-    return path.join(sfdxPath, TOOLS_DIR, SOQLMETADATA_DIR);
+    return path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR);
   }
 
   public async retrieveSObjectsList(): Promise<string[]> {

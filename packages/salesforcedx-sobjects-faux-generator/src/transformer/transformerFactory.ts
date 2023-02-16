@@ -7,6 +7,7 @@
 import { Connection } from '@salesforce/core';
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
+import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
@@ -38,11 +39,11 @@ export class SObjectTransformerFactory {
     const generators: SObjectGenerator[] = [];
     const standardGenerator = new FauxClassGenerator(
       SObjectCategory.STANDARD,
-      'standardObjects'
+      STANDARDOBJECTS_DIR
     );
     const customGenerator = new FauxClassGenerator(
       SObjectCategory.CUSTOM,
-      'customObjects'
+      CUSTOMOBJECTS_DIR
     );
 
     if (source === SObjectRefreshSource.StartupMin) {

@@ -308,6 +308,10 @@ export const messages = {
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
+  force_config_set_title: 'Set Config',
+  table_header_name: 'Name',
+  table_header_value: 'Value',
+  table_header_success: 'Success',
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
@@ -658,5 +662,7 @@ export const messages = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
   functions_doc_url:
     'https://developer.salesforce.com/tools/vscode/en/functions/overview',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode'
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode',
+  parameter_gatherer_file_name_max_length_validation_error_message:
+    'File name cannot exceed {0} characters'
 };
