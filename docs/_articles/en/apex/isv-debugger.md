@@ -2,10 +2,7 @@
 title: ISV Customer Debugger
 lang: en
 ---
-
-ISV Customer Debugger covers a gap in what you can do with Apex Debugger. As an ISV, you can debug your own code. As a subscriber, you can debug your own code. However, because of the protections against seeing managed code, subscribers can’t debug ISV code in their orgs. With ISV Customer Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.
-
-An ISV can reproduce issues in the specific environment, so problems can be diagnosed more quickly. You can debug only sandbox orgs.
+Salesforce ISVs (Independent Software Vendors) are developers who create managed packages on the Salesforce Platform that are available on Salesforce AppExchange. A package subscriber doesn't have access to managed code, which can make debugging challenging. The ISV Debugger lets an ISV reproduce issues in the subscriber’s environment in a sandbox org for convenient debugging. With the ISV Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.
 
 ## Configure ISV Customer Debugger
 
@@ -16,7 +13,7 @@ ISV Customer Debugger is part of the Apex Interactive Debugger (`salesforcedx-vs
 1. In your subscriber’s org, from Setup, enter **Apex Debugger** in the Quick Find box, then click **Apex Debugger**.
 1. Click **Start Partner Debugging Session**.
 1. In the Using Salesforce Extensions for VS Code section, to copy the `forceide://` URL, click **Copy to Clipboard**.
-1. In VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then run **SFDX: Create and Set Up Project for ISV Debugging**.
+1. In VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the Command Palette, then run **SFDX: Create and Set Up Project for ISV Debugging**.
 1. When directed, paste the `forceide://` URL into the prompt, and press Enter.
 1. When directed, either accept the default project name or enter a name for your debugging project, and press Enter.
 1. Choose a location to store the project, and click **Create Project**.

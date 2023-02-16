@@ -1,0 +1,26 @@
+name: Build and Test
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: false
+      label:
+        type: string
+        required: false
+        default: 'VS Code Extensions'
+
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unitTests.yml
+    with:
+      branch: ${{ inputs.branch }}
+  integration-tests:
+    uses: ./.github/workflows/integrationTests.yml
+    with:
+      branch: ${{ inputs.branch }}
+  build-all:
+    uses: ./.github/workflows/buildAll.yml
+    with:
+      branch: ${{ inputs.branch }}
+      label: ${{ inputs.label }}

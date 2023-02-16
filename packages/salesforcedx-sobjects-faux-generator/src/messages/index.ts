@@ -5,39 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as i18n from './i18n';
-import {
-  BASE_FILE_EXTENSION,
-  BASE_FILE_NAME,
-  Config,
-  DEFAULT_LOCALE,
-  Localization,
-  Message
-} from './localization';
+import { LOCALE_JA } from '../constants';
+import { messages as enMessages } from './i18n';
+import { messages as jaMessages } from './i18n.ja';
+import { Config, DEFAULT_LOCALE, Localization, Message } from './localization';
+
+const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
 
 function loadMessageBundle(config?: Config): Message {
-  function resolveFileName(locale: string): string {
-    return locale === DEFAULT_LOCALE
-      ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-      : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
+  const base = new Message(enMessages);
+
+  const localeConfig = config ? config.locale : DEFAULT_LOCALE;
+
+  if (localeConfig === LOCALE_JA) {
+    return new Message(jaMessages, base);
   }
 
-  const base = new Message(i18n.messages);
-
-  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    try {
-      const layer = new Message(
-        require(`./${resolveFileName(config.locale)}`).messages,
-        base
-      );
-      return layer;
-    } catch (e) {
-      console.error(`Cannot find ${config.locale}, defaulting to en`);
-      return base;
-    }
-  } else {
-    return base;
+  if (supportedLocales.indexOf(localeConfig) === -1) {
+    console.error(`Cannot find ${localeConfig}, defaulting to en`);
   }
+
+  return base;
 }
 
 export const nls = new Localization(

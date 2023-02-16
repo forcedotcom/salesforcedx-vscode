@@ -72,7 +72,7 @@ describe('In project folder, SOQL files should', function() {
 
     for (const action of actions) {
       if (
-        (await action.getAttribute('title')) ===
+        (await action.getAttribute('aria-label')) ===
         'Switch Between SOQL Builder and Text Editor'
       ) {
         toggle = action;
@@ -95,8 +95,6 @@ describe('In project folder, SOQL files should', function() {
     await browser.waitForWorkbench();
     await openFolder(folderPath);
   });
-
-  after(async () => {});
 
   beforeEach(async () => {
     const editorView = new EditorView();

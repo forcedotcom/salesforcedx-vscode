@@ -9,3 +9,4 @@ export { CancellationToken } from './cancellationToken';
 export { CommandExecution } from './commandExecution';
 export { Command } from './command';
 export { OrgInfo } from './orgInfo';
+export * from './localization';
