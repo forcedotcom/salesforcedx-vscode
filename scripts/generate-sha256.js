@@ -3,8 +3,7 @@ const path = require('path');
 const shell = require('shelljs');
 
 const cwd = process.cwd();
-const packageVersion = JSON.parse(shell.cat('lerna.json')).version;
-const vsixfilesLocation = path.join(cwd, 'extensions', packageVersion);
+const vsixfilesLocation = path.join(cwd, 'extensions');
 const vsixes = shell.ls(vsixfilesLocation);
 
 if (!vsixes.length) {
