@@ -10,30 +10,19 @@ import * as vscode from 'vscode';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
 import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 
-jest.mock('../../../../src/context');
-jest.mock('../../../../src/commands/baseDeployRetrieve.ts');
-jest.mock('../../../../src/commands/util/postconditionCheckers.ts');
-jest.mock('../../../../src/conflict/metadataCacheService.ts');
-jest.mock('../../../../src/util/metaDataDictionary.ts');
-// jest.mock('vscode');
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
     ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
     TelemetryService: { getInstance: jest.fn() },
     ChannelService: jest.fn().mockImplementation(() => {
       return {};
-    }),
-    ConfigUtil: {
-      getUserConfiguredApiVersion: jest.fn().mockResolvedValue('55.0')
-    }
+    })
   };
 });
 
 jest.mock('../../../../src/messages', () => {
   return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
-
-jest.mock('../../../../src/context/workspaceContext');
 
 describe('componentSetUtils', () => {
   const userConfigApiVersion = '49.0';
