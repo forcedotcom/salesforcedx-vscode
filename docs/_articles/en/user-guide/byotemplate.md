@@ -4,79 +4,42 @@ lang: en
 ---
 
 ## Overview
-Want your own code to appear in source files when you create a metadata object such as an Apex class? You can now use custom templates to do just that.
+Use custom templates to quickly add your own code template to source files when you create a metadata object such as an Apex class in VS Code. Templates are files that contain your custom code. You can use custom templates to -
+- Add default copyright information to new files in your project.
+- Add default code to Aura or LWC to enable a new Apex class, and so on.
 
-Templates are essentially folders with files that contain your custom code. This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/packages/templates/src/templates) contains a collection of official Salesforce templates for metadata components. Simply clone this repo, keeping the same folder structure, then update relevant template files with your code. Remove the files that you don’t wish to override.
-
-**Note:** Only updates made to the files listed here show up in source files in VS Code. There’s no such restriction when you use the CLI to specify templates for metadata objects.
-
-| Template Folder        | Default Template Files           |
-| ------------- |:-------------:|
-| apexclass     | DefaultApexClass.cls <br>_class.cls-meta.xml
-|apextrigger    | ApexTrigger.trigger <br> _trigger.trigger-meta.xml
-|Lightningapp   |DefaultLightningApp.app <br> DefaultLightningController.js <br> DefaultLightningCss.css <br> DefaultLightningHelper.js <br> DefaultLightningRenderer.js <br> DefaultLightningSVG.svg <br> DefaultLightningAuradoc.auradoc <br>auradefinitionbundle.app-meta.xml
-|Lightningcomponent |aura/default/default.cmp <br> aura/default/default.cmp-meta.xml <br> aura/default/defaultController.js <br> aura/default/defaultHelper.js <br> aura/default/defaultRenderer.js <br> aura/default/default.svg <br> aura/default/default.design <br> aura/default/default.css <br> aura/default/default.auradoc <br> lwc/default/default.js<br> lwc/default/default.html <br> lwc/default/default.js-meta.xml |
-|Lightningevent | defaultLightningEvt.evt <br> auradefinitionbundle.evt-meta.xml
-|Lightninginterface | DefaultLightningIntf.intf <br> auradefinitionbundle.intf-meta.xml
-|Lightningtest | DefaultLightningTest.resource
-|Project | Any file in the project folder
-|Staticresource | empty.resource <br> empty.js <br> empty.json <br> empty.css <br> empty.txt <br> _staticresource.resource-meta.xml
-|visualforcecomponent| DefaultVFComponent.component <br> _component.component-meta.xml
-|visualforcepage | DefaultVFPage.page <br> _page.page-meta.xml
-
-## Clone the Repo
-See GitHub documentation for instructions on how to clone repos.
+**Note**:
+This [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates) contains a collection of official Salesforce templates for metadata components. Only updates made to the files listed in this directory show up in source files in VS Code. You can clone this subdirectory, or replicate it locally. You must keep the same folder structure. Just update relevant template files with your code, and remove the files that you don’t wish to override.
 
 ## Set Default Template Location
-1. Open the `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder
-2. Add the parameter `customOrgMetadataTemplates` and set its value to the templates folder in your cloned repo. For example:
-```
-{
-  "customOrgMetadataTemplates": "https://github.com/mygitrepo/salesforcedx-templates/tree/main/packages/templates/src/templates"
-}
-```
+ You can store template files in a local directory, or in a GitHub project. Set ``customOrgMetadataTemplates`` to your custom template location:
+1. Run ``sfdx config:set customOrgMetadataTemplates=<GitHub repo or local template directory>`` command from the terminal inside VS Code. 
+2. Run ``sfdx config:list`` to confirm that the configuration setting is updated. 
 
-or the location of a local copy:
+**Note:** The `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder is updated with a new entry in the format,`` "customOrgMetadataTemplates": "<GitHub repo or local template directory>"``.
 
-```
-{
-  ""customOrgMetadataTemplates": "/Users/mydrive/github/devtools/salesforcedx-templates/packages/templates/src/templates"
-}
-```
+ See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information about configuration settings.
 
-**Note:** You can also use the CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
+## Set Template Location Examples
+-  ``sfdx config:set customOrgMetadataTemplates=https://github.com/vscodeuser/salesforcedx-templates/tree/main/src/templates/ ``sets the ``customOrgMetadataTemplates`` configuration value to a directory on user ``vscodeuser``'s GitHub repo.
+-   ``sfdx config:set customOrgMetadataTemplates=/Users/vscodeuser/CustomTemplateProject/MyCustomTemplates`` sets the ``customOrgMetadataTemplates`` configuration value to the ``MyCustomTemplates`` directory on a local machine.
 
-## Create a Apex Class with Custom Code
-1. Clone the sample GitHub repo.
-2. Delete all folders except the `apexclass` folder. Also delete all the files except the `DefaultApexClass.cls` file from the `apexclass` folder.
-3. Edit the `DefaultApexClass.cls` file with your custom code:
+## Use Custom Templates On GitHub
+1. Clone this [git repo subdirectory](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates).
+2. In your cloned repo, delete all folders except the folders that contains the templates you want to use. 
+3. Make updates to the custom templates in your repo.
+4. Check that ``customOrgMetadataTemplates`` points to this repo.
 
-```
-public with sharing class <%= apiName %> {
-    		public <%= apiName %>(String prop) {
-			this.prop = prop;
-    		}
+## Use Local Custom Templates
+The Salesforce Extensions require your templates to follow the exact folder structure and nomenclature as this repo. There’s no such restriction when you use the CLI to specify templates for metadata objects.
 
-		@AuraEnabled public String prop { get;set; }
-	}
-``` 
-**Note:** If you edit the file locally, remember to push changes to your repo. You can also choose to make changes directly in your repo. 
+1. Create a folder in your VS Code project directory to hold your custom templates. Name the folder something intuitive, for example "MyCustomTemplates".
+2. Carefully check folder and file names in this [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/main/src/templates), and create sub-folders of the same names that contain the files you wish to customize. For example, create a sub-folder named ``lightningapp`` and add a file named ``DefaultLightningController.js`` to customize the default lightning controller JavaScript file, and a sub-folder named ``apexclass`` and add a file named ``DefaultApexClass.cls`` to add custom code to an Apex class. 
+3. Make updates to your custom template files.
+4. Check that ``customOrgMetadataTemplates`` points to your custom templates directory.
 
-4. Update the `sfdx-config.json` file to point to your cloned repo (or local directory).
-5. Run the `SFDX: Create Apex Class` command from the Command Palette.
-6. Enter `ApexClass` for filename.
-7. Accept the default directory location.
-8. Confirm that the `ApexClass.cls` file contains your custom code:
-```
-public with sharing class ApexClass {
-    		public ApexClass(String prop) {
-			this.prop = prop;
-    		}
-
-		@AuraEnabled public String prop { get;set; }
-	}
-```
-9. Share your config file with your teammates so that you’re all using the same config setting.  
-
-## Make an Update to a Template
+## Make an Update to a Remote Template in GitHub
 VS Code downloads the template files locally (`~/.sfdx/custom-templates` on macOS/Linux or `%USERPROFILE%\.sfdx\custom-templates` on Windows) the first time the template repository is accessed. To use updated templates, clear the local cached files to download the template files again.
+
+## Make an Update to a Local Template
+If your template location is on your machine, any changes that you make to the template are ready for use immediately after save. If you're not seeing an immediate change, refresh your VS Code window to clear the VS Code cache to then see the changes reflected.
