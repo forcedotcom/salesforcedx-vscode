@@ -24,6 +24,8 @@ export {
   DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
+  AuthDevHubParams,
+  AuthDevHubParamsGatherer,
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
@@ -31,6 +33,7 @@ export {
   ForceAuthDevHubContainerExecutor
 } from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
+export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
   forceOrgCreate,
   AliasGatherer,

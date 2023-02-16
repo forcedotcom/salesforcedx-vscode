@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
+  ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
+  LibraryCommandletExecutor,
   Row,
   Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   DeployResult,
@@ -27,7 +26,6 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
@@ -36,7 +34,8 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { ConfigUtil, OrgAuthInfo } from '../util';
+import { OrgAuthInfo } from '../util';
+import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -145,6 +144,11 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     try {
       if (result) {
         BaseDeployExecutor.errorCollection.clear();
+
+        // Update Persistent Storage for the files that were deployed
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+          result
+        );
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);

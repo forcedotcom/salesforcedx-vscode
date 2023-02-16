@@ -6,12 +6,11 @@
  */
 export {
   CLIENT_ID,
-  SFDX_DIR,
   SOBJECTS_DIR,
   STANDARDOBJECTS_DIR,
   CUSTOMOBJECTS_DIR,
-  SOQLMETADATA_DIR,
-  TOOLS_DIR
+  SOQLMETADATA_DIR
 } from './constants';
 export { SObjectTransformer, SObjectTransformerFactory } from './transformer';
-export { SObjectRefreshResult } from './types';
+export * from './types';
+export * from './describe';

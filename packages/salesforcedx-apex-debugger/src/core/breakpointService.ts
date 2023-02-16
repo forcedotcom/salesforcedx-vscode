@@ -8,9 +8,9 @@
 import {
   CliCommandExecutor,
   CommandOutput,
+  RequestService,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   ApexBreakpointLocation,

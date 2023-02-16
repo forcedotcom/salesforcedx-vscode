@@ -1,12 +1,16 @@
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  OrgUserInfo,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
-import * as wsContext from '../../../src/context';
+import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { getRootWorkspacePath } from '../../../src/util';
+import { decorators } from '../../../src/decorators';
+import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
 
@@ -20,7 +24,7 @@ class MockFileWatcher implements vscode.Disposable {
     this.watchUri = vscode.Uri.file(fsPath);
   }
 
-  public dispose() { }
+  public dispose() {}
 
   public onDidChange(f: (uri: vscode.Uri) => void): vscode.Disposable {
     this.changeSubscribers.push(f);
@@ -68,7 +72,11 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     super();
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
+    const cliConfigPath = join(
+      workspaceUtils.getRootWorkspacePath(),
+      SFDX_FOLDER,
+      SFDX_CONFIG_FILE
+    );
     this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
@@ -82,32 +90,35 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     return TestWorkspaceContextUtil.testInstance;
   }
 
-  public getFileWatcher(): MockFileWatcher { return this.cliConfigWatcher as MockFileWatcher; }
+  public getFileWatcher(): MockFileWatcher {
+    return this.cliConfigWatcher as MockFileWatcher;
+  }
 }
 
 describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
-  const cliConfigPath = join(
-    getRootWorkspacePath(),
-    SFDX_FOLDER,
-    SFDX_CONFIG_FILE
-  );
 
-  let orgTypeStub: SinonStub;
+  let setupWorkspaceOrgTypeStub: SinonStub;
   let usernameStub: SinonStub;
   let aliasStub: SinonStub;
+  let showOrgStub: SinonStub;
   let workspaceContextUtil: WorkspaceContextUtil;
   let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
-    orgTypeStub = env.stub(wsContext, 'setupWorkspaceOrgType').resolves();
+    setupWorkspaceOrgTypeStub = env
+      .stub(workspaceContextUtils, 'setupWorkspaceOrgType')
+      .resolves();
 
     workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
     env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
-    usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
+    usernameStub = env
+      .stub(workspaceContextUtil, 'username')
+      .get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
+    showOrgStub = env.stub(decorators, 'showOrg').resolves();
 
     const extensionContext = ({
       subscriptions: []
@@ -122,16 +133,18 @@ describe('WorkspaceContext', () => {
   it('should load the default username and alias upon initialization', () => {
     expect(workspaceContext.username).to.equal(testUser);
     expect(workspaceContext.alias).to.equal(testAlias);
-    expect(orgTypeStub.called).to.equal(true);
+    expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
   });
 
   it('should update default username and alias upon config change', async () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('change');
 
-    expect(orgTypeStub.called).to.equal(true);
+    expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
     expect(workspaceContext.alias).to.equal(undefined);
   });
@@ -140,25 +153,43 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('change');
 
-    expect(orgTypeStub.called).to.equal(true);
+    expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  it('should notify subscribers that the default org may have changed', async () => {
+  // tslint:disable-next-line:only-arrow-functions
+  it('should notify subscribers that the default org may have changed', async function() {
     const someLogic = env.stub();
-    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
+    workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);
     });
 
     // awaiting to ensure subscribers run their logic
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
+    const fileChangedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('change');
+    const fileCreatedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('create');
+    const fileDeletedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('delete');
+
+    // Test runs in CI build in approx: 45000ms
+    this.timeout(60000);
+    await Promise.all([
+      fileChangedPromise,
+      fileCreatedPromise,
+      fileDeletedPromise
+    ]);
 
     expect(someLogic.callCount).to.equal(3);
+    expect(showOrgStub.called).to.equal(true);
   });
 
   describe('getConnection', () => {

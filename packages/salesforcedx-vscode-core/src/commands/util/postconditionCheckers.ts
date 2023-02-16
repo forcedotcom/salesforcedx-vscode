@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   LocalComponent,
   PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'fs';
 import { basename, join, normalize } from 'path';
 import { channelService } from '../../channels';
@@ -24,7 +24,8 @@ import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, MetadataDictionary } from '../../util';
+import { MetadataDictionary, workspaceUtils } from '../../util';
+import { ConflictDetectionMessages } from './conflictDetectionMessages';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
@@ -50,14 +51,6 @@ export class CompositePostconditionChecker<T>
         }
       }
     }
-    return inputs;
-  }
-}
-
-export class EmptyPostChecker implements PostconditionChecker<any> {
-  public async check(
-    inputs: ContinueResponse<any> | CancelResponse
-  ): Promise<ContinueResponse<any> | CancelResponse> {
     return inputs;
   }
 }
@@ -98,7 +91,7 @@ export class OverwriteComponentPrompt
       : PathStrategyFactory.createDefaultStrategy();
     return this.getFileExtensions(component).some(extension => {
       const path = join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         pathStrategy.getPathToSource(outputdir, fileName, extension)
       );
       return existsSync(path);
@@ -206,11 +199,6 @@ export class OverwriteComponentPrompt
   }
 }
 
-export interface ConflictDetectionMessages {
-  warningMessageKey: string;
-  commandHint: (input: string | string[]) => string;
-}
-
 export class TimestampConflictChecker implements PostconditionChecker<string> {
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
@@ -249,7 +237,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       try {
         const result = await cacheService.loadCache(
           componentPath,
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           this.isManifest
         );
         const detector = new TimestampConflictDetector();

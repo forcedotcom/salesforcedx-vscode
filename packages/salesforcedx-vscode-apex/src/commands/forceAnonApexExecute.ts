@@ -10,21 +10,20 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  getLogDirPath,
   hasRootWorkspace,
   LibraryCommandletExecutor,
+  projectPaths,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  getYYYYMMddHHmmssDateFormat
-} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+  SfdxWorkspaceChecker,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
+import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -159,7 +158,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 
   private getLogFilePath(): string {
-    const outputDir = getLogDirPath();
+    const outputDir = projectPaths.debugLogsFolder();
     const now = new Date();
     const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
     const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);
@@ -167,9 +166,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     return logFilePath;
   }
 
-  private saveLogFile(
-    logFilePath: string,
-    logs?: string): boolean {
+  private saveLogFile(logFilePath: string, logs?: string): boolean {
     if (!logFilePath || !logs) {
       return false;
     }
@@ -234,9 +231,10 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         )
       };
 
-      AnonApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [
-        vscDiagnostic
-      ]);
+      AnonApexLibraryExecuteExecutor.diagnostics.set(
+        vscode.Uri.file(filePath),
+        [vscDiagnostic]
+      );
     }
   }
 

@@ -214,7 +214,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
   describe('Heapdump', () => {
     let heapDumpService: HeapDumpService;
 
-    before(() => {
+    beforeAll(() => {
       adapter = new MockApexReplayDebug();
       const logContext = new LogContext(launchRequestArgs, adapter);
       heapDumpService = new HeapDumpService(logContext);

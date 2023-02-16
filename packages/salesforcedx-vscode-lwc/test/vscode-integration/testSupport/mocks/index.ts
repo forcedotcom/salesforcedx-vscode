@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as which from 'which';
@@ -23,6 +23,7 @@ import {
   mockPreviewJavaScriptDebugger,
   unmockPreviewJavaScriptDebugger
 } from './vscodeConfiguration';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 export { mockPreviewJavaScriptDebugger, unmockPreviewJavaScriptDebugger };
 
@@ -126,8 +127,8 @@ export function unmockActiveTextEditorUri() {
  */
 export function mockTestResultWatcher() {
   getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
-  getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
-    return path.join(vscodePath, '.sfdx', 'tools', 'testresults', testType);
+  getTempFolderStub.callsFake((testType: string) => {
+    return path.join(projectPaths.testResultsFolder(), testType);
   });
   watchTestResultsStub = stub(testResultsWatcher, 'watchTestResults');
   watchTestResultsStub.callsFake(() => {});

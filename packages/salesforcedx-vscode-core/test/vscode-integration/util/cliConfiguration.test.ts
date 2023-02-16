@@ -5,21 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  Config,
+  ConfigFile,
+  Global,
+  OrgConfigProperties
+} from '@salesforce/core';
+import {
+  ConfigUtil,
+  GlobalCliEnvironment
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
+import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
+import { workspaceContext } from '../../../src/context';
 import {
-  ENV_SFDX_DISABLE_TELEMETRY,
-  SFDX_CONFIG_DISABLE_TELEMETRY
-} from '../../../src/constants';
-import {
-  ConfigUtil,
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
-  showCLINotInstalledMessage
+  showCLINotInstalledMessage,
+  workspaceUtils
 } from '../../../src/util';
 
 describe('SFDX CLI Configuration utility', () => {
@@ -81,51 +89,36 @@ describe('SFDX CLI Configuration utility', () => {
   });
 
   describe('CLI Telemetry', () => {
-    let getConfigValueStub: SinonStub;
+    let isTelemetryDisabledStub: SinonStub;
 
     beforeEach(() => {
       sandboxStub = createSandbox();
-      getConfigValueStub = sandboxStub.stub(ConfigUtil, 'getConfigValue');
+      isTelemetryDisabledStub = sandboxStub.stub(
+        ConfigUtil,
+        'isTelemetryDisabled'
+      );
     });
 
     afterEach(() => {
       sandboxStub.restore();
     });
 
-    it('Should return true if cli is not installed', async () => {
-      getConfigValueStub.withArgs(SFDX_CONFIG_DISABLE_TELEMETRY).returns('');
-
-      const response = await isCLITelemetryAllowed();
-      expect(response).to.equal(true);
-    });
-
     it('Should return false if telemetry setting is disabled', async () => {
-      getConfigValueStub
-        .withArgs(SFDX_CONFIG_DISABLE_TELEMETRY)
-        .returns('true');
+      isTelemetryDisabledStub.resolves('true');
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(false);
     });
 
     it('Should return true if telemetry setting is undefined', async () => {
-      getConfigValueStub.withArgs(SFDX_CONFIG_DISABLE_TELEMETRY).returns('');
+      isTelemetryDisabledStub.resolves(undefined);
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
 
     it('Should return true if telemetry setting is enabled', async () => {
-      getConfigValueStub
-        .withArgs(SFDX_CONFIG_DISABLE_TELEMETRY)
-        .returns('false');
-
-      const response = await isCLITelemetryAllowed();
-      expect(response).to.equal(true);
-    });
-
-    it("Should return true if CLI doesn't support telemetry setting", async () => {
-      getConfigValueStub.withArgs(SFDX_CONFIG_DISABLE_TELEMETRY).returns('');
+      isTelemetryDisabledStub.resolves(false);
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
@@ -141,6 +134,99 @@ describe('SFDX CLI Configuration utility', () => {
         ENV_SFDX_DISABLE_TELEMETRY,
         'true'
       ]);
+    });
+  });
+
+  describe('ConfigAggregator integration tests', () => {
+    const dummyLocalDefaultUsername = 'test@local.com';
+    const origCwd = process.cwd();
+
+    before(() => {
+      // Ensure we are in the project directory
+      const rootWorkpace = workspaceUtils.getRootWorkspacePath();
+      process.chdir(rootWorkpace);
+    });
+    after(() => {
+      process.chdir(origCwd);
+    });
+
+    afterEach(async () => {
+      // Remove the config files that were created for the test
+      try {
+        const configFile = await ConfigFile.create(
+          Config.getDefaultOptions(false, 'sfdx-config.json')
+        );
+        configFile.unlinkSync(); // delete the sfdx config file that was created for the test
+
+        const config = await Config.create(Config.getDefaultOptions());
+        config.unlinkSync(); // delete the sf config file that was created for the test
+
+        // delete the sf directory that was created for the test
+        fs.rmdir('.sf', err => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    /*
+     * workspaceContextUtil defines a listener that fires a VS Code event when
+     * the config file changes.  Ideally, something like flushAllPromises()
+     * would be used to force the promises to resolve - however, there seems
+     * to be no mechanism to get the VS Code Events to fire before the assertions
+     * in the test.  To work around this, a new listener for the event is
+     * configured in this test, and the assertions are made within that event listener.
+     * By asserting localProjectDefaultUsernameOrAlias, this test validates that:
+     * 1. The config file listener in workspaceContextUtil is active
+     * 2. When the listener detects a config file change (config.write()) it reloads the
+     * configAggregator to ensure it has the latest values
+     * 3. The VS Code onOrgChange event handler is invoked
+     * 4. The VS Code orgChange event was fired with the correct values
+     * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
+     */
+    it('Should return the locally configured default username when it exists', async function() {
+      this.timeout(60000);
+
+      let res: (value: string) => void;
+      let rej: (reason?: any) => void;
+      const resultPromise = new Promise((resolveFunc, rejectsFunc) => {
+        res = resolveFunc;
+        rej = rejectsFunc;
+      });
+      workspaceContext.onOrgChange(async orgUserInfo => {
+        try {
+          // Act
+          const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+
+          // Assert
+          expect(localProjectDefaultUsernameOrAlias).to.equal(
+            dummyLocalDefaultUsername
+          );
+          expect(localProjectDefaultUsernameOrAlias).to.equal(
+            orgUserInfo.username
+          );
+
+          res('success');
+        } catch (e) {
+          rej(e);
+        }
+      });
+
+      // Arrange
+      // The stubContext method set the Global.SFDX_INTEROPERABILITY to false but
+      // doesn't reset it to the default true on restore.  This causes issues with the sfdx config
+      // file watcher. Set it to true here to ensure we get the writes to the sfdx config file.
+      Global.SFDX_INTEROPERABILITY = true;
+
+      // Create a local config file and set the local project default username
+      const config = await Config.create(Config.getDefaultOptions());
+      config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
+      await config.write();
+
+      return resultPromise;
     });
   });
 });

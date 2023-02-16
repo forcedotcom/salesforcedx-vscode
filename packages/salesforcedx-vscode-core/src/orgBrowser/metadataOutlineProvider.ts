@@ -7,10 +7,10 @@
 import {
   extractJsonObject,
   isNullOrUndefined
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 import {
   BrowserNode,
   ComponentUtils,
@@ -88,7 +88,10 @@ export class MetadataOutlineProvider
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
+        } else if (
+          element.parent &&
+          element.parent.fullName === CUSTOMOBJECTS_FULLNAME
+        ) {
           nodeType = NodeType.MetadataField;
         }
 
@@ -101,10 +104,9 @@ export class MetadataOutlineProvider
   }
 
   public async getTypes(): Promise<MetadataObject[]> {
-    const username = this.defaultOrg!;
     const typeUtil = new TypeUtils();
     try {
-      return await typeUtil.loadTypes(username, this.toRefresh);
+      return await typeUtil.loadTypes(this.toRefresh);
     } catch (e) {
       throw parseErrors(e);
     }
@@ -144,7 +146,7 @@ export class MetadataOutlineProvider
   }
 
   public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    if (hasRootWorkspace()) {
+    if (workspaceUtils.hasRootWorkspace()) {
       const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
       return username;
     } else {

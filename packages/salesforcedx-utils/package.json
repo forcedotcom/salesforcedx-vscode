@@ -1,0 +1,34 @@
+{
+  "name": "@salesforce/salesforcedx-utils",
+  "displayName": "Node Utilities for VS Code",
+  "version": "57.2.1",
+  "description": "Provides node specific utilities for the Salesforce VSCode extensions",
+  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "main": "out/src",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
+    "test:unit": "jest --coverage",
+    "coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "cross-spawn": "7.0.3",
+    "request-light": "^0.7.0",
+    "rxjs": "^5.4.1",
+    "tree-kill": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "28.1.7",
+    "@typescript-eslint/eslint-plugin": "5.38.1",
+    "@typescript-eslint/parser": "5.36.1",
+    "eslint": "8.23.0",
+    "jest": "28.1.3",
+    "ts-jest": "28.0.8",
+    "typescript": "^4.7.4"
+  }
+}

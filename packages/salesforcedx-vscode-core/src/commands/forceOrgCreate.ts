@@ -6,34 +6,26 @@
  */
 
 import {
+  CancelResponse,
   CliCommandExecutor,
   Command,
+  ContinueResponse,
+  isAlphaNumSpaceString,
+  isIntegerInRange,
   OrgCreateErrorResult,
   OrgCreateResultParser,
+  ParametersGatherer,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  isAlphaNumSpaceString,
-  isIntegerInRange
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { OrgType, setWorkspaceOrgTypeWithOrgType } from '../context';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import {
-  getRootWorkspace,
-  getRootWorkspacePath,
-  hasRootWorkspace
-} from '../util';
+import { workspaceUtils } from '../util';
 import {
   CompositeParametersGatherer,
   CompositePreconditionChecker,
@@ -53,7 +45,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 > {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
-      getRootWorkspacePath(), // this is safe because of workspaceChecker
+      workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker
       data.file
     );
     return new SfdxCommandBuilder()
@@ -75,7 +67,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath(),
+      cwd: workspaceUtils.getRootWorkspacePath(),
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
@@ -94,7 +86,9 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
         if (createParser.createIsSuccessful()) {
           // NOTE: there is a beta in which this command also allows users to create sandboxes
           // once it's GA this will have to be updated
-          setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
+          workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
+            OrgType.SourceTracked
+          );
         } else {
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
@@ -130,11 +124,10 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
-    if (hasRootWorkspace()) {
-      const folderName = getRootWorkspace().name.replace(
-        /\W/g /* Replace all non-alphanumeric characters */,
-        ''
-      );
+    if (workspaceUtils.hasRootWorkspace()) {
+      const folderName = workspaceUtils
+        .getRootWorkspace()
+        .name.replace(/\W/g /* Replace all non-alphanumeric characters */, '');
       defaultAlias = isAlphaNumSpaceString(folderName)
         ? folderName
         : DEFAULT_ALIAS;
