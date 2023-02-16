@@ -8,10 +8,10 @@
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 
-import { NotificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
@@ -144,7 +144,7 @@ export async function registerPushOrDeployOnSave() {
 }
 
 function displayError(message: string) {
-  NotificationService.getInstance().showErrorMessage(message);
+  notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
   telemetryService.sendException(
