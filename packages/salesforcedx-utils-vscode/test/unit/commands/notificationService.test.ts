@@ -5,22 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as proxyquire from 'proxyquire';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
+import { OutputChannel } from 'vscode';
+import * as vscode from 'vscode';
+import { ChannelService, NotificationService } from '../../../src';
 import { nls } from '../../../src/messages';
-import { MockChannel, vscodeStub } from './mocks';
-
-const { NotificationService } = proxyquire.noCallThru()(
-  '../../../src/commands',
-  {
-    vscode: vscodeStub
-  }
-);
-
-const { ChannelService } = proxyquire.noCallThru()('../../../src/commands', {
-  vscode: vscodeStub
-});
+import { MockChannel } from './mocks';
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
 const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
@@ -36,30 +27,29 @@ describe('Notifications', () => {
   let mStatusBar: SinonStub;
   let settings: SinonStub;
   let mChannel;
-  let channelService: SinonStub;
+  let channelService: ChannelService | undefined;
 
   beforeEach(() => {
     mShow = stub(ChannelService.prototype, 'showChannelOutput');
-    mShowInformation = stub(
-      vscodeStub.window,
-      'showInformationMessage'
-    ).returns(Promise.resolve(null));
-    mShowWarningMessage = stub(vscodeStub.window, 'showWarningMessage').returns(
+    mShowInformation = stub(vscode.window, 'showInformationMessage').returns(
       Promise.resolve(null)
     );
-    mShowErrorMessage = stub(vscodeStub.window, 'showErrorMessage').returns(
+    mShowWarningMessage = stub(vscode.window, 'showWarningMessage').returns(
       Promise.resolve(null)
     );
-    mStatusBar = stub(vscodeStub.window, 'setStatusBarMessage').returns(
+    mShowErrorMessage = stub(vscode.window, 'showErrorMessage').returns(
       Promise.resolve(null)
     );
-    settings = stub(vscodeStub.workspace, 'getConfiguration');
+    mStatusBar = stub(vscode.window, 'setStatusBarMessage').returns(
+      Promise.resolve(null)
+    );
+    settings = stub(vscode.workspace, 'getConfiguration');
     settings.returns({
       get: () => true,
       update: () => {}
     });
     mChannel = new MockChannel();
-    channelService = new ChannelService(mChannel);
+    channelService = new ChannelService(mChannel as OutputChannel);
   });
 
   afterEach(() => {
@@ -100,10 +90,9 @@ describe('Notifications', () => {
   it('Should notify successful and show channel as requested', async () => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
-    mShowInformation = stub(
-      vscodeStub.window,
-      'showInformationMessage'
-    ).returns(Promise.resolve(SHOW_BUTTON_TEXT));
+    mShowInformation = stub(vscode.window, 'showInformationMessage').returns(
+      Promise.resolve(SHOW_BUTTON_TEXT)
+    );
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
 
@@ -129,7 +118,7 @@ describe('Notifications', () => {
   it('Should notify successful in status bar based on user configuration', done => {
     // Set user configuration to show success messages in status bar.
     settings.restore();
-    settings = stub(vscodeStub.workspace, 'getConfiguration');
+    settings = stub(vscode.workspace, 'getConfiguration');
     settings.returns({
       get: () => {
         return false;
@@ -159,10 +148,9 @@ describe('Notifications', () => {
   it('Should update setting to hide future information messages', done => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
-    mShowInformation = stub(
-      vscodeStub.window,
-      'showInformationMessage'
-    ).returns(Promise.resolve(SHOW_ONLY_STATUS_BAR_BUTTON_TEXT));
+    mShowInformation = stub(vscode.window, 'showInformationMessage').returns(
+      Promise.resolve(SHOW_ONLY_STATUS_BAR_BUTTON_TEXT)
+    );
 
     const updateSetting = stub();
     settings.returns({
@@ -199,17 +187,31 @@ describe('Notifications', () => {
 
   it('Should notify cancellation', done => {
     const observable = new ReplaySubject<number | undefined>();
-    const cancellationTokenSource = new vscodeStub.CancellationTokenSource();
+    let cancelCallback: undefined | (() => void);
+    const cancellationTokenSource = {
+      token: {
+        isCancellationRequested: false,
+        onCancellationRequested: (callback: () => void) => {
+          cancelCallback = callback;
+        }
+      },
+      cancel: jest.fn()
+    };
 
     const notificationService = NotificationService.getInstance();
     notificationService.reportExecutionStatus(
       'mock command',
       channelService,
       observable,
-      cancellationTokenSource.token
+      cancellationTokenSource.token as vscode.CancellationToken
     );
 
     cancellationTokenSource.cancel();
+    if (cancelCallback) {
+      cancelCallback();
+    } else {
+      fail('should have set the cancel callback.');
+    }
 
     setTimeout(() => {
       assert.notCalled(mShow);

@@ -6,7 +6,7 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -189,9 +189,15 @@ describe('Force Auth Logout Default', () => {
       'should not have reported an error'
     ).to.equal(false);
     expect(
-      notificationStub.called,
+      notificationStub.callCount,
       'should not have posted an error message'
-    ).to.equal(false);
+    ).to.equal(2);
+    const notificationArgs = notificationStub.getCall(0).args;
+    expect(notificationArgs).to.deep.equal([
+      'SFDX: Set a Default Org successfully ran',
+      'Show',
+      'Show Only in Status Bar'
+    ]);
     expect(inputMessageStub.called, 'should have prompted a message').to.equal(
       true
     );

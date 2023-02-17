@@ -8,9 +8,9 @@
 import {
   CliCommandExecutor,
   CommandOutput,
+  RequestService,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils';
 
 export class SessionService {
   private userFilter?: string;
@@ -64,9 +64,7 @@ export class SessionService {
         .withFlag('--sobjecttype', 'ApexDebuggerSession')
         .withFlag(
           '--values',
-          `UserIdFilter='${this.userFilter}' EntryPointFilter='${
-            this.entryFilter
-          }' RequestTypeFilter='${this.requestFilter}'`
+          `UserIdFilter='${this.userFilter}' EntryPointFilter='${this.entryFilter}' RequestTypeFilter='${this.requestFilter}'`
         )
         .withArg('--usetoolingapi')
         .withJson()

@@ -11,7 +11,7 @@
   ],
   "references": [
     {
-      "path": "../salesforcedx-utils-vscode"
+      "path": "../salesforcedx-utils"
     },
     {
       "path": "../salesforcedx-test-utils-vscode"

@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
 import {
   CUSTOMOBJECTS_DIR,
   SOQLMETADATA_DIR,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
+  STANDARDOBJECTS_DIR
 } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
@@ -22,7 +22,7 @@ import {
   SObjectRefreshOutput
 } from '../types';
 
-const BASE_FOLDER = [TOOLS_DIR, SOQLMETADATA_DIR];
+const BASE_FOLDER = [TOOLS, SOQLMETADATA_DIR];
 
 export class SOQLMetadataGenerator implements SObjectGenerator {
   public constructor(private category: SObjectCategory) {}

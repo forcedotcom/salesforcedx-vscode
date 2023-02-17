@@ -4,8 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  fileUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
@@ -53,7 +55,7 @@ describe('ManifestChecker', () => {
     );
     const manifestUri = { fsPath: manifestFilePath } as vscode.Uri;
     const flushFilePathStub = sinon
-      .stub(helpers, 'flushFilePath')
+      .stub(fileUtils, 'flushFilePath')
       .returns(manifestFilePath);
     const checker = new ManifestChecker(manifestUri);
     const response = checker.check();
@@ -66,7 +68,7 @@ describe('ManifestChecker', () => {
     const sourcePath = path.join(workspaceFolderPath, 'src', 'exampleFile.js');
     const sourceUri = { fsPath: sourcePath } as vscode.Uri;
     const flushFilePathStub = sinon
-      .stub(helpers, 'flushFilePath')
+      .stub(fileUtils, 'flushFilePath')
       .returns(sourcePath);
     const checker = new ManifestChecker(sourceUri);
     const response = checker.check();
@@ -89,7 +91,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
       'showInformationMessage'
     );
 
-    flushFilePathStub = sinon.stub(helpers, 'flushFilePath');
+    flushFilePathStub = sinon.stub(fileUtils, 'flushFilePath');
 
     flushFilePathStub.returns(examplePath);
   });

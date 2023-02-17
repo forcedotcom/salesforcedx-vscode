@@ -11,12 +11,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { TestExecutionInfo, TestInfoKind } from '../types';
-import {
-  getCliArgsFromJestArgs,
-  getLwcTestRunnerExecutable,
-  getTestWorkspaceFolder,
-  workspaceService
-} from '../workspace';
+import { workspace, workspaceService } from '../workspace';
 import { SfdxTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
@@ -128,7 +123,7 @@ export class TestRunner {
    * Generate shell execution info necessary for task execution
    */
   public getShellExecutionInfo() {
-    const workspaceFolder = getTestWorkspaceFolder(
+    const workspaceFolder = workspace.getTestWorkspaceFolder(
       this.testExecutionInfo.testUri
     );
     if (workspaceFolder) {
@@ -136,8 +131,10 @@ export class TestRunner {
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
-        const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(cwd);
-        const cliArgs: string[] = getCliArgsFromJestArgs(
+        const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
+          cwd
+        );
+        const cliArgs: string[] = workspace.getCliArgsFromJestArgs(
           jestArgs,
           this.testRunType
         );

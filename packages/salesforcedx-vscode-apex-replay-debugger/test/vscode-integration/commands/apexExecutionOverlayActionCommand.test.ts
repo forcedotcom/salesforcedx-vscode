@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  RequestService,
-  RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
 import {
   CLIENT_ID,
-  DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
+  DEFAULT_CONNECTION_TIMEOUT_MS,
+  RequestService,
+  RestHttpMethodEnum
+} from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -190,8 +188,8 @@ export function createExpectedXHROptions(
       Accept: 'application/json',
       Authorization: `OAuth 123`,
       'Content-Length': requestBody
-        ? Buffer.byteLength(requestBody, 'utf-8')
-        : 0,
+        ? String(Buffer.byteLength(requestBody, 'utf-8'))
+        : '0',
       'Sforce-Call-Options': `client=${CLIENT_ID}`
     },
     data: requestBody

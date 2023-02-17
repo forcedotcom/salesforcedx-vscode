@@ -13,7 +13,7 @@ import {
   forceLwcTestRun,
   forceLwcTestRunActiveTextEditorTest
 } from '../../../../src/testSupport/commands/forceLwcTestRunAction';
-import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/workspace';
+import { workspace } from '../../../../src/testSupport/workspace';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
@@ -27,6 +27,7 @@ import {
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
@@ -108,7 +109,9 @@ describe('Force LWC Test Run - Code Action', () => {
             shellArgs: ['/d', '/c']
           }
         : undefined;
-      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(expectedCwd);
+      const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
+        expectedCwd
+      );
       assert.calledOnce(executeTaskStub);
       assert.calledWith(
         executeTaskStub,
@@ -123,11 +126,7 @@ describe('Force LWC Test Run - Code Action', () => {
             '--json',
             '--outputFile',
             path.join(
-              expectedCwd,
-              '.sfdx',
-              'tools',
-              'testresults',
-              'lwc',
+              projectPaths.lwcTestResultsFolder(),
               `test-result-${mockUuid}.json`
             ),
             '--testLocationInResults',

@@ -13,7 +13,7 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { SfProject } from '@salesforce/core';
-import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { join } from 'path';

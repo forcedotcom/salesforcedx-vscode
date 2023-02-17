@@ -19,15 +19,14 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as path from 'path';
-import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
+import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
+  CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfdxCreateCheckpoints,
   sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
@@ -50,6 +49,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 );
 
 function registerCommands(): vscode.Disposable {
+  const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {
@@ -59,7 +59,7 @@ function registerCommands(): vscode.Disposable {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: getDialogStartingPath()
+        defaultUri: dialogStartingPathUri
       });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
@@ -106,7 +106,7 @@ function registerCommands(): vscode.Disposable {
 
   const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
     'sfdx.create.checkpoints',
-    sfdxCreateCheckpoints
+    CheckpointService.sfdxCreateCheckpoints
   );
   const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
     'sfdx.toggle.checkpoint',
@@ -233,6 +233,8 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
+// jab
+/*
 function getDialogStartingPath(): vscode.Uri | undefined {
   if (
     vscode.workspace.workspaceFolders &&
@@ -259,6 +261,7 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     );
   }
 }
+*/
 
 export async function retrieveLineBreakpointInfo(): Promise<boolean> {
   const sfdxApex = vscode.extensions.getExtension(

@@ -6,10 +6,12 @@
  */
 
 import { AuthInfo } from '@salesforce/core';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { createSandbox } from 'sinon';
 import { SObjectTransformer } from '../../src';
@@ -32,15 +34,15 @@ const CONNECTION_DATA = {
 };
 
 const env = createSandbox();
+const tempFolder = path.join(os.tmpdir(), PROJECT_NAME);
 
 // tslint:disable:no-unused-expression
 describe('Transform sobject definitions', () => {
   let cancellationTokenSource: CancellationTokenSource;
-  let projectPath: string;
   let emitter: EventEmitter;
 
   beforeEach(() => {
-    projectPath = path.join(process.cwd(), PROJECT_NAME);
+    env.stub(projectPaths, 'stateFolder').returns(tempFolder);
     emitter = new EventEmitter();
     cancellationTokenSource = new CancellationTokenSource();
     env.stub(AuthInfo, 'create').returns({
@@ -76,7 +78,7 @@ describe('Transform sobject definitions', () => {
     });
 
     try {
-      await transformer.transform(projectPath);
+      await transformer.transform();
     } catch ({ error }) {
       rejectOutput = error;
     }
@@ -112,7 +114,7 @@ describe('Transform sobject definitions', () => {
     });
 
     try {
-      await transformer.transform(projectPath);
+      await transformer.transform();
     } catch ({ error }) {
       rejectOutput = error;
     }
@@ -133,7 +135,7 @@ describe('Transform sobject definitions', () => {
     );
 
     try {
-      await transformer.transform(projectPath);
+      await transformer.transform();
       fail('transformer should have thrown an error');
     } catch ({ error }) {
       expect(error.message).to.contain(
@@ -155,7 +157,7 @@ describe('Transform sobject definitions', () => {
     );
     cancellationTokenSource.cancel();
 
-    const result = await transformer.transform(projectPath);
+    const result = await transformer.transform();
     expect(result.data.cancelled).to.be.true;
   });
 
@@ -181,7 +183,7 @@ describe('Transform sobject definitions', () => {
     });
 
     try {
-      await transformer.transform(projectPath);
+      await transformer.transform();
     } catch ({ error }) {
       rejectOutput = error;
     }
@@ -208,7 +210,7 @@ describe('Transform sobject definitions', () => {
         exitCode = data;
       });
 
-      const result = await transformer.transform(projectPath);
+      const result = await transformer.transform();
       expect(result.error).to.be.undefined;
       expect(exitCode).to.equal(SUCCESS_CODE);
     });
@@ -242,7 +244,7 @@ describe('Transform sobject definitions', () => {
         stdoutInfo = data;
       });
 
-      const result = await transformer.transform(projectPath);
+      const result = await transformer.transform();
 
       expect(result.error).to.be.undefined;
       expect(result.data.standardObjects).to.eql(1);
@@ -280,7 +282,7 @@ describe('Transform sobject definitions', () => {
         stdoutInfo = data;
       });
 
-      const result = await transformer.transform(projectPath);
+      const result = await transformer.transform();
 
       expect(result.error).to.be.undefined;
       expect(result.data.customObjects).to.eql(1);

@@ -74,12 +74,6 @@
       }
     },
     {
-      "label": "Create Release Branch",
-      "command": "./scripts/create-release-branch-workflow.sh",
-      "type": "shell",
-      "args": ["${input:circleCiId}", "${input:publishType}"]
-    },
-    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
@@ -91,22 +85,10 @@
       "isBackground": false
     },
     {
-      "label": "Launch Pre-Publish Steps",
-      "command": "./scripts/pre-publish-workflow.sh",
-      "type": "shell",
-      "args": ["${input:circleCiId}", "${input:releaseBranch}"]
-    },
-    {
       "label": "Build Language Server Jar (Jorje)",
       "command": "./scripts/build-jorje.js",
       "type": "shell",
       "args": ["${input:needSigning}"]
-    },
-    {
-      "label": "Publish Extensions",
-      "command": "./scripts/publish-workflow.sh",
-      "type": "shell",
-      "args": ["${input:circleCiId}"]
     },
     {
       "label": "Watch",
@@ -123,28 +105,11 @@
   ],
   "inputs": [
     {
-      "id": "circleCiId",
-      "type": "promptString",
-      "description": "CircleCi Token"
-    },
-    {
       "id": "needSigning",
       "type": "pickString",
       "description": "Are you publishing Jorje changes? (Need Signed Jar)",
       "options": ["false", "true"],
       "default": "false"
-    },
-    {
-      "id": "publishType",
-      "type": "pickString",
-      "description": "Type of version to publish",
-      "options": ["patch", "minor", "major"],
-      "default": "minor"
-    },
-    {
-      "id": "releaseBranch",
-      "type": "promptString",
-      "description": "Provide the release version (Ex 49.11.0)"
     }
   ]
 }
