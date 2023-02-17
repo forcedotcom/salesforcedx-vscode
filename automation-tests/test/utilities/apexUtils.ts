@@ -10,7 +10,7 @@ import {
 } from 'wdio-vscode-service';
 import * as utilities from '../utilities';
 
-export async function createApexClassWithTest(): Promise<void> {
+export async function createApexClassWithTest(name: string): Promise<void> {
     const workbench = await browser.getWorkbench();
     let textEditor: TextEditor;
 
@@ -18,7 +18,7 @@ export async function createApexClassWithTest(): Promise<void> {
     const inputBox = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Class', 1);
 
     // Set the name of the new Apex Class
-    await inputBox.setText('ExampleApexClass');
+    await inputBox.setText(name);
     await inputBox.confirm();
 
     // Select the default directory (press Enter/Return).
@@ -27,8 +27,8 @@ export async function createApexClassWithTest(): Promise<void> {
 
     // Modify class content
     const editorView = workbench.getEditorView();
-    textEditor = await editorView.openEditor('ExampleApexClass.cls') as TextEditor;
-    await textEditor.setText('public with sharing class ExampleApexClass {\n\tpublic static void SayHello(string name){\n\t\tSystem.debug(\'Hello, \' + name + \'!\');\n\t}\n}');
+    textEditor = await editorView.openEditor(name + '.cls') as TextEditor;
+    await textEditor.setText('public with sharing class ' + name + ' {\n\tpublic static void SayHello(string name){\n\t\tSystem.debug(\'Hello, \' + name + \'!\');\n\t}\n}');
     await textEditor.save();
     await textEditor.toggleBreakpoint(3);
     await utilities.pause(1);
@@ -37,7 +37,7 @@ export async function createApexClassWithTest(): Promise<void> {
     await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Class', 1);
 
     // Set the name of the new Apex Class Test
-    await inputBox.setText('ExampleApexClassTest');
+    await inputBox.setText(name + 'Test');
     await inputBox.confirm();
 
     // Select the default directory (press Enter/Return).
@@ -45,8 +45,8 @@ export async function createApexClassWithTest(): Promise<void> {
     await utilities.pause(1);
 
     // Modify class content
-    textEditor = await editorView.openEditor('ExampleApexClassTest.cls') as TextEditor;
-    await textEditor.setText('@isTest\npublic class ExampleApexClassTest {\n\t@isTest\n\tstatic void validateSayHello() {\n\t\tSystem.debug(\'Starting validate\');\n\t\tExampleApexClass.SayHello(\'Cody\');\n\t\tSystem.assertEquals(1, 1, \'all good\');\n\t}\n}');
+    textEditor = await editorView.openEditor(name + 'Test.cls') as TextEditor;
+    await textEditor.setText('@isTest\npublic class ' + name + 'Test {\n\t@isTest\n\tstatic void validateSayHello() {\n\t\tSystem.debug(\'Starting validate\');\n\t\t' + name + '.SayHello(\'Cody\');\n\t\tSystem.assertEquals(1, 1, \'all good\');\n\t}\n}');
     await textEditor.toggleBreakpoint(6);
     await textEditor.save();
     await utilities.pause(1);

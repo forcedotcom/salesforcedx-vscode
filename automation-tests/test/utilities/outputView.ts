@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import clipboard from 'clipboardy'
+import clipboard from 'clipboardy';
 import {
   OutputView
 } from 'wdio-vscode-service';
@@ -84,7 +84,7 @@ export async function getOutputViewText(outputChannelName: string = ''): Promise
 }
 
 // If found, this function returns the entire text that's in the Output panel.
-export async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number) : Promise<string | undefined> {
+export async function attemptToFindOutputPanelText(outputChannelName: string, searchString: string, attempts: number): Promise<string | undefined> {
   const outputView = await openOutputView();
   await selectOutputChannel(outputView, outputChannelName);
 

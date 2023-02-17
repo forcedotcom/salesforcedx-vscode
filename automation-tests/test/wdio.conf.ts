@@ -82,10 +82,12 @@ export const config: Options.Testrunner = {
       // Place inside the array to run sequentially.
       // './test/specs/**/*.e2e.ts'
       // './test/specs/**/anInitialSuite.e2e.ts'
-      './test/specs/**/debugApexTests.e2e.ts'
+      // './test/specs/**/debugApexTests.e2e.ts'
       // './test/specs/**/functions.e2e.ts'
       // './test/specs/**/orgBrowser.e2e.ts'
       // './test/specs/**/orgCreationAndAuthentication.e2e.ts'
+      // './test/specs/**/pullAndPush.e2e.ts'
+      './test/specs/**/runApexTests.e2e.ts'
       // './test/specs/**/templates.e2e.ts'
     ]
   ],

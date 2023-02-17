@@ -21,7 +21,7 @@ describe('Debug Apex Tests', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Set up the testing environment', async () => {
-    scratchOrg = new ScratchOrg('DebugApexTests', true); // TODO: Change back to false
+    scratchOrg = new ScratchOrg('DebugApexTests', false); // TODO: Change back to false
     await scratchOrg.setUp();
   });
 
@@ -48,7 +48,7 @@ describe('Debug Apex Tests', async () => {
     let textEditor: TextEditor;
 
     // Create Apex class file
-    await utilities.createApexClassWithTest();
+    await utilities.createApexClassWithTest('ExampleApexClass');
     await utilities.pause(1);
 
     // Open test file
