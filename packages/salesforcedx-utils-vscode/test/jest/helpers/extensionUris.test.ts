@@ -19,7 +19,7 @@ describe('extensionUris Unit Tests.', () => {
       vscode.extensions.getExtension = jest.fn();
     });
 
-    it('Should return extensionUrl if found.', () => {
+    it('Should return extensionUri if found.', () => {
       (vscode.extensions.getExtension as any).mockReturnValue(fakeExtensionRef);
       const result = extensionUris.extensionUri(fakeExtensionName);
       expect(vscode.extensions.getExtension).toHaveBeenCalledWith(
