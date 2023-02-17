@@ -62,7 +62,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 describe('Base Deploy Retrieve Commands', () => {
   let mockConnection: Connection;
   const dummyOrgApiVersion = '55.0';
-  let getOrgApiVersionStub: SinonStub;
+  let connectionGetApiVersionStub: SinonStub;
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
@@ -71,12 +71,12 @@ describe('Base Deploy Retrieve Commands', () => {
       contents: await testData.getConfig()
     });
     mockConnection = await testData.getConnection();
+    connectionGetApiVersionStub = sb
+      .stub(mockConnection, 'getApiVersion')
+      .returns(dummyOrgApiVersion);
     sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
       mockConnection
     );
-    getOrgApiVersionStub = sb
-      .stub(OrgAuthInfo, 'getOrgApiVersion')
-      .resolves(dummyOrgApiVersion);
   });
 
   afterEach(() => {
@@ -213,12 +213,11 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(components.apiVersion).to.equal(configApiVersion);
       expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
-      expect(getOrgApiVersionStub.called).to.equal(false);
+      expect(connectionGetApiVersionStub.called).to.equal(false);
     });
 
     it('should use the api version from the Org when no User-configured api version is set', async () => {
       const executor = new TestDeployRetrieve();
-      // TODO: stub org api version
       const getUserConfiguredApiVersionStub = sb
         .stub(ConfigUtil, 'getUserConfiguredApiVersion')
         .resolves(undefined);
@@ -226,9 +225,9 @@ describe('Base Deploy Retrieve Commands', () => {
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
-      expect(components.apiVersion).to.equal(dummyOrgApiVersion);
       expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
-      expect(getOrgApiVersionStub.calledOnce).to.equal(true);
+      expect(connectionGetApiVersionStub.callCount).to.be.greaterThan(0);
+      expect(components.apiVersion).to.equal(mockConnection.getApiVersion());
     });
 
     it('should not override api version if getComponents set it already', async () => {
