@@ -48,9 +48,10 @@ import { PersistentStorageService } from '../../../src/conflict/persistentStorag
 import { WorkspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
+import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const $$ = instantiateContext();
@@ -61,7 +62,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 describe('Base Deploy Retrieve Commands', () => {
   let mockConnection: Connection;
   const dummyOrgApiVersion = '55.0';
-  let getOrgApiVersionStub: SinonStub;
+  let connectionGetApiVersionStub: SinonStub;
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
@@ -70,12 +71,12 @@ describe('Base Deploy Retrieve Commands', () => {
       contents: await testData.getConfig()
     });
     mockConnection = await testData.getConnection();
+    connectionGetApiVersionStub = sb
+      .stub(mockConnection, 'getApiVersion')
+      .returns(dummyOrgApiVersion);
     sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
       mockConnection
     );
-    getOrgApiVersionStub = sb
-      .stub(OrgAuthInfo, 'getOrgApiVersion')
-      .resolves(dummyOrgApiVersion);
   });
 
   afterEach(() => {
@@ -212,7 +213,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(components.apiVersion).to.equal(configApiVersion);
       expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
-      expect(getOrgApiVersionStub.called).to.equal(false);
+      expect(connectionGetApiVersionStub.called).to.equal(false);
     });
 
     it('should use the api version from the Org when no User-configured api version is set', async () => {
@@ -224,9 +225,9 @@ describe('Base Deploy Retrieve Commands', () => {
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
-      expect(components.apiVersion).to.equal(dummyOrgApiVersion);
       expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
-      expect(getOrgApiVersionStub.calledOnce).to.equal(true);
+      expect(connectionGetApiVersionStub.callCount).to.be.greaterThan(0);
+      expect(components.apiVersion).to.equal(mockConnection.getApiVersion());
     });
 
     it('should not override api version if getComponents set it already', async () => {
@@ -250,6 +251,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
+    let setApiVersionOnStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -259,6 +261,7 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
     });
@@ -329,12 +332,16 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(operationSpy.calledOnce).to.equal(true);
     });
 
-    it('should call deploy on component set', async () => {
+    it('should set the apiVersion and then call deploy on component set', async () => {
       const executor = new TestDeploy();
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
+      expect(setApiVersionOnStub.calledOnce).to.equal(true);
       expect(executor.deployStub.calledOnce).to.equal(true);
+      expect(setApiVersionOnStub.calledBefore(executor.deployStub)).to.equal(
+        true
+      );
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
@@ -640,6 +647,7 @@ describe('Base Deploy Retrieve Commands', () => {
         children: [basename(props.content), basename(props.xml)]
       }
     ]);
+    let setApiVersionOnStub: SinonStub;
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
@@ -673,9 +681,10 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
     });
 
-    it('should call retrieve on component set', async () => {
+    it('should set the apiVersion and then call retrieve on component set', async () => {
       const components = new ComponentSet([
         { fullName: 'MyClass', type: 'ApexClass' },
         { fullName: 'MyTrigger', type: 'ApexTrigger' }
@@ -684,7 +693,11 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(executor.retrieveStub.callCount).to.equal(1);
+      expect(setApiVersionOnStub.calledOnce);
+      expect(executor.retrieveStub.calledOnce);
+      expect(setApiVersionOnStub.calledBefore(executor.retrieveStub)).to.equal(
+        true
+      );
     });
 
     it('should call setup cancellation logic', async () => {
