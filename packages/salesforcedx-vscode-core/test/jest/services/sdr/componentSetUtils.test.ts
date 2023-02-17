@@ -16,10 +16,6 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   };
 });
 
-jest.mock('../../../../src/messages', () => {
-  return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
-});
-
 describe('componentSetUtils', () => {
   const userConfigApiVersion = '49.0';
   const orgApiVersion = '56.0';
