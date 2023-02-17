@@ -648,6 +648,7 @@ describe('Base Deploy Retrieve Commands', () => {
         children: [basename(props.content), basename(props.xml)]
       }
     ]);
+    let setApiVersionOnStub: SinonStub;
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
@@ -681,9 +682,10 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
     });
 
-    it('should call retrieve on component set', async () => {
+    it('should set the apiVersion and then call retrieve on component set', async () => {
       const components = new ComponentSet([
         { fullName: 'MyClass', type: 'ApexClass' },
         { fullName: 'MyTrigger', type: 'ApexTrigger' }
@@ -692,7 +694,11 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(executor.retrieveStub.callCount).to.equal(1);
+      expect(setApiVersionOnStub.calledOnce);
+      expect(executor.retrieveStub.calledOnce);
+      expect(setApiVersionOnStub.calledBefore(executor.retrieveStub)).to.equal(
+        true
+      );
     });
 
     it('should call setup cancellation logic', async () => {
