@@ -98,7 +98,7 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
       - run: |
-          git fetch
+          git fetch --unshallow
           git checkout develop
           git pull
           git merge main --commit --no-edit
