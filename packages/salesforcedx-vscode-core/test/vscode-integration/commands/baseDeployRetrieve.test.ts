@@ -45,7 +45,7 @@ import {
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
@@ -70,7 +70,9 @@ describe('Base Deploy Retrieve Commands', () => {
       contents: await testData.getConfig()
     });
     mockConnection = await testData.getConnection();
-    sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+    sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
+      mockConnection
+    );
     getOrgApiVersionStub = sb
       .stub(OrgAuthInfo, 'getOrgApiVersion')
       .resolves(dummyOrgApiVersion);

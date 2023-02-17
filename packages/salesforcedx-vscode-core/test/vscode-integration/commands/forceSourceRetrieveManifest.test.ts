@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
@@ -60,7 +60,9 @@ describe('Force Source Retrieve with Manifest Option', () => {
       env
         .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
         .resolves(packageDirs[0]);
-      env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      env
+        .stub(WorkspaceContext.prototype, 'getConnection')
+        .resolves(mockConnection);
       env
         .stub(ComponentSet, 'fromManifest')
         .withArgs({

@@ -33,7 +33,7 @@ import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
-import { workspaceContext } from '../../../../src/context';
+import { WorkspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
@@ -68,7 +68,9 @@ describe('Force Source Retrieve Component(s)', () => {
         contents: await testData.getConfig()
       });
       mockConnection = await testData.getConnection();
-      sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+      sb.stub(WorkspaceContext.prototype, 'getConnection').returns(
+        mockConnection
+      );
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
         defaultPackageDir

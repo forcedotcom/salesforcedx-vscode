@@ -12,7 +12,7 @@ import {
   OrgUserInfo
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';
 
@@ -28,10 +28,10 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
-    workspaceContext.onOrgChange((orgInfo: OrgUserInfo) =>
+    WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
       this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
     );
-    const { username, alias } = workspaceContext;
+    const { username, alias } = WorkspaceContext.getInstance();
     this.displayDefaultUsername(alias || username);
   }
 

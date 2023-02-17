@@ -32,7 +32,7 @@ import {
   SourcePathChecker
 } from '../../../src/commands';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
@@ -68,8 +68,12 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
       mockConnection = await testData.getConnection();
 
-      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      sb.stub(workspaceContext, 'username').get(() => testData.username);
+      sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
+        mockConnection
+      );
+      sb.stub(WorkspaceContext.prototype, 'username').get(
+        () => testData.username
+      );
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage

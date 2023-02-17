@@ -27,7 +27,7 @@ import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig
@@ -62,8 +62,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(MetadataResolver.prototype, 'getComponentsFromPath')
         .returns([]);
 
-      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      sb.stub(workspaceContext, 'username').get(() => testData.username);
+      sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
+        mockConnection
+      );
+      sb.stub(WorkspaceContext.prototype, 'username').get(
+        () => testData.username
+      );
 
       pollStatusStub = sb.stub().resolves(undefined);
       deployStub = sb

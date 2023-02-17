@@ -17,7 +17,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
@@ -53,7 +53,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
         contents: await testData.getConfig()
       });
       mockConnection = await testData.getConnection();
-      env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      env
+        .stub(WorkspaceContext.prototype, 'getConnection')
+        .resolves(mockConnection);
 
       env
         .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')

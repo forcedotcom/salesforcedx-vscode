@@ -9,12 +9,11 @@ import { join, relative } from 'path';
 import {
   DirectoryDiffResults,
   MetadataCacheResult,
-  MetadataCacheService,
   PersistentStorageService
 } from './';
 import { diffComponents } from './componentDiffer';
 import { TimestampFileProperties } from './directoryDiffer';
-import { CorrelatedComponent } from './metadataCacheService';
+import { CorrelatedComponent, MetadataCacheService } from './metadataCacheService';
 
 export class TimestampConflictDetector {
   private diffs: DirectoryDiffResults;
