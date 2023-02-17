@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -35,7 +36,7 @@ async function createServer(
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
-      'out',
+      extensionContext.extension.packageJSON.languageServerDir,
       UBER_JAR_NAME
     );
     const javaExecutable = path.resolve(
@@ -64,11 +65,9 @@ async function createServer(
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-    telemetryService.sendEventData(
-      'apexLSPSettings',
-      undefined,
-      { maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0 }
-    );
+    telemetryService.sendEventData('apexLSPSettings', undefined, {
+      maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0
+    });
 
     if (DEBUG) {
       args.push(
@@ -102,12 +101,7 @@ export function setupDB(): void {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    const dbPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'apex.db'
-    );
+    const dbPath = projectPaths.apexLanguageServerDatabase();
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }

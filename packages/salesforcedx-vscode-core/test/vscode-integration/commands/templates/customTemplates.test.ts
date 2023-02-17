@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { createSandbox, SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
@@ -21,10 +22,10 @@ import {
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { ConfigUtil, workspaceUtils } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 const TEST_CUSTOM_TEMPLATES_REPO =
-  'https://github.com/forcedotcom/salesforcedx-templates/tree/main/packages/templates/test/custom-templates';
+  'https://github.com/forcedotcom/salesforcedx-templates/tree/main/test/custom-templates';
 const NON_EXISTENT_LOCAL_PATH = 'this-folder-does-not-exist';
 const NON_EXISTENT_REPO =
   'https://github.com/forcedotcom/this-repo-does-not-exist';
