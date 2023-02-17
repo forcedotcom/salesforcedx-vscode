@@ -23,6 +23,17 @@ describe('Debug Apex Tests', async () => {
   step('Set up the testing environment', async () => {
     scratchOrg = new ScratchOrg('DebugApexTests', false); // TODO: Change back to false
     await scratchOrg.setUp();
+
+    const workbench = await browser.getWorkbench();
+
+    // Create Apex class file
+    await utilities.createApexClassWithTest('ExampleApexClass');
+    await utilities.pause(1);
+
+    // Push source to scratch org
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
+    await utilities.pause(1);
+
   });
 
   step('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
@@ -46,10 +57,6 @@ describe('Debug Apex Tests', async () => {
     // Get open text editor
     const editorView = workbench.getEditorView();
     let textEditor: TextEditor;
-
-    // Create Apex class file
-    await utilities.createApexClassWithTest('ExampleApexClass');
-    await utilities.pause(1);
 
     // Open test file
     textEditor = await editorView.openEditor('ExampleApexClassTest.cls') as TextEditor;

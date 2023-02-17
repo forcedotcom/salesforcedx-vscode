@@ -50,10 +50,6 @@ export async function createApexClassWithTest(name: string): Promise<void> {
     await textEditor.toggleBreakpoint(6);
     await textEditor.save();
     await utilities.pause(1);
-
-    // Push source to scratch org
-    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
-    await utilities.pause(1);
 }
 
 export async function createAnonymousApexFile(): Promise<void> {
