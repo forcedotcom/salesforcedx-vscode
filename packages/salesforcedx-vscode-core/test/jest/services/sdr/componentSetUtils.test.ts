@@ -12,11 +12,7 @@ import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils'
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
-    ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-    TelemetryService: { getInstance: jest.fn() },
-    ChannelService: jest.fn().mockImplementation(() => {
-      return {};
-    })
+    ...jest.requireActual('@salesforce/salesforcedx-utils-vscode')
   };
 });
 
@@ -27,24 +23,16 @@ jest.mock('../../../../src/messages', () => {
 describe('componentSetUtils', () => {
   const userConfigApiVersion = '49.0';
   const orgApiVersion = '56.0';
-  let createFileSystemWatcherMock: jest.SpyInstance;
   let getUserConfiguredApiVersionMock: jest.SpyInstance;
   let workspaceContextGetConnectionMock: jest.SpyInstance;
   const mockConnection = {
     getApiVersion: jest.fn().mockReturnValue(orgApiVersion)
   } as any;
-  const mockWatcher = {
-    onDidChange: jest.fn(),
-    onDidCreate: jest.fn(),
-    onDidDelete: jest.fn()
-  };
 
   beforeEach(() => {
     workspaceContextGetConnectionMock = jest
       .spyOn(WorkspaceContext.prototype, 'getConnection')
       .mockResolvedValue(mockConnection);
-    createFileSystemWatcherMock = (vscode.workspace
-      .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
     getUserConfiguredApiVersionMock = jest
       .spyOn(ConfigUtil, 'getUserConfiguredApiVersion')
       .mockResolvedValue(userConfigApiVersion);
