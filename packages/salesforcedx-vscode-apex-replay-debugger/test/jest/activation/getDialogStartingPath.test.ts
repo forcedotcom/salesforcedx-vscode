@@ -30,7 +30,7 @@ describe('getDialogStartingPath', () => {
     mockExtensionContext = {
       workspaceState: { get: mockGet }
     };
-    pathExistsMock = jest.spyOn(pathExists, 'sync').mockReturnValue(true);
+    pathExistsMock = jest.spyOn(pathExists, 'pathExistsSync').mockReturnValue(true);
     vsCodeUriMock = jest.spyOn(vscode.Uri, 'file');
     debugLogsFolderMock = jest.spyOn(projectPaths, 'debugLogsFolder');
     stateFolderMock = jest.spyOn(projectPaths, 'stateFolder');

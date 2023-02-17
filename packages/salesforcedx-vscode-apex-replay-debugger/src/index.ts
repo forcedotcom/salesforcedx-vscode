@@ -233,36 +233,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
-// jab
-/*
-function getDialogStartingPath(): vscode.Uri | undefined {
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    // If the user has already selected a document through getLogFileName then
-    // use that path if it still exists.
-    const lastOpenedLogFolder = extContext.workspaceState.get<string>(
-      LAST_OPENED_LOG_FOLDER_KEY
-    );
-    if (lastOpenedLogFolder && pathExists.pathExistsSync(lastOpenedLogFolder)) {
-      return vscode.Uri.file(lastOpenedLogFolder);
-    }
-    // If lastOpenedLogFolder isn't defined or doesn't exist then use the
-    // same directory that the SFDX download logs command would download to
-    // if it exists.
-    const sfdxCommandLogDir = getLogDirPath();
-    if (pathExists.pathExistsSync(sfdxCommandLogDir)) {
-      return vscode.Uri.file(sfdxCommandLogDir);
-    }
-    // If all else fails, fallback to the .sfdx directory in the workspace
-    return vscode.Uri.file(
-      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx')
-    );
-  }
-}
-*/
-
 export async function retrieveLineBreakpointInfo(): Promise<boolean> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
