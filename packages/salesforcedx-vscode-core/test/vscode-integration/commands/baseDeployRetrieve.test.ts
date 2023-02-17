@@ -48,6 +48,7 @@ import { PersistentStorageService } from '../../../src/conflict/persistentStorag
 import { WorkspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
+import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
@@ -217,6 +218,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should use the api version from the Org when no User-configured api version is set', async () => {
       const executor = new TestDeployRetrieve();
+      // TODO: stub org api version
       const getUserConfiguredApiVersionStub = sb
         .stub(ConfigUtil, 'getUserConfiguredApiVersion')
         .resolves(undefined);
@@ -250,6 +252,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
+    let setApiVersionOnStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -259,6 +262,7 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
     });
@@ -329,12 +333,16 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(operationSpy.calledOnce).to.equal(true);
     });
 
-    it('should call deploy on component set', async () => {
+    it('should set the apiVersion and then call deploy on component set', async () => {
       const executor = new TestDeploy();
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
+      expect(setApiVersionOnStub.calledOnce).to.equal(true);
       expect(executor.deployStub.calledOnce).to.equal(true);
+      expect(setApiVersionOnStub.calledBefore(executor.deployStub)).to.equal(
+        true
+      );
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
