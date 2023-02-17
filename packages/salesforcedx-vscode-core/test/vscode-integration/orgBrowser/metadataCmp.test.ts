@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo } from '../../../src/util';
 
@@ -287,7 +287,7 @@ describe('load metadata components and custom objects fields list', () => {
       .stub(ComponentUtils.prototype, 'getComponentsPath')
       .returns(filePath);
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
     getUsernameStub = sb
       .stub(OrgAuthInfo, 'getUsername')
@@ -515,7 +515,7 @@ describe('fetch metadata components and custom objects fields list', () => {
     mockConnection = await testData.getConnection();
     fileExistsStub = sb.stub(fs, 'existsSync');
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
     getComponentsPathStub = sb
       .stub(ComponentUtils.prototype, 'getComponentsPath')
@@ -646,7 +646,7 @@ describe('fetch fields of a standard or custom object', () => {
       .stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList')
       .returns(fieldsList);
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
   });
 
@@ -703,7 +703,7 @@ describe('retrieve fields data of a sobject to write in a json file designated f
     });
     mockConnection = await testData.getConnection();
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
     describeSObjectFieldsStub = sb
       .stub(mockConnection, 'describe')
