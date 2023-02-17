@@ -50,10 +50,7 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: [ 'ctc-open', 'prepare-environment-from-main' ]
-    outputs: 
-      result: ${{ steps.vsce.outputs.result }}
-      
+    needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
     runs-on: ubuntu-latest
     env: 
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
@@ -77,14 +74,11 @@ jobs:
         run: ls -R ./extensions
       - run: npm ci
       - run: find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
-      - id: vsce
-        run: | 
-          echo "result=published" >> $GITHUB_OUTPUT
       - run: echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
-    if: needs.ctc-open.result == 'success' && needs.publish.result == 'published' && needs.ctc-open.outputs.changeCaseId
+    if: needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
@@ -92,10 +86,9 @@ jobs:
 
   ctcCloseFail:
     needs: [ctc-open, publish]
-    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'published')
+    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
-    
