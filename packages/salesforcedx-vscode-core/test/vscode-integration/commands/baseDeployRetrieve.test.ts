@@ -51,7 +51,7 @@ import { nls } from '../../../src/messages';
 import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const $$ = instantiateContext();
