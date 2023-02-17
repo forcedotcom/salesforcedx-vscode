@@ -6,10 +6,10 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=16.13.0"
+    "node": ">=16.15.1"
   },
   "dependencies": {
-    "node": "^16.13.0",
+    "node": "^16.15.1",
     "npm": "^6",
     "ts-node": "10.9.1"
   },

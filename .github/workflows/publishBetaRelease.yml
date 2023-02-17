@@ -84,9 +84,9 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Beta release v${{ needs.create_git_tag.outputs.version }}"
-      failedEvent: "Beta Release Publish"
-      successfulEvent: "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}"
-      type: "published"
+      title: 'Beta release v${{ needs.create_git_tag.outputs.version }}'
+      failedEvent: 'Beta Release Publish'
+      successfulEvent: '${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}'
+      type: 'published'
       result: ${{ needs.create_git_tag.outputs.result }}
-      workflow: "publish-beta-release.yml"
+      workflow: 'publish-beta-release.yml'
