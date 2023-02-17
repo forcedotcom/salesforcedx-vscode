@@ -5,7 +5,7 @@ lang: en
 
 ## Create Project with Manifest
 
-To create developing against non-source-tracked orgs:
+To develop using manifest builder against non-source-tracked orgs:
 
 1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project with Manifest**.
 

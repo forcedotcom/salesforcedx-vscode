@@ -8,9 +8,9 @@ lang: en
 Salesforce Extensions for VS Code supports Org Development and Package Development models to authorize, create, and switch orgs in your project. At a high level, both development models follow the same ALM process. But the models differ in the way that they let you manage changes to your org. Controlling change is a significant deal in software development, and you can choose the development model that best suits your situation if you understand your options.
 
  Choosing which model works for you depends on a number of things: 
-The complexity of the change
-The size of the team involved in development and their skill level
-The metadata you’ll work on
+- The complexity of the change
+- The size of the team involved in development and their skill level
+- The metadata you’ll work on
 
 The choice of Development model determines your path from development to deployment. Each development model had its pros, cons, and limitations. In choosing which option to use for a specific deployment, weigh your objectives, your team’s skills, and limitations in Salesforce. You can use different approaches for different projects, or even blend approaches on a single project.
 
