@@ -32,7 +32,7 @@ const NO_TESTS_DESCRIPTION = nls.localize(
 );
 
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
-const TEST_RESULT_JSON_FILE = `test-result.json`;
+const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 export class ApexTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode> {
