@@ -25,8 +25,8 @@ const exec = util.promisify(child_process.exec);
 export class ScratchOrg {
   private testSuiteSuffixName: string;
   private reuseScratchOrg = false;
-  private tempFolderPath: string | undefined = undefined;
-  private projectFolderPath: string | undefined = undefined;
+  public tempFolderPath: string | undefined = undefined;
+  public projectFolderPath: string | undefined = undefined;
   private prompt: QuickOpenBox | InputBox | undefined;
   private scratchOrgAliasName: string | undefined;
 
