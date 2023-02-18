@@ -13,10 +13,10 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
+import { languageServerUtils } from '../../src/helpers/languageServerUtils';
 import {
   buildClientOptions,
-  code2ProtocolConverter,
-  setupDB
+  code2ProtocolConverter
 } from '../../src/languageServer';
 
 describe('Apex Language Server Client', () => {
@@ -133,27 +133,27 @@ describe('Apex Language Server Client', () => {
     });
 
     it('should check if apex db and system db exist', async () => {
-      setupDB();
+      languageServerUtils.setupDB();
 
       expect(existsStub.calledTwice).to.be.true;
     });
 
     it('should delete apex db if it exists', async () => {
-      setupDB();
+      languageServerUtils.setupDB();
 
       expect(existsStub.calledTwice).to.be.true;
     });
 
     it('should do nothing if apex db does not exist', async () => {
       existsStub.onFirstCall().returns(false);
-      setupDB();
+      languageServerUtils.setupDB();
 
       expect(existsStub.calledTwice).to.be.true;
       expect(unlinkStub.notCalled).to.be.true;
     });
 
     it('should copy system db to apex db location if system db exists', async () => {
-      setupDB();
+      languageServerUtils.setupDB();
 
       expect(existsStub.calledTwice).to.be.true;
       expect(copyStub.calledOnce).to.be.true;
@@ -162,7 +162,7 @@ describe('Apex Language Server Client', () => {
     it('should do nothing if system db does not exist', async () => {
       existsStub.onFirstCall().returns(true);
       existsStub.onSecondCall().returns(false);
-      setupDB();
+      languageServerUtils.setupDB();
 
       expect(existsStub.calledTwice).to.be.true;
       expect(unlinkStub.calledOnce).to.be.true;

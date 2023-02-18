@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  extensionUris,
+  projectPaths
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -15,8 +18,9 @@ import {
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
-import { LSP_ERR } from './constants';
+import { LSP_ERR, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
+import { languageServerUtils } from './helpers/languageServerUtils';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -32,7 +36,7 @@ async function createServer(
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    setupDB();
+    languageServerUtils.setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
@@ -93,27 +97,6 @@ async function createServer(
     vscode.window.showErrorMessage(err);
     telemetryService.sendException(LSP_ERR, err.error);
     throw err;
-  }
-}
-
-export function setupDB(): void {
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const dbPath = projectPaths.apexLanguageServerDatabase();
-    if (fs.existsSync(dbPath)) {
-      fs.unlinkSync(dbPath);
-    }
-
-    try {
-      const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
-      if (fs.existsSync(systemDb)) {
-        fs.copyFileSync(systemDb, dbPath);
-      }
-    } catch (e) {
-      console.log(e);
-    }
   }
 }
 

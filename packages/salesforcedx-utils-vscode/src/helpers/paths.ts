@@ -147,7 +147,10 @@ function relativeStateFolder(): string {
 }
 
 function relativeToolsFolder(): string {
-  const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);
+  const relativePathToToolsFolder = path.join(
+    projectPaths.relativeStateFolder(),
+    TOOLS
+  );
   return relativePathToToolsFolder;
 }
 

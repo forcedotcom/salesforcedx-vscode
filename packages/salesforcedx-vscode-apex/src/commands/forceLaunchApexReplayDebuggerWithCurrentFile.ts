@@ -18,7 +18,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { testOutlineProvider } from '../views/testOutlineProvider';
+import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { forceAnonApexDebug } from './forceAnonApexExecute';
 
 export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
@@ -80,6 +80,7 @@ async function getApexTestClassName(
     return undefined;
   }
 
+  const testOutlineProvider = getTestOutlineProvider();
   await testOutlineProvider.refresh();
   let testClassName = testOutlineProvider.getTestClassName(sourceUri);
   // This is a little bizarre.  Intellisense is reporting that getTestClassName() returns a string,
