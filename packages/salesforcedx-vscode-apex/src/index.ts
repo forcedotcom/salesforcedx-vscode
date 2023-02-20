@@ -39,13 +39,14 @@ import {
 import * as languageServer from './languageServer';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
-import { testOutlineProvider } from './views/testOutlineProvider';
+import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 let languageClient: LanguageClient | undefined;
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
+  const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
@@ -96,7 +97,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       .then(async () => {
         if (languageClient) {
           languageClient.onNotification('indexer/done', async () => {
-            await testOutlineProvider.refresh();
+            await getTestOutlineProvider().refresh();
           });
         }
         // TODO: This currently keeps existing behavior in which we set the language
@@ -260,6 +261,7 @@ function registerCommands(): vscode.Disposable {
 }
 
 async function registerTestView(): Promise<vscode.Disposable> {
+  const testOutlineProvider = getTestOutlineProvider();
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);
 
