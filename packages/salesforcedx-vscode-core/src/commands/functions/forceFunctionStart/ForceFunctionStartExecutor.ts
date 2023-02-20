@@ -70,31 +70,10 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
       // ignore, getDefaultUsernameOrAlias catches the error and logs telemetry
     }
 
-    const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
-      {
-        rootDir: functionDirPath,
-        port: FUNCTION_DEFAULT_PORT,
-        debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
-        // Note this defaults to node but will be updated by the updateFunction method after the function is started if necessary.
-        debugType: 'node',
-        terminate: () => {
-          return new Promise(resolve =>
-            resolve(this.cancelFunction(registeredStartedFunctionDisposable))
-          );
-        },
-        isContainerLess: false
-      }
-    );
-
     this.telemetry.addProperty(
       'language',
       FunctionService.instance.getFunctionLanguage()
     );
-
-    token?.onCancellationRequested(() => {
-      this.cancelFunction(registeredStartedFunctionDisposable);
-      registeredStartedFunctionDisposable.dispose();
-    });
 
     channelService.appendLine('Parsing project.toml');
     const descriptor = await getProjectDescriptor(

@@ -24,9 +24,6 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     sandbox.restore();
   });
 
-  const FUNCTION_RUNTIME_DETECTION_PATTERN = new RegExp(
-    '.*heroku/(.*)-function-invoker.*'
-  );
   const FUNCTION_DEFAULT_DEBUG_PORT = 1111;
   const FUNCTION_DEFAULT_PORT = 2222;
   const OUTPUT_CHANNEL = 'afakechannel';
@@ -140,7 +137,6 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     };
 
     constantsStubs = {
-      FUNCTION_RUNTIME_DETECTION_PATTERN,
       FUNCTION_DEFAULT_DEBUG_PORT,
       FUNCTION_DEFAULT_PORT
     };

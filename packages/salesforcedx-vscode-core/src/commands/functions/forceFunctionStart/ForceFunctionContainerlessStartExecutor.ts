@@ -44,7 +44,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     });
 
     const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
-    FunctionService.instance.updateFunction(functionDirPath, debugType, true);
+    FunctionService.instance.updateFunction(functionDirPath, debugType);
 
     this.process = await localRun.exec()
       .catch((err: Error) => {

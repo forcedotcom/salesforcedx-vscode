@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export { forceFunctionContainerlessStartCommand } from './forceFunctionContainerlessStartCommand';
-export { forceFunctionStop } from './forceFunctionStop';
 export {
   forceFunctionDebugInvoke,
   forceFunctionInvoke

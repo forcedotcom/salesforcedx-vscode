@@ -53,10 +53,6 @@ export interface FunctionExecution extends Terminable {
    * Active debug session attached
    */
   debugSession?: vscode.DebugSession;
-  /**
-   * Flag to determine whether running in a container
-   */
-  isContainerLess: boolean;
 }
 
 export class FunctionService {
@@ -68,7 +64,7 @@ export class FunctionService {
     return FunctionService._instance;
   }
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Locate the directory that has project.toml.
@@ -96,7 +92,7 @@ export class FunctionService {
   private startedExecutions: Map<string, FunctionExecution> = new Map();
 
   /**
-   * Register started functions, in order to terminate the container.
+   * Register started functions
    * Returns a disposable to unregister in case an error happens when starting function
    *
    * @returns {Disposable} disposable to unregister
@@ -115,7 +111,6 @@ export class FunctionService {
   public updateFunction(
     rootDir: string,
     debugType: string,
-    isContainerLess: boolean
   ): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
@@ -125,8 +120,6 @@ export class FunctionService {
       } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
       }
-
-      functionExecution.isContainerLess = isContainerLess;
     }
   }
 
@@ -232,9 +225,7 @@ export class FunctionService {
       port: debugPort
     };
 
-    if (functionExecution.isContainerLess) {
-      delete debugConfiguration.remoteRoot;
-    }
+    delete debugConfiguration.remoteRoot;
 
     return debugConfiguration;
   }

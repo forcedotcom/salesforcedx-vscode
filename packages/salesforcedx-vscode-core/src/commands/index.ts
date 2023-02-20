@@ -159,7 +159,6 @@ export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
   forceFunctionContainerlessStartCommand,
-  forceFunctionStop,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
   registerFunctionInvokeCodeLensProvider
