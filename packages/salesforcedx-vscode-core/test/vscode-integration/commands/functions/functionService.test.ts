@@ -212,7 +212,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       });
 
       service.updateFunction('Foo', 'Java');
@@ -227,7 +227,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       });
 
       service.updateFunction('Foo', 'jvm');
@@ -242,7 +242,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       });
 
       service.updateFunction('Bar', 'Node.js');
@@ -257,7 +257,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       });
 
       // right function, wrong type
@@ -284,7 +284,7 @@ describe('Function Service', () => {
       debugPort: 7777,
       port: 8080,
       debugType: 'unknown',
-      terminate: () => Promise.resolve(),
+      terminate: () => Promise.resolve()
     };
 
     beforeEach(() => {
@@ -354,7 +354,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       };
       getFunctionTypeStub.returns(functionType.JAVASCRIPT);
 
@@ -375,7 +375,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       };
       getFunctionTypeStub.returns(functionType.TYPESCRIPT);
 
@@ -396,7 +396,7 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
+        terminate: () => Promise.resolve()
       };
       getFunctionTypeStub.returns(functionType.JAVA);
 

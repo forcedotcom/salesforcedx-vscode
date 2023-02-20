@@ -110,7 +110,7 @@ export class FunctionService {
 
   public updateFunction(
     rootDir: string,
-    debugType: string,
+    debugType: string
   ): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
