@@ -14,6 +14,7 @@ A single developer retrieves metadata from a sandbox or a scratch org, makes loc
 A single developer moves the metadata described in a manifest file from a Sandbox org to a Production org.
 In this development model, your production org is the source of truth, and even if you use a source control tool, your production environment still holds the complete version of all your customizations.
 
+
 ![Demo](./images/changeset-demo.gif)
 
 To start developing with this model:
@@ -22,7 +23,7 @@ To start developing with this model:
 - Use the Org Picker to authorize an org you want develop against.
 - Use the Manifest Builder or Org Browser to retrieve source from the default org.
 - Make your planned updates.
-- Deploy source to the default org.
+
 
 
 

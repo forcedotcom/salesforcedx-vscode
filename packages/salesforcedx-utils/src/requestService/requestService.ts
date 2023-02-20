@@ -123,14 +123,14 @@ export class RequestService {
         Accept: 'application/json',
         Authorization: `OAuth ${this.accessToken}`,
         'Content-Length': requestBody
-          ? Buffer.byteLength(requestBody, 'utf-8')
-          : 0,
+          ? String(Buffer.byteLength(requestBody, 'utf-8'))
+          : '0',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       },
       data: requestBody
     };
 
-    if (this.proxyAuthorization) {
+    if (this.proxyAuthorization && options.headers) {
       options.headers['Proxy-Authorization'] = this.proxyAuthorization;
     }
 
