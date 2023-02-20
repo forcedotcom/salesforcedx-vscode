@@ -12,14 +12,14 @@ import {
   pause
 } from './miscellaneous';
 
-export async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, durationInSeconds: number): Promise<void> {
+export async function waitForNotificationToGoAway(workbench: Workbench, notificationMessage: string, durationInSeconds: number, matchExactString: boolean = true): Promise<void> {
   // Change timeout from seconds to milliseconds
   durationInSeconds *= 1000;
 
   await pause(5);
   const startDate = new Date();
   while (true) {
-    const notificationWasFound = await notificationIsPresent(workbench, notificationMessage);
+    const notificationWasFound = await notificationIsPresent(workbench, notificationMessage, matchExactString);
     if (!notificationWasFound) {
       return;
     }
@@ -32,12 +32,18 @@ export async function waitForNotificationToGoAway(workbench: Workbench, notifica
   }
 }
 
-export async function notificationIsPresent(workbench: Workbench, notificationMessage: string): Promise<boolean> {
+export async function notificationIsPresent(workbench: Workbench, notificationMessage: string, matchExactString: boolean = true): Promise<boolean> {
   const notifications = await workbench.getNotifications();
   for (const notification of notifications) {
     const message = await notification.getMessage();
-    if (message === notificationMessage) {
-      return true;
+    if (matchExactString) {
+      if (message === notificationMessage) {
+        return true;
+      }
+    } else {
+      if (message.startsWith(notificationMessage)) {
+        return true;
+      }
     }
   }
 
