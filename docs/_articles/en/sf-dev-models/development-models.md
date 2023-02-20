@@ -15,7 +15,7 @@ Salesforce Extensions for VS Code supports Org Development and Package Developme
 The choice of Development model determines your path from development to deployment. Each development model had its pros, cons, and limitations. In choosing which option to use for a specific deployment, weigh your objectives, your team’s skills, and limitations in Salesforce. You can use different approaches for different projects, or even blend approaches on a single project.
 
 
-Salesforce Extensions for VS Code supports Org Development and Package Development models to authorize, create and switch orgs in your project:
+Salesforce Extensions for VS Code support Org Development and Package Development models to authorize, create and switch orgs in your project:
 
 - **Org Development Model**: Allows you work with orgs that don’t have source tracking, such as sandbox, Developer Edition (DE) org, Trailhead Playground, or even a production org to retrieve and deploy code directly.
 - **Package Development Model**: Allows you to create self-contained applications or libraries that are deployed to your org as a single package. These packages are typically developed against source-tracked orgs such as scratch orgs. This development model uses org source tracking, source control, and continuous integration and deployment.
