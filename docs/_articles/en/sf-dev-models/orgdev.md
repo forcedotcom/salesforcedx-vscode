@@ -20,7 +20,7 @@ To start developing with this model:
 
 - Create a project.
 - Use the Org Picker to authorize an org you want develop against.
-- Use Manifest or Org Browser to retrieve source from the default org.
+- Use the Manifest Builder or Org Browser to retrieve source from the default org.
 - Make your planned updates.
 - Deploy source to the default org.
 
