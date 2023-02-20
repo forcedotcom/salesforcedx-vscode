@@ -147,14 +147,16 @@ export class ConfigUtil {
     return username ? String(username) : undefined;
   }
 
-  public static async setDefaultUsernameOrAlias(usernameOrAlias: string): Promise<void> {
+  public static async setDefaultUsernameOrAlias(
+    usernameOrAlias: string
+  ): Promise<void> {
     const originalDirectory = process.cwd();
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const workspacePath = workspaceUtils.getRootWorkspacePath();
     try {
       // checks if the usernameOrAlias is non-empty and active.
       if (usernameOrAlias) {
-      // throws an error if the org associated with the usernameOrAlias is expired.
+        // throws an error if the org associated with the usernameOrAlias is expired.
         await Org.create({ aliasOrUsername: usernameOrAlias });
       }
       process.chdir(workspacePath);
@@ -168,8 +170,15 @@ export class ConfigUtil {
     const config = await Config.create(Config.getDefaultOptions());
     config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
     await config.write();
+    // Force the ConfigAggregatorProvider to reload its stored
+    // ConfigAggregators so that this config file change is accounted
+    // for and the ConfigAggregators are updated with the latest info.
+    const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
+    await configAggregatorProvider.reloadConfigAggregators();
+    // Also force the StateAggregator to reload to have the latest
+    // authorization info.
+    StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
-
 }
 
 async function getUsernameFor(usernameOrAlias: string) {

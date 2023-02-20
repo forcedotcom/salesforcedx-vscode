@@ -18,7 +18,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { testOutlineProvider } from '../views/testOutlineProvider';
+import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { forceAnonApexDebug } from './forceAnonApexExecute';
 
 export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
@@ -92,6 +92,7 @@ async function getApexTestClassName(
     return undefined;
   }
 
+  const testOutlineProvider = getTestOutlineProvider();
   await testOutlineProvider.refresh();
 
   const filePath = sourceUri.toString();

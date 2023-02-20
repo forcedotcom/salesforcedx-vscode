@@ -151,11 +151,14 @@ describe('RequestService unit tests.', () => {
   describe('sendRequest()', () => {
     it('Should make the xhr call on sendRequest.', async () => {
       const fakeOptions: XHROptions = {
-        responseType: 'json/and/stuff'
+        type: 'json/and/stuff',
+        url: 'https://www.nothing-here.com'
       };
       const fakeXhrResponse: XHRResponse = {
         responseText: 'fakeResponse',
-        status: 0
+        status: 0,
+        body: new Uint8Array(),
+        headers: {}
       };
 
       mockedRequestLight.xhr.mockResolvedValue(fakeXhrResponse);
