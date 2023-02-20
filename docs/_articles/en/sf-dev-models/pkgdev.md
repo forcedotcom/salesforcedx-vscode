@@ -5,7 +5,7 @@ lang: en
 
 ## Package Development Model
 
-Use package development model for developing against orgs with source tracking such as scratch orgs. This model tracks the changes you make on your local workstation and in your default development org. Use packaged sets of metadata to move changes between orgs. See the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
+Use the package development model for developing against orgs with source tracking such as scratch orgs. This model tracks the changes you make on your local workstation and in your default development org. Use packaged sets of metadata to move changes between orgs. See the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
 
 ## Create Project
 
