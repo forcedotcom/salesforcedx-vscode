@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
-import { workspaceContext } from '../../context';
+import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { workspaceUtils } from '../../util';
 
@@ -269,7 +269,7 @@ export class FunctionService {
         }
 
         (async () => {
-          const connection = await workspaceContext.getConnection();
+          const connection = await WorkspaceContext.getInstance().getConnection();
           await TraceFlagsRemover.getInstance(connection).removeNewTraceFlags();
         })().catch(err => {
           throw err;

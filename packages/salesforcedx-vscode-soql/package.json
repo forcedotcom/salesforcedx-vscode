@@ -38,7 +38,7 @@
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
-    "jsforce": "2.0.0-beta.18"
+    "jsforce": "2.0.0-beta.20"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-sobjects-faux-generator": "57.2.1",
@@ -57,7 +57,7 @@
     "@types/sinon": "7.5.2",
     "@types/vscode": "^1.61.2",
     "@typescript-eslint/eslint-plugin": "^5.38.1",
-    "@typescript-eslint/parser": "^4.0.0",
+    "@typescript-eslint/parser": "^5.49.0",
     "applicationinsights": "1.0.7",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
