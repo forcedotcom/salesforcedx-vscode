@@ -13,7 +13,7 @@ To develop using manifest builder against non-source-tracked orgs:
 
 1. In the code editor's status bar, click Org Picker to open the Command Palette. You can select from the list of authorized orgs, or you can choose to authorize a new org.
 
-If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.
+If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows "No Default Org Set".
 
 1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox.
 
