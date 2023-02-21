@@ -34,6 +34,17 @@ export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
   return testFsPath;
 }
 
+/**
+ * Returns arguments for the optional test name pattern
+ * @param TestExecutionInfo
+ */
+export function getTestNamePatternArgs(testExecutionInfo: TestExecutionInfo) {
+  const testName = 'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
+  return testName
+  ? ['--testNamePattern', `${escapeStrForRegex(testName)}`]
+  : [];
+}
+
 type JestExecutionInfo = {
   jestArgs: string[];
   jestOutputFilePath: string;
@@ -65,15 +76,13 @@ export class TestRunner {
   }
 
   /**
-   * Deterine jest command line arguments and output file path.
+   * Determine jest command line arguments and output file path.
    * @param workspaceFolder workspace folder of the test
    */
   public getJestExecutionInfo(
     workspaceFolder: vscode.WorkspaceFolder
   ): JestExecutionInfo | undefined {
     const { testRunId, testRunType, testExecutionInfo } = this;
-    const testName =
-      'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
     const tempFolder = testResultsWatcher.getTempFolder(
@@ -94,9 +103,7 @@ export class TestRunner {
     } else {
       runTestsByPathArgs = [];
     }
-    const testNamePatternArgs = testName
-      ? ['--testNamePattern', `${escapeStrForRegex(testName)}`]
-      : [];
+    const testNamePatternArgs = getTestNamePatternArgs(testExecutionInfo);
 
     let runModeArgs: string[];
     if (testRunType === TestRunType.WATCH) {
