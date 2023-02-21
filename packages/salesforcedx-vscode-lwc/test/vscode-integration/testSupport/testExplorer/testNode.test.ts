@@ -88,34 +88,48 @@ describe('Sfdx Test Node', () => {
       testExecutionInfo.testResult = undefined;
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
-      expect(groupNode.iconPath.dark.endsWith('testNotRun.svg')).to.equal(true);
-      expect(groupNode.iconPath.light.endsWith('testNotRun.svg')).to.equal(
-        true
-      );
+      expect(
+        groupNode.iconPath.dark.toString().endsWith('testNotRun.svg')
+      ).to.equal(true);
+      expect(
+        groupNode.iconPath.light.toString().endsWith('testNotRun.svg')
+      ).to.equal(true);
     });
 
     it('Should set correct icon paths for passed tests', () => {
       testExecutionInfo.testResult = { status: TestResultStatus.PASSED };
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
-      expect(groupNode.iconPath.dark.endsWith('testPass.svg')).to.equal(true);
-      expect(groupNode.iconPath.light.endsWith('testPass.svg')).to.equal(true);
+      expect(
+        groupNode.iconPath.dark.toString().endsWith('testPass.svg')
+      ).to.equal(true);
+      expect(
+        groupNode.iconPath.light.toString().endsWith('testPass.svg')
+      ).to.equal(true);
     });
 
     it('Should set correct icon paths for failed tests', () => {
       testExecutionInfo.testResult = { status: TestResultStatus.FAILED };
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
-      expect(groupNode.iconPath.dark.endsWith('testFail.svg')).to.equal(true);
-      expect(groupNode.iconPath.light.endsWith('testFail.svg')).to.equal(true);
+      expect(
+        groupNode.iconPath.dark.toString().endsWith('testFail.svg')
+      ).to.equal(true);
+      expect(
+        groupNode.iconPath.light.toString().endsWith('testFail.svg')
+      ).to.equal(true);
     });
 
     it('Should set correct icon paths for skipped tests', () => {
       testExecutionInfo.testResult = { status: TestResultStatus.SKIPPED };
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
-      expect(groupNode.iconPath.dark.endsWith('testSkip.svg')).to.equal(true);
-      expect(groupNode.iconPath.light.endsWith('testSkip.svg')).to.equal(true);
+      expect(
+        groupNode.iconPath.dark.toString().endsWith('testSkip.svg')
+      ).to.equal(true);
+      expect(
+        groupNode.iconPath.light.toString().endsWith('testSkip.svg')
+      ).to.equal(true);
     });
 
     it('Should set correct icon paths for tests with unknown results', () => {
@@ -124,10 +138,12 @@ describe('Sfdx Test Node', () => {
       };
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
-      expect(groupNode.iconPath.dark.endsWith('testNotRun.svg')).to.equal(true);
-      expect(groupNode.iconPath.light.endsWith('testNotRun.svg')).to.equal(
-        true
-      );
+      expect(
+        groupNode.iconPath.dark.toString().endsWith('testNotRun.svg')
+      ).to.equal(true);
+      expect(
+        groupNode.iconPath.light.toString().endsWith('testNotRun.svg')
+      ).to.equal(true);
     });
   });
 
