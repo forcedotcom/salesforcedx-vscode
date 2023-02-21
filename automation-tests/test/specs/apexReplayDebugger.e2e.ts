@@ -144,6 +144,11 @@ describe('Debug Apex Tests', async () => {
         utilities.log('Warning - Launching Apex Replay Debugger with Current File failed, neither the success notification or the failure notification was found.');
       }
     } else {
+      // Continue with the debug session
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+      await browser.keys(['F5']);
+      await utilities.pause(1);
       expect(successNotificationWasFound).toBe(true);
     }
   });
