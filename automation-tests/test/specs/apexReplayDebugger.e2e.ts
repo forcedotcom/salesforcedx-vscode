@@ -21,7 +21,7 @@ describe('Debug Apex Tests', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Set up the testing environment', async () => {
-    scratchOrg = new ScratchOrg('apexReplayDebugger', false); // TODO: Change back to false
+    scratchOrg = new ScratchOrg('ApexReplayDebugger', true); // TODO: Change back to false
     await scratchOrg.setUp();
 
     const workbench = await browser.getWorkbench();
@@ -71,6 +71,7 @@ describe('Debug Apex Tests', async () => {
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Execute Anonymous Apex successfully ran');
     expect(successNotificationWasFound).toBe(true);
+    await utilities.pause(1);
   });
 
   step('SFDX: Get Apex Debug Logs', async () => {
@@ -92,6 +93,7 @@ describe('Debug Apex Tests', async () => {
       expect(quickPicks).not.toBeUndefined();
       expect(quickPicks.length).toBeGreaterThanOrEqual(1);
       await prompt.selectQuickPick('User User - Api');
+      await utilities.pause(1);
       const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Get Apex Debug Logs successfully ran');
       expect(successNotificationWasFound).toBe(true);
     } else {
@@ -142,6 +144,11 @@ describe('Debug Apex Tests', async () => {
         utilities.log('Warning - Launching Apex Replay Debugger with Current File failed, neither the success notification or the failure notification was found.');
       }
     } else {
+      // Continue with the debug session
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+      await browser.keys(['F5']);
+      await utilities.pause(1);
       expect(successNotificationWasFound).toBe(true);
     }
   });
