@@ -5,188 +5,181 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { step } from 'mocha-steps';
-import path from 'path';
 import {
-  InputBox,
-  QuickOpenBox,
-  TextEditor
+  CodeLens,
+  SideBarView,
+  TextEditor,
+  TreeItem
 } from 'wdio-vscode-service';
 import {
   ScratchOrg
-} from '../ScratchOrg';
+} from '../scratchOrg';
 import * as utilities from '../utilities';
 
-describe('Debug Apex Tests', async () => {
-  let prompt: QuickOpenBox | InputBox;
+describe('Run Apex Tests', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Set up the testing environment', async () => {
-    scratchOrg = new ScratchOrg('DebugApexTests', false); // TODO: Change back to false
+    scratchOrg = new ScratchOrg('DebugApexTests', true); // TODO: Change back to false
     await scratchOrg.setUp();
 
     const workbench = await browser.getWorkbench();
 
-    // Create Apex class file
-    await utilities.createApexClassWithTest('ExampleApexClass');
+    // Create Apex class 1 and test
+    await utilities.createApexClassWithTest('ExampleApexClass1');
+    await utilities.pause(1);
+
+    // Create Apex class 2 and test
+    await utilities.createApexClassWithTest('ExampleApexClass2');
     await utilities.pause(1);
 
     // Push source to scratch org
-    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
-    await utilities.pause(1);
-
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 5);
   });
 
-  step('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
+  step('Debug All Tests via Apex Class', async () => {
     const workbench = await browser.getWorkbench();
-
-    // Run SFDX: Turn On Apex Debug Log for Replay Debugger
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Turn On Apex Debug Log for Replay Debugger', 1);
-
-    // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Turn On Apex Debug Log for Replay Debugger', 5 * 60);
-    await utilities.pause(1);
-
-    // Look for the success notification that appears which says, "SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran".
-    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran');
-    expect(successNotificationWasFound).toBe(true);
-  });
-
-  step('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
-    const workbench = await browser.getWorkbench();
-
-    // Get open text editor
     const editorView = workbench.getEditorView();
     let textEditor: TextEditor;
 
-    // Open test file
-    textEditor = await editorView.openEditor('ExampleApexClassTest.cls') as TextEditor;
+    // Open an existing apex test (e.g. BotTest.cls, search for @isTest)
+    textEditor = await editorView.openEditor('ExampleApexClass1Test.cls') as TextEditor;
 
-    // Select text
-    await textEditor.selectText('ExampleApexClass.SayHello(\'Cody\');');
-    await utilities.pause(1);
-
-    // Run SFDX: Launch Apex Replay Debugger with Currently Selected Text.
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Execute Anonymous Apex with Currently Selected Text', 1);
-    await utilities.pause(1);
+    // Click the "Debug All Tests" code lens at the top of the class
+    const codeLens = await textEditor.getCodeLens('Run All Tests') as CodeLens; // TODO: Change to Debug All Tests
+    await (await codeLens.elem).click();
 
     // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway(workbench, 'Running Execute Anonymous Apex', 5 * 60);
-    await utilities.pause(1);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running Debug Test(s)', 5 * 60);
 
-    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Execute Anonymous Apex successfully ran');
-    expect(successNotificationWasFound).toBe(true);
-  });
-
-  step('SFDX: Get Apex Debug Logs', async () => {
-    const workbench = await browser.getWorkbench();
-
-    // Run SFDX: Get Apex Debug Logs
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Get Apex Debug Logs', 1);
-    await utilities.pause(1);
-
-    // Select the "ExampleApexClassTest" file
-    prompt.selectQuickPick('ExampleApexClassTest');
-    await utilities.pause(1);
-
-    // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway(workbench, 'Getting Apex debug logs', 5 * 60);
-    await utilities.pause(1);
-
-    const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'No Apex debug logs were found');
-    if (failureNotificationWasFound !== true) {
-      // Select a log file
-      const quickPicks = await prompt.getQuickPicks();
-      expect(quickPicks).not.toBeUndefined();
-      expect(quickPicks.length).toBeGreaterThanOrEqual(1);
-      await prompt.selectQuickPick('User User - Api');
-      await utilities.pause(1);
-      const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Get Apex Debug Logs successfully ran');
-      expect(successNotificationWasFound).toBe(true);
-    } else {
-      expect(failureNotificationWasFound).toBe(true);
-    }
-  });
-
-  step('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
-    const workbench = await browser.getWorkbench();
-    await utilities.pause(1);
-
-    // Run SFDX: Launch Apex Replay Debugger with Last Log File
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Launch Apex Replay Debugger with Last Log File', 1);
-    await utilities.pause(2);
-
-    // Get open text editor
-    const editorView = await workbench.getEditorView();
-
-    // Get file path from open text editor
-    const activeTab = await editorView.getActiveTab();
-    if (!activeTab) {
-      expect(activeTab).not.toBeDefined();
-    }
-    expect(activeTab).not.toBe(undefined);
-    const title = await activeTab?.getTitle();
-    const logFilePath = path.join(path.delimiter, 'tools', 'debug', 'logs', title!).slice(1); // TODO: Verify that this works on windows
-    await prompt.setText(logFilePath);
-    await prompt.confirm();
-    await utilities.pause(1);
-
-    // Continue with the debug session
-    await browser.keys(['F5']);
-    await utilities.pause(1);
-    await browser.keys(['F5']);
-    await utilities.pause(1);
-  });
-
-  step('SFDX: Launch Apex Replay Debugger with Current File', async () => {
-    const workbench = await browser.getWorkbench();
-
-    // Run SFDX: Launch Apex Replay Debugger with Current File
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Launch Apex Replay Debugger with Current File', 1);
-    await utilities.pause(1);
-
-    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Launch Apex Replay Debugger with Current File successfully ran');
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) successfully ran');
     if (successNotificationWasFound !== true) {
-      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.');
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) failed to run');
       if (failureNotificationWasFound === true) {
         expect(successNotificationWasFound).toBe(false);
-      } else {
-        utilities.log('Warning - Launching Apex Replay Debugger with Current File failed, neither the success notification or the failure notification was found.');
       }
     } else {
       expect(successNotificationWasFound).toBe(true);
+
+      // Continue with the debug session
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+    }
+
+  });
+
+  step('Debug Single Test via Apex Class', async () => {
+    const workbench = await browser.getWorkbench();
+    const editorView = workbench.getEditorView();
+    let textEditor: TextEditor;
+
+    // Open an existing apex test (e.g. BotTest.cls, search for @isTest)
+    textEditor = await editorView.openEditor('ExampleApexClass2Test.cls') as TextEditor;
+
+    // Click the "Debug Test" code lens at the top of one of the test methods
+    const codeLens = await textEditor.getCodeLens('Run Test') as CodeLens; // TODO: Change to Debug Test
+    await (await codeLens.elem).click();
+
+    // Wait for the command to execute
+    await utilities.waitForNotificationToGoAway(workbench, 'Running Debug Test(s)', 5 * 60);
+
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) failed to run');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      }
+    } else {
+      expect(successNotificationWasFound).toBe(true);
+
+      // Continue with the debug session
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+      await browser.keys(['F5']);
+      await utilities.pause(1);
     }
   });
 
-  step('Run the Anonymous Apex Debugger using the Command Palette', async () => {
+  step('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
     const workbench = await browser.getWorkbench();
+    const testingView = await workbench.getActivityBar().getViewControl('Testing');
 
-    // Create anonymous apex file
-    await utilities.createAnonymousApexFile();
+    // Open the Test Sidebar
+    const testingSideBarView = await testingView?.openView();
+    expect(testingSideBarView).toBeInstanceOf(SideBarView);
 
-    // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Execute Anonymous Apex with Editor Contents', 1);
+    const sidebar = workbench.getSideBar();
+    const sidebarView = sidebar.getContent();
+    const apexTestsSection = await sidebarView.getSection('APEX TESTS');
+    expect(apexTestsSection.elem).toBePresent();
+
+    // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
+    const apexTestItem = await apexTestsSection.findItem('ExampleApexClass1Test') as TreeItem;
+    await apexTestItem.select();
+    const runTestsAction = await apexTestItem.getActionButton('Debug Tests');
+    await runTestsAction!.elem.click();
     await utilities.pause(1);
 
     // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway(workbench, 'Running Execute Anonymous Apex', 5 * 60);
-    await utilities.pause(1);
-    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Execute Anonymous Apex successfully ran');
-    expect(successNotificationWasFound).toBe(true);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running Debug Test(s)', 5 * 60);
+
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) failed to run');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      }
+    } else {
+      expect(successNotificationWasFound).toBe(true);
+
+      // Continue with the debug session
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+    }
   });
 
-  step('SFDX: Turn Off Apex Debug Log for Replay Debugger', async () => {
+  step('Debug a Single Apex Test Method via the Test Sidebar', async () => {
     const workbench = await browser.getWorkbench();
+    const testingView = await workbench.getActivityBar().getViewControl('Testing');
 
-    // Run SFDX: Turn Off Apex Debug Log for Replay Debugger
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Turn Off Apex Debug Log for Replay Debugger', 1);
+    // Open the Test Sidebar
+    const testingSideBarView = await testingView?.openView();
+    expect(testingSideBarView).toBeInstanceOf(SideBarView);
 
-    // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Turn Off Apex Debug Log for Replay Debugger', 5 * 60);
+    const sidebar = workbench.getSideBar();
+    const sidebarView = sidebar.getContent();
+    const apexTestsSection = await sidebarView.getSection('APEX TESTS');
+    expect(apexTestsSection.elem).toBePresent();
+
+    // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
+    const apexTestItem = await apexTestsSection.findItem('validateSayHello') as TreeItem;
+    await apexTestItem.select();
+    const runTestAction = await apexTestItem.getActionButton('Debug Single Test');
+    await runTestAction!.elem.click();
     await utilities.pause(1);
 
-    // Look for the success notification that appears which says, "SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran".
-    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran');
-    expect(successNotificationWasFound).toBe(true);
+    // Wait for the command to execute
+    await utilities.waitForNotificationToGoAway(workbench, 'Running Debug Test(s)', 5 * 60);
+
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'Debug Test(s) failed to run');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      }
+    } else {
+      expect(successNotificationWasFound).toBe(true);
+
+      // Continue with the debug session
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+      await browser.keys(['F5']);
+      await utilities.pause(1);
+    }
   });
 
   step('Tear down and clean up the testing environment', async () => {

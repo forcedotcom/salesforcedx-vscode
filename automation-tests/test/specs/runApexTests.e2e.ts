@@ -190,7 +190,7 @@ describe('Run Apex Tests', async () => {
     // Once push is successful, open command palette and run "SFDX: Re-Run Last Run Apex Test Class"
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts successfully ran');
     if (successNotificationWasFound) {
-      prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Re-Run Last Run Apex Test Class', 1);
+      await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Re-Run Last Run Apex Test Class', 1);
       await utilities.pause(1);
     } else {
       expect(successNotificationWasFound).toBe(false);
@@ -338,11 +338,11 @@ describe('Run Apex Tests', async () => {
     const workbench = await browser.getWorkbench();
 
     // Run SFDX: Create Apex Test Suite.
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Test Suite', 1);
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Test Suite', 1);
     await utilities.pause(1);
 
     // Run SFDX: Run Apex Test Suite.
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Test Suite', 1);
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Test Suite', 1);
     await utilities.pause(1);
   });
 

@@ -82,12 +82,13 @@ export const config: Options.Testrunner = {
       // Place inside the array to run sequentially.
       // './test/specs/**/*.e2e.ts'
       // './test/specs/**/anInitialSuite.e2e.ts'
-      // './test/specs/**/debugApexTests.e2e.ts'
+      // './test/specs/**/apexReplayDebugger.e2e.ts'
+      './test/specs/**/debugApexTests.e2e.ts'
       // './test/specs/**/functions.e2e.ts'
       // './test/specs/**/orgBrowser.e2e.ts'
       // './test/specs/**/orgCreationAndAuthentication.e2e.ts'
       // './test/specs/**/pullAndPush.e2e.ts'
-      './test/specs/**/runApexTests.e2e.ts'
+      // './test/specs/**/runApexTests.e2e.ts'
       // './test/specs/**/templates.e2e.ts'
     ]
   ],
@@ -200,6 +201,7 @@ export const config: Options.Testrunner = {
     // timeout: 240000
     // timeout: 30 0000
     timeout: 2400000
+  // tslint:disable-next-line:trailing-comma
   },
   //
   // =====
@@ -298,7 +300,6 @@ export const config: Options.Testrunner = {
   // afterTest: function(test, context, { error, result, duration, passed, retries }) {
   // },
 
-
   /**
    * Hook that gets executed after the suite has ended
    * @param {Object} suite suite details
@@ -342,10 +343,10 @@ export const config: Options.Testrunner = {
   // onComplete: function(exitCode, config, capabilities, results) {
   // },
   /**
-  * Gets executed when a refresh happens.
-  * @param {String} oldSessionId session ID of the old session
-  * @param {String} newSessionId session ID of the new session
-  */
+   *  Gets executed when a refresh happens.
+   * @param {String} oldSessionId session ID of the old session
+   * @param {String} newSessionId session ID of the new session
+   */
   // onReload: function(oldSessionId, newSessionId) {
   // }
-}
+};
