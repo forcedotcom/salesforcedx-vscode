@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { step } from 'mocha-steps';
-import path from 'path';
 import {
   CodeLens,
   InputBox,
@@ -31,15 +30,12 @@ describe('Run Apex Tests', async () => {
 
     // Create Apex class 1 and test
     await utilities.createApexClassWithTest('ExampleApexClass1');
-    await utilities.pause(1);
 
     // Create Apex class 2 and test
     await utilities.createApexClassWithTest('ExampleApexClass2');
-    await utilities.pause(1);
 
     // Create Apex class 3 and test
     await utilities.createApexClassWithTest('ExampleApexClass3');
-    await utilities.pause(1);
 
     // Push source to scratch org
     await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
@@ -219,7 +215,7 @@ describe('Run Apex Tests', async () => {
     const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
     expect(outputPanelText).not.toBeUndefined();
     expect(outputPanelText).toContain('=== Test Summary');
-    expect(outputPanelText).toContain('TEST NAME');
+    expect(outputPanelText).toContain('100%');
     expect(outputPanelText).toContain('ExampleApexClass1Test.validateSayHello');
     expect(outputPanelText).toContain('ExampleApexClass2Test.validateSayHello');
     expect(outputPanelText).toContain('ExampleApexClass3Test.validateSayHello');
@@ -308,16 +304,99 @@ describe('Run Apex Tests', async () => {
     // TODO: guhlkb
   });
 
-  step('Create and run Apex Test Suite', async () => {
+  step('Create Apex Test Suite', async () => {
     const workbench = await browser.getWorkbench();
 
     // Run SFDX: Create Apex Test Suite.
-    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Test Suite', 1);
-    await utilities.pause(1);
+    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Test Suite', 1);
+
+    // Set the name of the new Apex Test Suite
+    await prompt.setText('ApexTestSuite');
+    await prompt.confirm();
+    await utilities.pause(2);
+
+    // Choose tests that will belong to the new Apex Test Suite
+    await browser.keys(['ArrowDown']);
+    await browser.keys(['Space']);
+    await prompt.confirm();
+
+    // Wait for the command to execute
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Build Apex Test Suite', 5 * 60);
+
+    // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Build Apex Test Suite successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Build Apex Test Suite failed to run');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      }
+    } else {
+      expect(successNotificationWasFound).toBe(true);
+    }
+  });
+
+  step('Add test to Apex Test Suite', async () => {
+    const workbench = await browser.getWorkbench();
+
+    // Run SFDX: Add Tests to Apex Test Suite.
+    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Add Tests to Apex Test Suite', 1);
+
+    // Select the suite recently created called ApexTestSuite
+    await prompt.selectQuickPick('ApexTestSuite');
+    await utilities.pause(2);
+
+    // Choose tests that will belong to the already created Apex Test Suite
+    await browser.keys(['ArrowDown']);
+    await browser.keys(['ArrowDown']);
+    await browser.keys([' ']);
+    await prompt.confirm();
+
+    // Wait for the command to execute
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Build Apex Test Suite', 5 * 60);
+
+    // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX:  Build Apex Test Suite successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Build Apex Test Suite failed to run');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      }
+    } else {
+      expect(successNotificationWasFound).toBe(true);
+    }
+  });
+
+  step('Run Apex Test Suite', async () => {
+    const workbench = await browser.getWorkbench();
 
     // Run SFDX: Run Apex Test Suite.
     await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Test Suite', 1);
-    await utilities.pause(1);
+
+    // Select the suite recently created called ApexTestSuite
+    await prompt.selectQuickPick('ApexTestSuite');
+
+    // Wait for the command to execute
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
+
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests successfully ran');
+    if (successNotificationWasFound !== true) {
+      const failureNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests failed to run');
+      if (failureNotificationWasFound === true) {
+        expect(successNotificationWasFound).toBe(false);
+      }
+    } else {
+      expect(successNotificationWasFound).toBe(true);
+
+      // Verify test results are listed on vscode's Output section
+      const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+      expect(outputPanelText).not.toBeUndefined();
+      expect(outputPanelText).toContain('=== Test Summary');
+      expect(outputPanelText).toContain('TEST NAME');
+      expect(outputPanelText).toContain('ended SFDX: Run Apex Tests');
+    }
   });
 
   step('Tear down and clean up the testing environment', async () => {
