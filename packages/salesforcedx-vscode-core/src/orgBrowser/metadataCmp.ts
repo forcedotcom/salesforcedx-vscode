@@ -14,7 +14,7 @@ import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/reg
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce/api/metadata';
 import * as path from 'path';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -163,7 +163,7 @@ export class ComponentUtils {
     );
     let componentsList: string[];
     const freshFetch = forceRefresh || !fs.existsSync(componentsPath);
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
       if (freshFetch) {
         componentsList = await this.fetchCustomObjectsFields(
