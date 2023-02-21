@@ -153,8 +153,8 @@ describe('Force Source Retrieve Component(s)', () => {
           new SourceComponent({
             name: 'MyClassB',
             type,
-            content: path.join(String(type.directoryName), 'MyClassB.cls'),
-            xml: path.join(String(type.directoryName), 'MyClassB.cls-meta.xml')
+            content: path.join(type.directoryName!, 'MyClassB.cls'),
+            xml: path.join(type.directoryName!, 'MyClassB.cls-meta.xml')
           })
         ])
       );
@@ -174,19 +174,19 @@ describe('Force Source Retrieve Component(s)', () => {
       const className = 'MyClass';
       const className2 = 'MyClass';
       const apexClassPathOne = path.join(
-        String(type.directoryName),
+        type.directoryName!,
         `${className}.cls`
       );
       const apexClassPathTwo = path.join(
-        String(type.directoryName),
+        type.directoryName!,
         `${className2}.cls`
       );
       const apexClassXmlPathOne = path.join(
-        String(type.directoryName),
+        type.directoryName!,
         `${apexClassPathOne}-meta.xml`
       );
       const apexClassXmlPathTwo = path.join(
-        String(type.directoryName),
+        type.directoryName!,
         `${className2}.cls-meta.xml`
       );
       const virtualTree = [
