@@ -152,13 +152,14 @@ describe('Run Apex Tests', async () => {
       }
     } else {
       expect(successNotificationWasFound).toBe(true);
+
+      // Verify test results are listed on vscode's Output section
+      const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+      expect(outputPanelText).not.toBeUndefined();
+      expect(outputPanelText).toContain('=== Test Summary');
+      expect(outputPanelText).toContain('TEST NAME');
+      expect(outputPanelText).toContain('ended SFDX: Run Apex Tests');
     }
-    // Verify test results are listed on vscode's Output section
-    const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
-    expect(outputPanelText).not.toBeUndefined();
-    expect(outputPanelText).toContain('=== Test Summary');
-    expect(outputPanelText).toContain('TEST NAME');
-    expect(outputPanelText).toContain('ended SFDX: Run Apex Tests');
   });
 
   step('Re-run Last Apex Test Class', async () => {
