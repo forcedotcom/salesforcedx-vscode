@@ -89,7 +89,7 @@
         "@heroku/functions-core": "0.4.2",
         "@salesforce/core": "3.31.18",
         "@salesforce/templates": "57.0.2",
-        "@salesforce/source-deploy-retrieve": "7.5.5",
+        "@salesforce/source-deploy-retrieve": "7.10.0",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
