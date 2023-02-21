@@ -43,7 +43,7 @@ describe('Run Apex Tests', async () => {
 
     // Push source to scratch org
     await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
-    await utilities.pause(1);
+    await utilities.pause(5);
   });
 
   step('Run All Tests via Apex Class', async () => {
@@ -60,11 +60,8 @@ describe('Run Apex Tests', async () => {
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
-    await utilities.pause(1);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests successfully ran');
     if (successNotificationWasFound !== true) {
@@ -100,11 +97,8 @@ describe('Run Apex Tests', async () => {
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
-    await utilities.pause(1);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests successfully ran');
     if (successNotificationWasFound !== true) {
@@ -130,19 +124,14 @@ describe('Run Apex Tests', async () => {
 
     // Run SFDX: Run Apex tests.
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Tests', 1);
-    await utilities.pause(1);
 
     // Select the "ExampleApexClassTest" file
     prompt.selectQuickPick('ExampleApexClass1Test');
-    await utilities.pause(1);
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
-    await utilities.pause(1);
 
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests successfully ran');
     if (successNotificationWasFound !== true) {
@@ -181,17 +170,14 @@ describe('Run Apex Tests', async () => {
     textEditor = await editorView.openEditor('ExampleApexClass1Test.cls') as TextEditor;
     await textEditor.setText('@isTest\npublic class ExampleApexClass1Test {\n\t@isTest\n\tstatic void validateSayHello() {\n\t\tSystem.debug(\'Starting validate\');\n\t\tExampleApexClass1.SayHello(\'Andres\');\n\t\tSystem.assertEquals(1, 1, \'all good\');\n\t}\n}');
     await textEditor.save();
-    await utilities.pause(1);
 
     // Open command palette and run "SFDX: Push Source to Default Scratch Org"
-    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 1);
-    await utilities.pause(1);
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 3);
 
     // Once push is successful, open command palette and run "SFDX: Re-Run Last Run Apex Test Class"
     const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts successfully ran');
     if (successNotificationWasFound) {
-      prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Re-Run Last Run Apex Test Class', 1);
-      await utilities.pause(1);
+      await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Re-Run Last Run Apex Test Class', 1);
     } else {
       expect(successNotificationWasFound).toBe(false);
     }
@@ -223,15 +209,11 @@ describe('Run Apex Tests', async () => {
     // Click the run tests button on the top right corner of the Test sidebar
     const runTestsAction = await apexTestsSection.getAction('Run Tests');
     await runTestsAction!.elem.click();
-    await utilities.pause(1);
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
-    await utilities.pause(1);
 
     // Verify test results are listed on vscode's Output section
     const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -266,15 +248,11 @@ describe('Run Apex Tests', async () => {
     await apexTestItem.select();
     const runTestsAction = await apexTestItem.getActionButton('Run Tests');
     await runTestsAction!.elem.click();
-    await utilities.pause(1);
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
-    await utilities.pause(1);
 
     // Verify test results are listed on vscode's Output section
     const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -307,15 +285,11 @@ describe('Run Apex Tests', async () => {
     await apexTestItem.select();
     const runTestAction = await apexTestItem.getActionButton('Run Single Test');
     await runTestAction!.elem.click();
-    await utilities.pause(1);
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
-    await utilities.pause(1);
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
-    await utilities.pause(1);
 
     // Verify test results are listed on vscode's Output section
     const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -338,11 +312,11 @@ describe('Run Apex Tests', async () => {
     const workbench = await browser.getWorkbench();
 
     // Run SFDX: Create Apex Test Suite.
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Test Suite', 1);
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Create Apex Test Suite', 1);
     await utilities.pause(1);
 
     // Run SFDX: Run Apex Test Suite.
-    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Test Suite', 1);
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Test Suite', 1);
     await utilities.pause(1);
   });
 
