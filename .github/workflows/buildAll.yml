@@ -12,10 +12,6 @@ on:
 
 jobs:
   build-all:
-    strategy:
-      matrix:
-        node_version: [lts/-1]
-      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,7 +19,7 @@ jobs:
           ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
       - run: npm --version

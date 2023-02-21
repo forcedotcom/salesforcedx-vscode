@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '16.13.x'
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - run: npm install -g lerna
       - run: npm install
       - run: npm run compile
