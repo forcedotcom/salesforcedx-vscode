@@ -34,7 +34,7 @@
     "@salesforce/source-deploy-retrieve": "7.5.5",
     "@salesforce/templates": "^57.0.2",
     "@salesforce/ts-types": "1.5.21",
-    "adm-zip": "0.4.13",
+    "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
     "jsforce": "2.0.0-beta.20",
