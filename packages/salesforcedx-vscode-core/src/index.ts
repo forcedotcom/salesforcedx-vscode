@@ -32,6 +32,7 @@ import {
   forceFunctionCreate,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
+  forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
   forceInternalLightningEventCreate,
@@ -424,6 +425,11 @@ function registerCommands(
     forceFunctionDebugInvoke
   );
 
+  const forceFunctionStopCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.stop',
+    forceFunctionStop
+  );
+
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
     'sfdx.force.internal.refreshsobjects',
     forceRefreshSObjects
@@ -447,6 +453,7 @@ function registerCommands(
     forceFunctionInvokeCmd,
     forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
+    forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,

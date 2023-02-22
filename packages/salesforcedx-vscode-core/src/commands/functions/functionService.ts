@@ -220,12 +220,9 @@ export class FunctionService {
       console: 'integratedTerminal',
       internalConsoleOptions: 'openOnSessionStart',
       localRoot: rootDir,
-      remoteRoot: '/workspace',
       hostName: '127.0.0.1',
       port: debugPort
     };
-
-    delete debugConfiguration.remoteRoot;
 
     return debugConfiguration;
   }
