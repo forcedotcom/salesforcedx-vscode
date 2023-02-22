@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.2.1",
+  "version": "57.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -29,7 +29,7 @@
     "@salesforce/eslint-config-lwc": "3.3.3",
     "@salesforce/lightning-lsp-common": "4.1.0",
     "@salesforce/lwc-language-server": "4.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.2.1",
+    "@salesforce/salesforcedx-utils-vscode": "57.3.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
     "eslint": "7.7.0",
@@ -42,7 +42,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.2.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.3.0",
     "@types/chai": "4.3.3",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
@@ -79,7 +79,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:vscode-integration",
-    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/download-vscode && node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-tests-with-recipes",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
