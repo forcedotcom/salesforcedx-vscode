@@ -21,6 +21,10 @@ import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
   private process: LocalRunProcess | undefined | void;
 
+  public async setupFunctionListeners(): Promise<void> {
+    console.log('No listeners for containerless function.');
+  }
+
   public async cancelFunction(
     registeredStartedFunctionDisposable: Disposable
   ): Promise<void> {
