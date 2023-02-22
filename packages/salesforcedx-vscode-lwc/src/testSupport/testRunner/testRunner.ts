@@ -10,7 +10,7 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { TestExecutionInfo, TestInfoKind } from '../types';
+import { isTestCase, TestExecutionInfo, TestInfoKind } from '../types';
 import { workspace, workspaceService } from '../workspace';
 import { SfdxTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
@@ -35,14 +35,11 @@ export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
 }
 
 /**
- * Returns arguments for the optional test name pattern
+ * Returns testNamePattern flag and escaped test name
  * @param TestExecutionInfo
  */
-export function getTestNamePatternArgs(testExecutionInfo: TestExecutionInfo) {
-  const testName = 'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
-  return testName
-  ? ['--testNamePattern', `${escapeStrForRegex(testName)}`]
-  : [];
+export function getTestNamePatternArgs(testName: string) {
+  return ['--testNamePattern', `${escapeStrForRegex(testName)}`];
 }
 
 type JestExecutionInfo = {
@@ -103,7 +100,10 @@ export class TestRunner {
     } else {
       runTestsByPathArgs = [];
     }
-    const testNamePatternArgs = getTestNamePatternArgs(testExecutionInfo);
+    const testNamePatternArgs =
+      (isTestCase(testExecutionInfo) && testExecutionInfo.testName)
+        ? getTestNamePatternArgs(testExecutionInfo.testName)
+        : [];
 
     let runModeArgs: string[];
     if (testRunType === TestRunType.WATCH) {
