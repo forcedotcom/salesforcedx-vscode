@@ -27,8 +27,8 @@ export function flushFilePath(filePath: string): string {
   // The filePath should be a file system file path and not a VS Code URI string.
   // (no scheme ("file:/") should be present)
   // Examples:
-  // filePath is in the format of "/Users/{user-name}/{path-to-apex-file.cls}" on Mac OSX
-  // filePath is in the format of "c:\\Users\\{user-name}\\{path-to-apex-file.cls}" on Windows
+  // "/Users/{user-name}/{path-to-apex-file.cls}" on Mac OSX
+  // "c:\\Users\\{user-name}\\{path-to-apex-file.cls}" on Windows
   if (filePath === '') {
     return filePath;
   }

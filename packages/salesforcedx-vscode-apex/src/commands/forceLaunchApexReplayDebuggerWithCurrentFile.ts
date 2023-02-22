@@ -98,8 +98,8 @@ async function getApexTestClassName(
   const filePath = sourceUri.toString();
   // The filePath should be a VS Code URI string and not a file system file path.
   // ("file:/" should be present)
-  // filePath is in the format of "file:///Users/{user-name}/{path-to-apex-file.cls}" on Mac OSX
-  // filePath is in the format of "file:///c%3A/Users/{user-name}/{path-to-apex-file.cls}" on Windows
+  // "file:///Users/{user-name}/{path-to-apex-file.cls}" on Mac OSX
+  // "file:///c%3A/Users/{user-name}/{path-to-apex-file.cls}" on Windows
 
   const testClassName = testOutlineProvider.getTestClassName(filePath);
 
