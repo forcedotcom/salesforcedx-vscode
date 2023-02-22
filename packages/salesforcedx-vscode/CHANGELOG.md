@@ -4,15 +4,15 @@
 
 #### salesforcedx-vscode-apex-replay-debugger, salesforcedx-utils-vscode
 
-We fixed an issue where checkpoints were being set and removed in an unreliable manner. ([PR #4686)](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
+We fixed an issue where checkpoints were being set and removed in an unreliable manner. ([PR #4686](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
 
 #### salesforcedx-vscode-apex-replay-debugger, salesforcedx-utils-vscode, salesforcedx-vscode-apex, salesforcedx-vscode-lwc
 
-We fixed an issue where test icons were not appearing for Apex or LWC tests. ([PR #4686)](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
+We fixed an issue where test icons were not appearing for Apex or LWC tests. ([PR #4686](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
 
 #### salesforcedx-vscode-lwc
 
-We fixed an issue where debugging an individual Lightning Web Component test was not working as expected. ([PR #4688)](https://github.com/forcedotcom/salesforcedx-vscode/pull/4688))
+We fixed an issue where debugging an individual Lightning Web Component test was not working as expected. ([PR #4688](https://github.com/forcedotcom/salesforcedx-vscode/pull/4688))
 
 #### salesforcedx-vscode-core
 
