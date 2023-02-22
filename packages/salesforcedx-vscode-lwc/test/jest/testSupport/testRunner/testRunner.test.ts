@@ -13,8 +13,6 @@ describe('testRunner Unit Tests.', () => {
       const testName = 'Testing is Fun!';
       const testPatternArgs = getTestNamePatternArgs(testName);
       expect(testPatternArgs.length).toEqual(2);
-      expect(testPatternArgs).toContain('--testNamePattern');
-      expect(testPatternArgs).toContain(testName);
       expect(testPatternArgs).toMatchSnapshot();
     });
     it('Should escape certain symbols if testNamePattern is included', async () => {
@@ -27,7 +25,6 @@ describe('testRunner Unit Tests.', () => {
     it('Should not escape certain symbols if testNamePattern is included', async () => {
       const testName = 'Test !@#"%&;:,<>\=~` Symbols';
       const testPatternArgs = getTestNamePatternArgs(testName);
-      expect(testPatternArgs).toContain(testName);
       expect(testPatternArgs).toMatchSnapshot();
     });
 

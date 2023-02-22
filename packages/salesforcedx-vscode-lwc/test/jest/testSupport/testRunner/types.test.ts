@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isTestCase, TestCaseInfo, TestFileInfo, TestInfoKind, TestType } from '../../../../src/testSupport/types';
+import { isTestCaseInfo, TestCaseInfo, TestFileInfo, TestInfoKind, TestType } from '../../../../src/testSupport/types';
 import { Uri } from 'vscode';
 import * as path from 'path';
 
@@ -23,7 +23,7 @@ describe('test support types Unit Tests.', () => {
         testUri: mockURI,
         testName
       };
-      expect(isTestCase(testExecutionInfo)).toBeTruthy();
+      expect(isTestCaseInfo(testExecutionInfo)).toBeTruthy();
     });
     it('Should return false for a TestFile', async () => {
       const testExecutionInfo: TestFileInfo = {
@@ -31,7 +31,7 @@ describe('test support types Unit Tests.', () => {
         testType: TestType.LWC,
         testUri: mockURI
       };
-      expect(isTestCase(testExecutionInfo)).toBeFalsy();
+      expect(isTestCaseInfo(testExecutionInfo)).toBeFalsy();
     });
   });
 });

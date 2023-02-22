@@ -43,9 +43,9 @@ export const enum TestInfoKind {
 }
 
 /**
- * Confirms if the TestExecutionInfo is specific to a testCase
+ * Confirms if the TestExecutionInfo kind is TestCaseInfo
  */
-export function isTestCase(
+export function isTestCaseInfo(
   testExecutionInfo: TestExecutionInfo
 ): testExecutionInfo is TestCaseInfo {
   return testExecutionInfo.kind === TestInfoKind.TEST_CASE;
