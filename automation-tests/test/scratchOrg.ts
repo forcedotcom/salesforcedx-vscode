@@ -271,7 +271,7 @@ export class ScratchOrg {
     utilities.log('');
   }
 
-  private get tempProjectName(): string {
+  public get tempProjectName(): string {
     return 'TempProject-' + this.testSuiteSuffixName;
   }
 
