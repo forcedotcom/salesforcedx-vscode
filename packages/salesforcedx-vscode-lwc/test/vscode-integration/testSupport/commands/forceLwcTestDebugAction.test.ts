@@ -120,7 +120,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       '--runTestsByPath',
       /^win32/.test(process.platform) ? testRelativePath : testFsPath,
       '--testNamePattern',
-      '"mockTestName"'
+      'mockTestName'
     ];
     const cwd = sfdxProjectPath;
 
