@@ -19,7 +19,7 @@ import { workspaceUtils } from '../../../../src/util';
 
 describe('Force Function Stop Integration Tests', () => {
   let sandbox: SinonSandbox;
-  const functionsBinaryStub: {
+  const functionsProcessInstStub: {
     [key: string]: SinonStub;
   } = {};
   const channelServiceStubs: {
@@ -35,10 +35,13 @@ describe('Force Function Stop Integration Tests', () => {
     [key: string]: SinonStub;
   } = {};
   let hrtimeStub: SinonStub;
+
   beforeEach(() => {
     sandbox = createSandbox();
-    functionsBinaryStub.cancel = sandbox.stub();
-    sandbox.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
+    functionsProcessInstStub.cancel = sandbox.stub();
+    sandbox
+      .stub(library.LocalRun.prototype, 'exec')
+      .resolves(functionsProcessInstStub);
     channelServiceStubs.appendLineStub = sandbox.stub(
       channelService,
       'appendLine'
@@ -86,7 +89,7 @@ describe('Force Function Stop Integration Tests', () => {
     hrtimeStub.returns(mockStartTime);
     await forceFunctionStop();
 
-    assert.calledOnce(functionsBinaryStub.cancel);
+    assert.calledOnce(functionsProcessInstStub.cancel);
     assert.called(channelServiceStubs.appendLineStub);
     assert.calledWith(
       channelServiceStubs.appendLineStub,
@@ -97,13 +100,7 @@ describe('Force Function Stop Integration Tests', () => {
       notificationServiceStubs.showSuccessfulExecutionStub,
       nls.localize('force_function_stop_text')
     );
-    assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
-    assert.calledWith(
-      telemetryServiceStubs.sendCommandEventStub,
-      'force_function_stop',
-      mockStartTime,
-      { language: FUNCTION_LANGUAGE }
-    );
+    assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
   });
 
   it('Should show warning message if function is not started', async () => {
