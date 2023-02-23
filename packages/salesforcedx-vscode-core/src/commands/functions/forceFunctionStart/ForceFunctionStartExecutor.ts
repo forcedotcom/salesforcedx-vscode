@@ -81,8 +81,7 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
           return new Promise(resolve =>
             resolve(this.cancelFunction(registeredStartedFunctionDisposable))
           );
-        },
-        isContainerLess: false
+        }
       }
     );
 
@@ -107,8 +106,6 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
     );
     const functionName = descriptor.com.salesforce.id;
 
-    this.buildFunction(functionName, functionDirPath);
-
     channelService.appendLine(`Starting ${functionName}`);
     await this.startFunction(functionName, functionDirPath);
     return true;
@@ -121,11 +118,6 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
 
   public abstract cancelFunction(
     registeredStartedFunctionDisposable: vscode.Disposable
-  ): void;
-
-  public abstract buildFunction(
-    functionName: string,
-    functionDirPath: string
   ): void;
 
   public abstract startFunction(
