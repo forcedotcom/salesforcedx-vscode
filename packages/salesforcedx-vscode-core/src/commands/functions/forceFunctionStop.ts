@@ -26,7 +26,7 @@ export async function forceFunctionStop() {
     await FunctionService.instance.stopFunction();
     notificationService
       .showSuccessfulExecution(nls.localize('force_function_stop_text'))
-      .catch(() => {});
+      .catch(() => { });
     telemetryService.sendCommandEvent(LOG_NAME, startTime, {
       language: FunctionService.instance.getFunctionLanguage()
     });

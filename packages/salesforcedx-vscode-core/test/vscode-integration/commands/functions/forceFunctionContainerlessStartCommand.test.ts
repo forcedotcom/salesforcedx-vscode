@@ -27,8 +27,8 @@ describe('Force Function Start Containerless Command Unit Tests.', () => {
     let validateStartFunctionsUriStub: SinonStub;
     let commandletRunStub: SinonStub;
     let forceFunctionContainerlessStartCommand: any;
-    let FUNCTION_CONTAINER_LOG_NAME: string;
-    let CONTAINER_START_TEXT_KEY: string;
+    let FUNCTION_CONTAINERLESS_LOG_NAME: string;
+    let CONTAINERLESS_START_TEXT_KEY: string;
     let filePathGathererConstructorStub: SinonStub;
     let sfdxWorkspaceCheckerConstructorStub: SinonStub;
     let forceFunctionContainerlessStartExecutorConstructorStub: SinonStub;
@@ -69,8 +69,8 @@ describe('Force Function Start Containerless Command Unit Tests.', () => {
       commandletRunStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
       ({
         forceFunctionContainerlessStartCommand,
-        CONTAINER_START_TEXT_KEY,
-        FUNCTION_CONTAINER_LOG_NAME
+        CONTAINERLESS_START_TEXT_KEY,
+        FUNCTION_CONTAINERLESS_LOG_NAME
       } = proxyquireStrict(
         '../../../../src/commands/functions/forceFunctionContainerlessStartCommand',
         {
@@ -96,8 +96,8 @@ describe('Force Function Start Containerless Command Unit Tests.', () => {
       assert.calledWith(filePathGathererConstructorStub, fakeUri);
       assert.calledWith(
         forceFunctionContainerlessStartExecutorConstructorStub,
-        CONTAINER_START_TEXT_KEY,
-        FUNCTION_CONTAINER_LOG_NAME
+        CONTAINERLESS_START_TEXT_KEY,
+        FUNCTION_CONTAINERLESS_LOG_NAME
       );
       assert.calledOnce(commandletRunStub);
     });

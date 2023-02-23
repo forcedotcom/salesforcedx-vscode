@@ -16,7 +16,6 @@ This command creates a new directory named after your Function name and all the 
 ![Create Function](../../../images/vs_code_create_func.gif)
 ### Start Function
 Run `SFDX: Start Function` to run the function locally.
-Run `SFDX: Start Function in Container` to run the function in a Docker container.
 
 
 ### Invoke Function
@@ -30,4 +29,4 @@ A sample `payload.json` file that can invoke a function:
 Stop a function by running `SFDX: Stop Function`, which simply kills the local process.
 
 ### Resources
-For more information see [Get Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/index.html). 
+For more information see [Get Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/index.html).

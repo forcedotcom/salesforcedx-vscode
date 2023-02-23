@@ -29,7 +29,6 @@ import {
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceFunctionContainerlessStartCommand,
-  forceFunctionContainerStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
@@ -416,11 +415,6 @@ function registerCommands(
     forceFunctionContainerlessStartCommand
   );
 
-  const forceFunctionContainerStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.container.start',
-    forceFunctionContainerStartCommand
-  );
-
   const forceFunctionInvokeCmd = vscode.commands.registerCommand(
     'sfdx.force.function.invoke',
     forceFunctionInvoke
@@ -459,7 +453,6 @@ function registerCommands(
     forceFunctionInvokeCmd,
     forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
-    forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,

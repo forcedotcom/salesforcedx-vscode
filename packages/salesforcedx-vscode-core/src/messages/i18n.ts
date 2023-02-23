@@ -158,7 +158,6 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
-  force_function_container_start_text: 'SFDX: Start Container Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
   force_create_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:

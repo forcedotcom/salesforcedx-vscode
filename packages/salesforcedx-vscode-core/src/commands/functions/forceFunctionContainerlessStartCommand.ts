@@ -16,9 +16,10 @@ import {
   validateStartFunctionsUri
 } from './forceFunctionStart';
 
-export const CONTAINER_START_TEXT_KEY =
+export const CONTAINERLESS_START_TEXT_KEY =
   'force_function_containerless_start_text';
-export const FUNCTION_CONTAINER_LOG_NAME = 'force_function_containerless_start';
+export const FUNCTION_CONTAINERLESS_LOG_NAME =
+  'force_function_containerless_start';
 
 /**
  * Starts a local run of the function which can then be invoked with payloads.
@@ -36,8 +37,8 @@ export const forceFunctionContainerlessStartCommand = async (
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(validSourceUri),
     new ForceFunctionContainerlessStartExecutor(
-      CONTAINER_START_TEXT_KEY,
-      FUNCTION_CONTAINER_LOG_NAME
+      CONTAINERLESS_START_TEXT_KEY,
+      FUNCTION_CONTAINERLESS_LOG_NAME
     )
   );
   await commandlet.run();
