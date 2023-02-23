@@ -1,3 +1,23 @@
+# 57.3.0 - February 24, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger, salesforcedx-utils-vscode
+
+We fixed an issue where checkpoints were being set and removed in an unreliable manner. ([PR #4686](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
+
+#### salesforcedx-vscode-apex-replay-debugger, salesforcedx-utils-vscode, salesforcedx-vscode-apex, salesforcedx-vscode-lwc
+
+We fixed an issue where test icons were not appearing for Apex or LWC tests. ([PR #4686](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
+
+#### salesforcedx-vscode-lwc
+
+We fixed an issue where debugging an individual Lightning Web Component test was not working as expected. ([PR #4688](https://github.com/forcedotcom/salesforcedx-vscode/pull/4688))
+
+#### salesforcedx-vscode-core
+
+We made some updates under the hood. ([PR #4677](https://github.com/forcedotcom/salesforcedx-vscode/pull/4677)), ([PR #4682](https://github.com/forcedotcom/salesforcedx-vscode/pull/4682)).
+
 # 57.2.1 - February 16, 2023
 
 ## Fixed
