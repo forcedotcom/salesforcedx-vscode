@@ -55,7 +55,7 @@ After the release has been created, it will trigger a publish action that will s
 
 Before approving the release to the marketplace, download the vsix files from the release you just created, install them locally and verify they are working as expected.
 
-Alternatively, you can download the files using the (gh cli)[https://cli.github.com/] and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.
+Alternatively, you can download the files using the [gh cli](https://cli.github.com/) and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.
 
 `> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vscode'`  
 `> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
