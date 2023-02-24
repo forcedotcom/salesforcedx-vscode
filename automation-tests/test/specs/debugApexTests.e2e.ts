@@ -16,7 +16,7 @@ import {
 } from '../scratchOrg';
 import * as utilities from '../utilities';
 
-describe('Run Apex Tests', async () => {
+describe('Debug Apex Tests', async () => {
   let scratchOrg: ScratchOrg;
 
   step('Set up the testing environment', async () => {
