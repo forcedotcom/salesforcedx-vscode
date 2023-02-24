@@ -48,14 +48,14 @@ describe('SObjects Definitions', async () => {
     expect(customerObjectFolder).not.toEqual(undefined);
     await customerObjectFolder?.expand();
     expect(await customerObjectFolder?.isExpanded()).toBe(true);
-    const customerCustomObject = await objectTreeItem.findChildItem('Customer__c.object-meta.xml');
+    const customerCustomObject = await customerObjectFolder?.findChildItem('Customer__c.object-meta.xml');
     expect(customerCustomObject).not.toEqual(undefined);
 
     const productObjectFolder = await objectTreeItem.findChildItem('Product__c');
     expect(productObjectFolder).not.toEqual(undefined);
     await productObjectFolder?.expand();
     expect(await productObjectFolder?.isExpanded()).toBe(true);
-    const productCustomObject = await objectTreeItem.findChildItem('Product__c.object-meta.xml');
+    const productCustomObject = await productObjectFolder?.findChildItem('Product__c.object-meta.xml');
     expect(productCustomObject).not.toEqual(undefined);
   });
     
