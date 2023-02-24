@@ -57,15 +57,14 @@ jobs:
       PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps: 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16.13.x'
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - name: downloadExtensionsFromRelease
         run: | 
           mkdir ./extensions
