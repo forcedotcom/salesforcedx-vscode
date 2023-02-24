@@ -60,11 +60,11 @@ Alternatively, you can download the files using the [gh cli](https://cli.github.
 `> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vscode'`  
 `> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
 
-After completing your release testing following our internal template, approve the publish job on your .
+After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" to allow the extensions to be uploaded to the marketplace and complete the release process.
 
 ## Post-Publishing the .vsix
 
-1. Update the Salesforce Extension Pack to the version you just published. Either go to Extensions, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install. The publish may take a few minutes to register in the marketplace.
+1. Update the Salesforce Extension Pack to the version you just published. Either go to the Extensions tab, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install. The publish may take a few minutes to register in the marketplace.
 2. Restart Visual Studio Code
 3. Test & validate the application - verify all the extensions are running, and run a command or two.
 4. Once validated, post an announcement in #platform-dev-tools
