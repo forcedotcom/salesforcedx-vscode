@@ -20,6 +20,7 @@ import {
 } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
+import { getWorkspaceOrgType, OrgType } from '../../context/workspaceOrgType';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
@@ -211,7 +212,13 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+    // If the current org is source-tracked, then source tracking
+    // will handle conflict detection.
+    const orgType = await getWorkspaceOrgType();
+    if (
+      orgType === OrgType.SourceTracked ||
+      !sfdxCoreSettings.getConflictDetectionEnabled()
+    ) {
       return inputs;
     }
 
