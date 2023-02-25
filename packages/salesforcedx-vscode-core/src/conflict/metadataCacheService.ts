@@ -1,10 +1,15 @@
+import { workspaceContextUtils } from './../context/index';
+import { WorkspaceContext } from './../../../salesforcedx-vscode-apex-replay-debugger/src/context/workspaceContext';
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  projectPaths
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -112,6 +117,22 @@ export class MetadataCacheService {
     const operation = await this.createRetrieveOperation(components);
     const results = await operation.pollStatus();
     return this.processResults(results);
+  }
+
+  /**
+   * @description Convenience method for loading the cache for
+   * specific components using the current default username
+   */
+  public static async loadCacheFor(componentPaths: any) {
+    const username = await ConfigUtil.getUsername();
+    const cacheService = new MetadataCacheService(username!);
+
+    const cacheResult = await cacheService.loadCache(
+      componentPaths,
+      workspaceUtils.getRootWorkspacePath(),
+      false
+    );
+    return cacheResult;
   }
 
   public async getSourceComponents(): Promise<ComponentSet> {

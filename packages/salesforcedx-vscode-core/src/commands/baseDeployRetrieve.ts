@@ -1,3 +1,4 @@
+import { MetadataCacheService } from './../conflict/metadataCacheService';
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -78,10 +79,21 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      throw formatException(e);
+      if (e.Name === 'SourceConflictError') {
+        this.handleSourceConflictError(e);
+      } else {
+        throw formatException(e);
+      }
     } finally {
       await this.postOperation(result);
     }
+  }
+  private handleSourceConflictError(e: any) {
+    console.warn('Handling SourceConflictError from STL.');
+    const componentPaths = e.data.map(
+      (component: { filePath: any }) => component.filePath
+    );
+    MetadataCacheService.loadCacheFor(componentPaths);
   }
 
   protected setupCancellation(
