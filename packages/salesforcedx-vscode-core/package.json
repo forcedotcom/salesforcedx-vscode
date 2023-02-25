@@ -25,7 +25,7 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.5.1",
+    "@heroku/functions-core": "0.7.0",
     "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.31.18",
     "@salesforce/salesforcedx-sobjects-faux-generator": "57.3.0",
@@ -86,7 +86,7 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@heroku/functions-core": "0.4.2",
+        "@heroku/functions-core": "0.7.0",
         "@salesforce/core": "3.31.18",
         "@salesforce/templates": "57.0.2",
         "@salesforce/source-deploy-retrieve": "7.10.0",
