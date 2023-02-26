@@ -13,7 +13,10 @@ import {
 } from './';
 import { diffComponents } from './componentDiffer';
 import { TimestampFileProperties } from './directoryDiffer';
-import { CorrelatedComponent, MetadataCacheService } from './metadataCacheService';
+import {
+  CorrelatedComponent,
+  MetadataCacheService
+} from './metadataCacheService';
 
 export class TimestampConflictDetector {
   private diffs: DirectoryDiffResults;
@@ -27,17 +30,23 @@ export class TimestampConflictDetector {
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
 
-  public createDiffs(result?: MetadataCacheResult): DirectoryDiffResults {
+  public createDiffs(
+    result?: MetadataCacheResult,
+    skipTimestampCheck?: boolean
+  ): DirectoryDiffResults {
     if (!result) {
       return TimestampConflictDetector.EMPTY_DIFFS;
     }
     this.createRootPaths(result);
     const components = MetadataCacheService.correlateResults(result);
-    this.determineConflicts(components);
+    this.determineConflicts(components, skipTimestampCheck);
     return this.diffs;
   }
 
-  private determineConflicts(components: CorrelatedComponent[]) {
+  private determineConflicts(
+    components: CorrelatedComponent[],
+    skipTimestampCheck?: boolean
+  ) {
     const cache = PersistentStorageService.getInstance();
     const conflicts: Set<TimestampFileProperties> = new Set<
       TimestampFileProperties
@@ -54,6 +63,7 @@ export class TimestampConflictDetector {
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (
         !lastModifiedInCache ||
+        skipTimestampCheck ||
         this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)
       ) {
         const differences = diffComponents(

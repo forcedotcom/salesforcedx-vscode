@@ -1,4 +1,3 @@
-import { MetadataCacheService } from './../conflict/metadataCacheService';
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -29,6 +28,7 @@ import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
+import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
@@ -36,6 +36,7 @@ import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
+import { MetadataCacheService } from './../conflict/metadataCacheService';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 
@@ -79,8 +80,8 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      if (e.Name === 'SourceConflictError') {
-        this.handleSourceConflictError(e);
+      if (e.name === 'SourceConflictError') {
+        await this.handleSourceConflictError(e);
         return true;
       } else {
         throw formatException(e);
@@ -89,12 +90,16 @@ export abstract class DeployRetrieveExecutor<
       await this.postOperation(result);
     }
   }
-  private handleSourceConflictError(e: any) {
+  private async handleSourceConflictError(e: any) {
     console.warn('Handling SourceConflictError from STL.');
     const componentPaths = e.data.map(
       (component: { filePath: any }) => component.filePath
     );
-    MetadataCacheService.loadCacheFor(componentPaths);
+    const cacheResult = await MetadataCacheService.loadCacheFor(componentPaths);
+
+    const detector = new TimestampConflictDetector();
+    const diffs = detector.createDiffs(cacheResult, true);
+    console.log('diffs!');
   }
 
   protected setupCancellation(
