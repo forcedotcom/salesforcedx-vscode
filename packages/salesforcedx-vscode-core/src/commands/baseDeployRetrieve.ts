@@ -81,6 +81,7 @@ export abstract class DeployRetrieveExecutor<
     } catch (e) {
       if (e.Name === 'SourceConflictError') {
         this.handleSourceConflictError(e);
+        return true;
       } else {
         throw formatException(e);
       }
