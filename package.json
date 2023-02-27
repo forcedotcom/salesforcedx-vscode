@@ -20,6 +20,7 @@
     "@octokit/core": "4.0.5",
     "@salesforce/dev-config": "^3.1.0",
     "@tsconfig/node14": "1.0.3",
+    "@types/cross-spawn": "6.0.2",
     "@types/jest": "28.1.7",
     "@vscode/test-electron": "2.2.1",
     "acorn": "8.8.2",
