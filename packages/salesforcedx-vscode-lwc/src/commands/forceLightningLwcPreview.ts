@@ -155,17 +155,11 @@ async function startServer(
       if (!DevServerService.instance.isServerHandlerRegistered()) {
         const preconditionChecker = new SfdxWorkspaceChecker();
         const parameterGatherer = new EmptyParametersGatherer();
-        const executor = new ForceLightningLwcStartExecutor({
-          openBrowser: isDesktop,
-          componentName
-        },
-        exitCode => {
-          if (exitCode === 0) {
-            resolve();
-          } else {
-            reject();
-          }
-        });
+        const executor = new ForceLightningLwcStartExecutor(
+          { openBrowser: isDesktop, componentName },
+          () => { resolve(); },
+          () => { reject(); }
+        );
 
         const commandlet = new SfdxCommandlet(
           preconditionChecker,

@@ -200,8 +200,8 @@ describe('forceLightningLwcPreview', () => {
     setupMobilePreviewCommand(androidPlatform, false, false);
     const stub = sandbox.stub(ForceLightningLwcStartExecutor.prototype, 'execute');
     stub.callsFake(() => {
-      const onExit: (exitCode: number | undefined) => void = stub.thisValues[0].onExit;
-      onExit(0);
+      const onSuccess: () => void = stub.thisValues[0].onSuccess;
+      onSuccess();
     })
     await forceLightningLwcPreview(mockLwcFilePathUri);
     sinon.assert.calledOnce(stub);

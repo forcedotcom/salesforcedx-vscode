@@ -48,16 +48,19 @@ export interface ForceLightningLwcStartOptions {
 
 export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   private readonly options: ForceLightningLwcStartOptions;
-  private readonly onExit: (exitCode: number | undefined) => void;
+  private readonly onSuccess: () => void; // callback to invoke when sever starts successfully
+  private readonly onError: () => void; // callback to invoke when sever fails to start
   private errorHint?: string;
 
   constructor(
     options: ForceLightningLwcStartOptions = { openBrowser: true },
-    onExit: (exitCode: number | undefined) => void = () => {}
+    onSuccess: () => void = () => {},
+    onError: () => void = () => {}
   ) {
     super();
     this.options = options;
-    this.onExit = onExit;
+    this.onSuccess = onSuccess;
+    this.onError = onError;
   }
 
   public build(): Command {
@@ -108,6 +111,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     execution.stdoutSubject.subscribe(async data => {
       if (!serverStarted && data && data.toString().includes('Server up')) {
         serverStarted = true;
+        this.onSuccess();
         progress.complete();
         notificationService
           .showSuccessfulExecution(executionName, channelService)
@@ -150,6 +154,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
             serverStarted,
             errorCode
           );
+          this.onError();
           progress.complete();
           printedError = true;
         }
@@ -166,7 +171,6 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         );
         printedError = true;
       }
-      this.onExit(exitCode);
     });
 
     notificationService.reportExecutionError(
