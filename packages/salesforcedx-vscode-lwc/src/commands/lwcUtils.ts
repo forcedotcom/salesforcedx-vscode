@@ -111,12 +111,12 @@ export const androidPlatform: LWCPlatformQuickPickItem = {
 
 export class LWCUtils {
   /**
-   * Checks whether the current process is running on Windows OS.
+   * Checks whether the current process is running on Mac OS.
    *
-   * @return A boolean indicating whether the current process is running on Windows OS.
+   * @return A boolean indicating whether the current process is running on Mac OS.
    */
-  public static isWindowsOS(): boolean {
-    return process.platform === 'win32';
+  public static isMacOS(): boolean {
+    return process.platform === 'darwin';
   }
 
   /**

@@ -87,7 +87,7 @@ async function executeCommand(
       desktopPlatform,
       androidPlatform
     ];
-    if (!LWCUtils.isWindowsOS()) {
+    if (LWCUtils.isMacOS()) {
       platformOptions.push(iOSPlatform);
     }
 
@@ -150,34 +150,48 @@ async function startServer(
   commandName: string,
   startTime: [number, number]
 ): Promise<void> {
-  try {
-    if (!DevServerService.instance.isServerHandlerRegistered()) {
-      const preconditionChecker = new SfdxWorkspaceChecker();
-      const parameterGatherer = new EmptyParametersGatherer();
-      const executor = new ForceLightningLwcStartExecutor({
-        openBrowser: isDesktop,
-        componentName
-      });
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!DevServerService.instance.isServerHandlerRegistered()) {
+        const preconditionChecker = new SfdxWorkspaceChecker();
+        const parameterGatherer = new EmptyParametersGatherer();
+        const executor = new ForceLightningLwcStartExecutor({
+          openBrowser: isDesktop,
+          componentName
+        },
+        exitCode => {
+          if (exitCode === 0) {
+            resolve();
+          } else {
+            reject();
+          }
+        });
 
-      const commandlet = new SfdxCommandlet(
-        preconditionChecker,
-        parameterGatherer,
-        executor
-      );
+        const commandlet = new SfdxCommandlet(
+          preconditionChecker,
+          parameterGatherer,
+          executor
+        );
 
-      await commandlet.run();
-      telemetryService.sendCommandEvent(logName, startTime);
-    } else if (isDesktop) {
-      const fullUrl = DevServerService.instance.getComponentPreviewUrl(
-        componentName
-      );
-      await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime);
+        await commandlet.run();
+        telemetryService.sendCommandEvent(logName, startTime);
+      } else if (isDesktop) {
+        const fullUrl = DevServerService.instance.getComponentPreviewUrl(
+          componentName
+        );
+        const success = await openBrowser(fullUrl);
+        if (success) {
+          resolve();
+        } else {
+          reject();
+        }
+        telemetryService.sendCommandEvent(logName, startTime);
+      }
+    } catch (err) {
+      showError(err, logName, commandName);
+      reject(err);
     }
-  } catch (err) {
-    showError(err, logName, commandName);
-    return Promise.reject(err);
-  }
+  });
 }
 
 /**

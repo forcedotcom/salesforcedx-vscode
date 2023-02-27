@@ -48,11 +48,16 @@ export interface ForceLightningLwcStartOptions {
 
 export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   private readonly options: ForceLightningLwcStartOptions;
+  private readonly onExit: (exitCode: number | undefined) => void;
   private errorHint?: string;
 
-  constructor(options: ForceLightningLwcStartOptions = { openBrowser: true }) {
+  constructor(
+    options: ForceLightningLwcStartOptions = { openBrowser: true },
+    onExit: (exitCode: number | undefined) => void = () => {}
+  ) {
     super();
     this.options = options;
+    this.onExit = onExit;
   }
 
   public build(): Command {
@@ -161,6 +166,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         );
         printedError = true;
       }
+      this.onExit(exitCode);
     });
 
     notificationService.reportExecutionError(

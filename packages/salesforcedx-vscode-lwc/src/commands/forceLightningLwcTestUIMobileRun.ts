@@ -139,7 +139,7 @@ async function executeConfigureCommand(projectRootDir: string): Promise<string> 
   const platformOptions: LWCPlatformQuickPickItem[] = [
     androidPlatform
   ];
-  if (!LWCUtils.isWindowsOS()) {
+  if (LWCUtils.isMacOS()) {
     platformOptions.push(iOSPlatform);
   }
 
