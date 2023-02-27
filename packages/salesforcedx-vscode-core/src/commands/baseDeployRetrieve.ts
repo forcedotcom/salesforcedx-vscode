@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
   ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
+  SfdxCommandBuilder,
   SourceTrackingService,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -38,7 +40,12 @@ import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { MetadataCacheService } from './../conflict/metadataCacheService';
 import { BaseDeployExecutor } from './baseDeployCommand';
-import { createComponentCount, formatException } from './util';
+import {
+  ConflictDetectionMessages,
+  createComponentCount,
+  formatException
+} from './util';
+import { TimestampConflictChecker } from './util/postconditionCheckers';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -100,6 +107,30 @@ export abstract class DeployRetrieveExecutor<
     const detector = new TimestampConflictDetector();
     const diffs = detector.createDiffs(cacheResult, true);
     console.log('diffs!');
+
+    const messages: ConflictDetectionMessages = {
+      warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+      commandHint: inputs => {
+        const commands: string[] = [];
+        (inputs as string[]).forEach(input => {
+          commands.push(
+            new SfdxCommandBuilder()
+              .withArg('force:source:deploy')
+              .withFlag('--sourcepath', input)
+              .build()
+              .toString()
+          );
+        });
+        const hints = commands.join('\n  ');
+
+        return hints;
+      }
+    };
+
+    const conflictChecker = new TimestampConflictChecker(false, messages);
+    const username = await ConfigUtil.getUsername();
+    await conflictChecker.handleConflicts(componentPaths, username!, diffs);
+    console.log('handled Conflicts!');
   }
 
   protected setupCancellation(
