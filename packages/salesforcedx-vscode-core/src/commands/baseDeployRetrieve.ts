@@ -106,7 +106,6 @@ export abstract class DeployRetrieveExecutor<
 
     const detector = new TimestampConflictDetector();
     const diffs = detector.createDiffs(cacheResult, true);
-    console.log('diffs!');
 
     const messages: ConflictDetectionMessages = {
       warningMessageKey: 'conflict_detect_conflicts_during_deploy',
@@ -129,8 +128,11 @@ export abstract class DeployRetrieveExecutor<
 
     const conflictChecker = new TimestampConflictChecker(false, messages);
     const username = await ConfigUtil.getUsername();
-    await conflictChecker.handleConflicts(componentPaths, username!, diffs);
-    console.log('handled Conflicts!');
+    await conflictChecker.handleConflicts(
+      componentPaths,
+      String(username),
+      diffs
+    );
   }
 
   protected setupCancellation(
