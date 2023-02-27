@@ -186,6 +186,8 @@ async function startServer(
           reject();
         }
         telemetryService.sendCommandEvent(logName, startTime);
+      } else {
+        resolve();
       }
     } catch (err) {
       showError(err, logName, commandName);

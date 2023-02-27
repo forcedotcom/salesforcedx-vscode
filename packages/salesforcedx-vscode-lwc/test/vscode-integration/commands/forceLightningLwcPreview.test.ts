@@ -9,7 +9,6 @@ import {
   ChannelService,
   Command,
   SfdxCommandBuilder,
-  SfdxCommandlet,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
@@ -26,6 +25,9 @@ import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   forceLightningLwcPreview
 } from '../../../src/commands/forceLightningLwcPreview';
+import {
+  ForceLightningLwcStartExecutor
+} from '../../../src/commands/forceLightningLwcStart';
 import {
   desktopPlatform,
   androidPlatform,
@@ -196,9 +198,13 @@ describe('forceLightningLwcPreview', () => {
 
   it('starts the server if it is not running', async () => {
     setupMobilePreviewCommand(androidPlatform, false, false);
-    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+    const stub = sandbox.stub(ForceLightningLwcStartExecutor.prototype, 'execute');
+    stub.callsFake(() => {
+      const onExit: (exitCode: number | undefined) => void = stub.thisValues[0].onExit;
+      onExit(0);
+    })
     await forceLightningLwcPreview(mockLwcFilePathUri);
-    sinon.assert.calledOnce(commandletStub);
+    sinon.assert.calledOnce(stub);
   });
 
   it('calls openBrowser with the correct url for files', async () => {
@@ -342,6 +348,8 @@ describe('forceLightningLwcPreview', () => {
 
   async function doOpenBrowserTest(urlIsDirectory: boolean) {
     const openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');
+    openBrowserStub.resolves(true);
+
     setupMobilePreviewCommand(desktopPlatform, urlIsDirectory);
     await forceLightningLwcPreview(urlIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri);
 
