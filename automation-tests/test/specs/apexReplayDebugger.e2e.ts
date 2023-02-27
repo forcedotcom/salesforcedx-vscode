@@ -93,7 +93,10 @@ describe('Debug Apex Tests', async () => {
       expect(quickPicks).not.toBeUndefined();
       expect(quickPicks.length).toBeGreaterThanOrEqual(1);
       await prompt.selectQuickPick('User User - Api');
-      await utilities.pause(1);
+
+      // Wait for the command to execute
+      await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Get Apex Debug Logs', 5 * 60);
+
       const successNotificationWasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Get Apex Debug Logs successfully ran');
       expect(successNotificationWasFound).toBe(true);
     } else {

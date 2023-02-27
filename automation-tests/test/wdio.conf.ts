@@ -88,6 +88,7 @@ export const config: Options.Testrunner = {
       // './test/specs/**/orgBrowser.e2e.ts'
       // './test/specs/**/orgCreationAndAuthentication.e2e.ts'
       // './test/specs/**/templates.e2e.ts'
+      // './test/specs/**/trailApexReplayDebugger.e2e.ts'
     ]
   ],
   // Patterns to exclude.
