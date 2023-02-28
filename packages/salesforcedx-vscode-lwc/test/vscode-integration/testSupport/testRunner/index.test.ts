@@ -80,7 +80,7 @@ describe('LWC Test Runner', () => {
           '--runTestsByPath',
           'force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js',
           '--testNamePattern',
-          '"mockTestName"'
+          'mockTestName'
         ]);
       } else {
         expect(jestExecutionInfo!.jestArgs).to.eql([
@@ -91,13 +91,13 @@ describe('LWC Test Runner', () => {
           '--runTestsByPath',
           '/var/project/mockSfdxProject/force-app/main/default/lwc/mockComponent/__tests__/mockTest.test.js',
           '--testNamePattern',
-          '"mockTestName"'
+          'mockTestName'
         ]);
       }
     });
 
     it('Should get jest execution info for test case with special characters', () => {
-      const testName = 'mockTestName (+.*)';
+      const testName = 'Mock Test Name (+.*)';
       const testUri = URI.file(testFsPath);
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
@@ -109,7 +109,7 @@ describe('LWC Test Runner', () => {
         testExecutionInfo,
         TestRunType.RUN
       ).getJestExecutionInfo(mockWorkspaceFolder as vscode.WorkspaceFolder);
-      const escapedMockTestName = 'mockTestName \\(\\+\\.\\*\\)';
+      const escapedMockTestName = 'Mock Test Name \\(\\+\\.\\*\\)';
       if (/^win32/.test(process.platform)) {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
@@ -119,7 +119,7 @@ describe('LWC Test Runner', () => {
           '--runTestsByPath',
           'force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js',
           '--testNamePattern',
-          `"${escapedMockTestName}"`
+          `${escapedMockTestName}`
         ]);
       } else {
         expect(jestExecutionInfo!.jestArgs).to.eql([
@@ -130,7 +130,7 @@ describe('LWC Test Runner', () => {
           '--runTestsByPath',
           '/var/project/mockSfdxProject/force-app/main/default/lwc/mockComponent/__tests__/mockTest.test.js',
           '--testNamePattern',
-          `"${escapedMockTestName}"`
+          `${escapedMockTestName}`
         ]);
       }
     });
