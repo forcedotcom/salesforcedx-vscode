@@ -97,43 +97,6 @@ export abstract class DeployRetrieveExecutor<
       await this.postOperation(result);
     }
   }
-  private async handleSourceConflictError(e: any) {
-    console.warn('Handling SourceConflictError from STL.');
-    const componentPaths = e.data.map(
-      (component: { filePath: any }) => component.filePath
-    );
-    const cacheResult = await MetadataCacheService.loadCacheFor(componentPaths);
-
-    const detector = new TimestampConflictDetector();
-    const diffs = detector.createDiffs(cacheResult, true);
-
-    const messages: ConflictDetectionMessages = {
-      warningMessageKey: 'conflict_detect_conflicts_during_deploy',
-      commandHint: inputs => {
-        const commands: string[] = [];
-        (inputs as string[]).forEach(input => {
-          commands.push(
-            new SfdxCommandBuilder()
-              .withArg('force:source:deploy')
-              .withFlag('--sourcepath', input)
-              .build()
-              .toString()
-          );
-        });
-        const hints = commands.join('\n  ');
-
-        return hints;
-      }
-    };
-
-    const conflictChecker = new TimestampConflictChecker(false, messages);
-    const username = await ConfigUtil.getUsername();
-    await conflictChecker.handleConflicts(
-      componentPaths,
-      String(username),
-      diffs
-    );
-  }
 
   protected setupCancellation(
     operation: DeployRetrieveOperation | undefined,
@@ -156,6 +119,72 @@ export abstract class DeployRetrieveExecutor<
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
   ): Promise<void>;
+
+  private async handleSourceConflictError(e: any) {
+    console.warn('Handling SourceConflictError from STL.');
+    const componentPaths = e.data.map(
+      (component: { filePath: any }) => component.filePath
+    );
+    const cacheResult = await MetadataCacheService.loadCacheFor(componentPaths);
+
+    const detector = new TimestampConflictDetector();
+    const diffs = detector.createDiffs(cacheResult, true);
+
+    const conflictMessages = this.getMessagesFor(this.logName);
+    if (conflictMessages) {
+      const conflictChecker = new TimestampConflictChecker(
+        false,
+        conflictMessages
+      );
+      const username = await ConfigUtil.getUsername();
+      await conflictChecker.handleConflicts(
+        componentPaths,
+        String(username),
+        diffs
+      );
+    }
+  }
+
+  private getMessagesFor(logName: string) {
+    const messagesForDeploySourcePath: ConflictDetectionMessages = {
+      warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+      commandHint: inputs => {
+        const commands: string[] = [];
+        (inputs as string[]).forEach(input => {
+          commands.push(
+            new SfdxCommandBuilder()
+              .withArg('force:source:deploy')
+              .withFlag('--sourcepath', input)
+              .build()
+              .toString()
+          );
+        });
+        const hints = commands.join('\n  ');
+
+        return hints;
+      }
+    };
+
+    const messagesForDeployManifest: ConflictDetectionMessages = {
+      warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+      commandHint: input => {
+        return new SfdxCommandBuilder()
+          .withArg('force:source:deploy')
+          .withFlag('--manifest', input as string)
+          .build()
+          .toString();
+      }
+    };
+
+    switch (logName) {
+      case 'force_source_deploy_with_sourcepath_beta':
+        return messagesForDeploySourcePath;
+        break;
+      case 'force_source_deploy_with_manifest_beta':
+        return messagesForDeployManifest;
+        break;
+    }
+  }
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
