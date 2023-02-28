@@ -35,10 +35,6 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     registeredStartedFunctionDisposable.dispose();
   }
 
-  public async buildFunction(): Promise<void> {
-    console.log('No build for containerless function');
-  }
-
   public async startFunction(functionName: string, functionDirPath: string): Promise<void> {
     const functionLanguage = FunctionService.instance.getFunctionType();
     channelService.appendLine(
@@ -52,7 +48,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     });
 
     const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
-    FunctionService.instance.updateFunction(functionDirPath, debugType, true);
+    FunctionService.instance.updateFunction(functionDirPath, debugType);
 
     this.process = await localRun.exec()
       .catch((err: Error) => {
