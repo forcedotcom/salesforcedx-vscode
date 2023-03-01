@@ -54,8 +54,6 @@ describe('Run Apex Tests', async () => {
   //   const opt1 = await codeLenses[0].getText();
   //   const opt2 = await codeLenses[1].getText();
   //   const codeLens = await textEditor.getCodeLens('Run All Tests') as CodeLens;
-  //   // tslint:disable-next-line:no-debugger
-  //   debugger;
   //   await (await codeLens.elem).click();
 
   //   // Wait for the command to execute
@@ -346,7 +344,7 @@ describe('Run Apex Tests', async () => {
     expect(iconStyle).toContain('testPass');
   });
 
-  step('Run a test that fails', async () => {
+  step('Run a test that fails and fix it', async () => {
     const workbench = await browser.getWorkbench();
 
     // Create Apex class AccountService
@@ -378,10 +376,48 @@ describe('Run Apex Tests', async () => {
     }
 
     // Verify test results are listed on vscode's Output section
-    const outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    let outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
     expect(outputPanelText).not.toBeUndefined();
     expect(outputPanelText).toContain('Assertion Failed: incorrect ticker symbol');
     expect(outputPanelText).toContain('Expected: CRM, Actual: SFDC');
+
+    // Fix test
+    let textEditor: TextEditor;
+    const editorView = workbench.getEditorView();
+    textEditor = await editorView.openEditor('AccountService.cls') as TextEditor;
+    await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
+    await textEditor.save();
+    await utilities.pause(1);
+
+    // Push source to scratch org
+    await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Push Source to Default Scratch Org and Override Conflicts', 6);
+
+    // Run SFDX: Run Apex tests to verify fix
+    prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Tests', 1);
+
+    // Select the "AccountServiceTest" file
+    await prompt.selectQuickPick('AccountServiceTest');
+
+    // Wait for the command to execute
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Listening for streaming state changes...', 5 * 60);
+    await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests: Processing test run', 5 * 60, false);
+
+    const successNotification2WasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests successfully ran');
+    if (successNotification2WasFound !== true) {
+      const failureNotification2WasFound = await utilities.notificationIsPresent(workbench, 'SFDX: Run Apex Tests failed to run');
+      if (failureNotification2WasFound === true) {
+        expect(successNotification2WasFound).toBe(false);
+      }
+    } else {
+      expect(successNotification2WasFound).toBe(true);
+
+      // Verify test results are listed on vscode's Output section
+      outputPanelText = await utilities.attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+      expect(outputPanelText).not.toBeUndefined();
+      expect(outputPanelText).toContain('AccountServiceTest.should_create_account');
+      expect(outputPanelText).toContain('Pass');
+    }
   });
 
   step('Create Apex Test Suite', async () => {
