@@ -39,7 +39,7 @@ describe('Find and Fix Bugs with Apex Replay Debugger', async () => {
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Tests', 1);
 
     // Select the "AccountServiceTest" file
-    prompt.selectQuickPick('AccountServiceTest');
+    await prompt.selectQuickPick('AccountServiceTest');
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
@@ -105,7 +105,7 @@ describe('Find and Fix Bugs with Apex Replay Debugger', async () => {
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Tests', 1);
 
     // Select the "AccountServiceTest" file
-    prompt.selectQuickPick('AccountServiceTest');
+    await prompt.selectQuickPick('AccountServiceTest');
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
@@ -136,7 +136,7 @@ describe('Find and Fix Bugs with Apex Replay Debugger', async () => {
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Get Apex Debug Logs', 1);
 
     // Select the "AccountServiceTest" file
-    prompt.selectQuickPick('AccountServiceTest');
+    await prompt.selectQuickPick('AccountServiceTest');
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Getting Apex debug logs', 5 * 60);
@@ -205,7 +205,7 @@ describe('Find and Fix Bugs with Apex Replay Debugger', async () => {
     prompt = await utilities.runCommandFromCommandPrompt(workbench, 'SFDX: Run Apex Tests', 1);
 
     // Select the "AccountServiceTest" file
-    prompt.selectQuickPick('AccountServiceTest');
+    await prompt.selectQuickPick('AccountServiceTest');
 
     // Wait for the command to execute
     await utilities.waitForNotificationToGoAway(workbench, 'Running SFDX: Run Apex Tests', 5 * 60);
