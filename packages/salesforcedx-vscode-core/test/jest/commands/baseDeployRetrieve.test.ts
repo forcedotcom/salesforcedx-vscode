@@ -11,8 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import {
-  DeployExecutor} from '../../../src/commands/baseDeployRetrieve';
+import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
 const dummyProjectPath = '/a/project/path';
@@ -50,7 +49,7 @@ jest.mock('../../../src/messages', () => {
   return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
 
-// jest.mock('../../../src/commands/baseDeployRetrieve/RetrieveExecutor');
+jest.mock('../../../src/conflict/metadataCacheService');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
