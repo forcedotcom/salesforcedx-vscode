@@ -145,9 +145,14 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  private getMessagesFor(logName: string) {
-    const messagesForDeploySourcePath: ConflictDetectionMessages = {
-      warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+  private getMessagesFor(
+    logName: string
+  ): ConflictDetectionMessages | undefined {
+    const messagesByLogName: Map<string, ConflictDetectionMessages> = new Map();
+    const warningMessageKey = 'conflict_detect_conflicts_during_deploy';
+
+    messagesByLogName.set('force_source_deploy_with_sourcepath_beta', {
+      warningMessageKey,
       commandHint: inputs => {
         const commands: string[] = [];
         (inputs as string[]).forEach(input => {
@@ -163,10 +168,9 @@ export abstract class DeployRetrieveExecutor<
 
         return hints;
       }
-    };
-
-    const messagesForDeployManifest: ConflictDetectionMessages = {
-      warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    });
+    messagesByLogName.set('force_source_deploy_with_manifest_beta', {
+      warningMessageKey,
       commandHint: input => {
         return new SfdxCommandBuilder()
           .withArg('force:source:deploy')
@@ -174,16 +178,13 @@ export abstract class DeployRetrieveExecutor<
           .build()
           .toString();
       }
-    };
+    });
 
-    switch (logName) {
-      case 'force_source_deploy_with_sourcepath_beta':
-        return messagesForDeploySourcePath;
-        break;
-      case 'force_source_deploy_with_manifest_beta':
-        return messagesForDeployManifest;
-        break;
+    const conflictMessages = messagesByLogName.get(logName);
+    if (!conflictMessages) {
+      throw new Error(`No conflict messages found for ${logName}`);
     }
+    return conflictMessages;
   }
 }
 
