@@ -82,7 +82,7 @@ export const forceSourceDeploySourcePaths = async (
     }
   }
 
-  const messagesForDeploySourcePath: ConflictDetectionMessages = {
+  const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
     commandHint: inputs => {
       const commands: string[] = [];
@@ -107,7 +107,7 @@ export const forceSourceDeploySourcePaths = async (
     new LibraryDeploySourcePathExecutor(),
     new CompositePostconditionChecker(
       new SourcePathChecker(),
-      new TimestampConflictChecker(false, messagesForDeploySourcePath)
+      new TimestampConflictChecker(false, messages)
     )
   );
 
