@@ -88,10 +88,20 @@ export abstract class DeployRetrieveExecutor<
       );
     } catch (e) {
       if (e.name === 'SourceConflictError') {
-        await this.handleSourceConflictError(e);
-        return true;
+        if (
+          this.logName ===
+          ('force_source_deploy_with_sourcepath_beta' ||
+            'force_source_deploy_with_manifest_beta')
+        ) {
+          await this.handleSourceConflictError(e);
+          return true;
+        } else {
+          // Retrieve operation - do not handle - for now
+          return true;
+        }
       } else {
-        throw formatException(e);
+        // Error but not a Source Conflict Error
+        throw e;
       }
     } finally {
       await this.postOperation(result);
