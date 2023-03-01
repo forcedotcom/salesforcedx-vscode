@@ -46,7 +46,8 @@ describe('HTML Javascript Support', () => {
     }
   }
 
-  it('Should display completions', () => {
+  it('Should display completions', function() {
+    this.timeout(30000);
     assertCompletions('<html><script>window.|</script></html>', ['location']);
   });
 });

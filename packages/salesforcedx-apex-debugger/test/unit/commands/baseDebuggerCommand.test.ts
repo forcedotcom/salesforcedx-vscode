@@ -32,7 +32,7 @@ export function getDefaultHeaders(contentLength: number): any {
     'Content-Type': 'application/json;charset=utf-8',
     Accept: 'application/json',
     Authorization: `OAuth 123`,
-    'Content-Length': contentLength,
+    'Content-Length': String(contentLength),
     'Sforce-Call-Options': `client=${CLIENT_ID}`
   };
 }
