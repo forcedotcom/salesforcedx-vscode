@@ -33,17 +33,12 @@ jest.mock('../../../src/conflict/metadataCacheService');
 
 describe('Retrieve Executor', () => {
   const dummyProcessCwd = '/';
-  const workspaceContextGetInstanceSpy = jest.spyOn(
-    WorkspaceContext,
-    'getInstance'
-  );
-  const mockWorkspaceContext = { getConnection: jest.fn() } as any;
-  const createSourceTrackingSpy = jest.spyOn(
-    SourceTrackingService,
-    'createSourceTracking'
-  );
   const dummyComponentSet = new ComponentSet();
-  const retrieveSpy = jest.spyOn(dummyComponentSet, 'retrieve');
+  const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+
+  let workspaceContextGetInstanceSpy: jest.SpyInstance;
+  let createSourceTrackingSpy: jest.SpyInstance;
+  let retrieveSpy: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
     protected getComponents(
@@ -59,9 +54,15 @@ describe('Retrieve Executor', () => {
     jest
       .spyOn(ConfigUtil, 'getUsername')
       .mockResolvedValue('test@username.com');
-    workspaceContextGetInstanceSpy.mockReturnValue(mockWorkspaceContext);
-    createSourceTrackingSpy.mockResolvedValue({} as any);
-    retrieveSpy.mockResolvedValue({ pollStatus: jest.fn() } as any);
+    workspaceContextGetInstanceSpy = jest
+      .spyOn(WorkspaceContext, 'getInstance')
+      .mockReturnValue(mockWorkspaceContext);
+    createSourceTrackingSpy = jest
+      .spyOn(SourceTrackingService, 'createSourceTracking')
+      .mockResolvedValue({} as any);
+    retrieveSpy = jest
+      .spyOn(dummyComponentSet, 'retrieve')
+      .mockResolvedValue({ pollStatus: jest.fn() } as any);
   });
 
   it('should create Source Tracking before retrieving', async () => {
