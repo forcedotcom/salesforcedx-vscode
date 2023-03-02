@@ -16,6 +16,11 @@ export class SourceTrackingService {
     projectPath: string,
     connection: Connection
   ): Promise<SourceTracking> {
+    // Since SourceTracking is initialized with an SfProject, which
+    // contains the project path, and PR #4643 made it so that VSCE is
+    // running with process.cwd set as the project root, there
+    // is no need to call process.chdir here as has been done in VSCE
+    // with other core types like Config and ConfigAggregator.
     const project = await SfProject.resolve(projectPath);
     const org = await Org.create({ connection });
     const options: SourceTrackingOptions = {
