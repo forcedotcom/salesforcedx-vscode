@@ -77,7 +77,6 @@
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
   "force_function_create": "SFDX: Create Function",
   "force_function_start": "SFDX: Start Function",
-  "force_function_start_container": "SFDX: Start Function in Container",
   "force_function_invoke": "SFDX: Invoke Function",
   "force_function_debug_invoke": "SFDX: Debug Function",
   "force_function_stop": "SFDX: Stop Function",
