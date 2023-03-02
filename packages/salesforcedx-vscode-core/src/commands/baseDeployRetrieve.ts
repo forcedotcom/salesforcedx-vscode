@@ -131,7 +131,6 @@ export abstract class DeployRetrieveExecutor<
   ): Promise<void>;
 
   private async handleSourceConflictError(e: any) {
-    console.warn('Handling SourceConflictError from STL.');
     const componentPaths = e.data.map(
       (component: { filePath: any }) => component.filePath
     );
