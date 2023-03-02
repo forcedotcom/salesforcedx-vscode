@@ -119,25 +119,6 @@ export const forceSourceRetrieveSourcePaths = async (
     uris.push(sourceUri);
   }
 
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-    commandHint: inputs => {
-      const commands: string[] = [];
-      (inputs as string[]).forEach(input => {
-        commands.push(
-          new SfdxCommandBuilder()
-            .withArg('force:source:retrieve')
-            .withFlag('--sourcepath', input)
-            .build()
-            .toString()
-        );
-      });
-      const hints = commands.join('\n  ');
-
-      return hints;
-    }
-  };
-
   const commandlet = new SfdxCommandlet<string[]>(
     new SfdxWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
