@@ -96,12 +96,19 @@ export abstract class DeployRetrieveExecutor<
           await this.handleSourceConflictError(e);
           return true;
         } else {
-          // Retrieve operation - do not handle - for now
+          // Retrieve operation - proceed and do not handle or throw.
+          // Per the docs, the Conflict Detection at Sync
+          // setting only enables conflict detection for
+          // deployment operations.  For Retrieve operations
+          // it is suggested to run SFDX: Diff Component with
+          // Default Org to check for conflicts before retrieving.
           return true;
         }
       } else {
-        // Error but not a Source Conflict Error
-        throw e;
+        // Error, but not a Source Conflict Error.  Prior to adding
+        // SourceTracking, this was the only statement in the catch
+        // block.
+        throw formatException(e);
       }
     } finally {
       await this.postOperation(result);
