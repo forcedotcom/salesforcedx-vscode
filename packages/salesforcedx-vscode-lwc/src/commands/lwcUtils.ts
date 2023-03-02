@@ -125,9 +125,9 @@ export class LWCUtils {
    * @param filePath A file path.
    * @return A string containg the file path in UNIX path style.
    */
-    public static convertToUnixPath(filePath: string): string {
-      return filePath.replace(/\\/g, '/');
-    }
+  public static convertToUnixPath(filePath: string): string {
+    return filePath.replace(/\\/g, '/');
+  }
 
   /**
    * Sends an error to telemetryService + notificationService + channelService, and
@@ -275,6 +275,7 @@ export class LWCUtils {
    * @param browseKind Indicates whether an Open or Save dialog should be displayed.
    * @param allowEmptyInput Indicates whether an empty/whitespace string is considered as valid input.
    * @param defaultPath The default path to be used when showing Open/Save dialog.
+   * @param themeIconId A ThemeIcon id to be used to fetch an icon for the browse button.
    * @return A promise that resolves to a string the user provided.
    */
   public static async getFilePath(
@@ -282,11 +283,12 @@ export class LWCUtils {
     placeholder: string | undefined,
     browseKind: FileBrowseKind,
     allowEmptyInput: boolean = false,
-    defaultPath?: string | undefined
+    defaultPath?: string | undefined,
+    themeIconId: string = 'folder-opened'
   ): Promise<string> {
     const browseButton: InputBoxButton = {
       button: {
-        iconPath: new vscode.ThemeIcon('folder-opened'),
+        iconPath: LWCUtils.getThemeIcon(themeIconId),
         tooltip: nls.localize('force_lightning_lwc_file_browse')
       },
 
@@ -317,6 +319,11 @@ export class LWCUtils {
     };
 
     return LWCUtils.getUserInput(title, placeholder, [browseButton], allowEmptyInput);
+  }
+
+  // helper method (added to simplify jest testing of getFilePath)
+  public static getThemeIcon(id: string): vscode.ThemeIcon | vscode.Uri {
+    return new vscode.ThemeIcon(id);
   }
 
   /**

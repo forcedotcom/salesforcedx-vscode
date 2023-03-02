@@ -37,7 +37,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri): Promise<v
   const logName = 'force_lightning_lwc_preview';
   const commandName = nls.localize('force_lightning_lwc_preview_text');
   const startTime = process.hrtime();
-  const resourceUri: vscode.Uri | undefined = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
+  const resourceUri: vscode.Uri | undefined = sourceUri ?? vscode.window.activeTextEditor?.document?.uri;
   const resourcePath: string | undefined = resourceUri?.fsPath;
 
   if (!resourceUri) {

@@ -38,7 +38,7 @@ let startTime: [number, number] = [0, 0];
 
 export async function forceLightningLwcTestUIMobileRun(sourceUri: vscode.Uri): Promise<void> {
   startTime = process.hrtime();
-  const resourceUri: vscode.Uri | undefined = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
+  const resourceUri: vscode.Uri | undefined = sourceUri ?? vscode.window.activeTextEditor?.document?.uri;
   let resourcePath: string | undefined = resourceUri?.fsPath;
 
   if (resourcePath) {
