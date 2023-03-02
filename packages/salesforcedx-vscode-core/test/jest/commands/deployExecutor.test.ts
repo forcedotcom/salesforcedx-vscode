@@ -14,11 +14,9 @@ import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
-const dummyProjectPath = '/a/project/path';
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
     ...jest.requireActual('@salesforce/source-deploy-retrieve'),
-    getRootWorkspacePath: () => dummyProjectPath,
     ComponentSet: jest.fn().mockImplementation(() => {
       return {
         deploy: jest.fn().mockImplementation(() => {
@@ -31,22 +29,6 @@ jest.mock('@salesforce/source-deploy-retrieve', () => {
       };
     })
   };
-});
-
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-  return {
-    ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-    getRootWorkspacePath: () => dummyProjectPath,
-    ChannelService: jest.fn().mockImplementation(() => {
-      return {};
-    }),
-    TelemetryService: { getInstance: jest.fn() },
-    TelemetryBuilder: jest.fn()
-  };
-});
-
-jest.mock('../../../src/messages', () => {
-  return { loadMessageBundle: jest.fn(), nls: { localize: jest.fn() } };
 });
 
 jest.mock('../../../src/conflict/metadataCacheService');
