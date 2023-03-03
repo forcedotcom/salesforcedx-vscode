@@ -83,4 +83,30 @@ describe('Deploy Executor', () => {
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
   });
+
+  it('should handle a SourceConflict error', async () => {
+    /*
+    // Arrange
+    const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
+    (executor as any).doOperation = jest.fn().mockResolvedValue({
+      throw: Error = {
+        name: 'SourceConflictError',
+        message: '2 Conflicts'
+      } as any
+    });
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(deploySpy).toHaveBeenCalled();
+    const createSourceTrackingCallOrder =
+      createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
+    expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
+    // Todo: expect conflict to be handled
+  */
+  });
 });
