@@ -117,22 +117,6 @@ export class MetadataCacheService {
     return this.processResults(results);
   }
 
-  /**
-   * @description Convenience method for loading the cache for
-   * specific components using the current default username
-   */
-  public static async loadCacheFor(componentPaths: any) {
-    const username = await ConfigUtil.getUsername();
-    const cacheService = new MetadataCacheService(String(username));
-
-    const cacheResult = await cacheService.loadCache(
-      componentPaths,
-      workspaceUtils.getRootWorkspacePath(),
-      false
-    );
-    return cacheResult;
-  }
-
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
       const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();

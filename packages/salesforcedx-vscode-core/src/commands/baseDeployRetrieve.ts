@@ -13,7 +13,8 @@ import {
   Row,
   SfdxCommandBuilder,
   SourceTrackingService,
-  Table
+  Table,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -141,7 +142,13 @@ export abstract class DeployRetrieveExecutor<
     const componentPaths = e.data.map(
       (component: { filePath: any }) => component.filePath
     );
-    const cacheResult = await MetadataCacheService.loadCacheFor(componentPaths);
+    const username = await ConfigUtil.getUsername();
+    const metadataCacheService = new MetadataCacheService(String(username));
+    const cacheResult = await metadataCacheService.loadCache(
+      componentPaths,
+      workspaceUtils.getRootWorkspacePath(),
+      false
+    );
 
     const detector = new TimestampConflictDetector();
     const diffs = detector.createDiffs(cacheResult, true);
@@ -152,7 +159,6 @@ export abstract class DeployRetrieveExecutor<
         false,
         conflictMessages
       );
-      const username = await ConfigUtil.getUsername();
       await conflictChecker.handleConflicts(
         componentPaths,
         String(username),
