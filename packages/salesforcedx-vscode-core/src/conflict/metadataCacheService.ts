@@ -123,7 +123,7 @@ export class MetadataCacheService {
    */
   public static async loadCacheFor(componentPaths: any) {
     const username = await ConfigUtil.getUsername();
-    const cacheService = new MetadataCacheService(username!);
+    const cacheService = new MetadataCacheService(String(username));
 
     const cacheResult = await cacheService.loadCache(
       componentPaths,
