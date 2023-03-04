@@ -88,11 +88,8 @@ describe('Deploy Executor', () => {
     /*
     // Arrange
     const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
-    (executor as any).doOperation = jest.fn().mockResolvedValue({
-      throw: Error = {
-        name: 'SourceConflictError',
-        message: '2 Conflicts'
-      } as any
+    (executor as any).doOperation = jest.fn().mockImplementation(() => {
+      throw new Error();
     });
     (executor as any).setupCancellation = jest.fn();
 
@@ -107,6 +104,6 @@ describe('Deploy Executor', () => {
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     // Todo: expect conflict to be handled
-  */
+    */
   });
 });
