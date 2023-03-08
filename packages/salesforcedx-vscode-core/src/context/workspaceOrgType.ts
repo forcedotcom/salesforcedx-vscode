@@ -22,13 +22,15 @@ export async function getWorkspaceOrgType(
     throw e;
   }
   const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
+  const hasChangeTracking = await OrgAuthInfo.hasChangeTracking(
+    username
+  ).catch(err =>
     telemetryService.sendException(
-      'get_workspace_org_type_scratch_org',
+      'get_workspace_org_type_has_change_tracking',
       err.message
     )
   );
-  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  return hasChangeTracking ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
 import {
   ConfigSource,
   ConfigUtil
@@ -112,6 +112,13 @@ export class OrgAuthInfo {
     return Promise.resolve(
       typeof authInfoFields.devHubUsername !== 'undefined'
     );
+  }
+
+  public static async hasChangeTracking(username: string): Promise<boolean> {
+    // authInfo.getFields().tracksSource is not always set, org.tracksSource() is handling setting it first if needed
+    const org = await Org.create({ aliasOrUsername: username });
+    const hasChangeTracking = await org.tracksSource();
+    return Promise.resolve(hasChangeTracking);
   }
 
   public static async getConnection(
