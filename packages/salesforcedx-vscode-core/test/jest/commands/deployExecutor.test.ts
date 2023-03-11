@@ -55,20 +55,20 @@ describe('Deploy Executor', () => {
     ): Promise<ComponentSet> {
       return new Promise(resolve => resolve(new ComponentSet()));
     }
-    protected async doOperation(
-      components: ComponentSet,
-      token: vscode.CancellationToken
-    ): Promise<DeployResult | undefined> {
-      if (this.throwSourceConflictError) {
-        // const dummySourceConflictError = new Error();
-        // dummySourceConflictError.name = 'SourceConflictError';
-        // throw dummySourceConflictError;
-        const e = new Error('SourceConflictError');
-        e.name = 'SourceConflictError';
-        throw e;
-      }
-      return undefined;
-    }
+    // protected async doOperation(
+    //   components: ComponentSet,
+    //   token: vscode.CancellationToken
+    // ): Promise<DeployResult | undefined> {
+    //   if (this.throwSourceConflictError) {
+    //     // const dummySourceConflictError = new Error();
+    //     // dummySourceConflictError.name = 'SourceConflictError';
+    //     // throw dummySourceConflictError;
+    //     const e = new Error('SourceConflictError');
+    //     e.name = 'SourceConflictError';
+    //     throw e;
+    //   }
+    //   return undefined;
+    // }
   }
 
   beforeEach(async () => {
@@ -90,7 +90,13 @@ describe('Deploy Executor', () => {
 
   it('should create Source Tracking before deploying', async () => {
     // Arrange
-    const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
+    deploySpy = jest
+      .spyOn(dummyComponentSet, 'deploy')
+      .mockResolvedValue({ pollStatus: jest.fn() } as any);
+    const executor = new TestDeployExecutor(
+      'testDeploy',
+      'force_source_deploy_with_sourcepath_beta'
+    );
     (executor as any).setupCancellation = jest.fn();
 
     // Act
