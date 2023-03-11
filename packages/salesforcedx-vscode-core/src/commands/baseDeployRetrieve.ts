@@ -123,9 +123,7 @@ export abstract class DeployRetrieveExecutor<
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
   ): Promise<void>;
-  protected abstract handleSourceConflictError(
-    e: any
-  ): void;
+  protected abstract handleSourceConflictError(e: any): void;
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
@@ -150,7 +148,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     return operation.pollStatus();
   }
 
-    protected async handleSourceConflictError(e: any) {
+  protected async handleSourceConflictError(e: any) {
     const componentPaths = e.data.map(
       (component: { filePath: any }) => component.filePath
     );
@@ -333,7 +331,9 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     // deployment operations.  For Retrieve operations
     // it is suggested to run SFDX: Diff* commands
     // to check for conflicts before retrieving.
-    console.info('SourceConflictError reported.  Use SFDX: Diff File Against Org and SFDX: Diff Folder Against Org to detect and view conflicts in advance of any retrieve operation.');
+    console.info(
+      'SourceConflictError reported.  Use SFDX: Diff File Against Org and SFDX: Diff Folder Against Org to detect and view conflicts in advance of any retrieve operation.'
+    );
   }
 
   protected async postOperation(

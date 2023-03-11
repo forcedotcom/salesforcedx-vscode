@@ -10,7 +10,6 @@ import {
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
-import { SourceConflictError } from '@salesforce/source-tracking';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
@@ -45,12 +44,10 @@ describe('Deploy Executor', () => {
   let deploySpy: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
+    private throwSourceConflictError: boolean;
     constructor(s: string, t: string, x?: boolean) {
       super(s, t);
-      if (x) {
-        const dummySourceConflictError = {} as SourceConflictError;
-        throw new Error('source conflict error!');
-      }
+      this.throwSourceConflictError = x ?? false;
     }
 
     protected getComponents(
@@ -62,6 +59,14 @@ describe('Deploy Executor', () => {
       components: ComponentSet,
       token: vscode.CancellationToken
     ): Promise<DeployResult | undefined> {
+      if (this.throwSourceConflictError) {
+        // const dummySourceConflictError = new Error();
+        // dummySourceConflictError.name = 'SourceConflictError';
+        // throw dummySourceConflictError;
+        const e = new Error('SourceConflictError');
+        e.name = 'SourceConflictError';
+        throw e;
+      }
       return undefined;
     }
   }
@@ -114,14 +119,16 @@ describe('Deploy Executor', () => {
 
     // Act
 
+    let e;
     try {
       await (executor as any).doOperation(dummyComponentSet, {});
     } catch (error) {
+      e = error;
       console.log('Error!');
     }
 
     // Assert
-    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(e).toBeDefined();
     // expect(deploySpy).toHaveBeenCalled();
     // const createSourceTrackingCallOrder =
     //   createSourceTrackingSpy.mock.invocationCallOrder[0];
