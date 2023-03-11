@@ -89,22 +89,8 @@ export abstract class DeployRetrieveExecutor<
       );
     } catch (e) {
       if (e.name === 'SourceConflictError') {
-        if (
-          this.logName ===
-          ('force_source_deploy_with_sourcepath_beta' ||
-            'force_source_deploy_with_manifest_beta')
-        ) {
-          await this.handleSourceConflictError(e);
-          return true;
-        } else {
-          // Retrieve operation - proceed and do not handle or throw.
-          // Per the docs, the Conflict Detection at Sync
-          // setting only enables conflict detection for
-          // deployment operations.  For Retrieve operations
-          // it is suggested to run SFDX: Diff Component with
-          // Default Org to check for conflicts before retrieving.
-          return true;
-        }
+        this.handleSourceConflictError(e);
+        return true;
       } else {
         // Error, but not a Source Conflict Error.  Prior to adding
         // SourceTracking, this was the only statement in the catch
@@ -137,8 +123,34 @@ export abstract class DeployRetrieveExecutor<
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
   ): Promise<void>;
+  protected abstract handleSourceConflictError(
+    e: any
+  ): void;
+}
 
-  private async handleSourceConflictError(e: any) {
+export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
+  protected async doOperation(
+    components: ComponentSet,
+    token: vscode.CancellationToken
+  ): Promise<DeployResult | undefined> {
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
+
+    const operation = await components.deploy({
+      usernameOrConnection: connection
+    });
+
+    this.setupCancellation(operation, token);
+
+    return operation.pollStatus();
+  }
+
+    protected async handleSourceConflictError(e: any) {
     const componentPaths = e.data.map(
       (component: { filePath: any }) => component.filePath
     );
@@ -207,29 +219,6 @@ export abstract class DeployRetrieveExecutor<
       throw new Error(`No conflict messages found for ${logName}`);
     }
     return conflictMessages;
-  }
-}
-
-export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
-  protected async doOperation(
-    components: ComponentSet,
-    token: vscode.CancellationToken
-  ): Promise<DeployResult | undefined> {
-    const projectPath = getRootWorkspacePath();
-    const connection = await WorkspaceContext.getInstance().getConnection();
-
-    const sourceTracking = await SourceTrackingService.createSourceTracking(
-      projectPath,
-      connection
-    );
-
-    const operation = await components.deploy({
-      usernameOrConnection: connection
-    });
-
-    this.setupCancellation(operation, token);
-
-    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -332,6 +321,19 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     return operation.pollStatus();
+  }
+
+  protected async handleSourceConflictError(e: any) {
+    const componentPaths = e.data.map(
+      (component: { filePath: any }) => component.filePath
+    );
+    // Retrieve operation - proceed and do not handle or throw.
+    // Per the docs, the Conflict Detection at Sync
+    // setting only enables conflict detection for
+    // deployment operations.  For Retrieve operations
+    // it is suggested to run SFDX: Diff* commands
+    // to check for conflicts before retrieving.
+    console.info('SourceConflictError reported.  Use SFDX: Diff File Against Org and SFDX: Diff Folder Against Org to detect and view conflicts in advance of any retrieve operation.');
   }
 
   protected async postOperation(
