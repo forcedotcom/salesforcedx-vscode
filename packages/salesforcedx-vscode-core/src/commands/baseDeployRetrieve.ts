@@ -40,7 +40,7 @@ import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { MetadataCacheService } from './../conflict/metadataCacheService';
-import { BaseDeployExecutor } from './baseDeployCommand';
+import { BaseDeployExecutor } from './baseDeployExecutor';
 import {
   ConflictDetectionMessages,
   createComponentCount,

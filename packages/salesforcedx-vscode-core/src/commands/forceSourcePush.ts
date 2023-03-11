@@ -10,7 +10,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
+import { BaseDeployExecutor, DeployType } from './baseDeployExecutor';
 import {
   CommandParams,
   CommandVersion,
