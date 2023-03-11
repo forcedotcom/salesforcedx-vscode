@@ -17,7 +17,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { RetrieveExecutor } from './deployRetrieveExecutor';
+import { RetrieveExecutor } from './retrieveExecutor';
 import {
   ConflictDetectionMessages,
   LibraryPathsGatherer,

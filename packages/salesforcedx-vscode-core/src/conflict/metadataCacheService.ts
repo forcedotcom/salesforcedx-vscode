@@ -20,7 +20,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
-import { RetrieveExecutor } from '../commands/deployRetrieveExecutor';
+import { RetrieveExecutor } from '../commands/retrieveExecutor';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { SfdxPackageDirectories } from '../sfdxProject';

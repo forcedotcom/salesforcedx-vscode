@@ -7,9 +7,13 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandExecution, ContinueResponse, Measurements, ParametersGatherer,
+  CommandExecution,
+  ContinueResponse,
+  Measurements,
+  ParametersGatherer,
   PostconditionChecker,
-  PreconditionChecker, Properties,
+  PreconditionChecker,
+  Properties,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
