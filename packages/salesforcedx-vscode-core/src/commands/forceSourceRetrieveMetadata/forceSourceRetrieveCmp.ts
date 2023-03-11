@@ -10,7 +10,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
-  RetrieveResult} from '@salesforce/source-deploy-retrieve';
+  RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -18,11 +19,8 @@ import { RetrieveMetadataTrigger } from '.';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { workspaceUtils } from '../../util';
-import { RetrieveExecutor } from '../baseDeployRetrieve';
-import {
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../util';
+import { RetrieveExecutor } from '../deployRetrieveExecutor';
+import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 

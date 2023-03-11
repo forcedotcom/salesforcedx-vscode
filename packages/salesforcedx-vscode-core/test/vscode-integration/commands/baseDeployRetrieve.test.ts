@@ -43,7 +43,7 @@ import {
   DeployExecutor,
   DeployRetrieveExecutor,
   RetrieveExecutor
-} from '../../../src/commands/baseDeployRetrieve';
+} from '../../../src/commands/deployRetrieveExecutor';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';

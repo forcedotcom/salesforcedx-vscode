@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { RetrieveExecutor } from '../../../src/commands/deployRetrieveExecutor';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
