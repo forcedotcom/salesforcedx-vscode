@@ -9,8 +9,10 @@ import {
   ContinueResponse,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import { SourceConflictError } from '@salesforce/source-tracking';
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
@@ -43,10 +45,24 @@ describe('Deploy Executor', () => {
   let deploySpy: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
+    constructor(s: string, t: string, x?: boolean) {
+      super(s, t);
+      if (x) {
+        const dummySourceConflictError = {} as SourceConflictError;
+        throw new Error('source conflict error!');
+      }
+    }
+
     protected getComponents(
       response: ContinueResponse<{}>
     ): Promise<ComponentSet> {
       return new Promise(resolve => resolve(new ComponentSet()));
+    }
+    protected async doOperation(
+      components: ComponentSet,
+      token: vscode.CancellationToken
+    ): Promise<DeployResult | undefined> {
+      return undefined;
     }
   }
 
@@ -85,25 +101,32 @@ describe('Deploy Executor', () => {
   });
 
   it('should handle a SourceConflict error', async () => {
-    /*
     // Arrange
-    const executor = new TestDeployExecutor('testDeploy', 'testDeployLog');
-    (executor as any).doOperation = jest.fn().mockImplementation(() => {
-      throw new Error();
-    });
+    const executor = new TestDeployExecutor(
+      'testDeploy',
+      'testDeployLog',
+      true
+    );
+    // (executor as any).doOperation = jest.fn().mockImplementation(() => {
+    //   throw new Error();
+    // });
     (executor as any).setupCancellation = jest.fn();
 
     // Act
-    await (executor as any).doOperation(dummyComponentSet, {});
+
+    try {
+      await (executor as any).doOperation(dummyComponentSet, {});
+    } catch (error) {
+      console.log('Error!');
+    }
 
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
-    expect(deploySpy).toHaveBeenCalled();
-    const createSourceTrackingCallOrder =
-      createSourceTrackingSpy.mock.invocationCallOrder[0];
-    const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
-    expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
+    // expect(deploySpy).toHaveBeenCalled();
+    // const createSourceTrackingCallOrder =
+    //   createSourceTrackingSpy.mock.invocationCallOrder[0];
+    // const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
+    // expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     // Todo: expect conflict to be handled
-    */
   });
 });
