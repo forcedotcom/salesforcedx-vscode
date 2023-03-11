@@ -24,15 +24,10 @@ jest.mock('@salesforce/core', () => {
     Global: {
       SFDX_STATE_FOLDER: '.sfdx',
       STATE_FOLDER: '.sfdx'
-    },
-    Messages: {
-      importMessagesDirectory: jest.fn(),
-      load: jest.fn()
     }
   };
 });
 
-jest.mock('@salesforce/source-deploy-retrieve');
 jest.mock('@salesforce/source-tracking', () => {
   return {};
 });
