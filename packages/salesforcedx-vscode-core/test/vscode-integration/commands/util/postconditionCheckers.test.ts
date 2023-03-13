@@ -1,3 +1,4 @@
+import { OrgType } from './../../../../src/context/workspaceOrgType';
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -29,6 +30,8 @@ import {
 } from '../../../../src/commands/util/postconditionCheckers';
 import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
+import { WorkspaceContext } from '../../../../src/context';
+import * as workspaceUtil from '../../../../src/context/workspaceOrgType';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
@@ -427,6 +430,7 @@ describe('Postcondition Checkers', () => {
   });
 
   describe('TimestampConflictChecker', () => {
+    const mockWorkspaceContext = { getConnection: () => {} } as any;
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let conflictViewStub: SinonStub;
@@ -440,6 +444,10 @@ describe('Postcondition Checkers', () => {
       settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
+      env.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
+      env
+        .stub(workspaceUtil, 'getWorkspaceOrgType')
+        .returns(OrgType.NonSourceTracked);
       appendLineStub.callsFake(line => channelOutput.push(line));
     });
 
