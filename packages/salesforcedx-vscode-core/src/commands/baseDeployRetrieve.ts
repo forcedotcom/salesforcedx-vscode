@@ -322,9 +322,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   }
 
   protected async handleSourceConflictError(e: any) {
-    const componentPaths = e.data.map(
-      (component: { filePath: any }) => component.filePath
-    );
     // Retrieve operation - proceed and do not handle or throw.
     // Per the docs, the Conflict Detection at Sync
     // setting only enables conflict detection for
