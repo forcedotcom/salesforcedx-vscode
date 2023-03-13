@@ -12,6 +12,7 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -73,6 +74,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       deployStub = env.stub(mockComponents, 'deploy').returns({
         pollStatus: pollStatusStub
       });
+      env.stub(SourceTrackingService, 'createSourceTracking');
     });
 
     afterEach(() => {

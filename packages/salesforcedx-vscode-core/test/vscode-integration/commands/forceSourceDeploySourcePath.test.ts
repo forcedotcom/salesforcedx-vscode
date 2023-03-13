@@ -14,7 +14,8 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
-  fileUtils
+  fileUtils,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -78,6 +79,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         });
 
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      sb.stub(SourceTrackingService, 'createSourceTracking');
     });
 
     afterEach(() => {
