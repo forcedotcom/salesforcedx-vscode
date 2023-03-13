@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Org } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
+import { WorkspaceContext } from './workspaceContext';
 
 export enum OrgType {
   SourceTracked,
@@ -16,19 +18,19 @@ export enum OrgType {
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
-  if (!defaultUsernameOrAlias) {
-    const e = new Error();
-    e.name = 'NoDefaultusernameSet';
-    throw e;
-  }
-  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
-    telemetryService.sendException(
-      'get_workspace_org_type_scratch_org',
-      err.message
-    )
-  );
-  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  const connection = await WorkspaceContext.getInstance().getConnection();
+  const org: Org = await Org.create({ connection });
+  // Org.supportsSourceTracking() checks the org at this point in time.  This
+  // is important because a sandbox can be created without source tracking and
+  // then be refreshed to have source tracking.  So, in the case of sandboxes,
+  // we have to check the org's source tracking status in real time and can't
+  // rely on Org.tracksSource() because that property is populated at authorization-
+  // time only and is not updated after the Sandbox is refreshed unless the User
+  // re-authenticates that sandbox org.
+  // Also opting to use this call only and specifically NOT use org.isScratch(),
+  // which was not returning consistent results during dev.
+  const isSourceTracked = await org.supportsSourceTracking();
+  return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
@@ -39,7 +41,7 @@ export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
     setHasDefaultUsername(!!defaultUsernameOrAlias);
-    const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
+    const orgType = await getWorkspaceOrgType();
     setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
     console.error(e);
