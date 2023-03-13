@@ -11,6 +11,7 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -24,6 +25,9 @@ const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
 describe('Force Source Retrieve with Manifest Option', () => {
+  beforeEach(() => {
+    env.stub(SourceTrackingService, 'createSourceTracking');
+  });
   afterEach(() => {
     restoreContext($$);
   });
