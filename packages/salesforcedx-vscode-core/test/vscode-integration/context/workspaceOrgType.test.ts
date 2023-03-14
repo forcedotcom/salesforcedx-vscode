@@ -15,6 +15,7 @@ import {
   WorkspaceContext,
   workspaceContextUtils
 } from '../../../src/context';
+import * as workspaceUtil from '../../../src/context/workspaceOrgType';
 import { OrgAuthInfo } from '../../../src/util';
 import Sinon = require('sinon');
 
@@ -52,11 +53,11 @@ const expectDefaultUsernameHasNoChangeTracking = (
     hasNoChangeTracking
   ]);
 };
+const mockWorkspaceContext = { getConnection: () => {} } as any;
 
 describe('workspaceOrgType unit tests', () => {
   const devHubUser = 'dev@hub.com';
   const scratchOrgUser = 'scratch@org.com';
-  const mockWorkspaceContext = { getConnection: () => {} } as any;
   let getUsernameStub: Sinon.SinonStub;
   let orgCreateStub: Sinon.SinonStub;
   let getDefaultUsernameOrAliasStub: Sinon.SinonStub;
@@ -124,16 +125,22 @@ describe('workspaceOrgType unit tests', () => {
   });
 
   describe('setupWorkspaceOrgType', () => {
+    afterEach(() => {
+      sandbox.restore();
+    });
     it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to false', async () => {
       const defaultUsername = undefined;
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => false
+      });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
+      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
       executeCommandStub.restore();
     });
@@ -146,13 +153,16 @@ describe('workspaceOrgType unit tests', () => {
         .stub(OrgAuthInfo, 'isAScratchOrg')
         .throws(error);
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => true
+      });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
+      expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
       orgAuthInfoStub.restore();
       executeCommandStub.restore();
