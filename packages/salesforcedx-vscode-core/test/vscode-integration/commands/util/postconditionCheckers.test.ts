@@ -1,4 +1,3 @@
-import { OrgType } from './../../../../src/context/workspaceOrgType';
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -37,6 +36,7 @@ import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { MetadataDictionary, workspaceUtils } from '../../../../src/util';
+import { OrgType } from './../../../../src/context/workspaceOrgType';
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
