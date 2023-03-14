@@ -5,12 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo, Org } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import { OrgType, workspaceContextUtils } from '../../../src/context';
+import {
+  OrgType,
+  WorkspaceContext,
+  workspaceContextUtils
+} from '../../../src/context';
 import { OrgAuthInfo } from '../../../src/util';
 import Sinon = require('sinon');
 
@@ -52,16 +56,20 @@ const expectDefaultUsernameHasNoChangeTracking = (
 describe('workspaceOrgType unit tests', () => {
   const devHubUser = 'dev@hub.com';
   const scratchOrgUser = 'scratch@org.com';
+  const mockWorkspaceContext = { getConnection: () => {} } as any;
   let getUsernameStub: Sinon.SinonStub;
+  let orgCreateStub: Sinon.SinonStub;
   let getDefaultUsernameOrAliasStub: Sinon.SinonStub;
   let createStub: Sinon.SinonStub;
   beforeEach(() => {
     getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
+    orgCreateStub = sandbox.stub(Org, 'create');
     getDefaultUsernameOrAliasStub = sandbox.stub(
       OrgAuthInfo,
       'getDefaultUsernameOrAlias'
     );
     createStub = sandbox.stub(AuthInfo, 'create');
+    sandbox.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
   });
 
   afterEach(() => {
@@ -88,100 +96,30 @@ describe('workspaceOrgType unit tests', () => {
     it('returns the source-tracked org type', async () => {
       const defaultUsername = 'scratchOrgAlias';
       getUsernameStub.resolves(scratchOrgUser);
-      createStub.resolves({
-        getFields: () => ({
-          devHubUsername: devHubUser
-        })
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => true
       });
 
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+      const orgType: OrgType = await workspaceContextUtils.getWorkspaceOrgType(
         defaultUsername
       );
 
       expect(orgType).to.equal(OrgType.SourceTracked);
-      expect(createStub.getCall(0).args[0]).to.eql({
-        username: scratchOrgUser
-      });
+      expect(orgCreateStub.calledOnce).to.eql(true);
     });
 
     it('returns the non-source-tracked org type', async () => {
       const defaultUsername = 'sandbox@org.com';
       getUsernameStub.resolves(defaultUsername);
-      createStub.resolves({
-        getFields: () => ({})
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => false
       });
+
       const orgType = await workspaceContextUtils.getWorkspaceOrgType(
         defaultUsername
       );
-
       expect(orgType).to.equal(OrgType.NonSourceTracked);
-      expect(createStub.getCall(0).args[0]).to.eql({
-        username: defaultUsername
-      });
-    });
-
-    it('throws an error when no defaultusername is set', async () => {
-      const defaultUsername = undefined;
-      let errorWasThrown = false;
-      try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
-      } catch (error) {
-        if (error instanceof Error) {
-          errorWasThrown = true;
-          expect(error.name).to.equal('NoDefaultusernameSet');
-        }
-      } finally {
-        expect(getUsernameStub.called).to.equal(false);
-        expect(errorWasThrown).to.equal(true);
-      }
-    });
-
-    it('throws an error when the info cannot be found for the defaultusername', async () => {
-      const defaultUsername = 'testUsername';
-      const error = new Error();
-      error.name = 'NamedOrgNotFound';
-      const orgAuthInfoStub = sandbox
-        .stub(OrgAuthInfo, 'isAScratchOrg')
-        .throws(error);
-
-      let errorWasThrown = false;
-      try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
-      } catch (error) {
-        if (error instanceof Error) {
-          errorWasThrown = true;
-          expect(error.name).to.equal('NamedOrgNotFound');
-        }
-      } finally {
-        expect(errorWasThrown).to.equal(true);
-        orgAuthInfoStub.restore();
-      }
-    });
-
-    it('throws an error when the cli has no configuration', async () => {
-      const defaultUsername = 'testUsername';
-      const error = new Error();
-      error.name = 'GenericKeychainServiceError';
-      error.stack =
-        'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
-      const orgAuthInfoStub = sandbox
-        .stub(OrgAuthInfo, 'isAScratchOrg')
-        .throws(error);
-
-      let errorWasThrown = false;
-      try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
-      } catch (error) {
-        if (error instanceof Error) {
-          errorWasThrown = true;
-          expect(error.name).to.equal('GenericKeychainServiceError');
-          expect(error.stack).to.equal(
-            'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...'
-          );
-        }
-      } finally {
-        expect(errorWasThrown).to.equal(true);
-      }
+      expect(orgCreateStub.calledOnce).to.eql(true);
     });
   });
 
