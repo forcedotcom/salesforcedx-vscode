@@ -13,6 +13,9 @@ import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
+import { MetadataCacheService } from '../../../src/conflict';
+import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
@@ -33,6 +36,13 @@ jest.mock('@salesforce/source-deploy-retrieve', () => {
 });
 
 jest.mock('../../../src/conflict/metadataCacheService');
+const mMock = jest.mocked(MetadataCacheService);
+
+jest.mock('../../../src/conflict/timestampConflictDetector');
+const tMock = jest.mocked(TimestampConflictDetector);
+
+jest.mock('../../../src/commands/util/postconditionCheckers');
+const cMock = jest.mocked(TimestampConflictChecker);
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
@@ -123,6 +133,11 @@ describe('Deploy Executor', () => {
         }
       ]
     };
+
     await (executor as any).handleSourceConflictError(dummySourceConflictError);
+
+    expect((mMock as any).loadCache).toHaveBeenCalled();
+    expect((tMock as any).createDiffs).toHaveBeenCalled();
+    expect((cMock as any).handleConflicts).toHaveBeenCalled();
   });
 });
