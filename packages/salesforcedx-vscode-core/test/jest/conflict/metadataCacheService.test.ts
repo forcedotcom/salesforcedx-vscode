@@ -12,7 +12,7 @@ describe('MetadataCacheService', () => {
     let retrieveStub: jest.SpyInstance;
     let getSourceComponentsStub: jest.SpyInstance;
     let setApiVersionOnStub: jest.SpyInstance;
-    let setApiVersionOnStub2: jest.SpyInstance;
+    let workspaceContextStub: jest.SpyInstance;
     let componentSetRetrieveStub: jest.SpyInstance;
 
     beforeEach(() => {
@@ -25,7 +25,7 @@ describe('MetadataCacheService', () => {
       setApiVersionOnStub = jest
         .spyOn(sdrUtils, 'setApiVersionOn')
         .mockImplementation(jest.fn());
-      setApiVersionOnStub2 = jest
+      workspaceContextStub = jest
         .spyOn(WorkspaceContext, 'getInstance')
         .mockReturnValue({
           getConnection: async () => {
