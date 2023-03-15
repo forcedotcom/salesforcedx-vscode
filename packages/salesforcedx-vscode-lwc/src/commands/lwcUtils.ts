@@ -436,6 +436,7 @@ export class LWCUtils {
     // Show a device pick list with a busy indicator while device-list is being generated
     const selectedItem = await new Promise<DeviceQuickPickItem | undefined>(async (resolve, reject) => {
       let userSelectedItem: DeviceQuickPickItem | undefined;
+      let error: Error | undefined;
 
       // 1. show a pick list with placeholder text and busy progress animation
       const deviceQuickPick = vscode.window.createQuickPick();
@@ -453,11 +454,21 @@ export class LWCUtils {
         }
       });
       deviceQuickPick.onDidHide(() => {
-        resolve(userSelectedItem);
+        if (error) {
+          reject(error);
+        } else {
+          resolve(userSelectedItem);
+        }
       });
 
       // 2. generate device list
-      const items = await LWCUtils.getDeviceList(platformSelection);
+      let items: DeviceQuickPickItem[] = [];
+      try {
+        items = await LWCUtils.getDeviceList(platformSelection);
+      } catch (e) {
+        error = e;
+        deviceQuickPick.dispose();
+      }
 
       if (allowCreatingDevice) {
         items.unshift(createNewDeviceItem);
