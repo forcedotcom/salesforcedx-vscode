@@ -44,8 +44,7 @@ jest.mock('../../../src/commands/baseDeployRetrieve', () => {
 
 jest.mock('../../../src/conflict/metadataCacheService', () => {
   return {
-    ...jest.requireActual('../../../src/conflict/metadataCacheService'),
-    loadCache: jest.fn().mockResolvedValue({})
+    ...jest.requireActual('../../../src/conflict/metadataCacheService')
   };
 });
 // const mMock = jest.mocked(MetadataCacheService);
@@ -64,6 +63,7 @@ describe('Deploy Executor', () => {
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
+  let loadCacheStub: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
     private throwSourceConflictError: boolean;
@@ -94,6 +94,9 @@ describe('Deploy Executor', () => {
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
+    loadCacheStub = jest
+      .spyOn(MetadataCacheService.prototype, 'loadCache')
+      .mockResolvedValue({} as any);
   });
 
   it('should create Source Tracking before deploying', async () => {
@@ -151,5 +154,6 @@ describe('Deploy Executor', () => {
     // expect((mMock as any).loadCache).toHaveBeenCalled();
     // expect((tMock as any).createDiffs).toHaveBeenCalled();
     // expect((cMock as any).handleConflicts).toHaveBeenCalled();
+    expect(loadCacheStub).toHaveBeenCalled();
   });
 });
