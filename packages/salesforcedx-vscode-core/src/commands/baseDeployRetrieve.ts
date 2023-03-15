@@ -214,7 +214,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
     const conflictMessages = messagesByLogName.get(logName);
     if (!conflictMessages) {
-      throw new Error(`No conflict messages found for ${logName}`);
+      console.warn(`No conflict messages found for ${logName}`);
     }
     return conflictMessages;
   }
