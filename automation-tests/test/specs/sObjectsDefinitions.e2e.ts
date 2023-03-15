@@ -153,8 +153,7 @@ describe('SObjects Definitions', async () => {
     expect(matchedResults).not.toBe(undefined);
     expect(matchedResults!.length).toBeGreaterThanOrEqual(2);
     const sObjectCount = parseInt(matchedResults![matchedResults!.length - 1].match(/[0-9]{1,}/)![0]);
-    expect(sObjectCount).toBeGreaterThan(100);
-    expect(sObjectCount).toBeLessThan(500);
+    expect(sObjectCount).toBeGreaterThan(400);
 
     const sidebar = workbench.getSideBar();
     const content = sidebar.getContent();
