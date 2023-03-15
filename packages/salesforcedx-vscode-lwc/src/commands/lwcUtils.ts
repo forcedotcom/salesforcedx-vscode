@@ -123,7 +123,7 @@ export class LWCUtils {
    * Takes a file path and converts it to a UNIX file path.
    *
    * @param filePath A file path.
-   * @return A string containg the file path in UNIX path style.
+   * @return A string contaning the file path in UNIX path style.
    */
   public static convertToUnixPath(filePath: string): string {
     return filePath.replace(/\\/g, '/');

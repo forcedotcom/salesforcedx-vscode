@@ -221,8 +221,6 @@ async function selectTargetApp(
 
   const items: vscode.QuickPickItem[] = [
     { label: labelSApp },
-    // { label: labelSFSApp }, // TODO: add support for SFS App
-    // { label: labelTestHarnessApp }, // TODO: add support for Test Harness App
     { label: labelOther }
   ];
 
@@ -242,13 +240,6 @@ async function selectTargetApp(
     if (selectedItem.label === labelSApp) {
       activity = 'com.salesforce.chatter.Chatter';
       pkg = 'com.salesforce.chatter';
-    // TODO: add support for SFS and TestHarness Apps
-    /*} else if (selectedItem.label === labelSFSApp) {
-      activity = 'com.salesforce.fieldservice.ui.launcher.FieldServicePrerequisiteActivity';
-      pkg = 'com.salesforce.fieldservice.app';
-    } else if (selectedItem.label === labelTestHarnessApp) {
-      activity = 'com.salesforce.lsdktestharness.MainActivity';
-      pkg = 'com.salesforce.lsdktestharness';*/
     } else {
       activity = await LWCUtils.getUserInput(undefined, nls.localize('force_lightning_lwc_provide_app_activity'));
       pkg = await LWCUtils.getUserInput(undefined, nls.localize('force_lightning_lwc_provide_app_package'));

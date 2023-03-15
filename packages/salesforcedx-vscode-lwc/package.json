@@ -239,7 +239,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.ui.mobile.run",
-          "when": "sfdx:project_opened"
+          "when": "false"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
