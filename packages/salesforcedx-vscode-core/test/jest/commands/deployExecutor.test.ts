@@ -98,53 +98,31 @@ describe('Deploy Executor', () => {
   });
 
   it('should handle a SourceConflict error', async () => {
-    /*
-    // Arrange
-    // const executor = new TestDeployExecutor(
-    //   'testDeploy',
-    //   'testDeployLog',
-    //   true
-    // );
-    // Arrange
-    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
-      pollStatus: () => {
-        throw new Error('SourceConflictError');
-      }
-    } as any);
     const executor = new TestDeployExecutor(
       'testDeploy',
       'force_source_deploy_with_sourcepath_beta'
     );
-    (executor as any).setupCancellation = jest.fn();
 
-    // Act
-    await (executor as any).doOperation(dummyComponentSet, {});
-    // (executor as any).doOperation = jest.fn().mockImplementation(() => {
-    //   throw new Error();
-    // });
-    (executor as any).setupCancellation = jest.fn();
-
-    // Act
-
-    // let e;
-    // try {
-    //   await (executor as any).doOperation(dummyComponentSet, {});
-    // } catch (error) {
-    //   e = error;
-    //   console.log('Error!');
-    // }
-
-    // Assert
-    // expect(e).toBeDefined();
-    expect(() => (executor as any).doOperation(dummyComponentSet, {})).toThrow(
-      Error
-    );
-    // expect(deploySpy).toHaveBeenCalled();
-    // const createSourceTrackingCallOrder =
-    //   createSourceTrackingSpy.mock.invocationCallOrder[0];
-    // const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
-    // expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
-    // Todo: expect conflict to be handled
-    */
+    const dummySourceConflictError = {
+      name: 'SourceConflictError',
+      message: '2 conflicts detected',
+      data: [
+        {
+          state: 'Conflict',
+          fullName: 'Test_Apex_Class_1',
+          type: 'ApexClass',
+          filePath:
+            '/Users/kenneth.lewis/scratchpad/TestProject-…ault/classes/Test_Apex_Class_1.cls-meta.xml'
+        },
+        {
+          state: 'Conflict',
+          fullName: 'Test_Apex_Class_1',
+          type: 'ApexClass',
+          filePath:
+            '/Users/kenneth.lewis/scratchpad/TestProject-…/main/default/classes/Test_Apex_Class_1.cls'
+        }
+      ]
+    };
+    await (executor as any).handleSourceConflictError(dummySourceConflictError);
   });
 });
