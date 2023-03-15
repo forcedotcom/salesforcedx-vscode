@@ -35,10 +35,18 @@ jest.mock('@salesforce/source-deploy-retrieve', () => {
   };
 });
 
+jest.mock('../../../src/commands/baseDeployRetrieve', () => {
+  return {
+    ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
+    RetrieveExecutor: jest.fn()
+  };
+});
+
 jest.mock('../../../src/conflict/metadataCacheService', () => {
-  // return {
-  //   ...jest.requireActual('../../../src/conflict/metadataCacheService')
-  // };
+  return {
+    ...jest.requireActual('../../../src/conflict/metadataCacheService'),
+    loadCache: jest.fn().mockResolvedValue({})
+  };
 });
 // const mMock = jest.mocked(MetadataCacheService);
 
