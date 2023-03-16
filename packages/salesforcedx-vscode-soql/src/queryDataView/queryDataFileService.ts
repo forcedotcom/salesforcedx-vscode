@@ -8,6 +8,7 @@
 import { JsonMap } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
+import { homedir } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
@@ -55,15 +56,17 @@ export class QueryDataFileService {
       this.queryData.records
     );
     const defaultFileName = this.dataProvider.getFileName();
-    /* queryDataDefaultFilePath will be used as the default options in the save dialog
-        fileName: The name of the soqlFile viewed in the builder
-        path: the same directory as the .soql file text doc.
-    note: directory must exist to show up in save dialog.
+    /*
+        queryDataDefaultFilePath will be used as the default options in the save dialog
+            fileName: The name of the soqlFile viewed in the builder
+            path: the same directory as the .soql file text doc
+                  or the home directory if .soql file does not exist yet
     */
-    const queryDataDefaultFilePath = path.join(
-      path.parse(this.document.uri.path).dir,
-      defaultFileName
-    );
+    let saveDir = path.parse(this.document.uri.path).dir;
+    if (!saveDir) {
+      saveDir = homedir();
+    }
+    const queryDataDefaultFilePath = path.join(saveDir, defaultFileName);
 
     const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog(
       {
