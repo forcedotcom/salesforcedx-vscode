@@ -1,3 +1,13 @@
+# 57.6.0 - March 15, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+We removed the `SFDX: Start Function in Container` command from the Command Palette. ([PR #4707](https://github.com/forcedotcom/salesforcedx-vscode/pull/4707)).
+
+We made some changes under the hood. ([#4723](https://github.com/forcedotcom/salesforcedx-vscode/pull/4723)).
+
 # 57.3.0 - February 24, 2023
 
 ## Fixed
