@@ -31,6 +31,7 @@ export class SourceTrackingService {
       ignoreConflicts: false
     };
     const sourceTracking = await SourceTracking.create(options);
+    await sourceTracking.ensureLocalTracking();
     return sourceTracking;
   }
 }

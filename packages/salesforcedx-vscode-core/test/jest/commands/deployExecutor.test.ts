@@ -57,7 +57,6 @@ describe('Deploy Executor', () => {
   const dummyUsername = 'test@username.com';
   const dummyComponentSet = new ComponentSet();
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
-  const ensureLocalTrackingSpy = jest.fn();
   const dummyCacheResult = {} as any;
   const dummyDiffs = {} as any;
 
@@ -92,9 +91,7 @@ describe('Deploy Executor', () => {
       .mockResolvedValue(dummyUsername);
     createSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'createSourceTracking')
-      .mockResolvedValue({
-        ensureLocalTracking: ensureLocalTrackingSpy
-      } as any);
+      .mockResolvedValue({} as any);
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
@@ -125,15 +122,11 @@ describe('Deploy Executor', () => {
 
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
-    expect(ensureLocalTrackingSpy).toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
     const createSourceTrackingCallOrder =
       createSourceTrackingSpy.mock.invocationCallOrder[0];
-    const ensureLocalTrackingSpyCallOrder =
-      ensureLocalTrackingSpy.mock.invocationCallOrder[0];
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
-    expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
   });
 
