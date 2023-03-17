@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
@@ -47,13 +47,10 @@ jest.mock('../../../src/conflict/metadataCacheService', () => {
     ...jest.requireActual('../../../src/conflict/metadataCacheService')
   };
 });
-// const mMock = jest.mocked(MetadataCacheService);
 
 jest.mock('../../../src/conflict/timestampConflictDetector');
-// const tMock = jest.mocked(TimestampConflictDetector);
 
 jest.mock('../../../src/commands/util/postconditionCheckers');
-// const cMock = jest.mocked(TimestampConflictChecker);
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
@@ -168,7 +165,5 @@ describe('Deploy Executor', () => {
     expect(loadCacheStub).toHaveBeenCalled();
     expect(createDiffsStub).toHaveBeenCalled();
     expect(handleConflictsStub).toHaveBeenCalled();
-    // expect((tMock as any).createDiffs).toHaveBeenCalled();
-    // expect((cMock as any).handleConflicts).toHaveBeenCalled();
   });
 });
