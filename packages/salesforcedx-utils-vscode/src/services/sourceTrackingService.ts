@@ -26,7 +26,7 @@ export class SourceTrackingService {
     const options: SourceTrackingOptions = {
       org,
       project,
-      ignoreLocalCache: false,
+      ignoreLocalCache: true,
       subscribeSDREvents: true,
       ignoreConflicts: false
     };
