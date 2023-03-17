@@ -26,6 +26,7 @@ describe('workspaceOrgType', () => {
 
       expect(orgType).toEqual(OrgType.SourceTracked);
     });
+
     it('should return NonSourceTracked for an org that does not support source-tracking', async () => {
       orgStub = jest.spyOn(Org, 'create').mockResolvedValue({
         supportsSourceTracking: async () => false
