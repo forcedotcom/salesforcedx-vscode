@@ -16,21 +16,17 @@ jest.mock('@salesforce/core', () => ({
 describe('Source Tracking Service', () => {
   describe('createSourceTracking', () => {
     let sourceTrackingCreateSpy: jest.SpyInstance;
-    const ensureLocalTrackingSpy = jest.fn();
 
     beforeEach(() => {
       sourceTrackingCreateSpy = jest
         .spyOn(SourceTracking, 'create')
-        .mockResolvedValue({
-          ensureLocalTracking: ensureLocalTrackingSpy
-        } as any);
+        .mockResolvedValue({} as any);
     });
 
-    it('Should create an instance of SourceTracking and call ensureLocalTracking to pick up any newly created project files', async () => {
+    it('Should create an instance of SourceTracking', async () => {
       await SourceTrackingService.createSourceTracking('', {} as any);
 
       expect(sourceTrackingCreateSpy).toHaveBeenCalled();
-      expect(ensureLocalTrackingSpy).toHaveBeenCalled();
     });
   });
 });

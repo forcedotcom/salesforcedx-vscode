@@ -138,6 +138,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
       projectPath,
       connection
     );
+    await sourceTracking.ensureLocalTracking();
 
     const operation = await components.deploy({
       usernameOrConnection: connection
