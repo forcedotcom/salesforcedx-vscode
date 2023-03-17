@@ -59,17 +59,18 @@ describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
   const dummyComponentSet = new ComponentSet();
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+  const ensureLocalTrackingSpy = jest.fn();
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
   let loadCacheStub: jest.SpyInstance;
+  let createDiffsStub: jest.SpyInstance;
+  let handleConflictsStub: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
-    private throwSourceConflictError: boolean;
     constructor(s: string, t: string, x?: boolean) {
       super(s, t);
-      this.throwSourceConflictError = x ?? false;
     }
 
     protected getComponents(
@@ -90,12 +91,20 @@ describe('Deploy Executor', () => {
       .mockResolvedValue('test@username.com');
     createSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'createSourceTracking')
-      .mockResolvedValue({} as any);
+      .mockResolvedValue({
+        ensureLocalTracking: ensureLocalTrackingSpy
+      } as any);
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     loadCacheStub = jest
       .spyOn(MetadataCacheService.prototype, 'loadCache')
+      .mockResolvedValue({} as any);
+    createDiffsStub = jest
+      .spyOn(TimestampConflictDetector.prototype, 'createDiffs')
+      .mockReturnValue({} as any);
+    handleConflictsStub = jest
+      .spyOn(TimestampConflictChecker.prototype, 'handleConflicts')
       .mockResolvedValue({} as any);
   });
 
@@ -115,10 +124,15 @@ describe('Deploy Executor', () => {
 
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
     const createSourceTrackingCallOrder =
       createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const ensureLocalTrackingSpyCallOrder =
+      ensureLocalTrackingSpy.mock.invocationCallOrder[0];
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
+    expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
+    expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
   });
 
@@ -151,9 +165,10 @@ describe('Deploy Executor', () => {
 
     await (executor as any).handleSourceConflictError(dummySourceConflictError);
 
-    // expect((mMock as any).loadCache).toHaveBeenCalled();
+    expect(loadCacheStub).toHaveBeenCalled();
+    expect(createDiffsStub).toHaveBeenCalled();
+    expect(handleConflictsStub).toHaveBeenCalled();
     // expect((tMock as any).createDiffs).toHaveBeenCalled();
     // expect((cMock as any).handleConflicts).toHaveBeenCalled();
-    expect(loadCacheStub).toHaveBeenCalled();
   });
 });
