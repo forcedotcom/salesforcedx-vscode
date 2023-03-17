@@ -54,11 +54,15 @@ jest.mock('../../../src/commands/util/postconditionCheckers');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
+  const dummyUsername = 'test@username.com';
   const dummyComponentSet = new ComponentSet();
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
   const ensureLocalTrackingSpy = jest.fn();
+  const dummyCacheResult = {} as any;
+  const dummyDiffs = {} as any;
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
+  let getUsernameStub: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
   let loadCacheStub: jest.SpyInstance;
@@ -83,9 +87,9 @@ describe('Deploy Executor', () => {
     workspaceContextGetInstanceSpy = jest
       .spyOn(WorkspaceContext, 'getInstance')
       .mockReturnValue(mockWorkspaceContext);
-    jest
+    getUsernameStub = jest
       .spyOn(ConfigUtil, 'getUsername')
-      .mockResolvedValue('test@username.com');
+      .mockResolvedValue(dummyUsername);
     createSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'createSourceTracking')
       .mockResolvedValue({
@@ -96,10 +100,10 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     loadCacheStub = jest
       .spyOn(MetadataCacheService.prototype, 'loadCache')
-      .mockResolvedValue({} as any);
+      .mockResolvedValue(dummyCacheResult);
     createDiffsStub = jest
       .spyOn(TimestampConflictDetector.prototype, 'createDiffs')
-      .mockReturnValue({} as any);
+      .mockReturnValue(dummyDiffs);
     handleConflictsStub = jest
       .spyOn(TimestampConflictChecker.prototype, 'handleConflicts')
       .mockResolvedValue({} as any);
@@ -162,8 +166,27 @@ describe('Deploy Executor', () => {
 
     await (executor as any).handleSourceConflictError(dummySourceConflictError);
 
-    expect(loadCacheStub).toHaveBeenCalled();
-    expect(createDiffsStub).toHaveBeenCalled();
-    expect(handleConflictsStub).toHaveBeenCalled();
+    const dummyConflictComponentPaths = [
+      dummySourceConflictError.data[0].filePath,
+      dummySourceConflictError.data[1].filePath
+    ];
+    expect(getUsernameStub).toHaveBeenCalled();
+    expect(loadCacheStub.mock.calls[0][0]).toEqual(dummyConflictComponentPaths);
+    expect(createDiffsStub.mock.calls[0][0]).toEqual(dummyCacheResult);
+    expect(handleConflictsStub.mock.calls[0][0]).toEqual(
+      dummyConflictComponentPaths
+    );
+    expect(handleConflictsStub.mock.calls[0][1]).toEqual(dummyUsername);
+    expect(handleConflictsStub.mock.calls[0][2]).toEqual(dummyDiffs);
+    assertCalledInOrder(getUsernameStub, loadCacheStub);
+    assertCalledInOrder(loadCacheStub, createDiffsStub);
+    assertCalledInOrder(createDiffsStub, handleConflictsStub);
   });
 });
+
+function assertCalledInOrder(
+  spy1: jest.SpyInstance<any, any>,
+  spy2: jest.SpyInstance<any, any>
+) {
+  return spy1.mock.invocationCallOrder[0] < spy2.mock.invocationCallOrder[0];
+}
