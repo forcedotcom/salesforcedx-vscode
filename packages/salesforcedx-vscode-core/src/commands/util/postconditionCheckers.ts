@@ -282,7 +282,11 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     );
 
     if (results.different.size === 0) {
-      conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
+      await conflictView.visualizeDifferences(
+        conflictTitle,
+        usernameOrAlias,
+        false
+      );
     } else {
       channelService.appendLine(
         nls.localize(
