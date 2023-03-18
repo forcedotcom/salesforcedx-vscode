@@ -39,6 +39,7 @@ describe('Retrieve Executor', () => {
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let retrieveSpy: jest.SpyInstance;
+  let consoleInfoSpy: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
     protected getComponents(
@@ -63,6 +64,7 @@ describe('Retrieve Executor', () => {
     retrieveSpy = jest
       .spyOn(dummyComponentSet, 'retrieve')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
+    consoleInfoSpy = jest.spyOn(console, 'info');
   });
 
   it('should create Source Tracking before retrieving', async () => {
@@ -83,5 +85,37 @@ describe('Retrieve Executor', () => {
       createSourceTrackingSpy.mock.invocationCallOrder[0];
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(createSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
+  });
+
+  it('should not handle a SourceConflict error', async () => {
+    const executor = new TestRetrieveExecutor(
+      'testRetrieve',
+      'testRetrieveLog'
+    );
+
+    const dummySourceConflictError = {
+      name: 'SourceConflictError',
+      message: '2 conflicts detected',
+      data: [
+        {
+          state: 'Conflict',
+          fullName: 'Test_Apex_Class_1',
+          type: 'ApexClass',
+          filePath:
+            '/Users/kenneth.lewis/scratchpad/TestProject-…ault/classes/Test_Apex_Class_1.cls-meta.xml'
+        },
+        {
+          state: 'Conflict',
+          fullName: 'Test_Apex_Class_1',
+          type: 'ApexClass',
+          filePath:
+            '/Users/kenneth.lewis/scratchpad/TestProject-…/main/default/classes/Test_Apex_Class_1.cls'
+        }
+      ]
+    };
+
+    await (executor as any).handleSourceConflictError(dummySourceConflictError);
+
+    expect(consoleInfoSpy).toHaveBeenCalled();
   });
 });
