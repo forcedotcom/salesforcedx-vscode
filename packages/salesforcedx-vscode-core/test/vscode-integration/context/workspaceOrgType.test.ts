@@ -15,7 +15,6 @@ import {
   WorkspaceContext,
   workspaceContextUtils
 } from '../../../src/context';
-import * as workspaceUtil from '../../../src/context/workspaceOrgType';
 import { OrgAuthInfo } from '../../../src/util';
 import Sinon = require('sinon');
 
@@ -56,7 +55,6 @@ const expectDefaultUsernameHasNoChangeTracking = (
 const mockWorkspaceContext = { getConnection: () => {} } as any;
 
 describe('workspaceOrgType unit tests', () => {
-  const devHubUser = 'dev@hub.com';
   const scratchOrgUser = 'scratch@org.com';
   let getUsernameStub: Sinon.SinonStub;
   let orgCreateStub: Sinon.SinonStub;
