@@ -305,7 +305,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       );
 
       if (choice === nls.localize('conflict_detect_override')) {
-        conflictView.visualizeDifferences(
+        await conflictView.visualizeDifferences(
           conflictTitle,
           usernameOrAlias,
           false
@@ -320,7 +320,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
         const doReveal =
           choice === nls.localize('conflict_detect_show_conflicts');
-        conflictView.visualizeDifferences(
+        await conflictView.visualizeDifferences(
           conflictTitle,
           usernameOrAlias,
           doReveal,
