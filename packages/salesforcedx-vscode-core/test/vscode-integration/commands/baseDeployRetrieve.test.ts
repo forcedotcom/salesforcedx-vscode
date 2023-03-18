@@ -15,7 +15,8 @@ import {
   ConfigUtil,
   ContinueResponse,
   SourceTrackingService,
-  Table
+  Table,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -46,7 +47,12 @@ import {
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import { WorkspaceContext } from '../../../src/context';
+import {
+  OrgType,
+  WorkspaceContext,
+  workspaceContextUtils
+} from '../../../src/context';
+import * as orgTypeUtils from '../../../src/context/workspaceOrgType';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
@@ -268,7 +274,9 @@ describe('Base Deploy Retrieve Commands', () => {
       setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
-      sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
+      });
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -687,7 +695,9 @@ describe('Base Deploy Retrieve Commands', () => {
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
-      sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
+      });
     });
 
     it('should set the apiVersion and then call retrieve on component set', async () => {
