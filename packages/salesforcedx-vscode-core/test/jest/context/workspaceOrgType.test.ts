@@ -24,6 +24,7 @@ describe('workspaceOrgType', () => {
 
       const orgType = await getWorkspaceOrgType();
 
+      expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
       expect(orgType).toEqual(OrgType.SourceTracked);
     });
 
@@ -34,6 +35,7 @@ describe('workspaceOrgType', () => {
 
       const orgType = await getWorkspaceOrgType();
 
+      expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
       expect(orgType).toEqual(OrgType.NonSourceTracked);
     });
   });
