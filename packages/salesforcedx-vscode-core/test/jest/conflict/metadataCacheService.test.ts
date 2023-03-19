@@ -38,9 +38,9 @@ describe('MetadataCacheService', () => {
     });
 
     it('should use the suppressEvents option to retrieve files with conflicts', async () => {
-      const m = new MetadataCacheService('');
+      const metadataCacheService = new MetadataCacheService('');
 
-      const o = await m.createRetrieveOperation();
+      const retrieveOperation = await metadataCacheService.createRetrieveOperation();
 
       expect(setApiVersionOnStub).toHaveBeenCalledWith(dummyComponentSet);
       const dummyRetrieveOptionsWithSuppressEvents = { suppressEvents: true };
