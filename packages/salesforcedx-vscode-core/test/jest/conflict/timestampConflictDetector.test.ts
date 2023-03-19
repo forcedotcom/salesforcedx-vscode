@@ -692,12 +692,29 @@ describe('TimestampConflictDetector', () => {
         .spyOn(PersistentStorageService, 'getInstance')
         .mockReturnValue({
           makeKey: jest.fn(),
-          getPropertiesForFile: jest.fn()
+          getPropertiesForFile: jest.fn().mockResolvedValueOnce({
+            lastModifiedDate: '2023-03-18T17:52:51.000Z'
+          })
         } as any);
       diffComponentsStub = jest
         .spyOn(diffUtils, 'diffComponents')
         .mockReturnValueOnce(dummyDiffs)
         .mockReturnValueOnce(dummyDiffs2);
+    });
+
+    it('should return diff results for only the files that trip the timestamp conflict detector', async () => {
+      const timestampConflictDetector = new TimestampConflictDetector();
+
+      const diffs = timestampConflictDetector.createDiffs(
+        dummyMetadataCacheResult as any
+      );
+
+      expect(correlateResultsStub).toHaveBeenCalledWith(
+        dummyMetadataCacheResult
+      );
+      expect(persistentStorageServiceMock).toHaveBeenCalled();
+      expect(diffComponentsStub).toHaveBeenCalledTimes(2);
+      expect(diffs.different.size).toBe(3);
     });
 
     it('should return diff results for all files passed in when the skipTimestampCheck option is used', async () => {
