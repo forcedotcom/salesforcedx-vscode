@@ -109,7 +109,7 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({} as any);
   });
 
-  it('should create Source Tracking before deploying', async () => {
+  it('should create Source Tracking and call ensureLocalTracking before deploying', async () => {
     // Arrange
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
@@ -132,6 +132,9 @@ describe('Deploy Executor', () => {
     const ensureLocalTrackingSpyCallOrder =
       ensureLocalTrackingSpy.mock.invocationCallOrder[0];
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
+    // In order to be sure that a Source Tracking instance is initialized
+    // and tracking files appropriately, create and ensureLocalTracking
+    // need to be called before the deploy operation is started.
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
@@ -178,15 +181,5 @@ describe('Deploy Executor', () => {
     );
     expect(handleConflictsStub.mock.calls[0][1]).toEqual(dummyUsername);
     expect(handleConflictsStub.mock.calls[0][2]).toEqual(dummyDiffs);
-    assertCalledInOrder(getUsernameStub, loadCacheStub);
-    assertCalledInOrder(loadCacheStub, createDiffsStub);
-    assertCalledInOrder(createDiffsStub, handleConflictsStub);
   });
 });
-
-function assertCalledInOrder(
-  spy1: jest.SpyInstance<any, any>,
-  spy2: jest.SpyInstance<any, any>
-) {
-  return spy1.mock.invocationCallOrder[0] < spy2.mock.invocationCallOrder[0];
-}
