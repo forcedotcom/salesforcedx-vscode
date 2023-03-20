@@ -116,6 +116,8 @@ describe('Retrieve Executor', () => {
 
     await (executor as any).handleSourceConflictError(dummySourceConflictError);
 
-    expect(consoleInfoSpy).toHaveBeenCalled();
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      executor.sourceConflictErrorInfoMsg
+    );
   });
 });
