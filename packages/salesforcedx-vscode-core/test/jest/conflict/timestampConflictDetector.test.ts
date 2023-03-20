@@ -4,6 +4,8 @@ import { PersistentStorageService } from './../../../src/conflict/persistentStor
 import { TimestampConflictDetector } from './../../../src/conflict/timestampConflictDetector';
 
 describe('TimestampConflictDetector', () => {
+  const dummyLastModifiedDateCache = '2023-03-17T17:52:51.000Z';
+  const dummyLastModifiedDateLocal = '2023-03-16T17:52:51.000Z';
   const dummyMetadataCacheResult = {
     selectedPath: [
       '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
@@ -502,7 +504,7 @@ describe('TimestampConflictDetector', () => {
           forceIgnoreDirectory: '/Users/kenneth.lewis/scratchpad/TestProject-1'
         }
       },
-      lastModifiedDate: '2023-03-17T17:52:51.000Z'
+      lastModifiedDate: dummyLastModifiedDateCache
     },
     {
       cacheComponent: {
@@ -648,7 +650,7 @@ describe('TimestampConflictDetector', () => {
           forceIgnoreDirectory: '/Users/kenneth.lewis/scratchpad/TestProject-1'
         }
       },
-      lastModifiedDate: '2023-03-17T05:57:08.000Z'
+      lastModifiedDate: dummyLastModifiedDateCache
     }
   ];
   const dummyDiffs = [
@@ -693,16 +695,19 @@ describe('TimestampConflictDetector', () => {
         .mockReturnValue({
           makeKey: jest.fn(),
           getPropertiesForFile: jest.fn().mockResolvedValueOnce({
-            lastModifiedDate: '2023-03-18T17:52:51.000Z'
+            // For the first file, give a value that will trip the
+            // conflict checker
+            lastModifiedDate: dummyLastModifiedDateLocal
           })
         } as any);
-      diffComponentsStub = jest
-        .spyOn(diffUtils, 'diffComponents')
-        .mockReturnValueOnce(dummyDiffs)
-        .mockReturnValueOnce(dummyDiffs2);
     });
 
     it('should return diff results for only the files that trip the timestamp conflict detector', async () => {
+      // Only return a diff for the first file, which should have tripped the timestamp check
+      diffComponentsStub = jest
+        .spyOn(diffUtils, 'diffComponents')
+        .mockReturnValueOnce(dummyDiffs)
+        .mockReturnValueOnce([]);
       const timestampConflictDetector = new TimestampConflictDetector();
 
       const diffs = timestampConflictDetector.createDiffs(
@@ -714,10 +719,14 @@ describe('TimestampConflictDetector', () => {
       );
       expect(persistentStorageServiceMock).toHaveBeenCalled();
       expect(diffComponentsStub).toHaveBeenCalledTimes(2);
-      expect(diffs.different.size).toBe(3);
+      expect(diffs.different.size).toBe(2);
     });
 
     it('should return diff results for all files passed in when the skipTimestampCheck option is used', async () => {
+      diffComponentsStub = jest
+        .spyOn(diffUtils, 'diffComponents')
+        .mockReturnValueOnce(dummyDiffs)
+        .mockReturnValueOnce(dummyDiffs2);
       const timestampConflictDetector = new TimestampConflictDetector();
 
       const diffs = timestampConflictDetector.createDiffs(
