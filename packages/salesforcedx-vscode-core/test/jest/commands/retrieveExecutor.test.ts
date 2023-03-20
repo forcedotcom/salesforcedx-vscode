@@ -87,7 +87,7 @@ describe('Retrieve Executor', () => {
     expect(createSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
   });
 
-  it('should not handle a SourceConflict error', async () => {
+  it('should not handle a SourceConflict error, but should send info about conflicts to the console', async () => {
     const executor = new TestRetrieveExecutor(
       'testRetrieve',
       'testRetrieveLog'
