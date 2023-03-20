@@ -15,8 +15,7 @@ import {
   ConfigUtil,
   ContinueResponse,
   SourceTrackingService,
-  Table,
-  WorkspaceContextUtil
+  Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -47,12 +46,7 @@ import {
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import {
-  OrgType,
-  WorkspaceContext,
-  workspaceContextUtils
-} from '../../../src/context';
-import * as orgTypeUtils from '../../../src/context/workspaceOrgType';
+import { WorkspaceContext } from '../../../src/context';
 import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
