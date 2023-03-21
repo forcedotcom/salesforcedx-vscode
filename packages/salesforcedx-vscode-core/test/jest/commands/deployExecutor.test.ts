@@ -132,7 +132,7 @@ describe('Deploy Executor', () => {
       ensureLocalTrackingSpy.mock.invocationCallOrder[0];
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
     // In order to be sure that a Source Tracking instance is initialized
-    // and tracking files appropriately, create and ensureLocalTracking
+    // and tracking files appropriately, createSourceTracking and ensureLocalTracking
     // need to be called before the deploy operation is started.
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
