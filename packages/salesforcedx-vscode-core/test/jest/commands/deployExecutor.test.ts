@@ -11,7 +11,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import * as vscode from 'vscode';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 import { MetadataCacheService } from '../../../src/conflict';
@@ -70,7 +69,7 @@ describe('Deploy Executor', () => {
   let handleConflictsStub: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
-    constructor(s: string, t: string, x?: boolean) {
+    constructor(s: string, t: string) {
       super(s, t);
     }
 
@@ -137,7 +136,6 @@ describe('Deploy Executor', () => {
     // need to be called before the deploy operation is started.
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
-    expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
   });
 
   it('should handle a SourceConflict error', async () => {
