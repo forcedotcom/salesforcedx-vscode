@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
-- We updated the version of the lightning language server. The new version now includes code completion and helpful hover text. ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
+- We updated the version of the lightning language server. The new version now includes additional code completion and helpful hover text. ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
 
 ## Fixed
 
