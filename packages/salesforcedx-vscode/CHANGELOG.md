@@ -2,19 +2,15 @@
 
 ## Added
 
-#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
-- Bump lightning language server version ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
-
-#### salesforcedx-vscode-lwc
-
-- Bump lightning language server version ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
+- We updated the version of the lightning language server. The new version now includes code completion and helpful hover text. ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
 
 ## Fixed
 
 #### salesforcedx-vscode-soql
 
-- Home as save path for unsaved query results ([PR #4742](https://github.com/forcedotcom/salesforcedx-vscode/pull/4742))
+- We fixed an issue so that the default directory for unsaved query results is now correctly set to the home directory instead of root. ([PR #4742](https://github.com/forcedotcom/salesforcedx-vscode/pull/4742))
 
 # 57.6.0 - March 15, 2023
 
