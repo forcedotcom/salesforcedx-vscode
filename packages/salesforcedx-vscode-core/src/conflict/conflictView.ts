@@ -109,10 +109,10 @@ export class ConflictView {
 
   private async updateEnablementMessage() {
     const orgType = await getWorkspaceOrgType();
+    const isConflictDetectionEnabled = sfdxCoreSettings.getConflictDetectionEnabled();
+    const isSourceTrackingEnabled = orgType === OrgType.SourceTracked;
     this.treeView.message =
-      sfdxCoreSettings.getConflictDetectionEnabled() ||
-      this.diffsOnly ||
-      orgType === OrgType.SourceTracked
+      isConflictDetectionEnabled || this.diffsOnly || isSourceTrackingEnabled
         ? undefined
         : nls.localize('conflict_detect_not_enabled');
   }
