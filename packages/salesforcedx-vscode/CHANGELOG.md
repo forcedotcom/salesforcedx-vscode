@@ -1,5 +1,21 @@
 # 57.7.0 - March 22, 2023
 
+## Added
+
+#### salesforcedx-vscode-lightning
+
+- Bump lightning language server version ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
+
+#### salesforcedx-vscode-lwc
+
+- Bump lightning language server version ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- Home as save path for unsaved query results ([PR #4742](https://github.com/forcedotcom/salesforcedx-vscode/pull/4742))
+
 # 57.6.0 - March 15, 2023
 
 ## Fixed
@@ -52,8 +68,8 @@ We made some updates under the hood. ([PR #4568](https://github.com/forcedotcom/
 
 - We fixed an issue with conflict detection at sync so that more recent changes are correctly deployed. Thank you [Ralph Callaway](https://github.com/ralphcallaway) for creating the issue, and [RanGroen](https://github.com/rangroen) for helping us test it! ([PR #4616](https://github.com/forcedotcom/salesforcedx-vscode/pull/4616), [ISSUE #4585](https://github.com/forcedotcom/salesforcedx-vscode/issues/4585))
 
-
 # 56.16.0 - January 25, 2023
+
 ## Fixed
 
 #### salesforcedx-vscode-core
