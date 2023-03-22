@@ -176,7 +176,7 @@
         },
         {
           "command": "sfdx.force.metadata.view.component.refresh",
-          "when": "view == metadata && viewItem =~ /(folder|type)/",
+          "when": "view == metadata && viewItem =~ /(folder||type)/",
           "group": "inline"
         },
         {
@@ -186,7 +186,7 @@
         },
         {
           "command": "sfdx.force.source.retrieve.component",
-          "when": "view == metadata && viewItem =~ /(type|component|folder)/",
+          "when": "view == metadata && viewItem =~ /(type||component||folder)/",
           "group": "inline"
         },
         {
@@ -198,7 +198,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts||js||java||json||toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
@@ -226,7 +226,7 @@
         },
         {
           "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
-          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls||apex||log)?$/"
         }
       ],
       "explorer/context": [
@@ -320,7 +320,7 @@
         },
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts||js||java||json||toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.create.manifest",
@@ -328,7 +328,7 @@
         },
         {
           "command": "sfdx.lightning.rename",
-          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/.*(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/(lwc||aura)\\/.*(\\/[^\\/]+\\.(html||css||js||xml||svg||cmp||app||design||auradoc))?$/"
         }
       ],
       "commandPalette": [
@@ -614,7 +614,7 @@
         },
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts||js||java||json||toml))?$/"
         },
         {
           "command": "sfdx.force.function.invoke",
@@ -634,7 +634,7 @@
         },
         {
           "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
-          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls||apex||log)?$/"
         }
       ]
     },

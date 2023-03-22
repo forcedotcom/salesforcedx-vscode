@@ -140,11 +140,11 @@
       "view/item/context": [
         {
           "command": "sfdx.force.test.view.showError",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
+          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest||apexTestGroup)_Fail/"
         },
         {
           "command": "sfdx.force.test.view.goToDefinition",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
+          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest||apexTestGroup)(_Pass||_Skip||\\b)/"
         },
         {
           "command": "sfdx.force.test.view.runClassTests",
@@ -153,7 +153,7 @@
         },
         {
           "command": "sfdx.force.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
+          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*||\\b)/",
           "group": "inline"
         }
       ],

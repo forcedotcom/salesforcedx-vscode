@@ -166,7 +166,7 @@
         },
         {
           "command": "sfdx.force.test.view.debugSingleTest",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
+          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*||\\b)/",
           "group": "inline"
         }
       ]
