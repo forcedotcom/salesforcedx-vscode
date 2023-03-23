@@ -35,7 +35,7 @@ export async function getWorkspaceOrgType(
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
   setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-  setDefaultUsernameHasNoChangeTracking(orgType !== OrgType.SourceTracked);
+  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
 }
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
