@@ -39,7 +39,7 @@ export function getConflictMessagesFor(
 ): ConflictDetectionMessages | undefined {
   const conflictMessages = messagesByLogName.get(logName);
   if (!conflictMessages) {
-    console.warn(`No conflict messages found for ${logName}`);
+    throw new Error(`No conflict messages found for ${logName}`);
   }
   return conflictMessages;
 }
