@@ -73,15 +73,7 @@ export class DeployQueue {
       const toDeploy = Array.from(this.queue);
       this.queue.clear();
       try {
-        let defaultUsernameorAlias: string | undefined;
-        if (workspaceUtils.hasRootWorkspace()) {
-          defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-            false
-          );
-        }
-        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-          defaultUsernameorAlias
-        );
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType();
         if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'

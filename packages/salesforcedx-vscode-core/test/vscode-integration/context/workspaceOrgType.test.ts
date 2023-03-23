@@ -93,15 +93,12 @@ describe('workspaceOrgType unit tests', () => {
 
   describe('getWorkspaceOrgType', () => {
     it('returns the source-tracked org type', async () => {
-      const defaultUsername = 'scratchOrgAlias';
       getUsernameStub.resolves(scratchOrgUser);
       orgCreateStub.resolves({
         supportsSourceTracking: async () => true
       });
 
-      const orgType: OrgType = await workspaceContextUtils.getWorkspaceOrgType(
-        defaultUsername
-      );
+      const orgType: OrgType = await workspaceContextUtils.getWorkspaceOrgType();
 
       expect(orgType).to.equal(OrgType.SourceTracked);
       expect(orgCreateStub.calledOnce).to.eql(true);
@@ -114,9 +111,7 @@ describe('workspaceOrgType unit tests', () => {
         supportsSourceTracking: async () => false
       });
 
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-        defaultUsername
-      );
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       expect(orgType).to.equal(OrgType.NonSourceTracked);
       expect(orgCreateStub.calledOnce).to.eql(true);
     });
