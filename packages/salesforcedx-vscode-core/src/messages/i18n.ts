@@ -158,7 +158,6 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
-  force_function_container_start_text: 'SFDX: Start Container Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
   force_create_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
@@ -308,6 +307,10 @@ export const messages = {
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
+  force_config_set_title: 'Set Config',
+  table_header_name: 'Name',
+  table_header_value: 'Value',
+  table_header_success: 'Success',
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:

@@ -5,9 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
-import { FileProperties } from '@salesforce/source-deploy-retrieve';
+import {
+  DeployResult,
+  FileProperties
+} from '@salesforce/source-deploy-retrieve';
 import { ExtensionContext, Memento } from 'vscode';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 
 interface ConflictFileProperties {
@@ -63,8 +66,17 @@ export class PersistentStorageService {
     }
   }
 
+  public setPropertiesForFilesDeploy(result: DeployResult) {
+    const fileResponses = result.getFileResponses();
+    for (const file of fileResponses) {
+      this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
+        lastModifiedDate: String(result.response.lastModifiedDate)
+      });
+    }
+  }
+
   public makeKey(type: string, fullName: string): string {
-    const orgUserName = workspaceContext.username;
+    const orgUserName = WorkspaceContext.getInstance().username;
     const projectPath = getRootWorkspacePath();
     return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }

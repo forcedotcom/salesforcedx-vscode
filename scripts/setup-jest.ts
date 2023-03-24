@@ -36,23 +36,30 @@ const getMockVSCode = () => {
     },
     EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
+    extensions: {
+      getExtension: jest.fn()
+    },
     languages: {
       createDiagnosticCollection: jest.fn()
     },
     Uri: {
       parse: jest.fn(),
-      file: jest.fn()
+      file: jest.fn(),
+      joinPath: jest.fn()
     },
+    Position: jest.fn(),
     ProgressLocation: {
       SourceControl: 1,
       Window: 10,
       Notification: 15
     },
+    Range: jest.fn(),
     StatusBarAlignment: {
       Left: 1,
       Right: 2
     },
     window: {
+      activeTextEditor: jest.fn(),
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
       showErrorMessage: jest.fn(),

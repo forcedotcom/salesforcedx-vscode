@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
   ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
@@ -29,13 +28,13 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { SourceTrackingService } from '../services';
+import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { OrgAuthInfo } from '../util';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 
@@ -63,7 +62,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      await this.setApiVersionOn(components);
+      await setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -83,23 +82,6 @@ export abstract class DeployRetrieveExecutor<
     } finally {
       await this.postOperation(result);
     }
-  }
-
-  private async setApiVersionOn(components: ComponentSet) {
-    // Check the SFDX configuration to see if there is an overridden api version.
-    // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-    const userConfiguredApiVersion:
-      | string
-      | undefined = await ConfigUtil.getUserConfiguredApiVersion();
-
-    if (userConfiguredApiVersion) {
-      components.apiVersion = userConfiguredApiVersion;
-      return;
-    }
-
-    // If no user-configured Api Version is present, then get the version from the Org.
-    const orgApiVersion = await OrgAuthInfo.getOrgApiVersion();
-    components.apiVersion = orgApiVersion ?? components.apiVersion;
   }
 
   protected setupCancellation(
@@ -133,7 +115,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const service = new SourceTrackingService();
     const sourceTracking = await service.createSourceTracking();
     const operation = await components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
     });
 
     this.setupCancellation(operation, token);
@@ -147,6 +129,11 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     try {
       if (result) {
         BaseDeployExecutor.errorCollection.clear();
+
+        // Update Persistent Storage for the files that were deployed
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+          result
+        );
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
@@ -215,7 +202,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContext.getInstance().getConnection();
 
     const defaultOutput = join(
       getRootWorkspacePath(),

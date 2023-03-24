@@ -808,14 +808,14 @@ export async function processBreakpointChangedForCheckpoints(
   for (const bp of breakpointsChangedEvent.removed) {
     if (bp.condition && bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        const breakpointId = (bp as any)._id;
+        const breakpointId = bp.id;
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
       });
     }
   }
 
   for (const bp of breakpointsChangedEvent.changed) {
-    const breakpointId = (bp as any)._id;
+    const breakpointId = bp.id;
     if (
       bp.condition &&
       bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
@@ -862,7 +862,7 @@ export async function processBreakpointChangedForCheckpoints(
       bp instanceof vscode.SourceBreakpoint
     ) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        const breakpointId = (bp as any)._id;
+        const breakpointId = bp.id;
         const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
         const uri = code2ProtocolConverter(bp.location.uri);
         const filename = uri.substring(uri.lastIndexOf('/') + 1);

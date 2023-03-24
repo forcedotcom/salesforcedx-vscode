@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import {
+  getRootWorkspacePath,
+  SFDX_CORE_CONFIGURATION_NAME
+} from '@salesforce/salesforcedx-utils-vscode';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -24,7 +29,6 @@ import {
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceFunctionContainerlessStartCommand,
-  forceFunctionContainerStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
@@ -99,7 +103,7 @@ import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   ORG_OPEN_COMMAND
 } from './constants';
-import { workspaceContext, workspaceContextUtils } from './context';
+import { WorkspaceContext, workspaceContextUtils } from './context';
 import {
   decorators,
   disposeTraceFlagExpiration,
@@ -412,11 +416,6 @@ function registerCommands(
     forceFunctionContainerlessStartCommand
   );
 
-  const forceFunctionContainerStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.container.start',
-    forceFunctionContainerStartCommand
-  );
-
   const forceFunctionInvokeCmd = vscode.commands.registerCommand(
     'sfdx.force.function.invoke',
     forceFunctionInvoke
@@ -455,7 +454,6 @@ function registerCommands(
     forceFunctionInvokeCmd,
     forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
-    forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
@@ -595,6 +593,18 @@ async function setupOrgBrowser(
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Switch to the project directory so that the main @salesforce
+  // node libraries work correctly.  @salesforce/core,
+  // @salesforce/source-tracking, etc. all use process.cwd()
+  // internally.  This causes issues when used from VSCE, as VSCE
+  // processes can run with a path that does not reflect the current
+  // project path (it often returns '/' from process.cwd()).
+  // Switching to the project path here at activation time ensures that
+  // commands are run with the project path returned from process.cwd(),
+  // thus avoiding the potential errors surfaced when the libs call
+  // process.cwd().
+  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   const { name, aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
@@ -698,7 +708,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     SfdxCommandletExecutor,
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
-    workspaceContext,
+    WorkspaceContext,
     taskViewService,
     telemetryService
   };
@@ -708,26 +718,31 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
 
-  // Refresh SObject definitions if there aren't any faux classes
-  const sobjectRefreshStartup: boolean = vscode.workspace
-    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    // Refresh SObject definitions if there aren't any faux classes
+    const sobjectRefreshStartup: boolean = vscode.workspace
+      .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+      .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-  if (sobjectRefreshStartup) {
-    initSObjectDefinitions(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
-  } else {
-    checkSObjectsAndRefresh(
-      vscode.workspace.workspaceFolders![0].uri.fsPath
-    ).catch(e => telemetryService.sendException(e.name, e.message));
+    if (sobjectRefreshStartup) {
+      initSObjectDefinitions(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    } else {
+      checkSObjectsAndRefresh(
+        vscode.workspace.workspaceFolders[0].uri.fsPath
+      ).catch(e => telemetryService.sendException(e.name, e.message));
+    }
   }
 
   return api;
 }
 
 async function initializeProject(extensionContext: vscode.ExtensionContext) {
-  await workspaceContext.initialize(extensionContext);
+  await WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Register org picker commands
   const orgList = new OrgList();
