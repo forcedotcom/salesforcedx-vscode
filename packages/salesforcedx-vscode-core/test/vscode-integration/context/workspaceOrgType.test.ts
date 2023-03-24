@@ -95,7 +95,7 @@ describe('workspaceOrgType unit tests', () => {
     it('returns the source-tracked org type', async () => {
       getUsernameStub.resolves(scratchOrgUser);
       orgCreateStub.resolves({
-        tracksSource: async () => true
+        supportsSourceTracking: async () => true
       });
 
       const orgType: OrgType = await workspaceContextUtils.getWorkspaceOrgType();
@@ -108,7 +108,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = 'sandbox@org.com';
       getUsernameStub.resolves(defaultUsername);
       orgCreateStub.resolves({
-        tracksSource: async () => false
+        supportsSourceTracking: async () => false
       });
 
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
@@ -125,7 +125,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = undefined;
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
       orgCreateStub.resolves({
-        tracksSource: async () => false
+        supportsSourceTracking: async () => false
       });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
@@ -147,7 +147,7 @@ describe('workspaceOrgType unit tests', () => {
         .throws(error);
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
       orgCreateStub.resolves({
-        tracksSource: async () => true
+        supportsSourceTracking: async () => true
       });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
@@ -166,7 +166,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = 'scratchOrgAlias';
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
       orgCreateStub.resolves({
-        tracksSource: async () => true
+        supportsSourceTracking: async () => true
       });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
@@ -184,7 +184,7 @@ describe('workspaceOrgType unit tests', () => {
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
       const defaultUsername = 'sandbox@org.com';
       orgCreateStub.resolves({
-        tracksSource: async () => false
+        supportsSourceTracking: async () => false
       });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);

@@ -18,7 +18,16 @@ export enum OrgType {
 export async function getWorkspaceOrgType(): Promise<OrgType> {
   const connection = await WorkspaceContext.getInstance().getConnection();
   const org: Org = await Org.create({ connection });
-  const isSourceTracked = await org.tracksSource();
+  // Org.supportsSourceTracking() checks the org at this point in time.  This
+  // is important because a sandbox can be created without source tracking and
+  // then be refreshed to have source tracking.  So, in the case of sandboxes,
+  // we have to check the org's source tracking status in real time and can't
+  // rely on Org.tracksSource() because that property is populated at authorization-
+  // time only and is not updated after the Sandbox is refreshed unless the User
+  // re-authenticates that sandbox org.
+  // Also opting to use this call only and specifically NOT use org.isScratch(),
+  // which was not returning consistent results during dev.
+  const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
 
