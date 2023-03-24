@@ -86,38 +86,4 @@ describe('Retrieve Executor', () => {
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(createSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
   });
-
-  it('should not handle a SourceConflict error, but should send info about conflicts to the console', async () => {
-    const executor = new TestRetrieveExecutor(
-      'testRetrieve',
-      'testRetrieveLog'
-    );
-
-    const dummySourceConflictError = {
-      name: 'SourceConflictError',
-      message: '2 conflicts detected',
-      data: [
-        {
-          state: 'Conflict',
-          fullName: 'Test_Apex_Class_1',
-          type: 'ApexClass',
-          filePath:
-            '/Users/kenneth.lewis/scratchpad/TestProject-…ault/classes/Test_Apex_Class_1.cls-meta.xml'
-        },
-        {
-          state: 'Conflict',
-          fullName: 'Test_Apex_Class_1',
-          type: 'ApexClass',
-          filePath:
-            '/Users/kenneth.lewis/scratchpad/TestProject-…/main/default/classes/Test_Apex_Class_1.cls'
-        }
-      ]
-    };
-
-    await (executor as any).handleSourceConflictError(dummySourceConflictError);
-
-    expect(consoleInfoSpy).toHaveBeenCalledWith(
-      executor.sourceConflictErrorInfoMsg
-    );
-  });
 });

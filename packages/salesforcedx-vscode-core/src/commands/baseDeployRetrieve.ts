@@ -11,7 +11,6 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
-  SfdxCommandBuilder,
   SourceTrackingService,
   Table,
   workspaceUtils
@@ -30,6 +29,7 @@ import {
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { getConflictMessagesFor } from '../conflict/messages';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
@@ -41,11 +41,7 @@ import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { MetadataCacheService } from './../conflict/metadataCacheService';
 import { BaseDeployExecutor } from './baseDeployCommand';
-import {
-  ConflictDetectionMessages,
-  createComponentCount,
-  formatException
-} from './util';
+import { createComponentCount, formatException } from './util';
 import { TimestampConflictChecker } from './util/postconditionCheckers';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -164,7 +160,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const detector = new TimestampConflictDetector();
     const diffs = detector.createDiffs(cacheResult, true);
 
-    const conflictMessages = this.getMessagesFor(this.logName);
+    const conflictMessages = getConflictMessagesFor(this.logName);
     if (conflictMessages) {
       const conflictChecker = new TimestampConflictChecker(
         false,
@@ -176,48 +172,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         diffs
       );
     }
-  }
-
-  private getMessagesFor(
-    logName: string
-  ): ConflictDetectionMessages | undefined {
-    const messagesByLogName: Map<string, ConflictDetectionMessages> = new Map();
-    const warningMessageKey = 'conflict_detect_conflicts_during_deploy';
-
-    messagesByLogName.set('force_source_deploy_with_sourcepath_beta', {
-      warningMessageKey,
-      commandHint: inputs => {
-        const commands: string[] = [];
-        (inputs as string[]).forEach(input => {
-          commands.push(
-            new SfdxCommandBuilder()
-              .withArg('force:source:deploy')
-              .withFlag('--sourcepath', input)
-              .build()
-              .toString()
-          );
-        });
-        const hints = commands.join('\n  ');
-
-        return hints;
-      }
-    });
-    messagesByLogName.set('force_source_deploy_with_manifest_beta', {
-      warningMessageKey,
-      commandHint: input => {
-        return new SfdxCommandBuilder()
-          .withArg('force:source:deploy')
-          .withFlag('--manifest', input as string)
-          .build()
-          .toString();
-      }
-    });
-
-    const conflictMessages = messagesByLogName.get(logName);
-    if (!conflictMessages) {
-      console.warn(`No conflict messages found for ${logName}`);
-    }
-    return conflictMessages;
   }
 
   protected async postOperation(
@@ -295,9 +249,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
-  public readonly sourceConflictErrorInfoMsg =
-    'SourceConflictError reported.  Use SFDX: Diff File Against Org and SFDX: Diff Folder Against Org to detect and view conflicts in advance of any retrieve operation.';
-
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
@@ -325,15 +276,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     return operation.pollStatus();
   }
 
-  protected async handleSourceConflictError(e: any) {
-    // Retrieve operation - proceed and do not handle or throw.
-    // Per the docs, the Conflict Detection at Sync
-    // setting only enables conflict detection for
-    // deployment operations.  For Retrieve operations
-    // it is suggested to run SFDX: Diff* commands
-    // to check for conflicts before retrieving.
-    console.info(this.sourceConflictErrorInfoMsg);
-  }
+  /**
+   * @param error The DeployRetrieveExecutor base class catches
+   * SourceConflictErrors that are thrown by the source-tracking
+   * library and calls this method. Conflict handling is not
+   * currently implemented for retrieve operations.
+   * Per the docs, it is suggested to run SFDX: Diff* commands
+   * to check for conflicts before retrieving.
+   */
+  protected async handleSourceConflictError(error: any) {}
 
   protected async postOperation(
     result: RetrieveResult | undefined
