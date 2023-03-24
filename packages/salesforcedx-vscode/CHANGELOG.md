@@ -1,3 +1,51 @@
+# 57.7.0 - March 25, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added a setting to enable deploy and retrieve commands for source-tracked orgs ([PR #4006](https://github.com/forcedotcom/salesforcedx-vscode/pull/4006))
+
+- Add support for StandardValueSet ([PR #3992](https://github.com/forcedotcom/salesforcedx-vscode/pull/3992))
+
+## Fixed
+
+#### docs
+
+- Fix typo ([PR #4086](https://github.com/forcedotcom/salesforcedx-vscode/pull/4086))
+
+#### salesforcedx-vscode
+
+- Changelog for v57.6.0 ([PR #4741](https://github.com/forcedotcom/salesforcedx-vscode/pull/4741))
+
+- Changelog v54.11.0 ([PR #4076](https://github.com/forcedotcom/salesforcedx-vscode/pull/4076))
+
+- Update release notes for 54.4.1 release ([PR #3917](https://github.com/forcedotcom/salesforcedx-vscode/pull/3917))
+
+#### salesforcedx-vscode-apex
+
+- Remove log4j from apex language server  (#3712) ([PR #3709](https://github.com/forcedotcom/salesforcedx-vscode/pull/3709))
+
+- Remove log4j from apex language server ([PR #3709](https://github.com/forcedotcom/salesforcedx-vscode/pull/3709))
+
+#### salesforcedx-vscode-core
+
+- Reverted setting to enable deploy and retrieve commands for source-tracked orgs ([PR #4094](https://github.com/forcedotcom/salesforcedx-vscode/pull/4094))
+
+- Changed version of types/chai to 4.3.0 ([PR #4033](https://github.com/forcedotcom/salesforcedx-vscode/pull/4033))
+
+- Revert source-deploy-retrieve to previous version ([PR #3908](https://github.com/forcedotcom/salesforcedx-vscode/pull/3908))
+
+- Revert source-deploy-retireve to previous version ([PR #3908](https://github.com/forcedotcom/salesforcedx-vscode/pull/3908))
+
+- Upgrade to latest functions lib to fix regressions @W-10257676@ ([PR #3802](https://github.com/forcedotcom/salesforcedx-vscode/pull/3802))
+
+#### salesforcedx-vscode-soql
+
+- Remove excess telemetry ([PR #3789](https://github.com/forcedotcom/salesforcedx-vscode/pull/3789))
+
+- Fix soql build ([PR #3537](https://github.com/forcedotcom/salesforcedx-vscode/pull/3537))
+
 # 57.7.0 - March 22, 2023
 
 ## Added
