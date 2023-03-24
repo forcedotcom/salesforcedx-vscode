@@ -14,7 +14,8 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
-  LocalComponent
+  LocalComponent,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -89,6 +90,7 @@ describe('Force Source Retrieve Component(s)', () => {
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
+      sb.stub(SourceTrackingService, 'createSourceTracking');
     });
 
     afterEach(() => {

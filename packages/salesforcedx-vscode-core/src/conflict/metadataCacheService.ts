@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  projectPaths
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -140,7 +143,8 @@ export class MetadataCacheService {
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: this.cachePath,
-      merge: false
+      merge: false,
+      suppressEvents: true
     });
 
     return operation;

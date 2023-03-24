@@ -7,6 +7,7 @@
 import * as path from 'path';
 import { ExtensionContext, TreeView, window } from 'vscode';
 import { channelService } from '../channels';
+import { getWorkspaceOrgType, OrgType } from '../context/workspaceOrgType';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
@@ -45,7 +46,7 @@ export class ConflictView {
     throw this.initError();
   }
 
-  public visualizeDifferences(
+  public async visualizeDifferences(
     title: string,
     remoteLabel: string,
     reveal: boolean,
@@ -60,7 +61,7 @@ export class ConflictView {
       ? nls.localize('conflict_detect_no_differences')
       : nls.localize('conflict_detect_no_conflicts');
     this.dataProvider.reset(title, conflicts, emptyLabel);
-    this.updateEnablementMessage();
+    await this.updateEnablementMessage();
 
     if (reveal) {
       this.revealConflictNode();
@@ -98,7 +99,7 @@ export class ConflictView {
 
     this._treeView.onDidChangeVisibility(async () => {
       if (this.treeView.visible) {
-        this.updateEnablementMessage();
+        await this.updateEnablementMessage();
         await this.dataProvider.onViewChange();
       }
     });
@@ -106,9 +107,12 @@ export class ConflictView {
     extensionContext.subscriptions.push(this._treeView);
   }
 
-  private updateEnablementMessage() {
+  private async updateEnablementMessage() {
+    const orgType = await getWorkspaceOrgType();
+    const isConflictDetectionEnabled = sfdxCoreSettings.getConflictDetectionEnabled();
+    const isSourceTrackingEnabled = orgType === OrgType.SourceTracked;
     this.treeView.message =
-      sfdxCoreSettings.getConflictDetectionEnabled() || this.diffsOnly
+      isConflictDetectionEnabled || this.diffsOnly || isSourceTrackingEnabled
         ? undefined
         : nls.localize('conflict_detect_not_enabled');
   }

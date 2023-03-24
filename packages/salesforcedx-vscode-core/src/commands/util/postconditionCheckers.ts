@@ -20,6 +20,7 @@ import {
 } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
+import { getWorkspaceOrgType, OrgType } from '../../context/workspaceOrgType';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
@@ -211,7 +212,13 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+    // If the current org is source-tracked, then source tracking
+    // will handle conflict detection.
+    const orgType = await getWorkspaceOrgType();
+    if (
+      orgType === OrgType.SourceTracked ||
+      !sfdxCoreSettings.getConflictDetectionEnabled()
+    ) {
       return inputs;
     }
 
@@ -275,7 +282,11 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     );
 
     if (results.different.size === 0) {
-      conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
+      await conflictView.visualizeDifferences(
+        conflictTitle,
+        usernameOrAlias,
+        false
+      );
     } else {
       channelService.appendLine(
         nls.localize(
@@ -294,7 +305,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       );
 
       if (choice === nls.localize('conflict_detect_override')) {
-        conflictView.visualizeDifferences(
+        await conflictView.visualizeDifferences(
           conflictTitle,
           usernameOrAlias,
           false
@@ -309,7 +320,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
         const doReveal =
           choice === nls.localize('conflict_detect_show_conflicts');
-        conflictView.visualizeDifferences(
+        await conflictView.visualizeDifferences(
           conflictTitle,
           usernameOrAlias,
           doReveal,

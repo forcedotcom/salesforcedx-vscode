@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
   ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
-  Table
+  SourceTrackingService,
+  Table,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -26,7 +29,9 @@ import {
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { getConflictMessagesFor } from '../conflict/messages';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
+import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
@@ -35,8 +40,10 @@ import { SourceTrackingService } from '../services';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
+import { MetadataCacheService } from './../conflict/metadataCacheService';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
+import { TimestampConflictChecker } from './util/postconditionCheckers';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -78,7 +85,15 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      throw formatException(e);
+      if (e.name === 'SourceConflictError') {
+        this.handleSourceConflictError(e);
+        return true;
+      } else {
+        // Error, but not a Source Conflict Error.  Prior to adding
+        // SourceTracking, this was the only statement in the catch
+        // block.
+        throw formatException(e);
+      }
     } finally {
       await this.postOperation(result);
     }
@@ -105,6 +120,7 @@ export abstract class DeployRetrieveExecutor<
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
   ): Promise<void>;
+  protected abstract handleSourceConflictError(e: any): void;
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
@@ -112,15 +128,51 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const service = new SourceTrackingService();
-    const sourceTracking = await service.createSourceTracking();
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
+    await sourceTracking.ensureLocalTracking();
+
     const operation = await components.deploy({
-      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
+      usernameOrConnection: connection
     });
 
     this.setupCancellation(operation, token);
 
     return operation.pollStatus();
+  }
+
+  protected async handleSourceConflictError(e: any) {
+    const componentPaths = e.data.map(
+      (component: { filePath: any }) => component.filePath
+    );
+    const username = await ConfigUtil.getUsername();
+    const metadataCacheService = new MetadataCacheService(String(username));
+    const cacheResult = await metadataCacheService.loadCache(
+      componentPaths,
+      workspaceUtils.getRootWorkspacePath(),
+      false
+    );
+
+    const detector = new TimestampConflictDetector();
+    const diffs = detector.createDiffs(cacheResult, true);
+
+    const conflictMessages = getConflictMessagesFor(this.logName);
+    if (conflictMessages) {
+      const conflictChecker = new TimestampConflictChecker(
+        false,
+        conflictMessages
+      );
+      await conflictChecker.handleConflicts(
+        componentPaths,
+        String(username),
+        diffs
+      );
+    }
   }
 
   protected async postOperation(
@@ -202,10 +254,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
+    const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
 
     const defaultOutput = join(
-      getRootWorkspacePath(),
+      projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
@@ -221,6 +278,16 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     return operation.pollStatus();
   }
+
+  /**
+   * @param error The DeployRetrieveExecutor base class catches
+   * SourceConflictErrors that are thrown by the source-tracking
+   * library and calls this method. Conflict handling is not
+   * currently implemented for retrieve operations.
+   * Per the docs, it is suggested to run SFDX: Diff* commands
+   * to check for conflicts before retrieving.
+   */
+  protected async handleSourceConflictError(error: any) {}
 
   protected async postOperation(
     result: RetrieveResult | undefined

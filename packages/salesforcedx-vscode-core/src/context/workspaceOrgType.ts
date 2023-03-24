@@ -4,31 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Org } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
+import { WorkspaceContext } from './workspaceContext';
 
 export enum OrgType {
   SourceTracked,
   NonSourceTracked
 }
 
-export async function getWorkspaceOrgType(
-  defaultUsernameOrAlias?: string
-): Promise<OrgType> {
-  if (!defaultUsernameOrAlias) {
-    const e = new Error();
-    e.name = 'NoDefaultusernameSet';
-    throw e;
-  }
-  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
-    telemetryService.sendException(
-      'get_workspace_org_type_scratch_org',
-      err.message
-    )
-  );
-  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+export async function getWorkspaceOrgType(): Promise<OrgType> {
+  const connection = await WorkspaceContext.getInstance().getConnection();
+  const org: Org = await Org.create({ connection });
+  const isSourceTracked = await org.tracksSource();
+  return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
@@ -39,7 +30,7 @@ export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
     setHasDefaultUsername(!!defaultUsernameOrAlias);
-    const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
+    const orgType = await getWorkspaceOrgType();
     setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
     console.error(e);
