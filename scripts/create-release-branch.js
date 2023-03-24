@@ -109,7 +109,7 @@ if (!isBetaRelease()) {
   shell.exec(`git checkout ${releaseBranchName}`)
 
   // Generate changelog
-  const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
+  const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch();
   const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, previousBranchName));
   const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
   const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
