@@ -107,6 +107,7 @@ if (!isBetaRelease()) {
   shell.exec(`git merge ${releaseBranchName}`)
   shell.exec(`git push -u origin develop`)
   shell.exec(`git checkout ${releaseBranchName}`)
+  shell.exec(`git fetch`)
 
   // Generate changelog
   const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch();
