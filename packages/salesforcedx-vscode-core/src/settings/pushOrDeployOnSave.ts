@@ -79,9 +79,7 @@ export class DeployQueue {
             false
           );
         }
-        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-          defaultUsernameorAlias
-        );
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType();
         if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'
