@@ -10,7 +10,7 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { TestExecutionInfo, TestInfoKind } from '../types';
+import { isTestCaseInfo, TestExecutionInfo, TestInfoKind } from '../types';
 import { workspace, workspaceService } from '../workspace';
 import { SfdxTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
@@ -32,6 +32,14 @@ export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
     return path.relative(cwd, testFsPath);
   }
   return testFsPath;
+}
+
+/**
+ * Returns testNamePattern flag and escaped test name
+ * @param TestExecutionInfo
+ */
+export function getTestNamePatternArgs(testName: string) {
+  return ['--testNamePattern', `${escapeStrForRegex(testName)}`];
 }
 
 type JestExecutionInfo = {
@@ -65,15 +73,13 @@ export class TestRunner {
   }
 
   /**
-   * Deterine jest command line arguments and output file path.
+   * Determine jest command line arguments and output file path.
    * @param workspaceFolder workspace folder of the test
    */
   public getJestExecutionInfo(
     workspaceFolder: vscode.WorkspaceFolder
   ): JestExecutionInfo | undefined {
     const { testRunId, testRunType, testExecutionInfo } = this;
-    const testName =
-      'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
     const tempFolder = testResultsWatcher.getTempFolder(
@@ -94,9 +100,10 @@ export class TestRunner {
     } else {
       runTestsByPathArgs = [];
     }
-    const testNamePatternArgs = testName
-      ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
-      : [];
+    const testNamePatternArgs =
+      (isTestCaseInfo(testExecutionInfo) && testExecutionInfo.testName)
+        ? getTestNamePatternArgs(testExecutionInfo.testName)
+        : [];
 
     let runModeArgs: string[];
     if (testRunType === TestRunType.WATCH) {

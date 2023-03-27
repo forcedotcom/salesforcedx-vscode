@@ -1,3 +1,47 @@
+# 57.7.0 - March 22, 2023
+
+## Added
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- We updated the version of the lightning language server. The new version now includes additional code completion and helpful hover text. ([PR #4736](https://github.com/forcedotcom/salesforcedx-vscode/pull/4736))
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- We fixed an issue so that the default directory for unsaved query results is now correctly set to the home directory instead of root. ([PR #4742](https://github.com/forcedotcom/salesforcedx-vscode/pull/4742))
+
+# 57.6.0 - March 15, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+We removed the `SFDX: Start Function in Container` command from the Command Palette. ([PR #4707](https://github.com/forcedotcom/salesforcedx-vscode/pull/4707)).
+
+We made some changes under the hood. ([#4723](https://github.com/forcedotcom/salesforcedx-vscode/pull/4723)).
+
+# 57.3.0 - February 24, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger, salesforcedx-utils-vscode
+
+We fixed an issue where checkpoints were being set and removed in an unreliable manner. ([PR #4686](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
+
+#### salesforcedx-vscode-apex-replay-debugger, salesforcedx-utils-vscode, salesforcedx-vscode-apex, salesforcedx-vscode-lwc
+
+We fixed an issue where test icons were not appearing for Apex or LWC tests. ([PR #4686](https://github.com/forcedotcom/salesforcedx-vscode/pull/4686)).
+
+#### salesforcedx-vscode-lwc
+
+We fixed an issue where debugging an individual Lightning Web Component test was not working as expected. ([PR #4688](https://github.com/forcedotcom/salesforcedx-vscode/pull/4688))
+
+#### salesforcedx-vscode-core
+
+We made some updates under the hood. ([PR #4677](https://github.com/forcedotcom/salesforcedx-vscode/pull/4677)), ([PR #4682](https://github.com/forcedotcom/salesforcedx-vscode/pull/4682)).
+
 # 57.2.1 - February 16, 2023
 
 ## Fixed
@@ -20,8 +64,8 @@ We made some updates under the hood. ([PR #4568](https://github.com/forcedotcom/
 
 - We fixed an issue with conflict detection at sync so that more recent changes are correctly deployed. Thank you [Ralph Callaway](https://github.com/ralphcallaway) for creating the issue, and [RanGroen](https://github.com/rangroen) for helping us test it! ([PR #4616](https://github.com/forcedotcom/salesforcedx-vscode/pull/4616), [ISSUE #4585](https://github.com/forcedotcom/salesforcedx-vscode/issues/4585))
 
-
 # 56.16.0 - January 25, 2023
+
 ## Fixed
 
 #### salesforcedx-vscode-core
