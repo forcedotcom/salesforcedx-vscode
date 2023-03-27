@@ -51,10 +51,11 @@ export class QueryDataFileService {
 
   public async save(): Promise<string> {
     let selectedFileSavePath = '';
-    const fileContent = this.dataProvider.getFileContent(
+    const fileContentString = this.dataProvider.getFileContent(
       this.queryText,
       this.queryData.records
     );
+    const fileContent = new TextEncoder().encode(fileContentString);
     const defaultFileName = this.dataProvider.getFileName();
     /*
         queryDataDefaultFilePath will be used as the default options in the save dialog
@@ -78,7 +79,7 @@ export class QueryDataFileService {
       // use .fsPath, not .path to account for OS.
       selectedFileSavePath = fileInfo.fsPath;
       // Save query results to disk
-      fs.writeFileSync(selectedFileSavePath, fileContent);
+      vscode.workspace.fs.writeFile(fileInfo, fileContent);
       this.showFileInExplorer(selectedFileSavePath);
       this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
     }
