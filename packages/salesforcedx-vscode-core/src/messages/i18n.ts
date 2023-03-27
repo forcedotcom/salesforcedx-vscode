@@ -104,22 +104,21 @@ export const messages = {
     'Access org %s as user %s with the following URL: %s',
 
   force_source_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org',
+    'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
+    'SFDX: Pull Source from Default Org and Override Conflicts',
   force_source_legacy_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org (Legacy)',
+    'SFDX: Pull Source from Default Org (Legacy)',
   force_source_legacy_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)',
+    'SFDX: Pull Source from Default Org and Override Conflicts (Legacy)',
 
-  force_source_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org',
+  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
   force_source_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+    'SFDX: Push Source to Default Org and Override Conflicts',
   force_source_legacy_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org (Legacy)',
+    'SFDX: Push Source to Default Org (Legacy)',
   force_source_legacy_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
+    'SFDX: Push Source to Default Org and Override Conflicts (Legacy)',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
