@@ -58,7 +58,7 @@ describe('Query Data File Service', () => {
   afterEach(() => {
     // delete the query-results directory and its files.
     // @ts-ignore
-    fs.rmdirSync(testResultsDirPath, { recursive: true });
+    fs.rmSync(testResultsDirPath, { recursive: true });
     sandbox.restore();
   });
 
