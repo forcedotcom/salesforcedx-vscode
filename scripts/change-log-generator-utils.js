@@ -30,11 +30,10 @@ const typesToIgnore = [
 
 /**
  * Returns the previous release branch
- * @param {string} releaseBranch current release branch
  * @returns 
  */
 
-function getPreviousReleaseBranch(releaseBranch) {
+function getPreviousReleaseBranch() {
   const releaseBranches = getReleaseBranches();
   return releaseBranches[0];
 }
