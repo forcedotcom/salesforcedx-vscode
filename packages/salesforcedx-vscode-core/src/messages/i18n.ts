@@ -103,9 +103,8 @@ export const messages = {
   force_org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
 
-  force_source_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Org',
-  force_source_pull_force_default_scratch_org_text:
+  force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
+  force_source_pull_force_default_org_text:
     'SFDX: Pull Source from Default Org and Override Conflicts',
   force_source_legacy_pull_default_scratch_org_text:
     'SFDX: Pull Source from Default Org (Legacy)',
@@ -113,7 +112,7 @@ export const messages = {
     'SFDX: Pull Source from Default Org and Override Conflicts (Legacy)',
 
   force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
-  force_source_push_force_default_scratch_org_text:
+  force_source_push_force_default_org_text:
     'SFDX: Push Source to Default Org and Override Conflicts',
   force_source_legacy_push_default_scratch_org_text:
     'SFDX: Push Source to Default Org (Legacy)',

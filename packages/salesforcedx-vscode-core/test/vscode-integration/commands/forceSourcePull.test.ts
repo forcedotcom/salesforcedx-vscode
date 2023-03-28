@@ -15,9 +15,11 @@ describe('Force Source Pull', () => {
   it('Should build the source pull command with no flag', async () => {
     const sourcePullNoFlag = new ForceSourcePullExecutor();
     const pullCommand = sourcePullNoFlag.build({});
-    expect(pullCommand.toCommand()).to.equal(`sfdx ${sourcePullNoFlag.params.command}`);
+    expect(pullCommand.toCommand()).to.equal(
+      `sfdx ${sourcePullNoFlag.params.command}`
+    );
     expect(pullCommand.description).to.equal(
-      nls.localize('force_source_pull_default_scratch_org_text')
+      nls.localize('force_source_pull_default_org_text')
     );
   });
 
@@ -28,12 +30,15 @@ describe('Force Source Pull', () => {
       `sfdx ${sourcePullOverwrite.params.command} --forceoverwrite`
     );
     expect(pullCommand.description).to.equal(
-      nls.localize('force_source_pull_force_default_scratch_org_text')
+      nls.localize('force_source_pull_force_default_org_text')
     );
   });
 
   it('Should build the source pull command with legacy version', async () => {
-    const legacyFlag = new ForceSourcePullExecutor('--forceoverwrite', pullCommandLegacy);
+    const legacyFlag = new ForceSourcePullExecutor(
+      '--forceoverwrite',
+      pullCommandLegacy
+    );
     const flagCommand = legacyFlag.build({});
     expect(legacyFlag.params.command).to.contain(':legacy:');
     expect(flagCommand.toCommand()).to.equal(
