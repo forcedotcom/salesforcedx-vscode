@@ -6,7 +6,6 @@
  */
 
 import { JsonMap } from '@salesforce/ts-types';
-import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import { homedir } from 'os';
 import * as path from 'path';
