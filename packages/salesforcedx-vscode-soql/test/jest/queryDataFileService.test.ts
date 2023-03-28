@@ -1,58 +1,116 @@
-import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
-import { FileFormat, QueryDataFileService} from '../../src/queryDataView/queryDataFileService';
+import {
+  CsvDataProvider,
+  JsonDataProvider
+} from '../../src/queryDataView/dataProviders';
+import { FileFormat } from '../../src/queryDataView/queryDataFileService';
+import {
+  mockQueryData,
+  mockQueryText,
+  MockTextDocumentProvider,
+  TestFileService
+} from '../vscode-integration/testUtilities';
 
-jest.mock('vscode', () => {
-  return {
-    Uri: {
-      file: jest.fn(),
-      parse: jest.fn()
-    },
-    window: {
-      showSaveDialog: jest.fn()
-    },
-    workspace: {
-      fs: {
-        writeFile: jest.fn()
-      }
-    }
-  };
-});
+const QUERY_RESULTS_DIR_PATH = path.join('scripts', 'soql', 'query-results');
 
-describe('QueryDataFileService', () => {
-  const queryText = 'SELECT * FROM Accounts';
-  const queryData: QueryResult<JsonMap> = { done: true, totalSize: 1, records: [{ Id: '123' }]};
-  const format = FileFormat.JSON;
-  const document = { uri: { path: '/path/to/file' } } as unknown as vscode.TextDocument;
+jest.mock('vscode');
 
-  const queryDataFileService = new QueryDataFileService(queryText, queryData, format, document);
+describe('Query Data File Service', () => {
+  let mockTextDocument: vscode.TextDocument;
+  let docProviderDisposable: vscode.Disposable;
+  const documentName = 'example.soql';
+  const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+  const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
+  const mockUriPath = path.join(testResultsDirPath, documentName);
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  function createResultsDirectory() {
+    fs.mkdirSync(testResultsDirPath, {
+      recursive: true
+    });
+  }
+
+  beforeEach(async () => {
+    jest.resetModules();
+    docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
+      'sfdc-test',
+      new MockTextDocumentProvider()
+    );
+    mockTextDocument = await vscode.workspace.openTextDocument(
+      vscode.Uri.parse('sfdc-test:test/examples/soql/mocksoql.soql')
+    );
+    createResultsDirectory();
   });
 
-  test('save() should save the file correctly and return the file path', async () => {
-    const mockDefaultFileName = 'test.json';
-    const mockFileContentString = '{"test": "content"}';
-    const mockSaveDir = '/path/to/save';
-    const mockSavedFilePath = `${mockSaveDir}/${mockDefaultFileName}`;
-    const mockFileContent = new TextEncoder().encode(mockFileContentString);
+  afterEach(() => {
+    // delete the query-results directory and its files.
+    // @ts-ignore
+    fs.rmSync(testResultsDirPath, { recursive: true });
+  });
 
-    (vscode.window.showSaveDialog as any).mockResolvedValue({ fsPath: mockSavedFilePath } as vscode.Uri);
-    (vscode.Uri.file as any).mockReturnValue({} as vscode.Uri);
+  test('should use the correct data provider', () => {
+    const csvFileService = new TestFileService(
+      mockQueryText,
+      mockQueryData,
+      FileFormat.CSV,
+      mockTextDocument
+    );
+    expect(csvFileService.getDataProvider()).toBeInstanceOf(CsvDataProvider);
 
-    queryDataFileService['dataProvider'].getFileName = jest.fn().mockReturnValue(mockDefaultFileName);
-    queryDataFileService['dataProvider'].getFileContent = jest.fn().mockReturnValue(mockFileContentString);
-    queryDataFileService['showFileInExplorer'] = jest.fn();
-    queryDataFileService['showSaveSuccessMessage'] = jest.fn();
+    const jsonFileService = new TestFileService(
+      mockQueryText,
+      mockQueryData,
+      FileFormat.JSON,
+      mockTextDocument
+    );
+    expect(jsonFileService.getDataProvider()).toBeInstanceOf(JsonDataProvider);
+  });
 
-    const savedFilePath = await queryDataFileService.save();
+  test('should save json file to disk on save', async () => {
+    const jsonFileService = new TestFileService(
+      mockQueryText,
+      mockQueryData,
+      FileFormat.JSON,
+      mockTextDocument
+    );
 
-    expect(vscode.window.showSaveDialog).toHaveBeenCalled();
-    expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith({ fsPath: mockSavedFilePath }, mockFileContent);
-    expect(queryDataFileService['showFileInExplorer']).toHaveBeenCalledWith(mockSavedFilePath);
-    expect(queryDataFileService['showSaveSuccessMessage']).toHaveBeenCalledWith(mockDefaultFileName);
-    expect(savedFilePath).toBe(mockSavedFilePath);
+    const mockURI = {
+      fsPath: mockUriPath
+    } as vscode.Uri;
+    (vscode.window.showSaveDialog as any).mockResolvedValue(mockURI);
+
+    const savedFilePath = await jsonFileService.save();
+    const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
+    expect(JSON.parse(savedFileContent)).toEqual(mockQueryData.records);
+  });
+
+  test('should save csv to file to disk on save', async () => {
+    const csvFileService = new TestFileService(
+      mockQueryText,
+      mockQueryData,
+      FileFormat.CSV,
+      mockTextDocument
+    );
+
+    const mockURI = {
+      fsPath: mockUriPath
+    } as vscode.Uri;
+    (vscode.window.showSaveDialog as any).mockResolvedValue(mockURI);
+
+    const savedFilePath = await csvFileService.save();
+    const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
+    const mockCsvData = csvFileService
+      .getDataProvider()
+      .getFileContent(mockQueryText, mockQueryData.records);
+
+    expect(savedFileContent).toEqual(mockCsvData);
   });
 });
