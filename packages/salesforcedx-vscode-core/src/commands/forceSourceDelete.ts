@@ -34,6 +34,7 @@ export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
       .withArg('force:source:delete')
       .withLogName('force_source_delete')
       .withFlag('--sourcepath', data.filePath)
+      .withArg('--noprompt')
       .withArg('--tracksource');
     return commandBuilder.build();
   }
