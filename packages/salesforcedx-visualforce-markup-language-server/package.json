@@ -39,7 +39,7 @@
     "test:jest": "jest --coverage",
     "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "watch": "tsc -watch -p ."
-    },
+  },
   "nyc": {
     "reporter": [
       "text-summary",
