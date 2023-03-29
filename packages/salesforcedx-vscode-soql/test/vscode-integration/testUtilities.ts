@@ -28,7 +28,7 @@ const soqlExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-soql'
 );
 const soqlExports = soqlExtension?.exports;
-const { workspaceContext = {}, channelService = {} } = soqlExports ?? {};
+const { workspaceContext, channelService } = soqlExports;
 
 export function spyChannelService(sandbox: SinonSandbox): SinonSpy {
   return sandbox.spy(channelService, 'appendLine');
