@@ -1,5 +1,5 @@
 ---
-title: Linting 
+title: Linting
 lang: en
 ---
 
@@ -23,7 +23,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 ### For an Existing Project
 
-1. Verify that your project has a `package.json` with these configurations. If your `package.json` doesn't have the configurations, run `npm install eslint @salesforce/eslint-config-lwc --save-dev`.  
+1. Verify that your project has a `package.json` with these configurations. If your `package.json` doesn't have the configurations, run `npm install eslint @salesforce/eslint-config-lwc --save-dev`.
 
     ```json
     "scripts": {
@@ -32,7 +32,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
     }
 
     "devDependencies" {
-        "@salesforce/eslint-config-lwc": "0.4.0",
+        "@salesforce/eslint-config-lwc": "3.4.0",
         "eslint": "^5.16.0"
     }
     ```
