@@ -42,15 +42,19 @@ describe('Query Data File Service', () => {
       ext: '',
       name: 'path/to/savedFile'
     });
+
     (vscode.window.showSaveDialog as any).mockReturnValue({
       fsPath: savedFilePath
     });
+
     jest
       .spyOn(queryDataFileService, 'showFileInExplorer')
       .mockImplementation(() => Promise.resolve());
+
     jest
       .spyOn(queryDataFileService, 'showSaveSuccessMessage')
       .mockImplementation(() => Promise.resolve());
+
     const writeFileSpy = jest.spyOn(vscode.workspace.fs, 'writeFile');
 
     const selectedFilePath = await queryDataFileService.save();
