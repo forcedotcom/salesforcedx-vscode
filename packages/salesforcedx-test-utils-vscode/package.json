@@ -42,6 +42,5 @@
     "lint:fix": "npm run lint -- --fix",
     "test:jest": "jest --coverage",
     "watch": "tsc -watch -p ."
-
   }
 }
