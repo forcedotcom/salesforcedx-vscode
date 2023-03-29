@@ -67,6 +67,7 @@ const getMockVSCode = () => {
       setStatusBarMessage: jest.fn(),
       withProgress: jest.fn(),
       createOutputChannel: jest.fn(),
+      showSaveDialog: jest.fn(),
       OutputChannel: {
         show: jest.fn()
       },
@@ -85,7 +86,10 @@ const getMockVSCode = () => {
         onDidCreate: jest.fn(),
         onDidDelete: jest.fn()
       }),
-      workspaceFolders: []
+      workspaceFolders: [],
+      fs: {
+        writeFile: jest.fn()
+      }
     }
   };
 };
