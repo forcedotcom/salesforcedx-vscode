@@ -35,25 +35,14 @@ describe('Query Data File Service', () => {
       document
     );
 
-    jest.spyOn(path, 'parse').mockReturnValue({
-      root: '/test/',
-      dir: '/test/',
-      base: '/test',
-      ext: '',
-      name: 'path/to/savedFile'
-    });
+    jest.spyOn(path, 'parse').mockReturnValue({ dir: '/test/' } as any);
 
     (vscode.window.showSaveDialog as any).mockReturnValue({
       fsPath: savedFilePath
     });
 
-    jest
-      .spyOn(queryDataFileService, 'showFileInExplorer')
-      .mockImplementation(() => Promise.resolve());
-
-    jest
-      .spyOn(queryDataFileService, 'showSaveSuccessMessage')
-      .mockImplementation(() => Promise.resolve());
+    jest.spyOn(queryDataFileService, 'showFileInExplorer').mockReturnValue();
+    jest.spyOn(queryDataFileService, 'showSaveSuccessMessage');
 
     const writeFileSpy = jest.spyOn(vscode.workspace.fs, 'writeFile');
 
