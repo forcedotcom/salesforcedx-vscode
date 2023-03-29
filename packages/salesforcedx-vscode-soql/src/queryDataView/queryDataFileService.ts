@@ -78,7 +78,7 @@ export class QueryDataFileService {
       // use .fsPath, not .path to account for OS.
       selectedFileSavePath = fileInfo.fsPath;
       // Save query results to disk
-      vscode.workspace.fs.writeFile(fileInfo, fileContent);
+      await vscode.workspace.fs.writeFile(fileInfo, fileContent);
       this.showFileInExplorer(selectedFileSavePath);
       this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
     }
