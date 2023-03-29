@@ -29,7 +29,9 @@ const getMockVSCode = () => {
       public dispose = () => {};
     },
     TreeItem: jest.fn(),
-    commands: jest.fn(),
+    commands: {
+      executeCommand: jest.fn()
+    },
     Disposable: jest.fn(),
     env: {
       machineId: '12345534'
