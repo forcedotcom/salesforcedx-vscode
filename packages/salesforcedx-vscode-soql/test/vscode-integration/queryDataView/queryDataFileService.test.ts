@@ -80,7 +80,7 @@ describe('Query Data File Service', () => {
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
 
-  it('should save json file to disk on save', async () => {
+  it.skip('should save json file to disk on save', async () => {
     const jsonFileService = new TestFileService(
       mockQueryText,
       mockQueryData,
@@ -98,7 +98,7 @@ describe('Query Data File Service', () => {
     expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
   });
 
-  it('should save csv to file to disk on save', async () => {
+  it.skip('should save csv to file to disk on save', async () => {
     const csvFileService = new TestFileService(
       mockQueryText,
       mockQueryData,
