@@ -29,6 +29,12 @@ Creating a release branch automatically generates the change log based off of th
 
 One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) will review the changelog and make any changes to the release branch. A pull request will be opened against the release branch with updates to be included.
 
+## Compare Changes in the Release
+
+When verifying the release, verify that it contains changes. One can see the changes in GitHub using an URL to diff the changes between releases, with an URl in the format of https://github.com/forcedotcom/salesforcedx-vscode/compare/release/v57.7.0...release/v57.8.0.
+
+If no substantial changes were made the previous week, the the release will be skipped.
+
 ## Merging the Release Branch into Main
 
 After the change log has been approved and merged into your release branch, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
@@ -57,7 +63,7 @@ Before approving the release to the marketplace, download the vsix files from th
 
 Alternatively, you can download the files using the [gh cli](https://cli.github.com/) and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.
 
-`> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vscode'`  
+`> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vscode'`
 `> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" to allow the extensions to be uploaded to the marketplace and complete the release process.
