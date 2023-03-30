@@ -33,7 +33,7 @@ One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/team
 
 When verifying the release, verify that it contains changes. One can see the changes in GitHub using an URL to diff the changes between releases, with an URl in the format of https://github.com/forcedotcom/salesforcedx-vscode/compare/release/v57.7.0...release/v57.8.0.
 
-If no substantial changes were made the previous week, the the release will be skipped.
+If no changes were made the previous week, then the release can be skipped.
 
 ## Merging the Release Branch into Main
 
