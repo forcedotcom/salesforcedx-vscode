@@ -35,14 +35,10 @@ import {
   unmockActiveTextEditorUri,
   unmockTestResultWatcher
 } from '../mocks';
-import { InputBuffer } from 'uuid/interfaces';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Debug - Code Action', () => {
-  let uuidStub: SinonStub<
-    [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
-    string
-  >;
+  let uuidStub: SinonStub<[options?: uuid.V4Options | undefined], string>;
   let debugStub: SinonStub<
     [
       vscode.WorkspaceFolder | undefined,

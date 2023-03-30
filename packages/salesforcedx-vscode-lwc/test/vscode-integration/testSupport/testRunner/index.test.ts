@@ -21,15 +21,11 @@ import {
   TestRunner,
   TestRunType
 } from '../../../../src/testSupport/testRunner';
-import { InputBuffer } from 'uuid/interfaces';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('LWC Test Runner', () => {
   describe('Jest Execution Info Unit Tests', () => {
-    let uuidStub: SinonStub<
-      [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
-      string
-    >;
+    let uuidStub: SinonStub<[options?: uuid.V4Options | undefined], string>;
     let getTempFolderStub: SinonStub<[string, string], string>;
     beforeEach(() => {
       uuidStub = stub(uuid, 'v4');
