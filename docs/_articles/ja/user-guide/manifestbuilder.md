@@ -5,8 +5,6 @@ lang: ja
 
 ## Create Project with Manifest
 
-To create developing against non-source-tracked orgs:
-
 1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project with Manifest**.
 
 ![Create project](./images/create-project-with-manifest.png)
@@ -56,7 +54,7 @@ You can retrieve source for a manifest, source files, directories, or folders:
 
 When you select an item to retrieve source, only the existing nested items in the directory structure are retrieved. For example, if you retrieve source for the `classes` folder, the Apex classes that **currently exist in that directory** are retrieved. The command doesn’t retrieve all the Apex classes in the org; it only updates the classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve source using the manifest file. You could also use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.
 
-You can also use [Org Browser](./en/user-guide/development-models/#create-project-and-use-org-browser) to retrive source for non-source-tracked orgs.
+You can also use [Org Browser](./en/user-guide/development-models/#create-project-and-use-org-browser) to retrive source from orgs.
 
 The project structure after you retrieve source:
 
@@ -96,7 +94,7 @@ You can deploy source of a manifest, source files, directories, or folders:
 
 ### Delete Source
 
-You can delete source from your project and from your non-source-tracked org.
+You can delete source from your project and from your org.
 
 - In the VS Code explorer, right-click a manifest, a source file, or a directory and select **SFDX: Delete from Project and Org**.
 - With a source file open in the editor, right-click the file and select **SFDX: Delete This from Project and Org**.
