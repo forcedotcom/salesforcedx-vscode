@@ -79,44 +79,4 @@ describe('Query Data File Service', () => {
     );
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
-
-  it.skip('should save json file to disk on save', async () => {
-    const jsonFileService = new TestFileService(
-      mockQueryText,
-      mockQueryData,
-      FileFormat.JSON,
-      mockTextDocument
-    );
-
-    const mockURI = {
-      fsPath: mockUriPath
-    } as vscode.Uri;
-    sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
-
-    const savedFilePath = await jsonFileService.save();
-    const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
-    expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
-  });
-
-  it.skip('should save csv to file to disk on save', async () => {
-    const csvFileService = new TestFileService(
-      mockQueryText,
-      mockQueryData,
-      FileFormat.CSV,
-      mockTextDocument
-    );
-
-    const mockURI = {
-      fsPath: mockUriPath
-    } as vscode.Uri;
-    sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
-
-    const savedFilePath = await csvFileService.save();
-    const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
-    const mockCsvData = csvFileService
-      .getDataProvider()
-      .getFileContent(mockQueryText, mockQueryData.records);
-
-    expect(savedFileContent).to.equal(mockCsvData);
-  });
 });
