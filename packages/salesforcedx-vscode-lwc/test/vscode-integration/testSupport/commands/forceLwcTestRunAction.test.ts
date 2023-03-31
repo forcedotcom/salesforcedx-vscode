@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import * as mockery from 'mockery';
 import { assert, match, SinonStub, stub } from 'sinon';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../../../src/telemetry';
 import {
@@ -72,7 +72,6 @@ describe('Force LWC Test Run - Code Action', () => {
   });
 
   describe('Run Test File', () => {
-    let uuidStub: SinonStub<[options?: uuid.V4Options | undefined], string>;
     let executeTaskStub: SinonStub<
       [vscode.Task],
       Thenable<vscode.TaskExecution | void>
@@ -81,21 +80,21 @@ describe('Force LWC Test Run - Code Action', () => {
     beforeEach(() => {
       mockGetLwcTestRunnerExecutable();
       mockTestResultWatcher();
-      uuidStub = stub(uuid, 'v4');
-      uuidStub.returns(mockUuid);
+      mockery.registerMock('uuid', { v4: mockUuid });
       executeTaskStub = stub(vscode.tasks, 'executeTask');
       executeTaskStub.returns(Promise.resolve());
     });
+
     afterEach(() => {
       unmockGetLwcTestRunnerExecutable();
       unmockTestResultWatcher();
-      uuidStub.restore();
+      mockery.deregisterMock('uuid');
       executeTaskStub.restore();
     });
 
     const mockTestFileInfo = createMockTestFileInfo();
     it('Should run active text editor test file', async () => {
-      mockActiveTextEditorUri(mockTestFileInfo.testUri);
+     mockActiveTextEditorUri(mockTestFileInfo.testUri);
       await forceLwcTestRunActiveTextEditorTest();
 
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;

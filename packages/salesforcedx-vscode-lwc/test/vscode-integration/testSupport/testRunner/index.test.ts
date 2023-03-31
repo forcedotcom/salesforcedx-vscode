@@ -6,6 +6,7 @@
  */
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as mockery from 'mockery';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
@@ -25,19 +26,19 @@ import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('LWC Test Runner', () => {
   describe('Jest Execution Info Unit Tests', () => {
-    let uuidStub: SinonStub<[options?: uuid.V4Options | undefined], string>;
     let getTempFolderStub: SinonStub<[string, string], string>;
+
     beforeEach(() => {
-      uuidStub = stub(uuid, 'v4');
       const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-      uuidStub.returns(mockUuid);
+      mockery.registerMock('uuid', { v4: mockUuid });
       getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
       getTempFolderStub.callsFake((testType: string) => {
         return path.join(projectPaths.testResultsFolder(), testType);
       });
     });
+
     afterEach(() => {
-      uuidStub.restore();
+      mockery.deregisterMock('uuid');
       getTempFolderStub.restore();
     });
 

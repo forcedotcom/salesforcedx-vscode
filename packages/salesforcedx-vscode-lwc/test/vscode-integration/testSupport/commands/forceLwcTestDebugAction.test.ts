@@ -7,9 +7,9 @@
 
 import { expect } from 'chai';
 import * as fs from 'fs';
+import * as mockery from 'mockery';
 import * as path from 'path';
 import { assert, SinonStub, stub } from 'sinon';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
@@ -38,7 +38,6 @@ import {
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Debug - Code Action', () => {
-  let uuidStub: SinonStub<[options?: uuid.V4Options | undefined], string>;
   let debugStub: SinonStub<
     [
       vscode.WorkspaceFolder | undefined,
@@ -61,7 +60,7 @@ describe('Force LWC Test Debug - Code Action', () => {
   >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   beforeEach(() => {
-    uuidStub = stub(uuid, 'v4');
+    mockery.registerMock('uuid', { v4: mockUuid });
     debugStub = stub(vscode.debug, 'startDebugging');
     processHrtimeStub = stub(process, 'hrtime');
     telemetryStub = stub(telemetryService, 'sendCommandEvent');
@@ -69,12 +68,11 @@ describe('Force LWC Test Debug - Code Action', () => {
       workspace,
       'getLwcTestRunnerExecutable'
     );
-    uuidStub.returns(mockUuid);
     debugStub.returns(Promise.resolve());
   });
 
   afterEach(() => {
-    uuidStub.restore();
+    mockery.deregisterMock('uuid');
     debugStub.restore();
     processHrtimeStub.restore();
     telemetryStub.restore();
