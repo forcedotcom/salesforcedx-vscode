@@ -65,9 +65,11 @@ export class WorkspaceContext {
 }
 
 async function setIsScratchOrg() {
-  const u = await ConfigUtil.getUsername();
-  const isScratch = await OrgAuthInfo.isAScratchOrg(String(u));
-
+  const username = await ConfigUtil.getUsername();
+  if (!username) {
+    return;
+  }
+  const isScratch = await OrgAuthInfo.isAScratchOrg(String(username));
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:is_scratch_org',
