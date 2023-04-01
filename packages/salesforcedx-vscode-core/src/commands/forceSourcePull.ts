@@ -23,8 +23,8 @@ import {
 export const pullCommand: CommandParams = {
   command: 'force:source:pull',
   description: {
-    default: 'force_source_pull_default_scratch_org_text',
-    forceoverwrite: 'force_source_pull_force_default_scratch_org_text'
+    default: 'force_source_pull_default_org_text',
+    forceoverwrite: 'force_source_pull_force_default_org_text'
   },
   logName: { default: 'force_source_pull_default_scratch_org' }
 };
