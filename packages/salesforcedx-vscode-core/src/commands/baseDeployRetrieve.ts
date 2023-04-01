@@ -273,7 +273,10 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    const result: RetrieveResult = await operation.pollStatus();
+    await sourceTracking.updateTrackingFromRetrieve(result);
+
+    return result;
   }
 
   /**
