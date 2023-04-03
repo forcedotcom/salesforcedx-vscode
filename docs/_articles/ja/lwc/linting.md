@@ -32,7 +32,7 @@ SFDX プロジェクトを、`sfdx force:project:create (SFDX: プロジェク�
    }
 
    "devDependencies" {
-       "@salesforce/eslint-config-lwc": "0.4.0",
+       "@salesforce/eslint-config-lwc": "3.4.0",
        "eslint": "^5.16.0"
    }
    ```

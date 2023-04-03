@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.8.0",
+  "version": "57.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -41,9 +41,9 @@
     "jsforce": "2.0.0-beta.20"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.8.0",
-    "@salesforce/salesforcedx-test-utils-vscode": "57.8.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.8.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "57.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "57.9.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "1.5.13",
@@ -56,8 +56,8 @@
     "@types/papaparse": "^5.2.3",
     "@types/sinon": "7.5.2",
     "@types/vscode": "^1.61.2",
-    "@typescript-eslint/eslint-plugin": "^5.38.1",
-    "@typescript-eslint/parser": "^5.49.0",
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "@typescript-eslint/parser": "^5.56.0",
     "applicationinsights": "1.0.7",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
