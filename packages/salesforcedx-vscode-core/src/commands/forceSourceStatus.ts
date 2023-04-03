@@ -12,7 +12,6 @@ import {
 import { nls } from '../messages';
 import {
   CommandParams,
-  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
@@ -38,13 +37,6 @@ export const statusCommand: CommandParams = {
     remote: 'force_source_status_remote'
   }
 };
-
-export const statusCommandLegacy: CommandParams = {
-  command: 'force:source:legacy:status',
-  description: { default: 'force_source_legacy_status_text' },
-  logName: { default: 'force_source_legacy_status' }
-};
-
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
 
@@ -80,11 +72,8 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourceStatus(
   this: FlagParameter<SourceStatusFlags>
 ) {
-  const { flag, commandVersion } = this || {};
-  const command =
-    commandVersion === CommandVersion.Legacy
-      ? statusCommandLegacy
-      : statusCommand;
+  const { flag } = this || {};
+  const command = statusCommand;
   const executor = new ForceSourceStatusExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,

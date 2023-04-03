@@ -7,7 +7,6 @@
 
 import { expect } from 'chai';
 import { ForceSourcePullExecutor } from '../../../src/commands';
-import { pullCommandLegacy } from '../../../src/commands/forceSourcePull';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
@@ -29,18 +28,6 @@ describe('Force Source Pull', () => {
     );
     expect(pullCommand.description).to.equal(
       nls.localize('force_source_pull_force_default_scratch_org_text')
-    );
-  });
-
-  it('Should build the source pull command with legacy version', async () => {
-    const legacyFlag = new ForceSourcePullExecutor('--forceoverwrite', pullCommandLegacy);
-    const flagCommand = legacyFlag.build({});
-    expect(legacyFlag.params.command).to.contain(':legacy:');
-    expect(flagCommand.toCommand()).to.equal(
-      `sfdx ${legacyFlag.params.command} --forceoverwrite`
-    );
-    expect(flagCommand.description).to.equal(
-      nls.localize(legacyFlag.params.description.forceoverwrite)
     );
   });
 });

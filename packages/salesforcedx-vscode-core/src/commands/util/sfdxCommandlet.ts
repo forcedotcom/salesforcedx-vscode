@@ -23,7 +23,6 @@ import { EmptyPostChecker } from './emptyPostChecker';
 
 export enum CommandVersion {
   Beta = 'beta',
-  Legacy = 'legacy',
   Default = Beta
 }
 

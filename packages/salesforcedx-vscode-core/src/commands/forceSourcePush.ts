@@ -13,7 +13,6 @@ import { nls } from '../messages';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   CommandParams,
-  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
@@ -27,15 +26,6 @@ export const pushCommand: CommandParams = {
     forceoverwrite: 'force_source_push_force_default_scratch_org_text'
   },
   logName: { default: 'force_source_push_default_scratch_org' }
-};
-
-export const pushCommandLegacy: CommandParams = {
-  command: 'force:source:legacy:push',
-  description: {
-    default: 'force_source_legacy_push_default_scratch_org_text',
-    forceoverwrite: 'force_source_legacy_push_force_default_scratch_org_text'
-  },
-  logName: { default: 'force_source_legacy_push_default_scratch_org' }
 };
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
@@ -73,9 +63,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourcePush(this: FlagParameter<string>) {
-  const { flag, commandVersion } = this || {};
-  const command =
-    commandVersion === CommandVersion.Legacy ? pushCommandLegacy : pushCommand;
+  const { flag } = this || {};
+  const command = pushCommand;
   const executor = new ForceSourcePushExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
