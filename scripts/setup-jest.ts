@@ -29,7 +29,9 @@ const getMockVSCode = () => {
       public dispose = () => {};
     },
     TreeItem: jest.fn(),
-    commands: jest.fn(),
+    commands: {
+      executeCommand: jest.fn()
+    },
     Disposable: jest.fn(),
     env: {
       machineId: '12345534'
@@ -67,6 +69,7 @@ const getMockVSCode = () => {
       setStatusBarMessage: jest.fn(),
       withProgress: jest.fn(),
       createOutputChannel: jest.fn(),
+      showSaveDialog: jest.fn(),
       OutputChannel: {
         show: jest.fn()
       },
@@ -85,7 +88,10 @@ const getMockVSCode = () => {
         onDidCreate: jest.fn(),
         onDidDelete: jest.fn()
       }),
-      workspaceFolders: []
+      workspaceFolders: [],
+      fs: {
+        writeFile: jest.fn()
+      }
     }
   };
 };
