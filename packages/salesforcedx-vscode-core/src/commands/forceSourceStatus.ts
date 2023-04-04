@@ -73,8 +73,7 @@ export async function forceSourceStatus(
   this: FlagParameter<SourceStatusFlags>
 ) {
   const { flag } = this || {};
-  const command = statusCommand;
-  const executor = new ForceSourceStatusExecutor(flag, command);
+  const executor = new ForceSourceStatusExecutor(flag, statusCommand);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

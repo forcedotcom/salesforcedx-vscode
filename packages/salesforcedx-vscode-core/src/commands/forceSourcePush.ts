@@ -64,8 +64,7 @@ const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourcePush(this: FlagParameter<string>) {
   const { flag } = this || {};
-  const command = pushCommand;
-  const executor = new ForceSourcePushExecutor(flag, command);
+  const executor = new ForceSourcePushExecutor(flag, pushCommand);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
