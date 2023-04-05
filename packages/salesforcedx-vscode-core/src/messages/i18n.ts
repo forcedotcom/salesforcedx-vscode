@@ -387,6 +387,7 @@ export const messages = {
   AuraDefinitionBundle: 'Aura Components',
   AuthProvider: 'Auth Providers',
   AutoResponseRules: 'Auto Response Rules',
+  BatchProcessJobDefinition: 'Batch Process Job Definitions',
   BlacklistedConsumer: 'Blacklisted Consumers',
   BrandingSet: 'Branding Sets',
   BriefcaseDefinition: 'Briefcase Definitions',
