@@ -69,10 +69,10 @@ async function setIsScratchOrg() {
   if (!username) {
     return;
   }
-  const isScratch = await OrgAuthInfo.isAScratchOrg(String(username));
+  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username);
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:is_scratch_org',
-    isScratch
+    isScratchOrg
   );
 }
