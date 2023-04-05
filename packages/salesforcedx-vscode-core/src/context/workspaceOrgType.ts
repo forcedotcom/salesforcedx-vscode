@@ -25,7 +25,7 @@ export enum OrgType {
  */
 export async function getWorkspaceOrgType(): Promise<OrgType> {
   const connection = await WorkspaceContext.getInstance().getConnection();
-  const org: Org = await Org.create({ connection });
+  const org = await Org.create({ connection });
   const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
