@@ -27,9 +27,11 @@
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
     "@octokit/plugin-paginate-rest": "2.21.3",
-    "@salesforce/core": "^3.34.6",
+    "@salesforce/core": "3.34.6",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "57.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "57.9.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "7.14.2",
+    "@salesforce/source-deploy-retrieve": "^7.14.2",
     "@salesforce/templates": "^57.0.2",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
@@ -41,6 +43,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
+    "@salesforce/salesforcedx-test-utils-vscode": "57.9.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -91,6 +94,22 @@
       },
       "devDependencies": {}
     }
+  },
+  "scripts": {
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "npm run test:vscode-integration",
+    "test:vscode-integration": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ../../scripts/run-vscode-integration-tests",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
+    "test:unit": "jest --coverage"
   },
   "nyc": {
     "reporter": [
