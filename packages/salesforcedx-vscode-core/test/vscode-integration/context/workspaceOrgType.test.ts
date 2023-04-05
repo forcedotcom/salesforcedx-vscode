@@ -98,7 +98,7 @@ describe('workspaceOrgType unit tests', () => {
         supportsSourceTracking: async () => true
       });
 
-      const orgType: OrgType = await workspaceContextUtils.getWorkspaceOrgType();
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
 
       expect(orgType).to.equal(OrgType.SourceTracked);
       expect(orgCreateStub.calledOnce).to.eql(true);
