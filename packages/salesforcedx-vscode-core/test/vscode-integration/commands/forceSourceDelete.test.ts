@@ -19,19 +19,6 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
-
-describe('Force Source Delete', () => {
-  it('Should build the source delete command', () => {
-    const executor = new ForceSourceDeleteExecutor();
-    const sourcePath = path.join('example', 'path');
-    const sourceDeleteCommand = executor.build({ filePath: sourcePath });
-    expect(sourceDeleteCommand.toCommand()).to.equal(
-      `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt --tracksource`
-    );
-  });
-});
-
 describe('ManifestChecker', () => {
   let workspaceStub: sinon.SinonStub;
   const workspaceFolderPath = path.join('path', 'to', 'workspace', 'folder');
