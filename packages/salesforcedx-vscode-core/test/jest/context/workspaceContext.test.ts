@@ -10,29 +10,23 @@ import * as contextVariables from '../../../src/context/contextVariables';
 import { decorators } from '../../../src/decorators';
 
 describe('workspaceContext', () => {
-  let setupWorkspaceOrgTypeMock: jest.SpyInstance;
-  let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-  let setIsScratchOrgSpy: jest.SpyInstance;
-  let decoratorsMock: jest.SpyInstance;
-
-  const mockWorkspaceContextUtil = {
-    onOrgChange: jest.fn(),
-    getConnection: jest.fn().mockResolvedValue({}),
-    setupWorkspaceOrgType: jest.fn()
-  };
-
-  beforeEach(() => {
-    setupWorkspaceOrgTypeMock = jest.spyOn(
-      workspaceContextUtils,
-      'setupWorkspaceOrgType'
-    );
-    workspaceContextUtilGetInstanceSpy = jest
-      .spyOn(WorkspaceContextUtil, 'getInstance')
-      .mockReturnValue(mockWorkspaceContextUtil as any);
-  });
-
   describe('handleCliConfigChange', () => {
+    const mockWorkspaceContextUtil = {
+      onOrgChange: jest.fn(),
+      getConnection: jest.fn()
+    };
+    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
+    let setupWorkspaceOrgTypeMock: jest.SpyInstance;
+    let setIsScratchOrgSpy: jest.SpyInstance;
+    let decoratorsMock: jest.SpyInstance;
+
     beforeEach(() => {
+      workspaceContextUtilGetInstanceSpy = jest
+        .spyOn(WorkspaceContextUtil, 'getInstance')
+        .mockReturnValue(mockWorkspaceContextUtil as any);
+      setupWorkspaceOrgTypeMock = jest
+        .spyOn(workspaceContextUtils, 'setupWorkspaceOrgType')
+        .mockResolvedValue();
       setIsScratchOrgSpy = jest.spyOn(contextVariables, 'setIsScratchOrg');
       decoratorsMock = jest.spyOn(decorators, 'showOrg');
     });
@@ -43,6 +37,7 @@ describe('workspaceContext', () => {
         username: 'test@test.com'
       });
 
+      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(setupWorkspaceOrgTypeMock).toHaveBeenCalled();
       expect(setIsScratchOrgSpy).toHaveBeenCalled();
       expect(decoratorsMock).toHaveBeenCalled();
