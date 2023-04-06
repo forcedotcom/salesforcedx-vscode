@@ -6,7 +6,7 @@
  */
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
-import * as utils from '../../../src/context/contextVariables';
+import * as contextVariables from '../../../src/context/contextVariables';
 import { decorators } from '../../../src/decorators';
 
 describe('workspaceContext', () => {
@@ -33,7 +33,7 @@ describe('workspaceContext', () => {
 
   describe('handleCliConfigChange', () => {
     beforeEach(() => {
-      setIsScratchOrgSpy = jest.spyOn(utils, 'setIsScratchOrg');
+      setIsScratchOrgSpy = jest.spyOn(contextVariables, 'setIsScratchOrg');
       decoratorsMock = jest.spyOn(decorators, 'showOrg');
     });
 
