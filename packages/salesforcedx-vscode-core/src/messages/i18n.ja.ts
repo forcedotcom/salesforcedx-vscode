@@ -81,14 +81,14 @@ export const messages = {
   force_org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
-  force_source_pull_default_scratch_org_text:
+  force_source_pull_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプル',
-  force_source_pull_force_default_scratch_org_text:
+  force_source_pull_force_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
 
-  force_source_push_default_scratch_org_text:
+  force_source_push_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送',
-  force_source_push_force_default_scratch_org_text:
+  force_source_push_force_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送して競合を上書き',
 
   force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
