@@ -14,7 +14,6 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   ConfirmationAndSourcePathGatherer,
-  ForceSourceDeleteExecutor,
   ManifestChecker
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
