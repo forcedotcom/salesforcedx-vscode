@@ -24,8 +24,8 @@ export class WorkspaceContext {
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
-    const wcu = WorkspaceContextUtil.getInstance();
-    this.onOrgChange = wcu.onOrgChange;
+    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
+    this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
   }
 
