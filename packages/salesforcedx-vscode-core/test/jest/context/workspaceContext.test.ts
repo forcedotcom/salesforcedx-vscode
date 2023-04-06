@@ -17,7 +17,7 @@ describe('workspaceContext', () => {
 
   const mockWorkspaceContextUtil = {
     onOrgChange: jest.fn(),
-    getConnection: jest.fn(),
+    getConnection: jest.fn().mockResolvedValue({}),
     setupWorkspaceOrgType: jest.fn()
   };
 

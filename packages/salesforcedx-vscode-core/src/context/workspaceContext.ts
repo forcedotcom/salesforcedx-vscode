@@ -45,10 +45,12 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
-      // error reported by setupWorkspaceOrgType
-      console.error(e)
-    );
+    await workspaceContextUtils
+      .setupWorkspaceOrgType(orgInfo.username)
+      .catch(e =>
+        // error reported by setupWorkspaceOrgType
+        console.error(e)
+      );
 
     await setIsScratchOrg();
 

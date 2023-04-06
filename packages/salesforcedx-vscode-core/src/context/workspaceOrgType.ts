@@ -55,6 +55,10 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
           setDefaultUsernameHasChangeTracking(false);
           setDefaultUsernameHasNoChangeTracking(false);
           break;
+        case 'NoUsernameFoundError':
+          setDefaultUsernameHasChangeTracking(false);
+          setDefaultUsernameHasNoChangeTracking(false);
+          break;
         default:
           setDefaultUsernameHasChangeTracking(true);
           setDefaultUsernameHasNoChangeTracking(true);
