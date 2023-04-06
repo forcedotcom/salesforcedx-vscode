@@ -11,10 +11,12 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
+import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
 import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
@@ -24,6 +26,10 @@ const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
 describe('Force Source Retrieve with Manifest Option', () => {
+  beforeEach(() => {
+    env.stub(SourceTrackingService, 'createSourceTracking');
+    env.stub(RetrieveExecutor, 'updateSourceTrackingAfterRetrieve');
+  });
   afterEach(() => {
     restoreContext($$);
   });
