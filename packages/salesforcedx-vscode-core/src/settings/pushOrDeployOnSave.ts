@@ -16,7 +16,6 @@ import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds
@@ -73,15 +72,7 @@ export class DeployQueue {
       const toDeploy = Array.from(this.queue);
       this.queue.clear();
       try {
-        let defaultUsernameorAlias: string | undefined;
-        if (workspaceUtils.hasRootWorkspace()) {
-          defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-            false
-          );
-        }
-        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-          defaultUsernameorAlias
-        );
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType();
         if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'

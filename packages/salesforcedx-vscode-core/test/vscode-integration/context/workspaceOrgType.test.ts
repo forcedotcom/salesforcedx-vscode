@@ -5,12 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo, Org } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import { OrgType, workspaceContextUtils } from '../../../src/context';
+import {
+  OrgType,
+  WorkspaceContext,
+  workspaceContextUtils
+} from '../../../src/context';
 import { OrgAuthInfo } from '../../../src/util';
 import Sinon = require('sinon');
 
@@ -48,20 +52,23 @@ const expectDefaultUsernameHasNoChangeTracking = (
     hasNoChangeTracking
   ]);
 };
+const mockWorkspaceContext = { getConnection: () => {} } as any;
 
 describe('workspaceOrgType unit tests', () => {
-  const devHubUser = 'dev@hub.com';
   const scratchOrgUser = 'scratch@org.com';
   let getUsernameStub: Sinon.SinonStub;
+  let orgCreateStub: Sinon.SinonStub;
   let getDefaultUsernameOrAliasStub: Sinon.SinonStub;
   let createStub: Sinon.SinonStub;
   beforeEach(() => {
     getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
+    orgCreateStub = sandbox.stub(Org, 'create');
     getDefaultUsernameOrAliasStub = sandbox.stub(
       OrgAuthInfo,
       'getDefaultUsernameOrAlias'
     );
     createStub = sandbox.stub(AuthInfo, 'create');
+    sandbox.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
   });
 
   afterEach(() => {
@@ -86,116 +93,47 @@ describe('workspaceOrgType unit tests', () => {
 
   describe('getWorkspaceOrgType', () => {
     it('returns the source-tracked org type', async () => {
-      const defaultUsername = 'scratchOrgAlias';
       getUsernameStub.resolves(scratchOrgUser);
-      createStub.resolves({
-        getFields: () => ({
-          devHubUsername: devHubUser
-        })
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => true
       });
 
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-        defaultUsername
-      );
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
 
       expect(orgType).to.equal(OrgType.SourceTracked);
-      expect(createStub.getCall(0).args[0]).to.eql({
-        username: scratchOrgUser
-      });
+      expect(orgCreateStub.calledOnce).to.eql(true);
     });
 
     it('returns the non-source-tracked org type', async () => {
       const defaultUsername = 'sandbox@org.com';
       getUsernameStub.resolves(defaultUsername);
-      createStub.resolves({
-        getFields: () => ({})
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => false
       });
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-        defaultUsername
-      );
 
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       expect(orgType).to.equal(OrgType.NonSourceTracked);
-      expect(createStub.getCall(0).args[0]).to.eql({
-        username: defaultUsername
-      });
-    });
-
-    it('throws an error when no defaultusername is set', async () => {
-      const defaultUsername = undefined;
-      let errorWasThrown = false;
-      try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
-      } catch (error) {
-        if (error instanceof Error) {
-          errorWasThrown = true;
-          expect(error.name).to.equal('NoDefaultusernameSet');
-        }
-      } finally {
-        expect(getUsernameStub.called).to.equal(false);
-        expect(errorWasThrown).to.equal(true);
-      }
-    });
-
-    it('throws an error when the info cannot be found for the defaultusername', async () => {
-      const defaultUsername = 'testUsername';
-      const error = new Error();
-      error.name = 'NamedOrgNotFound';
-      const orgAuthInfoStub = sandbox
-        .stub(OrgAuthInfo, 'isAScratchOrg')
-        .throws(error);
-
-      let errorWasThrown = false;
-      try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
-      } catch (error) {
-        if (error instanceof Error) {
-          errorWasThrown = true;
-          expect(error.name).to.equal('NamedOrgNotFound');
-        }
-      } finally {
-        expect(errorWasThrown).to.equal(true);
-        orgAuthInfoStub.restore();
-      }
-    });
-
-    it('throws an error when the cli has no configuration', async () => {
-      const defaultUsername = 'testUsername';
-      const error = new Error();
-      error.name = 'GenericKeychainServiceError';
-      error.stack =
-        'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
-      const orgAuthInfoStub = sandbox
-        .stub(OrgAuthInfo, 'isAScratchOrg')
-        .throws(error);
-
-      let errorWasThrown = false;
-      try {
-        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
-      } catch (error) {
-        if (error instanceof Error) {
-          errorWasThrown = true;
-          expect(error.name).to.equal('GenericKeychainServiceError');
-          expect(error.stack).to.equal(
-            'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...'
-          );
-        }
-      } finally {
-        expect(errorWasThrown).to.equal(true);
-      }
+      expect(orgCreateStub.calledOnce).to.eql(true);
     });
   });
 
   describe('setupWorkspaceOrgType', () => {
+    afterEach(() => {
+      sandbox.restore();
+    });
     it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to false', async () => {
       const defaultUsername = undefined;
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => false
+      });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
+      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
       executeCommandStub.restore();
     });
@@ -208,33 +146,32 @@ describe('workspaceOrgType unit tests', () => {
         .stub(OrgAuthInfo, 'isAScratchOrg')
         .throws(error);
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => true
+      });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
+      expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
       orgAuthInfoStub.restore();
       executeCommandStub.restore();
     });
 
     it('should set sfdx:default_username_has_change_tracking to true, and sfdx:default_username_has_no_change_tracking to false', async () => {
-      createStub.resolves({
-        getFields: () => ({
-          devHubUsername: devHubUser
-        })
-      });
       getUsernameStub.resolves(scratchOrgUser);
       const defaultUsername = 'scratchOrgAlias';
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => true
+      });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
-      expect(createStub.getCall(0).args[0]).to.eql({
-        username: scratchOrgUser
-      });
+      expect(orgCreateStub.calledOnce).to.eql(true);
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
@@ -244,11 +181,12 @@ describe('workspaceOrgType unit tests', () => {
     });
 
     it('should set sfdx:default_username_has_change_tracking to false, and sfdx:default_username_has_no_change_tracking to true', async () => {
-      const authInfoCreateStub = createStub.resolves({
-        getFields: () => ({})
-      });
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
       const defaultUsername = 'sandbox@org.com';
+      orgCreateStub.resolves({
+        supportsSourceTracking: async () => false
+      });
+
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);

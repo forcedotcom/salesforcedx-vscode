@@ -19,7 +19,7 @@ describe('Force Source Push', () => {
       `sfdx ${sourcePushNoFlag.params.command} ${commonParams}`
     );
     expect(pushCommand.description).to.equal(
-      nls.localize('force_source_push_default_scratch_org_text')
+      nls.localize('force_source_push_default_org_text')
     );
   });
 
@@ -30,7 +30,7 @@ describe('Force Source Push', () => {
       `sfdx ${sourcePushOverwrite.params.command} ${commonParams} --forceoverwrite`
     );
     expect(pushCommand.description).to.equal(
-      nls.localize('force_source_push_force_default_scratch_org_text')
+      nls.localize('force_source_push_force_default_org_text')
     );
   });
 });
