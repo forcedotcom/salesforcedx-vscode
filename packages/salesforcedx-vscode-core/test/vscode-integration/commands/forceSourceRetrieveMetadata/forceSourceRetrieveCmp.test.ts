@@ -32,6 +32,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+import { RetrieveExecutor } from '../../../../src/commands/baseDeployRetrieve';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { WorkspaceContext } from '../../../../src/context';
@@ -91,6 +92,7 @@ describe('Force Source Retrieve Component(s)', () => {
         pollStatus: pollStatusStub
       });
       sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(RetrieveExecutor, 'updateSourceTrackingAfterRetrieve');
     });
 
     afterEach(() => {
