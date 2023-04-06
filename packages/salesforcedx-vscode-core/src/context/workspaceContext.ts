@@ -45,13 +45,26 @@ export class WorkspaceContext {
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
+  protected async setIsScratchOrg() {
+    const username = await ConfigUtil.getUsername();
+    if (!username) {
+      return;
+    }
+    const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username);
+    vscode.commands.executeCommand(
+      'setContext',
+      'sfdx:is_scratch_org',
+      isScratchOrg
+    );
+  }
+
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
     workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
 
-    await setIsScratchOrg();
+    await this.setIsScratchOrg();
 
     await decorators.showOrg();
   }
@@ -63,17 +76,4 @@ export class WorkspaceContext {
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
-}
-
-async function setIsScratchOrg() {
-  const username = await ConfigUtil.getUsername();
-  if (!username) {
-    return;
-  }
-  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username);
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:is_scratch_org',
-    isScratchOrg
-  );
 }
