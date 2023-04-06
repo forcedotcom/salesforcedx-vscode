@@ -7,14 +7,13 @@
 
 import { Connection } from '@salesforce/core';
 import {
-  ConfigUtil,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
 import { decorators } from '../decorators';
-import { OrgAuthInfo } from '../util';
+import { setIsScratchOrg } from './contextVariables';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -25,7 +24,8 @@ export class WorkspaceContext {
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
-    this.onOrgChange = WorkspaceContextUtil.getInstance().onOrgChange;
+    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
+    this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
   }
 
@@ -45,10 +45,12 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
-      // error reported by setupWorkspaceOrgType
-      console.error(e)
-    );
+    await workspaceContextUtils
+      .setupWorkspaceOrgType(orgInfo.username)
+      .catch(e =>
+        // error reported by setupWorkspaceOrgType
+        console.error(e)
+      );
 
     await setIsScratchOrg();
 
@@ -62,17 +64,4 @@ export class WorkspaceContext {
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
-}
-
-async function setIsScratchOrg() {
-  const username = await ConfigUtil.getUsername();
-  if (!username) {
-    return;
-  }
-  const isScratch = await OrgAuthInfo.isAScratchOrg(String(username));
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:is_scratch_org',
-    isScratch
-  );
 }
