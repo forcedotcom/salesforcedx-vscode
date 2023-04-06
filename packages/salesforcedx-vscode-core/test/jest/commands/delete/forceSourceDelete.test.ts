@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeleteExecutor } from "../../../../src/commands";
 import * as path from 'path';
+import { ForceSourceDeleteExecutor } from '../../../../src/commands';
 
 describe('Force Source Delete', () => {
   it('Should build the source delete command', () => {
