@@ -110,8 +110,9 @@ if (!isBetaRelease()) {
   shell.exec(`git fetch`)
 
   // Generate changelog
-  const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch();
-  const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, previousBranchName));
+  const latestReleasedVersion = String(shell.exec(`git describe --tags --abbrev=0`));
+  const latestReleasedBranchName = `release/v${latestReleasedVersion}`
+  const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, latestReleasedBranchName));
   const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
   const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
   changeLogGeneratorUtils.writeChangeLog(changeLog);
