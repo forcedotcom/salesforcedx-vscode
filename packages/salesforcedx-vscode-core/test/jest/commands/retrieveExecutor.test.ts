@@ -10,6 +10,7 @@ import {
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { SourceTracking } from '@salesforce/source-tracking';
 import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
@@ -35,11 +36,18 @@ describe('Retrieve Executor', () => {
   const dummyProcessCwd = '/';
   const dummyComponentSet = new ComponentSet();
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+  const dummyRetrieveResult = {} as any;
+  const dummyRetrieveOperation = {
+    pollStatus: jest.fn().mockResolvedValue(dummyRetrieveResult)
+  } as any;
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let retrieveSpy: jest.SpyInstance;
-  let consoleInfoSpy: jest.SpyInstance;
+  const dummySourceTracking = {
+    updateSourceTrackingFromRetrieve: jest.fn()
+  } as any;
+  let updateTrackingFromRetrieveMock: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
     protected getComponents(
@@ -60,11 +68,13 @@ describe('Retrieve Executor', () => {
       .mockReturnValue(mockWorkspaceContext);
     createSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'createSourceTracking')
-      .mockResolvedValue({} as any);
+      .mockResolvedValue(dummySourceTracking);
     retrieveSpy = jest
       .spyOn(dummyComponentSet, 'retrieve')
-      .mockResolvedValue({ pollStatus: jest.fn() } as any);
-    consoleInfoSpy = jest.spyOn(console, 'info');
+      .mockResolvedValue(dummyRetrieveOperation);
+    updateTrackingFromRetrieveMock = jest
+      .spyOn(RetrieveExecutor, 'updateSourceTrackingAfterRetrieve')
+      .mockResolvedValue();
   });
 
   it('should create Source Tracking before retrieving', async () => {
@@ -81,6 +91,7 @@ describe('Retrieve Executor', () => {
     // Assert
     expect(createSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
+    expect(updateTrackingFromRetrieveMock).toHaveBeenCalled();
     const createSourceTrackingCallOrder =
       createSourceTrackingSpy.mock.invocationCallOrder[0];
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
