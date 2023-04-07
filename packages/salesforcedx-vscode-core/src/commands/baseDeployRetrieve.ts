@@ -216,7 +216,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
-      merge: true
+      merge: true,
+      suppressEvents: true
     });
 
     this.setupCancellation(operation, token);
