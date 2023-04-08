@@ -16,7 +16,6 @@ import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds

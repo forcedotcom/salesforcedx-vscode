@@ -24,8 +24,9 @@ export enum OrgType {
  * @returns OrgType (SourceTracked or NonSourceTracked) of the current default org
  */
 export async function getWorkspaceOrgType(): Promise<OrgType> {
-  const connection = await WorkspaceContext.getInstance().getConnection();
-  const org: Org = await Org.create({ connection });
+  const workspaceContext = WorkspaceContext.getInstance();
+  const connection = await workspaceContext.getConnection();
+  const org = await Org.create({ connection });
   const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
@@ -52,6 +53,10 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
           setDefaultUsernameHasNoChangeTracking(true);
           break;
         case 'NoDefaultusernameSet':
+          setDefaultUsernameHasChangeTracking(false);
+          setDefaultUsernameHasNoChangeTracking(false);
+          break;
+        case 'NoUsernameFoundError':
           setDefaultUsernameHasChangeTracking(false);
           setDefaultUsernameHasNoChangeTracking(false);
           break;

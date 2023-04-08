@@ -27,6 +27,7 @@ const env = $$.SANDBOX;
 describe('Force Source Retrieve with Manifest Option', () => {
   beforeEach(() => {
     env.stub(SourceTrackingService, 'createSourceTracking');
+    env.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
   });
   afterEach(() => {
     restoreContext($$);
@@ -88,7 +89,8 @@ describe('Force Source Retrieve with Manifest Option', () => {
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: defaultPackagePath,
-        merge: true
+        merge: true,
+        suppressEvents: true
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
     });

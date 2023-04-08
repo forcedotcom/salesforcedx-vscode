@@ -81,6 +81,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
       sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
       pollStatusStub = sb.stub();
     });
 
@@ -115,7 +116,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           workspaceUtils.getRootWorkspacePath(),
           defaultPackage
         ),
-        merge: true
+        merge: true,
+        suppressEvents: true
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
     });

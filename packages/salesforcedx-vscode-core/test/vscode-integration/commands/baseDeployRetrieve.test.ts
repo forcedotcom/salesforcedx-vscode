@@ -690,7 +690,7 @@ describe('Base Deploy Retrieve Commands', () => {
       PersistentStorageService.initialize(mockExtensionContext);
       setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
       sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
-        ensureLocalTracking: async () => {}
+        updateTrackingFromRetrieve: async () => {}
       });
     });
 
