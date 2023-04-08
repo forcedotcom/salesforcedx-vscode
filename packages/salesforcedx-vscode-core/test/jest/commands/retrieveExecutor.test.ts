@@ -43,9 +43,7 @@ describe('Retrieve Executor', () => {
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let retrieveSpy: jest.SpyInstance;
-  const dummySourceTracking = {
-    updateSourceTrackingFromRetrieve: jest.fn()
-  } as any;
+  const dummySourceTracking = {} as any;
   let updateTrackingFromRetrieveMock: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
@@ -71,10 +69,9 @@ describe('Retrieve Executor', () => {
     retrieveSpy = jest
       .spyOn(dummyComponentSet, 'retrieve')
       .mockResolvedValue(dummyRetrieveOperation);
-    updateTrackingFromRetrieveMock = jest.spyOn(
-      SourceTrackingService,
-      'updateSourceTrackingAfterRetrieve'
-    );
+    updateTrackingFromRetrieveMock = jest
+      .spyOn(SourceTrackingService, 'updateSourceTrackingAfterRetrieve')
+      .mockResolvedValue();
   });
 
   it('should create Source Tracking before retrieving', async () => {
