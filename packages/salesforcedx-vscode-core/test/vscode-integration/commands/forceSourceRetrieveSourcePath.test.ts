@@ -117,7 +117,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           workspaceUtils.getRootWorkspacePath(),
           defaultPackage
         ),
-        merge: true
+        merge: true,
+        suppressEvents: true
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
     });

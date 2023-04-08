@@ -123,7 +123,8 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
-        merge: true
+        merge: true,
+        suppressEvents: true
       });
 
       const retrievedSet = retrieveStub.firstCall.thisValue as ComponentSet;
