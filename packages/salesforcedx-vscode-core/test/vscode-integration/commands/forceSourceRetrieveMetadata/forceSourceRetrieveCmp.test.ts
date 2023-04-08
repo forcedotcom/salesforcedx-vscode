@@ -92,7 +92,7 @@ describe('Force Source Retrieve Component(s)', () => {
         pollStatus: pollStatusStub
       });
       sb.stub(SourceTrackingService, 'createSourceTracking');
-      sb.stub(RetrieveExecutor, 'updateSourceTrackingAfterRetrieve');
+      sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
     });
 
     afterEach(() => {

@@ -32,7 +32,6 @@ import {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from '../../../src/commands';
-import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -82,7 +81,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
       sb.stub(SourceTrackingService, 'createSourceTracking');
-      sb.stub(RetrieveExecutor, 'updateSourceTrackingAfterRetrieve');
+      sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
       pollStatusStub = sb.stub();
     });
 

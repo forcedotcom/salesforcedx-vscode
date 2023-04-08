@@ -6,6 +6,7 @@
  */
 
 import { Connection, Org, SfProject } from '@salesforce/core';
+import { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import {
   SourceTracking,
   SourceTrackingOptions
@@ -36,5 +37,12 @@ export class SourceTrackingService {
     };
     const sourceTracking = await SourceTracking.create(options);
     return sourceTracking;
+  }
+
+  public static async updateSourceTrackingAfterRetrieve(
+    sourceTracking: SourceTracking,
+    result: RetrieveResult
+  ) {
+    await sourceTracking.updateTrackingFromRetrieve(result);
   }
 }

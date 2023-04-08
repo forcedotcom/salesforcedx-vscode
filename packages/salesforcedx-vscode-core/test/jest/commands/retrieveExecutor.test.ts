@@ -10,7 +10,6 @@ import {
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { SourceTracking } from '@salesforce/source-tracking';
 import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
@@ -72,9 +71,10 @@ describe('Retrieve Executor', () => {
     retrieveSpy = jest
       .spyOn(dummyComponentSet, 'retrieve')
       .mockResolvedValue(dummyRetrieveOperation);
-    updateTrackingFromRetrieveMock = jest
-      .spyOn(RetrieveExecutor, 'updateSourceTrackingAfterRetrieve')
-      .mockResolvedValue();
+    updateTrackingFromRetrieveMock = jest.spyOn(
+      SourceTrackingService,
+      'updateSourceTrackingAfterRetrieve'
+    );
   });
 
   it('should create Source Tracking before retrieving', async () => {

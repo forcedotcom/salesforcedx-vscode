@@ -24,7 +24,6 @@ import {
   ComponentStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { SourceTracking } from '@salesforce/source-tracking';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -223,7 +222,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-    await RetrieveExecutor.updateSourceTrackingAfterRetrieve(
+    await SourceTrackingService.updateSourceTrackingAfterRetrieve(
       sourceTracking,
       result
     );
@@ -303,12 +302,5 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     }
 
     return output;
-  }
-
-  public static async updateSourceTrackingAfterRetrieve(
-    sourceTracking: SourceTracking,
-    result: RetrieveResult
-  ) {
-    await sourceTracking.updateTrackingFromRetrieve(result);
   }
 }

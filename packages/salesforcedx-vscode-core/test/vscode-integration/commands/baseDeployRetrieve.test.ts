@@ -104,6 +104,9 @@ describe('Base Deploy Retrieve Commands', () => {
       protected doOperation(components: ComponentSet): Promise<undefined> {
         return this.lifecycle.doOperationStub(components);
       }
+      protected handleSourceConflictError(e: any): void {
+        throw new Error('Method not implemented.');
+      }
       protected postOperation(result: undefined): Promise<void> {
         return this.lifecycle.postOperationStub(result);
       }
@@ -265,6 +268,9 @@ describe('Base Deploy Retrieve Commands', () => {
       setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
+      });
     });
 
     class TestDeploy extends DeployExecutor<{}> {
