@@ -10,7 +10,6 @@ import {
   ForceSourceStatusExecutor,
   SourceStatusFlags
 } from '../../../src/commands';
-import { statusCommandLegacy } from '../../../src/commands/forceSourceStatus';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
@@ -34,18 +33,6 @@ describe('Force Source Status', () => {
     );
     expect(flagCommand.description).to.equal(
       nls.localize(remoteFlag.params.description.remote)
-    );
-  });
-
-  it('Should build the source status command with legacy version', async () => {
-    const legacyFlag = new ForceSourceStatusExecutor(undefined, statusCommandLegacy);
-    const flagCommand = legacyFlag.build({});
-    expect(legacyFlag.params.command).to.contain(':legacy:');
-    expect(flagCommand.toCommand()).to.equal(
-      `sfdx ${legacyFlag.params.command}`
-    );
-    expect(flagCommand.description).to.equal(
-      nls.localize(legacyFlag.params.description.default)
     );
   });
 });
