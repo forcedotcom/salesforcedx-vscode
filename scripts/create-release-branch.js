@@ -111,7 +111,7 @@ if (!isBetaRelease()) {
 
   // Generate changelog
   const latestReleasedVersion = String(shell.exec(`git describe --tags --abbrev=0`));
-  const latestReleasedBranchName = `release/v${latestReleasedVersion}`
+  const latestReleasedBranchName = `release/${latestReleasedVersion}`
   const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, latestReleasedBranchName));
   const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
   const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
