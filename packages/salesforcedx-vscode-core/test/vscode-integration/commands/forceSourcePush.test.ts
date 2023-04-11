@@ -7,7 +7,6 @@
 
 import { expect } from 'chai';
 import { ForceSourcePushExecutor } from '../../../src/commands';
-import { pushCommandLegacy } from '../../../src/commands/forceSourcePush';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
@@ -20,7 +19,7 @@ describe('Force Source Push', () => {
       `sfdx ${sourcePushNoFlag.params.command} ${commonParams}`
     );
     expect(pushCommand.description).to.equal(
-      nls.localize('force_source_push_default_scratch_org_text')
+      nls.localize('force_source_push_default_org_text')
     );
   });
 
@@ -31,19 +30,7 @@ describe('Force Source Push', () => {
       `sfdx ${sourcePushOverwrite.params.command} ${commonParams} --forceoverwrite`
     );
     expect(pushCommand.description).to.equal(
-      nls.localize('force_source_push_force_default_scratch_org_text')
-    );
-  });
-
-  it('Should build the source push command with legacy version', async () => {
-    const legacyFlag = new ForceSourcePushExecutor('--forceoverwrite', pushCommandLegacy);
-    const flagCommand = legacyFlag.build({});
-    expect(legacyFlag.params.command).to.contain(':legacy:');
-    expect(flagCommand.toCommand()).to.equal(
-      `sfdx ${legacyFlag.params.command} ${commonParams} --forceoverwrite`
-    );
-    expect(flagCommand.description).to.equal(
-      nls.localize(legacyFlag.params.description.forceoverwrite)
+      nls.localize('force_source_push_force_default_org_text')
     );
   });
 });

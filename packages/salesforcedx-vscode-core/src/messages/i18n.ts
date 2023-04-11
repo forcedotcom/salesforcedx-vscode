@@ -102,30 +102,13 @@ export const messages = {
     'There was an unexpected error when processing the org open response.',
   force_org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
-
-  force_source_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org',
-  force_source_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
-  force_source_legacy_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org (Legacy)',
-  force_source_legacy_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)',
-
-  force_source_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org',
-  force_source_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
-  force_source_legacy_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org (Legacy)',
-  force_source_legacy_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
-
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
-  force_source_legacy_status_text:
-    'View All Changes (Local and in Default Scratch Org) (Legacy)',
-
+  force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
+  force_source_pull_force_default_org_text:
+    'SFDX: Pull Source from Default Org and Override Conflicts',
+  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
+  force_source_push_force_default_org_text:
+    'SFDX: Push Source to Default Org and Override Conflicts',
+  force_source_status_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
     'You can run SFDX: Deploy Source to Org only on a source file or directory.',
@@ -179,7 +162,7 @@ export const messages = {
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
   force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
+  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
   warning_prompt_file_overwrite:
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
