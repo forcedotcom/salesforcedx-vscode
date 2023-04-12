@@ -107,6 +107,7 @@ describe('Base Deploy Retrieve Commands', () => {
       protected postOperation(result: undefined): Promise<void> {
         return this.lifecycle.postOperationStub(result);
       }
+      protected handleSourceConflictError(e: any): void {}
     }
 
     it('should call lifecycle methods in correct order', async () => {
