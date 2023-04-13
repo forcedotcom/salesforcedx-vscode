@@ -40,7 +40,7 @@ export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
 
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
-      resolveSourcePaths: resolveSourcePaths,
+      resolveSourcePaths,
       forceAddWildcards: true
     });
 

@@ -39,7 +39,7 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
 
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
-      resolveSourcePaths: resolveSourcePaths
+      resolveSourcePaths
       // forceAddWildcards jab ?
     });
 
