@@ -38,7 +38,8 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const paths = typeof response.data === 'string' ? [response.data] : response.data;
+    const paths =
+      typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
     return componentSet;
