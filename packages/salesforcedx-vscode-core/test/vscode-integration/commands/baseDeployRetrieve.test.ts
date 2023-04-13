@@ -267,7 +267,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
-        updateLocalTracking: async () => {}
+        ensureLocalTracking: async () => {}
       });
     });
 
