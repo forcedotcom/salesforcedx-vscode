@@ -231,6 +231,35 @@ describe('Postcondition Checkers', () => {
         expect(promptStub.firstCall.args[0]).to.eql([data[0]]);
       });
 
+      it('Should prompt overwrite for EPT components that exist', async () => {
+        existsStub.returns(false);
+        const data = {
+          fileName: `Test1`,
+          outputdir: 'package/tests',
+          type: 'ExperiencePropertyTypeBundle',
+          suffix: 'json'
+        };
+        pathExists(true, data, '/schema.json');
+
+        await checker.check({ type: 'CONTINUE', data });
+
+        expect(promptStub.firstCall.args[0]).to.eql([data]);
+      });
+
+      it('Should prompt overwrite for EPT components that does not exist', async () => {
+        existsStub.returns(false);
+        const data = {
+          fileName: `Test1`,
+          outputdir: 'package/tests',
+          type: 'ExperiencePropertyTypeBundle',
+          suffix: 'json'
+        };
+
+        await checker.check({ type: 'CONTINUE', data });
+
+        expect(promptStub.firstCall).to.null;
+      });
+
       it('Should determine a component exists if at least one of its file extensions do', async () => {
         const dictionaryStub = env.stub(MetadataDictionary, 'getInfo');
         dictionaryStub.returns({

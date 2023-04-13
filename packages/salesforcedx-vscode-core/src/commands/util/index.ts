@@ -30,7 +30,6 @@ export {EmptyPostChecker} from './emptyPostChecker';
 export {
   CommandletExecutor,
   CommandParams,
-  CommandVersion,
   FlagParameter,
   SfdxCommandlet,
   SfdxCommandletExecutor
