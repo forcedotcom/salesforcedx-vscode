@@ -31,7 +31,7 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
-import { setApiVersionOn } from '../services/sdr/componentSetUtils';
+import { setApiVersion, setSourceApiVersion } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { BaseDeployExecutor } from './baseDeployCommand';
@@ -61,7 +61,8 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      await setApiVersionOn(components);
+      await setApiVersion(components);
+      await setSourceApiVersion(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,

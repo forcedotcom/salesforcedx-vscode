@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
@@ -38,13 +38,9 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue(
-      'sourceApiVersion'
-    )) as string;
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
-    componentSet.sourceApiVersion = sourceApiVersion;
+
     return componentSet;
   }
 }
