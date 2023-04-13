@@ -25,10 +25,6 @@ export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
 }
 
 export async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
-  if (!componentSet) {
-    return;
-  }
-
   // For a listing (and order of precedence) of how to retrieve the value of sourceApiVersion,
   // see "sourceApiVersion: Order of Precedence" in the "How API Version and Source API Version
   // Work in Salesforce CLI" doc.
@@ -49,8 +45,14 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
     sourceApiVersion = (await ConfigUtil.getUserConfiguredApiVersion())!;
   }
 
-  // If we get to here and sourceApiVersion is undefined, calling deploy or retrieve
-  // commands will eventually default to using the Org's API version.
+  // TODO: is #7 necessary?
+  // and if so, is this the correct impl?
+  if (!sourceApiVersion) {
+    const orgApiVersion = await getOrgApiVersion();
+    sourceApiVersion = orgApiVersion ?? componentSet.sourceApiVersion;
+  }
+  // ...or if it isn't necessary, should the code that's like this that's in
+  // setApiVersion() be removed?
 
   componentSet.sourceApiVersion = sourceApiVersion;
 }
