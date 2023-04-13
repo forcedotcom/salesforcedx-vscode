@@ -266,6 +266,9 @@ describe('Base Deploy Retrieve Commands', () => {
       setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        updateLocalTracking: async () => {}
+      });
     });
 
     class TestDeploy extends DeployExecutor<{}> {
