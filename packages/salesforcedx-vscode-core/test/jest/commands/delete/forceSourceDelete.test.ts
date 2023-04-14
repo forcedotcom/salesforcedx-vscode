@@ -9,19 +9,19 @@ import * as path from 'path';
 import { ForceSourceDeleteExecutor } from '../../../../src/commands';
 
 describe('Force Source Delete', () => {
+  let isSourceTracked: boolean;
+  const sourcePath: string = path.join('example', 'path');
   it('Should build the source delete command with --tracksource flag', () => {
-    const isSourceTracked: boolean = true;
+    isSourceTracked = true;
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
-    const sourcePath = path.join('example', 'path');
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
     expect(sourceDeleteCommand.toCommand()).toEqual(
       `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt --tracksource`
     );
   });
   it('Should build the source delete command without --tracksource flag', () => {
-    const isSourceTracked: boolean = false;
+    isSourceTracked = false;
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
-    const sourcePath = path.join('example', 'path');
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
     expect(sourceDeleteCommand.toCommand()).toEqual(
       `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt`
