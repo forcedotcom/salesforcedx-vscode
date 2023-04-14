@@ -84,6 +84,7 @@ describe('Retrieve Executor', () => {
     await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
+    expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(createSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
     const createSourceTrackingCallOrder =
