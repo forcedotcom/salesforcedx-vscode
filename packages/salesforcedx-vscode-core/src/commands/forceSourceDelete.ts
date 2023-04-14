@@ -19,6 +19,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -28,14 +29,22 @@ import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
 }> {
+  private isSourceTracked: boolean;
+
+  public constructor(isSourceTracked: boolean) {
+    super();
+    this.isSourceTracked = isSourceTracked;
+  }
   public build(data: { filePath: string }): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_delete_text'))
       .withArg('force:source:delete')
       .withLogName('force_source_delete')
       .withFlag('--sourcepath', data.filePath)
-      .withArg('--noprompt')
-      .withArg('--tracksource');
+      .withArg('--noprompt');
+    if (this.isSourceTracked) {
+      commandBuilder.args.push('--tracksource');
+    }
     return commandBuilder.build();
   }
 }
@@ -91,6 +100,12 @@ export class ConfirmationAndSourcePathGatherer
 }
 
 export async function forceSourceDelete(sourceUri: vscode.Uri) {
+  let isSourceTracked: boolean = false;
+  const defaultUsername = await workspaceContextUtils.getDefaultUsernameOrAlias();
+  const orgType = await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
+  if (orgType === OrgType.SourceTracked) {
+    isSourceTracked = true;
+  }
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -110,7 +125,7 @@ export async function forceSourceDelete(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     manifestChecker,
     new ConfirmationAndSourcePathGatherer(sourceUri),
-    new ForceSourceDeleteExecutor()
+    new ForceSourceDeleteExecutor(isSourceTracked)
   );
   await commandlet.run();
 }
