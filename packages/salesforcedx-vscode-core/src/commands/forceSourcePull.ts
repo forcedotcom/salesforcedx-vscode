@@ -12,7 +12,6 @@ import {
 import { nls } from '../messages';
 import {
   CommandParams,
-  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
@@ -23,19 +22,10 @@ import {
 export const pullCommand: CommandParams = {
   command: 'force:source:pull',
   description: {
-    default: 'force_source_pull_default_scratch_org_text',
-    forceoverwrite: 'force_source_pull_force_default_scratch_org_text'
+    default: 'force_source_pull_default_org_text',
+    forceoverwrite: 'force_source_pull_force_default_org_text'
   },
   logName: { default: 'force_source_pull_default_scratch_org' }
-};
-
-export const pullCommandLegacy: CommandParams = {
-  command: 'force:source:legacy:pull',
-  description: {
-    default: 'force_source_legacy_pull_default_scratch_org_text',
-    forceoverwrite: 'force_source_legacy_pull_force_default_scratch_org_text'
-  },
-  logName: { default: 'force_source_legacy_pull_default_scratch_org' }
 };
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
@@ -68,10 +58,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourcePull(this: FlagParameter<string>) {
-  const { flag, commandVersion } = this || {};
-  const command =
-    commandVersion === CommandVersion.Legacy ? pullCommandLegacy : pullCommand;
-  const executor = new ForceSourcePullExecutor(flag, command);
+  const { flag } = this || {};
+  const executor = new ForceSourcePullExecutor(flag, pullCommand);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

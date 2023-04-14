@@ -110,14 +110,22 @@ if (!isBetaRelease()) {
   shell.exec(`git fetch`)
 
   // Generate changelog
-  const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch();
-  const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, previousBranchName));
-  const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
-  const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
-  changeLogGeneratorUtils.writeChangeLog(changeLog);
+  try {
+    //... but don't prevent errors from creating the release branch since we already merged to develop
+    const latestReleasedVersion = String(shell.exec(`git describe --tags --abbrev=0`));
+    const latestReleasedBranchName = `release/${latestReleasedVersion}`
+    const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, latestReleasedBranchName));
+    const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
+    const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
+    changeLogGeneratorUtils.writeChangeLog(changeLog);
+  
+    const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
+    shell.exec(commitCommand);
+  } catch (e) {
+    logger.error(`Changelog could not be generated - you're on your own for this one!`);
+    logger.error(e);
+  }
 
-  const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
-  shell.exec(commitCommand);
 }
 
 // Push new release branch to remote

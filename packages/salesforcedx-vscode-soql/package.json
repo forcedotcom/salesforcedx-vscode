@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.9.0",
+  "version": "57.10.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -41,9 +41,9 @@
     "jsforce": "2.0.0-beta.20"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.9.0",
-    "@salesforce/salesforcedx-test-utils-vscode": "57.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.9.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "57.10.2",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.10.2",
+    "@salesforce/salesforcedx-utils-vscode": "57.10.2",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "1.5.13",
@@ -87,6 +87,7 @@
     "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-*.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
     "test:ui:run": "extest run-tests -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
     "test:ui": "npm run test:ui:prepare && npm run test:ui:install && npm run test:ui:run",
+    "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",

@@ -21,15 +21,8 @@ import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
 
-export enum CommandVersion {
-  Beta = 'beta',
-  Legacy = 'legacy',
-  Default = Beta
-}
-
 export interface FlagParameter<T> {
   flag?: T;
-  commandVersion?: CommandVersion;
 }
 
 export interface CommandParams {
