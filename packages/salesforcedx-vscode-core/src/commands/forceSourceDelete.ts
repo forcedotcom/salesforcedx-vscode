@@ -101,8 +101,7 @@ export class ConfirmationAndSourcePathGatherer
 
 export async function forceSourceDelete(sourceUri: vscode.Uri) {
   let isSourceTracked: boolean = false;
-  const defaultUsername = await workspaceContextUtils.getDefaultUsernameOrAlias();
-  const orgType = await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
+  const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   if (orgType === OrgType.SourceTracked) {
     isSourceTracked = true;
   }
