@@ -20,8 +20,11 @@ export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   }
 
   // If no user-configured Api Version is present, then get the version from the Org.
-  const orgApiVersion = await getOrgApiVersion();
-  componentSet.apiVersion = orgApiVersion ?? componentSet.apiVersion;
+  // const orgApiVersion = await getOrgApiVersion();
+  // componentSet.apiVersion = orgApiVersion ?? componentSet.apiVersion;
+  //
+  // this is not needed, right?
+  // confirm with Steve
 }
 
 export async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
@@ -38,7 +41,7 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
     return;
   }
 
-  // Next, attempt to get sourceApiVersion from sfdx-project.json.
+  // Next, attempt to get sourceApiVersion from sfdx-project.json...
   let sourceApiVersion = await SfdxProjectConfig.getValue<string>('sourceApiVersion');
   if (!sourceApiVersion) {
     // ...and if sourceApiVersion isn't defined, attempt to get the value from the config aggregator.
@@ -51,8 +54,7 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
     const orgApiVersion = await getOrgApiVersion();
     sourceApiVersion = orgApiVersion ?? componentSet.sourceApiVersion;
   }
-  // ...or if it isn't necessary, should the code that's like this that's in
-  // setApiVersion() be removed?
+  // confirm with Steve
 
   componentSet.sourceApiVersion = sourceApiVersion;
 }
