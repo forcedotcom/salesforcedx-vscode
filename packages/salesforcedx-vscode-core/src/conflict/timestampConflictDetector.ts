@@ -46,7 +46,7 @@ export class TimestampConflictDetector {
   private determineConflicts(
     components: CorrelatedComponent[],
     skipTimestampCheck?: boolean
-  ) {
+  ): void {
     const cache = PersistentStorageService.getInstance();
     const conflicts: Set<TimestampFileProperties> = new Set<
       TimestampFileProperties
