@@ -65,9 +65,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     }
   }
 
-  const messages:
-    | ConflictDetectionMessages
-    | undefined = getConflictMessagesFor(
+  const messages = getConflictMessagesFor(
     'force_source_deploy_with_manifest_beta'
   );
 
