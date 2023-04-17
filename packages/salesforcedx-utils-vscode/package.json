@@ -12,7 +12,7 @@
   "main": "out/src",
   "dependencies": {
     "@salesforce/source-tracking": "2.2.24",
-    "@salesforce/core": "3.34.6",
+    "@salesforce/core": "3.34.7",
     "applicationinsights": "1.0.7",
     "cross-spawn": "7.0.3",
     "rxjs": "^5.4.1",
