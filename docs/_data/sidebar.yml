@@ -79,8 +79,8 @@
         ja: 組織ブラウザ
       url: /user-guide/org-browser
     - title:
-        en: Source Diff
-        ja: ソースの差分
+        en: Metadata Operations
+        ja: メタデータ操作
       url: /user-guide/source-diff
     - title:
         en: Prettier Code Formatter
@@ -237,6 +237,10 @@
         en: Example SOQL Tasks
         ja: Example SOQL Tasks
       url: /soql/soql-tasks/
+- title:
+    en: Best Practices
+    ja: トラブルシューティング
+  url: /bestpractices
 - title:
     en: FAQ
     ja: FAQ
