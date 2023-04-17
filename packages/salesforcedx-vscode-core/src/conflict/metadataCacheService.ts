@@ -140,7 +140,8 @@ export class MetadataCacheService {
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: this.cachePath,
-      merge: false
+      merge: false,
+      suppressEvents: true
     });
 
     return operation;

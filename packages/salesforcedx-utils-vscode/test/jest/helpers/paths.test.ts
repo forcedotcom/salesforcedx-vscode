@@ -28,6 +28,10 @@ jest.mock('@salesforce/core', () => {
   };
 });
 
+jest.mock('@salesforce/source-tracking', () => {
+  return {};
+});
+
 describe('test project paths', () => {
   const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';

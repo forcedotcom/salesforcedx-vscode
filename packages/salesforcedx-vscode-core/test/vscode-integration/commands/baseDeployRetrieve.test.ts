@@ -14,6 +14,7 @@ import {
 import {
   ConfigUtil,
   ContinueResponse,
+  SourceTrackingService,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -682,6 +683,9 @@ describe('Base Deploy Retrieve Commands', () => {
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        updateTrackingFromRetrieve: async () => {}
+      });
     });
 
     it('should set the apiVersion and then call retrieve on component set', async () => {
