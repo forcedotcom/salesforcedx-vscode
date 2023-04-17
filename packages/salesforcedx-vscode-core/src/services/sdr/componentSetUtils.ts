@@ -11,6 +11,11 @@ import { WorkspaceContext } from '../../context/workspaceContext';
 import { SfdxProjectConfig } from '../../sfdxProject';
 
 export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
+  // For a listing (and order of precedence) of how to retrieve the value of apiVersion,
+  // see "apiVersion: Order of Precedence" in the "How API Version and Source API Version
+  // Work in Salesforce CLI" doc.
+  // https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_apiversion.htm
+
   // Check the SFDX configuration to see if there is an overridden api version.
   // Project level local sfdx-config takes precedence over global sfdx-config at system level.
   const userConfiguredApiVersion = await ConfigUtil.getUserConfiguredApiVersion();
@@ -20,11 +25,8 @@ export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   }
 
   // If no user-configured Api Version is present, then get the version from the Org.
-  // const orgApiVersion = await getOrgApiVersion();
-  // componentSet.apiVersion = orgApiVersion ?? componentSet.apiVersion;
-  //
-  // this is not needed, right?
-  // confirm with Steve
+  const orgApiVersion = await getOrgApiVersion();
+  componentSet.apiVersion = orgApiVersion ?? componentSet.apiVersion;
 }
 
 export async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
@@ -34,7 +36,7 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
   // https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_apiversion.htm
 
   // First, look for sourceApiVersion in a manifest file.  When LibrarySourceRetrieveManifestExecutor.getComponents()
-  // is called, or LibrarySourceDeployManifestExecutor.getComponents() is called,  ComponentSet.fromManifest()
+  // is called, or LibrarySourceDeployManifestExecutor.getComponents() is called, ComponentSet.fromManifest()
   // is called and the component set returned usually has the sourceApiVersion set...
   if (componentSet.sourceApiVersion) {
     // ...and at this point there is nothing else left to do.
@@ -48,13 +50,11 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
     sourceApiVersion = (await ConfigUtil.getUserConfiguredApiVersion())!;
   }
 
-  // TODO: is #7 necessary?
-  // and if so, is this the correct impl?
+  // Next, if it still is not set, set it to the highest API version supported by the target org.
   if (!sourceApiVersion) {
     const orgApiVersion = await getOrgApiVersion();
     sourceApiVersion = orgApiVersion ?? componentSet.sourceApiVersion;
   }
-  // confirm with Steve
 
   componentSet.sourceApiVersion = sourceApiVersion;
 }
