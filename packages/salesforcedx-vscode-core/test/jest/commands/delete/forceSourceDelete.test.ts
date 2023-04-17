@@ -19,7 +19,7 @@ describe('Force Source Delete', () => {
       `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt --tracksource`
     );
   });
-  it('Should build the source delete command without --tracksource flag', () => {
+  it('Should build the source delete command without --tracksource flag when connected to a non-source-tracked org', () => {
     isSourceTracked = false;
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
