@@ -11,7 +11,7 @@ import { ForceSourceDeleteExecutor } from '../../../../src/commands';
 describe('Force Source Delete', () => {
   let isSourceTracked: boolean;
   const sourcePath: string = path.join('example', 'path');
-  it('Should build the source delete command with --tracksource flag', () => {
+  it('Should build the source delete command with --tracksource flag when connected to a source-tracked org', () => {
     isSourceTracked = true;
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
