@@ -67,6 +67,10 @@
   baseUrl: /user-guide/
   children:
     - title:
+        en: Metadata Operations
+        ja: メタデータ操作
+      url: /user-guide/metadata-operations
+    - title:
         en: Detect Conflicts
         ja: 競合の検知
       url: /user-guide/detect-conflicts
@@ -78,10 +82,6 @@
         en: Org Browser
         ja: 組織ブラウザ
       url: /user-guide/org-browser
-    - title:
-        en: Metadata Operations
-        ja: メタデータ操作
-      url: /user-guide/source-diff
     - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
