@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import {
+  MetadataType,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
@@ -111,7 +114,7 @@ describe('Force Source Diff', () => {
         type: {
           id: 'ApexClass',
           name: 'ApexClass'
-        }
+        } as any
       });
       const mockResult: MetadataCacheResult = {
         selectedType: PathType.Individual,
