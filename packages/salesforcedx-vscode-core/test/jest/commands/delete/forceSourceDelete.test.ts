@@ -11,6 +11,7 @@ import { ForceSourceDeleteExecutor } from '../../../../src/commands';
 describe('Force Source Delete', () => {
   let isSourceTracked: boolean;
   const sourcePath: string = path.join('example', 'path');
+
   it('Should build the source delete command with --tracksource flag when connected to a source-tracked org', () => {
     isSourceTracked = true;
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
@@ -19,6 +20,7 @@ describe('Force Source Delete', () => {
       `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt --tracksource`
     );
   });
+
   it('Should build the source delete command without --tracksource flag when connected to a non-source-tracked org', () => {
     isSourceTracked = false;
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
