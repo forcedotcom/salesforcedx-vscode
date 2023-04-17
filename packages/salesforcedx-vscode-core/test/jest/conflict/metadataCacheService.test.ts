@@ -9,22 +9,12 @@ describe('MetadataCacheService', () => {
       { fullName: 'Test', type: 'apexclass' },
       { fullName: 'Test2', type: 'layout' }
     ]);
-    let retrieveStub: jest.SpyInstance;
+    let workspaceContextStub: jest.SpyInstance;
     let getSourceComponentsStub: jest.SpyInstance;
     let setApiVersionOnStub: jest.SpyInstance;
-    let workspaceContextStub: jest.SpyInstance;
-    let componentSetRetrieveStub: jest.SpyInstance;
+    let retrieveStub: jest.SpyInstance;
 
     beforeEach(() => {
-      retrieveStub = jest
-        .spyOn(dummyComponentSet, 'retrieve')
-        .mockResolvedValue({} as any);
-      componentSetRetrieveStub = jest
-        .spyOn(ComponentSet.prototype, 'retrieve')
-        .mockResolvedValue({} as any);
-      setApiVersionOnStub = jest
-        .spyOn(sdrUtils, 'setApiVersionOn')
-        .mockImplementation(jest.fn());
       workspaceContextStub = jest
         .spyOn(WorkspaceContext, 'getInstance')
         .mockReturnValue({
@@ -35,6 +25,12 @@ describe('MetadataCacheService', () => {
       getSourceComponentsStub = jest
         .spyOn(MetadataCacheService.prototype, 'getSourceComponents')
         .mockResolvedValue(dummyComponentSet);
+      setApiVersionOnStub = jest
+        .spyOn(sdrUtils, 'setApiVersionOn')
+        .mockImplementation(jest.fn());
+      retrieveStub = jest
+        .spyOn(dummyComponentSet, 'retrieve')
+        .mockResolvedValue({} as any);
     });
 
     it('should use the suppressEvents option to retrieve files with conflicts', async () => {
@@ -42,6 +38,8 @@ describe('MetadataCacheService', () => {
 
       const retrieveOperation = await metadataCacheService.createRetrieveOperation();
 
+      expect(workspaceContextStub).toHaveBeenCalled();
+      expect(getSourceComponentsStub).toHaveBeenCalled();
       expect(setApiVersionOnStub).toHaveBeenCalledWith(dummyComponentSet);
       const dummyRetrieveOptionsWithSuppressEvents = { suppressEvents: true };
       expect(retrieveStub).toHaveBeenCalledWith(
