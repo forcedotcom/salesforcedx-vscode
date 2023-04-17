@@ -238,10 +238,6 @@
         ja: Example SOQL Tasks
       url: /soql/soql-tasks/
 - title:
-    en: Best Practices
-    ja: トラブルシューティング
-  url: /bestpractices
-- title:
     en: FAQ
     ja: FAQ
   baseUrl: /faq/
