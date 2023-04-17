@@ -1,3 +1,21 @@
+# 57.10.2 - April 13, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where some metadata labels in the org browser weren't correctly displayed. ([PR #4772](https://github.com/forcedotcom/salesforcedx-vscode/pull/4772))
+
+- We fixed an issue so that Source-Tracking Commands (Push*, Pull*, View Changes\*) are now available Source-Tracked Sandboxes. ([PR #4755](https://github.com/forcedotcom/salesforcedx-vscode/pull/4755))
+
+- We removed legacy source tracking commands from the command palette. ([PR #4771](https://github.com/forcedotcom/salesforcedx-vscode/pull/4771))
+
+- We fixed an issue where retrieving the ExperiencePropertyType metadata type would throw an error. Thank you [Kaaviyan](https://github.com/Kaaviyan) for your PR. ([PR #4784](https://github.com/forcedotcom/salesforcedx-vscode/pull/4784), [PR #4761](https://github.com/forcedotcom/salesforcedx-vscode/pull/4761))
+
+#### salesforcedx-vscode-soql
+
+- We fixed an issue with SOQL Builder where Code Builder users would see an empty file upon saving a query result. ([PR #4754](https://github.com/forcedotcom/salesforcedx-vscode/pull/4754))
+
 # 57.7.0 - March 22, 2023
 
 ## Added
