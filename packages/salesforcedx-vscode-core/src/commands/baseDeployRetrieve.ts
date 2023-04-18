@@ -36,7 +36,6 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
-import { SourceTrackingService } from '../services';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
@@ -266,8 +265,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const service = new SourceTrackingService();
-    const sourceTracking = await service.createSourceTracking();
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
