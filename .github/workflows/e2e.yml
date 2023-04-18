@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       automationBranch:
-        description: 'Set the branch to use for automation tests (default is develop)'
+        description: 'Set the branch to use for automation tests'
         required: false
         default: 'develop'
         type: string
@@ -24,7 +24,7 @@ jobs:
             ref: ${{ github.event.ref }}
         - uses: actions/setup-node@v3
           with:
-            node-version-file: '.nvmrc' 
+            node-version-file: 'salesforcedx-vscode/.nvmrc' 
             cache: npm
             cache-dependency-path: |
               salesforcedx-vscode/package-lock.json
