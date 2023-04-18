@@ -74,7 +74,7 @@ You can delete source from your project and from your org.
 
 - In the VS Code explorer, right-click a source file or a directory and select **SFDX: Delete from Project and Org**.
 - With a source file open in the editor, right-click the file and select **SFDX: Delete This from Project and Org**.
-- With a source file open in the editor, open the Command Palette and run **SFDX: Delete from Project and Org**.
+- With a source file open in the editor, open the Command Palette and run **SFDX: Delete This from Project and Org**.
 
 ## Rename Component
 
