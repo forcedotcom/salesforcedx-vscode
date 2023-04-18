@@ -291,7 +291,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
    * Per the docs, it is suggested to run SFDX: Diff* commands
    * to check for conflicts before retrieving.
    */
-  protected async handleSourceConflictError(error: any) {}
+  protected async handleSourceConflictError(error: any): Promise<void> {}
 
   protected async postOperation(
     result: RetrieveResult | undefined
