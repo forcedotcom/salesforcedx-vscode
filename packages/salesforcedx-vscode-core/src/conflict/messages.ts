@@ -34,23 +34,15 @@ export function getConflictMessagesFor(
       }
     ],
     [
-      'force_source_deploy_with_sourcepath_beta',
+      'force_source_deploy_with_manifest_beta',
       {
         warningMessageKey,
-        commandHint: inputs => {
-          const commands: string[] = [];
-          (inputs as string[]).forEach(input => {
-            commands.push(
-              new SfdxCommandBuilder()
-                .withArg('force:source:deploy')
-                .withFlag('--sourcepath', input)
-                .build()
-                .toString()
-            );
-          });
-          const hints = commands.join('\n  ');
-
-          return hints;
+        commandHint: input => {
+          return new SfdxCommandBuilder()
+            .withArg('force:source:deploy')
+            .withFlag('--manifest', input as string)
+            .build()
+            .toString();
         }
       }
     ]
