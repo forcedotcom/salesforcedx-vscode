@@ -218,7 +218,7 @@
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.diff",
@@ -316,7 +316,7 @@
         },
         {
           "command": "sfdx.force.source.delete",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.function.containerless.start",
@@ -526,7 +526,7 @@
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.set.default.org",
