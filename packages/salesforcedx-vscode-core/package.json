@@ -198,7 +198,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
@@ -218,7 +218,7 @@
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.diff",
@@ -316,11 +316,11 @@
         },
         {
           "command": "sfdx.force.source.delete",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.create.manifest",
@@ -328,7 +328,7 @@
         },
         {
           "command": "sfdx.lightning.rename",
-          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/.*(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
       ],
       "commandPalette": [
@@ -526,7 +526,7 @@
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.set.default.org",
@@ -594,7 +594,7 @@
         },
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
           "command": "sfdx.force.function.invoke",
