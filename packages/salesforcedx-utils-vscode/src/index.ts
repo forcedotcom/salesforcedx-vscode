@@ -55,3 +55,4 @@ export * from './date';
 export * from './output';
 export * from './predicates';
 export * from './providers';
+export * from './services';

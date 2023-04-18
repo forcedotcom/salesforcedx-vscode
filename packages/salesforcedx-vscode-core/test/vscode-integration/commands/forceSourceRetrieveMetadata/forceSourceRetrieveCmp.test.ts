@@ -14,7 +14,8 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
-  LocalComponent
+  LocalComponent,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -31,6 +32,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+import { RetrieveExecutor } from '../../../../src/commands/baseDeployRetrieve';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { WorkspaceContext } from '../../../../src/context';
@@ -89,6 +91,8 @@ describe('Force Source Retrieve Component(s)', () => {
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
+      sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
     });
 
     afterEach(() => {
@@ -119,7 +123,8 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
-        merge: true
+        merge: true,
+        suppressEvents: true
       });
 
       const retrievedSet = retrieveStub.firstCall.thisValue as ComponentSet;
