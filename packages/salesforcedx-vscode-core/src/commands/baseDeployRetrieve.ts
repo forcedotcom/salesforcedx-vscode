@@ -10,6 +10,7 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
+  SourceTrackingService,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -199,22 +200,34 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
+    const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
 
     const defaultOutput = join(
-      getRootWorkspacePath(),
+      projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
-      merge: true
+      merge: true,
+      suppressEvents: true
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    const result: RetrieveResult = await operation.pollStatus();
+    await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+      sourceTracking,
+      result
+    );
+
+    return result;
   }
 
   protected async postOperation(
