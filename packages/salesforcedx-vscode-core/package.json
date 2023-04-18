@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.7.0",
+  "version": "57.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,15 +27,15 @@
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
     "@octokit/plugin-paginate-rest": "2.21.3",
-    "@salesforce/core": "^3.33.6",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.7.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.7.0",
+    "@salesforce/core": "3.34.7",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "57.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "57.11.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "7.11.3",
+    "@salesforce/source-deploy-retrieve": "8.0.1",
     "@salesforce/source-tracking": "^2.2.15",
     "@salesforce/templates": "^57.0.2",
     "@salesforce/ts-types": "1.5.21",
-    "adm-zip": "0.4.13",
+    "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
     "jsforce": "2.0.0-beta.20",
@@ -44,9 +44,9 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.11.0",
     "@salesforce/ts-sinon": "^1.0.0",
-    "@types/adm-zip": "^0.4.31",
+    "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
     "@types/mkdirp": "0.5.2",
@@ -88,9 +88,9 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "3.31.18",
+        "@salesforce/core": "3.34.7",
         "@salesforce/templates": "57.0.2",
-        "@salesforce/source-deploy-retrieve": "7.11.3",
+        "@salesforce/source-deploy-retrieve": "8.0.1",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
@@ -151,14 +151,14 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
         }
       ],
       "conflicts": [
         {
           "id": "conflicts",
           "name": "Conflicts",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
         }
       ]
     },
@@ -199,23 +199,23 @@
       "editor/context": [
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
@@ -301,19 +301,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.source.path",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -321,7 +321,7 @@
         },
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.create.manifest",
@@ -329,7 +329,7 @@
         },
         {
           "command": "sfdx.lightning.rename",
-          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/.*(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
       ],
       "commandPalette": [
@@ -395,26 +395,6 @@
         },
         {
           "command": "sfdx.force.source.status.remote",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
-        },
-        {
-          "command": "sfdx.force.source.legacy.pull",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
-        },
-        {
-          "command": "sfdx.force.source.legacy.pull.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
-        },
-        {
-          "command": "sfdx.force.source.legacy.push",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
-        },
-        {
-          "command": "sfdx.force.source.legacy.push.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
-        },
-        {
-          "command": "sfdx.force.source.legacy.status",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
@@ -515,19 +495,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -615,7 +595,7 @@
         },
         {
           "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
           "command": "sfdx.force.function.invoke",
@@ -678,19 +658,19 @@
       },
       {
         "command": "sfdx.force.source.pull",
-        "title": "%force_source_pull_default_scratch_org_text%"
+        "title": "%force_source_pull_default_org_text%"
       },
       {
         "command": "sfdx.force.source.pull.force",
-        "title": "%force_source_pull_force_default_scratch_org_text%"
+        "title": "%force_source_pull_force_default_org_text%"
       },
       {
         "command": "sfdx.force.source.push",
-        "title": "%force_source_push_default_scratch_org_text%"
+        "title": "%force_source_push_default_org_text%"
       },
       {
         "command": "sfdx.force.source.push.force",
-        "title": "%force_source_push_force_default_scratch_org_text%"
+        "title": "%force_source_push_force_default_org_text%"
       },
       {
         "command": "sfdx.force.source.status",
@@ -703,26 +683,6 @@
       {
         "command": "sfdx.force.source.status.remote",
         "title": "%force_source_status_remote_text%"
-      },
-      {
-        "command": "sfdx.force.source.legacy.pull",
-        "title": "%force_source_legacy_pull_default_scratch_org_text%"
-      },
-      {
-        "command": "sfdx.force.source.legacy.pull.force",
-        "title": "%force_source_legacy_pull_force_default_scratch_org_text%"
-      },
-      {
-        "command": "sfdx.force.source.legacy.push",
-        "title": "%force_source_legacy_push_default_scratch_org_text%"
-      },
-      {
-        "command": "sfdx.force.source.legacy.push.force",
-        "title": "%force_source_legacy_push_force_default_scratch_org_text%"
-      },
-      {
-        "command": "sfdx.force.source.legacy.status",
-        "title": "%force_source_legacy_status_text%"
       },
       {
         "command": "sfdx.force.task.stop",

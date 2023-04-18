@@ -2,14 +2,14 @@
   "name": "@salesforce/salesforcedx-test-utils-vscode",
   "displayName": "SFDX Test Utilities for VS Code",
   "description": "Provides test utilities to interface the SFDX libraries with VS Code",
-  "version": "57.7.0",
+  "version": "57.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "57.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "57.11.0",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
@@ -36,10 +36,11 @@
     "vscode": "^1.61.2"
   },
   "scripts": {
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out"
+    "test:jest": "jest --coverage",
+    "watch": "tsc -watch -p ."
   }
 }

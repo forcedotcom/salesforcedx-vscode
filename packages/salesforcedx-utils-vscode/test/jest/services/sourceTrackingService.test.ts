@@ -33,4 +33,23 @@ describe('Source Tracking Service', () => {
       expect(sourceTrackingCreateSpy).toHaveBeenCalled();
     });
   });
+
+  describe('updateSourceTrackingAfterRetrieve', () => {
+    const updateTrackingFromRetrieveSpy = jest.fn();
+    const dummySourceTracking = {
+      updateTrackingFromRetrieve: updateTrackingFromRetrieveSpy
+    } as any;
+
+    it('Should update an instance of SourceTracking using the retrieve result', async () => {
+      const dummyRetrieveResult = {} as any;
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+        dummySourceTracking,
+        dummyRetrieveResult
+      );
+
+      expect(updateTrackingFromRetrieveSpy).toHaveBeenCalledWith(
+        dummyRetrieveResult
+      );
+    });
+  });
 });

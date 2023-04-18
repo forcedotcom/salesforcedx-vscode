@@ -84,7 +84,6 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
-  CommandVersion,
   CompositeParametersGatherer,
   EmptyParametersGatherer,
   FlagParameter,
@@ -122,13 +121,6 @@ import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
-};
-const flagLegacy: FlagParameter<null> = {
-  commandVersion: CommandVersion.Legacy
-};
-const flagLegacyOverwrite: FlagParameter<string> = {
-  flag: '--forceoverwrite',
-  commandVersion: CommandVersion.Legacy
 };
 const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
   flag: SourceStatusFlags.Local
@@ -206,16 +198,6 @@ function registerCommands(
     forceSourcePull,
     flagOverwrite
   );
-  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.legacy.pull',
-    forceSourcePull,
-    flagLegacy
-  );
-  const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.legacy.pull.force',
-    forceSourcePull,
-    flagLegacyOverwrite
-  );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
     forceSourcePush
@@ -224,16 +206,6 @@ function registerCommands(
     'sfdx.force.source.push.force',
     forceSourcePush,
     flagOverwrite
-  );
-  const forceSourceLegacyPushCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.legacy.push',
-    forceSourcePush,
-    flagLegacy
-  );
-  const forceSourceLegacyPushForceCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.legacy.push.force',
-    forceSourcePush,
-    flagLegacyOverwrite
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
@@ -258,11 +230,6 @@ function registerCommands(
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
     viewRemoteChanges
-  );
-  const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.legacy.status',
-    forceSourceStatus,
-    flagLegacy
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -470,19 +437,14 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
-    forceSourceLegacyPullCmd,
-    forceSourceLegacyPullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
-    forceSourceLegacyPushCmd,
-    forceSourceLegacyPushForceCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-    forceSourceLegacyStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
     forceAnalyticsTemplateCreateCmd,

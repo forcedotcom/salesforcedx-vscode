@@ -17,15 +17,16 @@ export enum OrgType {
 
 /**
  * @description determines whether the default org is source-tracked or not.
- * During dev it was observed that that were some potential issues with other options
+ * During dev it was observed that there were some potential issues with other options
  * (org.isScratch, org.tracksSource) related to cache-ing and a newly created
  * Scratch Org would sometimes return false.  Using org.supportsSourceTracking()
  * because it has been the most consistently accurate solution here.
  * @returns OrgType (SourceTracked or NonSourceTracked) of the current default org
  */
 export async function getWorkspaceOrgType(): Promise<OrgType> {
-  const connection = await WorkspaceContext.getInstance().getConnection();
-  const org: Org = await Org.create({ connection });
+  const workspaceContext = WorkspaceContext.getInstance();
+  const connection = await workspaceContext.getConnection();
+  const org = await Org.create({ connection });
   const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
@@ -52,6 +53,10 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
           setDefaultUsernameHasNoChangeTracking(true);
           break;
         case 'NoDefaultusernameSet':
+          setDefaultUsernameHasChangeTracking(false);
+          setDefaultUsernameHasNoChangeTracking(false);
+          break;
+        case 'NoUsernameFoundError':
           setDefaultUsernameHasChangeTracking(false);
           setDefaultUsernameHasNoChangeTracking(false);
           break;
