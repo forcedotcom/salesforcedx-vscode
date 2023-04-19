@@ -15,7 +15,7 @@ You can then view individual file diffs side-by-side. If a file doesn’t exist 
 
 ## Retrieve Source
 
-For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files unless you have conflict detection turned on. See [Detect Conflicts](./en/user-guide/detect-conflicts).
+For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files.
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
