@@ -4,7 +4,7 @@ lang: en
 ---
 
 ## Source Diff
-The Source Diff command allows you to diff metadata types against your default org. This feature makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at diffs for an individual file or directory.
+The Source Diff command makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at diffs for an individual file or directory.
 
 ### Usage
 Menu options `SFDX: Diff File Against Org` and `SFDX: Diff Folder Against Org` appear when you right-click a file or folder.  
@@ -15,7 +15,7 @@ You can then view individual file diffs side-by-side. If a file doesn’t exist 
 
 ## Retrieve Source
 
-Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files.
+For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files unless you have conflict detection turned on. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
