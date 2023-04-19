@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  LibraryCommandletExecutor,
+  SourceTrackingService
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { SourceTrackingService } from '../services/sourceTrackingService';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -30,8 +32,7 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
   }
 
   public async execute(): Promise<void> {
-    const trackingService = new SourceTrackingService();
-    const sourceStatusSummary: string = await trackingService.getSourceStatusSummary(
+    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(
       this.options || {}
     );
     // todo: localize

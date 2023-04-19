@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SourceTracking } from '@salesforce/source-tracking';
+import { WorkspaceContextUtil } from '../../../src';
 import { SourceTrackingService } from '../../../src/services';
+import { testData } from './testData';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -50,6 +52,47 @@ describe('Source Tracking Service', () => {
       expect(updateTrackingFromRetrieveSpy).toHaveBeenCalledWith(
         dummyRetrieveResult
       );
+    });
+  });
+
+  describe('getSourceStatusSummary', () => {
+    const mockWorkspaceContextUtil = {
+      onOrgChange: jest.fn(),
+      getConnection: jest.fn()
+    };
+    const updateTrackingFromRetrieveSpy = jest.fn();
+    const getStatusMock = jest.fn();
+    const dummySourceTracking = {
+      updateTrackingFromRetrieve: updateTrackingFromRetrieveSpy
+    } as any;
+
+    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
+    let sourceTrackingMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      workspaceContextUtilGetInstanceSpy = jest
+        .spyOn(WorkspaceContextUtil, 'getInstance')
+        .mockReturnValue(mockWorkspaceContextUtil as any);
+      getStatusMock.mockResolvedValue(testData.statusOutputRows as any);
+      sourceTrackingMock = jest
+        .spyOn(SourceTracking, 'create')
+        .mockResolvedValue({
+          getStatus: jest
+            .fn()
+            .mockResolvedValue(testData.statusOutputRows as any)
+        } as any);
+    });
+
+    it('Should return a properly formatted string when local and remote changes exist.', async () => {
+      // Act
+      const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
+        {}
+      );
+
+      // Assert
+      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
+      expect(sourceTrackingMock).toHaveBeenCalled();
+      expect(formattedOutput).toEqual(testData.statusSummaryString);
     });
   });
 });

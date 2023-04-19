@@ -10,10 +10,7 @@ import {
   getRootWorkspacePath,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  Row,
-  Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
+import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import {
   SourceTracking,
   SourceTrackingOptions
