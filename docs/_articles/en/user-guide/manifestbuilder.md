@@ -34,4 +34,4 @@ Automatically generate a manifest file for a given a set of metadata components 
 
 A new file is created and added to the manifest folder.
    
-Use the new manifest file to deploy and retrieve source from the org using **SFDX: Retrieve Source in Manifest from Org** or **SFDX: Retrieve Source in Manifest from Org** commands.
+Use the new manifest file to deploy and retrieve source from the org using **SFDX: Retrieve Source in Manifest from Org** or **SFDX: Retrieve Source in Manifest from Org** command.
