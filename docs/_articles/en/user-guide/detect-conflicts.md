@@ -4,7 +4,7 @@ lang: en
 ---
 ## Overview
 
-When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the Org. The conflict detection feature can be turned on for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs. Note that this feature is always on for scratch orgs and source tracked sandboxes.
+When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the org. The conflict detection feature can be turned on for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs. Note that this feature is always on for scratch orgs and source-tracked sandboxes.
 
 A conflict occurs when the metadata file in the org was last modified more recently than the last successful deployment or retrieval of this file to your local project.
 If conflicts are detected in your project manifest or files, you can cancel the deploy operation and view the differences between your local files and default org.
