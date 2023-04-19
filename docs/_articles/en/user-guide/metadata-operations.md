@@ -54,7 +54,7 @@ your-app
 ```
 ## Deploy Source
 
-When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You could enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
+When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You can enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Deploy source to org](./images/deploy-source-to-org.png)
 
