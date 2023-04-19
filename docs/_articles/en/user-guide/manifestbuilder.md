@@ -14,7 +14,7 @@ lang: en
 
 If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.
 
-3. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox.
+3. Run **SFDX: Authorize an Org** and select a login URL, for example, Sandbox.
 
 ![Authorize an Org](./images/authorize-org-command.png)
 
