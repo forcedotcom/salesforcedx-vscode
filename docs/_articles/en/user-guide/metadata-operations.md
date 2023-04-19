@@ -11,7 +11,7 @@ Menu options `SFDX: Diff File Against Org` and `SFDX: Diff Folder Against Org` a
 
 ![Source Diff command](../../../images/source_diff.png)
 
-You can then view individual file diffs side by side. If a file doesn’t exist locally or in the Org, it will not show up in the list.
+You can then view individual file diffs side-by-side. If a file doesn’t exist locally or in the org, it doesn't show up in the list.
 
 ## Retrieve Source
 
