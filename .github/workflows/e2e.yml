@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             path: ./salesforcedx-vscode
             ref: ${{ github.event.ref }}
@@ -30,7 +30,7 @@ jobs:
               salesforcedx-vscode/package-lock.json
               salesforcedx-vscode-automation-tests/package-lock.json
         - name: Clone automation tests
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             repository: forcedotcom/salesforcedx-vscode-automation-tests
             path: salesforcedx-vscode-automation-tests
