@@ -2,6 +2,10 @@
 title: Metadata Operations
 lang: en
 ---
+## Overview
+
+Use ``Retrieve Source`` and ``Deploy Source`` commands to move metadata between your local project and your default org. Use ``Source Diff`` at any time during the development process to  compare files and folders in your local project and the default org.
+
 
 ## Source Diff
 The Source Diff command makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at diffs for an individual file or directory.
@@ -15,7 +19,7 @@ You can then view individual file diffs side-by-side. If a file doesn’t exist 
 
 ## Retrieve Source
 
-For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files.
+Use the `SFDX: Retrieve Source from Org` command to bring metadata from the default org into your local project.  For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files.
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
@@ -54,7 +58,7 @@ your-app
 ```
 ## Deploy Source
 
-When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You can enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
+Use the `SFDX: Deploy Source to Org` command to deploy metadata from your local project to your default org. When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You can enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Deploy source to org](./images/deploy-source-to-org.png)
 
