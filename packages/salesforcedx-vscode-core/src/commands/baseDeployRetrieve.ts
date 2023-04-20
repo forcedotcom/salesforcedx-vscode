@@ -112,6 +112,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
+    const projectPath = getRootWorkspacePath();
+    components.projectDirectory = projectPath;
     const operation = await components.deploy({
       usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
     });
@@ -211,7 +213,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
-
+    components.projectDirectory = projectPath;
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
