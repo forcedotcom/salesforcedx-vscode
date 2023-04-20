@@ -397,17 +397,28 @@ export class TestService {
   ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
     const testNameArray = testNames.split(',');
     const testItems: TestItem[] = [];
+    const classes: string[] = [];
     let namespaceInfos: NamespaceInfo[];
 
     for (const test of testNameArray) {
       if (test.indexOf('.') > 0) {
         const testParts = test.split('.');
         if (testParts.length === 3) {
-          testItems.push({
-            namespace: `${testParts[0]}`,
-            className: `${testParts[1]}`,
-            testMethods: [testParts[2]]
-          });
+          if (!classes.includes(testParts[1])) {
+            testItems.push({
+              namespace: `${testParts[0]}`,
+              className: `${testParts[1]}`,
+              testMethods: [testParts[2]]
+            });
+            classes.push(testParts[1]);
+          } else {
+            testItems.forEach(element => {
+              if (element.className === `${testParts[1]}`) {
+                element.namespace = `${testParts[0]}`;
+                element.testMethods.push(`${testParts[2]}`);
+              }
+            });
+          }
         } else {
           if (typeof namespaceInfos === 'undefined') {
             namespaceInfos = await queryNamespaces(this.connection);
@@ -415,7 +426,6 @@ export class TestService {
           const currentNamespace = namespaceInfos.find(
             namespaceInfo => namespaceInfo.namespace === testParts[0]
           );
-
           // NOTE: Installed packages require the namespace to be specified as part of the className field
           // The namespace field should not be used with subscriber orgs
           if (currentNamespace) {
@@ -430,10 +440,19 @@ export class TestService {
               });
             }
           } else {
-            testItems.push({
-              className: testParts[0],
-              testMethods: [testParts[1]]
-            });
+            if (!classes.includes(testParts[0])) {
+              testItems.push({
+                className: testParts[0],
+                testMethods: [testParts[1]]
+              });
+              classes.push(testParts[0]);
+            } else {
+              testItems.forEach(element => {
+                if (element.className === testParts[0]) {
+                  element.testMethods.push(testParts[1]);
+                }
+              });
+            }
           }
         }
       } else {
@@ -441,7 +460,6 @@ export class TestService {
         testItems.push({ [prop]: test });
       }
     }
-
     return {
       tests: testItems,
       testLevel: TestLevel.RunSpecifiedTests

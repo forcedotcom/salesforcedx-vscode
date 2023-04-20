@@ -261,4 +261,29 @@ describe('Apex Test Suites', async () => {
       expect(toolingCreateStub.calledTwice).to.be.true;
     });
   });
+
+  describe('Build Test Payload', async () => {
+    it('should add all the tests specified even when some belong to the same class', async () => {
+      const testsPayload = {
+        testLevel: 'RunSpecifiedTests',
+        tests: [
+          {
+            className: 'TestClass1',
+            testMethods: ['method1']
+          },
+          {
+            className: 'TestClass2',
+            testMethods: ['method1', 'method2'],
+            namespace: 'namespace'
+          }
+        ]
+      };
+      const tests =
+        'TestClass1.method1,namespace.TestClass2.method1,TestClass2.method2';
+
+      const testService = new TestService(mockConnection);
+      const result = await (testService as any).buildTestPayload(tests);
+      expect(result.tests.toString()).to.equal(testsPayload.tests.toString());
+    });
+  });
 });
