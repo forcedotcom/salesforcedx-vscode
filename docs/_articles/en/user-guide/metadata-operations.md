@@ -78,4 +78,10 @@ You can delete source from your project and from your org.
 
 ## Rename Component
 
-You can rename a component and all the files associated with it using the **SFDX: Rename Component** command.
+You can rename a component and all the files (including test files for LWC components) associated with it using the **SFDX: Rename Component** command. The command prevents renaming if the new component name does not follow required naming conventions. For Lightning Web Components, the command automatically auto-revises letter case if needed. 
+
+
+**Note:** Renaming a component in a project doesn't delete the component from the org. To rename components in your org:
+1. Log into your org and delete the component with the older name.
+2. Rename the components in your project.
+3. Deploy the components with the updated name. 
