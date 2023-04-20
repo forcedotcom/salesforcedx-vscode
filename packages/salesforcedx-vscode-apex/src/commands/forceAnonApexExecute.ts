@@ -10,6 +10,7 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
+  ensureDirectoryExists,
   hasRootWorkspace,
   LibraryCommandletExecutor,
   projectPaths,
@@ -159,6 +160,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 
   private getLogFilePath(): string {
     const outputDir = projectPaths.debugLogsFolder();
+    ensureDirectoryExists(outputDir);
     const now = new Date();
     const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
     const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);
