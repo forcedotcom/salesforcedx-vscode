@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.10.1",
+  "version": "57.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,11 +25,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "^3.31.8",
+    "@salesforce/core": "3.34.7",
     "@salesforce/eslint-config-lwc": "3.3.3",
-    "@salesforce/lightning-lsp-common": "4.4.0",
-    "@salesforce/lwc-language-server": "4.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.10.1",
+    "@salesforce/lightning-lsp-common": "4.4.2",
+    "@salesforce/lwc-language-server": "4.4.2",
+    "@salesforce/salesforcedx-utils-vscode": "57.11.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
     "eslint": "7.7.0",
@@ -42,7 +42,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.10.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.11.0",
     "@types/chai": "4.3.3",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
@@ -99,9 +99,9 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "3.31.18",
-        "@salesforce/lightning-lsp-common": "4.4.0",
-        "@salesforce/lwc-language-server": "4.4.0"
+        "@salesforce/core": "3.34.7",
+        "@salesforce/lightning-lsp-common": "4.4.2",
+        "@salesforce/lwc-language-server": "4.4.2"
       },
       "devDependencies": {}
     }
@@ -133,7 +133,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "editor/title": [
@@ -161,7 +161,7 @@
       "editor/title/context": [
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "view/title": [
@@ -205,7 +205,7 @@
       "explorer/context": [
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "commandPalette": [
@@ -223,7 +223,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
