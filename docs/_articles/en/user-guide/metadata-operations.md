@@ -4,22 +4,21 @@ lang: en
 ---
 ## Overview
 
-Use ``Retrieve Source`` and ``Deploy Source`` commands to move metadata between your local project and your default org. Use ``Source Diff`` at any time during the development process to  compare files and folders in your local project and the default org.
+Key to Salesforce development is the ability to move changes between different Salesforce development environments for various stages of testing before launching into production. Use these metadata operations to deploy your local changes to an org as a part of this ALM process. If you are working in a team, you can easily retrieve the latest changes in your org on to your local Salesforce project. Keep track of changes by easily viewing changes between your local files and your default org.
 
 
 ## Source Diff
-The Source Diff command makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at diffs for an individual file or directory.
 
-### Usage
-Menu options `SFDX: Diff File Against Org` and `SFDX: Diff Folder Against Org` appear when you right-click a file or folder.  
+The Source Diff command makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at diffs for an individual file or directory.
+Right-click on a file or folder and run **SFDX: Diff File Against Org** or **SFDX: Diff Folder Against Org**.  
 
 ![Source Diff command](../../../images/source_diff.png)
 
-You can then view individual file diffs side-by-side. If a file doesn’t exist locally or in the org, it doesn't show up in the list.
+View individual file diffs side-by-side. Note that a file doesn't show up in the list of diffs if it doesn’t exist locally or in the org.
 
 ## Retrieve Source
 
-Use the `SFDX: Retrieve Source from Org` command to bring metadata from the default org into your local project.  For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files.
+Use the **SFDX: Retrieve Source from Org** command to bring metadata from the default org into your local project.  For non-source-tracked orgs, VS Code doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files.
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
@@ -58,7 +57,7 @@ your-app
 ```
 ## Deploy Source
 
-Use the `SFDX: Deploy Source to Org` command to deploy metadata from your local project to your default org. When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You can enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
+Use the **SFDX: Deploy Source to Org** command to deploy metadata from your local project to your default org. When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You can enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Deploy source to org](./images/deploy-source-to-org.png)
 
@@ -84,8 +83,7 @@ You can delete source from your project and from your org.
 
 You can rename a component and all the files (including test files for LWC components) associated with it using the **SFDX: Rename Component** command. The command prevents renaming if the new component name does not follow required naming conventions. For Lightning Web Components, the command automatically auto-revises letter case if needed. 
 
-
-**Note:** Renaming a component in a project doesn't delete the component from the org. To rename components in your org:
+Renaming a component in a project doesn't delete the component from the org. To rename components in your org:
 1. Log into your org and delete the component with the older name.
 2. Rename the components in your project.
 3. Deploy the components with the updated name. 
