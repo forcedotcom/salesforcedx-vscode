@@ -130,6 +130,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
 
+    components.projectDirectory = projectPath;
     const sourceTracking = await SourceTrackingService.createSourceTracking(
       projectPath,
       connection
