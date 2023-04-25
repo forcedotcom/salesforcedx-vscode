@@ -684,5 +684,7 @@ export const messages = {
     'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message:
-    'File name cannot exceed {0} characters'
+    'File name cannot exceed {0} characters',
+  source_status: 'Source Status',
+  no_local_or_remote_changes_found: 'No local or remote changes found.'
 };

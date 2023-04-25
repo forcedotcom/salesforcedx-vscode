@@ -13,6 +13,7 @@ import {
   StatusOutputRow
 } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { nls } from '../messages';
 import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
 
@@ -108,7 +109,7 @@ class SourceStatusSummary {
     );
 
     if (statusResults.length === 0) {
-      return 'No local or remote changes found.';
+      return nls.localize('no_local_or_remote_changes_found');
     }
 
     const sortedStatusResults = statusResults.sort(this.rowSortFunction);
