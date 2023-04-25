@@ -212,13 +212,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    // If the current org is source-tracked, then source tracking
-    // will handle conflict detection.
-    const orgType = await getWorkspaceOrgType();
-    if (
-      orgType === OrgType.SourceTracked ||
-      !sfdxCoreSettings.getConflictDetectionEnabled()
-    ) {
+    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
       return inputs;
     }
 

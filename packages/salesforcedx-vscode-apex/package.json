@@ -27,7 +27,7 @@
   "dependencies": {
     "@salesforce/apex-node": "^1.0.0",
     "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "3.34.7",
+    "@salesforce/core": "^3.34.8",
     "@salesforce/salesforcedx-utils-vscode": "57.11.0",
     "@salesforce/source-deploy-retrieve": "^8.0.1",
     "expand-home-dir": "0.0.3",
@@ -92,7 +92,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.4.0",
-        "@salesforce/core": "3.34.7",
+        "@salesforce/core": "^3.34.8",
         "@salesforce/templates": "57.0.2",
         "@salesforce/source-deploy-retrieve": "^8.0.1",
         "shelljs": "0.8.5"

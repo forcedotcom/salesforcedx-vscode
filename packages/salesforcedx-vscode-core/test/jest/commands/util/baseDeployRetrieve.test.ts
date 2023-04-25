@@ -1,4 +1,7 @@
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src';
+import {
+  CancelResponse,
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode/src';
 import {
   ComponentSet,
   DeployResult,
@@ -64,9 +67,12 @@ describe('DeployRetrieveExecutor', () => {
     ): Promise<void> {
       return Promise.resolve(undefined);
     }
-    protected handleSourceConflictError(e: any): void {
+    protected handleSourceConflictError(
+      e: any
+    ): Promise<CancelResponse | ContinueResponse<string>> {
       this.handleSourceConflictErrorCalled = true;
       this.error = e;
+      return { type: 'CONTINUE', data: e.data } as any;
     }
     constructor(s: string, t: string, errorName?: string) {
       super(s, t);
