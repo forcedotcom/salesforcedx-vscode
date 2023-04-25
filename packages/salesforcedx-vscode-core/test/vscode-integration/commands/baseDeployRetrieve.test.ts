@@ -12,6 +12,7 @@ import {
   stubContext
 } from '@salesforce/core/lib/testSetup';
 import {
+  CancelResponse,
   ConfigUtil,
   ContinueResponse,
   SourceTrackingService,
@@ -107,7 +108,11 @@ describe('Base Deploy Retrieve Commands', () => {
       protected postOperation(result: undefined): Promise<void> {
         return this.lifecycle.postOperationStub(result);
       }
-      protected handleSourceConflictError(e: any): void {}
+      protected handleSourceConflictError(
+        e: any
+      ): Promise<CancelResponse | ContinueResponse<string>> {
+        return { type: 'CONTINUE', data: e.data } as any;
+      }
     }
 
     it('should call lifecycle methods in correct order', async () => {

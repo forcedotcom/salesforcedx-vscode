@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CancelResponse,
   ConfigUtil,
   ContinueResponse,
   getRelativeProjectPath,
@@ -43,6 +44,7 @@ import { MetadataCacheService } from './../conflict/metadataCacheService';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 import { TimestampConflictChecker } from './util/postconditionCheckers';
+import { LibraryDeploySourcePathExecutor } from './forceSourceDeploySourcePath';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -84,15 +86,7 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      if (e.name === 'SourceConflictError') {
-        this.handleSourceConflictError(e);
-        return true;
-      } else {
-        // Error, but not a Source Conflict Error.  Prior to adding
-        // SourceTracking, this was the only statement in the catch
-        // block.
-        throw formatException(e);
-      }
+      throw formatException(e);
     } finally {
       await this.postOperation(result);
     }
@@ -119,7 +113,9 @@ export abstract class DeployRetrieveExecutor<
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
   ): Promise<void>;
-  protected abstract handleSourceConflictError(e: any): void;
+  protected abstract handleSourceConflictError(
+    e: any
+  ): Promise<ContinueResponse<string> | CancelResponse>;
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
@@ -146,7 +142,9 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     return operation.pollStatus();
   }
 
-  protected async handleSourceConflictError(e: any) {
+  protected async handleSourceConflictError(
+    e: any
+  ): Promise<CancelResponse | ContinueResponse<string>> {
     const componentPaths = e.data.map(
       (component: { filePath: any }) => component.filePath
     );
@@ -167,11 +165,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         false,
         conflictMessages
       );
-      await conflictChecker.handleConflicts(
+      return await conflictChecker.handleConflicts(
         componentPaths,
         String(username),
         diffs
       );
+    } else {
+      return { type: 'CANCEL' };
     }
   }
 
@@ -292,7 +292,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
    * Per the docs, it is suggested to run SFDX: Diff* commands
    * to check for conflicts before retrieving.
    */
-  protected async handleSourceConflictError(error: any): Promise<void> {}
+  protected async handleSourceConflictError(
+    error: any
+  ): Promise<CancelResponse | ContinueResponse<string>> {
+    return { type: 'CONTINUE', data: error.data };
+  }
 
   protected async postOperation(
     result: RetrieveResult | undefined
