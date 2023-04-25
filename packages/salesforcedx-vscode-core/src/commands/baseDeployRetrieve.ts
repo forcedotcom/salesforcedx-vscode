@@ -5,16 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CancelResponse,
-  ConfigUtil,
   ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
   SourceTrackingService,
-  Table,
-  workspaceUtils
+  Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -30,9 +27,7 @@ import {
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { getConflictMessagesFor } from '../conflict/messages';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
-import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
@@ -40,11 +35,8 @@ import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { MetadataCacheService } from './../conflict/metadataCacheService';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
-import { TimestampConflictChecker } from './util/postconditionCheckers';
-import { LibraryDeploySourcePathExecutor } from './forceSourceDeploySourcePath';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
