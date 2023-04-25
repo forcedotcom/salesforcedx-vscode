@@ -3,10 +3,10 @@ export const dummyLastModifiedDateLocal = '2023-03-16T17:52:51.000Z';
 export const testData = {
   dummyMetadataCacheResult: {
     selectedPath: [
-      '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
-      '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
-      '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
-      '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls'
+      '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+      '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+      '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+      '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls'
     ],
     selectedType: 'individual',
     cache: {
@@ -79,7 +79,7 @@ export const testData = {
     cachePropPath:
       '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/prop/file-props.json',
     project: {
-      baseDirectory: '/Users/kenneth.lewis/scratchpad/TestProject-1',
+      baseDirectory: '/Users/test.user/scratchpad/TestProject-1',
       commonRoot: 'force-app/main/default/classes',
       components: [
         {
@@ -97,10 +97,10 @@ export const testData = {
             }
           },
           xml:
-            '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
           parent: undefined,
           content:
-            '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
           parentType: undefined,
           treeContainer: {},
           forceIgnore: {
@@ -192,8 +192,7 @@ export const testData = {
               _testCache: {},
               _added: true
             },
-            forceIgnoreDirectory:
-              '/Users/kenneth.lewis/scratchpad/TestProject-1'
+            forceIgnoreDirectory: '/Users/test.user/scratchpad/TestProject-1'
           }
         },
         {
@@ -211,10 +210,10 @@ export const testData = {
             }
           },
           xml:
-            '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
           parent: undefined,
           content:
-            '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
+            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
           parentType: undefined,
           treeContainer: {},
           forceIgnore: {
@@ -306,8 +305,7 @@ export const testData = {
               _testCache: {},
               _added: true
             },
-            forceIgnoreDirectory:
-              '/Users/kenneth.lewis/scratchpad/TestProject-1'
+            forceIgnoreDirectory: '/Users/test.user/scratchpad/TestProject-1'
           }
         }
       ]
@@ -401,10 +399,10 @@ export const testData = {
           }
         },
         xml:
-          '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
         parent: undefined,
         content:
-          '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
+          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
         parentType: undefined,
         treeContainer: {},
         forceIgnore: {
@@ -496,7 +494,7 @@ export const testData = {
             _testCache: {},
             _added: true
           },
-          forceIgnoreDirectory: '/Users/kenneth.lewis/scratchpad/TestProject-1'
+          forceIgnoreDirectory: '/Users/test.user/scratchpad/TestProject-1'
         }
       },
       lastModifiedDate: dummyLastModifiedDateCache
@@ -547,10 +545,10 @@ export const testData = {
           }
         },
         xml:
-          '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
         parent: undefined,
         content:
-          '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
         parentType: undefined,
         treeContainer: {},
         forceIgnore: {
@@ -642,7 +640,7 @@ export const testData = {
             _testCache: {},
             _added: true
           },
-          forceIgnoreDirectory: '/Users/kenneth.lewis/scratchpad/TestProject-1'
+          forceIgnoreDirectory: '/Users/test.user/scratchpad/TestProject-1'
         }
       },
       lastModifiedDate: dummyLastModifiedDateCache
@@ -651,13 +649,13 @@ export const testData = {
   dummyDiffs: [
     {
       projectPath:
-        '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
+        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150703854/main/default/classes/TestFriday2.cls'
     },
     {
       projectPath:
-        '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150703854/main/default/classes/TestFriday2.cls-meta.xml'
     }
@@ -665,13 +663,13 @@ export const testData = {
   dummyDiffs2: [
     {
       projectPath:
-        '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679151464361/main/default/classes/TestApex22.cls'
     },
     {
       projectPath:
-        '/Users/kenneth.lewis/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679151464361/main/default/classes/TestApex22.cls-meta.xml'
     }
