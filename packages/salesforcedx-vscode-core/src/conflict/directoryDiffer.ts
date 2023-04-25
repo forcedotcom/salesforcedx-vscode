@@ -124,7 +124,7 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
   const differ = new CommonDirDirectoryDiffer();
   const diffs = differ.diff(localPath, remotePath);
 
-  await conflictView.visualizeDifferences(
+  conflictView.visualizeDifferences(
     nls.localize('force_source_diff_folder_title', username),
     username,
     true,
