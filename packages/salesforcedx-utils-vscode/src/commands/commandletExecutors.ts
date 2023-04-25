@@ -123,7 +123,7 @@ export abstract class LibraryCommandletExecutor<T>
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
   private readonly executionName: string;
-  protected readonly logName: string;
+  private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
