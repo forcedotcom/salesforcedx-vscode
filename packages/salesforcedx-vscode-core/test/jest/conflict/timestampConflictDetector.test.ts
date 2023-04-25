@@ -45,25 +45,5 @@ describe('TimestampConflictDetector', () => {
       expect(diffComponentsStub).toHaveBeenCalledTimes(2);
       expect(diffs.different.size).toBe(2);
     });
-
-    it('should return diff results for all files passed in when the skipTimestampCheck option is used', async () => {
-      diffComponentsStub = jest
-        .spyOn(diffUtils, 'diffComponents')
-        .mockReturnValueOnce(testData.dummyDiffs)
-        .mockReturnValueOnce(testData.dummyDiffs2);
-      const timestampConflictDetector = new TimestampConflictDetector();
-
-      const diffs = timestampConflictDetector.createDiffs(
-        testData.dummyMetadataCacheResult as any,
-        true
-      );
-
-      expect(correlateResultsStub).toHaveBeenCalledWith(
-        testData.dummyMetadataCacheResult
-      );
-      expect(persistentStorageServiceMock).toHaveBeenCalled();
-      expect(diffComponentsStub).toHaveBeenCalledTimes(2);
-      expect(diffs.different.size).toBe(4);
-    });
   });
 });

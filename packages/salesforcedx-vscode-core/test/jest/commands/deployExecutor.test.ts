@@ -12,9 +12,6 @@ import {
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
-import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
-import { MetadataCacheService } from '../../../src/conflict';
-import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
@@ -57,16 +54,11 @@ describe('Deploy Executor', () => {
   const dummyComponentSet = new ComponentSet();
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
   const ensureLocalTrackingSpy = jest.fn();
-  const dummyCacheResult = {} as any;
-  const dummyDiffs = {} as any;
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let getUsernameStub: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
-  let loadCacheStub: jest.SpyInstance;
-  let createDiffsStub: jest.SpyInstance;
-  let handleConflictsStub: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
     constructor(s: string, t: string) {
@@ -97,15 +89,6 @@ describe('Deploy Executor', () => {
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
-    loadCacheStub = jest
-      .spyOn(MetadataCacheService.prototype, 'loadCache')
-      .mockResolvedValue(dummyCacheResult);
-    createDiffsStub = jest
-      .spyOn(TimestampConflictDetector.prototype, 'createDiffs')
-      .mockReturnValue(dummyDiffs);
-    handleConflictsStub = jest
-      .spyOn(TimestampConflictChecker.prototype, 'handleConflicts')
-      .mockResolvedValue({} as any);
   });
 
   it('should create Source Tracking and call ensureLocalTracking before deploying', async () => {
@@ -136,48 +119,5 @@ describe('Deploy Executor', () => {
     // need to be called before the deploy operation is started.
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
-  });
-
-  it('should handle a SourceConflict error', async () => {
-    const executor = new TestDeployExecutor(
-      'testDeploy',
-      'force_source_deploy_with_sourcepath_beta'
-    );
-
-    const dummySourceConflictError = {
-      name: 'SourceConflictError',
-      message: '2 conflicts detected',
-      data: [
-        {
-          state: 'Conflict',
-          fullName: 'Test_Apex_Class_1',
-          type: 'ApexClass',
-          filePath:
-            '/Users/kenneth.lewis/scratchpad/TestProject-…ault/classes/Test_Apex_Class_1.cls-meta.xml'
-        },
-        {
-          state: 'Conflict',
-          fullName: 'Test_Apex_Class_1',
-          type: 'ApexClass',
-          filePath:
-            '/Users/kenneth.lewis/scratchpad/TestProject-…/main/default/classes/Test_Apex_Class_1.cls'
-        }
-      ]
-    };
-
-    await (executor as any).handleSourceConflictError(dummySourceConflictError);
-
-    const dummyConflictComponentPaths = [
-      dummySourceConflictError.data[0].filePath,
-      dummySourceConflictError.data[1].filePath
-    ];
-    expect(getUsernameStub).toHaveBeenCalled();
-    expect(loadCacheStub.mock.calls[0][0]).toEqual(dummyConflictComponentPaths);
-    expect(createDiffsStub.mock.calls[0][0]).toEqual(dummyCacheResult);
-    expect(handleConflictsStub.mock.calls[0][0]).toEqual(
-      dummyConflictComponentPaths
-    );
-    expect(handleConflictsStub.mock.calls[0][1]).toEqual(dummyUsername);
-    expect(handleConflictsStub.mock.calls[0][2]).toEqual(dummyDiffs);
   });
 });

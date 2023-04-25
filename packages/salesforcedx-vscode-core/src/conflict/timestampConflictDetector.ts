@@ -30,23 +30,17 @@ export class TimestampConflictDetector {
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
 
-  public createDiffs(
-    result?: MetadataCacheResult,
-    skipTimestampCheck?: boolean
-  ): DirectoryDiffResults {
+  public createDiffs(result?: MetadataCacheResult): DirectoryDiffResults {
     if (!result) {
       return TimestampConflictDetector.EMPTY_DIFFS;
     }
     this.createRootPaths(result);
     const components = MetadataCacheService.correlateResults(result);
-    this.determineConflicts(components, skipTimestampCheck);
+    this.determineConflicts(components);
     return this.diffs;
   }
 
-  private determineConflicts(
-    components: CorrelatedComponent[],
-    skipTimestampCheck?: boolean
-  ): void {
+  private determineConflicts(components: CorrelatedComponent[]) {
     const cache = PersistentStorageService.getInstance();
     const conflicts: Set<TimestampFileProperties> = new Set<
       TimestampFileProperties
@@ -63,7 +57,6 @@ export class TimestampConflictDetector {
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (
         !lastModifiedInCache ||
-        skipTimestampCheck ||
         this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)
       ) {
         const differences = diffComponents(
