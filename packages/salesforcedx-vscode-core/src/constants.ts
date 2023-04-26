@@ -36,6 +36,8 @@ export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
+export const ALWAYS_DEPLOY_ON_SAVE_ENABLED =
+  'push-or-deploy-on-save.preferDeployOnSave';
 export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS =
   'push-or-deploy-on-save.overrideConflictsOnPush';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
