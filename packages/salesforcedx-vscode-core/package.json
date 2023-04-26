@@ -150,7 +150,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
+          "when": "sfdx:project_opened"
         }
       ],
       "conflicts": [
