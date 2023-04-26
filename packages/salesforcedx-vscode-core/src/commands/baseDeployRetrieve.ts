@@ -226,7 +226,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true,
-      suppressEvents: true
+      suppressEvents: false
     });
 
     this.setupCancellation(operation, token);
