@@ -5,34 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
-import { join } from 'path';
-import { RetrieveDescriber } from './retrieveDescriber';
-import { BrowserNode, orgBrowser } from '../../orgBrowser';
-import { SfdxPackageDirectories } from '../../sfdxProject';
-
-export abstract class NodeDescriber implements RetrieveDescriber {
-  protected node: BrowserNode;
-
-  constructor(node: BrowserNode) {
-    this.node = node;
-  }
-
-  public abstract buildMetadataArg(): string;
-
-  public abstract gatherOutputLocations(): Promise<LocalComponent[]>;
-
-  protected async buildOutput(node: BrowserNode): Promise<LocalComponent[]> {
-    const typeNode = node.getAssociatedTypeNode();
-    // TODO: Only create one cmp when cli bug (W-6558000) fixed
-    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    return packageDirectories.map(directory => ({
-      fileName: node.fullName,
-      outputdir: join(directory, 'main', 'default', typeNode.directoryName!),
-      type: typeNode.fullName,
-      suffix: typeNode.suffix
-    }));
-  }
-}
+import { orgBrowser } from '../../orgBrowser';
+import { NodeDescriber } from './nodeDescriber';
 
 export class TypeNodeDescriber extends NodeDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -62,26 +36,3 @@ export class TypeNodeDescriber extends NodeDescriber {
   }
 }
 
-export class ComponentNodeDescriber extends NodeDescriber {
-  public buildMetadataArg(): string {
-    return `${this.node.getAssociatedTypeNode().fullName}:${
-      this.node.fullName
-    }`;
-  }
-
-  public gatherOutputLocations(): Promise<LocalComponent[]> {
-    return Promise.resolve(this.buildOutput(this.node));
-  }
-}
-
-export class RetrieveDescriberFactory {
-  public static createTypeNodeDescriber(node: BrowserNode): TypeNodeDescriber {
-    return new TypeNodeDescriber(node);
-  }
-
-  public static createComponentNodeDescriber(
-    node: BrowserNode
-  ): ComponentNodeDescriber {
-    return new ComponentNodeDescriber(node);
-  }
-}
