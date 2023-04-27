@@ -10,7 +10,7 @@
 
 - **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** are now available in the Command palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
 
-#### salesforcedx-vscode-lightning, #### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - We've made an update to the lightning language server version. ([PR #4821](https://github.com/forcedotcom/salesforcedx-vscode/pull/4821))
 
@@ -24,7 +24,7 @@
 
 - We fixed some issues with **Retrieve** commands for source-tracked orgs. ([PR #4773](https://github.com/forcedotcom/salesforcedx-vscode/pull/4773))
 
-#### salesforcedx-vscode-lightning, #### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - We made some changes under the hood. ([PR #4807](https://github.com/forcedotcom/salesforcedx-vscode/pull/4807))
 
