@@ -28,11 +28,14 @@ import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import {
-  LibraryRetrieveSourcePathExecutor,
-  SourcePathChecker
-} from '../../../src/commands';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
+import * as getUriFromActiveEditorRetrieve from '../../../src/commands/getUriFromActiveEditorRetrieve';
+import {
+  LibraryRetrieveSourcePathExecutor
+} from '../../../src/commands/libraryRetrieveSourcePathExecutor';
+import {
+  SourcePathChecker
+} from '../../../src/commands/sourcePathChecker';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
@@ -260,7 +263,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const getUriFromActiveEditorStub = sb
-        .stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor')
+        .stub(getUriFromActiveEditorRetrieve, 'getUriFromActiveEditorRetrieve')
         .returns(filePath1);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')

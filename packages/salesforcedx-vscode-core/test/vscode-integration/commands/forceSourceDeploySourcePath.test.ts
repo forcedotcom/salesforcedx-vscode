@@ -25,8 +25,9 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
+import { LibraryDeploySourcePathExecutor } from '../../../src/commands/libraryDeploySourcePathExecutor';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
+import * as getUriFromActiveEditorDeploy from '../../../src/commands/getUriFromActiveEditorDeploy';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 import { WorkspaceContext } from '../../../src/context';
 import {
@@ -281,7 +282,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const getUriFromActiveEditorStub = sb
-        .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
+        .stub(getUriFromActiveEditorDeploy, 'getUriFromActiveEditorDeploy')
         .returns(filePath1);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')

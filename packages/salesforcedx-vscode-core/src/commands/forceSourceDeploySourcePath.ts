@@ -4,19 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { getConflictMessagesFor } from '../conflict/messages';
-import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { SfdxProjectConfig } from '../sfdxProject';
-import { telemetryService } from '../telemetry';
-import { DeployExecutor } from './baseDeployRetrieve';
-import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
+import { getUriFromActiveEditorDeploy } from './getUriFromActiveEditorDeploy';
+import { LibraryDeploySourcePathExecutor } from './libraryDeploySourcePathExecutor';
+import { SourcePathChecker } from './sourcePathChecker';
 import {
-  ConflictDetectionMessages,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
@@ -26,28 +19,6 @@ import {
   TimestampConflictChecker
 } from './util/postconditionCheckers';
 
-export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
-  constructor() {
-    super(
-      nls.localize('force_source_deploy_text'),
-      'force_source_deploy_with_sourcepath_beta'
-    );
-  }
-
-  public async getComponents(
-    response: ContinueResponse<string[]>
-  ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue(
-      'sourceApiVersion'
-    )) as string;
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
-    const componentSet = ComponentSet.fromSource(paths);
-    componentSet.sourceApiVersion = sourceApiVersion;
-    return componentSet;
-  }
-}
-
 export const forceSourceDeploySourcePaths = async (
   sourceUri: vscode.Uri | vscode.Uri[] | undefined,
   uris: vscode.Uri[] | undefined
@@ -55,7 +26,7 @@ export const forceSourceDeploySourcePaths = async (
   if (!sourceUri) {
     // When the source is deployed via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor();
+    sourceUri = getUriFromActiveEditorDeploy();
     if (!sourceUri) {
       return;
     }
@@ -99,24 +70,4 @@ export const forceSourceDeploySourcePaths = async (
 
     await commandlet.run();
   }
-};
-
-export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-    return editor.document.uri;
-  }
-
-  const errorMessage = nls.localize(
-    'force_source_deploy_select_file_or_directory'
-  );
-  telemetryService.sendException(
-    'force_source_deploy_with_sourcepath',
-    errorMessage
-  );
-  notificationService.showErrorMessage(errorMessage);
-  channelService.appendLine(errorMessage);
-  channelService.showChannelOutput();
-
-  return undefined;
 };

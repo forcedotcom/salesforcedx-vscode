@@ -53,15 +53,12 @@ export {
 } from './forceSourceDelete';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
-  forceSourceDeploySourcePaths,
-  LibraryDeploySourcePathExecutor
+  forceSourceDeploySourcePaths
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePaths,
-  LibraryRetrieveSourcePathExecutor,
-  SourcePathChecker
+  forceSourceRetrieveSourcePaths
 } from './forceSourceRetrieveSourcePath';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export {

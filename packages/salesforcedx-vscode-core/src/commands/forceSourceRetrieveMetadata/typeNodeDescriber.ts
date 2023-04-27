@@ -6,11 +6,11 @@
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'path';
-import { RetrieveDescriber } from '.';
+import { RetrieveDescriber } from './retrieveDescriber';
 import { BrowserNode, orgBrowser } from '../../orgBrowser';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 
-abstract class NodeDescriber implements RetrieveDescriber {
+export abstract class NodeDescriber implements RetrieveDescriber {
   protected node: BrowserNode;
 
   constructor(node: BrowserNode) {
@@ -34,7 +34,7 @@ abstract class NodeDescriber implements RetrieveDescriber {
   }
 }
 
-class TypeNodeDescriber extends NodeDescriber {
+export class TypeNodeDescriber extends NodeDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
     if (data) {
       const dedupe = new Set<string>(); // filter dupes caused by cli bug. See buildOutput in parent class
@@ -62,7 +62,7 @@ class TypeNodeDescriber extends NodeDescriber {
   }
 }
 
-class ComponentNodeDescriber extends NodeDescriber {
+export class ComponentNodeDescriber extends NodeDescriber {
   public buildMetadataArg(): string {
     return `${this.node.getAssociatedTypeNode().fullName}:${
       this.node.fullName

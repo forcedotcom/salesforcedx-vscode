@@ -4,92 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
-import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
-import { telemetryService } from '../telemetry';
-import { RetrieveExecutor } from './baseDeployRetrieve';
+import { getUriFromActiveEditorRetrieve } from './getUriFromActiveEditorRetrieve';
+import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
+import { SourcePathChecker } from './sourcePathChecker';
 import {
-  ConflictDetectionMessages,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-
-export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
-  string[]
-> {
-  constructor() {
-    super(
-      nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_with_sourcepath_beta'
-    );
-  }
-
-  public async getComponents(
-    response: ContinueResponse<string[]>
-  ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue(
-      'sourceApiVersion'
-    )) as string;
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
-    const componentSet = ComponentSet.fromSource(paths);
-    componentSet.sourceApiVersion = sourceApiVersion;
-    return componentSet;
-  }
-}
-
-export class SourcePathChecker implements PostconditionChecker<string[]> {
-  public async check(
-    inputs: ContinueResponse<string[]> | CancelResponse
-  ): Promise<ContinueResponse<string[]> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const sourcePaths = inputs.data;
-      try {
-        for (const sourcePath of sourcePaths) {
-          const isInSfdxPackageDirectory = await SfdxPackageDirectories.isInPackageDirectory(
-            sourcePath
-          );
-
-          if (!isInSfdxPackageDirectory) {
-            throw nls.localize(
-              'error_source_path_not_in_package_directory_text'
-            );
-          }
-        }
-
-        return inputs;
-      } catch (error) {
-        telemetryService.sendException(
-          'force_source_retrieve_with_sourcepath',
-          `Error while parsing package directories. ${error.message}`
-        );
-      }
-
-      const errorMessage = nls.localize(
-        'error_source_path_not_in_package_directory_text'
-      );
-      telemetryService.sendException(
-        'force_source_retrieve_with_sourcepath',
-        errorMessage
-      );
-      notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-    }
-    return { type: 'CANCEL' };
-  }
-}
 
 export const forceSourceRetrieveSourcePaths = async (
   sourceUri: vscode.Uri | undefined,
@@ -98,7 +21,7 @@ export const forceSourceRetrieveSourcePaths = async (
   if (!sourceUri) {
     // When the source is retrieved via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor();
+    sourceUri = getUriFromActiveEditorRetrieve();
     if (!sourceUri) {
       return;
     }
@@ -127,24 +50,4 @@ export const forceSourceRetrieveSourcePaths = async (
   );
 
   await commandlet.run();
-};
-
-export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-    return editor.document.uri;
-  }
-
-  const errorMessage = nls.localize(
-    'force_source_retrieve_select_file_or_directory'
-  );
-  telemetryService.sendException(
-    'force_source_retrieve_with_sourcepath',
-    errorMessage
-  );
-  notificationService.showErrorMessage(errorMessage);
-  channelService.appendLine(errorMessage);
-  channelService.showChannelOutput();
-
-  return undefined;
 };

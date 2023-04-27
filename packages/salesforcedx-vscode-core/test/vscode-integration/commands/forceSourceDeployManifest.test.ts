@@ -17,7 +17,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
-import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
+import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/librarySourceDeployManifestExecutor';
 import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
