@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** commands are now available in the Command palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
+- **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** commands are now available in the Command Palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
