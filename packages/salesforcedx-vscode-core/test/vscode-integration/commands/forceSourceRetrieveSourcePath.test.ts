@@ -117,7 +117,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           defaultPackage
         ),
         merge: true,
-        suppressEvents: true
+        suppressEvents: false
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
     });

@@ -90,7 +90,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
         usernameOrConnection: mockConnection,
         output: defaultPackagePath,
         merge: true,
-        suppressEvents: true
+        suppressEvents: false
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
     });

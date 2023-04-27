@@ -33,7 +33,7 @@ export class SourceTrackingService {
       project,
       ignoreLocalCache: true,
       subscribeSDREvents: true,
-      ignoreConflicts: false
+      ignoreConflicts: true
     };
     const sourceTracking = await SourceTracking.create(options);
     return sourceTracking;

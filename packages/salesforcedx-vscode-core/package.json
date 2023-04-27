@@ -27,11 +27,11 @@
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
     "@octokit/plugin-paginate-rest": "2.21.3",
-    "@salesforce/core": "3.34.7",
+    "@salesforce/core": "^3.34.8",
     "@salesforce/salesforcedx-sobjects-faux-generator": "57.11.0",
     "@salesforce/salesforcedx-utils-vscode": "57.11.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "^7.15.0",
+    "@salesforce/source-deploy-retrieve": "^8.0.1",
     "@salesforce/templates": "^57.0.2",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
@@ -87,9 +87,9 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "3.34.7",
+        "@salesforce/core": "^3.34.8",
         "@salesforce/templates": "57.0.2",
-        "@salesforce/source-deploy-retrieve": "^7.15.0",
+        "@salesforce/source-deploy-retrieve": "^8.0.1",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
