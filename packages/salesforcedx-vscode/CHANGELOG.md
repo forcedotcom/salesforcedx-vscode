@@ -1,3 +1,41 @@
+# 57.11.1 - April 27, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Update apex lsp jar ([PR #4819](https://github.com/forcedotcom/salesforcedx-vscode/pull/4819))
+
+#### salesforcedx-vscode-core
+
+- Expose delete commands to scratch orgs ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
+
+#### salesforcedx-vscode-lightning
+
+- Bump lightning language server version ([PR #4821](https://github.com/forcedotcom/salesforcedx-vscode/pull/4821))
+
+#### salesforcedx-vscode-lwc
+
+- Bump lightning language server version ([PR #4821](https://github.com/forcedotcom/salesforcedx-vscode/pull/4821))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Deploy* Commands Update Source Tracking ([PR #4824](https://github.com/forcedotcom/salesforcedx-vscode/pull/4824))
+
+- Update package.json files to comply with new parser ([PR #4749](https://github.com/forcedotcom/salesforcedx-vscode/pull/4749))
+
+- Retrieve* Commands Should Update Source Tracking When Used Against Source-tracked Sandboxes ([PR #4773](https://github.com/forcedotcom/salesforcedx-vscode/pull/4773))
+
+#### salesforcedx-vscode-lightning
+
+- Update lls to fix core devs ([PR #4807](https://github.com/forcedotcom/salesforcedx-vscode/pull/4807))
+
+#### salesforcedx-vscode-lwc
+
+- Update lls to fix core devs ([PR #4807](https://github.com/forcedotcom/salesforcedx-vscode/pull/4807))
+
 # 57.10.2 - April 13, 2023
 
 ## Fixed
