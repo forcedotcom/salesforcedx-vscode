@@ -35,4 +35,3 @@ export class TypeNodeDescriber extends NodeDescriber {
     return components;
   }
 }
-

@@ -25,9 +25,9 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { LibraryDeploySourcePathExecutor } from '../../../src/commands/libraryDeploySourcePathExecutor';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import * as getUriFromActiveEditorDeploy from '../../../src/commands/getUriFromActiveEditorDeploy';
+import { LibraryDeploySourcePathExecutor } from '../../../src/commands/libraryDeploySourcePathExecutor';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 import { WorkspaceContext } from '../../../src/context';
 import {
