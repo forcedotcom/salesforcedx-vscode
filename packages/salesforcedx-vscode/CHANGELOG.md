@@ -1,3 +1,11 @@
+# 57.11.2 - April 28, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger, salesforcedx-vscode-lightning, salesforcedx-vscode-lwc, salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #4828](https://github.com/forcedotcom/salesforcedx-vscode/pull/4828))
+
 # 57.11.1 - April 27, 2023
 
 ## Added
