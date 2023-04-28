@@ -68,7 +68,7 @@
     "dbaeumer.vscode-eslint"
   ],
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --loader:.node=file --external:vscode  --external:@salesforce/core --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/lwc-language-serve --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --loader:.node=file --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/lwc-language-serve --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -100,6 +100,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/core": "^3.34.8",
+        "@salesforce/source-tracking": "3.1.1",
         "@salesforce/lightning-lsp-common": "4.5.0",
         "@salesforce/lwc-language-server": "4.5.0"
       },

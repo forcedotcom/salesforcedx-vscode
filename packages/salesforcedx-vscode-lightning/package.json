@@ -54,7 +54,7 @@
     "vscode-uri": "1.0.1"
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/aura-language-server --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/aura-language-server --minify",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
@@ -93,6 +93,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/core": "^3.34.8",
+        "@salesforce/source-tracking": "3.1.1",
         "@salesforce/aura-language-server": "4.5.0",
         "@salesforce/lightning-lsp-common": "4.5.0"
       },
