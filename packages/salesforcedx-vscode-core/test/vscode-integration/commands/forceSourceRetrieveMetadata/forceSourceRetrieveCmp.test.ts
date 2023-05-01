@@ -124,7 +124,7 @@ describe('Force Source Retrieve Component(s)', () => {
         usernameOrConnection: mockConnection,
         output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
         merge: true,
-        suppressEvents: true
+        suppressEvents: false
       });
 
       const retrievedSet = retrieveStub.firstCall.thisValue as ComponentSet;

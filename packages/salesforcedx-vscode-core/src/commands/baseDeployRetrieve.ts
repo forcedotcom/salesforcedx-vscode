@@ -112,8 +112,18 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+
+    components.projectDirectory = projectPath;
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
+    await sourceTracking.ensureLocalTracking();
+
     const operation = await components.deploy({
-      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
+      usernameOrConnection: connection
     });
 
     this.setupCancellation(operation, token);
@@ -216,7 +226,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true,
-      suppressEvents: true
+      suppressEvents: false
     });
 
     this.setupCancellation(operation, token);

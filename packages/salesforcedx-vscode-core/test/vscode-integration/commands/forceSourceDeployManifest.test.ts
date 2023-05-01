@@ -5,17 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
@@ -72,6 +73,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
       pollStatusStub = env.stub();
       deployStub = env.stub(mockComponents, 'deploy').returns({
         pollStatus: pollStatusStub
+      });
+      env.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
       });
     });
 
