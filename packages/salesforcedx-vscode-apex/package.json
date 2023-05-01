@@ -52,7 +52,7 @@
     "cross-env": "5.2.0",
     "mocha": "^10",
     "sinon": "^13.0.1",
-    "typescript": "^4.7.4",
+    "typescript": "^5.0.4",
     "vscode-extension-telemetry": "0.0.17"
   },
   "scripts": {
