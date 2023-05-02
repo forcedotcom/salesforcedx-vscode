@@ -51,5 +51,6 @@ export const testData = {
       ignored: false,
       conflict: false
     }
-  ]
+  ],
+  noChangesResponse: []
 };

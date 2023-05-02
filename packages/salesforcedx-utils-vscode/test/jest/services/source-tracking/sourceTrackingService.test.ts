@@ -82,6 +82,7 @@ describe('Source Tracking Service', () => {
     });
 
     it('Should return a properly formatted string when changes exist in the response', async () => {
+      // Arrange
       getStatusMock.mockResolvedValue(testData.statusResponse as any);
 
       // Act
@@ -95,18 +96,16 @@ describe('Source Tracking Service', () => {
       expect(formattedOutput).toMatchSnapshot();
     });
 
-    // it('Should return a properly formatted string when remote changes exist and one file is ignored.', async () => {
-    //   getStatusMock.mockResolvedValue(testData.remoteAndIgnoredResponse as any);
+    it('Should return a friendly message when no changes exist', async () => {
+      getStatusMock.mockResolvedValue(testData.noChangesResponse as any);
 
-    //   // Act
-    //   const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
-    //     {}
-    //   );
+      const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
+        {}
+      );
 
-    //   // Assert
-    //   expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-    //   expect(sourceTrackingMock).toHaveBeenCalled();
-    //   expect(formattedOutput).toEqual(testData.remoteAndIgnoredSummary);
-    // });
+      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
+      expect(sourceTrackingMock).toHaveBeenCalled();
+      expect(formattedOutput).toMatchSnapshot();
+    });
   });
 });
