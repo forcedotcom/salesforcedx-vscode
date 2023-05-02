@@ -71,4 +71,4 @@ jobs:
           if: failure()
           with:
             name: screenshots
-            path: test/screenshots
+            path: ./salesforcedx-vscode-automation-tests/test/screenshots
