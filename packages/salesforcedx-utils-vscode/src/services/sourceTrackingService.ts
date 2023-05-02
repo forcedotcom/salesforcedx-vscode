@@ -171,14 +171,17 @@ class SourceStatusSummary {
 
 class StatusResultsTable {
   private static baseColumns = [
-    { label: 'STATE', key: 'state' },
-    { label: 'FULL NAME', key: 'fullName' },
-    { label: 'TYPE', key: 'type' },
-    { label: 'PROJECT PATH', key: 'filePath' }
+    { label: nls.localize('state'), key: 'state' },
+    { label: nls.localize('full_name'), key: 'fullName' },
+    { label: nls.localize('type'), key: 'type' },
+    { label: nls.localize('project_path'), key: 'filePath' }
   ];
 
   private columns = this.statusResults.some(result => result.ignored)
-    ? [{ label: 'IGNORED', key: 'ignored' }, ...StatusResultsTable.baseColumns]
+    ? [
+        { label: nls.localize('ignored'), key: 'ignored' },
+        ...StatusResultsTable.baseColumns
+      ]
     : StatusResultsTable.baseColumns;
 
   constructor(private statusResults: StatusResult[]) {}
