@@ -67,3 +67,8 @@ jobs:
             working-directory: salesforcedx-vscode-automation-tests
           env:
             VSCODE_VERSION: ${{ matrix.vscodeVersion }}
+        - uses: actions/upload-artifact@v3
+          if: failure()
+          with:
+            name: screenshots
+            path: test/screenshots
