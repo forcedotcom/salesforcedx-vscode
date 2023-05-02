@@ -198,8 +198,7 @@ class StatusResultsTable {
 
   private convertToTableRow(result: StatusResult): FormattedStatusResult {
     return Object.assign(result, {
-      ignored:
-        result.origin === 'Local' ? (result.ignored ? 'true' : 'false') : '',
+      ignored: result.ignored ? 'true' : 'false',
       filePath: result.filePath ? result.filePath : ''
     });
   }
