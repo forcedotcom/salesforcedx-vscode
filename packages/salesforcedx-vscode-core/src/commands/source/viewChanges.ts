@@ -5,46 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  LibraryCommandletExecutor,
-  SourceTrackingService
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { nls } from '../messages';
-import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from './util';
-
-export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
-  string
-> {
-  private options = {} || undefined;
-
-  constructor(
-    executionName: string,
-    logName: string,
-    options?: { local: boolean; remote: boolean }
-  ) {
-    super(nls.localize(executionName), logName, OUTPUT_CHANNEL);
-    this.options = options;
-  }
-
-  public async execute(): Promise<void> {
-    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(
-      this.options || {}
-    );
-    channelService.appendLine(nls.localize('source_status'));
-    channelService.appendLine(sourceStatusSummary);
-    channelService.showChannelOutput();
-  }
-
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
-    await this.execute();
-    return true;
-  }
-}
+} from '../util';
+import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecutor';
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();

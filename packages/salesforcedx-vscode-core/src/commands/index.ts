@@ -73,7 +73,7 @@ export {
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges
-} from './viewChanges';
+} from './source/viewChanges';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceAnalyticsTemplateCreate,
