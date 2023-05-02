@@ -5,24 +5,34 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export const testData = {
-  statusOutputRows: [
+  statusResponse: [
     {
       type: 'ApexClass',
+      state: 'modify',
+      fullName: 'CommunitiesLandingController',
+      filePath:
+        'force-app/main/default/classes/CommunitiesLandingController.cls',
       origin: 'local',
-      state: 'add',
-      fullName: 'ChangePasswordController',
-      ignored: true,
-      filepath: 'force-app/main/default/classes/ChangePasswordController.cls',
+      ignored: false,
       conflict: false
     },
     {
       type: 'ApexClass',
-      origin: 'local',
-      state: 'add',
-      fullName: 'ChangePasswordController',
-      ignored: true,
+      state: 'modify',
+      fullName: 'CommunitiesLandingControllerTest',
       filePath:
-        'force-app/main/default/classes/ChangePasswordController.cls-meta.xml',
+        'force-app/main/default/classes/CommunitiesLandingControllerTest.cls',
+      origin: 'local',
+      ignored: false,
+      conflict: false
+    },
+    {
+      type: 'ApexClass',
+      state: 'modify',
+      fullName: 'ProductController',
+      filePath: 'force-app/main/default/classes/ProductController.cls',
+      origin: 'local',
+      ignored: false,
       conflict: false
     },
     {
@@ -30,6 +40,7 @@ export const testData = {
       origin: 'remote',
       state: 'add',
       fullName: 'Admin',
+      ignored: true,
       conflict: false
     },
     {
@@ -37,9 +48,8 @@ export const testData = {
       origin: 'remote',
       state: 'add',
       fullName: 'Default',
+      ignored: false,
       conflict: false
     }
-  ],
-  statusSummaryString:
-    'IGNORED  STATE       FULL NAME                 TYPE       PROJECT PATH                                                        \n───────  ──────────  ────────────────────────  ─────────  ────────────────────────────────────────────────────────────────────\ntrue     Local Add   ChangePasswordController  ApexClass                                                                      \ntrue     Local Add   ChangePasswordController  ApexClass  force-app/main/default/classes/ChangePasswordController.cls-meta.xml\n         Remote Add  Default                   Audience                                                                       \n         Remote Add  Admin                     Profile                                                                        \n'
+  ]
 };

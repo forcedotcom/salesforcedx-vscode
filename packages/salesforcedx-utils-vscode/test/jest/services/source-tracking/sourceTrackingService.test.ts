@@ -73,17 +73,17 @@ describe('Source Tracking Service', () => {
       workspaceContextUtilGetInstanceSpy = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
-      getStatusMock.mockResolvedValue(testData.statusOutputRows as any);
+
       sourceTrackingMock = jest
         .spyOn(SourceTracking, 'create')
         .mockResolvedValue({
-          getStatus: jest
-            .fn()
-            .mockResolvedValue(testData.statusOutputRows as any)
+          getStatus: getStatusMock
         } as any);
     });
 
-    it('Should return a properly formatted string when local and remote changes exist.', async () => {
+    it('Should return a properly formatted string when changes exist in the response', async () => {
+      getStatusMock.mockResolvedValue(testData.statusResponse as any);
+
       // Act
       const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
         {}
@@ -92,7 +92,21 @@ describe('Source Tracking Service', () => {
       // Assert
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(sourceTrackingMock).toHaveBeenCalled();
-      expect(formattedOutput).toEqual(testData.statusSummaryString);
+      expect(formattedOutput).toMatchSnapshot();
     });
+
+    // it('Should return a properly formatted string when remote changes exist and one file is ignored.', async () => {
+    //   getStatusMock.mockResolvedValue(testData.remoteAndIgnoredResponse as any);
+
+    //   // Act
+    //   const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
+    //     {}
+    //   );
+
+    //   // Assert
+    //   expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
+    //   expect(sourceTrackingMock).toHaveBeenCalled();
+    //   expect(formattedOutput).toEqual(testData.remoteAndIgnoredSummary);
+    // });
   });
 });
