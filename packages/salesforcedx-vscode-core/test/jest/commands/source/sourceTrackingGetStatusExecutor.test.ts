@@ -24,7 +24,7 @@ describe('SourceTrackingGetStatusExecutor', () => {
     const getStatusSpy = jest.fn();
     const formatSpy = jest.fn();
     const appendSpy = jest.fn();
-    const showOutputSpy = jest.fn();
+    const showChannelOutputSpy = jest.fn();
 
     beforeEach(() => {
       jest
@@ -44,7 +44,7 @@ describe('SourceTrackingGetStatusExecutor', () => {
       jest.spyOn(channelService, 'appendLine').mockImplementation(appendSpy);
       jest
         .spyOn(channelService, 'showChannelOutput')
-        .mockImplementation(showOutputSpy);
+        .mockImplementation(showChannelOutputSpy);
     });
 
     it('should get the source status summary and show it in the output', async () => {
@@ -58,7 +58,7 @@ describe('SourceTrackingGetStatusExecutor', () => {
       expect(createSourceTrackingSpy).toHaveBeenCalled();
       expect(getStatusSpy).toHaveBeenCalled();
       expect(formatSpy).toHaveBeenCalled();
-      expect(showOutputSpy).toHaveBeenCalled();
+      expect(showChannelOutputSpy).toHaveBeenCalled();
     });
   });
 
