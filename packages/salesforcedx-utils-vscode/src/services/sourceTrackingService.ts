@@ -100,7 +100,7 @@ interface FormattedStatusResult {
   ignored?: string;
 }
 
-class SourceStatusSummary {
+export class SourceStatusSummary {
   constructor(private statusOutputRows: StatusOutputRow[]) {}
 
   public format(): string {
