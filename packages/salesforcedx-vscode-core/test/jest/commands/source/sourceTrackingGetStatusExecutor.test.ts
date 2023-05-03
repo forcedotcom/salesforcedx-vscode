@@ -1,46 +1,33 @@
-import {
-  SourceTrackingService,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode/src';
-import { SourceStatusSummary } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
-import { channelService } from '../../../../src/channels';
-import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
-// jest.mock('@salesforce/core', () => ({
-//   ...jest.requireActual('@salesforce/core'),
-//   Org: { create: jest.fn() },
-//   SfProject: { resolve: jest.fn() }
-// }));
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import {
+  SourceTrackingService,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode/src';
+import { channelService } from '../../../../src/channels';
+import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
+import { nls } from '../../../../src/messages';
+
 describe('SourceTrackingGetStatusExecutor', () => {
   describe('execute', () => {
     const FAKE_WORKSPACE_INSTANCE: any = { getConnection: jest.fn() };
-    let getStatusSummaryMock: jest.SpyInstance;
-    let createSourceTrackingSpy: jest.SpyInstance;
-    const getStatusSpy = jest.fn();
-    const formatSpy = jest.fn();
+    let getSourceStatusSummaryMock: jest.SpyInstance;
     const appendSpy = jest.fn();
     const showChannelOutputSpy = jest.fn();
+    const dummySourceStatusSummary = 'this is a source status summary';
 
     beforeEach(() => {
       jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(FAKE_WORKSPACE_INSTANCE);
 
-      getStatusSummaryMock = jest.spyOn(
-        SourceTrackingService,
-        'getSourceStatusSummary'
-      );
-      createSourceTrackingSpy = jest
-        .spyOn(SourceTrackingService, 'createSourceTracking')
-        .mockResolvedValue({ getStatus: getStatusSpy } as any);
-      jest
-        .spyOn(SourceStatusSummary.prototype, 'format')
-        .mockImplementation(formatSpy);
+      getSourceStatusSummaryMock = jest
+        .spyOn(SourceTrackingService, 'getSourceStatusSummary')
+        .mockResolvedValue(dummySourceStatusSummary);
       jest.spyOn(channelService, 'appendLine').mockImplementation(appendSpy);
       jest
         .spyOn(channelService, 'showChannelOutput')
@@ -55,9 +42,10 @@ describe('SourceTrackingGetStatusExecutor', () => {
 
       await executor.execute();
 
-      expect(createSourceTrackingSpy).toHaveBeenCalled();
-      expect(getStatusSpy).toHaveBeenCalled();
-      expect(formatSpy).toHaveBeenCalled();
+      expect(getSourceStatusSummaryMock).toHaveBeenCalled();
+      expect(appendSpy).toHaveBeenCalledTimes(2);
+      expect(appendSpy).toHaveBeenCalledWith(nls.localize('source_status'));
+      expect(appendSpy).toHaveBeenCalledWith(dummySourceStatusSummary);
       expect(showChannelOutputSpy).toHaveBeenCalled();
     });
   });
