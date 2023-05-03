@@ -2,9 +2,9 @@ import {
   SourceTrackingService,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode/src';
-import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
 import { SourceStatusSummary } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 import { channelService } from '../../../../src/channels';
+import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
 // jest.mock('@salesforce/core', () => ({
 //   ...jest.requireActual('@salesforce/core'),
 //   Org: { create: jest.fn() },
