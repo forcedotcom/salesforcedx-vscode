@@ -1,18 +1,10 @@
-# 57.11.2 - April 28, 2023
-
-## Fixed
-
-#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger, salesforcedx-vscode-lightning, salesforcedx-vscode-lwc, salesforcedx-vscode-soql
-
-- We made some changes under the hood. ([PR #4828](https://github.com/forcedotcom/salesforcedx-vscode/pull/4828))
-
-# 57.11.1 - April 27, 2023
+# 57.12.0 - May 3, 2023
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- We updated the Apex language server so that new syntax such as *insert*, *as user*, *as system* and *Assert* is now available in VS Code. Replay debugger is now available for Anonymous Apex as a result of this update. ([PR #4819](https://github.com/forcedotcom/salesforcedx-vscode/pull/4819))
+- We updated the Apex language server so that new syntax such as _insert_, _as user_, _as system_ and _Assert_ is now available in VS Code. Replay debugger is now available for Anonymous Apex as a result of this update. ([PR #4819](https://github.com/forcedotcom/salesforcedx-vscode/pull/4819))
 
 #### salesforcedx-vscode-core
 
@@ -28,14 +20,17 @@
 
 - We fixed some issues with **Deploy** commands for source-tracked orgs. ([PR #4824](https://github.com/forcedotcom/salesforcedx-vscode/pull/4824))
 
-- We made some changes under the hood. ([PR #4749](https://github.com/forcedotcom/salesforcedx-vscode/pull/4749))
-
 - We fixed some issues with **Retrieve** commands for source-tracked orgs. ([PR #4773](https://github.com/forcedotcom/salesforcedx-vscode/pull/4773))
+
+- We made some changes under the hood. ([PR #4749](https://github.com/forcedotcom/salesforcedx-vscode/pull/4749))
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - We made some changes under the hood. ([PR #4807](https://github.com/forcedotcom/salesforcedx-vscode/pull/4807))
 
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger, salesforcedx-vscode-lightning, salesforcedx-vscode-lwc, salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #4828](https://github.com/forcedotcom/salesforcedx-vscode/pull/4828))
 
 # 57.10.2 - April 13, 2023
 
@@ -45,7 +40,7 @@
 
 - We fixed an issue where some metadata labels in the org browser weren't correctly displayed. ([PR #4772](https://github.com/forcedotcom/salesforcedx-vscode/pull/4772))
 
-- We fixed an issue so that source-tracking commands (*push*, *pull*, *view changes*) are now available source-tracked sandboxes. ([PR #4755](https://github.com/forcedotcom/salesforcedx-vscode/pull/4755))
+- We fixed an issue so that source-tracking commands (_push_, _pull_, _view changes_) are now available source-tracked sandboxes. ([PR #4755](https://github.com/forcedotcom/salesforcedx-vscode/pull/4755))
 
 - We removed legacy source tracking commands from the command palette. ([PR #4771](https://github.com/forcedotcom/salesforcedx-vscode/pull/4771))
 
