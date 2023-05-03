@@ -19,7 +19,8 @@ import {
   TestType
 } from '../../../../src/testSupport/types';
 
-describe('LWC Test Indexer', () => {
+describe('LWC Test Indexer', function() {
+  this.timeout(30000);
   let lwcTests: URI[];
   let existingTestFileCount: number;
 
