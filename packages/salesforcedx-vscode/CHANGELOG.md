@@ -20,9 +20,9 @@
 
 - We fixed some issues with **Deploy** commands for source-tracked orgs. ([PR #4824](https://github.com/forcedotcom/salesforcedx-vscode/pull/4824))
 
-- We made some changes under the hood. ([PR #4749](https://github.com/forcedotcom/salesforcedx-vscode/pull/4749))
-
 - We fixed some issues with **Retrieve** commands for source-tracked orgs. ([PR #4773](https://github.com/forcedotcom/salesforcedx-vscode/pull/4773))
+
+- We made some changes under the hood. ([PR #4749](https://github.com/forcedotcom/salesforcedx-vscode/pull/4749))
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
