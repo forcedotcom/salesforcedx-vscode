@@ -7,7 +7,7 @@
 import {
   SourceTrackingService,
   WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode/src';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../../src/channels';
 import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
 import { nls } from '../../../../src/messages';

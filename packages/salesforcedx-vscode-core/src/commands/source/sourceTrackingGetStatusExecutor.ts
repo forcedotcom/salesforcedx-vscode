@@ -8,7 +8,7 @@ import {
   ContinueResponse,
   LibraryCommandletExecutor,
   SourceTrackingService
-} from '@salesforce/salesforcedx-utils-vscode/src';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 
