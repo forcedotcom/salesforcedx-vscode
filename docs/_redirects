@@ -15,7 +15,9 @@
 /tools/vscode/en/getting-started/tips-and-tricks                /tools/vscode/en/vscode-desktop/tips-and-tricks           301
 /tools/vscode/en/getting-started/java-setup                     /tools/vscode/en/vscode-desktop/java-setup                301
 /tools/vscode/en/getting-started                                /tools/vscode/en/vscode-desktop/desktop-intro             301
-/tools/vscode/en/user-guide/development-models                  /tools/vscode/en/sf-dev-models/development-models        301
+/tools/vscode/en/user-guide/development-models                  /tools/vscode/en/sf-dev-models/development-models         301
+/tools/vscode/en/user-guide/source-diff                         /tools/vscode/en/user-guide/metadata-operations           301
+/tools/vscode/ja/user-guide/source-diff                         /tools/vscode/ja/user-guide/metadata-operations           301
 # Temporary Redirects for convenience
 /tools/vscode/en/                               /tools/vscode/                          302
 /tools/vscode/en/aura                           /tools/vscode/en/aura/writing           302
