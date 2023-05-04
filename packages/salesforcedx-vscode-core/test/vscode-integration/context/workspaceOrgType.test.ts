@@ -54,7 +54,7 @@ const expectDefaultUsernameHasNoChangeTracking = (
 };
 const mockWorkspaceContext = { getConnection: () => {} } as any;
 
-describe('workspaceOrgType unit tests', () => {
+describe('workspaceOrgType', () => {
   const scratchOrgUser = 'scratch@org.com';
   let getUsernameStub: Sinon.SinonStub;
   let orgCreateStub: Sinon.SinonStub;

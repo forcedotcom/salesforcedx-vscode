@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 import { WorkspaceContext } from './workspaceContext';
+import { log } from 'console';
 
 export enum OrgType {
   SourceTracked,
@@ -33,53 +34,18 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
   setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
 }
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
-  try {
-    setHasDefaultUsername(!!defaultUsernameOrAlias);
-    const orgType = await getWorkspaceOrgType();
-    setWorkspaceOrgTypeWithOrgType(orgType);
-  } catch (e) {
-    console.error(e);
-    if (e instanceof Error) {
-      telemetryService.sendException('send_workspace_org_type', e.message);
-      switch (e.name) {
-        case 'NamedOrgNotFound':
-          // If the info for a default username cannot be found,
-          // then assume that the org can be of either type
-          setDefaultUsernameHasChangeTracking(true);
-          setDefaultUsernameHasNoChangeTracking(true);
-          break;
-        case 'NoDefaultusernameSet':
-          setDefaultUsernameHasChangeTracking(false);
-          setDefaultUsernameHasNoChangeTracking(false);
-          break;
-        case 'NoUsernameFoundError':
-          setDefaultUsernameHasChangeTracking(false);
-          setDefaultUsernameHasNoChangeTracking(false);
-          break;
-        default:
-          setDefaultUsernameHasChangeTracking(true);
-          setDefaultUsernameHasNoChangeTracking(true);
-      }
-    }
-  }
+  setHasDefaultUsername(!!defaultUsernameOrAlias);
+  const orgType = await getWorkspaceOrgType();
+  setWorkspaceOrgTypeWithOrgType(orgType);
 }
 
 function setDefaultUsernameHasChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:default_username_has_change_tracking',
-    val
-  );
-}
-
-function setDefaultUsernameHasNoChangeTracking(val: boolean) {
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:default_username_has_no_change_tracking',
     val
   );
 }
