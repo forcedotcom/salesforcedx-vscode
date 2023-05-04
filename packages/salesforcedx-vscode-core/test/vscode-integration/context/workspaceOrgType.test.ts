@@ -111,12 +111,13 @@ describe('workspaceOrgType', () => {
     afterEach(() => {
       sandbox.restore();
     });
-    it('should set sfdx:default_username_has_change_tracking context to false when no default org is set', async () => {
+    it.only('should set sfdx:default_username_has_change_tracking context to false when no default org is set', async () => {
       const defaultUsername = undefined;
-      const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
-      orgCreateStub.resolves({
-        supportsSourceTracking: async () => undefined
-      });
+      const executeCommandStub = sandbox.stub(
+        vscode.commands,
+        'executeCommand'
+      );
+      orgCreateStub.resolves({});
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
@@ -130,7 +131,10 @@ describe('workspaceOrgType', () => {
     it('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
       getUsernameStub.resolves(scratchOrgUser);
       const defaultUsername = 'scratchOrgAlias';
-      const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      const executeCommandStub = sandbox.stub(
+        vscode.commands,
+        'executeCommand'
+      );
       orgCreateStub.resolves({
         supportsSourceTracking: async () => true
       });
@@ -146,7 +150,10 @@ describe('workspaceOrgType', () => {
     });
 
     it('should set sfdx:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
-      const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      const executeCommandStub = sandbox.stub(
+        vscode.commands,
+        'executeCommand'
+      );
       const defaultUsername = 'sandbox@org.com';
       orgCreateStub.resolves({
         supportsSourceTracking: async () => false
