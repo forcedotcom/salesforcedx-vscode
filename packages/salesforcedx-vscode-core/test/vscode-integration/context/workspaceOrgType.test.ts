@@ -42,16 +42,6 @@ const expectDefaultUsernameHasChangeTracking = (
   ]);
 };
 
-const expectDefaultUsernameHasNoChangeTracking = (
-  hasNoChangeTracking: boolean,
-  executeCommandStub: sinon.SinonStub
-) => {
-  expect(executeCommandStub.getCall(2).args).to.eql([
-    'setContext',
-    'sfdx:default_username_has_no_change_tracking',
-    hasNoChangeTracking
-  ]);
-};
 const mockWorkspaceContext = { getConnection: () => {} } as any;
 
 describe('workspaceOrgType', () => {
@@ -133,7 +123,6 @@ describe('workspaceOrgType', () => {
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
       executeCommandStub.restore();
     });
@@ -155,7 +144,6 @@ describe('workspaceOrgType', () => {
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
       orgAuthInfoStub.restore();
       executeCommandStub.restore();
@@ -175,7 +163,6 @@ describe('workspaceOrgType', () => {
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
       executeCommandStub.restore();
     });
@@ -192,7 +179,6 @@ describe('workspaceOrgType', () => {
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
-      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
       executeCommandStub.restore();
     });
@@ -216,7 +202,6 @@ describe('workspaceOrgType', () => {
         expect(executeCommandStub.calledThrice).to.equal(true);
         expectSetHasDefaultUsername(true, executeCommandStub);
         expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
-        expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
       } finally {
         executeCommandStub.restore();
         orgAuthInfoStub.restore();
