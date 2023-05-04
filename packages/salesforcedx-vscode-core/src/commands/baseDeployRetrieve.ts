@@ -241,6 +241,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     const result: RetrieveResult = await operation.pollStatus();
 
     if (
+      result &&
+      result.response &&
       (result.response.status === 'Succeeded' ||
         result.response.status === 'SucceededPartial') &&
       this.sourceTracking
