@@ -97,3 +97,4 @@ export default class ContactList extends LightningElement {
 10. Click **Save** again, then click **Back** arrow to return to the page.
 11. Refresh the page to view your new component.
 
+![PNG showing LWC component](../../images/../../images/contact_lwc.png)
