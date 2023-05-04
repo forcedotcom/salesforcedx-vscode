@@ -139,6 +139,7 @@ describe('workspaceOrgType', () => {
       expectSetHasDefaultUsername(false, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
 
+      workspaceContextGetInstanceStub.restore();
       executeCommandStub.restore();
     });
 
