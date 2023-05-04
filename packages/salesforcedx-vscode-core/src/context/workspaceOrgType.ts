@@ -6,10 +6,8 @@
  */
 import { Org } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 import { WorkspaceContext } from './workspaceContext';
-import { log } from 'console';
 
 export enum OrgType {
   SourceTracked,
