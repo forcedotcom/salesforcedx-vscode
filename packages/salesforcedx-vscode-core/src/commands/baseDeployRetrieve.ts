@@ -24,6 +24,7 @@ import {
   ComponentStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { SourceTracking } from '@salesforce/source-tracking';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -207,16 +208,21 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+  private sourceTracking?: SourceTracking;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const sourceTracking = await SourceTrackingService.createSourceTracking(
-      projectPath,
-      connection
-    );
+    const isSourceTracked = connection.getAuthInfoFields().tracksSource;
+    if (isSourceTracked) {
+      this.sourceTracking = await SourceTrackingService.createSourceTracking(
+        projectPath,
+        connection
+      );
+    }
 
     const defaultOutput = join(
       projectPath,
@@ -233,10 +239,10 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-    const orgType = await getWorkspaceOrgType();
-    if (orgType === OrgType.SourceTracked) {
+
+    if (this.sourceTracking) {
       await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-        sourceTracking,
+        this.sourceTracking,
         result
       );
     }
