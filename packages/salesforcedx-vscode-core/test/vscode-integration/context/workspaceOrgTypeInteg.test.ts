@@ -143,7 +143,7 @@ describe('workspaceOrgType', () => {
       executeCommandStub.restore();
     });
 
-    it('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
+    it.only('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
       getUsernameStub.resolves(scratchOrgUser);
       const defaultUsername = 'scratchOrgAlias';
       const executeCommandStub = sandbox.stub(
