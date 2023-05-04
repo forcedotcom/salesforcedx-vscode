@@ -86,6 +86,7 @@ describe('Retrieve Executor', () => {
       'testRetrieveLog'
     );
     (executor as any).setupCancellation = jest.fn();
+    dummyRetrieveResult.response = { status: 'SucceededPartial' };
 
     // Act
     await (executor as any).doOperation(dummyComponentSet, {});
@@ -103,6 +104,31 @@ describe('Retrieve Executor', () => {
       dummySourceTracking,
       dummyRetrieveResult
     );
+  });
+
+  it('should NOT update source tracking after retrieving without a successful response', async () => {
+    // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
+    const executor = new TestRetrieveExecutor(
+      'testRetrieve',
+      'testRetrieveLog'
+    );
+    (executor as any).setupCancellation = jest.fn();
+    dummyRetrieveResult.response = { status: 'Failed' };
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
+    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(retrieveSpy).toHaveBeenCalled();
+    const createSourceTrackingCallOrder =
+      createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
+    expect(createSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
+    expect(pollStatusMock).toHaveBeenCalled();
+    expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
   it('should not create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org', async () => {
