@@ -30,6 +30,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
+import { getWorkspaceOrgType, OrgType } from '../context/workspaceOrgType';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
@@ -232,10 +233,13 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-    await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-      sourceTracking,
-      result
-    );
+    const orgType = await getWorkspaceOrgType();
+    if (orgType === OrgType.SourceTracked) {
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+        sourceTracking,
+        result
+      );
+    }
 
     return result;
   }
