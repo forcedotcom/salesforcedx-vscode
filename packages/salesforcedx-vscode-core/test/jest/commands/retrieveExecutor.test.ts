@@ -12,6 +12,7 @@ import {
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
 jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
@@ -40,6 +41,7 @@ describe('Retrieve Executor', () => {
   let retrieveSpy: jest.SpyInstance;
   let pollStatusMock: jest.SpyInstance;
   let updateTrackingAfterRetrieveMock: jest.SpyInstance;
+  let getWorkspaceOrgTypeMock: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
     protected getComponents(
@@ -70,10 +72,15 @@ describe('Retrieve Executor', () => {
     updateTrackingAfterRetrieveMock = jest
       .spyOn(SourceTrackingService, 'updateSourceTrackingAfterRetrieve')
       .mockResolvedValue();
+    getWorkspaceOrgTypeMock = jest.spyOn(
+      workspaceContextUtils,
+      'getWorkspaceOrgType'
+    );
   });
 
-  it('should create Source Tracking before retrieving and update it after retrieving', async () => {
+  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org', async () => {
     // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     const executor = new TestRetrieveExecutor(
       'testRetrieve',
       'testRetrieveLog'
@@ -96,5 +103,25 @@ describe('Retrieve Executor', () => {
       dummySourceTracking,
       dummyRetrieveResult
     );
+  });
+
+  it('should not create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org', async () => {
+    // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
+    const executor = new TestRetrieveExecutor(
+      'testRetrieve',
+      'testRetrieveLog'
+    );
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
+    expect(createSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(retrieveSpy).toHaveBeenCalled();
+    expect(pollStatusMock).toHaveBeenCalled();
+    expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 });

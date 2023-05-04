@@ -31,7 +31,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
-import { getWorkspaceOrgType, OrgType } from '../context/workspaceOrgType';
+import { workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
@@ -216,8 +216,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const orgType = await getWorkspaceOrgType();
-    if (orgType === OrgType.SourceTracked) {
+    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
       this.sourceTracking = await SourceTrackingService.createSourceTracking(
         projectPath,
         connection
