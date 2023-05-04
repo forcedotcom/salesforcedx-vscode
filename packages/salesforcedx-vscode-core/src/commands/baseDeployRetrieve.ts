@@ -216,8 +216,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const isSourceTracked = connection.getAuthInfoFields().tracksSource;
-    if (isSourceTracked) {
+    const orgType = await getWorkspaceOrgType();
+    if (orgType === OrgType.SourceTracked) {
       this.sourceTracking = await SourceTrackingService.createSourceTracking(
         projectPath,
         connection
