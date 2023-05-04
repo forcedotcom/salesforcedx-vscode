@@ -135,7 +135,7 @@ describe('workspaceOrgType', () => {
 
       await workspaceContextUtils.setupWorkspaceOrgType();
 
-      expect(executeCommandStub.calledThrice).to.equal(true);
+      expect(executeCommandStub.calledTwice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
 
@@ -156,7 +156,7 @@ describe('workspaceOrgType', () => {
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(orgCreateStub.calledOnce).to.eql(true);
-      expect(executeCommandStub.calledThrice).to.equal(true);
+      expect(executeCommandStub.calledTwice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
 
@@ -175,7 +175,7 @@ describe('workspaceOrgType', () => {
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
-      expect(executeCommandStub.calledThrice).to.equal(true);
+      expect(executeCommandStub.calledTwice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
 
