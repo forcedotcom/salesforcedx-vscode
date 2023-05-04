@@ -8,6 +8,7 @@ import { Org } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 import { WorkspaceContext } from './workspaceContext';
+import { workspaceContextUtils } from '.';
 
 export enum OrgType {
   SourceTracked,
@@ -44,7 +45,7 @@ export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   setHasDefaultUsername(!!defaultUsernameOrAlias);
-  const orgType = await getWorkspaceOrgType();
+  const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   setWorkspaceOrgTypeWithOrgType(orgType);
 }
 

@@ -120,6 +120,15 @@ describe('workspaceOrgType', () => {
   });
 
   describe('setupWorkspaceOrgType', () => {
+    let getWorkspaceOrgTypeMock: Sinon.SinonStub;
+
+    beforeEach(() => {
+      getWorkspaceOrgTypeMock = sandbox.stub(
+        workspaceContextUtils,
+        'getWorkspaceOrgType'
+      );
+    });
+
     afterEach(() => {
       sandbox.restore();
     });
@@ -139,24 +148,21 @@ describe('workspaceOrgType', () => {
       expectSetHasDefaultUsername(false, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
 
-      workspaceContextGetInstanceStub.restore();
       executeCommandStub.restore();
     });
 
-    it.only('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
+    it('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
+      getWorkspaceOrgTypeMock.resolves(OrgType.SourceTracked);
       getUsernameStub.resolves(scratchOrgUser);
       const defaultUsername = 'scratchOrgAlias';
       const executeCommandStub = sandbox.stub(
         vscode.commands,
         'executeCommand'
       );
-      orgCreateStub.resolves({
-        supportsSourceTracking: async () => true
-      });
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
-      expect(orgCreateStub.calledOnce).to.eql(true);
+      expect(getWorkspaceOrgTypeMock.calledOnce).to.equal(true);
       expect(executeCommandStub.calledTwice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
@@ -165,6 +171,7 @@ describe('workspaceOrgType', () => {
     });
 
     it('should set sfdx:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
+      getWorkspaceOrgTypeMock.resolves(OrgType.NonSourceTracked);
       const executeCommandStub = sandbox.stub(
         vscode.commands,
         'executeCommand'
@@ -176,6 +183,7 @@ describe('workspaceOrgType', () => {
 
       await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
+      expect(getWorkspaceOrgTypeMock.calledOnce).to.equal(true);
       expect(executeCommandStub.calledTwice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
