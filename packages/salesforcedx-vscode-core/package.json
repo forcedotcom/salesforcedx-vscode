@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.11.0",
+  "version": "57.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,11 +27,11 @@
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
     "@octokit/plugin-paginate-rest": "2.21.3",
-    "@salesforce/core": "3.34.7",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.11.0",
+    "@salesforce/core": "^3.34.8",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "57.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "57.12.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "^7.15.0",
+    "@salesforce/source-deploy-retrieve": "^8.0.1",
     "@salesforce/templates": "^57.0.2",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
@@ -43,7 +43,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.11.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "57.12.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -87,9 +87,9 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "3.34.7",
+        "@salesforce/core": "^3.34.8",
         "@salesforce/templates": "57.0.2",
-        "@salesforce/source-deploy-retrieve": "^7.15.0",
+        "@salesforce/source-deploy-retrieve": "^8.0.1",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
@@ -157,7 +157,7 @@
         {
           "id": "conflicts",
           "name": "Conflicts",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -202,19 +202,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
@@ -300,19 +300,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.source.path",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -494,19 +494,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",

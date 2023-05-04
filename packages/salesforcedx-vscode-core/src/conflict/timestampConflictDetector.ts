@@ -13,7 +13,10 @@ import {
 } from './';
 import { diffComponents } from './componentDiffer';
 import { TimestampFileProperties } from './directoryDiffer';
-import { CorrelatedComponent, MetadataCacheService } from './metadataCacheService';
+import {
+  CorrelatedComponent,
+  MetadataCacheService
+} from './metadataCacheService';
 
 export class TimestampConflictDetector {
   private diffs: DirectoryDiffResults;
