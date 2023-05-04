@@ -50,6 +50,8 @@ describe('workspaceOrgType', () => {
   let orgCreateStub: Sinon.SinonStub;
   let getDefaultUsernameOrAliasStub: Sinon.SinonStub;
   let createStub: Sinon.SinonStub;
+  let workspaceContextGetInstanceStub: Sinon.SinonStub;
+
   beforeEach(() => {
     getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
     orgCreateStub = sandbox.stub(Org, 'create');
@@ -58,13 +60,19 @@ describe('workspaceOrgType', () => {
       'getDefaultUsernameOrAlias'
     );
     createStub = sandbox.stub(AuthInfo, 'create');
-    sandbox.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
+    workspaceContextGetInstanceStub = sandbox.stub(
+      WorkspaceContext,
+      'getInstance'
+    );
   });
 
   afterEach(() => {
     sandbox.restore();
   });
   describe('getDefaultUsernameOrAlias', () => {
+    beforeEach(() => {
+      workspaceContextGetInstanceStub.returns(mockWorkspaceContext);
+    });
     it('returns undefined when no defaultusername is set', async () => {
       getDefaultUsernameOrAliasStub.resolves(undefined);
       expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
@@ -82,6 +90,10 @@ describe('workspaceOrgType', () => {
   });
 
   describe('getWorkspaceOrgType', () => {
+    beforeEach(() => {
+      workspaceContextGetInstanceStub.returns(mockWorkspaceContext);
+    });
+
     it('returns the source-tracked org type', async () => {
       getUsernameStub.resolves(scratchOrgUser);
       orgCreateStub.resolves({
@@ -111,15 +123,17 @@ describe('workspaceOrgType', () => {
     afterEach(() => {
       sandbox.restore();
     });
-    it.only('should set sfdx:default_username_has_change_tracking context to false when no default org is set', async () => {
-      const defaultUsername = undefined;
+
+    it('should set sfdx:default_username_has_change_tracking context to false when no default org is set', async () => {
+      workspaceContextGetInstanceStub.returns(() => {
+        throw new Error('no connection found.');
+      });
       const executeCommandStub = sandbox.stub(
         vscode.commands,
         'executeCommand'
       );
-      orgCreateStub.resolves({});
 
-      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
+      await workspaceContextUtils.setupWorkspaceOrgType();
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
