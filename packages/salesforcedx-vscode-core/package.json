@@ -966,6 +966,11 @@
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
         },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "%prefer_deploy_on_save_enabled_description%"
+        },        
         "salesforcedx-vscode-core.detectConflictsAtSync": {
           "type": "boolean",
           "default": false,

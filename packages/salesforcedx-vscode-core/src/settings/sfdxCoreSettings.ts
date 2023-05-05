@@ -11,9 +11,9 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
-  ALWAYS_DEPLOY_ON_SAVE_ENABLED,
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
+  PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
@@ -70,7 +70,7 @@ export class SfdxCoreSettings {
   }
 
   public getPreferDeployOnSaveEnabled(): boolean {
-    return this.getConfigValue(ALWAYS_DEPLOY_ON_SAVE_ENABLED, false);
+    return this.getConfigValue(PREFER_DEPLOY_ON_SAVE_ENABLED, false);
   }
 
   public getRetrieveTestCodeCoverage(): boolean {
