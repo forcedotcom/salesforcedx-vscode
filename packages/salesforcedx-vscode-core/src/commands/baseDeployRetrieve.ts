@@ -24,7 +24,6 @@ import {
   ComponentStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { SourceTracking } from '@salesforce/source-tracking';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -39,6 +38,7 @@ import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
+import { SourceTrackingType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -208,7 +208,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
-  private sourceTracking?: SourceTracking;
+  private sourceTracking?: SourceTrackingType;
 
   protected async doOperation(
     components: ComponentSet,
