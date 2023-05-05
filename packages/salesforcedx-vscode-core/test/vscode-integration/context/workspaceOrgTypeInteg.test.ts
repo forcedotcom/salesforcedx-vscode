@@ -17,6 +17,7 @@ import {
 } from '../../../src/context';
 import { OrgAuthInfo } from '../../../src/util';
 import Sinon = require('sinon');
+import * as workspaceUtil from '../../../src/context/workspaceOrgType';
 
 const sandbox = createSandbox();
 
@@ -33,9 +34,10 @@ const expectSetHasDefaultUsername = (
 
 const expectDefaultUsernameHasChangeTracking = (
   hasChangeTracking: boolean,
-  executeCommandStub: sinon.SinonStub
+  executeCommandStub: sinon.SinonStub,
+  argOrder?: number
 ) => {
-  expect(executeCommandStub.getCall(1).args).to.eql([
+  expect(executeCommandStub.getCall(argOrder ?? 1).args).to.eql([
     'setContext',
     'sfdx:default_username_has_change_tracking',
     hasChangeTracking
@@ -120,15 +122,6 @@ describe('workspaceOrgType', () => {
   });
 
   describe('setupWorkspaceOrgType', () => {
-    let getWorkspaceOrgTypeMock: Sinon.SinonStub;
-
-    beforeEach(() => {
-      getWorkspaceOrgTypeMock = sandbox.stub(
-        workspaceContextUtils,
-        'getWorkspaceOrgType'
-      );
-    });
-
     afterEach(() => {
       sandbox.restore();
     });
@@ -142,7 +135,7 @@ describe('workspaceOrgType', () => {
         'executeCommand'
       );
 
-      await workspaceContextUtils.setupWorkspaceOrgType();
+      await workspaceUtil.setupWorkspaceOrgType();
 
       expect(executeCommandStub.calledTwice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
@@ -151,44 +144,38 @@ describe('workspaceOrgType', () => {
       executeCommandStub.restore();
     });
 
-    it('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
-      getWorkspaceOrgTypeMock.resolves(OrgType.SourceTracked);
-      getUsernameStub.resolves(scratchOrgUser);
-      const defaultUsername = 'scratchOrgAlias';
-      const executeCommandStub = sandbox.stub(
-        vscode.commands,
-        'executeCommand'
-      );
+    describe('setWorkspaceOrgTypeWithOrgType', () => {
+      it('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
+        const executeCommandStub = sandbox.stub(
+          vscode.commands,
+          'executeCommand'
+        );
 
-      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
+        workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
+          OrgType.SourceTracked
+        );
 
-      expect(getWorkspaceOrgTypeMock.calledOnce).to.equal(true);
-      expect(executeCommandStub.calledTwice).to.equal(true);
-      expectSetHasDefaultUsername(true, executeCommandStub);
-      expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
+        expect(executeCommandStub.calledOnce).to.equal(true);
+        expectDefaultUsernameHasChangeTracking(true, executeCommandStub, 0);
 
-      executeCommandStub.restore();
-    });
-
-    it('should set sfdx:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
-      getWorkspaceOrgTypeMock.resolves(OrgType.NonSourceTracked);
-      const executeCommandStub = sandbox.stub(
-        vscode.commands,
-        'executeCommand'
-      );
-      const defaultUsername = 'sandbox@org.com';
-      orgCreateStub.resolves({
-        supportsSourceTracking: async () => false
+        executeCommandStub.restore();
       });
 
-      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
+      it('should set sfdx:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
+        const executeCommandStub = sandbox.stub(
+          vscode.commands,
+          'executeCommand'
+        );
 
-      expect(getWorkspaceOrgTypeMock.calledOnce).to.equal(true);
-      expect(executeCommandStub.calledTwice).to.equal(true);
-      expectSetHasDefaultUsername(true, executeCommandStub);
-      expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
+        workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
+          OrgType.NonSourceTracked
+        );
 
-      executeCommandStub.restore();
+        expect(executeCommandStub.calledOnce).to.equal(true);
+        expectDefaultUsernameHasChangeTracking(false, executeCommandStub, 0);
+
+        executeCommandStub.restore();
+      });
     });
   });
 });
