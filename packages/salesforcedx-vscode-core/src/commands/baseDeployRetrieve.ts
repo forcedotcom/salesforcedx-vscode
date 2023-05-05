@@ -11,6 +11,7 @@ import {
   LibraryCommandletExecutor,
   Row,
   SourceTrackingService,
+  SourceTrackingType,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -38,7 +39,6 @@ import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
-import { SourceTrackingType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
