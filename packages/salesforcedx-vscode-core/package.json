@@ -970,7 +970,7 @@
           "type": "boolean",
           "default": false,
           "description": "%prefer_deploy_on_save_enabled_description%"
-        },        
+        },
         "salesforcedx-vscode-core.detectConflictsAtSync": {
           "type": "boolean",
           "default": false,
