@@ -46,7 +46,7 @@ Next we'll add the LWC component that displays queried fields.
 <lightning-card title="Contact List">
         <template if:true={contacts.data}>
             <template for:each={contacts.data} for:item="contact">
-                <div class=“slds-var-p-horizontal_medium” key={contact.Id}>
+                <div class="slds-var-p-horizontal_medium" key={contact.Id}>
                     <p>{contact.Name}, {contact.Phone}</p>
                 </div>
             </template>
