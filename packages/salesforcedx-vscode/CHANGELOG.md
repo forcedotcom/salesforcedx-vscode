@@ -9,12 +9,12 @@
 #### salesforcedx-vscode-core
 
 - We enabled the following Deploy and Retrieve commands for scratch orgs ([PR #4809](https://github.com/forcedotcom/salesforcedx-vscode/pull/4809)):
-  * SFDX: Deploy Source to Org
-  * SFDX: Deploy This Source to Org
-  * SFDX: Deploy Source in Manifest to Org
-  * SFDX: Retrieve Source from Org
-  * SFDX: Retrieve This Source from Org
-  * SFDX: Retrieve Source in Manifest from Org
+  * **SFDX: Deploy Source to Org**
+  * **SFDX: Deploy This Source to Org**
+  * **SFDX: Deploy Source in Manifest to Org**
+  * **SFDX: Retrieve Source from Org**
+  * **SFDX: Retrieve This Source from Org**
+  * **SFDX: Retrieve Source in Manifest from Org**
 
 - **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** commands are now available in the Command Palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
 
