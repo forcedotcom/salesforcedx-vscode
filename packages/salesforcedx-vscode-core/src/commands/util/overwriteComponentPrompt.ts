@@ -91,7 +91,9 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     return extensions;
   }
 
-  public async promptOverwrite(foundComponents: LocalComponent[]): Promise<Set<LocalComponent> | undefined> {
+  public async promptOverwrite(
+    foundComponents: LocalComponent[]
+  ): Promise<Set<LocalComponent> | undefined> {
     const skipped = new Set<LocalComponent>();
     for (let i = 0; i < foundComponents.length; i++) {
       const options = this.buildDialogOptions(foundComponents, skipped, i);
