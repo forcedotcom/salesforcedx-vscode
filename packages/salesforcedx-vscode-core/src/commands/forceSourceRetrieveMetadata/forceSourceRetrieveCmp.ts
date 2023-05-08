@@ -11,7 +11,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
 
 export async function forceSourceRetrieveCmp(

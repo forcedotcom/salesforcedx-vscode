@@ -17,7 +17,7 @@ import {
   SourcePathStrategy
 } from '../util';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import { LWC_TYPE } from './metadataTypeConstants';
 

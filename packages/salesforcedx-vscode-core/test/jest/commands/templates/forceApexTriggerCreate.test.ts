@@ -18,7 +18,7 @@ import {
   SelectFileName,
   SelectOutputDir
 } from '../../../../src/commands/util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../../../../src/commands/util/postconditionCheckers';
+import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
 
