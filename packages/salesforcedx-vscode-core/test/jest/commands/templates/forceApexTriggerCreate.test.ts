@@ -27,7 +27,7 @@ jest.mock(
   '../../../../src/commands/templates/executors/libraryForceApexTriggerCreateExecutor'
 );
 jest.mock('../../../../src/commands/util/preconditionCheckers');
-jest.mock('../../../../src/commands/util/postconditionCheckers');
+jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
