@@ -11,6 +11,7 @@ import {
   LibraryCommandletExecutor,
   Row,
   SourceTrackingService,
+  SourceTrackingType,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -30,6 +31,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
+import { workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
@@ -206,16 +208,21 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+  private sourceTracking?: SourceTrackingType;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const sourceTracking = await SourceTrackingService.createSourceTracking(
-      projectPath,
-      connection
-    );
+    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+      this.sourceTracking = await SourceTrackingService.createSourceTracking(
+        projectPath,
+        connection
+      );
+    }
 
     const defaultOutput = join(
       projectPath,
@@ -232,10 +239,17 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-    await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-      sourceTracking,
-      result
-    );
+
+    const status = result?.response?.status;
+    if (
+      (status === 'Succeeded' || status === 'SucceededPartial') &&
+      this.sourceTracking
+    ) {
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+        this.sourceTracking,
+        result
+      );
+    }
 
     return result;
   }
