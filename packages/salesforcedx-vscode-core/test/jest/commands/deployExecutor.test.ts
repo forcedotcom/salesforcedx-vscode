@@ -44,9 +44,9 @@ jest.mock('../../../src/conflict/metadataCacheService', () => {
   };
 });
 
-jest.mock('../../../src/conflict/timestampConflictDetector');
-
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
+jest.mock('../../../src/commands/util/timestampConflictChecker');
+jest.mock('../../../src/conflict/timestampConflictDetector');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
