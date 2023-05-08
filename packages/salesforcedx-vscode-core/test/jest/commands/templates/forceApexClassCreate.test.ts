@@ -12,13 +12,13 @@ import {
   APEX_CLASS_NAME_MAX_LENGTH,
   APEX_CLASS_TYPE
 } from '../../../../src/commands/templates/metadataTypeConstants';
+import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir
 } from '../../../../src/commands/util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
 
