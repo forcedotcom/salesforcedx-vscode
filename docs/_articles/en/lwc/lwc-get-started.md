@@ -58,7 +58,7 @@ Next we'll add the LWC component that displays queried fields.
 </template>
 
 ```
-3. In the contactList.js file, cut and paste this code and save:
+3. In the `contactList.js` file, cut and paste this code and save:
 
 ```
 import { LightningElement, wire } from 'lwc';
