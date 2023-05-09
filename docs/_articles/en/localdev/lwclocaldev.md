@@ -9,7 +9,7 @@ The Local Development Server is a Salesforce CLI plug-in that configures and run
 
 The Local Development server uses the following Salesforce CLI commands.
 
-View the commands from VS Code's command palette by pressing `command` + `shift` + `p`. By typing in "local development," all three commands are visible.
+View the commands from VS Code's Command Palette by pressing `command` + `shift` + `p`. By typing in "local development," all three commands are visible.
 
 ![VS Code commands for Local Development](./images/vscode_localdev_sfdx_commands.png)
 

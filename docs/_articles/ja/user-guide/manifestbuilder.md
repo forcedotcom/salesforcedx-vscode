@@ -90,7 +90,7 @@ You can deploy source of a manifest, source files, directories, or folders:
 - Source File or Directory
 - In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
-- With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
+- With a source file open in the editor, open the Command Palette and run **SFDX: Deploy This Source File to Org**.
 
 ### Delete Source
 
