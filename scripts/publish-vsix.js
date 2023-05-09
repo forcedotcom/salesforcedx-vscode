@@ -26,6 +26,19 @@ if (VSCE_PERSONAL_ACCESS_TOKEN) {
 
 // Check that publishing extension was successful.
 if (vscePublish.code !== 0) {
-  logger.error(`There was and error while publishing extension ${vsix}`);
+  logger.error(`There was an error while publishing extension on VS Code marketplace ${vsix}`);
+  shell.exit(1);
+}
+
+const OVSX_PAT = process.env["OVSX_PAT"];
+let ovsxPublish = '';
+if (OVSX_PAT) {
+  ovsxPublish = shell.exec(`npx ovsx publish --packagePath ${vsix} --pat ${OVSX_PAT}`);
+} else {
+  // Assume that one has already been configured
+  ovsxPublish = shell.exec(`npx ovsx publish --packagePath ${vsix}`);
+}
+if (ovsxPublish.code !== 0) {
+  logger.error(`There was an error while publishing extension on Open VSX Registry ${vsix}`);
   shell.exit(1);
 }

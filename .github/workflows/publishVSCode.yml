@@ -1,4 +1,4 @@
-name: Publish in Microsoft Marketplace
+name: Publish in Microsoft Marketplace & Open VSX Registry
 on:
   release:
     # This limits the workflow to releases that are not pre-releases 
@@ -6,7 +6,7 @@ on:
     types: [ released ]
   #  Button for publishing main branch in case there is a failure on the release.
   workflow_dispatch:
-    
+
 jobs:
 
   publish-start-notification:
@@ -18,7 +18,7 @@ jobs:
       notification: "New Release triggered publish build and job is ready for approval."
       type: "notification"
       workflow: "publishVSCode.yml"
-  
+
   prepare-environment-from-main:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
@@ -36,11 +36,11 @@ jobs:
           echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
       - id: getGusBuild
-        run: | 
+        run: |
           echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
       - id: getScheduledBuild
-        run: | 
+        run: |
           echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
 
@@ -50,13 +50,14 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
+    needs: [ 'ctc-open', 'prepare-environment-from-main' ]
     runs-on: ubuntu-latest
-    env: 
+    env:
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
       PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-    steps: 
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -66,14 +67,16 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: downloadExtensionsFromRelease
-        run: | 
+        run: |
           mkdir ./extensions
           gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - run: npm ci
       - run: find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
-      - run: echo "SUCCESSFULLY published"
+      - run: echo "SUCCESSFULLY published on Microsoft VS Code Marketplace"
+      - run: find ./extensions -type f -name "*.vsix" -exec npx ovsx publish --pat ${{ env.OVSX_PAT }} --packagePath {} \;
+      - run: echo "SUCCESSFULLY published on Open-VSX Registry"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
