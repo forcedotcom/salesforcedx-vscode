@@ -34,15 +34,19 @@ export const debouncedShowChannelAndErrorMessage = debounce(
 );
 
 export async function withSFConnection(
-  f: (conn: Connection) => void
+  f: (conn: Connection) => void,
+  showErrorMessage = true
 ): Promise<void> {
   try {
     const conn = await workspaceContext.getConnection();
     return f((conn as unknown) as Connection);
   } catch (e) {
-    debouncedShowChannelAndErrorMessage(e);
+    if (showErrorMessage) {
+      debouncedShowChannelAndErrorMessage(e);
+    }
   }
 }
+
 export async function retrieveSObjects(): Promise<string[]> {
   let foundSObjectNames: string[] = [];
   await withSFConnection(async conn => {
@@ -69,10 +73,11 @@ export async function retrieveSObject(
 }
 
 workspaceContext.onOrgChange(async (orgInfo: any) => {
+  const showErrorMessage = !!orgInfo.username;
   await withSFConnection(conn => {
     conn.describeGlobal$.clear();
     conn.describe$.clear();
-  });
+  }, showErrorMessage);
 });
 
 export function onOrgChange(f: (orgInfo: any) => Promise<void>): void {
