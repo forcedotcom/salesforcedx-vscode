@@ -7,7 +7,8 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
@@ -30,6 +31,12 @@ export const pushCommand: CommandParams = {
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
+  public localChanges: any;
+
+  public async cacheLocalChanges() {
+    const localStatus = await SourceTrackingService.getLocalStatus();
+    this.localChanges = localStatus;
+  }
 
   public constructor(
     flag?: string,
@@ -57,6 +64,10 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
   protected getDeployType() {
     return DeployType.Push;
   }
+
+  protected getLocalChanges() {
+    return this.localChanges;
+  }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
@@ -65,6 +76,7 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourcePush(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ForceSourcePushExecutor(flag, pushCommand);
+  await executor.cacheLocalChanges();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

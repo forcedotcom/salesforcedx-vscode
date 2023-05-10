@@ -15,6 +15,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { PersistentStorageService } from '../conflict';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
@@ -55,6 +56,42 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
+      if (exitCode === 0 && this.getDeployType() === 'push') {
+        console.log(
+          'A Push operation completed successfully, updating local cache...'
+        );
+
+        // get the cached local changes that were deployed as part of the push operation
+        const w = this.getLocalChanges();
+
+        // convert the local changes type to a type that can be sent to update cache
+        const y = w.map(
+          (i: { type: string; filePath: string; fullName: string }) => {
+            return { type: i.type, fullName: i.fullName, filePath: i.filePath };
+          }
+        );
+
+        // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
+        const z = [];
+        for (const element of y) {
+          z.push(element);
+          const f = element.fullName;
+          const l = f.length;
+          const ext = f.substring(l - 4);
+          if (ext === '.cls' || ext === '.cmp') {
+            z.push({
+              type: element.type,
+              fullName: element.fullName + '-meta.xml'
+            });
+          }
+        }
+
+        // pass the array to PersistentStorageService for updating of timestamps,
+        // so that conflict detection will behave as expected
+        PersistentStorageService.getInstance().setPropertiesForFilesPush(z);
+        console.log('Local cache updated.');
+      }
+
       const telemetry = new TelemetryBuilder();
       let success = false;
       try {
@@ -102,6 +139,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   }
 
   protected abstract getDeployType(): DeployType;
+  protected abstract getLocalChanges(): any;
 
   public outputResult(parser: ForceDeployResultParser) {
     const table = new Table();

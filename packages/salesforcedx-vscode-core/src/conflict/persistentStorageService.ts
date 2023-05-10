@@ -75,6 +75,15 @@ export class PersistentStorageService {
     }
   }
 
+  public setPropertiesForFilesPush(files: any) {
+    const afterPushTimestamp = new Date().toISOString();
+    for (const file of files) {
+      this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
+        lastModifiedDate: afterPushTimestamp
+      });
+    }
+  }
+
   public makeKey(type: string, fullName: string): string {
     const orgUserName = WorkspaceContext.getInstance().username;
     const projectPath = getRootWorkspacePath();
