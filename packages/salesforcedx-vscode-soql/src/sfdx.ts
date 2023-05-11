@@ -72,13 +72,15 @@ export async function retrieveSObject(
   return name;
 }
 
-workspaceContext.onOrgChange(async (orgInfo: any) => {
+export async function onOrgChangeDefaultHandler(orgInfo: any) {
   const showErrorMessage = !!orgInfo.username;
   await withSFConnection(conn => {
     conn.describeGlobal$.clear();
     conn.describe$.clear();
   }, showErrorMessage);
-});
+}
+
+workspaceContext.onOrgChange(onOrgChangeDefaultHandler);
 
 export function onOrgChange(f: (orgInfo: any) => Promise<void>): void {
   workspaceContext.onOrgChange(f);
