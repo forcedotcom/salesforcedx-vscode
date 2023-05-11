@@ -7,7 +7,8 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
@@ -30,6 +31,12 @@ export const pullCommand: CommandParams = {
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
+  public remoteChanges: any;
+
+  public async cacheRemoteChanges() {
+    const remoteStatus = await SourceTrackingService.getRemoteStatus();
+    this.remoteChanges = remoteStatus;
+  }
 
   public constructor(
     flag?: string,
@@ -52,6 +59,10 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     }
     return builder.build();
   }
+
+  public getRemoteChanges() {
+    return this.remoteChanges;
+  }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
@@ -60,6 +71,7 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourcePull(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ForceSourcePullExecutor(flag, pullCommand);
+  await executor.cacheRemoteChanges();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

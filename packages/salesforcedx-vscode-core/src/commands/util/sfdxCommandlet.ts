@@ -7,9 +7,13 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandExecution, ContinueResponse, Measurements, ParametersGatherer,
+  CommandExecution,
+  ContinueResponse,
+  Measurements,
+  ParametersGatherer,
   PostconditionChecker,
-  PreconditionChecker, Properties,
+  PreconditionChecker,
+  Properties,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -20,6 +24,7 @@ import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
+import { ForceSourcePullExecutor } from '../forceSourcePull';
 
 export interface FlagParameter<T> {
   flag?: T;
@@ -95,6 +100,20 @@ export abstract class SfdxCommandletExecutor<T>
     });
 
     execution.processExitSubject.subscribe(exitCode => {
+      // update cache after pull
+      // if (this.) {
+
+      // }
+      if (
+        execution.command.logName === 'force_source_pull_default_scratch_org'
+      ) {
+        console.log('pull executed, updating cache');
+        const remoteChanges = (this as any).getRemoteChanges();
+
+        // convert remote changes and call persistent storage
+
+        console.log(remoteChanges);
+      }
       const telemetryData = this.getTelemetryData(
         exitCode === 0,
         response,
