@@ -23,8 +23,8 @@ import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
+import { BaseDeployExecutor } from '../baseDeployCommand';
 import { EmptyPostChecker } from './emptyPostChecker';
-import { ForceSourcePullExecutor } from '../forceSourcePull';
 
 export interface FlagParameter<T> {
   flag?: T;
@@ -111,6 +111,8 @@ export abstract class SfdxCommandletExecutor<T>
         const remoteChanges = (this as any).getRemoteChanges();
 
         // convert remote changes and call persistent storage
+        const converted = BaseDeployExecutor.convert(remoteChanges);
+        BaseDeployExecutor.updateCache(converted);
 
         console.log(remoteChanges);
       }

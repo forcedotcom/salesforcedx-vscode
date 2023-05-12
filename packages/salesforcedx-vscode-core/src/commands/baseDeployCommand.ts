@@ -138,6 +138,38 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
+  public static convert(w: any): any {
+    // convert the local changes type to a type that can be sent to update cache
+    const y = w.map(
+      (i: { type: string; filePath: string; fullName: string }) => {
+        return { type: i.type, fullName: i.fullName, filePath: i.filePath };
+      }
+    );
+
+    // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
+    const z = [];
+    for (const element of y) {
+      z.push(element);
+      const f = element.fullName;
+      const l = f.length;
+      const ext = f.substring(l - 4);
+      if (ext === '.cls' || ext === '.cmp') {
+        z.push({
+          type: element.type,
+          fullName: element.fullName + '-meta.xml'
+        });
+      }
+    }
+    return z;
+  }
+
+  public static updateCache(z: any): void {
+    // pass the array to PersistentStorageService for updating of timestamps,
+    // so that conflict detection will behave as expected
+    PersistentStorageService.getInstance().setPropertiesForFilesPush(z);
+    console.log('Local cache updated.');
+  }
+
   protected abstract getDeployType(): DeployType;
   protected abstract getLocalChanges(): any;
 
