@@ -21,7 +21,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker

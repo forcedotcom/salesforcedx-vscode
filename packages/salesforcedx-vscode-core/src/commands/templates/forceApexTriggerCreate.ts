@@ -17,7 +17,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryForceApexTriggerCreateExecutor } from './executors/libraryForceApexTriggerCreateExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,

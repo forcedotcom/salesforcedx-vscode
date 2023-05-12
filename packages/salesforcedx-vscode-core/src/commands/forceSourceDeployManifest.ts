@@ -9,7 +9,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { TimestampConflictChecker } from '../commands/util/postconditionCheckers';
+import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -18,7 +18,6 @@ import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { DeployExecutor } from './baseDeployRetrieve';
 import {
-  ConflictDetectionMessages,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker

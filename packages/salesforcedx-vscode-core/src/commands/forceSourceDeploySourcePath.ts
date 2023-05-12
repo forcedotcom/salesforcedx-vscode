@@ -16,15 +16,12 @@ import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
-  ConflictDetectionMessages,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-import {
-  CompositePostconditionChecker,
-  TimestampConflictChecker
-} from './util/postconditionCheckers';
+import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
+import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor() {

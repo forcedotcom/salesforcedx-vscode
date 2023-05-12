@@ -15,6 +15,7 @@ class DefaultPathStrategy implements SourcePathStrategy {
     return join(dirPath, `${fileName}${fileExt}`);
   }
 }
+
 class BundlePathStrategy implements SourcePathStrategy {
   public getPathToSource(
     dirPath: string,
