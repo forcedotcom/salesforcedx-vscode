@@ -100,22 +100,13 @@ export abstract class SfdxCommandletExecutor<T>
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      // update cache after pull
-      // if (this.) {
-
-      // }
       if (
         execution.command.logName === 'force_source_pull_default_scratch_org'
       ) {
-        console.log('pull executed, updating cache');
         const remoteChanges = (this as any).getRemoteChanges();
-
-        // convert remote changes and call persistent storage
-        const converted = BaseDeployExecutor.convert(remoteChanges);
-        BaseDeployExecutor.updateCache(converted);
-
-        console.log(remoteChanges);
+        this.updateLocalCacheAfterPull(remoteChanges);
       }
+
       const telemetryData = this.getTelemetryData(
         exitCode === 0,
         response,
@@ -136,6 +127,14 @@ export abstract class SfdxCommandletExecutor<T>
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
+
+  updateLocalCacheAfterPull(remoteChanges: any): void {
+    // update persistent storage for the remote changes that were pulled
+    const converted = BaseDeployExecutor.convert(remoteChanges);
+    BaseDeployExecutor.updateCache(converted);
+
+    console.log(remoteChanges);
   }
 
   protected getTelemetryData(
