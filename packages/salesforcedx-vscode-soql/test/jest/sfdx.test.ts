@@ -8,47 +8,51 @@
 import { OrgInfo } from '@salesforce/salesforcedx-utils';
 import * as sfdx from '../../src/sfdx';
 
-describe('withSFConnection', () => {
-  function run(showErrorMessage: boolean) {
-    it(`should ${
-      showErrorMessage ? '' : 'not '
-    } show error message when showErrorMessage=${showErrorMessage}`, async () => {
-      const debouncedShowChannelAndErrorMessageSpy = jest.spyOn(
-        sfdx,
-        'debouncedShowChannelAndErrorMessage'
-      );
+describe('sfdx utils', () => {
+  let debouncedShowChannelAndErrorMessageSpy;
 
-      await sfdx.withSFConnection(jest.fn(), showErrorMessage);
+  beforeEach(() => {
+    debouncedShowChannelAndErrorMessageSpy = jest
+      .spyOn(sfdx, 'debouncedShowChannelAndErrorMessage')
+      .mockImplementation(() => Promise.resolve());
+  });
 
-      expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
-        showErrorMessage ? 1 : 0
-      );
-    });
-  }
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-  run(true);
-  run(false);
-});
+  describe('withSFConnection', () => {
+    function run(showErrorMessage: boolean) {
+      it(`should ${
+        showErrorMessage ? '' : 'not '
+      } show error message when showErrorMessage=${showErrorMessage}`, async () => {
+        await sfdx.withSFConnection(jest.fn(), showErrorMessage);
 
-describe('onOrgChangeDefaultHandler', () => {
-  function run(orgInfo: OrgInfo) {
-    const isDefaultOrgSet = !!orgInfo.username;
-    const maybeNot = isDefaultOrgSet ? '' : 'not ';
+        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
+          showErrorMessage ? 1 : 0
+        );
+      });
+    }
 
-    it(`should ${maybeNot} show connection error message when default org is ${maybeNot} set`, async () => {
-      const debouncedShowChannelAndErrorMessageSpy = jest.spyOn(
-        sfdx,
-        'debouncedShowChannelAndErrorMessage'
-      );
+    run(true);
+    run(false);
+  });
 
-      await sfdx.onOrgChangeDefaultHandler(orgInfo);
+  describe('onOrgChangeDefaultHandler', () => {
+    function run(orgInfo: OrgInfo) {
+      const isDefaultOrgSet = !!orgInfo.username;
+      const maybeNot = isDefaultOrgSet ? '' : 'not ';
 
-      expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
-        isDefaultOrgSet ? 1 : 0
-      );
-    });
-  }
+      it(`should ${maybeNot} show connection error message when default org is ${maybeNot} set`, async () => {
+        await sfdx.onOrgChangeDefaultHandler(orgInfo);
 
-  run({ username: 'x' } as OrgInfo);
-  run({ username: undefined } as OrgInfo);
+        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
+          isDefaultOrgSet ? 1 : 0
+        );
+      });
+    }
+
+    run({ username: 'x' } as OrgInfo);
+    run({ username: undefined } as OrgInfo);
+  });
 });
