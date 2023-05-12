@@ -1,4 +1,4 @@
-name: Publish in Microsoft Marketplace
+name: Publish in Open VSX Registry
 on:
   release:
     # This limits the workflow to releases that are not pre-releases 
@@ -10,14 +10,14 @@ on:
 jobs:
 
   publish-start-notification:
-    name: "Publish in MS Marketplace Start Notification"
+    name: "Publish in Open VSX Start Notification"
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Publish in MS Marketplace waiting for approval in github."
+      title: "Publish in Open VSX waiting for approval in github."
       notification: "New Release triggered publish build and job is ready for approval."
       type: "notification"
-      workflow: "publishVSCode.yml"
+      workflow: "publishOpenVSX.yml"
   
   prepare-environment-from-main:
     name: 'Get Release Version'
@@ -44,6 +44,7 @@ jobs:
           echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
 
+
   ctc-open:
     needs: [ prepare-environment-from-main ]
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
@@ -53,7 +54,7 @@ jobs:
     needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
     runs-on: ubuntu-latest
     env: 
-      VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
+      OPEN_VSX_PERSONAL_ACCESS_TOKEN: ${{ secrets.OPEN_VSX_PERSONAL_ACCESS_TOKEN }}
       PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps: 
@@ -72,7 +73,7 @@ jobs:
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - run: npm ci
-      - run: find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
+      - run: find ./extensions -type f -name "*.vsix" -exec npx ovsx publish {} -p ${{ env.OPEN_VSX_PERSONAL_ACCESS_TOKEN }} \;
       - run: echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
