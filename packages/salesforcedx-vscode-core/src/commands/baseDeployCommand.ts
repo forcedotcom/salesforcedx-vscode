@@ -57,39 +57,8 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async exitCode => {
       if (exitCode === 0 && this.getDeployType() === 'push') {
-        console.log(
-          'A Push operation completed successfully, updating local cache...'
-        );
-
-        // get the cached local changes that were deployed as part of the push operation
-        const w = this.getLocalChanges();
-
-        // convert the local changes type to a type that can be sent to update cache
-        const y = w.map(
-          (i: { type: string; filePath: string; fullName: string }) => {
-            return { type: i.type, fullName: i.fullName, filePath: i.filePath };
-          }
-        );
-
-        // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
-        const z = [];
-        for (const element of y) {
-          z.push(element);
-          const f = element.fullName;
-          const l = f.length;
-          const ext = f.substring(l - 4);
-          if (ext === '.cls' || ext === '.cmp') {
-            z.push({
-              type: element.type,
-              fullName: element.fullName + '-meta.xml'
-            });
-          }
-        }
-
-        // pass the array to PersistentStorageService for updating of timestamps,
-        // so that conflict detection will behave as expected
-        PersistentStorageService.getInstance().setPropertiesForFilesPush(z);
-        console.log('Local cache updated.');
+        const localChanges = this.getLocalChanges();
+        this.updateLocalCacheAfterPushPull(localChanges);
       }
 
       const telemetry = new TelemetryBuilder();
@@ -136,38 +105,6 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
-  }
-
-  public static convert(w: any): any {
-    // convert the local changes type to a type that can be sent to update cache
-    const y = w.map(
-      (i: { type: string; filePath: string; fullName: string }) => {
-        return { type: i.type, fullName: i.fullName, filePath: i.filePath };
-      }
-    );
-
-    // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
-    const z = [];
-    for (const element of y) {
-      z.push(element);
-      const f = element.fullName;
-      const l = f.length;
-      const ext = f.substring(l - 4);
-      if (ext === '.cls' || ext === '.cmp') {
-        z.push({
-          type: element.type,
-          fullName: element.fullName + '-meta.xml'
-        });
-      }
-    }
-    return z;
-  }
-
-  public static updateCache(z: any): void {
-    // pass the array to PersistentStorageService for updating of timestamps,
-    // so that conflict detection will behave as expected
-    PersistentStorageService.getInstance().setPropertiesForFilesPush(z);
-    console.log('Local cache updated.');
   }
 
   protected abstract getDeployType(): DeployType;

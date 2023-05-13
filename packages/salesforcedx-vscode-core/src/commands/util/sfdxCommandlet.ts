@@ -14,16 +14,17 @@ import {
   PostconditionChecker,
   PreconditionChecker,
   Properties,
+  SourceTrackingService,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
+import { PersistentStorageService } from '../../conflict';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
-import { BaseDeployExecutor } from '../baseDeployCommand';
 import { EmptyPostChecker } from './emptyPostChecker';
 
 export interface FlagParameter<T> {
@@ -103,8 +104,10 @@ export abstract class SfdxCommandletExecutor<T>
       if (
         execution.command.logName === 'force_source_pull_default_scratch_org'
       ) {
-        const remoteChanges = (this as any).getRemoteChanges();
-        this.updateLocalCacheAfterPull(remoteChanges);
+        const remoteChanges = this.getRemoteChanges
+          ? this.getRemoteChanges
+          : [];
+        this.updateLocalCacheAfterPushPull(remoteChanges);
       }
 
       const telemetryData = this.getTelemetryData(
@@ -129,12 +132,9 @@ export abstract class SfdxCommandletExecutor<T>
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  updateLocalCacheAfterPull(remoteChanges: any): void {
-    // update persistent storage for the remote changes that were pulled
-    const converted = BaseDeployExecutor.convert(remoteChanges);
-    BaseDeployExecutor.updateCache(converted);
-
-    console.log(remoteChanges);
+  public updateLocalCacheAfterPushPull(changes: any): void {
+    const converted = SourceTrackingService.convert(changes);
+    PersistentStorageService.updateCache(converted);
   }
 
   protected getTelemetryData(
@@ -146,6 +146,7 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   public abstract build(data: T): Command;
+  public getRemoteChanges?(): any;
 }
 
 export class SfdxCommandlet<T> {

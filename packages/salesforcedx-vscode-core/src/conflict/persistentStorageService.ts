@@ -39,6 +39,15 @@ export class PersistentStorageService {
     return PersistentStorageService.instance;
   }
 
+  public static updateCache(changedFiles: any): void {
+    // pass the array to PersistentStorageService for updating of timestamps,
+    // so that conflict detection will behave as expected
+    PersistentStorageService.getInstance().setPropertiesForFilesPush(
+      changedFiles
+    );
+    console.log('Local cache updated.');
+  }
+
   public getPropertiesForFile(key: string): ConflictFileProperties | undefined {
     return this.storage.get<ConflictFileProperties>(key);
   }
