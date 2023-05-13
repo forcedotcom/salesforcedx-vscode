@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RetrieveMetadataTrigger } from '.';
 import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
+import { RetrieveMetadataTrigger } from './retrieveMetadataTrigger';
 
 export async function forceSourceRetrieveCmp(
   trigger: RetrieveMetadataTrigger,
