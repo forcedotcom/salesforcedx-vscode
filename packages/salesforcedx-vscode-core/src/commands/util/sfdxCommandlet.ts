@@ -19,13 +19,14 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-import { PersistentStorageService } from '../../conflict';
+// import { PersistentStorageService } from '../../conflict';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
+import { PersistentStorageService } from '../../conflict';
 
 export interface FlagParameter<T> {
   flag?: T;
@@ -135,7 +136,7 @@ export abstract class SfdxCommandletExecutor<T>
 
   public updateLocalCacheAfterPushPull(changes: any): void {
     const converted = SourceTrackingService.convert(changes);
-    PersistentStorageService.updateCache(converted);
+    PersistentStorageService.updateCacheAfterPushPull(converted);
   }
 
   protected getTelemetryData(

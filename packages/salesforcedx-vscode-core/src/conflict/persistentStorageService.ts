@@ -39,10 +39,10 @@ export class PersistentStorageService {
     return PersistentStorageService.instance;
   }
 
-  public static updateCache(changedFiles: any): void {
+  public static updateCacheAfterPushPull(changedFiles: any): void {
     // pass the array to PersistentStorageService for updating of timestamps,
     // so that conflict detection will behave as expected
-    PersistentStorageService.getInstance().setPropertiesForFilesPush(
+    PersistentStorageService.getInstance().setPropertiesForFilesPushPull(
       changedFiles
     );
     console.log('Local cache updated.');
@@ -84,7 +84,7 @@ export class PersistentStorageService {
     }
   }
 
-  public setPropertiesForFilesPush(files: any) {
+  public setPropertiesForFilesPushPull(files: any) {
     const afterPushTimestamp = new Date().toISOString();
     for (const file of files) {
       this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
