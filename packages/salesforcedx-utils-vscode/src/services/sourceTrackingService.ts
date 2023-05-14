@@ -16,6 +16,7 @@ import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
+import { FileInfo } from './FileInfo';
 
 export type SourceTrackingType = SourceTracking;
 export class SourceTrackingService {
@@ -85,7 +86,7 @@ export class SourceTrackingService {
     return statusResponse;
   }
 
-  public static convert(w: any): any {
+  public static convert(w: any): FileInfo[] {
     // convert the local changes type to a type that can be sent to update cache
     const y = w.map(
       (i: { type: string; filePath: string; fullName: string }) => {
@@ -94,7 +95,7 @@ export class SourceTrackingService {
     );
 
     // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
-    const z = [];
+    const z: FileInfo[] = [];
     for (const element of y) {
       z.push(element);
       const f = element.fullName;
