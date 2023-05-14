@@ -15,7 +15,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { PersistentStorageService } from '../conflict';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
@@ -57,7 +56,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async exitCode => {
       if (exitCode === 0 && this.getDeployType() === 'push') {
-        const localChanges = this.getLocalChanges();
+        const localChanges = this.getLocalChanges ? this.getLocalChanges() : [];
         this.updateLocalCacheAfterPushPull(localChanges);
       }
 
@@ -108,7 +107,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   }
 
   protected abstract getDeployType(): DeployType;
-  protected abstract getLocalChanges(): any;
+  protected getLocalChanges?(): any;
 
   public outputResult(parser: ForceDeployResultParser) {
     const table = new Table();

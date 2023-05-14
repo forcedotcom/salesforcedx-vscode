@@ -31,7 +31,7 @@ export const pullCommand: CommandParams = {
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
-  public remoteChanges: any;
+  private remoteChanges: any;
 
   public async cacheRemoteChanges() {
     const remoteStatus = await SourceTrackingService.getRemoteStatus();

@@ -31,7 +31,7 @@ export const pushCommand: CommandParams = {
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
-  public localChanges: any;
+  private localChanges: any;
 
   public async cacheLocalChanges() {
     const localStatus = await SourceTrackingService.getLocalStatus();

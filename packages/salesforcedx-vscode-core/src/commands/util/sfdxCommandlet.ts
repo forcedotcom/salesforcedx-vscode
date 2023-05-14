@@ -146,7 +146,7 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   public abstract build(data: T): Command;
-  public getRemoteChanges?(): any;
+  protected getRemoteChanges?(): any;
 }
 
 export class SfdxCommandlet<T> {
