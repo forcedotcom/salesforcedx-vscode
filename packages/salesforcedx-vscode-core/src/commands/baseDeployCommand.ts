@@ -55,7 +55,11 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      if (exitCode === 0 && this.getDeployType() === 'push') {
+      if (
+        exitCode === 0 &&
+        this.getDeployType() === 'push' &&
+        this.updateLocalCacheAfterPushPull
+      ) {
         const localChanges = this.getLocalChanges ? this.getLocalChanges() : [];
         this.updateLocalCacheAfterPushPull(localChanges);
       }

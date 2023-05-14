@@ -102,7 +102,8 @@ export abstract class SfdxCommandletExecutor<T>
 
     execution.processExitSubject.subscribe(exitCode => {
       if (
-        execution.command.logName === 'force_source_pull_default_scratch_org'
+        execution.command.logName === 'force_source_pull_default_scratch_org' &&
+        this.updateLocalCacheAfterPushPull
       ) {
         const remoteChanges = this.getRemoteChanges
           ? this.getRemoteChanges
