@@ -10,6 +10,7 @@ import {
   SfdxCommandBuilder,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
+import { PersistentStorageService } from '../conflict';
 import { nls } from '../messages';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
@@ -67,6 +68,11 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
 
   protected getLocalChanges() {
     return this.localChanges;
+  }
+
+  protected updateLocalCacheAfterPushPull(changes: any): void {
+    const converted = SourceTrackingService.convert(changes);
+    PersistentStorageService.updateCacheAfterPushPull(converted);
   }
 }
 

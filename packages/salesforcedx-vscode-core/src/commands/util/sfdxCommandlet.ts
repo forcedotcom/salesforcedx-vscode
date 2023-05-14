@@ -19,14 +19,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-// import { PersistentStorageService } from '../../conflict';
+import { PersistentStorageService } from '../../conflict';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
-import { PersistentStorageService } from '../../conflict';
 
 export interface FlagParameter<T> {
   flag?: T;
@@ -104,12 +103,12 @@ export abstract class SfdxCommandletExecutor<T>
     execution.processExitSubject.subscribe(exitCode => {
       if (
         execution.command.logName === 'force_source_pull_default_scratch_org' &&
-        this.updateLocalCacheAfterPushPull
+        this.updateCacheAfterPushPull
       ) {
         const remoteChanges = this.getRemoteChanges
           ? this.getRemoteChanges
           : [];
-        this.updateLocalCacheAfterPushPull(remoteChanges);
+        this.updateCacheAfterPushPull(remoteChanges);
       }
 
       const telemetryData = this.getTelemetryData(
@@ -134,11 +133,6 @@ export abstract class SfdxCommandletExecutor<T>
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  public updateLocalCacheAfterPushPull(changes: any): void {
-    const converted = SourceTrackingService.convert(changes);
-    PersistentStorageService.updateCacheAfterPushPull(converted);
-  }
-
   protected getTelemetryData(
     success: boolean,
     response: ContinueResponse<T>,
@@ -149,6 +143,7 @@ export abstract class SfdxCommandletExecutor<T>
 
   public abstract build(data: T): Command;
   protected getRemoteChanges?(): any;
+  protected updateCacheAfterPushPull?(changes: any): any;
 }
 
 export class SfdxCommandlet<T> {
