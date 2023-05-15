@@ -10,6 +10,7 @@ import {
   ContinueResponse,
   ForceDeployResultParser,
   Row,
+  StatusOutputRowType,
   Table,
   TelemetryBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -23,7 +24,6 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
-import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export enum DeployType {
   Deploy = 'deploy',

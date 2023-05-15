@@ -8,7 +8,8 @@
 import {
   Command,
   SfdxCommandBuilder,
-  SourceTrackingService
+  SourceTrackingService,
+  StatusOutputRowType
 } from '@salesforce/salesforcedx-utils-vscode';
 import { PersistentStorageService } from '../conflict';
 import { nls } from '../messages';
@@ -20,7 +21,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export const pullCommand: CommandParams = {
   command: 'force:source:pull',

@@ -7,5 +7,6 @@
 
 export {
   SourceTrackingType,
-  SourceTrackingService
+  SourceTrackingService,
+  StatusOutputRowType
 } from './sourceTrackingService';

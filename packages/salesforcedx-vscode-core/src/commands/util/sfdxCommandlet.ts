@@ -14,6 +14,7 @@ import {
   PostconditionChecker,
   PreconditionChecker,
   Properties,
+  StatusOutputRowType,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -24,7 +25,6 @@ import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
-import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export interface FlagParameter<T> {
   flag?: T;
