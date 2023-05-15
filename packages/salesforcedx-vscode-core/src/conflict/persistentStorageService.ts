@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import { FileInfo } from '@salesforce/salesforcedx-utils-vscode/src/services/types/FileInfo';
 import {
   DeployResult,
   FileProperties
@@ -40,26 +41,35 @@ export class PersistentStorageService {
   }
 
   public static updateCacheAfterPushPull(changedFiles: any): void {
+    const instance = PersistentStorageService.getInstance();
+
+    const changedFilesWithMetaFiles = instance.bolsterChangedFiles(
+      changedFiles
+    );
+
+    // Pass the array to PersistentStorageService for updating of timestamps,
+    // so that conflict detection will behave as expected
+    instance.setPropertiesForFilesPushPull(changedFilesWithMetaFiles);
+  }
+
+  private bolsterChangedFiles(changedFiles: FileInfo[]): FileInfo[] {
     // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
     const bolsteredChangedFiles = [];
     for (const file of changedFiles) {
-      bolsteredChangedFiles.push(file);
-      const filePath = file.filePath;
-      const filePathLength = filePath.length;
-      const fileExtension = filePath.substring(filePathLength - 4);
-      if (fileExtension === '.cls' || fileExtension === '.cmp') {
-        bolsteredChangedFiles.push({
-          type: file.type,
-          fullName: file.fullName + '-meta.xml'
-        });
+      if (file.filePath) {
+        bolsteredChangedFiles.push(file);
+        const filePath = file.filePath;
+        const filePathLength = filePath.length;
+        const fileExtension = filePath.substring(filePathLength - 4);
+        if (fileExtension === '.cls' || fileExtension === '.cmp') {
+          bolsteredChangedFiles.push({
+            type: file.type,
+            fullName: file.fullName + '-meta.xml'
+          });
+        }
       }
     }
-
-    // pass the array to PersistentStorageService for updating of timestamps,
-    // so that conflict detection will behave as expected
-    PersistentStorageService.getInstance().setPropertiesForFilesPushPull(
-      bolsteredChangedFiles
-    );
+    return bolsteredChangedFiles;
   }
 
   public getPropertiesForFile(key: string): ConflictFileProperties | undefined {

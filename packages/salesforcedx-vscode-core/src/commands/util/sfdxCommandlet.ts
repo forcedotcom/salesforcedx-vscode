@@ -14,12 +14,10 @@ import {
   PostconditionChecker,
   PreconditionChecker,
   Properties,
-  SourceTrackingService,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-import { PersistentStorageService } from '../../conflict';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
