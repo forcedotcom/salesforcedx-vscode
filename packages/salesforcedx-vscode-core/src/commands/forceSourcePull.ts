@@ -33,7 +33,7 @@ export const pullCommand: CommandParams = {
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
-  private remoteChanges: StatusOutputRowType[] = [];
+  private remoteChanges?: StatusOutputRowType[];
 
   public async cacheRemoteChanges() {
     const remoteStatus = await SourceTrackingService.getRemoteChangedFiles();
@@ -62,7 +62,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     return builder.build();
   }
 
-  protected getRemoteChanges(): StatusOutputRowType[] {
+  protected getRemoteChanges(): StatusOutputRowType[] | undefined {
     return this.remoteChanges;
   }
 

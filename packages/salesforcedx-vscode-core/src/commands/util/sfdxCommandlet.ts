@@ -138,7 +138,7 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   public abstract build(data: T): Command;
-  protected getCachedRemoteChanges?(): StatusOutputRowType[];
+  protected getRemoteChanges?(): StatusOutputRowType[] | undefined;
   protected updateCacheAfterPushPull?(): void;
 }
 

@@ -16,7 +16,6 @@ import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
-import { FileInfo } from './types/FileInfo';
 
 export type SourceTrackingType = SourceTracking;
 export type StatusOutputRowType = StatusOutputRow;
@@ -69,7 +68,7 @@ export class SourceTrackingService {
     return sourceStatusSummary.format();
   }
 
-  public static async getLocalChangedFiles(): Promise<StatusOutputRow[]> {
+  public static async getLocalStatus(): Promise<StatusOutputRow[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: true,

@@ -20,6 +20,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
+import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export const pushCommand: CommandParams = {
   command: 'force:source:push',
@@ -32,10 +33,10 @@ export const pushCommand: CommandParams = {
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
-  private localChanges: any;
+  private localChanges?: StatusOutputRowType[];
 
   public async cacheLocalChanges() {
-    const localStatus = await SourceTrackingService.getLocalChangedFiles();
+    const localStatus = await SourceTrackingService.getLocalStatus();
     this.localChanges = localStatus;
   }
 
@@ -66,7 +67,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
     return DeployType.Push;
   }
 
-  protected getLocalChanges() {
+  protected getLocalChanges(): StatusOutputRowType[] | undefined {
     return this.localChanges;
   }
 

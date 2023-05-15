@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
-import { FileInfo } from '@salesforce/salesforcedx-utils-vscode/src/services/types/FileInfo';
 import {
   DeployResult,
   FileProperties
@@ -53,7 +52,7 @@ export class PersistentStorageService {
     instance.setPropertiesForFilesPushPull(changedFilesWithMetaFiles);
   }
 
-  private bolsterChangedFiles(changedFiles: FileInfo[]): FileInfo[] {
+  private bolsterChangedFiles(changedFiles: StatusOutputRowType[]): any[] {
     // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
     const bolsteredChangedFiles = [];
     for (const file of changedFiles) {

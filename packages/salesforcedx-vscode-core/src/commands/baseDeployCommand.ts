@@ -111,7 +111,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   }
 
   protected abstract getDeployType(): DeployType;
-  protected getLocalChanges?(): StatusOutputRowType[];
+  protected getLocalChanges?(): StatusOutputRowType[] | undefined;
 
   public outputResult(parser: ForceDeployResultParser) {
     const table = new Table();
