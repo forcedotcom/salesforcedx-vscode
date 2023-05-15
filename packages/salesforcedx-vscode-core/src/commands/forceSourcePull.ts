@@ -20,6 +20,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export const pullCommand: CommandParams = {
   command: 'force:source:pull',
@@ -32,7 +33,7 @@ export const pullCommand: CommandParams = {
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
-  private remoteChanges: any;
+  private remoteChanges: StatusOutputRowType[] = [];
 
   public async cacheRemoteChanges() {
     const remoteStatus = await SourceTrackingService.getRemoteChangedFiles();
@@ -61,7 +62,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     return builder.build();
   }
 
-  protected getRemoteChanges() {
+  protected getRemoteChanges(): StatusOutputRowType[] {
     return this.remoteChanges;
   }
 

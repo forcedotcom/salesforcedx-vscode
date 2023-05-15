@@ -13,6 +13,7 @@ import {
 import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
+import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 interface ConflictFileProperties {
   lastModifiedDate: string;

@@ -24,6 +24,7 @@ import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
+import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export interface FlagParameter<T> {
   flag?: T;
@@ -137,8 +138,8 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   public abstract build(data: T): Command;
-  protected getRemoteChanges?(): any;
-  protected updateCacheAfterPushPull?(): any;
+  protected getCachedRemoteChanges?(): StatusOutputRowType[];
+  protected updateCacheAfterPushPull?(): void;
 }
 
 export class SfdxCommandlet<T> {

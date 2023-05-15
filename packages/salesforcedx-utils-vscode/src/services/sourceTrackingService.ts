@@ -19,6 +19,7 @@ import { getRootWorkspacePath } from '../workspaces';
 import { FileInfo } from './types/FileInfo';
 
 export type SourceTrackingType = SourceTracking;
+export type StatusOutputRowType = StatusOutputRow;
 export class SourceTrackingService {
   /**
    * @description creates an instance of SourceTracking with options
@@ -68,36 +69,22 @@ export class SourceTrackingService {
     return sourceStatusSummary.format();
   }
 
-  public static async getLocalChangedFiles(): Promise<FileInfo[]> {
+  public static async getLocalChangedFiles(): Promise<StatusOutputRow[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: true,
       remote: false
     });
-
-    return SourceTrackingService.convert(statusResponse);
+    return statusResponse;
   }
 
-  public static async getRemoteChangedFiles(): Promise<FileInfo[]> {
+  public static async getRemoteChangedFiles(): Promise<StatusOutputRow[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: false,
       remote: true
     });
-
-    return SourceTrackingService.convert(statusResponse);
-  }
-
-  private static convert(changedFiles: StatusOutputRow[]): FileInfo[] {
-    // convert the local changes type to a type that can be sent to update cache
-    const mappedChangedFiles = changedFiles.map(file => {
-      return {
-        type: file.type,
-        fullName: file.fullName,
-        filePath: file.filePath
-      };
-    });
-    return mappedChangedFiles;
+    return statusResponse;
   }
 }
 

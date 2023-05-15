@@ -23,6 +23,7 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
+import { StatusOutputRowType } from '@salesforce/salesforcedx-utils-vscode/src/services/sourceTrackingService';
 
 export enum DeployType {
   Deploy = 'deploy',
@@ -110,7 +111,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   }
 
   protected abstract getDeployType(): DeployType;
-  protected getLocalChanges?(): any;
+  protected getLocalChanges?(): StatusOutputRowType[];
 
   public outputResult(parser: ForceDeployResultParser) {
     const table = new Table();
