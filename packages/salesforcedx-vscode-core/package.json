@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
-    "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.34.8",
     "@salesforce/salesforcedx-sobjects-faux-generator": "57.14.1",
     "@salesforce/salesforcedx-utils-vscode": "57.14.1",
