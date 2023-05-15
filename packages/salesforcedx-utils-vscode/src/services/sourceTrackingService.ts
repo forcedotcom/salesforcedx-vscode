@@ -77,7 +77,7 @@ export class SourceTrackingService {
     return statusResponse;
   }
 
-  public static async getRemoteChangedFiles(): Promise<StatusOutputRow[]> {
+  public static async getRemoteStatus(): Promise<StatusOutputRow[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: false,

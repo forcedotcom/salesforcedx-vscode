@@ -36,7 +36,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private remoteChanges?: StatusOutputRowType[];
 
   public async cacheRemoteChanges() {
-    const remoteStatus = await SourceTrackingService.getRemoteChangedFiles();
+    const remoteStatus = await SourceTrackingService.getRemoteStatus();
     this.remoteChanges = remoteStatus;
   }
 
