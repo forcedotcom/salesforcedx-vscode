@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
-    "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.34.8",
     "@salesforce/salesforcedx-sobjects-faux-generator": "57.14.1",
     "@salesforce/salesforcedx-utils-vscode": "57.14.1",
@@ -966,6 +965,11 @@
           "type": "boolean",
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "%prefer_deploy_on_save_enabled_description%"
         },
         "salesforcedx-vscode-core.detectConflictsAtSync": {
           "type": "boolean",
