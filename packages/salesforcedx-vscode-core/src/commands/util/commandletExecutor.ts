@@ -6,7 +6,7 @@
  */
 
 import {
-  ContinueResponse,
+  ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
