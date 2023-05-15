@@ -27,7 +27,7 @@ import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
-import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
+import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
 import { WorkspaceContext } from '../../../src/context';
 import {
   SfdxPackageDirectories,
