@@ -86,29 +86,16 @@ export class SourceTrackingService {
     return statusResponse;
   }
 
-  public static convert(w: any): FileInfo[] {
+  public static convert(changedFiles: StatusOutputRow[]): FileInfo[] {
     // convert the local changes type to a type that can be sent to update cache
-    const y = w.map(
-      (i: { type: string; filePath: string; fullName: string }) => {
-        return { type: i.type, fullName: i.fullName, filePath: i.filePath };
-      }
-    );
-
-    // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
-    const z: FileInfo[] = [];
-    for (const element of y) {
-      z.push(element);
-      const f = element.fullName;
-      const l = f.length;
-      const ext = f.substring(l - 4);
-      if (ext === '.cls' || ext === '.cmp') {
-        z.push({
-          type: element.type,
-          fullName: element.fullName + '-meta.xml'
-        });
-      }
-    }
-    return z;
+    const mappedChangedFiles = changedFiles.map(file => {
+      return {
+        type: file.type,
+        fullName: file.fullName,
+        filePath: file.filePath
+      };
+    });
+    return mappedChangedFiles;
   }
 }
 

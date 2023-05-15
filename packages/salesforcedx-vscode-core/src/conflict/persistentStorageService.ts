@@ -40,12 +40,26 @@ export class PersistentStorageService {
   }
 
   public static updateCacheAfterPushPull(changedFiles: any): void {
+    // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
+    const bolsteredChangedFiles = [];
+    for (const file of changedFiles) {
+      bolsteredChangedFiles.push(file);
+      const filePath = file.filePath;
+      const filePathLength = filePath.length;
+      const fileExtension = filePath.substring(filePathLength - 4);
+      if (fileExtension === '.cls' || fileExtension === '.cmp') {
+        bolsteredChangedFiles.push({
+          type: file.type,
+          fullName: file.fullName + '-meta.xml'
+        });
+      }
+    }
+
     // pass the array to PersistentStorageService for updating of timestamps,
     // so that conflict detection will behave as expected
     PersistentStorageService.getInstance().setPropertiesForFilesPushPull(
-      changedFiles
+      bolsteredChangedFiles
     );
-    console.log('Local cache updated.');
   }
 
   public getPropertiesForFile(key: string): ConflictFileProperties | undefined {
@@ -85,10 +99,10 @@ export class PersistentStorageService {
   }
 
   public setPropertiesForFilesPushPull(files: any) {
-    const afterPushTimestamp = new Date().toISOString();
+    const afterPushPullTimestamp = new Date().toISOString();
     for (const file of files) {
       this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
-        lastModifiedDate: afterPushTimestamp
+        lastModifiedDate: afterPushPullTimestamp
       });
     }
   }

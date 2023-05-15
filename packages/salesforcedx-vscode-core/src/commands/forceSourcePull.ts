@@ -61,11 +61,11 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     return builder.build();
   }
 
-  public getRemoteChanges() {
+  protected getRemoteChanges() {
     return this.remoteChanges;
   }
 
-  protected updateLocalCacheAfterPushPull(changes: any): void {
+  protected updateCacheAfterPushPull(changes: any): void {
     const converted = SourceTrackingService.convert(changes);
     PersistentStorageService.updateCacheAfterPushPull(converted);
   }
