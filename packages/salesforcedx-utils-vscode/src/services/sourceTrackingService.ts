@@ -68,7 +68,7 @@ export class SourceTrackingService {
     return sourceStatusSummary.format();
   }
 
-  public static async getLocalStatus(): Promise<FileInfo[]> {
+  public static async getLocalChangedFiles(): Promise<FileInfo[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: true,
@@ -78,7 +78,7 @@ export class SourceTrackingService {
     return SourceTrackingService.convert(statusResponse);
   }
 
-  public static async getRemoteStatus(): Promise<FileInfo[]> {
+  public static async getRemoteChangedFiles(): Promise<FileInfo[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: false,

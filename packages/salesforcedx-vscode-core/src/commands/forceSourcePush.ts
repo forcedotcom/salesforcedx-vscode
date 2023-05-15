@@ -35,7 +35,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private localChanges: any;
 
   public async cacheLocalChanges() {
-    const localStatus = await SourceTrackingService.getLocalStatus();
+    const localStatus = await SourceTrackingService.getLocalChangedFiles();
     this.localChanges = localStatus;
   }
 
