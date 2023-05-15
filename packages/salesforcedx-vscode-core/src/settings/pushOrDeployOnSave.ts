@@ -66,30 +66,47 @@ export class DeployQueue {
     });
   }
 
+  private async executeDeployCommand(toDeploy: vscode.Uri[]) {
+    vscode.commands.executeCommand(
+      'sfdx.force.source.deploy.multiple.source.paths',
+      toDeploy
+    );
+  }
+
+  private async executePushCommand() {
+    const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
+      ? '.force'
+      : '';
+    const command = `sfdx.force.source.push${forceCommand}`;
+    vscode.commands.executeCommand(command);
+  }
+
   private async doDeploy(): Promise<void> {
     if (!this.locked && this.queue.size > 0) {
       this.locked = true;
       const toDeploy = Array.from(this.queue);
       this.queue.clear();
+      let deployType: string = '';
       try {
-        const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-        if (orgType === OrgType.SourceTracked) {
-          const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
-            ? '.force'
-            : '';
-          const command = `sfdx.force.source.push${forceCommand}`;
-          vscode.commands.executeCommand(command);
+        const preferDeployOnSaveEnabled = sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+        if (preferDeployOnSaveEnabled) {
+          await this.executeDeployCommand(toDeploy);
+          deployType = 'Deploy';
         } else {
-          vscode.commands.executeCommand(
-            'sfdx.force.source.deploy.multiple.source.paths',
-            toDeploy
-          );
+          const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+          if (orgType === OrgType.SourceTracked) {
+            await this.executePushCommand();
+            deployType = 'Push';
+          } else {
+            await this.executeDeployCommand(toDeploy);
+            deployType = 'Deploy';
+          }
         }
 
         telemetryService.sendEventData(
           'deployOnSave',
           {
-            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
+            deployType
           },
           {
             documentsToDeploy: toDeploy.length,
