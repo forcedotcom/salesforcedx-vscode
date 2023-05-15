@@ -60,8 +60,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         this.getDeployType() === 'push' &&
         this.updateCacheAfterPushPull
       ) {
-        const localChanges = this.getLocalChanges ? this.getLocalChanges() : [];
-        this.updateCacheAfterPushPull(localChanges);
+        this.updateCacheAfterPushPull();
       }
 
       const telemetry = new TelemetryBuilder();

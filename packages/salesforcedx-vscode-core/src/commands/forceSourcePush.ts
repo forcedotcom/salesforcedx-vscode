@@ -70,9 +70,9 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
     return this.localChanges;
   }
 
-  protected updateCacheAfterPushPull(changes: any): void {
-    const converted = SourceTrackingService.convert(changes);
-    PersistentStorageService.updateCacheAfterPushPull(converted);
+  protected updateCacheAfterPushPull(): void {
+    const localChanges = this.getLocalChanges();
+    PersistentStorageService.updateCacheAfterPushPull(localChanges);
   }
 }
 

@@ -103,10 +103,7 @@ export abstract class SfdxCommandletExecutor<T>
         execution.command.logName === 'force_source_pull_default_scratch_org' &&
         this.updateCacheAfterPushPull
       ) {
-        const remoteChanges = this.getRemoteChanges
-          ? this.getRemoteChanges
-          : [];
-        this.updateCacheAfterPushPull(remoteChanges);
+        this.updateCacheAfterPushPull();
       }
 
       const telemetryData = this.getTelemetryData(
@@ -141,7 +138,7 @@ export abstract class SfdxCommandletExecutor<T>
 
   public abstract build(data: T): Command;
   protected getRemoteChanges?(): any;
-  protected updateCacheAfterPushPull?(changes: any): any;
+  protected updateCacheAfterPushPull?(): any;
 }
 
 export class SfdxCommandlet<T> {

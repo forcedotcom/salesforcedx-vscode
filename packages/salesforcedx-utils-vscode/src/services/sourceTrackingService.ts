@@ -68,25 +68,27 @@ export class SourceTrackingService {
     return sourceStatusSummary.format();
   }
 
-  public static async getLocalStatus(): Promise<StatusOutputRow[]> {
+  public static async getLocalStatus(): Promise<FileInfo[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: true,
       remote: false
     });
-    return statusResponse;
+
+    return SourceTrackingService.convert(statusResponse);
   }
 
-  public static async getRemoteStatus(): Promise<StatusOutputRow[]> {
+  public static async getRemoteStatus(): Promise<FileInfo[]> {
     const sourceTracking = await getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local: false,
       remote: true
     });
-    return statusResponse;
+
+    return SourceTrackingService.convert(statusResponse);
   }
 
-  public static convert(changedFiles: StatusOutputRow[]): FileInfo[] {
+  private static convert(changedFiles: StatusOutputRow[]): FileInfo[] {
     // convert the local changes type to a type that can be sent to update cache
     const mappedChangedFiles = changedFiles.map(file => {
       return {
