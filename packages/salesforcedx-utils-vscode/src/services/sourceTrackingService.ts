@@ -16,7 +16,7 @@ import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
-import { FileInfo } from './FileInfo';
+import { FileInfo } from './types/FileInfo';
 
 export type SourceTrackingType = SourceTracking;
 export class SourceTrackingService {
