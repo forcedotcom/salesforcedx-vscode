@@ -12,6 +12,7 @@ import {
   StatusOutputRowType
 } from '@salesforce/salesforcedx-utils-vscode';
 import { PersistentStorageService } from '../conflict';
+import { FORCE_SOURCE_PULL_LOG_NAME } from '../constants';
 import { nls } from '../messages';
 import {
   CommandParams,
@@ -21,9 +22,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-
-export const FORCE_SOURCE_PULL_LOG_NAME =
-  'force_source_pull_default_scratch_org';
 
 export const pullCommand: CommandParams = {
   command: 'force:source:pull',

@@ -60,3 +60,5 @@ export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
 export const ORG_OPEN_COMMAND = 'sfdx.force.org.open';
+export const FORCE_SOURCE_PULL_LOG_NAME =
+  'force_source_pull_default_scratch_org';
