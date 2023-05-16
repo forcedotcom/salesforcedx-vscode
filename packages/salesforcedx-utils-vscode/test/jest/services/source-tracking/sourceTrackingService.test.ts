@@ -108,4 +108,12 @@ describe('Source Tracking Service', () => {
       expect(formattedOutput).toMatchSnapshot();
     });
   });
+
+  describe('getLocalStatus', () => {
+    it('should only get the local status from source tracking', () => {});
+  });
+
+  describe('getRemoteStatus', () => {
+    it('should only get the remote status from source tracking', () => {});
+  });
 });
