@@ -71,7 +71,9 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 
   protected updateCacheAfterPushPull(): void {
     const remoteChanges = this.getRemoteChanges();
-    PersistentStorageService.updateCacheAfterPushPull(remoteChanges);
+    if (remoteChanges) {
+      PersistentStorageService.updateCacheAfterPushPull(remoteChanges);
+    }
   }
 }
 
