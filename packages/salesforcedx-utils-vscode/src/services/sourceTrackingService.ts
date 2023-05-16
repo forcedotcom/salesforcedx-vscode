@@ -19,6 +19,7 @@ import { getRootWorkspacePath } from '../workspaces';
 
 export type SourceTrackingType = SourceTracking;
 export type StatusOutputRowType = StatusOutputRow;
+
 export class SourceTrackingService {
   /**
    * @description creates an instance of SourceTracking with options

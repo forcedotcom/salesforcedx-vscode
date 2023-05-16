@@ -22,13 +22,16 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
+export const FORCE_SOURCE_PULL_LOG_NAME =
+  'force_source_pull_default_scratch_org';
+
 export const pullCommand: CommandParams = {
   command: 'force:source:pull',
   description: {
     default: 'force_source_pull_default_org_text',
     forceoverwrite: 'force_source_pull_force_default_org_text'
   },
-  logName: { default: 'force_source_pull_default_scratch_org' }
+  logName: { default: FORCE_SOURCE_PULL_LOG_NAME }
 };
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {

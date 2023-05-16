@@ -24,6 +24,7 @@ import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
+import { FORCE_SOURCE_PULL_LOG_NAME } from '../forceSourcePull';
 import { EmptyPostChecker } from './emptyPostChecker';
 
 export interface FlagParameter<T> {
@@ -101,7 +102,7 @@ export abstract class SfdxCommandletExecutor<T>
 
     execution.processExitSubject.subscribe(exitCode => {
       if (
-        execution.command.logName === 'force_source_pull_default_scratch_org' &&
+        execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME &&
         this.updateCacheAfterPushPull
       ) {
         this.updateCacheAfterPushPull();
