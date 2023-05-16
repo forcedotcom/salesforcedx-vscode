@@ -1,3 +1,63 @@
+# 57.13.1 - May 10, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We updated the Apex language server so that new syntax such as _insert_, _as user_, _as system_ and _Assert_ is now available in VS Code. Replay debugger is now available for Anonymous Apex as a result of this update. ([PR #4819](https://github.com/forcedotcom/salesforcedx-vscode/pull/4819))
+
+#### salesforcedx-vscode-core
+
+- We enabled the following Deploy and Retrieve commands for scratch orgs ([PR #4809](https://github.com/forcedotcom/salesforcedx-vscode/pull/4809)):
+  * **SFDX: Deploy Source to Org**
+  * **SFDX: Deploy This Source to Org**
+  * **SFDX: Deploy Source in Manifest to Org**
+  * **SFDX: Retrieve Source from Org**
+  * **SFDX: Retrieve This Source from Org**
+  * **SFDX: Retrieve Source in Manifest from Org**
+
+- **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** commands are now available in the Command Palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- We've made an update to the lightning language server version. ([PR #4821](https://github.com/forcedotcom/salesforcedx-vscode/pull/4821))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some issues with **Deploy** commands for source-tracked orgs. ([PR #4824](https://github.com/forcedotcom/salesforcedx-vscode/pull/4824))
+
+- We fixed some issues with **Retrieve** commands for source-tracked orgs. ([PR #4773](https://github.com/forcedotcom/salesforcedx-vscode/pull/4773))
+
+- We made some changes under the hood. ([PR #4749](https://github.com/forcedotcom/salesforcedx-vscode/pull/4749))
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #4807](https://github.com/forcedotcom/salesforcedx-vscode/pull/4807))
+
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger, salesforcedx-vscode-lightning, salesforcedx-vscode-lwc, salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #4828](https://github.com/forcedotcom/salesforcedx-vscode/pull/4828))
+
+# 57.10.2 - April 13, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where some metadata labels in the org browser weren't correctly displayed. ([PR #4772](https://github.com/forcedotcom/salesforcedx-vscode/pull/4772))
+
+- We fixed an issue so that source-tracking commands (_push_, _pull_, _view changes_) are now available source-tracked sandboxes. ([PR #4755](https://github.com/forcedotcom/salesforcedx-vscode/pull/4755))
+
+- We removed legacy source tracking commands from the command palette. ([PR #4771](https://github.com/forcedotcom/salesforcedx-vscode/pull/4771))
+
+- We fixed an issue where retrieving the ExperiencePropertyType metadata type would throw an error. Thank you [Kaaviyan](https://github.com/Kaaviyan) for your PR. ([PR #4784](https://github.com/forcedotcom/salesforcedx-vscode/pull/4784), [PR #4761](https://github.com/forcedotcom/salesforcedx-vscode/pull/4761))
+
+#### salesforcedx-vscode-soql
+
+- We fixed an issue with SOQL Builder where Code Builder users would see an empty file upon saving a query result. ([PR #4754](https://github.com/forcedotcom/salesforcedx-vscode/pull/4754))
+
 # 57.7.0 - March 22, 2023
 
 ## Added

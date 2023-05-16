@@ -10,6 +10,8 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
+  SourceTrackingService,
+  SourceTrackingType,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -29,6 +31,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
+import { workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersion, setSourceApiVersion } from '../services/sdr/componentSetUtils';
@@ -112,8 +115,18 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+
+    components.projectDirectory = projectPath;
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
+    await sourceTracking.ensureLocalTracking();
+
     const operation = await components.deploy({
-      usernameOrConnection: await WorkspaceContext.getInstance().getConnection()
+      usernameOrConnection: connection
     });
 
     this.setupCancellation(operation, token);
@@ -196,26 +209,50 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+  private sourceTracking?: SourceTrackingType;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
+    const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
+    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+      this.sourceTracking = await SourceTrackingService.createSourceTracking(
+        projectPath,
+        connection
+      );
+    }
 
     const defaultOutput = join(
-      getRootWorkspacePath(),
+      projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
-      merge: true
+      merge: true,
+      suppressEvents: false
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    const result: RetrieveResult = await operation.pollStatus();
+
+    const status = result?.response?.status;
+    if (
+      (status === 'Succeeded' || status === 'SucceededPartial') &&
+      this.sourceTracking
+    ) {
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+        this.sourceTracking,
+        result
+      );
+    }
+
+    return result;
   }
 
   protected async postOperation(

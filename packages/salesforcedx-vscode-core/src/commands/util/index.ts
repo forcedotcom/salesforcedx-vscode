@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export {
-  SourcePathStrategy,
-  PathStrategyFactory
-} from './sourcePathStrategies';
-export { OverwriteComponentPrompt } from './postconditionCheckers';
+
+export { ConflictDetectionMessages } from './conflictDetectionMessages';
+export { createComponentCount } from './createComponentCount';
+export { EmptyPostChecker } from './emptyPostChecker';
+export { formatException } from './formatException';
+export { LibraryPathsGatherer } from './libraryPathsGatherer';
+export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
   SimpleGatherer,
   EmptyParametersGatherer,
@@ -24,9 +26,11 @@ export {
   SelectUsername
 } from './parameterGatherers';
 export {
-  ConflictDetectionMessages
-} from './conflictDetectionMessages';
-export {EmptyPostChecker} from './emptyPostChecker';
+  SfdxWorkspaceChecker,
+  CompositePreconditionChecker,
+  DevUsernameChecker,
+  EmptyPreChecker
+} from './preconditionCheckers';
 export {
   CommandletExecutor,
   CommandParams,
@@ -35,10 +39,6 @@ export {
   SfdxCommandletExecutor
 } from './sfdxCommandlet';
 export {
-  SfdxWorkspaceChecker,
-  CompositePreconditionChecker,
-  DevUsernameChecker,
-  EmptyPreChecker
-} from './preconditionCheckers';
-export { createComponentCount, formatException } from './betaDeployRetrieve';
-export { LibraryPathsGatherer } from './libraryPathsGatherer';
+  SourcePathStrategy,
+  PathStrategyFactory
+} from './sourcePathStrategies';
