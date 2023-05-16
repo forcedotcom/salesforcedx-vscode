@@ -11,7 +11,7 @@ describe('MetadataCacheService', () => {
     ]);
     let workspaceContextStub: jest.SpyInstance;
     let getSourceComponentsStub: jest.SpyInstance;
-    let setApiVersionOnStub: jest.SpyInstance;
+    let setApiVersionStub: jest.SpyInstance;
     let retrieveStub: jest.SpyInstance;
 
     beforeEach(() => {
@@ -25,8 +25,8 @@ describe('MetadataCacheService', () => {
       getSourceComponentsStub = jest
         .spyOn(MetadataCacheService.prototype, 'getSourceComponents')
         .mockResolvedValue(dummyComponentSet);
-      setApiVersionOnStub = jest
-        .spyOn(sdrUtils, 'setApiVersionOn')
+      setApiVersionStub = jest
+        .spyOn(sdrUtils, 'setApiVersion')
         .mockImplementation(jest.fn());
       retrieveStub = jest
         .spyOn(dummyComponentSet, 'retrieve')
@@ -40,7 +40,7 @@ describe('MetadataCacheService', () => {
 
       expect(workspaceContextStub).toHaveBeenCalled();
       expect(getSourceComponentsStub).toHaveBeenCalled();
-      expect(setApiVersionOnStub).toHaveBeenCalledWith(dummyComponentSet);
+      expect(setApiVersionStub).toHaveBeenCalledWith(dummyComponentSet);
       const dummyRetrieveOptionsWithSuppressEvents = { suppressEvents: true };
       expect(retrieveStub).toHaveBeenCalledWith(
         expect.objectContaining(dummyRetrieveOptionsWithSuppressEvents)
