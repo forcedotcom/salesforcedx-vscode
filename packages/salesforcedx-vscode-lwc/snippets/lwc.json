@@ -23,86 +23,27 @@
       "this.template.addEventListener('${1:event-name}', this.${2:local-method-name}.bind(this));"
     ]
   },
-  "lwc-wire-apex-property": {
-    "prefix": "lwc-wire-apex-property",
-    "description": "Creates a @wire'd property for Apex",
+  "lwc-imperative-apex": {
+    "prefix": "lwc-imperative-apex",
+    "description": "Creates an imperative Apex call",
     "body": [
-      "@wire(${1:apex-method-name}, {$0})",
-      "${2:apex-property-name}"
+      "${1:method name}()",
+      "    .then(result => {",
+      "        ${0}",
+      "    })",
+      "    .catch(error => {",
+      "        // TODO Error handling",
+      "    });"
     ]
   },
-  "lwc-wire-get-record-property": {
-    "prefix": "lwc-wire-get-record-property",
-    "description": "Creates a @wire'd property for getRecord",
-    "body": [
-      "@api recordId;",
-      "",
-      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
-      "${2:record-property-name}"
-    ]
-  },
-  "lwc-wire-get-record-function": {
-    "prefix": "lwc-wire-get-record-function",
-    "description": "Creates a @wire'd function for getRecord",
-    "body": [
-      "@api recordId;",
-      "",
-      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
-      "${2:record-function-name} ({error, data}) {",
-      "    if (error) {",
-      "        // TODO: Error handling",
-      "    } else if (data) {",
-      "        // TODO: Data handling",
-      "    }",
-      "}"
-    ]
-  },
-  "lwc-wire-get-records-property": {
-    "prefix": "lwc-wire-get-records-property",
-    "description": "Creates a @wire'd property for getRecords",
-    "body": [
-      "@api recordId;",
-      "",
-      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
-      "${1:records-property-name}"
-    ]
-  },
-  "lwc-wire-get-records-function": {
-    "prefix": "lwc-wire-get-records-function",
-    "description": "Creates a @wire'd function for getRecords",
-    "body": [
-      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
-      "${1:records-function-name} ({error, data}) {",
-      "    if (error) {",
-      "        // TODO: Error handling",
-      "    } else if (data) {",
-      "        // TODO: Data handling",
-      "    }",
-      "}"
-    ]
-  },
-  "lwc-wire-apex-function": {
-    "prefix": "lwc-wire-apex-function",
-    "description": "Creates a @wire'd function for Apex with data modification",
-    "body": [
-      "@wire(${1:apex-method-name}, {$0})",
-      "${2:apex-function-name} ({error, data}) {",
-      "    if (error) {",
-      "        // TODO: Error handling",
-      "    } else if (data) {",
-      "        // TODO: Data handling",
-      "    }",
-      "}"
-    ]
-  },
-  "lwc-nav-lightning-component": {
-    "prefix": "lwc-nav-lightning-component",
-    "description": "Navigation to a custom Lightning component",
+  "lwc-nav-item-page": {
+    "prefix": "lwc-nav-item-page",
+    "description": "Navigation to a CustomTab",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__component',",
+      "    type: 'standard__navItemPage',",
       "    attributes: {",
-      "        componentName: \"c__${1:component name}\"",
+      "        apiName: \"${1:The unique name of the CustomTab.}\"",
       "    }",
       "});"
     ]
@@ -120,26 +61,14 @@
       "});"
     ]
   },
-  "lwc-nav-page": {
-    "prefix": "lwc-nav-page",
-    "description": "Navigation to a named page",
+  "lwc-nav-lightning-component": {
+    "prefix": "lwc-nav-lightning-component",
+    "description": "Navigation to a custom Lightning component",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__namedPage',",
+      "    type: 'standard__component',",
       "    attributes: {",
-      "        pageName: \"${1:home, chatter, today, dataAssessment, or filePreview}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-item-page": {
-    "prefix": "lwc-nav-item-page",
-    "description": "Navigation to a CustomTab",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__navItemPage',",
-      "    attributes: {",
-      "        apiName: \"${1:The unique name of the CustomTab.}\"",
+      "        componentName: \"c__${1:component name}\"",
       "    }",
       "});"
     ]
@@ -153,6 +82,18 @@
       "    attributes: {",
       "        actionName: \"${1:home, list, or new}\",",
       "        objectApiName: \"${2:The API name of the standard or custom object. }\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-page": {
+    "prefix": "lwc-nav-page",
+    "description": "Navigation to a named page",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__namedPage',",
+      "    attributes: {",
+      "        pageName: \"${1:home, chatter, today, dataAssessment, or filePreview}\"",
       "    }",
       "});"
     ]
@@ -231,17 +172,76 @@
       "}));"
     ]
   },
-  "lwc-imperative-apex": {
-    "prefix": "lwc-imperative-apex",
-    "description": "Creates an imperative Apex call",
+  "lwc-wire-apex-function": {
+    "prefix": "lwc-wire-apex-function",
+    "description": "Creates a @wire'd function for Apex with data modification",
     "body": [
-      "${1:method name}()",
-      "    .then(result => {",
-      "        ${0}",
-      "    })",
-      "    .catch(error => {",
-      "        // TODO Error handling",
-      "    });"
+      "@wire(${1:apex-method-name}, {$0})",
+      "${2:apex-function-name} ({error, data}) {",
+      "    if (error) {",
+      "        // TODO: Error handling",
+      "    } else if (data) {",
+      "        // TODO: Data handling",
+      "    }",
+      "}"
+    ]
+  },
+  "lwc-wire-apex-property": {
+    "prefix": "lwc-wire-apex-property",
+    "description": "Creates a @wire'd property for Apex",
+    "body": [
+      "@wire(${1:apex-method-name}, {$0})",
+      "${2:apex-property-name}"
+    ]
+  },
+  "lwc-wire-get-record-function": {
+    "prefix": "lwc-wire-get-record-function",
+    "description": "Creates a @wire'd function for getRecord",
+    "body": [
+      "@api recordId;",
+      "",
+      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
+      "${2:record-function-name} ({error, data}) {",
+      "    if (error) {",
+      "        // TODO: Error handling",
+      "    } else if (data) {",
+      "        // TODO: Data handling",
+      "    }",
+      "}"
+    ]
+  },
+  "lwc-wire-get-record-property": {
+    "prefix": "lwc-wire-get-record-property",
+    "description": "Creates a @wire'd property for getRecord",
+    "body": [
+      "@api recordId;",
+      "",
+      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
+      "${2:record-property-name}"
+    ]
+  },
+  "lwc-wire-get-records-function": {
+    "prefix": "lwc-wire-get-records-function",
+    "description": "Creates a @wire'd function for getRecords",
+    "body": [
+      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
+      "${1:records-function-name} ({error, data}) {",
+      "    if (error) {",
+      "        // TODO: Error handling",
+      "    } else if (data) {",
+      "        // TODO: Data handling",
+      "    }",
+      "}"
+    ]
+  },
+  "lwc-wire-get-records-property": {
+    "prefix": "lwc-wire-get-records-property",
+    "description": "Creates a @wire'd property for getRecords",
+    "body": [
+      "@api recordId;",
+      "",
+      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
+      "${1:records-property-name}"
     ]
   }
 }
