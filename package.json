@@ -56,6 +56,7 @@
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
+    "changelog": "npx ts-node ./scripts/create-release-notes.ts",
     "clean": "lerna run clean && git clean -xfd",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
     "compile": "tsc --build",

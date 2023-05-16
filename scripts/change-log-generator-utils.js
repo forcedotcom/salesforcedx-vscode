@@ -62,6 +62,7 @@ function getPreviousReleaseBranch() {
  * @returns 
  */
  function getCommits(releaseBranch, previousBranch) {
+  console.log(`\nStep 2: Get commits from ${previousBranch} to ${releaseBranch}`);
   const commits = shell
     .exec(
       `git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`,
@@ -80,6 +81,7 @@ function getPreviousReleaseBranch() {
  * @returns 
  */
  function parseCommits(commits) {
+  console.log(`\nStep 3: Determine which commits we want to share in the changelog`);
   let commitMaps = [];
   for (let i = 0; i < commits.length; i++) {
     const commitMap = buildMapFromCommit(commits[i]);
@@ -169,7 +171,7 @@ function filterExistingPREntries(parsedCommits) {
 function getChangeLogText(releaseBranch, groupedMessages) {
   let changeLogText = util.format(
     LOG_HEADER,
-    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, ''),
+    releaseBranch.toString().replace(constants.REMOTE_RELEASE_BRANCH_PREFIX, ''),
     getReleaseDate()
   );
   let lastType = '';
@@ -219,7 +221,7 @@ function writeChangeLog(textToInsert) {
   fs.writeSync(fd, buffer, 0, buffer.length, 0);
   fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
-  console.log(`\nChange log written to: ${constants.CHANGE_LOG_PATH}`);
+  console.log(`\nStep 4: Change log written to: ${constants.CHANGE_LOG_PATH}`);
 }
 
 function getPackageName(filePath) {
@@ -283,6 +285,31 @@ function getReleaseDate() {
     }).format(releaseDate);
 }
 
+/**
+ *
+ * Complete the heavy lifting to update the changelog by grabbing the
+ * new commits, grouping everything, creating the text, and writing
+ * the commit.
+ * @param {string} releaseBranch
+ * @param {string} previousBranch
+ * @returns
+ */
+
+function updateChangeLog(releaseBranch, previousBranch) {
+  const parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
+  if (parsedCommits.length > 0) {
+    const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
+    const changeLog = getChangeLogText(releaseBranch, groupedMessages);
+    writeChangeLog(changeLog);
+    
+    const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
+    shell.exec(commitCommand);
+  } else {
+    console.log(`No commits found, so we can skip this week's release. Carry on!`);
+    process.exit(0);
+  }
+}
+
 module.exports = {
-  getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, getCommits, writeChangeLog
+  updateChangeLog
 }
