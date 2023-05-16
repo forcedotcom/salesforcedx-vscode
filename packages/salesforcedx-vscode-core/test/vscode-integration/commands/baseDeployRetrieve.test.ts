@@ -213,7 +213,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
-      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getUserConfiguredApiVersionStub.called).to.equal(true);
       expect(connectionGetApiVersionStub.called).to.equal(false);
     });
 
@@ -226,7 +226,7 @@ describe('Base Deploy Retrieve Commands', () => {
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
-      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getUserConfiguredApiVersionStub.called).to.equal(true);
       expect(connectionGetApiVersionStub.callCount).to.be.greaterThan(0);
       expect(components.apiVersion).to.equal(mockConnection.getApiVersion());
     });
