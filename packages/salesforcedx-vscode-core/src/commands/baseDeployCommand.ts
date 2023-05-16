@@ -58,7 +58,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       if (
         exitCode === 0 &&
-        this.getDeployType() === 'push' &&
+        this.getDeployType() === DeployType.Push &&
         this.updateCacheAfterPushPull
       ) {
         this.updateCacheAfterPushPull();
