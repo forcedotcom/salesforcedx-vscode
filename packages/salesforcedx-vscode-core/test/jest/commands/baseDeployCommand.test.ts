@@ -1,15 +1,7 @@
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { CommandParams } from '../../../src/commands/util';
-import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
-
-// jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-//   return {
-//     ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-//     ChannelService: { clear: jest.fn() }
-//   };
-// });
 
 jest.mock('../../../src/channels');
 jest.mock('../../../src/statuses');
