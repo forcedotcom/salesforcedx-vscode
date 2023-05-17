@@ -109,8 +109,9 @@ describe('Source Tracking Service', () => {
     });
   });
 
-  describe('getLocalStatus', () => {
+  describe('get local and remote Source Status', () => {
     const getStatusMock = jest.spyOn(SourceTracking.prototype, 'getStatus');
+    const dummyStatus: any[] | Promise<StatusOutputRow[]> = [];
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
       getConnection: jest.fn()
@@ -128,28 +129,30 @@ describe('Source Tracking Service', () => {
         .mockResolvedValue({
           getStatus: getStatusMock
         } as any);
+
+      getStatusMock.mockResolvedValue(dummyStatus);
     });
 
-    it('should only get the local status from source tracking', async () => {
-      const localOptions = { local: true, remote: false };
-      const dummyLocalStatus: any[] | Promise<StatusOutputRow[]> = [];
-      jest
-        .spyOn(SourceTracking.prototype, 'getStatus')
-        .mockResolvedValue(dummyLocalStatus);
+    describe('getLocalStatus', () => {
+      it('should only get the local status from source tracking', async () => {
+        const localOptions = { local: true, remote: false };
 
-      const localStatus = await SourceTrackingService.getLocalStatus();
+        const localStatus = await SourceTrackingService.getLocalStatus();
 
-      expect(getStatusMock).toHaveBeenCalledWith(localOptions);
-      expect(localStatus).toEqual(dummyLocalStatus);
+        expect(getStatusMock).toHaveBeenCalledWith(localOptions);
+        expect(localStatus).toEqual(dummyStatus);
+      });
     });
-  });
 
-  describe('getRemoteStatus', () => {
-    it('should only get the remote status from source tracking', async () => {
-      const remoteStatus = await SourceTrackingService.getRemoteStatus();
+    describe('getRemoteStatus', () => {
+      it('should only get the remote status from source tracking', async () => {
+        const remoteOptions = { local: false, remote: true };
 
-      // expect(getStatusMock).toHaveBeenCalledWith(localOptions);
-      // expect(localStatus).toEqual(dummyLocalStatus);
+        const remoteStatus = await SourceTrackingService.getRemoteStatus();
+
+        expect(getStatusMock).toHaveBeenCalledWith(remoteOptions);
+        expect(remoteStatus).toEqual(dummyStatus);
+      });
     });
   });
 });
