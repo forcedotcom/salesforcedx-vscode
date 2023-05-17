@@ -71,7 +71,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
     return this.localChanges;
   }
 
-  protected updateCacheAfterPushPull(): void {
+  protected updateCache(): void {
     const localChanges = this.getLocalChanges();
     if (localChanges) {
       PersistentStorageService.updateCacheAfterPushPull(localChanges);

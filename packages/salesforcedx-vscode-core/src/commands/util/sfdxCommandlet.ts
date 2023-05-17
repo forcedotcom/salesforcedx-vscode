@@ -101,11 +101,8 @@ export abstract class SfdxCommandletExecutor<T>
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      if (
-        execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME &&
-        this.updateCacheAfterPushPull
-      ) {
-        this.updateCacheAfterPushPull();
+      if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
+        this.updateCache();
       }
 
       const telemetryData = this.getTelemetryData(
@@ -140,7 +137,9 @@ export abstract class SfdxCommandletExecutor<T>
 
   public abstract build(data: T): Command;
   protected getRemoteChanges?(): StatusOutputRowType[] | undefined;
-  protected updateCacheAfterPushPull?(): void;
+  protected updateCache(): void {
+    // No-op base
+  }
 }
 
 export class SfdxCommandlet<T> {
