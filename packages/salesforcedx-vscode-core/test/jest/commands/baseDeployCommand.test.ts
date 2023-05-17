@@ -31,13 +31,13 @@ describe('BaseDeployExecutor', () => {
       };
       const flag = '';
       const executor = new ForceSourcePullExecutor(flag, pushCommand);
-      const updateCacheAfterPushPullMock = jest.fn();
-      (executor as any).updateCacheAfterPushPull = updateCacheAfterPushPullMock;
+      const updateCacheMock = jest.fn();
+      (executor as any).updateCache = updateCacheMock;
       (executor as any).attachExecution = jest.fn();
 
       executor.execute({ type: 'CONTINUE', data: '' });
 
-      expect(updateCacheAfterPushPullMock).toHaveBeenCalled();
+      expect(updateCacheMock).toHaveBeenCalled();
     });
   });
 });

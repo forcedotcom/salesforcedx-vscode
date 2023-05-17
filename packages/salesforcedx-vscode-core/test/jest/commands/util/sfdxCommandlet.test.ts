@@ -19,7 +19,7 @@ describe('SfdxCommandletExecutor', () => {
       const executor = new ForceSourcePullExecutor(flag, pullCommand);
       const updateCacheAfterPushPullMock = jest.spyOn(
         executor as any,
-        'updateCacheAfterPushPull'
+        'updateCache'
       );
       jest.spyOn(ChannelService.prototype, 'clear');
 
