@@ -135,11 +135,22 @@ export abstract class SfdxCommandletExecutor<T>
     return;
   }
 
+  /**
+   * @description Base method (no-op) that is overridden by sub-classes
+   * forceSourcePush and forceSourcePull to update the local cache's
+   * timestamps post-operation, in order to be in sync for the
+   * "Detect Conflicts at Sync" setting.
+   */
+  protected updateCache(): void {}
+
   public abstract build(data: T): Command;
+
+  /**
+   * @description Used by forceSourcePull to cache remote changes before
+   * retrieving, in order to update the local cache's timestamps post-
+   * operation.
+   */
   protected getRemoteChanges?(): StatusOutputRowType[] | undefined;
-  protected updateCache(): void {
-    // No-op base
-  }
 }
 
 export class SfdxCommandlet<T> {

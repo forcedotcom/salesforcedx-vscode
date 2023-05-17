@@ -107,6 +107,12 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   }
 
   protected abstract getDeployType(): DeployType;
+
+  /**
+   * @description Used by forceSourcePush to cache local changes before
+   * deploying, in order to update the local cache's timestamps post-
+   * operation.
+   */
   protected getLocalChanges?(): StatusOutputRowType[] | undefined;
 
   public outputResult(parser: ForceDeployResultParser) {
