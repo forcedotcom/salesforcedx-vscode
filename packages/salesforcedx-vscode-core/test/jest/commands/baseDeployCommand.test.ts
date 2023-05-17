@@ -1,6 +1,7 @@
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/src/commands';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { CommandParams } from '../../../src/commands/util';
+import { channelService } from '../../../src/channels';
 
 // jest.mock(
 //   '@salesforce/salesforcedx-utils-vscode/src/commands/channelService.ts',
@@ -33,7 +34,11 @@ describe('BaseDeployExecutor', () => {
       const executor = new ForceSourcePullExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
       (executor as any).updateCache = updateCacheMock;
-      (executor as any).attachExecution = jest.fn();
+      // jest.mock('../../../src/channels');
+      // jest.spyOn(ChannelService).mockImplementation();
+
+      // Commenting the below out causes the err with Channel Service
+      // (executor as any).attachExecution = jest.fn();
 
       executor.execute({ type: 'CONTINUE', data: '' });
 
