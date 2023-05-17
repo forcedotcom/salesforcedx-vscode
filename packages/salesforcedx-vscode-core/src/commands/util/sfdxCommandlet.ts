@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CliCommandExecution,
   CliCommandExecutor,
   Command,
   CommandExecution,
@@ -101,30 +102,41 @@ export abstract class SfdxCommandletExecutor<T>
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
-        this.updateCache();
-      }
-
-      const telemetryData = this.getTelemetryData(
-        exitCode === 0,
-        response,
-        output
-      );
-      let properties;
-      let measurements;
-      if (telemetryData) {
-        properties = telemetryData.properties;
-        measurements = telemetryData.measurements;
-      }
-      this.logMetric(
-        execution.command.logName,
-        startTime,
-        properties,
-        measurements
-      );
-      this.onDidFinishExecutionEventEmitter.fire(startTime);
+      this.exitProcessHandler(exitCode, execution, response, startTime, output);
     });
+
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
+
+  protected exitProcessHandler(
+    exitCode: number | undefined,
+    execution: CliCommandExecution,
+    response: ContinueResponse<T>,
+    startTime: [number, number],
+    output: string
+  ): void {
+    if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
+      this.updateCache();
+    }
+
+    const telemetryData = this.getTelemetryData(
+      exitCode === 0,
+      response,
+      output
+    );
+    let properties;
+    let measurements;
+    if (telemetryData) {
+      properties = telemetryData.properties;
+      measurements = telemetryData.measurements;
+    }
+    this.logMetric(
+      execution.command.logName,
+      startTime,
+      properties,
+      measurements
+    );
+    this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 
   protected getTelemetryData(

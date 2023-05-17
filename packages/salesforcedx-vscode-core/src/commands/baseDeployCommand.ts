@@ -6,6 +6,7 @@
  */
 
 import {
+  CliCommandExecution,
   CliCommandExecutor,
   ContinueResponse,
   ForceDeployResultParser,
@@ -56,48 +57,70 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      if (exitCode === 0 && this.getDeployType() === DeployType.Push) {
-        this.updateCache();
-      }
+      this.exitProcessHandlerDeploy(
+        exitCode,
+        stdOut,
+        workspacePath,
+        execFilePathOrPaths,
+        execution,
+        startTime,
+        cancellationToken,
+        cancellationTokenSource
+      );
+    });
+  }
 
-      const telemetry = new TelemetryBuilder();
-      let success = false;
-      try {
-        BaseDeployExecutor.errorCollection.clear();
-        if (stdOut) {
-          const deployParser = new ForceDeployResultParser(stdOut);
-          const errors = deployParser.getErrors();
-          if (errors && !deployParser.hasConflicts()) {
-            channelService.showChannelOutput();
+  protected async exitProcessHandlerDeploy(
+    exitCode: number | undefined,
+    stdOut: string,
+    workspacePath: string,
+    execFilePathOrPaths: string,
+    execution: CliCommandExecution,
+    startTime: [number, number],
+    cancellationToken: vscode.CancellationToken | undefined,
+    cancellationTokenSource: vscode.CancellationTokenSource
+  ): Promise<void> {
+    if (exitCode === 0 && this.getDeployType() === DeployType.Push) {
+      this.updateCache();
+    }
+
+    const telemetry = new TelemetryBuilder();
+    let success = false;
+    try {
+      BaseDeployExecutor.errorCollection.clear();
+      if (stdOut) {
+        const deployParser = new ForceDeployResultParser(stdOut);
+        const errors = deployParser.getErrors();
+        if (errors && !deployParser.hasConflicts()) {
+          channelService.showChannelOutput();
+          if (workspacePath && execFilePathOrPaths) {
             handleDiagnosticErrors(
               errors,
               workspacePath,
               execFilePathOrPaths,
               BaseDeployExecutor.errorCollection
             );
-          } else {
-            success = true;
           }
-          this.outputResult(deployParser);
+        } else {
+          success = true;
         }
-      } catch (e) {
-        BaseDeployExecutor.errorCollection.clear();
-        if (e.name !== 'DeployParserFail') {
-          e.message =
-            'Error while creating diagnostics for vscode problem view.';
-        }
-        telemetryService.sendException(e.name, e.message);
-        console.error(e.message);
+        this.outputResult(deployParser);
       }
-      telemetry.addProperty('success', String(success));
-      this.logMetric(
-        execution.command.logName,
-        startTime,
-        telemetry.build().properties
-      );
-      await DeployQueue.get().unlock();
-    });
-
+    } catch (e) {
+      BaseDeployExecutor.errorCollection.clear();
+      if (e.name !== 'DeployParserFail') {
+        e.message = 'Error while creating diagnostics for vscode problem view.';
+      }
+      telemetryService.sendException(e.name, e.message);
+      console.error(e.message);
+    }
+    telemetry.addProperty('success', String(success));
+    this.logMetric(
+      execution.command.logName,
+      startTime,
+      telemetry.build().properties
+    );
+    await DeployQueue.get().unlock();
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken
