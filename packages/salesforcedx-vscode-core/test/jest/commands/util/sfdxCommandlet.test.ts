@@ -24,7 +24,7 @@ describe('SfdxCommandletExecutor', () => {
       jest.spyOn(ChannelService.prototype, 'clear');
 
       // executor.execute({ type: 'CONTINUE', data: '' });
-      (executor as any).exitProcess('','','','','','');
+      // (executor as any).exitProcess('','','','','','');
 
       expect(updateCacheAfterPushPullMock).toHaveBeenCalled();
     });

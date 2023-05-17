@@ -57,7 +57,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.exitProcessHandlerDeploy(
+      await this.exitProcessHandlerDeploy(
         exitCode,
         stdOut,
         workspacePath,
