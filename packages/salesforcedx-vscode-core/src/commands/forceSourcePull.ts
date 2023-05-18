@@ -7,9 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder,
-  SourceTrackingService,
-  StatusOutputRowType
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { PersistentStorageService } from '../conflict';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../constants';
@@ -61,7 +59,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   /**
    * @description Pass the pulled source to PersistentStorageService for
    * updating of timestamps, so that conflict detection will behave as expected
-   * @param pullResult that comes from stdOut after cli push operation
+   * @param pullResult that comes from stdOut after cli pull operation
    */
   protected updateCache(pullResult: any): void {
     const pulledSource = pullResult.result.pulledSource;
