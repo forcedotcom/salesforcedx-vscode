@@ -53,6 +53,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
+      .withJson()
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--forceoverwrite') {
@@ -67,11 +68,23 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     return this.remoteChanges;
   }
 
-  protected updateCache(): void {
-    const remoteChanges = this.getRemoteChanges();
-    if (remoteChanges) {
-      PersistentStorageService.updateCacheAfterPushPull(remoteChanges);
-    }
+  // protected updateCache(): void {
+  //   const remoteChanges = this.getRemoteChanges();
+  //   if (remoteChanges) {
+  //     PersistentStorageService.updateCacheAfterPushPull(remoteChanges);
+  //   }
+  // }
+
+  /**
+   * @description Pass the pulled source to PersistentStorageService for
+   * updating of timestamps, so that conflict detection will behave as expected
+   * @param pullResult that comes from stdOut after cli push operation
+   */
+  protected updateCache(pullResult: any): void {
+    const pulledSource = pullResult.result.pulledSource;
+
+    const instance = PersistentStorageService.getInstance();
+    instance.setPropertiesForFilesPushPull(pulledSource);
   }
 }
 

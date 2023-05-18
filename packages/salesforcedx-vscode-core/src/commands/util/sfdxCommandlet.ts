@@ -116,7 +116,8 @@ export abstract class SfdxCommandletExecutor<T>
     output: string
   ): void {
     if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
-      this.updateCache();
+      const pullResult = JSON.parse(output);
+      this.updateCache(pullResult);
     }
 
     const telemetryData = this.getTelemetryData(
@@ -153,7 +154,7 @@ export abstract class SfdxCommandletExecutor<T>
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
-  protected updateCache(result?: any): void {}
+  protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;
 

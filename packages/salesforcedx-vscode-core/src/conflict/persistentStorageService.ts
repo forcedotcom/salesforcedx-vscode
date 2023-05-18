@@ -42,40 +42,6 @@ export class PersistentStorageService {
     return PersistentStorageService.instance;
   }
 
-  public static updateCacheAfterPushPull(
-    changedFiles: StatusOutputRowType[]
-  ): void {
-    const instance = PersistentStorageService.getInstance();
-
-    const changedFilesWithMetaFiles = instance.addMetaFiles(changedFiles);
-
-    // Pass the array to PersistentStorageService for updating of timestamps,
-    // so that conflict detection will behave as expected
-    instance.setPropertiesForFilesPushPull(changedFilesWithMetaFiles);
-  }
-
-  private addMetaFiles(
-    changedFiles: Array<{ filePath?: string; type: string; fullName: string }>
-  ): Array<{ type: string; fullName: string }> {
-    // build a new array that adds '*-meta.xml' files for each .cls or .cmp file
-    const withMetaFilesAdded = [];
-    for (const file of changedFiles) {
-      if (file.filePath) {
-        withMetaFilesAdded.push(file);
-        const filePath = file.filePath;
-        const filePathLength = filePath.length;
-        const fileExtension = filePath.substring(filePathLength - 4);
-        if (fileExtension === '.cls' || fileExtension === '.cmp') {
-          withMetaFilesAdded.push({
-            type: file.type,
-            fullName: file.fullName + '-meta.xml'
-          });
-        }
-      }
-    }
-    return withMetaFilesAdded;
-  }
-
   public getPropertiesForFile(key: string): ConflictFileProperties | undefined {
     return this.storage.get<ConflictFileProperties>(key);
   }
