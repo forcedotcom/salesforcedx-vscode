@@ -33,12 +33,6 @@ export const pushCommand: CommandParams = {
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
-  private localChanges?: StatusOutputRowType[];
-
-  public async cacheLocalChanges() {
-    const localStatus = await SourceTrackingService.getLocalStatus();
-    this.localChanges = localStatus;
-  }
 
   public constructor(
     flag?: string,
@@ -67,10 +61,6 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
     return DeployType.Push;
   }
 
-  protected getLocalChanges(): StatusOutputRowType[] | undefined {
-    return this.localChanges;
-  }
-
   /**
    * @description Pass the pushed source to PersistentStorageService for
    * updating of timestamps, so that conflict detection will behave as expected
@@ -90,7 +80,6 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourcePush(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ForceSourcePushExecutor(flag, pushCommand);
-  await executor.cacheLocalChanges();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

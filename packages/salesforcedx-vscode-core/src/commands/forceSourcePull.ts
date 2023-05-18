@@ -34,12 +34,6 @@ export const pullCommand: CommandParams = {
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
-  private remoteChanges?: StatusOutputRowType[];
-
-  public async cacheRemoteChanges() {
-    const remoteStatus = await SourceTrackingService.getRemoteStatus();
-    this.remoteChanges = remoteStatus;
-  }
 
   public constructor(
     flag?: string,
@@ -64,17 +58,6 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     return builder.build();
   }
 
-  protected getRemoteChanges(): StatusOutputRowType[] | undefined {
-    return this.remoteChanges;
-  }
-
-  // protected updateCache(): void {
-  //   const remoteChanges = this.getRemoteChanges();
-  //   if (remoteChanges) {
-  //     PersistentStorageService.updateCacheAfterPushPull(remoteChanges);
-  //   }
-  // }
-
   /**
    * @description Pass the pulled source to PersistentStorageService for
    * updating of timestamps, so that conflict detection will behave as expected
@@ -94,7 +77,6 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourcePull(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ForceSourcePullExecutor(flag, pullCommand);
-  await executor.cacheRemoteChanges();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
