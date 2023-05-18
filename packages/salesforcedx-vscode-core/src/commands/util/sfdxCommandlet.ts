@@ -10,6 +10,7 @@ import {
   Command,
   CommandExecution,
   ContinueResponse,
+  ForceDeployResultParser,
   Measurements,
   ParametersGatherer,
   PostconditionChecker,
@@ -26,6 +27,7 @@ import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
+import { ForceSourcePushExecutor } from '../forceSourcePush';
 import { EmptyPostChecker } from './emptyPostChecker';
 
 export interface FlagParameter<T> {
@@ -118,6 +120,18 @@ export abstract class SfdxCommandletExecutor<T>
     if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
       const pullResult = JSON.parse(output);
       this.updateCache(pullResult);
+    }
+    let success = false;
+    if (output) {
+      const deployParser = new ForceDeployResultParser(output);
+      const errors = deployParser.getErrors();
+      if (errors && !deployParser.hasConflicts()) {
+        channelService.showChannelOutput();
+      } else {
+        success = true;
+      }
+      const e = new ForceSourcePushExecutor();
+      e.outputResult(deployParser);
     }
 
     const telemetryData = this.getTelemetryData(
