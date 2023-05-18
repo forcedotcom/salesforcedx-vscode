@@ -175,17 +175,8 @@ export abstract class SfdxCommandletExecutor<T>
     const pulledSource = successes ? successes.result.pulledSource : undefined;
     if (pulledSource) {
       const rows = pulledSource || (errors && errors.result);
-      const title = nls.localize(`table_title_${titleType}ed_source`);
-      const outputTable = table.createTable(
-        (rows as unknown) as Row[],
-        [
-          { key: 'state', label: nls.localize('table_header_state') },
-          { key: 'fullName', label: nls.localize('table_header_full_name') },
-          { key: 'type', label: nls.localize('table_header_type') },
-          { key: 'filePath', label: nls.localize('table_header_project_path') }
-        ],
-        title
-      );
+      const tableTitle = nls.localize(`table_title_${titleType}ed_source`);
+      const outputTable = this.getOutputTable(table, rows, tableTitle);
 
       channelService.appendLine(outputTable);
       if (pulledSource && pulledSource.length === 0) {
@@ -197,22 +188,45 @@ export abstract class SfdxCommandletExecutor<T>
     if (errors) {
       const { name, message, result } = errors;
       if (result) {
-        const outputTable = table.createTable(
-          (result as unknown) as Row[],
-          [
-            {
-              key: 'filePath',
-              label: nls.localize('table_header_project_path')
-            },
-            { key: 'error', label: nls.localize('table_header_errors') }
-          ],
-          nls.localize(`table_title_${titleType}_errors`)
-        );
+        const outputTable = this.getErrorTable(table, result, titleType);
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
       }
     }
+  }
+
+  protected getErrorTable(table: Table, result: unknown, titleType: string) {
+    const outputTable = table.createTable(
+      (result as unknown) as Row[],
+      [
+        {
+          key: 'filePath',
+          label: nls.localize('table_header_project_path')
+        },
+        { key: 'error', label: nls.localize('table_header_errors') }
+      ],
+      nls.localize(`table_title_${titleType}_errors`)
+    );
+    return outputTable;
+  }
+
+  protected getOutputTable(
+    table: Table,
+    rows: unknown,
+    outputTableTitle: string | undefined
+  ) {
+    const outputTable = table.createTable(
+      (rows as unknown) as Row[],
+      [
+        { key: 'state', label: nls.localize('table_header_state') },
+        { key: 'fullName', label: nls.localize('table_header_full_name') },
+        { key: 'type', label: nls.localize('table_header_type') },
+        { key: 'filePath', label: nls.localize('table_header_project_path') }
+      ],
+      outputTableTitle
+    );
+    return outputTable;
   }
 
   /**

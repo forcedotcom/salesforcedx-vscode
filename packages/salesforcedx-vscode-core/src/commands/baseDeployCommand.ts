@@ -153,16 +153,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       const title = !parser.hasConflicts()
         ? nls.localize(`table_title_${titleType}ed_source`)
         : undefined;
-      const outputTable = table.createTable(
-        (rows as unknown) as Row[],
-        [
-          { key: 'state', label: nls.localize('table_header_state') },
-          { key: 'fullName', label: nls.localize('table_header_full_name') },
-          { key: 'type', label: nls.localize('table_header_type') },
-          { key: 'filePath', label: nls.localize('table_header_project_path') }
-        ],
-        title
-      );
+      const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {
         channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
       }
@@ -176,17 +167,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     if (errors && !parser.hasConflicts()) {
       const { name, message, result } = errors;
       if (result) {
-        const outputTable = table.createTable(
-          (result as unknown) as Row[],
-          [
-            {
-              key: 'filePath',
-              label: nls.localize('table_header_project_path')
-            },
-            { key: 'error', label: nls.localize('table_header_errors') }
-          ],
-          nls.localize(`table_title_${titleType}_errors`)
-        );
+        const outputTable = this.getErrorTable(table, result, titleType);
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
