@@ -63,8 +63,10 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-    const p = execution.command.logName;
-    if (p !== FORCE_SOURCE_PULL_LOG_NAME) {
+    const commandLogName = execution.command.logName;
+    // If Pull operation, output text will be
+    // generated later by ForcePullResultParser
+    if (commandLogName !== FORCE_SOURCE_PULL_LOG_NAME) {
       channelService.streamCommandOutput(execution);
     }
 
