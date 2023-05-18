@@ -10,12 +10,16 @@ import {
   Command,
   CommandExecution,
   ContinueResponse,
+  ForceDeployResultParser,
+  ForcePullResultParser,
   Measurements,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker,
   Properties,
+  Row,
   StatusOutputRowType,
+  Table,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -27,6 +31,15 @@ import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
+import { handleDiagnosticErrors } from '../../diagnostics';
+import { nls } from '../../messages';
+import { BaseDeployExecutor } from '../baseDeployCommand';
+import { ForceSourcePullExecutor } from '../forceSourcePull';
+
+export enum DeployType {
+  Deploy = 'deploy',
+  Push = 'push'
+}
 
 export interface FlagParameter<T> {
   flag?: T;
@@ -59,7 +72,10 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-    channelService.streamCommandOutput(execution);
+    const p = execution.command.logName;
+    if (p !== FORCE_SOURCE_PULL_LOG_NAME) {
+      channelService.streamCommandOutput(execution);
+    }
 
     if (this.showChannelOutput) {
       channelService.showChannelOutput();
@@ -115,9 +131,20 @@ export abstract class SfdxCommandletExecutor<T>
     startTime: [number, number],
     output: string
   ): void {
-    if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
+    if (
+      exitCode === 0 &&
+      execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME
+    ) {
       const pullResult = JSON.parse(output);
       this.updateCache(pullResult);
+
+      const pullParser = new ForcePullResultParser(output);
+      const errors = pullParser.getErrors();
+      if (errors) {
+        channelService.showChannelOutput();
+      }
+
+      this.outputResultPull(pullParser);
     }
 
     const telemetryData = this.getTelemetryData(
@@ -146,6 +173,55 @@ export abstract class SfdxCommandletExecutor<T>
     output: string
   ): TelemetryData | undefined {
     return;
+  }
+
+  public outputResultPull(parser: ForcePullResultParser) {
+    const table = new Table();
+    const titleType = 'pull';
+
+    const successes: any = parser.getSuccesses();
+    const errors = parser.getErrors();
+    const pulledSource = successes ? successes.result.pulledSource : undefined;
+    if (pulledSource) {
+      const rows = pulledSource || (errors && errors.result);
+      const title = nls.localize(`table_title_${titleType}ed_source`);
+      const outputTable = table.createTable(
+        (rows as unknown) as Row[],
+        [
+          { key: 'state', label: nls.localize('table_header_state') },
+          { key: 'fullName', label: nls.localize('table_header_full_name') },
+          { key: 'type', label: nls.localize('table_header_type') },
+          { key: 'filePath', label: nls.localize('table_header_project_path') }
+        ],
+        title
+      );
+
+      channelService.appendLine(outputTable);
+      if (pulledSource && pulledSource.length === 0) {
+        const noResults = nls.localize('table_no_results_found') + '\n';
+        channelService.appendLine(noResults);
+      }
+    }
+
+    if (errors) {
+      const { name, message, result } = errors;
+      if (result) {
+        const outputTable = table.createTable(
+          (result as unknown) as Row[],
+          [
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            },
+            { key: 'error', label: nls.localize('table_header_errors') }
+          ],
+          nls.localize(`table_title_${titleType}_errors`)
+        );
+        channelService.appendLine(outputTable);
+      } else if (name && message) {
+        channelService.appendLine(`${name}: ${message}\n`);
+      }
+    }
   }
 
   /**

@@ -308,6 +308,8 @@ export const messages = {
   table_no_results_found: 'No results found',
   table_title_deployed_source: 'Deployed Source',
   table_title_deploy_errors: 'Deploy Errors',
+  table_title_pulled_source: 'Pulled Source',
+  table_title_pull_errors: 'Pull Errors',
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
