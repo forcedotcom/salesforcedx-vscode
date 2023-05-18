@@ -240,13 +240,6 @@ export abstract class SfdxCommandletExecutor<T>
   protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;
-
-  /**
-   * @description Used by forceSourcePull to cache remote changes before
-   * retrieving, in order to update the local cache's timestamps post-
-   * operation.
-   */
-  protected getRemoteChanges?(): StatusOutputRowType[] | undefined;
 }
 
 export class SfdxCommandlet<T> {
