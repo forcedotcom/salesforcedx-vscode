@@ -71,11 +71,16 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
     return this.localChanges;
   }
 
-  protected updateCache(): void {
-    const localChanges = this.getLocalChanges();
-    if (localChanges) {
-      PersistentStorageService.updateCacheAfterPushPull(localChanges);
-    }
+  /**
+   * @description Pass the pushed source to PersistentStorageService for
+   * updating of timestamps, so that conflict detection will behave as expected
+   * @param pushResult that comes from stdOut after cli push operation
+   */
+  protected updateCache(pushResult: any): void {
+    const pushedSource = pushResult.result.pushedSource;
+
+    const instance = PersistentStorageService.getInstance();
+    instance.setPropertiesForFilesPushPull(pushedSource);
   }
 }
 

@@ -81,7 +81,8 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     cancellationTokenSource: vscode.CancellationTokenSource
   ): Promise<void> {
     if (exitCode === 0 && this.getDeployType() === DeployType.Push) {
-      this.updateCache();
+      const pushResult = JSON.parse(stdOut);
+      this.updateCache(pushResult);
     }
 
     const telemetry = new TelemetryBuilder();

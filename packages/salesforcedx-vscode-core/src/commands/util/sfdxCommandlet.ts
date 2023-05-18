@@ -153,7 +153,7 @@ export abstract class SfdxCommandletExecutor<T>
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
-  protected updateCache(): void {}
+  protected updateCache(result?: any): void {}
 
   public abstract build(data: T): Command;
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { CommandParams } from '../../../src/commands/util';
@@ -32,7 +38,10 @@ describe('BaseDeployExecutor', () => {
       // Commenting the below out causes the err with Channel Service
       // (executor as any).attachExecution = jest.fn();
 
-      executor.execute({ type: 'CONTINUE', data: '' });
+      (executor as any).exitProcessHandlerDeploy({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(updateCacheMock).toHaveBeenCalled();
     });
