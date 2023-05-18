@@ -6,11 +6,12 @@
  */
 import {
   extractJsonObject,
-  isNullOrUndefined
+  isNullOrUndefined,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   ComponentUtils,

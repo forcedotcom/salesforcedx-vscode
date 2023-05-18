@@ -4,14 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  TraceFlagsRemover,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
-import { workspaceUtils } from '../../util';
 
 /**
  * An enum for the different types of functions.
@@ -64,7 +66,7 @@ export class FunctionService {
     return FunctionService._instance;
   }
 
-  private constructor() { }
+  private constructor() {}
 
   /**
    * Locate the directory that has project.toml.
@@ -108,10 +110,7 @@ export class FunctionService {
     };
   }
 
-  public updateFunction(
-    rootDir: string,
-    debugType: string
-  ): void {
+  public updateFunction(rootDir: string, debugType: string): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const type = debugType.toLowerCase();

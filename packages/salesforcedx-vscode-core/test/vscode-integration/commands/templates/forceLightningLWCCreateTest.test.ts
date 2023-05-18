@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { ForceLightningLwcTestCreateExecutor } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
-import { workspaceUtils } from '../../../../src/util';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force Lightning Web Component Test Create', () => {
   it('Should build the Lightning Web Component Test create command', async () => {

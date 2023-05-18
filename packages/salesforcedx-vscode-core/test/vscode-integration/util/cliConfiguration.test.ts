@@ -13,7 +13,8 @@ import {
 } from '@salesforce/core';
 import {
   ConfigUtil,
-  GlobalCliEnvironment
+  GlobalCliEnvironment,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -27,7 +28,6 @@ import {
   isCLIInstalled,
   isCLITelemetryAllowed,
   showCLINotInstalledMessage,
-  workspaceUtils
 } from '../../../src/util';
 
 describe('SFDX CLI Configuration utility', () => {

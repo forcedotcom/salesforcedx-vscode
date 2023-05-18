@@ -7,7 +7,9 @@
 import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  ParametersGatherer,
+  SfdxPackageDirectories,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -36,8 +38,6 @@ import {
   SelectLwcComponentDir
 } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { workspaceUtils } from '../../../../src/util';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 

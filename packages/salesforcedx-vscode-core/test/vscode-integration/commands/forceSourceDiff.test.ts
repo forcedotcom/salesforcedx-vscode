@@ -14,7 +14,10 @@ import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { commands, Uri } from 'vscode';
-import { channelService } from '../../../src/channels';
+import {
+  channelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
 import * as differ from '../../../src/conflict/directoryDiffer';
@@ -25,7 +28,6 @@ import {
   PathType
 } from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
 import Sinon = require('sinon');
 import {
   FilePathGatherer,

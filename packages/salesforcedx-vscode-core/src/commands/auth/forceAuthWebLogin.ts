@@ -11,22 +11,23 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  ProgressNotification,
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
-import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
-import {
-  notificationService,
-  ProgressNotification
-} from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
-import { isSFDXContainerMode, workspaceUtils } from '../../util';
+import { isSFDXContainerMode } from '../../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -88,6 +89,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
 
     notificationService.reportCommandExecutionStatus(
       execution,
+      undefined,
       cancellationToken
     );
 

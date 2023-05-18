@@ -1,6 +1,7 @@
 import {
   OrgUserInfo,
-  WorkspaceContextUtil
+  WorkspaceContextUtil,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
@@ -10,7 +11,6 @@ import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { decorators } from '../../../src/decorators';
-import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
 

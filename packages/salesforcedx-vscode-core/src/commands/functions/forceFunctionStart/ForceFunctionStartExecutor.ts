@@ -6,13 +6,12 @@
  */
 
 import { getProjectDescriptor } from '@heroku/functions-core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor, channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../../channels';
+import { OUTPUT_CHANNEL } from '../../../channels';
 import { nls } from '../../../messages';
-import { notificationService } from '../../../notifications';
 import { telemetryService } from '../../../telemetry';
 import { OrgAuthInfo } from '../../../util';
 import { FunctionService } from '../functionService';

@@ -26,9 +26,12 @@ import {
 } from '../../../../src/commands/functions/forceFunctionInvoke';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
+import {
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { telemetryService } from '../../../../src/telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../../../../src/util';
+import { OrgAuthInfo } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
 

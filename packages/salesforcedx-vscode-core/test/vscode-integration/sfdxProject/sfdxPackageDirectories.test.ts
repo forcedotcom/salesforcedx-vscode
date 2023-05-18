@@ -10,7 +10,7 @@ import { SinonStub, stub } from 'sinon';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig
-} from '../../../src/sfdxProject';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 const PROJECT_PATH = path.join('sfdx', 'project', 'path');

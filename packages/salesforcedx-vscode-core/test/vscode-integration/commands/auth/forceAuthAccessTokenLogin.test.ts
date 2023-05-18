@@ -7,7 +7,7 @@
 
 import { AuthInfo } from '@salesforce/core';
 import { assert, createSandbox, SinonStub } from 'sinon';
-import { channelService } from '../../../../src/channels/index';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   AccessTokenParamsGatherer,
   forceAuthAccessToken

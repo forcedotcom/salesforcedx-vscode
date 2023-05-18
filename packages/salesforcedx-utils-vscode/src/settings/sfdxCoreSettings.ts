@@ -8,7 +8,7 @@
 import {
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME
-} from '@salesforce/salesforcedx-utils-vscode';
+} from '../constants';
 import * as vscode from 'vscode';
 import {
   CONFLICT_DETECTION_ENABLED,

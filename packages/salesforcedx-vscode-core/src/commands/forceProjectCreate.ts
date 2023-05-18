@@ -9,14 +9,14 @@ import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
-  PostconditionChecker
+  PostconditionChecker,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {

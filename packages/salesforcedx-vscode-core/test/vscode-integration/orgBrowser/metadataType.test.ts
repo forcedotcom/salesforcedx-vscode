@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CommandOutput,
+  projectPaths,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,7 +16,7 @@ import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
-import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
+import { OrgAuthInfo } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {
@@ -20,7 +24,8 @@ describe('get metadata types folder', () => {
   let getUsernameStub: SinonStub;
   let metadataFolderStub: SinonStub;
   const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-  const metadataDirectoryPath = 'test/path/.sfdx/orgs/test-username1@example.com/metadata';
+  const metadataDirectoryPath =
+    'test/path/.sfdx/orgs/test-username1@example.com/metadata';
   const typeUtil = new TypeUtils();
   beforeEach(() => {
     getDefaultUsernameStub = stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');

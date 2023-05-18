@@ -11,14 +11,15 @@ import {
   ContinueResponse,
   isRecordIdFormat,
   ParametersGatherer,
-  SfdxCommandBuilder
+  ProgressNotification,
+  SfdxCommandBuilder,
+  channelService,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import {
   CompositeParametersGatherer,

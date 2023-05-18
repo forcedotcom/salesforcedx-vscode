@@ -13,8 +13,8 @@ import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
-import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
+import { telemetryService } from '../';
+import { workspaceUtils } from '../workspaces';
 
 /**
  * Class representing the local sfdx-project.json file.

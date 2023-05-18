@@ -8,6 +8,7 @@
 import {
   CliCommandExecutor,
   CommandExecution,
+  ProgressNotification,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
@@ -15,7 +16,6 @@ import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { ProgressNotification } from '../../../src/notifications';
 
 // tslint:disable:no-unused-expression
 describe('Progress Notification', () => {

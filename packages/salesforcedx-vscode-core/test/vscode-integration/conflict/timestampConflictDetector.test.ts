@@ -14,7 +14,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
-import { channelService } from '../../../src/channels';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode';
 import { PersistentStorageService } from '../../../src/conflict';
 import * as differ from '../../../src/conflict/componentDiffer';
 import { TimestampFileProperties } from '../../../src/conflict/directoryDiffer';

@@ -6,7 +6,10 @@
  */
 
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import {
+  channelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
@@ -15,7 +18,6 @@ import {
 import * as differ from '../conflict/directoryDiffer';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 

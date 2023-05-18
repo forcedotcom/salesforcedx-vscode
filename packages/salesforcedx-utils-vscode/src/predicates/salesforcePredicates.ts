@@ -8,13 +8,15 @@
 import {
   Predicate,
   PredicateResponse
-} from '@salesforce/salesforcedx-utils-vscode';
+} from './';
 import * as fs from 'fs';
 import * as path from 'path';
 import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
-import { workspaceUtils } from '../util';
+import { workspaceUtils } from '../workspaces';
+
+
 
 export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
   public apply(item: typeof workspace): PredicateResponse {

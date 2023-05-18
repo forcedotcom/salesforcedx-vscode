@@ -13,6 +13,8 @@ import { ChannelService } from './index';
 
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
+// TODO: check on function signatures between this and core
+
 /**
  * A centralized location for all notification functionalities.
  */
@@ -59,7 +61,7 @@ export class NotificationService {
 
   public reportCommandExecutionStatus(
     execution: CommandExecution,
-    channelService: ChannelService | undefined,
+    channelService?: ChannelService | undefined,
     cancellationToken?: vscode.CancellationToken
   ) {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
@@ -107,13 +109,21 @@ export class NotificationService {
     );
   }
 
-  public async showSuccessfulExecution(executionName: string, channelService: ChannelService | undefined) {
+  public async showSuccessfulExecution(
+    executionName: string,
+    channelService?: ChannelService
+  ) {
     const message = nls.localize(
       'notification_successful_execution_text',
       executionName
     );
-    const coreConfigurationName = vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME);
-    const showCLISuccessMsg = coreConfigurationName.get<boolean>('show-cli-success-msg', true);
+    const coreConfigurationName = vscode.workspace.getConfiguration(
+      SFDX_CORE_CONFIGURATION_NAME
+    );
+    const showCLISuccessMsg = coreConfigurationName.get<boolean>(
+      'show-cli-success-msg',
+      true
+    );
     if (showCLISuccessMsg) {
       const showButtonText = nls.localize('notification_show_button_text');
       const showOnlyStatusBarButtonText = nls.localize(

@@ -16,7 +16,12 @@ import {
   CancelResponse,
   ContinueResponse,
   fileUtils,
-  SourceTrackingService
+  SfdxPackageDirectories,
+  SfdxProjectConfig,
+  SourceTrackingService,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -27,7 +32,6 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { channelService } from '../../../src/channels';
 import {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
@@ -35,12 +39,6 @@ import {
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
-import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;

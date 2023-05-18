@@ -8,13 +8,16 @@ import {
   CancelResponse,
   ContinueResponse,
   LocalComponent,
-  PostconditionChecker
+  PostconditionChecker,
+  channelService,
+  notificationService,
+  sfdxCoreSettings,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import { join } from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { channelService } from '../../../../src/channels';
 import {
   CommandletExecutor,
   ConflictDetectionMessages,
@@ -30,9 +33,7 @@ import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffe
 import { WorkspaceContext } from '../../../../src/context';
 import * as workspaceUtil from '../../../../src/context/workspaceOrgType';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
-import { sfdxCoreSettings } from '../../../../src/settings';
-import { MetadataDictionary, workspaceUtils } from '../../../../src/util';
+import { MetadataDictionary } from '../../../../src/util';
 import { OrgType } from './../../../../src/context/workspaceOrgType';
 
 describe('Postcondition Checkers', () => {

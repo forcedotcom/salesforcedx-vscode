@@ -7,18 +7,23 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandExecution, ContinueResponse, Measurements, ParametersGatherer,
+  CommandExecution,
+  ContinueResponse,
+  Measurements,
+  ParametersGatherer,
   PostconditionChecker,
-  PreconditionChecker, Properties,
-  TelemetryData
+  PreconditionChecker,
+  ProgressNotification,
+  Properties,
+  TelemetryData,
+  channelService,
+  notificationService,
+  sfdxCoreSettings,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../../channels';
-import { notificationService, ProgressNotification } from '../../notifications';
-import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
 
 export interface FlagParameter<T> {
@@ -60,6 +65,7 @@ export abstract class SfdxCommandletExecutor<T>
 
     notificationService.reportCommandExecutionStatus(
       execution,
+      undefined,
       cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);

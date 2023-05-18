@@ -8,15 +8,17 @@
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
-  DirFileNameSelection
+  DirFileNameSelection,
+  ProgressNotification,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { channelService } from '../../channels';
-import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
-import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
+import { MetadataDictionary, MetadataInfo } from '../../util';
 import {
   SelectOutputDir,
   SfdxCommandletExecutor,

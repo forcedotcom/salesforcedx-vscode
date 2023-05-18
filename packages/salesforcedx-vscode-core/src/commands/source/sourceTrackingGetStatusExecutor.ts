@@ -7,9 +7,10 @@
 import {
   ContinueResponse,
   LibraryCommandletExecutor,
-  SourceTrackingService
+  SourceTrackingService,
+  channelService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
+import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 
 export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<

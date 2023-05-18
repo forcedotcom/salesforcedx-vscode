@@ -6,12 +6,16 @@
  */
 import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
+  ProgressNotification,
   getRootWorkspacePath,
-  SFDX_CORE_CONFIGURATION_NAME
+  SFDX_CORE_CONFIGURATION_NAME,
+  channelService,
+  isSfdxProjectOpened,
+  sfdxCoreSettings,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { channelService } from './channels';
 import {
   checkSObjectsAndRefresh,
   forceAliasList,
@@ -109,11 +113,9 @@ import {
   showDemoMode
 } from './decorators';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
-import { isSfdxProjectOpened } from './predicates';
-import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
+import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';

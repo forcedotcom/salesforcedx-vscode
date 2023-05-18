@@ -9,7 +9,7 @@ import { JsonArray, JsonMap } from '@salesforce/ts-types';
 import { SfdxProjectConfig } from '../sfdxProject';
 
 import * as path from 'path';
-import { workspaceUtils } from '../util';
+import { workspaceUtils } from '../workspaces';
 
 export default class SfdxPackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {

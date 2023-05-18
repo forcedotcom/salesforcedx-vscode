@@ -12,14 +12,15 @@ import {
   CommandExecution,
   CommandOutput,
   CompositeCliCommandExecutor,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  channelService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,

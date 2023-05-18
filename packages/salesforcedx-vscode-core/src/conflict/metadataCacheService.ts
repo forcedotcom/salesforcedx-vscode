@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  SfdxPackageDirectories,
+  projectPaths,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -20,8 +24,6 @@ import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
-import { SfdxPackageDirectories } from '../sfdxProject';
-import { workspaceUtils } from '../util';
 
 export interface MetadataContext {
   baseDirectory: string;

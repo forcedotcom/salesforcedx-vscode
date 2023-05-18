@@ -10,10 +10,10 @@ import * as vscode from 'vscode';
 import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  ParametersGatherer,
+  SfdxProjectConfig
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../messages';
-import { SfdxProjectConfig } from '../../sfdxProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';

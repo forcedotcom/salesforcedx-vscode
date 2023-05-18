@@ -8,10 +8,12 @@
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
 import { CancellationTokenSource, window } from 'vscode';
-import { channelService } from '../../../src/channels';
+import {
+  NotificationService,
+  SfdxCoreSettings,
+  channelService
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../../src/messages';
-import { NotificationService } from '../../../src/notifications/notificationService';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
 const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
@@ -60,7 +62,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      undefined,
+      observable
+    );
 
     setTimeout(() => {
       assert.notCalled(mShow);
@@ -87,7 +93,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      undefined,
+      observable
+    );
     setTimeout(() => {
       assert.calledOnce(mShow);
       assert.calledWith(
@@ -114,7 +124,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      undefined,
+      observable
+    );
 
     setTimeout(() => {
       assert.notCalled(mShow);
@@ -140,7 +154,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      undefined,
+      observable
+    );
 
     setTimeout(() => {
       assert.calledWith(
@@ -165,6 +183,7 @@ describe('Notifications', () => {
     const notificationService = NotificationService.getInstance();
     notificationService.reportExecutionStatus(
       'mock command',
+      undefined,
       observable,
       cancellationTokenSource.token
     );
@@ -186,7 +205,11 @@ describe('Notifications', () => {
     observable.next(ABNORMAL_EXIT);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      undefined,
+      observable
+    );
 
     setTimeout(() => {
       assert.calledOnce(mShow);

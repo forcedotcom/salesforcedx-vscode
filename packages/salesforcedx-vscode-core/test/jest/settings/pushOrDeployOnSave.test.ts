@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { sfdxCoreSettings } from '@salesforce/salesforcedx-utils-vscode';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
-import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
+import { DeployQueue } from '../../../src/settings';
 
 describe('DeployQueue', () => {
   describe('doDeploy', () => {

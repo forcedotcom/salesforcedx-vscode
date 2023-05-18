@@ -15,15 +15,15 @@ import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
-  PreconditionChecker
+  PreconditionChecker,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{

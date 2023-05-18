@@ -11,14 +11,16 @@ import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
-import { channelService } from '../../../../src/channels';
+import {
+  SfdxCoreSettings,
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   forceInternalLightningAppCreate,
   forceLightningAppCreate
 } from '../../../../src/commands/templates/forceLightningAppCreate';
-import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning App Create', () => {

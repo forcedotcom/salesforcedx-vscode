@@ -10,9 +10,11 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
+  SfdxPackageDirectories,
   SourceTrackingService,
   SourceTrackingType,
-  Table
+  Table,
+  channelService
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -27,7 +29,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context';
@@ -36,7 +38,6 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 

@@ -8,11 +8,11 @@ import {
   Command,
   DirFileNameSelection,
   LocalComponent,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { nls } from '../../messages';
-import { workspaceUtils } from '../../util';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,

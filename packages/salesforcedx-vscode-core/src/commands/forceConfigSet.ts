@@ -4,8 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigUtil, ContinueResponse, LibraryCommandletExecutor, Row, Table} from '@salesforce/salesforcedx-utils-vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import {
+  ConfigUtil,
+  ContinueResponse,
+  LibraryCommandletExecutor,
+  Row,
+  Table,
+  channelService
+} from '@salesforce/salesforcedx-utils-vscode';
+import { OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
   CONFIG_SET_NAME,
@@ -26,10 +33,12 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   protected showChannelOutput = false;
   private outputTableRow: Row = {};
 
-  constructor(
-    usernameOrAlias: string
-  ) {
-    super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
+  constructor(usernameOrAlias: string) {
+    super(
+      nls.localize(CONFIG_SET_EXECUTOR),
+      CONFIG_SET_EXECUTOR,
+      OUTPUT_CHANNEL
+    );
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
@@ -41,11 +50,15 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       await ConfigUtil.setDefaultUsernameOrAlias(this.usernameOrAlias);
     } catch (error) {
       error instanceof Error
-        ? message = error.message
-        : message = String(error);
+        ? (message = error.message)
+        : (message = String(error));
       result = false;
     }
-    this.outputTableRow = { name: DEFAULT_USERNAME_KEY, val: this.usernameOrAlias, success: String(result) };
+    this.outputTableRow = {
+      name: DEFAULT_USERNAME_KEY,
+      val: this.usernameOrAlias,
+      success: String(result)
+    };
     const outputTable = this.formatOutput(this.outputTableRow);
     channelService.appendLine(outputTable);
     if (message) {

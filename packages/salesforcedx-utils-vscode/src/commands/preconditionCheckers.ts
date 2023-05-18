@@ -5,34 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import { workspace } from 'vscode';
 import { nls } from '../messages';
-import { Predicate, PredicateResponse } from '../predicates';
-import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
-import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
+import { PreconditionChecker } from '../types';
 import { notificationService } from './index';
-
-export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
-  public apply(item: typeof workspace): PredicateResponse {
-    if (!hasRootWorkspace()) {
-      return PredicateResponse.of(
-        false,
-        nls.localize('predicates_no_folder_opened_text')
-      );
-    } else if (
-      !fs.existsSync(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE))
-    ) {
-      return PredicateResponse.of(
-        false,
-        nls.localize('predicates_no_sfdx_project_found_text')
-      );
-    } else {
-      return PredicateResponse.true();
-    }
-  }
-}
+import { IsSfdxProjectOpened } from '../predicates';
 
 export const isSfdxProjectOpened = new IsSfdxProjectOpened();
 

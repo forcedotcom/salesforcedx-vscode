@@ -15,17 +15,18 @@ import {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
-  SfdxCommandBuilder
+  ProgressNotification,
+  SfdxCommandBuilder,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import {
   CompositeParametersGatherer,
   CompositePreconditionChecker,
@@ -113,6 +114,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 
     notificationService.reportCommandExecutionStatus(
       execution,
+      undefined,
       cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);

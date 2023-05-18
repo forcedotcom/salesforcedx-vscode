@@ -11,7 +11,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { AliasGatherer, ForceOrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
-import { workspaceUtils } from '../../../src/util';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 
 // tslint:disable:no-unused-expression
 describe('Force Org Create', () => {

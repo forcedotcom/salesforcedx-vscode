@@ -9,9 +9,9 @@
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
 import { Uri } from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
+import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import {

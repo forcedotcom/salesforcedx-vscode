@@ -21,9 +21,9 @@ import {
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
+import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { telemetryService } from '../../../../src/telemetry';
-import { workspaceUtils } from '../../../../src/util';
+
 
 import * as library from '@heroku/functions-core';
 import sinon = require('sinon');

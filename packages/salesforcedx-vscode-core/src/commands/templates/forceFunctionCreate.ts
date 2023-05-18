@@ -8,14 +8,18 @@
 import {
   CancelResponse,
   ContinueResponse,
-  FunctionInfo, LibraryCommandletExecutor, ParametersGatherer
+  FunctionInfo,
+  LibraryCommandletExecutor,
+  ParametersGatherer,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
+import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { MetadataDictionary, MetadataInfo } from '../../util';
 import {
   CompositeParametersGatherer,
@@ -25,7 +29,6 @@ import {
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 import { generateFunction, Language } from '@heroku/functions-core';
-import { workspaceUtils } from '../../util';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';

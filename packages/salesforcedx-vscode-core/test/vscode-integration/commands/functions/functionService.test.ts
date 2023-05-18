@@ -13,7 +13,7 @@ import {
   FUNCTION_DEFAULT_PORT
 } from '../../../../src/commands/functions/types/constants';
 import { nls } from '../../../../src/messages';
-import { workspaceUtils } from '../../../../src/util';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { MockExtensionContext } from '../../telemetry/MockExtensionContext';
 
 describe('Function Service', () => {

@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  SfdxCoreSettings,
+  TelemetryReporter
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { assert, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 

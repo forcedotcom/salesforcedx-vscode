@@ -8,14 +8,13 @@
 import {
   isNullOrUndefined,
   MISSING_LABEL_MSG,
-  projectPaths
+  projectPaths, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export type MetadataObject = {
   directoryName: string;

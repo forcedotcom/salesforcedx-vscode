@@ -14,12 +14,14 @@ import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
-import { channelService } from '../../../../src/channels';
+import {
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { forceApexClassCreate } from '../../../../src/commands/templates/forceApexClassCreate';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { workspaceUtils } from '../../../../src/util';
 
 const sandbox = createSandbox();
 

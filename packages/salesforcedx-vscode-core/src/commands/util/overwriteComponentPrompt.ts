@@ -9,21 +9,23 @@ import {
   CancelResponse,
   ContinueResponse,
   LocalComponent,
-  PostconditionChecker
+  PostconditionChecker,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
-import { MetadataDictionary, workspaceUtils } from '../../util';
+import { MetadataDictionary } from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
-export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany> {
-    public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
+export class OverwriteComponentPrompt
+  implements PostconditionChecker<OneOrMany> {
+  public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (inputs.type === 'CONTINUE') {
       const { data } = inputs;
       // normalize data into a list when processing

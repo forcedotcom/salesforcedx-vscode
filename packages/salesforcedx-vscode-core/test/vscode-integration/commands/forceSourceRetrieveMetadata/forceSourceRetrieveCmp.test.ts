@@ -15,7 +15,9 @@ import {
 import {
   ContinueResponse,
   LocalComponent,
-  SourceTrackingService
+  SfdxPackageDirectories,
+  SourceTrackingService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -35,8 +37,6 @@ import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/libraryRetrieveSourcePathExecutor';
 import { WorkspaceContext } from '../../../../src/context';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { workspaceUtils } from '../../../../src/util';
 
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;

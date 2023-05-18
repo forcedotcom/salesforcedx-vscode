@@ -1,4 +1,7 @@
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -13,7 +16,6 @@ import {
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging';
 import { nls } from '../../../../src/messages';
-import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('ISV Debugging Project Bootstrap Command', () => {

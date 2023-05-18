@@ -13,7 +13,7 @@ import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { isSfdxProjectOpened } from '../../../src/predicates';
-import { workspaceUtils } from '../../../src/util';
+import { workspaceUtils } from '../../../src/workspaces';
 
 // tslint:disable:no-unused-expression
 describe('SFDX project predicate', () => {

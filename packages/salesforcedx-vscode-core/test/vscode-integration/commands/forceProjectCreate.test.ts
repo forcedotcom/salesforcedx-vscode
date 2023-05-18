@@ -7,7 +7,10 @@
 
 import {
   CancelResponse,
-  ContinueResponse
+  ContinueResponse,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -16,7 +19,6 @@ import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
-import { channelService } from '../../../src/channels';
 import {
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
@@ -30,9 +32,7 @@ import {
 } from '../../../src/commands';
 import { ProjectName } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
 import { telemetryService } from '../../../src/telemetry';
-import { workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {

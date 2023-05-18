@@ -8,14 +8,16 @@ import * as library from '@heroku/functions-core';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
-import { channelService } from '../../../../src/channels';
+import {
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { forceFunctionContainerlessStartCommand } from '../../../../src/commands/functions/forceFunctionContainerlessStartCommand';
 import { forceFunctionStop } from '../../../../src/commands/functions/forceFunctionStop';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { workspaceUtils } from '../../../../src/util';
 
 describe('Force Function Stop Integration Tests', () => {
   let sandbox: SinonSandbox;

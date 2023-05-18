@@ -7,9 +7,8 @@
 
 import { LocalRun, LocalRunProcess } from '@heroku/functions-core';
 import { Disposable } from 'vscode';
-import { channelService } from '../../../channels';
+import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../../messages';
-import { notificationService } from '../../../notifications';
 import { telemetryService } from '../../../telemetry';
 import { FunctionService, functionType } from '../functionService';
 import {

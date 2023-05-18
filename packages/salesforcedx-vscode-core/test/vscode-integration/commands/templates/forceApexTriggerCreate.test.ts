@@ -11,10 +11,12 @@ import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
-import { channelService } from '../../../../src/channels';
+import {
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { forceApexTriggerCreate } from '../../../../src/commands/templates/forceApexTriggerCreate';
-import { notificationService } from '../../../../src/notifications';
-import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Trigger Create', () => {

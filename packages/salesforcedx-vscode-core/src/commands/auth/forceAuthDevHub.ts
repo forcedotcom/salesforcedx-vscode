@@ -8,7 +8,8 @@
 import {
   CliCommandExecutor,
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import { DEFAULT_ALIAS } from './authParamsGatherer';
@@ -18,8 +19,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
-
-import { workspaceUtils } from '../../util';
 
 import { ConfigFile } from '@salesforce/core';
 import {
@@ -141,8 +140,8 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
   }
 }
 
-export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
-
+export class AuthDevHubParamsGatherer
+  implements ParametersGatherer<AuthDevHubParams> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AuthDevHubParams>
   > {

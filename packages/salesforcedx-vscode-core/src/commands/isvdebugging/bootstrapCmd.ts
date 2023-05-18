@@ -13,8 +13,11 @@ import {
   CommandOutput,
   ContinueResponse,
   ParametersGatherer,
+  ProgressNotification,
   projectPaths,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  channelService,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
@@ -23,9 +26,7 @@ import { Observable } from 'rxjs/Observable';
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
-import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
   PathExistsChecker,

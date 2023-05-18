@@ -7,13 +7,13 @@
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import {
   ConfigSource,
-  ConfigUtil
+  ConfigUtil,
+  channelService,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 
 export class OrgAuthInfo {

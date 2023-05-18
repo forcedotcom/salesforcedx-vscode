@@ -14,8 +14,11 @@ import {
 import {
   ConfigUtil,
   ContinueResponse,
+  SfdxPackageDirectories,
   SourceTrackingService,
-  Table
+  Table,
+  channelService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -38,7 +41,6 @@ import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
 import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
-import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
 import {
   DeployExecutor,
@@ -51,8 +53,6 @@ import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const $$ = instantiateContext();

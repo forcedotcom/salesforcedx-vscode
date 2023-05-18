@@ -7,7 +7,9 @@
 
 import {
   ContinueResponse,
-  LocalComponent
+  LocalComponent,
+  SfdxPackageDirectories,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -16,8 +18,6 @@ import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolv
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxPackageDirectories } from '../../sfdxProject';
-import { workspaceUtils } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<

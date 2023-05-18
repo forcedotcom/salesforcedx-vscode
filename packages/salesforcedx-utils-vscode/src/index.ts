@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TelemetryService } from './telemetry/telemetry';
+
 export { AuthUtil } from './auth/authUtil';
 export * from './commands';
 export {
@@ -47,6 +49,10 @@ export {
   getRootWorkspacePath,
   workspaceUtils
 } from './workspaces';
+
+export const telemetryService = TelemetryService.getInstance();
+
+export * from './channels';
 export * from './cli';
 export * from './cli/commandExecutor';
 export * from './i18n';
@@ -56,3 +62,5 @@ export * from './output';
 export * from './predicates';
 export * from './providers';
 export * from './services';
+export * from './settings';
+export * from './sfdxProject';

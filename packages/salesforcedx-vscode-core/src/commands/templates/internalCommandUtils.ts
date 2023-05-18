@@ -9,11 +9,11 @@ import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
-  PreconditionChecker
+  PreconditionChecker,
+  sfdxCoreSettings
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { Uri } from 'vscode';
-import { sfdxCoreSettings } from '../../settings';
 
 export class InternalDevWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {

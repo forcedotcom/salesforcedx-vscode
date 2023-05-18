@@ -7,12 +7,12 @@
 
 import {
   DirFileNameSelection,
-  LocalComponent
+  LocalComponent,
+  sfdxCoreSettings
 } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningEventOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,

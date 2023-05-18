@@ -6,11 +6,14 @@
  */
 
 import { AuthFields, AuthInfo } from '@salesforce/core';
-import { channelService } from '../channels';
+import {
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 
 export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   // Run once to start off with.

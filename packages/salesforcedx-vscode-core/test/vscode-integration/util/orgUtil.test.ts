@@ -13,7 +13,7 @@ import { checkForExpiredOrgs } from '../../../src/util';
 
 // Imports from the target source file
 import { AuthInfo } from '@salesforce/core';
-import { channelService } from '../../../src/channels';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode';
 import { OrgList } from '../../../src/orgPicker';
 
 describe('orgUtil tests', () => {

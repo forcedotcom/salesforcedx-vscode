@@ -7,20 +7,20 @@
 
 import {
   CliCommandExecutor,
+  ContinueResponse,
   Command,
   CommandOutput,
-  SfdxCommandBuilder
+  ParametersGatherer,
+  ProgressNotification,
+  SfdxCommandBuilder,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
-import { workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,

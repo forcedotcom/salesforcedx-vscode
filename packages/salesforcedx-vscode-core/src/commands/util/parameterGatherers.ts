@@ -8,15 +8,15 @@ import {
   CancelResponse,
   ContinueResponse,
   LocalComponent,
-  ParametersGatherer
+  ParametersGatherer,
+  SfdxPackageDirectories,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
 import glob = require('glob');
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxPackageDirectories } from '../../sfdxProject';
-import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';

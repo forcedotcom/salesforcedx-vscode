@@ -6,19 +6,20 @@
  */
 import {
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  SfdxPackageDirectories
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,

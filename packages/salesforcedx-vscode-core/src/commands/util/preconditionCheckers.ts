@@ -4,10 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNullOrUndefined, PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  isNullOrUndefined,
+  PreconditionChecker,
+  isSfdxProjectOpened,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
 import { workspace } from 'vscode';
-import { notificationService } from '../../notifications';
-import { isSfdxProjectOpened } from '../../predicates';
 import { OrgAuthInfo } from '../../util';
 
 export class SfdxWorkspaceChecker implements PreconditionChecker {

@@ -11,16 +11,18 @@ import {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
-  SfdxCommandBuilder
+  ProgressNotification,
+  SfdxCommandBuilder,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { isSFDXContainerMode, workspaceUtils } from '../util';
+import { isSFDXContainerMode } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -93,6 +95,7 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
 
     notificationService.reportCommandExecutionStatus(
       execution,
+      undefined,
       cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);

@@ -8,10 +8,13 @@
 import {
   CancelResponse,
   ContinueResponse,
-  PostconditionChecker
+  PostconditionChecker,
+  channelService,
+  notificationService,
+  sfdxCoreSettings,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename, normalize } from 'path';
-import { channelService } from '../../channels';
 import {
   conflictView,
   DirectoryDiffResults,
@@ -20,10 +23,8 @@ import {
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
-import { DeployQueue, sfdxCoreSettings } from '../../settings';
+import { DeployQueue } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils } from '../../util';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {

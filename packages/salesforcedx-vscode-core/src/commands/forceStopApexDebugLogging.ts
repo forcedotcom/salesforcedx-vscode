@@ -14,14 +14,14 @@ import {
 import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  ParametersGatherer,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,

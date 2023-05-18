@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { channelService } from '../../channels';
+import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode'
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { FunctionService } from './functionService';
 

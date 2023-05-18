@@ -9,19 +9,20 @@ import {
   CliCommandExecutor,
   ContinueResponse,
   ForceDeployResultParser,
+  ProgressNotification,
   Row,
   Table,
-  TelemetryBuilder
+  TelemetryBuilder,
+  channelService,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
 import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
@@ -95,6 +96,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
 
     notificationService.reportCommandExecutionStatus(
       execution,
+      undefined,
       cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);

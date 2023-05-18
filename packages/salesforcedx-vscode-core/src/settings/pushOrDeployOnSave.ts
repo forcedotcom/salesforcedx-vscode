@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { channelService } from '../channels';
+import {
+  SfdxPackageDirectories,
+  channelService,
+  notificationService,
+  sfdxCoreSettings
+} from '@salesforce/salesforcedx-utils-vscode';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
 
 import * as path from 'path';
 import { setTimeout } from 'timers';

@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  channelService,
+  notificationService,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
@@ -14,15 +19,12 @@ import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
-import { channelService } from '../../../../src/channels';
 import {
   forceApexClassCreate,
   forceLightningLwcCreate
 } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { workspaceUtils } from '../../../../src/util';
 
 const TEST_CUSTOM_TEMPLATES_REPO =
   'https://github.com/forcedotcom/salesforcedx-templates/tree/main/test/custom-templates';

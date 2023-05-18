@@ -15,7 +15,10 @@ import {
 import {
   ContinueResponse,
   fileUtils,
-  SourceTrackingService
+  SfdxPackageDirectories,
+  SfdxProjectConfig,
+  SourceTrackingService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -29,11 +32,6 @@ import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
 import { WorkspaceContext } from '../../../src/context';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
-import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;

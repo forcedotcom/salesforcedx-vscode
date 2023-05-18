@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -28,7 +28,6 @@ import {
   MetadataCacheService,
   PathType
 } from '../../../src/conflict/metadataCacheService';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
 
