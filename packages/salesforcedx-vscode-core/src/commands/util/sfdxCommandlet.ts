@@ -196,21 +196,6 @@ export abstract class SfdxCommandletExecutor<T>
     }
   }
 
-  protected getErrorTable(table: Table, result: unknown, titleType: string) {
-    const outputTable = table.createTable(
-      (result as unknown) as Row[],
-      [
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ],
-      nls.localize(`table_title_${titleType}_errors`)
-    );
-    return outputTable;
-  }
-
   protected getOutputTable(
     table: Table,
     rows: unknown,
@@ -225,6 +210,21 @@ export abstract class SfdxCommandletExecutor<T>
         { key: 'filePath', label: nls.localize('table_header_project_path') }
       ],
       outputTableTitle
+    );
+    return outputTable;
+  }
+
+  protected getErrorTable(table: Table, result: unknown, titleType: string) {
+    const outputTable = table.createTable(
+      (result as unknown) as Row[],
+      [
+        {
+          key: 'filePath',
+          label: nls.localize('table_header_project_path')
+        },
+        { key: 'error', label: nls.localize('table_header_errors') }
+      ],
+      nls.localize(`table_title_${titleType}_errors`)
     );
     return outputTable;
   }
