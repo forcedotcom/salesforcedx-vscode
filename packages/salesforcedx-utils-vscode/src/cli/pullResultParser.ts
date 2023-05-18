@@ -57,7 +57,7 @@ export class ForcePullResultParser {
     if (status === 0) {
       const { pulledSource } = result;
       if (pulledSource) {
-        return { status, result: { pulledSource: pulledSource } };
+        return { status, result: { pulledSource } };
       }
       return this.response as ForceSourcePullSuccessResponse;
     }

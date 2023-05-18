@@ -10,7 +10,6 @@ import {
   Command,
   CommandExecution,
   ContinueResponse,
-  ForceDeployResultParser,
   ForcePullResultParser,
   Measurements,
   ParametersGatherer,
@@ -25,16 +24,13 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../constants';
+import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
-import { handleDiagnosticErrors } from '../../diagnostics';
-import { nls } from '../../messages';
-import { BaseDeployExecutor } from '../baseDeployCommand';
-import { ForceSourcePullExecutor } from '../forceSourcePull';
 
 export enum DeployType {
   Deploy = 'deploy',
