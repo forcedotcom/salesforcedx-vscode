@@ -32,11 +32,6 @@ import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { EmptyPostChecker } from './emptyPostChecker';
 
-export enum DeployType {
-  Deploy = 'deploy',
-  Push = 'push'
-}
-
 export interface FlagParameter<T> {
   flag?: T;
 }
