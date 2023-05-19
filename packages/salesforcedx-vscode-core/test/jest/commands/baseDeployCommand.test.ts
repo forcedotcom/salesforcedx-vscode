@@ -6,12 +6,12 @@
  */
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { ForceSourcePushExecutor } from '../../../src/commands';
-import { CommandParams } from '../../../src/commands/util';
-import { nls } from '../../../src/messages';
 import {
   BaseDeployExecutor,
   DeployType
 } from '../../../src/commands/baseDeployCommand';
+import { CommandParams } from '../../../src/commands/util';
+import { nls } from '../../../src/messages';
 
 jest.mock('../../../src/channels');
 jest.mock('../../../src/statuses');
