@@ -10,8 +10,6 @@ import {
   CliCommandExecutor,
   ContinueResponse,
   ForceDeployResultParser,
-  Row,
-  StatusOutputRowType,
   Table,
   TelemetryBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -20,7 +18,6 @@ import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
-import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
@@ -121,7 +118,6 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       startTime,
       telemetry.build().properties
     );
-    await DeployQueue.get().unlock();
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken
