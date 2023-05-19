@@ -5,37 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  CliCommandExecutor,
-  Command,
-  ContinueResponse,
-  isAlphaNumSpaceString,
-  isIntegerInRange,
-  OrgCreateErrorResult,
-  OrgCreateResultParser,
-  ParametersGatherer,
-  ProgressNotification,
-  SfdxCommandBuilder,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
+
+import {
+    CancelResponse, channelService, CliCommandExecutor, Command, ContinueResponse,
+    isAlphaNumSpaceString, isIntegerInRange, notificationService, OrgCreateErrorResult,
+    OrgCreateResultParser, ParametersGatherer, ProgressNotification, SfdxCommandBuilder,
+    workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import {
-  CompositeParametersGatherer,
-  CompositePreconditionChecker,
-  DevUsernameChecker,
-  FileSelection,
-  FileSelector,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    CompositeParametersGatherer, CompositePreconditionChecker, DevUsernameChecker, FileSelection,
+    FileSelector, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from './util';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';

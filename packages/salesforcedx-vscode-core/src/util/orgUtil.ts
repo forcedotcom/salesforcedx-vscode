@@ -7,10 +7,9 @@
 
 import { AuthFields, AuthInfo } from '@salesforce/core';
 import {
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, notificationService, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../messages';
 import { OrgList } from '../orgPicker';
 import { OrgAuthInfo } from '../util';

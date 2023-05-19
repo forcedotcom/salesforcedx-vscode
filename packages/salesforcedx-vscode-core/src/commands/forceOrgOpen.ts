@@ -5,29 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  OrgOpenContainerResultParser,
-  OrgOpenErrorResult,
-  OrgOpenSuccessResult,
-  ProgressNotification,
-  SfdxCommandBuilder,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+
+import {
+    channelService, CliCommandExecutor, Command, ContinueResponse, notificationService,
+    OrgOpenContainerResultParser, OrgOpenErrorResult, OrgOpenSuccessResult, ProgressNotification,
+    SfdxCommandBuilder, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../messages';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { isSFDXContainerMode } from '../util';
 import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    EmptyParametersGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from './util';
 
 export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {

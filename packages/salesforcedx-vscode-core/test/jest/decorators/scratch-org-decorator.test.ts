@@ -1,5 +1,7 @@
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+
 import { ORG_OPEN_COMMAND } from '../../../src/constants';
 import { decorators } from '../../../src/decorators';
 import { nls } from '../../../src/messages';

@@ -5,26 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CancellationToken, Progress } from 'vscode';
+
 import { AuthRemover } from '@salesforce/core';
 import {
-  Command,
-  notificationService,
-  SfdxCommandBuilder
+    Command, ContinueResponse, LibraryCommandletExecutor, notificationService, SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { CancellationToken, Progress } from 'vscode';
+
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { forceConfigSet } from '../forceConfigSet';
 import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  SimpleGatherer
+    EmptyParametersGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker,
+    SimpleGatherer
 } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 

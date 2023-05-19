@@ -8,6 +8,7 @@
 import { assert, expect } from 'chai';
 import { stub } from 'sinon';
 import * as vscode from 'vscode';
+
 import { InputUtils } from '../../../src/util/inputUtils';
 
 describe('inputUtils Unit tests', () => {

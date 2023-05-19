@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -6,12 +8,9 @@
  */
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import {
-  ConfigSource,
-  ConfigUtil,
-  channelService,
-  notificationService
+    channelService, ConfigSource, ConfigUtil, notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

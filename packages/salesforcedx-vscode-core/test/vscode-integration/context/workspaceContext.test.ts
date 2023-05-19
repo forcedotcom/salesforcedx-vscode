@@ -1,12 +1,12 @@
-import {
-  OrgUserInfo,
-  WorkspaceContextUtil,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import {
+    OrgUserInfo, WorkspaceContextUtil, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';

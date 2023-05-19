@@ -5,24 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ConfigUtil,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateService } from '@salesforce/templates';
-import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
-import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
+
 import {
-  forceApexClassCreate,
-  forceLightningLwcCreate
-} from '../../../../src/commands/templates';
+    channelService, ConfigUtil, notificationService, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import { TemplateService } from '@salesforce/templates';
+import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
+
+import { forceApexClassCreate, forceLightningLwcCreate } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 

@@ -6,15 +6,10 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  channelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  MetadataCacheExecutor,
-  MetadataCacheResult,
-  PathType
-} from '../conflict';
+
+import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
+import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';

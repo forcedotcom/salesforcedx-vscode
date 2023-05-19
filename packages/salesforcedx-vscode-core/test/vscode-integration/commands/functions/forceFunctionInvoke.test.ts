@@ -5,35 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { runFunction } from '@heroku/functions-core';
-
 import * as fs from 'fs';
 import { run } from 'mocha';
 import * as path from 'path';
-import {
-  assert,
-  createSandbox,
-  match,
-  SinonSandbox,
-  SinonSpy,
-  SinonStub
-} from 'sinon';
+import { assert, createSandbox, match, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
+
+import * as library from '@heroku/functions-core';
+import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  forceFunctionDebugInvoke,
-  forceFunctionInvoke,
-  ForceFunctionInvoke
+    forceFunctionDebugInvoke, forceFunctionInvoke, ForceFunctionInvoke
 } from '../../../../src/commands/functions/forceFunctionInvoke';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
-import {
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo } from '../../../../src/util';
-
-import * as library from '@heroku/functions-core';
 
 const demoPayload = {
   id: 2345,

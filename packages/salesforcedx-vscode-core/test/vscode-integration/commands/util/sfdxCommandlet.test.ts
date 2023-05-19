@@ -5,20 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// TODO: should move to util?
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  channelService,
-  sfdxCoreSettings
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
+
+// TODO: should move to util?
 import {
-  CommandletExecutor,
-  SfdxCommandlet
-} from '../../../../src/commands/util';
+    CancelResponse, channelService, ContinueResponse, ParametersGatherer, sfdxCoreSettings
+} from '@salesforce/salesforcedx-utils-vscode';
+
+import { CommandletExecutor, SfdxCommandlet } from '../../../../src/commands/util';
 
 describe('SfdxCommandlet', () => {
   let sandbox: SinonSandbox;

@@ -1,7 +1,7 @@
 import { MetadataCacheService } from '../../../src/conflict';
 import * as diffUtils from '../../../src/conflict/componentDiffer';
-import { PersistentStorageService } from './../../../src/conflict/persistentStorageService';
-import { TimestampConflictDetector } from './../../../src/conflict/timestampConflictDetector';
+import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
+import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
 import { dummyLastModifiedDateLocal, testData } from './data/testData';
 
 describe('TimestampConflictDetector', () => {

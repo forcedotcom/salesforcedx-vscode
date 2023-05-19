@@ -1,21 +1,17 @@
+import { expect } from 'chai';
+import * as path from 'path';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ContinueResponse,
-  fileUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { expect } from 'chai';
-import * as path from 'path';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-import {
-  ConfirmationAndSourcePathGatherer,
-  ManifestChecker
-} from '../../../src/commands';
+import { ContinueResponse, fileUtils } from '@salesforce/salesforcedx-utils-vscode';
+
+import { ConfirmationAndSourcePathGatherer, ManifestChecker } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

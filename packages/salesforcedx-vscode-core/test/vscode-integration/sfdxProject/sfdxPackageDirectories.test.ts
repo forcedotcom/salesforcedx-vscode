@@ -7,10 +7,9 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '@salesforce/salesforcedx-utils-vscode';
+
+import { SfdxPackageDirectories, SfdxProjectConfig } from '@salesforce/salesforcedx-utils-vscode';
+
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 const PROJECT_PATH = path.join('sfdx', 'project', 'path');

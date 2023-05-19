@@ -5,30 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
-import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
+
 import {
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  projectTemplateEnum,
-  ProjectTemplateItem,
-  SelectProjectFolder,
-  SelectProjectName,
-  SelectProjectTemplate
+    CancelResponse, channelService, ContinueResponse, notificationService, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
+import {
+    forceProjectWithManifestCreate, forceSfdxProjectCreate, PathExistsChecker,
+    ProjectNameAndPathAndTemplate, projectTemplateEnum, ProjectTemplateItem, SelectProjectFolder,
+    SelectProjectName, SelectProjectTemplate
 } from '../../../src/commands';
 import { ProjectName } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';

@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
+
+import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  getAbsoluteFilePath,
-  getFileUri,
-  getRange,
-  handleDiagnosticErrors
+    getAbsoluteFilePath, getFileUri, getRange, handleDiagnosticErrors
 } from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {

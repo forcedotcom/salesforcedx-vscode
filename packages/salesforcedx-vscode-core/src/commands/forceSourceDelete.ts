@@ -5,22 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import * as vscode from 'vscode';
 
 import {
-  Command,
-  SfdxCommandBuilder
+    CancelResponse, channelService, Command, ContinueResponse, fileUtils, notificationService,
+    ParametersGatherer, PreconditionChecker, SfdxCommandBuilder, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  PreconditionChecker,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

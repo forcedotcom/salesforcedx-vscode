@@ -5,16 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  CommandExecution,
-  ProgressNotification,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+
+import {
+    CliCommandExecutor, CommandExecution, ProgressNotification, SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

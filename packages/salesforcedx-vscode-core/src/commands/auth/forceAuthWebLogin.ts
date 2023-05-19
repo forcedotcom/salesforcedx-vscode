@@ -5,23 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  ProgressNotification,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { CancellationTokenSource } from 'vscode';
+
+import {
+    channelService, CliCommandExecutor, Command, CommandOutput, ContinueResponse,
+    notificationService, ProgressNotification, SfdxCommandBuilder, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
@@ -29,10 +21,7 @@ import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
 import { isSFDXContainerMode } from '../../util';
 import {
-  DemoModePromptGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    DemoModePromptGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from '../util';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { ForceAuthLogoutAll } from './forceAuthLogout';

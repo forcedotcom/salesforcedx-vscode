@@ -1,3 +1,12 @@
+import * as path from 'path';
+import * as shell from 'shelljs';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+import * as assert from 'yeoman-assert';
+
+import {
+    channelService, notificationService, SfdxCoreSettings, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -5,21 +14,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TemplateService } from '@salesforce/templates';
-import * as path from 'path';
-import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-import * as assert from 'yeoman-assert';
+
 import {
-  SfdxCoreSettings,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  forceInternalLightningEventCreate,
-  forceLightningEventCreate
+    forceInternalLightningEventCreate, forceLightningEventCreate
 } from '../../../../src/commands/templates/forceLightningEventCreate';
 
 // tslint:disable:no-unused-expression

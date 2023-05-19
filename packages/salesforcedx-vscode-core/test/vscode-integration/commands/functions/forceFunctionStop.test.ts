@@ -1,3 +1,7 @@
+import * as path from 'path';
+import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { Uri } from 'vscode';
+
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -5,15 +9,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as library from '@heroku/functions-core';
-import * as path from 'path';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { Uri } from 'vscode';
 import {
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, notificationService, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { forceFunctionContainerlessStartCommand } from '../../../../src/commands/functions/forceFunctionContainerlessStartCommand';
+
+import {
+    forceFunctionContainerlessStartCommand
+} from '../../../../src/commands/functions/forceFunctionContainerlessStartCommand';
 import { forceFunctionStop } from '../../../../src/commands/functions/forceFunctionStop';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';

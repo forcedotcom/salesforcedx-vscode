@@ -10,22 +10,20 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import * as library from '@heroku/functions-core';
+import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  forceFunctionCreate,
-  ForceFunctionCreateExecutor,
-  FunctionInfoGatherer
+    forceFunctionCreate, ForceFunctionCreateExecutor, FunctionInfoGatherer
 } from '../../../../src/commands/templates/forceFunctionCreate';
 import {
-  FUNCTION_TYPE_JAVA,
-  FUNCTION_TYPE_JS
+    FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import { nls } from '../../../../src/messages';
-import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { telemetryService } from '../../../../src/telemetry';
 
-
-import * as library from '@heroku/functions-core';
 import sinon = require('sinon');
 // tslint:disable:no-unused-expression
 describe('Force Function Create', () => {

@@ -1,3 +1,5 @@
+import { workspace } from 'vscode';
+
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -5,12 +7,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  isNullOrUndefined,
-  PreconditionChecker,
-  isSfdxProjectOpened,
-  notificationService
+    isNullOrUndefined, isSfdxProjectOpened, notificationService, PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { workspace } from 'vscode';
+
 import { OrgAuthInfo } from '../../util';
 
 export class SfdxWorkspaceChecker implements PreconditionChecker {

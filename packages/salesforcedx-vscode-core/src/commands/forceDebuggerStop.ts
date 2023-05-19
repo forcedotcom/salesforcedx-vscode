@@ -5,27 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as vscode from 'vscode';
+
 import {
-  CliCommandExecutor,
-  ContinueResponse,
-  Command,
-  CommandOutput,
-  ParametersGatherer,
-  ProgressNotification,
-  SfdxCommandBuilder,
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, CliCommandExecutor, Command, CommandOutput, ContinueResponse,
+    notificationService, ParametersGatherer, ProgressNotification, SfdxCommandBuilder,
+    workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
-import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { taskViewService } from '../statuses';
 import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    EmptyParametersGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from './util';
 
 interface QueryResponse {

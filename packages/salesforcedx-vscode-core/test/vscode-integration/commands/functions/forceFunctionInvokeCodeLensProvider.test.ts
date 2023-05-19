@@ -7,8 +7,10 @@
 
 import { expect } from 'chai';
 import { CancellationTokenSource, RelativePattern, workspace } from 'vscode';
-import { provideFunctionInvokeCodeLens } from '../../../../src/commands/functions';
+
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+
+import { provideFunctionInvokeCodeLens } from '../../../../src/commands/functions';
 
 describe('Force Function Invoke Codelens', () => {
   it('should create codelens for a json payload file', async () => {

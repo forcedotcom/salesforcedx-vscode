@@ -1,3 +1,6 @@
+import { join } from 'path';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,27 +8,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Command,
-  SfdxCommandBuilder,
-  SfdxPackageDirectories
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, Command, ContinueResponse, notificationService, SfdxCommandBuilder,
+    SfdxPackageDirectories, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { join } from 'path';
-import * as vscode from 'vscode';
+
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    FilePathGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from './util';
 
 export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<

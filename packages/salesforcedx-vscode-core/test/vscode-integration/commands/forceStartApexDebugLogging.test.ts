@@ -7,20 +7,12 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+
 import {
-  CreateDebugLevel,
-  CreateTraceFlag,
-  developerLogTraceFlag,
-  ForceQueryTraceFlag,
-  ForceQueryUser,
-  ForceStartApexDebugLoggingExecutor,
-  UpdateDebugLevelsExecutor,
-  UpdateTraceFlagsExecutor
+    CreateDebugLevel, CreateTraceFlag, developerLogTraceFlag, ForceQueryTraceFlag, ForceQueryUser,
+    ForceStartApexDebugLoggingExecutor, UpdateDebugLevelsExecutor, UpdateTraceFlagsExecutor
 } from '../../../src/commands';
-import {
-  APEX_CODE_DEBUG_LEVEL,
-  VISUALFORCE_DEBUG_LEVEL
-} from '../../../src/constants';
+import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

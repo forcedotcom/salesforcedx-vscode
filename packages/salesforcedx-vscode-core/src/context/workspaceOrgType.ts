@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -6,7 +8,7 @@
  */
 import { Org } from '@salesforce/core';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode/src';
-import * as vscode from 'vscode';
+
 import { OrgAuthInfo } from '../util';
 import { WorkspaceContext } from './workspaceContext';
 

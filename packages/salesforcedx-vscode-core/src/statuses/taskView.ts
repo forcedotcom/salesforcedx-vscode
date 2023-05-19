@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  CancellationTokenSource,
-  Event,
-  EventEmitter,
-  TreeDataProvider,
-  TreeItem,
-  TreeItemCollapsibleState
+    CancellationTokenSource, Event, EventEmitter, TreeDataProvider, TreeItem,
+    TreeItemCollapsibleState
 } from 'vscode';
+
+import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../messages';
 
 export class TaskViewService implements TreeDataProvider<Task> {

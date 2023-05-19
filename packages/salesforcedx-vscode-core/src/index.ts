@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -6,112 +9,43 @@
  */
 import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
-  ProgressNotification,
-  getRootWorkspacePath,
-  SFDX_CORE_CONFIGURATION_NAME,
-  channelService,
-  isSfdxProjectOpened,
-  sfdxCoreSettings,
-  notificationService
+    channelService, getRootWorkspacePath, isSfdxProjectOpened, notificationService,
+    ProgressNotification, SFDX_CORE_CONFIGURATION_NAME, sfdxCoreSettings
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as vscode from 'vscode';
+
 import {
-  checkSObjectsAndRefresh,
-  forceAliasList,
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexTriggerCreate,
-  forceAuthAccessToken,
-  forceAuthDevHub,
-  forceAuthLogoutAll,
-  forceAuthLogoutDefault,
-  forceAuthWebLogin,
-  forceConfigList,
-  forceConfigSet,
-  forceCreateManifest,
-  forceDataSoqlQuery,
-  forceDebuggerStop,
-  forceFunctionContainerlessStartCommand,
-  forceFunctionCreate,
-  forceFunctionDebugInvoke,
-  forceFunctionInvoke,
-  forceFunctionStop,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
-  forceLightningLwcTestCreate,
-  forceOpenDocumentation,
-  forceOrgCreate,
-  forceOrgDelete,
-  forceOrgDisplay,
-  forceOrgList,
-  forceOrgOpen,
-  forcePackageInstall,
-  forceProjectWithManifestCreate,
-  forceRefreshSObjects,
-  forceRenameLightningComponent,
-  forceSfdxProjectCreate,
-  forceSourceDelete,
-  forceSourceDeployManifest,
-  forceSourceDeploySourcePaths,
-  forceSourceDiff,
-  forceSourceFolderDiff,
-  forceSourcePull,
-  forceSourcePush,
-  forceSourceRetrieveCmp,
-  forceSourceRetrieveManifest,
-  forceSourceRetrieveSourcePaths,
-  forceSourceStatus,
-  forceStartApexDebugLogging,
-  forceStopApexDebugLogging,
-  forceTaskStop,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate,
-  initSObjectDefinitions,
-  registerFunctionInvokeCodeLensProvider,
-  SourceStatusFlags,
-  turnOffLogging,
-  viewAllChanges,
-  viewLocalChanges,
-  viewRemoteChanges
+    checkSObjectsAndRefresh, forceAliasList, forceAnalyticsTemplateCreate, forceApexClassCreate,
+    forceApexTriggerCreate, forceAuthAccessToken, forceAuthDevHub, forceAuthLogoutAll,
+    forceAuthLogoutDefault, forceAuthWebLogin, forceConfigList, forceConfigSet, forceCreateManifest,
+    forceDataSoqlQuery, forceDebuggerStop, forceFunctionContainerlessStartCommand,
+    forceFunctionCreate, forceFunctionDebugInvoke, forceFunctionInvoke, forceFunctionStop,
+    forceInternalLightningAppCreate, forceInternalLightningComponentCreate,
+    forceInternalLightningEventCreate, forceInternalLightningInterfaceCreate,
+    forceInternalLightningLwcCreate, forceLightningAppCreate, forceLightningComponentCreate,
+    forceLightningEventCreate, forceLightningInterfaceCreate, forceLightningLwcCreate,
+    forceLightningLwcTestCreate, forceOpenDocumentation, forceOrgCreate, forceOrgDelete,
+    forceOrgDisplay, forceOrgList, forceOrgOpen, forcePackageInstall,
+    forceProjectWithManifestCreate, forceRefreshSObjects, forceRenameLightningComponent,
+    forceSfdxProjectCreate, forceSourceDelete, forceSourceDeployManifest,
+    forceSourceDeploySourcePaths, forceSourceDiff, forceSourceFolderDiff, forceSourcePull,
+    forceSourcePush, forceSourceRetrieveCmp, forceSourceRetrieveManifest,
+    forceSourceRetrieveSourcePaths, forceSourceStatus, forceStartApexDebugLogging,
+    forceStopApexDebugLogging, forceTaskStop, forceVisualforceComponentCreate,
+    forceVisualforcePageCreate, initSObjectDefinitions, registerFunctionInvokeCodeLensProvider,
+    SourceStatusFlags, turnOffLogging, viewAllChanges, viewLocalChanges, viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
-  FlagParameter,
-  SelectFileName,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    CompositeParametersGatherer, EmptyParametersGatherer, FlagParameter, SelectFileName,
+    SelectOutputDir, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from './commands/util';
-import {
-  PersistentStorageService,
-  registerConflictView,
-  setupConflictView
-} from './conflict';
-import {
-  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  ORG_OPEN_COMMAND
-} from './constants';
+import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import {
-  decorators,
-  disposeTraceFlagExpiration,
-  showDemoMode
-} from './decorators';
+import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';

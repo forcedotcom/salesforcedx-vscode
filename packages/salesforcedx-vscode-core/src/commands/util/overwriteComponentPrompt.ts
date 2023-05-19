@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  LocalComponent,
-  PostconditionChecker,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'fs';
 import { join } from 'path';
+
+import {
+    CancelResponse, ContinueResponse, LocalComponent, notificationService, PostconditionChecker,
+    workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { MetadataDictionary } from '../../util';

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
 import { decorators } from '../../../src/decorators';
 

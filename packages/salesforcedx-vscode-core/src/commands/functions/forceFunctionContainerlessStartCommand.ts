@@ -6,14 +6,10 @@
  */
 
 import { Uri } from 'vscode';
+
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../util';
-import {
-  ForceFunctionContainerlessStartExecutor,
-  validateStartFunctionsUri
+    ForceFunctionContainerlessStartExecutor, validateStartFunctionsUri
 } from './forceFunctionStart';
 
 export const CONTAINERLESS_START_TEXT_KEY =

@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+
 import { ForceOrgListExecutor } from '../../../src/commands/forceOrgList';
 import { nls } from '../../../src/messages';
 

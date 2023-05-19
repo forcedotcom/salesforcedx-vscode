@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
 import { assert, createSandbox, SinonStub } from 'sinon';
+
+import { AuthInfo } from '@salesforce/core';
 import { channelService } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  AccessTokenParamsGatherer,
-  forceAuthAccessToken
-} from '../../../../src/commands';
+
+import { AccessTokenParamsGatherer, forceAuthAccessToken } from '../../../../src/commands';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 

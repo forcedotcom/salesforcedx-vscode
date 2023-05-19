@@ -5,25 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  DirFileNameSelection,
-  ProgressNotification,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
+
+import {
+    channelService, CliCommandExecutor, ContinueResponse, DirFileNameSelection, notificationService,
+    ProgressNotification, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { taskViewService } from '../../statuses';
 import { MetadataDictionary, MetadataInfo } from '../../util';
-import {
-  SelectOutputDir,
-  SfdxCommandletExecutor,
-  SourcePathStrategy
-} from '../util';
+import { SelectOutputDir, SfdxCommandletExecutor, SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection

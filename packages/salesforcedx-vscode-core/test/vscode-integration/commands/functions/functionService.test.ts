@@ -3,17 +3,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  FunctionExecution,
-  FunctionService,
-  functionType
+    FunctionExecution, FunctionService, functionType
 } from '../../../../src/commands/functions/functionService';
 import {
-  FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
+    FUNCTION_DEFAULT_DEBUG_PORT, FUNCTION_DEFAULT_PORT
 } from '../../../../src/commands/functions/types/constants';
 import { nls } from '../../../../src/messages';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { MockExtensionContext } from '../../telemetry/MockExtensionContext';
 
 describe('Function Service', () => {

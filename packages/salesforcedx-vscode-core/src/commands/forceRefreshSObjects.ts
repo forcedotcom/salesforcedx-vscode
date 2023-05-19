@@ -1,3 +1,7 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -5,30 +9,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  SObjectCategory,
-  SObjectRefreshSource,
-  SOBJECTS_DIR,
-  SObjectTransformerFactory,
-  STANDARDOBJECTS_DIR
+    SObjectCategory, SObjectRefreshSource, SOBJECTS_DIR, SObjectTransformerFactory,
+    STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import {
-  CancelResponse,
-  Command,
-  ContinueResponse,
-  LocalCommandExecution,
-  notificationService,
-  ParametersGatherer,
-  ProgressNotification,
-  projectPaths,
-  SfdxCommandBuilder,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  channelService
+    CancelResponse, channelService, Command, ContinueResponse, LocalCommandExecution,
+    notificationService, ParametersGatherer, ProgressNotification, projectPaths, SfdxCommandBuilder,
+    SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as vscode from 'vscode';
+
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

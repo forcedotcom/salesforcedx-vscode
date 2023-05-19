@@ -5,16 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../messages';
 import {
-  PromptConfirmGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+    PromptConfirmGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
 } from './util';
 
 export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {

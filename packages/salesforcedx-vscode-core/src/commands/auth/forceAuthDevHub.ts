@@ -5,44 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-
-import { DEFAULT_ALIAS } from './authParamsGatherer';
-
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '../util';
+import { homedir } from 'os';
+import * as vscode from 'vscode';
 
 import { ConfigFile } from '@salesforce/core';
 import {
-  CancelResponse,
-  ConfigSource,
-  ContinueResponse,
-  isNullOrUndefined,
-  ParametersGatherer
+    CancelResponse, CliCommandExecutor, Command, ConfigSource, ContinueResponse, isNullOrUndefined,
+    ParametersGatherer, SfdxCommandBuilder, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { homedir } from 'os';
-import * as vscode from 'vscode';
-import {
-  CLI,
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  SFDX_CONFIG_FILE
-} from '../../constants';
+
+import { CLI, DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_CONFIG_FILE } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
 import { isSFDXContainerMode } from '../../util';
 import { OrgAuthInfo } from '../../util/index';
-import {
-  ForceAuthDemoModeExecutor,
-  ForceAuthWebLoginContainerExecutor
-} from './forceAuthWebLogin';
+import { SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker } from '../util';
+import { DEFAULT_ALIAS } from './authParamsGatherer';
+import { ForceAuthDemoModeExecutor, ForceAuthWebLoginContainerExecutor } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
   public build(data: AuthDevHubParams): Command {

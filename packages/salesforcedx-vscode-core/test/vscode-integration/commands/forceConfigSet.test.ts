@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode';
+
+import { channelService, ConfigUtil, Table } from '@salesforce/salesforcedx-utils-vscode';
+
 import { forceConfigSet, ForceConfigSetExecutor } from '../../../src/commands';
 import { CONFIG_SET_NAME, DEFAULT_USERNAME_KEY } from '../../../src/constants';
 import { nls } from '../../../src/messages';

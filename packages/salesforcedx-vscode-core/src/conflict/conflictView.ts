@@ -6,7 +6,9 @@
  */
 import * as path from 'path';
 import { ExtensionContext, TreeView, window } from 'vscode';
+
 import { channelService, sfdxCoreSettings } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { ConflictFile, ConflictNode } from './conflictNode';

@@ -5,32 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  TemplateOptions,
-  TemplateService,
-  TemplateType
-} from '@salesforce/templates';
-import {
-  CommandletExecutor,
-  PathStrategyFactory,
-  SelectOutputDir,
-  SourcePathStrategy
-} from '../util';
-
-import {
-  ConfigUtil,
-  Properties,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { telemetryService } from '../../telemetry';
-import { MetadataDictionary, MetadataInfo } from '../../util';
-
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from 'vscode';
+
+import {
+    channelService, ConfigUtil, ContinueResponse, notificationService, Properties, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
+
+import { telemetryService } from '../../telemetry';
+import { MetadataDictionary, MetadataInfo } from '../../util';
+import {
+    CommandletExecutor, PathStrategyFactory, SelectOutputDir, SourcePathStrategy
+} from '../util';
 
 interface ExecutionResult {
   output?: string;

@@ -7,17 +7,16 @@
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode';
+
+import {
+    channelService, notificationService, SfdxCoreSettings, SfdxPackageDirectories
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  DeployQueue,
-  fileShouldNotBeDeployed,
-  pathIsInPackageDirectory
+    DeployQueue, fileShouldNotBeDeployed, pathIsInPackageDirectory
 } from '../../../src/settings';
-import { SfdxCoreSettings } from '@salesforce/salesforcedx-utils-vscode';
-import { SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
 import { telemetryService } from '../../../src/telemetry';
 
 /* tslint:disable:no-unused-expression */

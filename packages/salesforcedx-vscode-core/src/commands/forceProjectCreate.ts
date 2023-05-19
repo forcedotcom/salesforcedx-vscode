@@ -5,25 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  PostconditionChecker,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+
+import {
+    CancelResponse, ContinueResponse, notificationService, ParametersGatherer, PostconditionChecker
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ProjectOptions, TemplateType } from '@salesforce/templates';
+
 import { nls } from '../messages';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import {
-  CompositeParametersGatherer,
-  EmptyPreChecker,
-  SfdxCommandlet
-} from './util';
+import { CompositeParametersGatherer, EmptyPreChecker, SfdxCommandlet } from './util';
 
 export enum projectTemplateEnum {
   standard = 'standard',

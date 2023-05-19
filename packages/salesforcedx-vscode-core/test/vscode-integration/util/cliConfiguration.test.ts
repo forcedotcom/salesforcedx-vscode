@@ -5,29 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Config,
-  ConfigFile,
-  Global,
-  OrgConfigProperties
-} from '@salesforce/core';
-import {
-  ConfigUtil,
-  GlobalCliEnvironment,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
+
+import { Config, ConfigFile, Global, OrgConfigProperties } from '@salesforce/core';
+import {
+    ConfigUtil, GlobalCliEnvironment, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
 import { WorkspaceContext } from '../../../src/context';
 import {
-  disableCLITelemetry,
-  isCLIInstalled,
-  isCLITelemetryAllowed,
-  showCLINotInstalledMessage,
+    disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed, showCLINotInstalledMessage
 } from '../../../src/util';
 
 describe('SFDX CLI Configuration utility', () => {

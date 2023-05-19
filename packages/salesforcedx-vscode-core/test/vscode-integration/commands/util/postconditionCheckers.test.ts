@@ -1,3 +1,8 @@
+import { expect } from 'chai';
+import * as fs from 'fs';
+import { join } from 'path';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -5,28 +10,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CancelResponse,
-  ContinueResponse,
-  LocalComponent,
-  PostconditionChecker,
-  channelService,
-  notificationService,
-  sfdxCoreSettings,
-  workspaceUtils
+    CancelResponse, channelService, ContinueResponse, LocalComponent, notificationService,
+    PostconditionChecker, sfdxCoreSettings, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { expect } from 'chai';
-import * as fs from 'fs';
-import { join } from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+
 import {
-  CommandletExecutor,
-  ConflictDetectionMessages,
-  EmptyPostChecker,
-  OverwriteComponentPrompt,
-  PathStrategyFactory,
-  SfdxCommandlet
+    CommandletExecutor, ConflictDetectionMessages, EmptyPostChecker, OverwriteComponentPrompt,
+    PathStrategyFactory, SfdxCommandlet
 } from '../../../../src/commands/util';
-import { CompositePostconditionChecker } from '../../../../src/commands/util/compositePostconditionChecker';
+import {
+    CompositePostconditionChecker
+} from '../../../../src/commands/util/compositePostconditionChecker';
 import { TimestampConflictChecker } from '../../../../src/commands/util/timestampConflictChecker';
 import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
@@ -34,7 +28,6 @@ import { WorkspaceContext } from '../../../../src/context';
 import * as workspaceUtil from '../../../../src/context/workspaceOrgType';
 import { nls } from '../../../../src/messages';
 import { MetadataDictionary } from '../../../../src/util';
-import { OrgType } from './../../../../src/context/workspaceOrgType';
 
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;

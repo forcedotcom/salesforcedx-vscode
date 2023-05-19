@@ -5,15 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  PreconditionChecker,
-  sfdxCoreSettings
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { Uri } from 'vscode';
+
+import {
+    CancelResponse, ContinueResponse, ParametersGatherer, PreconditionChecker, sfdxCoreSettings
+} from '@salesforce/salesforcedx-utils-vscode';
 
 export class InternalDevWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {

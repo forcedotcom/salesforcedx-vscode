@@ -1,3 +1,7 @@
+import { expect } from 'chai';
+import { normalize } from 'path';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -5,9 +9,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LocalComponent, SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
-import { expect } from 'chai';
-import { normalize } from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+
 import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { BrowserNode, NodeType, orgBrowser } from '../../../../src/orgBrowser';
 

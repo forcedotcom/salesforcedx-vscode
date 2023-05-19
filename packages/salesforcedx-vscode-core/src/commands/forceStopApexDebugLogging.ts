@@ -5,28 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { developerLogTraceFlag } from '.';
+
+import {
+    CancelResponse, CliCommandExecutor, Command, CommandOutput, ContinueResponse,
+    ParametersGatherer, SfdxCommandBuilder, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
+import { developerLogTraceFlag } from './';
+import { SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker } from './util';
 
 export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {

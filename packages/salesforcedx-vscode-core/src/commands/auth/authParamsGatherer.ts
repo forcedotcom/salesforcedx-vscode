@@ -8,11 +8,9 @@
 import * as vscode from 'vscode';
 
 import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  SfdxProjectConfig
+    CancelResponse, ContinueResponse, ParametersGatherer, SfdxProjectConfig
 } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../messages';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';

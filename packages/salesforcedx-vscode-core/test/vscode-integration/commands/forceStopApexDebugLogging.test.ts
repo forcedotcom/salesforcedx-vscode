@@ -7,10 +7,8 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  developerLogTraceFlag,
-  ForceStopApexDebugLoggingExecutor
-} from '../../../src/commands';
+
+import { developerLogTraceFlag, ForceStopApexDebugLoggingExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

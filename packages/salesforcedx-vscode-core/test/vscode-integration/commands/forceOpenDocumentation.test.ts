@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
 import { forceOpenDocumentation } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

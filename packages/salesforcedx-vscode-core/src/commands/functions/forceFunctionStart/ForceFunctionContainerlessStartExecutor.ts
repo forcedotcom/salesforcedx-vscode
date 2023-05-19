@@ -5,16 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalRun, LocalRunProcess } from '@heroku/functions-core';
 import { Disposable } from 'vscode';
+
+import { LocalRun, LocalRunProcess } from '@heroku/functions-core';
 import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../../messages';
 import { telemetryService } from '../../../telemetry';
 import { FunctionService, functionType } from '../functionService';
-import {
-  FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
-} from '../types/constants';
+import { FUNCTION_DEFAULT_DEBUG_PORT, FUNCTION_DEFAULT_PORT } from '../types/constants';
 import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {

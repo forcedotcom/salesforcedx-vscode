@@ -9,9 +9,11 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+
 import { AliasGatherer, ForceOrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 
 // tslint:disable:no-unused-expression
 describe('Force Org Create', () => {

@@ -1,3 +1,8 @@
+import { expect } from 'chai';
+import * as path from 'path';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -5,37 +10,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  SfdxPackageDirectories,
-  workspaceUtils
+    CancelResponse, ContinueResponse, ParametersGatherer, SfdxPackageDirectories, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet, registry, SourceComponent } from '@salesforce/source-deploy-retrieve';
+
 import {
-  ComponentSet,
-  registry,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
-import { expect } from 'chai';
-import * as path from 'path';
-import { join } from 'path';
-import * as sinon from 'sinon';
-import { window } from 'vscode';
-import * as vscode from 'vscode';
-import {
-  CommandletExecutor,
-  CompositeParametersGatherer,
-  DemoModePromptGatherer,
-  EmptyParametersGatherer,
-  FileSelection,
-  FileSelector,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SimpleGatherer
+    CommandletExecutor, CompositeParametersGatherer, DemoModePromptGatherer,
+    EmptyParametersGatherer, FileSelection, FileSelector, SelectOutputDir, SfdxCommandlet,
+    SimpleGatherer
 } from '../../../../src/commands/util';
 import {
-  PromptConfirmGatherer,
-  SelectLwcComponentDir
+    PromptConfirmGatherer, SelectLwcComponentDir
 } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
 

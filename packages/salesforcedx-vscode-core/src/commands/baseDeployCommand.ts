@@ -5,19 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  ContinueResponse,
-  ForceDeployResultParser,
-  ProgressNotification,
-  Row,
-  Table,
-  TelemetryBuilder,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+
+import {
+    channelService, CliCommandExecutor, ContinueResponse, ForceDeployResultParser,
+    notificationService, ProgressNotification, Row, Table, TelemetryBuilder, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings/pushOrDeployOnSave';

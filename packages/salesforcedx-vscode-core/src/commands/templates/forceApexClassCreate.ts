@@ -5,24 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  LocalComponent,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CompositeParametersGatherer,
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+    CompositeParametersGatherer, MetadataTypeGatherer, SelectFileName, SelectOutputDir,
+    SfdxCommandlet, SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { LibraryForceApexClassCreateExecutor } from './executors/LibraryForceApexClassCreateExecutor';
 import {
-  APEX_CLASS_DIRECTORY,
-  APEX_CLASS_NAME_MAX_LENGTH,
-  APEX_CLASS_TYPE
+    LibraryForceApexClassCreateExecutor
+} from './executors/LibraryForceApexClassCreateExecutor';
+import {
+    APEX_CLASS_DIRECTORY, APEX_CLASS_NAME_MAX_LENGTH, APEX_CLASS_TYPE
 } from './metadataTypeConstants';
 
 let initialized = false;

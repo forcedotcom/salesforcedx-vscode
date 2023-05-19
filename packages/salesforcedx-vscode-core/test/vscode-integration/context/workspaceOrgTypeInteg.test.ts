@@ -5,20 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Org } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  OrgType,
-  WorkspaceContext,
-  workspaceContextUtils
-} from '../../../src/context';
-import { OrgAuthInfo } from '../../../src/util';
-import Sinon = require('sinon');
-import * as workspaceUtil from '../../../src/context/workspaceOrgType';
 
+import { AuthInfo, Org } from '@salesforce/core';
+
+import { OrgType, WorkspaceContext, workspaceContextUtils } from '../../../src/context';
+import * as workspaceUtil from '../../../src/context/workspaceOrgType';
+import { OrgAuthInfo } from '../../../src/util';
+
+import Sinon = require('sinon');
 const sandbox = createSandbox();
 
 const expectSetHasDefaultUsername = (

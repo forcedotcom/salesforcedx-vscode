@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -6,12 +8,9 @@
  */
 import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import {
-  CancelResponse,
-  ConfigUtil,
-  ContinueResponse,
-  OrgUserInfo
+    CancelResponse, ConfigUtil, ContinueResponse, OrgUserInfo
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';

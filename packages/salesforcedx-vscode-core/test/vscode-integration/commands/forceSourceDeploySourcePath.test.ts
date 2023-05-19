@@ -5,29 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
-import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
-} from '@salesforce/core/lib/testSetup';
-import {
-  ContinueResponse,
-  fileUtils,
-  SfdxPackageDirectories,
-  SfdxProjectConfig,
-  SourceTrackingService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  MetadataResolver
-} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import { Connection } from '@salesforce/core';
+import {
+    instantiateContext, MockTestOrgData, restoreContext, stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+    ContinueResponse, fileUtils, SfdxPackageDirectories, SfdxProjectConfig, SourceTrackingService,
+    workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrieve';
+
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';

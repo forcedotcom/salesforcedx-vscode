@@ -687,6 +687,6 @@ export const messages = {
     'File name cannot exceed {0} characters',
   source_status: 'Source Status',
   cannot_determine_workspace:
-  'Unable to determine workspace folders for workspace',
-  error_creating_launchjson: 'Error creating launch.json file: %s',
+    'Unable to determine workspace folders for workspace',
+  error_creating_launchjson: 'Error creating launch.json file: %s'
 };

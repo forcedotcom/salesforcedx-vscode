@@ -5,24 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CONFLICT_ERROR_NAME,
-  DeployResult,
-  ForceDeployResultParser,
-  ForceSourceDeployErrorResponse,
-  ForceSourceDeploySuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  Row,
-  Table,
-  channelService
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
+
 import {
-  BaseDeployExecutor,
-  ForceSourcePushExecutor
-} from '../../../src/commands';
+    channelService, CONFLICT_ERROR_NAME, DeployResult, ForceDeployResultParser,
+    ForceSourceDeployErrorResponse, ForceSourceDeploySuccessResponse, Row, Table
+} from '@salesforce/salesforcedx-utils-vscode';
+
+import { BaseDeployExecutor, ForceSourcePushExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Correctly output deploy results', () => {

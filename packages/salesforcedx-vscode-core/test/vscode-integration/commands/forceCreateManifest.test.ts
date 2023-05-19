@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
-import { createSandbox } from 'sinon';
 import * as util from 'util';
 import * as vscode from 'vscode';
+
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+
 import { ManifestCreateExecutor } from '../../../src/commands/forceCreateManifest';
 import { nls } from '../../../src/messages';
 

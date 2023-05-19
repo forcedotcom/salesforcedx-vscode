@@ -5,37 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
-import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
-} from '@salesforce/core/lib/testSetup';
-import {
-  ContinueResponse,
-  LocalComponent,
-  SfdxPackageDirectories,
-  SourceTrackingService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  MetadataResolver,
-  registry,
-  RetrieveResult,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
-import {
-  MetadataApiRetrieveStatus,
-  RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import { Connection } from '@salesforce/core';
+import {
+    instantiateContext, MockTestOrgData, restoreContext, stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+    ContinueResponse, LocalComponent, SfdxPackageDirectories, SourceTrackingService, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
+    ComponentSet, MetadataResolver, registry, RetrieveResult, SourceComponent
+} from '@salesforce/source-deploy-retrieve';
+import {
+    MetadataApiRetrieveStatus, RequestStatus
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/libraryRetrieveSourcePathExecutor';
+import {
+    LibraryRetrieveSourcePathExecutor
+} from '../../../../src/commands/forceSourceRetrieveMetadata/libraryRetrieveSourcePathExecutor';
 import { WorkspaceContext } from '../../../../src/context';
 
 const $$ = instantiateContext();

@@ -6,14 +6,8 @@
  */
 import * as path from 'path';
 import {
-  EnvironmentVariableCollection,
-  EnvironmentVariableMutator,
-  Extension,
-  ExtensionContext,
-  ExtensionMode,
-  Memento,
-  SecretStorage,
-  Uri
+    EnvironmentVariableCollection, EnvironmentVariableMutator, Extension, ExtensionContext,
+    ExtensionMode, Memento, SecretStorage, Uri
 } from 'vscode';
 
 class MockMemento implements Memento {

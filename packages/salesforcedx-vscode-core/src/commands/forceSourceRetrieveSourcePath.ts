@@ -1,29 +1,22 @@
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  CancelResponse,
-  ContinueResponse,
-  PostconditionChecker,
-  SfdxPackageDirectories,
-  SfdxProjectConfig,
-  channelService,
-  notificationService
+    CancelResponse, channelService, ContinueResponse, notificationService, PostconditionChecker,
+    SfdxCommandBuilder, SfdxPackageDirectories, SfdxProjectConfig
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as vscode from 'vscode';
+
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
-  ConflictDetectionMessages,
-  LibraryPathsGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+    ConflictDetectionMessages, LibraryPathsGatherer, SfdxCommandlet, SfdxWorkspaceChecker
 } from './util';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<

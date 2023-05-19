@@ -1,3 +1,9 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as shell from 'shelljs';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -5,22 +11,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  SfdxPackageDirectories,
-  projectPaths,
-  workspaceUtils
+    projectPaths, SfdxPackageDirectories, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  ComponentSet,
-  FileProperties,
-  MetadataApiRetrieve,
-  RetrieveResult,
-  SourceComponent
+    ComponentSet, FileProperties, MetadataApiRetrieve, RetrieveResult, SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import * as shell from 'shelljs';
-import * as vscode from 'vscode';
+
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';

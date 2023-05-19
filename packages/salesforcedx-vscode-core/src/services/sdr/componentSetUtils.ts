@@ -7,6 +7,7 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+
 import { WorkspaceContext } from '../../context/workspaceContext';
 
 export async function setApiVersionOn(components: ComponentSet) {

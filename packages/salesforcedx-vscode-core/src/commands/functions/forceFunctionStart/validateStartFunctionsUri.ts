@@ -6,8 +6,10 @@
  */
 
 import { Uri, window } from 'vscode';
-import { nls } from '../../../messages';
+
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
+import { nls } from '../../../messages';
 import { telemetryService } from '../../../telemetry';
 
 export const WARNING_MSG_KEY =

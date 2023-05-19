@@ -5,23 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ContinueResponse,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+
+import { ContinueResponse, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  DebuggerSessionDetachExecutor,
-  IdGatherer,
-  IdSelection,
-  StopActiveDebuggerSessionExecutor
+    DebuggerSessionDetachExecutor, IdGatherer, IdSelection, StopActiveDebuggerSessionExecutor
 } from '../../../src/commands';
-import {
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/util';
+import { SfdxCommandlet, SfdxWorkspaceChecker } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
+
 import childProcess = require('child_process');
 
 describe('Debugger stop command', () => {

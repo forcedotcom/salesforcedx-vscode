@@ -1,3 +1,6 @@
+import { join } from 'path';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,15 +8,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ContinueResponse,
-  channelService,
-  notificationService,
-  SfdxPackageDirectories,
-  workspaceUtils
+    channelService, ContinueResponse, notificationService, SfdxPackageDirectories, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { join } from 'path';
-import * as vscode from 'vscode';
+
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';

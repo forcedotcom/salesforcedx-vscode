@@ -5,15 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import Sinon = require('sinon');
+
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+
 import { diffComponents } from '../../../src/conflict/componentDiffer';
 
+import Sinon = require('sinon');
 describe('Component Differ', () => {
   let walkContentStubOne: Sinon.SinonStub;
   let walkContentStubTwo: Sinon.SinonStub;

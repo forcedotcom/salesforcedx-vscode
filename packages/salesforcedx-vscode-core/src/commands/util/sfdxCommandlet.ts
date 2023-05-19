@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -5,23 +7,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CliCommandExecutor,
-  Command,
-  CommandExecution,
-  ContinueResponse,
-  Measurements,
-  ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker,
-  ProgressNotification,
-  Properties,
-  TelemetryData,
-  channelService,
-  notificationService,
-  sfdxCoreSettings,
-  workspaceUtils
+    channelService, CliCommandExecutor, Command, CommandExecution, ContinueResponse, Measurements,
+    notificationService, ParametersGatherer, PostconditionChecker, PreconditionChecker,
+    ProgressNotification, Properties, sfdxCoreSettings, TelemetryData, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { EmptyPostChecker } from './emptyPostChecker';

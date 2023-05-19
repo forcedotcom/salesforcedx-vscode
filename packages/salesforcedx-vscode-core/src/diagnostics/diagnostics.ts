@@ -1,3 +1,6 @@
+import * as path from 'path';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,15 +8,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ForceSourceDeployErrorResponse,
-  getRootWorkspacePath
+    ForceSourceDeployErrorResponse, getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentStatus,
-  DeployResult
-} from '@salesforce/source-deploy-retrieve';
-import * as path from 'path';
-import * as vscode from 'vscode';
+import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve';
 
 const notApplicable = 'N/A';
 

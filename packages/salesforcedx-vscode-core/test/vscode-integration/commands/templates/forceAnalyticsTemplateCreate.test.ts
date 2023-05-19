@@ -10,12 +10,14 @@ import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
+
 import {
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, notificationService, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { forceAnalyticsTemplateCreate } from '../../../../src/commands/templates/forceAnalyticsTemplateCreate';
+
+import {
+    forceAnalyticsTemplateCreate
+} from '../../../../src/commands/templates/forceAnalyticsTemplateCreate';
 
 // tslint:disable:no-unused-expression
 describe('Force Analytics Template Create', () => {

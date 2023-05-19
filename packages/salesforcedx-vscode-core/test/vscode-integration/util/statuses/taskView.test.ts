@@ -7,14 +7,14 @@
 
 // tslint:disable:no-unused-expression
 
-import {
-  CliCommandExecutor,
-  CommandBuilder,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { CancellationTokenSource } from 'vscode';
+
+import {
+    CliCommandExecutor, CommandBuilder, SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../../../src/messages';
 import { Task, TaskViewService } from '../../../../src/statuses/taskView';
 

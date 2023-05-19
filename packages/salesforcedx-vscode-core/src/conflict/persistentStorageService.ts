@@ -1,3 +1,5 @@
+import { ExtensionContext, Memento } from 'vscode';
+
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -5,11 +7,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  DeployResult,
-  FileProperties
-} from '@salesforce/source-deploy-retrieve';
-import { ExtensionContext, Memento } from 'vscode';
+import { DeployResult, FileProperties } from '@salesforce/source-deploy-retrieve';
+
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 

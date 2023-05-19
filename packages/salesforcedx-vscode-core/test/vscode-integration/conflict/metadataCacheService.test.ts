@@ -5,30 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  FileProperties,
-  MetadataApiRetrieve,
-  RetrieveResult,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
-import {
-  MetadataApiRetrieveStatus,
-  RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
+
+import { ConfigUtil, SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  MetadataCacheExecutor,
-  MetadataCacheResult,
-  MetadataCacheService,
-  PathType
+    ComponentSet, FileProperties, MetadataApiRetrieve, RetrieveResult, SourceComponent
+} from '@salesforce/source-deploy-retrieve';
+import {
+    MetadataApiRetrieveStatus, RequestStatus
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+
+import {
+    MetadataCacheExecutor, MetadataCacheResult, MetadataCacheService, PathType
 } from '../../../src/conflict/metadataCacheService';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
+
 import sinon = require('sinon');
 
 describe('Metadata Cache', () => {

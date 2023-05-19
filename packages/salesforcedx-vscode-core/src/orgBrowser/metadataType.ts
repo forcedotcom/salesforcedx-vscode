@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  isNullOrUndefined,
-  MISSING_LABEL_MSG,
-  projectPaths, workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import {
+    isNullOrUndefined, MISSING_LABEL_MSG, projectPaths, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

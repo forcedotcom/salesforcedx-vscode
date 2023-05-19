@@ -5,33 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandBuilder,
-  CommandExecution,
-  CommandOutput,
-  CompositeCliCommandExecutor,
-  SfdxCommandBuilder,
-  channelService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
-import { nls } from '../messages';
-import { OrgAuthInfo } from '../util';
-import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
-
 import { isNullOrUndefined } from 'util';
+import * as vscode from 'vscode';
+
+import {
+    channelService, CliCommandExecutor, Command, CommandBuilder, CommandExecution, CommandOutput,
+    CompositeCliCommandExecutor, ContinueResponse, SfdxCommandBuilder, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
+import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { workspaceContextUtils } from '../context';
+import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from './';
+import {
+    EmptyParametersGatherer, SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
+} from './util';
 
 export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();

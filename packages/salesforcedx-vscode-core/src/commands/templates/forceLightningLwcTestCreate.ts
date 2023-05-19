@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -5,21 +7,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Command,
-  DirFileNameSelection,
-  LocalComponent,
-  SfdxCommandBuilder,
-  workspaceUtils
+    Command, DirFileNameSelection, LocalComponent, SfdxCommandBuilder, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+
 import { nls } from '../../messages';
 import {
-  CompositeParametersGatherer,
-  MetadataTypeGatherer,
-  PathStrategyFactory,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SourcePathStrategy
+    CompositeParametersGatherer, MetadataTypeGatherer, PathStrategyFactory, SfdxCommandlet,
+    SfdxWorkspaceChecker, SourcePathStrategy
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';

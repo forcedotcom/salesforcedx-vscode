@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,23 +7,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ContinueResponse,
-  channelService,
-  notificationService,
-  SfdxProjectConfig
+    channelService, ContinueResponse, notificationService, SfdxProjectConfig
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as vscode from 'vscode';
+
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import {
-  LibraryPathsGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { LibraryPathsGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
 

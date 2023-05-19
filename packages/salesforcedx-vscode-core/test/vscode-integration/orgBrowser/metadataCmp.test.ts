@@ -1,3 +1,9 @@
+import { expect } from 'chai';
+import * as fs from 'fs';
+import * as path from 'path';
+import { SinonStub, stub } from 'sinon';
+import { isNullOrUndefined } from 'util';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -6,21 +12,11 @@
  */
 import { Connection } from '@salesforce/core';
 import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
+    instantiateContext, MockTestOrgData, restoreContext, stubContext
 } from '@salesforce/core/lib/testSetup';
-import {
-  projectPaths,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
-import { expect } from 'chai';
-import * as fs from 'fs';
-import * as path from 'path';
-import { SinonStub, stub } from 'sinon';
-import { isNullOrUndefined } from 'util';
+
 import { WorkspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo } from '../../../src/util';

@@ -1,3 +1,7 @@
+import * as fs from 'fs';
+import { ListMetadataQuery } from 'jsforce/api/metadata';
+import * as path from 'path';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -6,14 +10,10 @@
  */
 import { Connection } from '@salesforce/core';
 import {
-  isNullOrUndefined,
-  projectPaths,
-  workspaceUtils
+    isNullOrUndefined, projectPaths, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
-import * as fs from 'fs';
-import { ListMetadataQuery } from 'jsforce/api/metadata';
-import * as path from 'path';
+
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

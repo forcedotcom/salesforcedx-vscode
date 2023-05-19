@@ -1,16 +1,15 @@
+import { join } from 'path';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  LocalComponent,
-  SfdxPackageDirectories
-} from '@salesforce/salesforcedx-utils-vscode';
-import { join } from 'path';
-import { RetrieveDescriber } from '.';
+import { LocalComponent, SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
+
 import { BrowserNode } from '../../orgBrowser';
+import { RetrieveDescriber } from './';
 
 export abstract class NodeDescriber implements RetrieveDescriber {
   protected node: BrowserNode;

@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  SourceTrackingService,
-  WorkspaceContextUtil,
-  channelService
+    channelService, SourceTrackingService, WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
+
+import {
+    SourceTrackingGetStatusExecutor
+} from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
 import { nls } from '../../../../src/messages';
 
 describe('SourceTrackingGetStatusExecutor', () => {

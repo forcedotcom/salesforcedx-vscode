@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getProjectDescriptor } from '@heroku/functions-core';
-import { LibraryCommandletExecutor, channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
+
+import { getProjectDescriptor } from '@heroku/functions-core';
+import {
+    channelService, ContinueResponse, LibraryCommandletExecutor, notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { OUTPUT_CHANNEL } from '../../../channels';
 import { nls } from '../../../messages';
 import { telemetryService } from '../../../telemetry';
 import { OrgAuthInfo } from '../../../util';
 import { FunctionService } from '../functionService';
-import {
-  FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
-} from '../types/constants';
+import { FUNCTION_DEFAULT_DEBUG_PORT, FUNCTION_DEFAULT_PORT } from '../types/constants';
 
 export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
   string

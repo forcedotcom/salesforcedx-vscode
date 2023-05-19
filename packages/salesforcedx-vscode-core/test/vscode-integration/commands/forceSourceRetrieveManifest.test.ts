@@ -1,3 +1,7 @@
+import { expect } from 'chai';
+import * as path from 'path';
+import { SinonStub } from 'sinon';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -6,21 +10,16 @@
  */
 import { Connection } from '@salesforce/core';
 import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
+    instantiateContext, MockTestOrgData, restoreContext, stubContext
 } from '@salesforce/core/lib/testSetup';
 import {
-  SfdxPackageDirectories,
-  SourceTrackingService,
-  workspaceUtils
+    SfdxPackageDirectories, SourceTrackingService, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { expect } from 'chai';
-import * as path from 'path';
-import { SinonStub } from 'sinon';
-import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
+
+import {
+    LibrarySourceRetrieveManifestExecutor
+} from '../../../src/commands/forceSourceRetrieveManifest';
 import { WorkspaceContext } from '../../../src/context';
 
 const $$ = instantiateContext();

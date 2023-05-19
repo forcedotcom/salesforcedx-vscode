@@ -8,11 +8,11 @@
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
 import { CancellationTokenSource, window } from 'vscode';
+
 import {
-  NotificationService,
-  SfdxCoreSettings,
-  channelService
+    channelService, NotificationService, SfdxCoreSettings
 } from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../../src/messages';
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');

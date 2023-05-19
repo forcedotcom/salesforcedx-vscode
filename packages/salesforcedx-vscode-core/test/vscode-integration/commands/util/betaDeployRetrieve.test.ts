@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import { ComponentSet, registry, SourceComponent } from '@salesforce/source-deploy-retrieve';
+
 import { createComponentCount } from '../../../../src/commands/util';
 
 const env = createSandbox();

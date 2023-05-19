@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -5,12 +7,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
-  ContinueResponse,
-  SourceTrackingService
+    ConfigUtil, ContinueResponse, SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as fs from 'fs';
+
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 

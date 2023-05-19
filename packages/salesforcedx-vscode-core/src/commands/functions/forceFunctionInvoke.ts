@@ -5,26 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
 /**
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
 import { Uri } from 'vscode';
-import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
+import { runFunction } from '@heroku/functions-core';
+import {
+    channelService, ContinueResponse, LibraryCommandletExecutor, notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../util';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import { FunctionService } from './functionService';
-
-import { runFunction } from '@heroku/functions-core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   constructor(debug: boolean = false) {

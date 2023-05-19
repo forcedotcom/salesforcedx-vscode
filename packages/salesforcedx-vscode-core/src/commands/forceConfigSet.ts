@@ -5,28 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  Row,
-  Table,
-  channelService
+    channelService, ConfigUtil, ContinueResponse, LibraryCommandletExecutor, Row, Table
 } from '@salesforce/salesforcedx-utils-vscode';
+
 import { OUTPUT_CHANNEL } from '../channels';
 import {
-  CONFIG_SET_EXECUTOR,
-  CONFIG_SET_NAME,
-  DEFAULT_USERNAME_KEY,
-  TABLE_NAME_COL,
-  TABLE_SUCCESS_COL,
-  TABLE_VAL_COL
+    CONFIG_SET_EXECUTOR, CONFIG_SET_NAME, DEFAULT_USERNAME_KEY, TABLE_NAME_COL, TABLE_SUCCESS_COL,
+    TABLE_VAL_COL
 } from '../constants';
 import { nls } from '../messages';
-import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { EmptyParametersGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;

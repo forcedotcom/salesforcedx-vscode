@@ -5,37 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
-import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
-} from '@salesforce/core/lib/testSetup';
-import {
-  CancelResponse,
-  ContinueResponse,
-  fileUtils,
-  SfdxPackageDirectories,
-  SfdxProjectConfig,
-  SourceTrackingService,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  registry,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+
+import { Connection } from '@salesforce/core';
 import {
-  LibraryRetrieveSourcePathExecutor,
-  SourcePathChecker
-} from '../../../src/commands';
+    instantiateContext, MockTestOrgData, restoreContext, stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+    CancelResponse, channelService, ContinueResponse, fileUtils, notificationService,
+    SfdxPackageDirectories, SfdxProjectConfig, SourceTrackingService, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet, registry, SourceComponent } from '@salesforce/source-deploy-retrieve';
+
+import { LibraryRetrieveSourcePathExecutor, SourcePathChecker } from '../../../src/commands';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';

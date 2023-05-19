@@ -5,20 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  CliCommandExecutor,
-  Command,
-  CommandExecution,
-  CommandOutput,
-  ContinueResponse,
-  ParametersGatherer,
-  ProgressNotification,
-  projectPaths,
-  SfdxCommandBuilder,
-  channelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -26,20 +12,22 @@ import { Observable } from 'rxjs/Observable';
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
+
+import {
+    CancelResponse, channelService, CliCommandExecutor, Command, CommandExecution, CommandOutput,
+    ContinueResponse, notificationService, ParametersGatherer, ProgressNotification, projectPaths,
+    SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { nls } from '../../messages';
 import { taskViewService } from '../../statuses';
 import {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  SelectProjectFolder,
-  SelectProjectName
+    PathExistsChecker, ProjectNameAndPathAndTemplate, SelectProjectFolder, SelectProjectName
 } from '../forceProjectCreate';
 import {
-  CompositeParametersGatherer,
-  EmptyPreChecker,
-  SfdxCommandlet,
-  SfdxCommandletExecutor
+    CompositeParametersGatherer, EmptyPreChecker, SfdxCommandlet, SfdxCommandletExecutor
 } from '../util';
+
 import sanitizeFilename = require('sanitize-filename');
 // below uses require due to bundling restrictions
 /* tslint:disable */

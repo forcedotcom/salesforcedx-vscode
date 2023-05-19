@@ -5,37 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  MetadataType,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { commands, Uri } from 'vscode';
-import {
-  channelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
-import { forceSourceDiff } from '../../../src/commands';
+
+import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { MetadataType, SourceComponent } from '@salesforce/source-deploy-retrieve';
+
 import * as conflictCommands from '../../../src/commands';
+import { FilePathGatherer, SfdxWorkspaceChecker } from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
-  MetadataCacheResult,
-  MetadataCacheService,
-  MetadataContext,
-  PathType
+    MetadataCacheResult, MetadataCacheService, MetadataContext, PathType
 } from '../../../src/conflict/metadataCacheService';
-import { nls } from '../../../src/messages';
-import Sinon = require('sinon');
-import {
-  FilePathGatherer,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/util';
 import { WorkspaceContext } from '../../../src/context';
+import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
+import Sinon = require('sinon');
 const sandbox = createSandbox();
 
 describe('Force Source Diff', () => {

@@ -1,16 +1,15 @@
+import { expect } from 'chai';
+import { assert, SinonStub, stub } from 'sinon';
+import { window } from 'vscode';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  SfdxCoreSettings,
-  TelemetryReporter
-} from '@salesforce/salesforcedx-utils-vscode';
-import { expect } from 'chai';
-import { assert, SinonStub, stub } from 'sinon';
-import { window } from 'vscode';
+import { SfdxCoreSettings, TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode';
+
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 

@@ -5,17 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecution,
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfdxCommandBuilder,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
+
+import {
+    CliCommandExecution, CliCommandExecutor, Command, CommandOutput, SfdxCommandBuilder,
+    workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { SfdxCommandletExecutor } from '../commands/util';
 
 export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<

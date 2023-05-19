@@ -5,18 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ContinueResponse,
-  SfdxCoreSettings
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { Uri } from 'vscode';
+
+import { ContinueResponse, SfdxCoreSettings } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
+    FileInternalPathGatherer, InternalDevWorkspaceChecker
 } from '../../../../src/commands/templates';
 
 describe('Internal Command Utilities', () => {

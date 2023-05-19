@@ -5,10 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, DeployResult, FileProperties, registry, SourceComponent} from '@salesforce/source-deploy-retrieve';
-import { MetadataApiDeployStatus, RequestStatus} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
-import { basename, dirname, join} from 'path';
+import { basename, dirname, join } from 'path';
+
+import {
+    ComponentSet, DeployResult, FileProperties, registry, SourceComponent
+} from '@salesforce/source-deploy-retrieve';
+import {
+    MetadataApiDeployStatus, RequestStatus
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 

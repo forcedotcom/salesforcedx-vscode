@@ -5,17 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TemplateService } from '@salesforce/templates';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
+
 import {
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, notificationService, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import { TemplateService } from '@salesforce/templates';
+
 import { forceApexTriggerCreate } from '../../../../src/commands/templates/forceApexTriggerCreate';
 
 // tslint:disable:no-unused-expression

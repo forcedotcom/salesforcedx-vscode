@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  ForceAuthLogoutAll,
-  forceAuthLogoutDefault
-} from '../../../../src/commands';
+
+import { AuthRemover } from '@salesforce/core';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
+import { ForceAuthLogoutAll, forceAuthLogoutDefault } from '../../../../src/commands';
 import { SfdxCommandlet } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';

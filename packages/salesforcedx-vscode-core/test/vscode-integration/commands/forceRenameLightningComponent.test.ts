@@ -1,14 +1,13 @@
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  getLightningComponentDirectory,
-  inputGuard,
-  isNameMatch,
-  RenameLwcComponentExecutor
+    getLightningComponentDirectory, inputGuard, isNameMatch, RenameLwcComponentExecutor
 } from '../../../src/commands/forceRenameLightningComponent';
 import { nls } from '../../../src/messages';
 

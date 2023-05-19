@@ -5,21 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  PostconditionChecker,
-  channelService,
-  notificationService,
-  sfdxCoreSettings,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import { basename, normalize } from 'path';
+
 import {
-  conflictView,
-  DirectoryDiffResults,
-  MetadataCacheService
-} from '../../conflict';
+    CancelResponse, channelService, ContinueResponse, notificationService, PostconditionChecker,
+    sfdxCoreSettings, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
+import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';

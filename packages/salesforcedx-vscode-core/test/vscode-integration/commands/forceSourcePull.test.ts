@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

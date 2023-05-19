@@ -5,30 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  FunctionInfo,
-  LibraryCommandletExecutor,
-  ParametersGatherer,
-  channelService,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
+
+import { generateFunction, Language } from '@heroku/functions-core';
+import {
+    CancelResponse, channelService, ContinueResponse, FunctionInfo, LibraryCommandletExecutor,
+    notificationService, ParametersGatherer, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { MetadataDictionary, MetadataInfo } from '../../util';
-import {
-  CompositeParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../util';
+import { CompositeParametersGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
-
-import { generateFunction, Language } from '@heroku/functions-core';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';

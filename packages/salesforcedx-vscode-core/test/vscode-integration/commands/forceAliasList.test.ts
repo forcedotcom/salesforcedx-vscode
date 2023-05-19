@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+
 import { ForceAliasList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

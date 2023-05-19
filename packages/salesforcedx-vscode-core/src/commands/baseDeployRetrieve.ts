@@ -1,3 +1,6 @@
+import { join } from 'path';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -5,35 +8,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ContinueResponse,
-  getRelativeProjectPath,
-  getRootWorkspacePath,
-  LibraryCommandletExecutor,
-  Row,
-  SfdxPackageDirectories,
-  SourceTrackingService,
-  SourceTrackingType,
-  Table,
-  channelService
+    channelService, ContinueResponse, getRelativeProjectPath, getRootWorkspacePath,
+    LibraryCommandletExecutor, Row, SfdxPackageDirectories, SourceTrackingService,
+    SourceTrackingType, Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  ComponentSet,
-  DeployResult,
-  MetadataApiDeploy,
-  MetadataApiRetrieve,
-  RetrieveResult
+    ComponentSet, DeployResult, MetadataApiDeploy, MetadataApiRetrieve, RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
-  ComponentStatus,
-  RequestStatus
+    ComponentStatus, RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { join } from 'path';
-import * as vscode from 'vscode';
+
 import { OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { WorkspaceContext } from '../context';
-import { workspaceContextUtils } from '../context';
+import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';

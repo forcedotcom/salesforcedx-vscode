@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  channelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
+
+import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+
 import { conflictView } from '../conflict';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

@@ -7,19 +7,16 @@
 
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
+
 import {
-  SfdxCoreSettings,
-  channelService,
-  notificationService,
-  workspaceUtils
+    channelService, notificationService, SfdxCoreSettings, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+
 import {
-  forceInternalLightningAppCreate,
-  forceLightningAppCreate
+    forceInternalLightningAppCreate, forceLightningAppCreate
 } from '../../../../src/commands/templates/forceLightningAppCreate';
 
 // tslint:disable:no-unused-expression
