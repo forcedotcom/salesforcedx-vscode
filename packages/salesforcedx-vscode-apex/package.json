@@ -93,7 +93,7 @@
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.4.0",
         "@salesforce/core": "^3.34.8",
-        "@salesforce/templates": "57.0.2",
+        "@salesforce/templates": "^57.1.2",
         "@salesforce/source-deploy-retrieve": "^8.0.1",
         "shelljs": "0.8.5"
       },
