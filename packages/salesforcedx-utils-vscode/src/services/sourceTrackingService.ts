@@ -17,6 +17,7 @@ import { nls } from '../messages';
 import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
 
+export type SourceTrackingType = SourceTracking;
 export class SourceTrackingService {
   /**
    * @description creates an instance of SourceTracking with options
