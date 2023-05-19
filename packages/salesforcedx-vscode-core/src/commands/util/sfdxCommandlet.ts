@@ -232,7 +232,7 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   /**
-   * @description Base method (no-op) that is overridden by sub-classes
+   * Base method (no-op) that is overridden by sub-classes
    * forceSourcePush and forceSourcePull to update the local cache's
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.

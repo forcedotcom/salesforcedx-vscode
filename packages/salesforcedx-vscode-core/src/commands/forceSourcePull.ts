@@ -57,7 +57,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   /**
-   * @description Pass the pulled source to PersistentStorageService for
+   * Pass the pulled source to PersistentStorageService for
    * updating of timestamps, so that conflict detection will behave as expected
    * @param pullResult that comes from stdOut after cli pull operation
    */
