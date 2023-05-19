@@ -685,5 +685,8 @@ export const messages = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message:
     'File name cannot exceed {0} characters',
-  source_status: 'Source Status'
+  source_status: 'Source Status',
+  cannot_determine_workspace:
+  'Unable to determine workspace folders for workspace',
+  error_creating_launchjson: 'Error creating launch.json file: %s',
 };

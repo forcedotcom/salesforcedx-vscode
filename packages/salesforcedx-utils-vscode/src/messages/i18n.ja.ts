@@ -16,12 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  sfdx_cli_not_found:
-    'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
-  telemetry_legal_dialog_message:
-    'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
-  telemetry_legal_dialog_button_text: 'さらに表示',
-
   progress_notification_text: '%s を実行しています。',
   notification_successful_execution_text: '%s が正常に実行されました。',
   notification_canceled_execution_text: '%s がキャンセルされました。',

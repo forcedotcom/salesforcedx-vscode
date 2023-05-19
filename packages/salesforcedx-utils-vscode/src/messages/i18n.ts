@@ -16,12 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  sfdx_cli_not_found:
-    'Salesforce CLI is not installed. Install it from [%s](%s)',
-  telemetry_legal_dialog_message:
-    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more',
-
   progress_notification_text: 'Running %s',
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
@@ -31,8 +25,6 @@ export const messages = {
 
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  cannot_determine_workspace:
-    'Unable to determine workspace folders for workspace',
 
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
@@ -52,5 +44,7 @@ export const messages = {
   full_name: 'FULL NAME',
   type: 'TYPE',
   project_path: 'PROJECT PATH',
-  ignored: 'IGNORED'
+  ignored: 'IGNORED',
+  error_parsing_sfdx_project_file:
+    "Couldn't parse sfdx-project.json file (%s). Parse error: %s"
 };
