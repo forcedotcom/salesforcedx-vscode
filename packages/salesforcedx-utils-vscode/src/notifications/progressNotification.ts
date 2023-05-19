@@ -1,3 +1,7 @@
+import { Observable } from 'rxjs/Observable';
+import * as vscode from 'vscode';
+
+import { nls } from '../../src/messages';
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,9 +9,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { CommandExecution } from '../cli';
-import { Observable } from 'rxjs/Observable';
-import * as vscode from 'vscode';
-import { nls } from '../../src/messages';
 
 export class ProgressNotification {
   public static show(

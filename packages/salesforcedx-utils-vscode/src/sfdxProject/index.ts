@@ -1,3 +1,4 @@
+import { SfdxCoreSettings } from '../settings/sfdxCoreSettings';
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -6,6 +7,5 @@
  */
 import SfdxPackageDirectories from './sfdxPackageDirectories';
 import SfdxProjectConfig from './sfdxProjectConfig';
-import { SfdxCoreSettings } from '../settings/sfdxCoreSettings';
 
 export { SfdxPackageDirectories, SfdxProjectConfig };

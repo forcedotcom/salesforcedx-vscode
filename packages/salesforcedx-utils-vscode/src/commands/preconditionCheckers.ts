@@ -6,10 +6,10 @@
  */
 
 import { workspace } from 'vscode';
-import { nls } from '../messages';
+
+import { IsSfdxProjectOpened } from '../predicates';
 import { PreconditionChecker } from '../types';
 import { notificationService } from './index';
-import { IsSfdxProjectOpened } from '../predicates';
 
 export const isSfdxProjectOpened = new IsSfdxProjectOpened();
 

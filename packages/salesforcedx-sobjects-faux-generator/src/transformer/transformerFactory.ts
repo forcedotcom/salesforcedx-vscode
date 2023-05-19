@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  SfdxProjectConfig,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
@@ -87,7 +91,15 @@ export class SObjectTransformerFactory {
   }
 
   public static async createConnection(): Promise<Connection> {
+    const sourceApiVersion = (
+      await SfdxProjectConfig.getInstance()
+    ).getContents().sourceApiVersion;
+    const orgApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
     const connection = await WorkspaceContextUtil.getInstance().getConnection();
+    // precedence: orgApiVersionOverride > sourceApiVersion > connection.getApiVersion()
+    const effectiveApiVersion =
+      orgApiVersionOverride || sourceApiVersion || connection.getApiVersion();
+    connection.setApiVersion(effectiveApiVersion);
     return connection;
   }
 }

@@ -1,3 +1,6 @@
+import * as path from 'path';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -6,14 +9,12 @@
  */
 import { SfProject, SfProjectJson } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import * as path from 'path';
-import * as vscode from 'vscode';
 
+import { telemetryService } from '../';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
-import { telemetryService } from '../';
 import { workspaceUtils } from '../workspaces';
 
 /**

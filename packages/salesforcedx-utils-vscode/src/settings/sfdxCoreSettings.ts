@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as vscode from 'vscode';
 import {
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME
 } from '../constants';
-import * as vscode from 'vscode';
 import {
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,

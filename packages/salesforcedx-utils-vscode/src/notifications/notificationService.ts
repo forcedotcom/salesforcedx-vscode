@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandExecution } from '../cli';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
+
 import { channelService } from '../channels';
+import { CommandExecution } from '../cli';
 import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
