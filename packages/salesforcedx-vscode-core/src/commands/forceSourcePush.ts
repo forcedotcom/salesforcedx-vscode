@@ -7,9 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder,
-  SourceTrackingService,
-  StatusOutputRowType
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { PersistentStorageService } from '../conflict';
 import { nls } from '../messages';
@@ -62,7 +60,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
   }
 
   /**
-   * @description Pass the pushed source to PersistentStorageService for
+   * Pass the pushed source to PersistentStorageService for
    * updating of timestamps, so that conflict detection will behave as expected
    * @param pushResult that comes from stdOut after cli push operation
    */
