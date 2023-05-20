@@ -635,7 +635,7 @@ export const messages = {
   beta_tapi_queue_status: 'The deploy is still in the Queue',
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error:
-    'Not able to parse current results. Raw result: %s',
+    'Not able to parse current results. Raw result:',
   lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',

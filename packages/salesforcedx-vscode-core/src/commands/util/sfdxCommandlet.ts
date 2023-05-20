@@ -128,7 +128,7 @@ export abstract class SfdxCommandletExecutor<T>
       exitCode === 0 &&
       execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME
     ) {
-      const pullResult = JSON.parse(output);
+      const pullResult = this.parseOutput(output);
       this.updateCache(pullResult);
 
       const pullParser = new ForcePullResultParser(output);
@@ -158,6 +158,22 @@ export abstract class SfdxCommandletExecutor<T>
       measurements
     );
     this.onDidFinishExecutionEventEmitter.fire(startTime);
+  }
+
+  protected parseOutput(output: string) {
+    let parsed: any;
+    try {
+      // parsed = JSON.parse(output);
+      throw new Error('parse error!!!!!');
+    } catch (error) {
+      parsed = '';
+      notificationService.showWarningMessage(
+        nls.localize('lib_retrieve_result_parse_error'),
+        output
+      );
+      throw error;
+    }
+    return parsed;
   }
 
   protected getTelemetryData(

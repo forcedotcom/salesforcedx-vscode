@@ -78,7 +78,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     cancellationTokenSource: vscode.CancellationTokenSource
   ): Promise<void> {
     if (exitCode === 0 && this.getDeployType() === DeployType.Push) {
-      const pushResult = JSON.parse(stdOut);
+      const pushResult = this.parseOutput(stdOut);
       this.updateCache(pushResult);
     }
 
@@ -124,6 +124,11 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  protected parseResult() {
+    throw new Error('parsing error!');
+    // JSON.parse(stdOut);
   }
 
   protected abstract getDeployType(): DeployType;
