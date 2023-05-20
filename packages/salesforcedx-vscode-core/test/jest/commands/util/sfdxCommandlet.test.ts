@@ -1,7 +1,7 @@
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/src/commands';
 import { ForceSourcePullExecutor } from '../../../../src/commands';
 import { CommandParams } from '../../../../src/commands/util';
-import { CONTINUE } from '../../../../src/commands/util/parameterGatherers';
+import { dummyPullOutput } from '../../../../src/commands/util/testData';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
 
 describe('SfdxCommandletExecutor', () => {
@@ -24,7 +24,14 @@ describe('SfdxCommandletExecutor', () => {
       jest.spyOn(ChannelService.prototype, 'clear');
 
       // executor.execute({ type: 'CONTINUE', data: '' });
-      // (executor as any).exitProcess('','','','','','');
+      (executor as any).exitProcessHandler(
+        0,
+        { command: { logName: FORCE_SOURCE_PULL_LOG_NAME } },
+        '',
+        '',
+        '',
+        dummyPullOutput
+      );
 
       expect(updateCacheAfterPushPullMock).toHaveBeenCalled();
     });
