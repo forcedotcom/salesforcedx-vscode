@@ -68,24 +68,6 @@ export class SourceTrackingService {
     );
     return sourceStatusSummary.format();
   }
-
-  public static async getLocalStatus(): Promise<StatusOutputRow[]> {
-    const sourceTracking = await getSourceTrackingForCurrentProject();
-    const statusResponse = await sourceTracking.getStatus({
-      local: true,
-      remote: false
-    });
-    return statusResponse;
-  }
-
-  public static async getRemoteStatus(): Promise<StatusOutputRow[]> {
-    const sourceTracking = await getSourceTrackingForCurrentProject();
-    const statusResponse = await sourceTracking.getStatus({
-      local: false,
-      remote: true
-    });
-    return statusResponse;
-  }
 }
 
 async function getSourceTrackingForCurrentProject(): Promise<SourceTracking> {

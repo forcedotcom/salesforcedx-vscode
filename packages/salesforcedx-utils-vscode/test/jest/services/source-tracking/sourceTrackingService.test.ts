@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking';
+import { SourceTracking } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../../../../src';
 import { SourceTrackingService } from '../../../../src/services';
 import { testData } from './testData';
@@ -106,53 +106,6 @@ describe('Source Tracking Service', () => {
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(sourceTrackingMock).toHaveBeenCalled();
       expect(formattedOutput).toMatchSnapshot();
-    });
-  });
-
-  describe('get local and remote Source Status', () => {
-    const getStatusMock = jest.spyOn(SourceTracking.prototype, 'getStatus');
-    const dummyStatus: any[] | Promise<StatusOutputRow[]> = [];
-    const mockWorkspaceContextUtil = {
-      onOrgChange: jest.fn(),
-      getConnection: jest.fn()
-    };
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let sourceTrackingMock: jest.SpyInstance;
-
-    beforeEach(() => {
-      workspaceContextUtilGetInstanceSpy = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil as any);
-
-      sourceTrackingMock = jest
-        .spyOn(SourceTracking, 'create')
-        .mockResolvedValue({
-          getStatus: getStatusMock
-        } as any);
-
-      getStatusMock.mockResolvedValue(dummyStatus);
-    });
-
-    describe('getLocalStatus', () => {
-      it('should only get the local status from source tracking', async () => {
-        const localOptions = { local: true, remote: false };
-
-        const localStatus = await SourceTrackingService.getLocalStatus();
-
-        expect(getStatusMock).toHaveBeenCalledWith(localOptions);
-        expect(localStatus).toEqual(dummyStatus);
-      });
-    });
-
-    describe('getRemoteStatus', () => {
-      it('should only get the remote status from source tracking', async () => {
-        const remoteOptions = { local: false, remote: true };
-
-        const remoteStatus = await SourceTrackingService.getRemoteStatus();
-
-        expect(getStatusMock).toHaveBeenCalledWith(remoteOptions);
-        expect(remoteStatus).toEqual(dummyStatus);
-      });
     });
   });
 });
