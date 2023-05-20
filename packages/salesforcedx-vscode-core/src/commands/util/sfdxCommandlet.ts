@@ -160,13 +160,16 @@ export abstract class SfdxCommandletExecutor<T>
     this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 
+  /**
+   * @param output usually stdOut JSON string from a cli command.
+   * @returns parsed JSON object. Shows a notification and the raw
+   * response before throwing when a parsing error is encountered.
+   */
   protected parseOutput(output: string) {
     let parsed: any;
     try {
-      // parsed = JSON.parse(output);
-      throw new Error('parse error!!!!!');
+      parsed = JSON.parse(output);
     } catch (error) {
-      parsed = '';
       notificationService.showWarningMessage(
         nls.localize('lib_retrieve_result_parse_error'),
         output
