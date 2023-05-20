@@ -18,7 +18,6 @@ import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
 
 export type SourceTrackingType = SourceTracking;
-export type StatusOutputRowType = StatusOutputRow;
 
 export class SourceTrackingService {
   /**
