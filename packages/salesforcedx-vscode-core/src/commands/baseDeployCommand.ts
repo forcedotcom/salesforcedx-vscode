@@ -126,11 +126,6 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  protected parseResult() {
-    throw new Error('parsing error!');
-    // JSON.parse(stdOut);
-  }
-
   protected abstract getDeployType(): DeployType;
 
   public outputResult(parser: ForceDeployResultParser) {
