@@ -195,7 +195,7 @@ export abstract class SfdxCommandletExecutor<T>
     const errors = parser.getErrors();
     const pulledSource = successes ? successes.result.pulledSource : undefined;
     if (pulledSource) {
-      const rows = pulledSource || (errors && errors.result);
+      const rows = pulledSource || errors?.result;
       const tableTitle = nls.localize(`table_title_${titleType}ed_source`);
       const outputTable = this.getOutputTable(table, rows, tableTitle);
 
