@@ -10,6 +10,7 @@ import {
   Command,
   CommandExecution,
   ContinueResponse,
+  DeployResult,
   ForcePullResultParser,
   Measurements,
   ParametersGatherer,
@@ -17,10 +18,10 @@ import {
   PreconditionChecker,
   Properties,
   Row,
-  StatusOutputRowType,
   Table,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
+import { PullResult } from '@salesforce/salesforcedx-utils-vscode/src/cli/pullResultParser';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../constants';
@@ -191,9 +192,9 @@ export abstract class SfdxCommandletExecutor<T>
     const table = new Table();
     const titleType = 'pull';
 
-    const successes: any = parser.getSuccesses();
+    const successes = parser.getSuccesses();
     const errors = parser.getErrors();
-    const pulledSource = successes ? successes.result.pulledSource : undefined;
+    const pulledSource = successes ? successes?.result.pulledSource : undefined;
     if (pulledSource) {
       const rows = pulledSource || errors?.result;
       const tableTitle = nls.localize(`table_title_${titleType}ed_source`);
@@ -219,7 +220,7 @@ export abstract class SfdxCommandletExecutor<T>
 
   protected getOutputTable(
     table: Table,
-    rows: unknown,
+    rows: DeployResult[] | PullResult[] | undefined,
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
