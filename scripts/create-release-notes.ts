@@ -1,4 +1,5 @@
 import * as shell from 'shelljs';
+import { window, workspace, Uri } from 'vscode';
 const changeLogGeneratorUtils = require('./change-log-generator-utils');
 const constants = require('./change-log-constants');
 
@@ -16,15 +17,18 @@ const logger = (msg: string, obj?: any) => {
  * Checks if the user has provided a release branch override. If they
  * have not, return the latest release branch.
  */
-function getReleaseBranch() {
+function getRemoteReleaseBranch() {
   logger('\nStep 1: Determine release branch.');
-  const releaseBranchArg = releaseOverride;
-  console.log(`releaseOverride is ${releaseBranchArg}`);
-  const releaseBranch = releaseBranchArg
-    ? constants.REMOTE_RELEASE_BRANCH_PREFIX + releaseBranchArg
-    : getReleaseBranches()[0];
+  let releaseBranch;
+  if (!releaseOverride) {
+    console.log(`releaseOverride not provided. Getting latest release.`);
+    releaseBranch = getRemoteReleaseBranches()[0];
+  } else {
+    console.log(`releaseOverride set to ${releaseOverride}`);
+    releaseBranch = constants.REMOTE_RELEASE_BRANCH_PREFIX + releaseOverride;
+  }
   validateReleaseBranch(releaseBranch);
-  logger(`\nLast release branch was: ${releaseBranch}`)
+  console.log(`\nBranch to be released is: ${releaseBranch}`)
   return releaseBranch;
 }
 
@@ -32,7 +36,7 @@ function getReleaseBranch() {
  * Returns a list of remote release branches, sorted in reverse order by
  * creation date. This ensures that the first entry is the latest branch.
  */
-function getReleaseBranches() {
+function getRemoteReleaseBranches() {
   return shell
     .exec(
       `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
@@ -55,10 +59,11 @@ function validateReleaseBranch(releaseBranch) {
   }
 }
 
-const releaseBranchName = getReleaseBranch();
+const releaseBranchName = getRemoteReleaseBranch();
+logger(`\nStep 2: Getting latest tag to compare last published version`);
 const latestReleasedTag = String(shell.exec(`git describe --tags --abbrev=0`));
 const latestReleasedBranchName = `origin/release/${latestReleasedTag}`;
-logger(`\nLatest release branch was: ${latestReleasedBranchName}`);
+validateReleaseBranch(latestReleasedBranchName);
 
 changeLogGeneratorUtils.updateChangeLog(releaseBranchName, latestReleasedBranchName);
 
