@@ -289,20 +289,21 @@ function getReleaseDate() {
  *
  * Complete the heavy lifting to update the changelog by grabbing the
  * new commits, grouping everything, and creating the text for editing.
- * @param {string} releaseBranch
- * @param {string} previousBranch
+ * @param {string} remoteReleaseBranch
+ * @param {string} remotePreviousBranch
  * @returns
  */
 
-function updateChangeLog(releaseBranch, previousBranch) {
-  const parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
+function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
+  const parsedCommits = parseCommits(getCommits(remoteReleaseBranch, remotePreviousBranch));
   if (parsedCommits.length > 0) {
-    console.log('test: manually switching branches');
-    const commitCommand = `git checkout release/v57.15.0`;
+    const localReleaseBranch = remoteReleaseBranch.replace(constants.REMOTE_RELEASE_PREFIX_ONLY, '');
+    console.log(`\nChecking out ${localReleaseBranch}`);
+    const commitCommand = `git checkout ${localReleaseBranch}`;
     shell.exec(commitCommand);
     
     const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
-    const changeLog = getChangeLogText(releaseBranch, groupedMessages);
+    const changeLog = getChangeLogText(remoteReleaseBranch, groupedMessages);
     writeChangeLog(changeLog);
   } else {
     console.log(`No commits found, so we can skip this week's release. Carry on!`);

@@ -66,5 +66,7 @@ const latestReleasedBranchName = `origin/release/${latestReleasedTag}`;
 validateReleaseBranch(latestReleasedBranchName);
 
 changeLogGeneratorUtils.updateChangeLog(releaseBranchName, latestReleasedBranchName);
+logger(`\nOpening changelog for review`);
+shell.exec(`code-insiders ${constants.CHANGE_LOG_PATH} || code ${constants.CHANGE_LOG_PATH}`);
 
 process.exit(0);
