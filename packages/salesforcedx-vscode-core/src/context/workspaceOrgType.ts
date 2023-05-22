@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 
 import { Org } from '@salesforce/core';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode/src';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 
 import { OrgAuthInfo } from '../util';
 import { WorkspaceContext } from './workspaceContext';
