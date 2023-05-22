@@ -12,6 +12,7 @@ import {
 } from '../../../src/commands/baseDeployCommand';
 import { CommandParams } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
+import { dummyStdOut } from './data/testData';
 
 jest.mock('../../../src/channels');
 jest.mock('../../../src/statuses');
@@ -48,8 +49,6 @@ describe('BaseDeployExecutor', () => {
       executorAsAny.updateCache = updateCacheMock;
       executorAsAny.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
       executorAsAny.logMetric = jest.fn();
-      const dummyStdOut =
-        '{\n  "status": 0,\n  "result": {\n    "pushedSource": [\n      {\n        "state": "Changed",\n        "fullName": "D9",\n        "type": "ApexClass",\n        "filePath": "/Users/kenneth.lewis/scratchpad/NewProj1/force-app/main/default/classes/D9.cls"\n      },\n      {\n        "state": "Changed",\n        "fullName": "D9",\n        "type": "ApexClass",\n        "filePath": "/Users/kenneth.lewis/scratchpad/NewProj1/force-app/main/default/classes/D9.cls-meta.xml"\n      }\n    ]\n  },\n  "warnings": [\n    "We plan to deprecate this command in the future. Try using the \\"project deploy start\\" command instead.",\n    "The loglevel flag is no longer in use on this command. You may use it without error, but it will be ignored.\\nSet the log level using the `SFDX_LOG_LEVEL` environment variable."\n  ]\n}\n';
 
       // Act
       await (executor as any).exitProcessHandlerDeploy(
