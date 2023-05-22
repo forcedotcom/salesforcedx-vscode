@@ -1,15 +1,20 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/src/commands';
 import {
   ForceSourcePullExecutor,
   ForceSourcePushExecutor
 } from '../../../../src/commands';
+import { DeployType } from '../../../../src/commands/baseDeployCommand';
 import { CommandParams } from '../../../../src/commands/util';
 import { dummyPullOutput } from '../../../../src/commands/util/testData';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
-import { DeployType } from '../../../../src/commands/baseDeployCommand';
 import { notificationService } from '../../../../src/notifications';
 import { dummyStdOut } from '../data/testData';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/src';
 
 describe('SfdxCommandletExecutor', () => {
   describe('execute', () => {
