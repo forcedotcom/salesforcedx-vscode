@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
@@ -7,36 +13,30 @@ import * as assert from 'yeoman-assert';
 import {
     channelService, notificationService, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-/*
- * Copyright (c) 2019, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
 import { TemplateService } from '@salesforce/templates';
 
 import { forceVisualforcePageCreate } from '../../../../src/commands/templates';
 
 // tslint:disable:no-unused-expression
 describe('Force Visualforce Page Create', () => {
-  let showInputBoxStub: SinonStub;
-  let quickPickStub: SinonStub;
-  let appendLineStub: SinonStub;
-  let showSuccessfulExecutionStub: SinonStub;
-  let showFailedExecutionStub: SinonStub;
-  let openTextDocumentStub: SinonStub;
+  let showInputBoxStub: sinon.SinonStub;
+  let quickPickStub: sinon.SinonStub;
+  let appendLineStub: sinon.SinonStub;
+  let showSuccessfulExecutionStub: sinon.SinonStub;
+  let showFailedExecutionStub: sinon.SinonStub;
+  let openTextDocumentStub: sinon.SinonStub;
 
   beforeEach(() => {
-    showInputBoxStub = stub(vscode.window, 'showInputBox');
-    quickPickStub = stub(vscode.window, 'showQuickPick');
-    appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
+    showInputBoxStub = sinon.stub(vscode.window, 'showInputBox');
+    quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+    appendLineStub = sinon.stub(channelService, 'appendLine');
+    showSuccessfulExecutionStub = sinon.stub(
       notificationService,
       'showSuccessfulExecution'
     );
     showSuccessfulExecutionStub.returns(Promise.resolve());
-    showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
+    showFailedExecutionStub = sinon.stub(notificationService, 'showFailedExecution');
+    openTextDocumentStub = sinon.stub(vscode.workspace, 'openTextDocument');
   });
 
   afterEach(() => {

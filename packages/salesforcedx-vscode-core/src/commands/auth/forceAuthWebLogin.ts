@@ -161,7 +161,7 @@ export abstract class ForceAuthDemoModeExecutor<
 > extends SfdxCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
-    const cancellationTokenSource = new CancellationTokenSource();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {

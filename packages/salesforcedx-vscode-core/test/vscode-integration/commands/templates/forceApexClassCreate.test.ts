@@ -8,11 +8,15 @@
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 
 import {
-    channelService, ConfigUtil, notificationService, workspaceUtils
+  channelService,
+  ConfigUtil,
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';

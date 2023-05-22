@@ -1,26 +1,34 @@
-import { expect } from 'chai';
-import * as fs from 'fs';
-import { join } from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
+import * as fs from 'fs';
+import { join } from 'path';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+
 import {
-    CancelResponse, channelService, ContinueResponse, LocalComponent, notificationService,
-    PostconditionChecker, sfdxCoreSettings, workspaceUtils
+  CancelResponse,
+  channelService,
+  ContinueResponse,
+  LocalComponent,
+  notificationService,
+  PostconditionChecker,
+  sfdxCoreSettings,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import {
-    CommandletExecutor, ConflictDetectionMessages, EmptyPostChecker, OverwriteComponentPrompt,
-    PathStrategyFactory, SfdxCommandlet
+  CommandletExecutor,
+  ConflictDetectionMessages,
+  EmptyPostChecker,
+  OverwriteComponentPrompt,
+  PathStrategyFactory,
+  SfdxCommandlet
 } from '../../../../src/commands/util';
-import {
-    CompositePostconditionChecker
-} from '../../../../src/commands/util/compositePostconditionChecker';
+import { CompositePostconditionChecker } from '../../../../src/commands/util/compositePostconditionChecker';
 import { TimestampConflictChecker } from '../../../../src/commands/util/timestampConflictChecker';
 import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
@@ -468,7 +476,7 @@ describe('Postcondition Checkers', () => {
       env.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
       env
         .stub(workspaceUtil, 'getWorkspaceOrgType')
-        .returns(OrgType.NonSourceTracked);
+        .returns(workspaceUtil.OrgType.NonSourceTracked);
       appendLineStub.callsFake(line => channelOutput.push(line));
     });
 

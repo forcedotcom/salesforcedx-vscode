@@ -8,6 +8,7 @@
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 

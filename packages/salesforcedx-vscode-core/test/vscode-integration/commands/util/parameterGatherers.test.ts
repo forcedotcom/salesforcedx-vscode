@@ -1,26 +1,41 @@
-import { expect } from 'chai';
-import * as path from 'path';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-    CancelResponse, ContinueResponse, ParametersGatherer, SfdxPackageDirectories, workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, registry, SourceComponent } from '@salesforce/source-deploy-retrieve';
+import { expect } from 'chai';
+import * as path from 'path';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
 
 import {
-    CommandletExecutor, CompositeParametersGatherer, DemoModePromptGatherer,
-    EmptyParametersGatherer, FileSelection, FileSelector, SelectOutputDir, SfdxCommandlet,
-    SimpleGatherer
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  SfdxPackageDirectories,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ComponentSet,
+  registry,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
+
+import {
+  CommandletExecutor,
+  CompositeParametersGatherer,
+  DemoModePromptGatherer,
+  EmptyParametersGatherer,
+  FileSelection,
+  FileSelector,
+  SelectOutputDir,
+  SfdxCommandlet,
+  SimpleGatherer
 } from '../../../../src/commands/util';
 import {
-    PromptConfirmGatherer, SelectLwcComponentDir
+  PromptConfirmGatherer,
+  SelectLwcComponentDir
 } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
 
@@ -211,7 +226,7 @@ describe('Parameter Gatherers', () => {
     let showInformationMessageStub: sinon.SinonStub;
 
     before(() => {
-      showInformationMessageStub = sinon.stub(window, 'showInformationMessage');
+      showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
     });
 
     after(() => {
@@ -242,8 +257,8 @@ describe('Parameter Gatherers', () => {
       const options = selector.getDefaultOptions(['testapp', 'testapp2']);
 
       expect(options).to.eql([
-        join('testapp', SelectOutputDir.defaultOutput, 'test'),
-        join('testapp2', SelectOutputDir.defaultOutput, 'test'),
+        path.join('testapp', SelectOutputDir.defaultOutput, 'test'),
+        path.join('testapp2', SelectOutputDir.defaultOutput, 'test'),
         SelectOutputDir.customDirOption
       ]);
     });

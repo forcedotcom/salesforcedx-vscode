@@ -21,26 +21,26 @@ import {
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning App Create', () => {
-  let getInternalDevStub: SinonStub;
-  let showInputBoxStub: SinonStub;
-  let quickPickStub: SinonStub;
-  let appendLineStub: SinonStub;
-  let showSuccessfulExecutionStub: SinonStub;
-  let showFailedExecutionStub: SinonStub;
-  let openTextDocumentStub: SinonStub;
+  let getInternalDevStub: sinon.SinonStub;
+  let showInputBoxStub: sinon.SinonStub;
+  let quickPickStub: sinon.SinonStub;
+  let appendLineStub: sinon.SinonStub;
+  let showSuccessfulExecutionStub: sinon.SinonStub;
+  let showFailedExecutionStub: sinon.SinonStub;
+  let openTextDocumentStub: sinon.SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(SfdxCoreSettings.prototype, 'getInternalDev');
-    showInputBoxStub = stub(vscode.window, 'showInputBox');
-    quickPickStub = stub(vscode.window, 'showQuickPick');
-    appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
+    getInternalDevStub = sinon.stub(SfdxCoreSettings.prototype, 'getInternalDev');
+    showInputBoxStub = sinon.stub(vscode.window, 'showInputBox');
+    quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+    appendLineStub = sinon.stub(channelService, 'appendLine');
+    showSuccessfulExecutionStub = sinon.stub(
       notificationService,
       'showSuccessfulExecution'
     );
     showSuccessfulExecutionStub.returns(Promise.resolve());
-    showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
+    showFailedExecutionStub = sinon.stub(notificationService, 'showFailedExecution');
+    openTextDocumentStub = sinon.stub(vscode.workspace, 'openTextDocument');
   });
 
   afterEach(() => {

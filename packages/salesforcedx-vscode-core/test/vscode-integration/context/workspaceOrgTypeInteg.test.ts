@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 
 import { AuthInfo, Org } from '@salesforce/core';
