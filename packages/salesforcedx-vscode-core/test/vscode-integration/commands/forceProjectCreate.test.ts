@@ -245,33 +245,33 @@ describe('Force Project Create', () => {
   });
 
   describe('Project Create', () => {
-    let showInputBoxStub: SinonStub;
-    let quickPickStub: SinonStub;
-    let openDialogStub: SinonStub;
-    let appendLineStub: SinonStub;
-    let showSuccessfulExecutionStub: SinonStub;
-    let showFailedExecutionStub: SinonStub;
-    let executeCommandStub: SinonStub;
-    let sendCommandEventStub: SinonStub;
-    let showWarningStub: SinonStub;
+    let showInputBoxStub: sinon.SinonStub;
+    let quickPickStub: sinon.SinonStub;
+    let openDialogStub: sinon.SinonStub;
+    let appendLineStub: sinon.SinonStub;
+    let showSuccessfulExecutionStub: sinon.SinonStub;
+    let showFailedExecutionStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
+    let sendCommandEventStub: sinon.SinonStub;
+    let showWarningStub: sinon.SinonStub;
 
     beforeEach(() => {
-      showInputBoxStub = stub(vscode.window, 'showInputBox');
-      quickPickStub = stub(vscode.window, 'showQuickPick');
-      openDialogStub = stub(vscode.window, 'showOpenDialog');
-      appendLineStub = stub(channelService, 'appendLine');
-      showSuccessfulExecutionStub = stub(
+      showInputBoxStub = sinon.stub(vscode.window, 'showInputBox');
+      quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+      openDialogStub = sinon.stub(vscode.window, 'showOpenDialog');
+      appendLineStub = sinon.stub(channelService, 'appendLine');
+      showSuccessfulExecutionStub = sinon.stub(
         notificationService,
         'showSuccessfulExecution'
       );
       showSuccessfulExecutionStub.returns(Promise.resolve());
-      showFailedExecutionStub = stub(
+      showFailedExecutionStub = sinon.stub(
         notificationService,
         'showFailedExecution'
       );
-      executeCommandStub = stub(vscode.commands, 'executeCommand');
-      sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
-      showWarningStub = stub(vscode.window, 'showWarningMessage');
+      executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+      sendCommandEventStub = sinon.stub(telemetryService, 'sendCommandEvent');
+      showWarningStub = sinon.stub(vscode.window, 'showWarningMessage');
     });
 
     afterEach(() => {

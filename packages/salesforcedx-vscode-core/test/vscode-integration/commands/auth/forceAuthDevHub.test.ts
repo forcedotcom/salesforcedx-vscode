@@ -49,14 +49,14 @@ describe('Force Auth Web Login for Dev Hub', () => {
 const $$ = instantiateContext();
 
 describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
-  let getDefaultDevHubUsernameStub: SinonStub;
-  let setGlobalDefaultDevHubStub: SinonStub;
-  let configWriteStub: SinonSpy;
-  let configSetStub: SinonSpy;
-  let configCreateSpy: SinonSpy;
+  let getDefaultDevHubUsernameStub: sinon.SinonStub;
+  let setGlobalDefaultDevHubStub: sinon.SinonStub;
+  let configWriteStub: sinon.SinonSpy;
+  let configSetStub: sinon.SinonSpy;
+  let configCreateSpy: sinon.SinonSpy;
 
   const authWebLogin = ForceAuthDevHubExecutor.prototype;
-  let sb: SinonSandbox;
+  let sb: sinon.SinonSandbox;
 
   beforeEach(() => {
     stubContext($$);

@@ -1,5 +1,3 @@
-import { join } from 'path';
-
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -7,6 +5,7 @@ import { join } from 'path';
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LocalComponent, SfdxPackageDirectories } from '@salesforce/salesforcedx-utils-vscode';
+import { join } from 'path';
 
 import { BrowserNode } from '../../orgBrowser';
 import { RetrieveDescriber } from './';

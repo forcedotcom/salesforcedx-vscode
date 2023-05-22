@@ -5,19 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 
 import {
-    CancelResponse, channelService, Command, ContinueResponse, isRecordIdFormat,
-    notificationService, ParametersGatherer, ProgressNotification, SfdxCommandBuilder
+  CancelResponse,
+  Command,
+  ContinueResponse,
+  isRecordIdFormat,
+  ParametersGatherer,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
 import { taskViewService } from '../statuses';
 import {
-    CompositeParametersGatherer, EmptyPreChecker, SfdxCommandlet, SfdxCommandletExecutor
+  CompositeParametersGatherer,
+  EmptyPreChecker,
+  SfdxCommandlet,
+  SfdxCommandletExecutor
 } from './util';
 
 type forcePackageInstallOptions = {

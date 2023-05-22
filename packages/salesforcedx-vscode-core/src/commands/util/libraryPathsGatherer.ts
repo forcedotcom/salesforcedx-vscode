@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -7,8 +5,9 @@ import * as vscode from 'vscode';
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-    ContinueResponse, fileUtils, ParametersGatherer
+  ContinueResponse, fileUtils, ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 
 export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
   private uris: vscode.Uri[];

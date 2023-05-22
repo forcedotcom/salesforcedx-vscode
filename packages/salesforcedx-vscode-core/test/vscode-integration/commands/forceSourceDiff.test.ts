@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,14 +10,24 @@ import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 
-import { channelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { MetadataType, SourceComponent } from '@salesforce/source-deploy-retrieve';
+import {
+  channelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import { forceSourceDiff } from '../../../src/commands';
 
 import * as conflictCommands from '../../../src/commands';
-import { FilePathGatherer, SfdxWorkspaceChecker } from '../../../src/commands/util';
+import {
+  FilePathGatherer,
+  SfdxWorkspaceChecker
+} from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
-    MetadataCacheResult, MetadataCacheService, MetadataContext, PathType
+  MetadataCacheResult,
+  MetadataCacheService,
+  MetadataContext,
+  PathType
 } from '../../../src/conflict/metadataCacheService';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -91,7 +101,7 @@ describe('Force Source Diff', () => {
         telemetryService,
         'sendException'
       );
-      vscodeExecuteCommandStub = sandbox.stub(commands, 'executeCommand');
+      vscodeExecuteCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
     });
 
     afterEach(() => {
@@ -130,7 +140,7 @@ describe('Force Source Diff', () => {
       mockComponentWalkContentStub.returns([remoteFsPath]);
       processStub.returns(mockResult);
 
-      await forceSourceDiff(Uri.file(mockFilePath));
+      await forceSourceDiff(vscode.Uri.file(mockFilePath));
 
       assert.calledOnce(vscodeExecuteCommandStub);
       assert.calledWith(
@@ -150,7 +160,7 @@ describe('Force Source Diff', () => {
     it('Should show message when diffing on unsupported file type', async () => {
       const mockActiveTextEditor = {
         document: {
-          uri: Uri.file(mockFilePath),
+          uri: vscode.Uri.file(mockFilePath),
           languageId: 'forcesourcemanifest'
         }
       };

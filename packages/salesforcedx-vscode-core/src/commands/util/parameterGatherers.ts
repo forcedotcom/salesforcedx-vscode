@@ -1,6 +1,3 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
-
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -8,10 +5,12 @@ import * as vscode from 'vscode';
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-    CancelResponse, ContinueResponse, LocalComponent, ParametersGatherer, SfdxPackageDirectories,
-    workspaceUtils
+  CancelResponse, ContinueResponse, LocalComponent, ParametersGatherer, SfdxPackageDirectories,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
+import * as path from 'path';
+import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';

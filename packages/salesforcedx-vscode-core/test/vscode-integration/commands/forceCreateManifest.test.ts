@@ -34,7 +34,7 @@ const APEX_MANIFEST = util.format(EMPTY_MANIFEST, `
 </types>`
 );
 
-const env = createSandbox();
+const env = sinon.createSandbox();
 let openTextDocumentSpy: sinon.SinonSpy;
 
 describe('Force Create Manifest', () => {
