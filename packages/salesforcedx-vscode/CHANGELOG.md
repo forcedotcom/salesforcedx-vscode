@@ -1,3 +1,15 @@
+# 57.14.1 - May 17, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Update @salesforce/templates version so that the latest API version 57.0 is used for `assetVersion` when creating a sample analytics app template. ([PR #4851](https://github.com/forcedotcom/salesforcedx-vscode/pull/4851))
+
+#### salesforcedx-vscode-soql
+
+- Updated SOQL Builder so that it does not show an error when there is no default org set and a SOQL file is not currently open. ([PR #4847](https://github.com/forcedotcom/salesforcedx-vscode/pull/4847))
+
 # 57.13.1 - May 10, 2023
 
 ## Added
@@ -9,12 +21,13 @@
 #### salesforcedx-vscode-core
 
 - We enabled the following Deploy and Retrieve commands for scratch orgs ([PR #4809](https://github.com/forcedotcom/salesforcedx-vscode/pull/4809)):
-  * **SFDX: Deploy Source to Org**
-  * **SFDX: Deploy This Source to Org**
-  * **SFDX: Deploy Source in Manifest to Org**
-  * **SFDX: Retrieve Source from Org**
-  * **SFDX: Retrieve This Source from Org**
-  * **SFDX: Retrieve Source in Manifest from Org**
+
+  - **SFDX: Deploy Source to Org**
+  - **SFDX: Deploy This Source to Org**
+  - **SFDX: Deploy Source in Manifest to Org**
+  - **SFDX: Retrieve Source from Org**
+  - **SFDX: Retrieve This Source from Org**
+  - **SFDX: Retrieve Source in Manifest from Org**
 
 - **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** commands are now available in the Command Palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
 
