@@ -20,9 +20,9 @@ describe('ForceSourcePullExecutor', () => {
     });
 
     it('should update the local cache for the pulled source components after pull', async () => {
-      const p = new ForceSourcePullExecutor();
+      const pullExecutor = new ForceSourcePullExecutor();
 
-      (p as any).updateCache(dummyPullResult);
+      (pullExecutor as any).updateCache(dummyPullResult);
 
       expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(
         dummyPullResult.result.pulledSource
