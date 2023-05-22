@@ -4,6 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ForcePullResultParser } from '@salesforce/salesforcedx-utils-vscode/src';
+import {
+  ForceSourcePullErrorResponse,
+  ForceSourcePullSuccessResponse
+} from '@salesforce/salesforcedx-utils-vscode/src/cli/pullResultParser';
 import { channelService } from '../../../../src/channels';
 import {
   ForceSourcePullExecutor,
@@ -17,7 +22,35 @@ import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
 import { notificationService } from '../../../../src/notifications';
 import { dummyStdOut } from '../data/testData';
 
+const pullCommand: CommandParams = {
+  command: 'force:source:pull',
+  description: {
+    default: 'force_source_pull_default_org_text',
+    forceoverwrite: 'force_source_pull_force_default_org_text'
+  },
+  logName: { default: FORCE_SOURCE_PULL_LOG_NAME }
+};
+
+const pushCommand: CommandParams = {
+  command: 'force:source:push',
+  description: {
+    default: 'force_source_push_default_org_text',
+    forceoverwrite: 'force_source_push_force_default_org_text'
+  },
+  logName: { default: 'force_source_push_default_scratch_org' }
+};
+
+const flag = '';
+
 describe('SfdxCommandletExecutor', () => {
+  let appendLineMock: jest.SpyInstance;
+
+  beforeEach(() => {
+    appendLineMock = jest
+      .spyOn(channelService, 'appendLine')
+      .mockImplementation(jest.fn());
+  });
+
   describe('exitProcessHandler', () => {
     const setPropertiesForFilesPushPullMock = jest.fn();
 
@@ -27,25 +60,14 @@ describe('SfdxCommandletExecutor', () => {
       } as any);
 
       jest.spyOn(channelService, 'clear');
-      jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
     });
 
     it('should update the local cache for the components that were retrieved after a pull', () => {
-      const flag = undefined;
-      const pullCommand: CommandParams = {
-        command: 'force:source:pull',
-        description: {
-          default: 'force_source_pull_default_org_text',
-          forceoverwrite: 'force_source_pull_force_default_org_text'
-        },
-        logName: { default: FORCE_SOURCE_PULL_LOG_NAME }
-      };
-      const executor = new ForceSourcePullExecutor(flag, pullCommand);
+      const executor = new ForceSourcePullExecutor(undefined, pullCommand);
       const updateCacheAfterPushPullMock = jest.spyOn(
         executor as any,
         'updateCache'
       );
-      const appendLineMock = jest.fn();
       (executor as any).channel = { appendLine: appendLineMock };
 
       (executor as any).exitProcessHandler(
@@ -74,17 +96,7 @@ describe('SfdxCommandletExecutor', () => {
 
       it('should parse well formatted response and return JSON', () => {
         // Arrange
-        const pushCommand: CommandParams = {
-          command: 'force:source:push',
-          description: {
-            default: 'force_source_push_default_org_text',
-            forceoverwrite: 'force_source_push_force_default_org_text'
-          },
-          logName: { default: 'force_source_push_default_scratch_org' }
-        };
-        const flag = '';
         const executor = new ForceSourcePushExecutor(flag, pushCommand);
-        const a = jest.spyOn(executor as any, 'parseOutput');
 
         // Act
         const parsed = (executor as any).parseOutput(dummyStdOut);
@@ -95,15 +107,6 @@ describe('SfdxCommandletExecutor', () => {
 
       it('should show a message to the User if there is a parsing error', async () => {
         // Arrange
-        const pushCommand: CommandParams = {
-          command: 'force:source:push',
-          description: {
-            default: 'force_source_push_default_org_text',
-            forceoverwrite: 'force_source_push_force_default_org_text'
-          },
-          logName: { default: 'force_source_push_default_scratch_org' }
-        };
-        const flag = '';
         const executor = new ForceSourcePushExecutor(flag, pushCommand);
         const updateCacheMock = jest.fn();
         const executorAsAny = executor as any;
@@ -123,6 +126,41 @@ describe('SfdxCommandletExecutor', () => {
           expect(showWarningMessageMock).toHaveBeenCalled();
         }
       });
+    });
+  });
+
+  describe('outputResultPull', () => {
+    it('should output a message to the channel when there are errors and no result', () => {
+      // Arrange
+      const executor = new ForceSourcePullExecutor(undefined, pullCommand);
+      (executor as any).channel = {
+        appendLine: appendLineMock
+      };
+      const dummyMsg = 'a message';
+      const dummyName = 'a test name';
+
+      class TestParser extends ForcePullResultParser {
+        public getErrors(): ForceSourcePullErrorResponse | undefined {
+          return {
+            message: dummyMsg,
+            name: dummyName,
+            result: undefined,
+            stack: 'string',
+            status: 1,
+            warnings: []
+          } as any;
+        }
+        public getSuccesses(): ForceSourcePullSuccessResponse | undefined {
+          return undefined;
+        }
+      }
+      const parser = new TestParser(dummyStdOut);
+
+      // Act
+      executor.outputResultPull(parser as any);
+      expect(
+        appendLineMock.mock.calls[0][0].includes(dummyName, dummyMsg)
+      ).toEqual(true);
     });
   });
 });
