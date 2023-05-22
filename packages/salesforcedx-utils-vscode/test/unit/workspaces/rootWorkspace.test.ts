@@ -10,7 +10,6 @@ import { WorkspaceFolder } from 'vscode';
 import { workspaceUtils } from '../../../src/workspaces';
 import { stubWorkspace } from './rootWorkspace.test-util';
 
-// tslint:disable:no-unused-expression
 describe('RootWorkspace utils should', () => {
   const myFolder: WorkspaceFolder = ({
     name: 'test',
@@ -21,37 +20,32 @@ describe('RootWorkspace utils should', () => {
   const myWorkspaces: WorkspaceFolder[] = ([
     myFolder
   ] as unknown) as WorkspaceFolder[];
-  const WORKSPACE_NAME = 'sfdx-simple';
   let workspaceStub: SinonStub | undefined;
 
   afterEach(() => {
     if (workspaceStub) {
-      workspaceStub!.restore();
+      workspaceStub.restore();
       workspaceStub = undefined;
     }
   });
 
   it('correctly determine if there is a workspace', () => {
+    workspaceStub = stubWorkspace(myWorkspaces);
     expect(workspaceUtils.hasRootWorkspace()).to.be.true;
     workspaceStub = stubWorkspace([]);
     expect(workspaceUtils.hasRootWorkspace()).to.be.false;
   });
 
   it('get workspace information', () => {
+    workspaceStub = stubWorkspace(myWorkspaces);
     expect(workspaceUtils.getRootWorkspace()).to.be.an.instanceOf(Object);
-    expect(workspaceUtils.getRootWorkspace().name).to.contain(WORKSPACE_NAME);
-    expect(workspaceUtils.getRootWorkspacePath()).to.contain(WORKSPACE_NAME);
+    expect(workspaceUtils.getRootWorkspace().name).to.contain('test');
+    expect(workspaceUtils.getRootWorkspacePath()).to.contain('test');
   });
 
   it('return empty things ( not undefined ) if no root workspace', () => {
     workspaceStub = stubWorkspace([]);
     expect(workspaceUtils.getRootWorkspace()).to.be.empty;
     expect(workspaceUtils.getRootWorkspacePath()).to.be.empty;
-  });
-
-  it('return correct parts of the root workspace', () => {
-    workspaceStub = stubWorkspace(myWorkspaces);
-    expect(workspaceUtils.getRootWorkspace().name).to.equal(myFolder.name);
-    expect(workspaceUtils.getRootWorkspacePath()).to.equal(myFolder.uri.fsPath);
   });
 });

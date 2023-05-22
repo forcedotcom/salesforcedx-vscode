@@ -9,15 +9,34 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
-import { workspace } from 'vscode';
+import { WorkspaceFolder, workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { isSfdxProjectOpened } from '../../../src/predicates';
 import { workspaceUtils } from '../../../src/workspaces';
+import { stubWorkspace } from '../workspaces/rootWorkspace.test-util';
 
 // tslint:disable:no-unused-expression
 describe('SFDX project predicate', () => {
+  const myFolder: WorkspaceFolder = ({
+    name: 'test',
+    uri: {
+      fsPath: '/test/test'
+    }
+  } as unknown) as WorkspaceFolder;
+  const myWorkspaces: WorkspaceFolder[] = ([
+    myFolder
+  ] as unknown) as WorkspaceFolder[];
+  let workspaceStub: SinonStub | undefined;
   let mExistsSync: SinonStub;
+
+  afterEach(() => {
+    if (workspaceStub) {
+      workspaceStub.restore();
+      workspaceStub = undefined;
+    }
+    mExistsSync.restore();
+  });
 
   beforeEach(() => {
     mExistsSync = stub(fs, 'existsSync');
@@ -27,6 +46,7 @@ describe('SFDX project predicate', () => {
   afterEach(() => mExistsSync.restore());
 
   it('Should fail predicate with message when sfdx-project.json is missing', () => {
+    workspaceStub = stubWorkspace(myWorkspaces);
     mExistsSync
       .withArgs(
         path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)
@@ -41,6 +61,7 @@ describe('SFDX project predicate', () => {
   });
 
   it('Should pass predicate when sfdx-project.json is present', () => {
+    workspaceStub = stubWorkspace(myWorkspaces);
     mExistsSync
       .withArgs(
         path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)
