@@ -91,14 +91,12 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         const errors = deployParser.getErrors();
         if (errors && !deployParser.hasConflicts()) {
           channelService.showChannelOutput();
-          if (workspacePath && execFilePathOrPaths) {
-            handleDiagnosticErrors(
-              errors,
-              workspacePath,
-              execFilePathOrPaths,
-              BaseDeployExecutor.errorCollection
-            );
-          }
+          handleDiagnosticErrors(
+            errors,
+            workspacePath,
+            execFilePathOrPaths,
+            BaseDeployExecutor.errorCollection
+          );
         } else {
           success = true;
         }
