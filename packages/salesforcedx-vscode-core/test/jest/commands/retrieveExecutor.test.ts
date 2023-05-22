@@ -7,7 +7,10 @@ import * as fs from 'fs';
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-    ConfigUtil, ContinueResponse, SourceTrackingService
+  ConfigUtil,
+  ContinueResponse,
+  SfdxProjectConfig,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 
@@ -15,7 +18,9 @@ import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 
-jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+jest.mock(
+  '@salesforce/salesforcedx-utils-vscode/out/src/sfdxProject/sfdxProjectConfig'
+);
 
 jest.mock('../../../src/conflict/metadataCacheService');
 

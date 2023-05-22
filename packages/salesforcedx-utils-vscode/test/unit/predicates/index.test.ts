@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
-import { WorkspaceFolder, workspace } from 'vscode';
+import { workspace, WorkspaceFolder } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { isSfdxProjectOpened } from '../../../src/predicates';
