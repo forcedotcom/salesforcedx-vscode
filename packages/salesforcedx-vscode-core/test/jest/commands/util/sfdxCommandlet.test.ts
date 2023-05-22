@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/src/commands';
+import { channelService } from '../../../../src/channels';
 import {
   ForceSourcePullExecutor,
   ForceSourcePushExecutor
@@ -12,12 +12,24 @@ import {
 import { DeployType } from '../../../../src/commands/baseDeployCommand';
 import { CommandParams } from '../../../../src/commands/util';
 import { dummyPullOutput } from '../../../../src/commands/util/testData';
+import { PersistentStorageService } from '../../../../src/conflict';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
 import { notificationService } from '../../../../src/notifications';
 import { dummyStdOut } from '../data/testData';
 
 describe('SfdxCommandletExecutor', () => {
-  describe('execute', () => {
+  describe('exitProcessHandler', () => {
+    const setPropertiesForFilesPushPullMock = jest.fn();
+
+    beforeEach(() => {
+      jest.spyOn(PersistentStorageService, 'getInstance').mockReturnValue({
+        setPropertiesForFilesPushPull: setPropertiesForFilesPushPullMock
+      } as any);
+
+      jest.spyOn(channelService, 'clear');
+      jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+    });
+
     it('should update the local cache for the components that were retrieved after a pull', () => {
       const flag = undefined;
       const pullCommand: CommandParams = {
@@ -33,19 +45,19 @@ describe('SfdxCommandletExecutor', () => {
         executor as any,
         'updateCache'
       );
-      jest.spyOn(ChannelService.prototype, 'clear');
+      const appendLineMock = jest.fn();
+      (executor as any).channel = { appendLine: appendLineMock };
 
-      // executor.execute({ type: 'CONTINUE', data: '' });
       (executor as any).exitProcessHandler(
         0,
         { command: { logName: FORCE_SOURCE_PULL_LOG_NAME } },
-        '',
         '',
         '',
         dummyPullOutput
       );
 
       expect(updateCacheAfterPushPullMock).toHaveBeenCalled();
+      expect(setPropertiesForFilesPushPullMock).toHaveBeenCalled();
     });
 
     describe('parseOutput', () => {
@@ -79,7 +91,6 @@ describe('SfdxCommandletExecutor', () => {
 
         // Assert
         expect(parseSpy).toHaveBeenCalledWith(dummyStdOut);
-        // expect(a).not.toThrow();
       });
 
       it('should show a message to the User if there is a parsing error', async () => {
