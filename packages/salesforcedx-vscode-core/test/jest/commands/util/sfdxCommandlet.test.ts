@@ -158,9 +158,46 @@ describe('SfdxCommandletExecutor', () => {
 
       // Act
       executor.outputResultPull(parser as any);
+
+      // Assert
       expect(
         appendLineMock.mock.calls[0][0].includes(dummyName, dummyMsg)
       ).toEqual(true);
+    });
+
+    it('should output at least something to the console when there are errors and no result and the response is missing information', () => {
+      // Arrange
+      const executor = new ForceSourcePullExecutor(undefined, pullCommand);
+      (executor as any).channel = {
+        appendLine: appendLineMock
+      };
+      const dummyMsg = undefined;
+      const dummyName = undefined;
+      const consoleLogMock = jest.spyOn(console, 'log');
+
+      class TestParser extends ForcePullResultParser {
+        public getErrors(): ForceSourcePullErrorResponse | undefined {
+          return {
+            message: dummyMsg,
+            name: dummyName,
+            result: undefined,
+            stack: 'string',
+            status: 1,
+            warnings: []
+          } as any;
+        }
+        public getSuccesses(): ForceSourcePullSuccessResponse | undefined {
+          return undefined;
+        }
+      }
+      const parser = new TestParser(dummyStdOut);
+
+      // Act
+      executor.outputResultPull(parser as any);
+
+      // Assert
+      expect(appendLineMock).not.toHaveBeenCalled();
+      expect(consoleLogMock).toHaveBeenCalled();
     });
   });
 });

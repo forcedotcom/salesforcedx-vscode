@@ -215,6 +215,10 @@ export abstract class SfdxCommandletExecutor<T>
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
+      } else {
+        console.log(
+          `There were errors parsing the pull operation response.  Raw response: ${errors}`
+        );
       }
     }
   }
