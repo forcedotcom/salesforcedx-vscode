@@ -8,11 +8,20 @@
 import { basename, normalize } from 'path';
 
 import {
-    CancelResponse, channelService, ContinueResponse, notificationService, PostconditionChecker,
-    sfdxCoreSettings, workspaceUtils
+  CancelResponse,
+  channelService,
+  ContinueResponse,
+  getSfdxCoreSettings,
+  notificationService,
+  PostconditionChecker,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
-import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../conflict';
+import {
+  conflictView,
+  DirectoryDiffResults,
+  MetadataCacheService
+} from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
@@ -32,7 +41,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+    if (!getSfdxCoreSettings().getConflictDetectionEnabled()) {
       return inputs;
     }
 

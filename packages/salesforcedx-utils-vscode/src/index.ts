@@ -43,12 +43,7 @@ export {
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
 export { TelemetryReporter } from './telemetry/telemetryReporter';
-export {
-  hasRootWorkspace,
-  getRootWorkspace,
-  getRootWorkspacePath,
-  workspaceUtils
-} from './workspaces';
+export { workspaceUtils } from './workspaces';
 
 export const telemetryService = TelemetryService.getInstance();
 

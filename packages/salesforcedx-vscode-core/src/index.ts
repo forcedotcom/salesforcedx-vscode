@@ -9,8 +9,8 @@ import * as vscode from 'vscode';
 
 import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
-    channelService, getRootWorkspacePath, isSfdxProjectOpened, notificationService,
-    ProgressNotification, SFDX_CORE_CONFIGURATION_NAME, sfdxCoreSettings
+    channelService, getSfdxCoreSettings, isSfdxProjectOpened, notificationService,
+    ProgressNotification, SFDX_CORE_CONFIGURATION_NAME, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import {
@@ -491,7 +491,7 @@ async function setupOrgBrowser(
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const rootWorkspacePath = getRootWorkspacePath();
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
   // @salesforce/source-tracking, etc. all use process.cwd()
@@ -520,7 +520,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(treeDataProvider);
 
   // Set internal dev context
-  const internalDev = sfdxCoreSettings.getInternalDev();
+  const internalDev = getSfdxCoreSettings().getInternalDev();
 
   vscode.commands.executeCommand(
     'setContext',
@@ -543,7 +543,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       ProgressNotification,
       SfdxCommandlet,
       SfdxCommandletExecutor,
-      sfdxCoreSettings,
+      getSfdxCoreSettings,
       SfdxWorkspaceChecker,
       telemetryService
     };
@@ -604,7 +604,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     SelectOutputDir,
     SfdxCommandlet,
     SfdxCommandletExecutor,
-    sfdxCoreSettings,
+    getSfdxCoreSettings,
     SfdxWorkspaceChecker,
     WorkspaceContext,
     taskViewService,

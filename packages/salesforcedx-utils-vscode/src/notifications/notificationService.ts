@@ -7,12 +7,11 @@
 
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-
 import { channelService } from '../channels';
 import { CommandExecution } from '../cli';
 import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
+import { getSfdxCoreSettings } from '../settings';
 
 /**
  * A centralized location for all notification functionalities.
@@ -112,7 +111,7 @@ export class NotificationService {
       'notification_successful_execution_text',
       executionName
     );
-    if (sfdxCoreSettings.getShowCLISuccessMsg()) {
+    if (getSfdxCoreSettings().getShowCLISuccessMsg()) {
       const showButtonText = nls.localize('notification_show_button_text');
       const showOnlyStatusBarButtonText = nls.localize(
         'notification_show_in_status_bar_button_text'
@@ -126,7 +125,7 @@ export class NotificationService {
         channelService.showChannelOutput();
       }
       if (selection && selection === showOnlyStatusBarButtonText) {
-        await sfdxCoreSettings.updateShowCLISuccessMsg(false);
+        await getSfdxCoreSettings().updateShowCLISuccessMsg(false);
       }
     } else {
       vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);

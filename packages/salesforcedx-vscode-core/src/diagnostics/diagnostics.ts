@@ -8,9 +8,13 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import {
-    ForceSourceDeployErrorResponse, getRootWorkspacePath
+  ForceSourceDeployErrorResponse,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentStatus,
+  DeployResult
+} from '@salesforce/source-deploy-retrieve';
 
 const notApplicable = 'N/A';
 
@@ -146,7 +150,7 @@ export function handleDeployDiagnostics(
 // TODO: move to some type of file service or utility
 export function getAbsoluteFilePath(
   filePath: string | undefined,
-  workspacePath: string = getRootWorkspacePath()
+  workspacePath: string = workspaceUtils.getRootWorkspacePath()
 ): string {
   let absoluteFilePath = filePath ?? workspacePath;
   if (!absoluteFilePath.includes(workspacePath)) {

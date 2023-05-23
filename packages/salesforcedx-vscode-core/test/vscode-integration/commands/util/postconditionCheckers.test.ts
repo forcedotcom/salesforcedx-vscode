@@ -13,10 +13,10 @@ import {
   CancelResponse,
   channelService,
   ContinueResponse,
+  getSfdxCoreSettings,
   LocalComponent,
   notificationService,
   PostconditionChecker,
-  sfdxCoreSettings,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
@@ -470,7 +470,10 @@ describe('Postcondition Checkers', () => {
       env = createSandbox();
       channelOutput = [];
       modalStub = env.stub(notificationService, 'showWarningModal');
-      settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
+      settingsStub = env.stub(
+        getSfdxCoreSettings(),
+        'getConflictDetectionEnabled'
+      );
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
       env.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);

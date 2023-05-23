@@ -16,7 +16,7 @@ import {
 import { nls } from '../messages';
 import { SfdxSettingsService } from '../settings';
 import { CommandletExecutor, ContinueResponse } from '../types';
-import { getRootWorkspacePath } from '../workspaces';
+import { workspaceUtils } from '../workspaces';
 import { ChannelService } from './channelService';
 import { notificationService, ProgressNotification } from './index';
 
@@ -24,7 +24,7 @@ export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
-  protected executionCwd = getRootWorkspacePath();
+  protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();

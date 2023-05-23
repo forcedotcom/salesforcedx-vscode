@@ -6,7 +6,7 @@
  */
 import { ExtensionContext, Memento } from 'vscode';
 
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { DeployResult, FileProperties } from '@salesforce/source-deploy-retrieve';
 
 import { WorkspaceContext } from '../context';
@@ -76,7 +76,7 @@ export class PersistentStorageService {
 
   public makeKey(type: string, fullName: string): string {
     const orgUserName = WorkspaceContext.getInstance().username;
-    const projectPath = getRootWorkspacePath();
+    const projectPath = workspaceUtils.getRootWorkspacePath();
     return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }
 }

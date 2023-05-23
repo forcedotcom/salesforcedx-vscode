@@ -10,12 +10,12 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  hasRootWorkspace,
   LibraryCommandletExecutor,
   projectPaths,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
-  WorkspaceContextUtil
+  WorkspaceContextUtil,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
 import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
@@ -42,7 +42,7 @@ export class AnonApexGatherer
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
-    if (hasRootWorkspace()) {
+    if (workspaceUtils.hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
         return { type: 'CANCEL' };

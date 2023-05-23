@@ -8,7 +8,6 @@
 // This file is meant to mimics the functionality of Predicate and Predicates from Google Guava.
 // Expand as necessary.
 
-import { from } from 'rxjs/observable/from';
 import { IsSfdxProjectOpened } from './salesforcePredicates';
 
 export interface Predicate<T> {

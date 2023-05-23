@@ -10,10 +10,17 @@ import { createSandbox, SinonSandbox } from 'sinon';
 
 // TODO: should move to util?
 import {
-    CancelResponse, channelService, ContinueResponse, ParametersGatherer, sfdxCoreSettings
+  CancelResponse,
+  channelService,
+  ContinueResponse,
+  getSfdxCoreSettings,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 
-import { CommandletExecutor, SfdxCommandlet } from '../../../../src/commands/util';
+import {
+  CommandletExecutor,
+  SfdxCommandlet
+} from '../../../../src/commands/util';
 
 describe('SfdxCommandlet', () => {
   let sandbox: SinonSandbox;
@@ -95,7 +102,7 @@ describe('SfdxCommandlet', () => {
 
   it('Should clear channel if user preference is set to true', async () => {
     sandbox
-      .stub(sfdxCoreSettings, 'getEnableClearOutputBeforeEachCommand')
+      .stub(getSfdxCoreSettings(), 'getEnableClearOutputBeforeEachCommand')
       .returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
     const commandlet = new SfdxCommandlet(
@@ -120,7 +127,7 @@ describe('SfdxCommandlet', () => {
 
   it('Should not clear channel if user preference is set to false', async () => {
     sandbox
-      .stub(sfdxCoreSettings, 'getEnableClearOutputBeforeEachCommand')
+      .stub(getSfdxCoreSettings(), 'getEnableClearOutputBeforeEachCommand')
       .returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
     const commandlet = new SfdxCommandlet(

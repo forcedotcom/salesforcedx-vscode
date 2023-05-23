@@ -8,9 +8,9 @@ import * as vscode from 'vscode';
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-    channelService, ContinueResponse, getRelativeProjectPath, getRootWorkspacePath,
+    channelService, ContinueResponse, getRelativeProjectPath,
     LibraryCommandletExecutor, Row, SfdxPackageDirectories, SourceTrackingService,
-    SourceTrackingType, Table
+    SourceTrackingType, Table, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
     ComponentSet, DeployResult, MetadataApiDeploy, MetadataApiRetrieve, RetrieveResult
@@ -104,7 +104,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const projectPath = getRootWorkspacePath();
+    const projectPath = workspaceUtils.getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
 
     components.projectDirectory = projectPath;
@@ -204,7 +204,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const projectPath = getRootWorkspacePath();
+    const projectPath = workspaceUtils.getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     const orgType = await workspaceContextUtils.getWorkspaceOrgType();
     if (orgType === workspaceContextUtils.OrgType.SourceTracked) {

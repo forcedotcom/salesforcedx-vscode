@@ -7,9 +7,9 @@
 import * as vscode from 'vscode';
 
 import {
-    channelService, CliCommandExecutor, Command, CommandExecution, ContinueResponse, Measurements,
+    channelService, CliCommandExecutor, Command, CommandExecution, ContinueResponse, getSfdxCoreSettings, Measurements,
     notificationService, ParametersGatherer, PostconditionChecker, PreconditionChecker,
-    ProgressNotification, Properties, sfdxCoreSettings, TelemetryData, workspaceUtils
+    ProgressNotification, Properties, TelemetryData, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import { taskViewService } from '../../statuses';
@@ -147,7 +147,7 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
-    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+    if (getSfdxCoreSettings().getEnableClearOutputBeforeEachCommand()) {
       channelService.clear();
     }
     if (await this.prechecker.check()) {

@@ -16,11 +16,10 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -101,8 +100,8 @@ export class TestsSelector
 }
 
 function getTempFolder(): string {
-  if (hasRootWorkspace()) {
-    const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
+  if (workspaceUtils.hasRootWorkspace()) {
+    const apexDir = getTestResultsFolder(workspaceUtils.getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));

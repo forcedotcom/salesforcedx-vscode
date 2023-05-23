@@ -8,7 +8,7 @@
 import { Uri } from 'vscode';
 
 import {
-    DirFileNameSelection, LocalComponent, sfdxCoreSettings
+    DirFileNameSelection, getSfdxCoreSettings, LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 
@@ -36,7 +36,7 @@ export class LibraryForceLightningComponentCreateExecutor extends LibraryBaseTem
     return AURA_COMPONENT_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
-    const internal = sfdxCoreSettings.getInternalDev();
+    const internal = getSfdxCoreSettings().getInternalDev();
     const templateOptions: LightningComponentOptions = {
       outputdir: data.outputdir,
       componentname: data.fileName,

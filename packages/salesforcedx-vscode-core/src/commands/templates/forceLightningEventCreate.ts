@@ -8,7 +8,7 @@
 import { Uri } from 'vscode';
 
 import {
-    DirFileNameSelection, LocalComponent, sfdxCoreSettings
+    DirFileNameSelection, getSfdxCoreSettings, LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningEventOptions, TemplateType } from '@salesforce/templates';
 
@@ -36,7 +36,7 @@ export class LibraryForceLightningEventCreateExecutor extends LibraryBaseTemplat
     return AURA_EVENT_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
-    const internal = sfdxCoreSettings.getInternalDev();
+    const internal = getSfdxCoreSettings().getInternalDev();
     const templateOptions: LightningEventOptions = {
       outputdir: data.outputdir,
       eventname: data.fileName,

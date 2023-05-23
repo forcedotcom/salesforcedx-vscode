@@ -10,7 +10,7 @@ import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
 
 import {
-    channelService, notificationService, sfdxCoreSettings, SfdxPackageDirectories
+    channelService, getSfdxCoreSettings, notificationService, SfdxPackageDirectories
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import { OrgType, workspaceContextUtils } from '../context';
@@ -74,7 +74,7 @@ export class DeployQueue {
   }
 
   private async executePushCommand() {
-    const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
+    const forceCommand = getSfdxCoreSettings().getPushOrDeployOnSaveOverrideConflicts()
       ? '.force'
       : '';
     const command = `sfdx.force.source.push${forceCommand}`;
@@ -88,7 +88,7 @@ export class DeployQueue {
       this.queue.clear();
       let deployType: string = '';
       try {
-        const preferDeployOnSaveEnabled = sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+        const preferDeployOnSaveEnabled = getSfdxCoreSettings().getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
           await this.executeDeployCommand(toDeploy);
           deployType = 'Deploy';
@@ -142,7 +142,7 @@ export async function registerPushOrDeployOnSave() {
     async (textDocument: vscode.TextDocument) => {
       const documentUri = textDocument.uri;
       if (
-        sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
+        getSfdxCoreSettings().getPushOrDeployOnSaveEnabled() &&
         !(await ignorePath(documentUri.fsPath))
       ) {
         await DeployQueue.get().enqueue(documentUri);

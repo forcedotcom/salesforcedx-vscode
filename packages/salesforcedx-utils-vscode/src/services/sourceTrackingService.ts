@@ -15,7 +15,7 @@ import {
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Row, Table } from '../output';
-import { getRootWorkspacePath } from '../workspaces';
+import { workspaceUtils } from '../workspaces';
 
 export type SourceTrackingType = SourceTracking;
 export class SourceTrackingService {
@@ -69,7 +69,7 @@ export class SourceTrackingService {
 }
 
 async function getSourceTrackingForCurrentProject(): Promise<SourceTracking> {
-  const rootWorkspacePath = getRootWorkspacePath();
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const workspaceContext = WorkspaceContextUtil.getInstance();
   const connection = await workspaceContext.getConnection();
   const sourceTracking = await SourceTrackingService.createSourceTracking(

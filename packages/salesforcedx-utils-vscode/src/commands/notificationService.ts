@@ -13,8 +13,6 @@ import { ChannelService } from './index';
 
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
-// TODO: check on function signatures between this and core
-
 /**
  * A centralized location for all notification functionalities.
  */

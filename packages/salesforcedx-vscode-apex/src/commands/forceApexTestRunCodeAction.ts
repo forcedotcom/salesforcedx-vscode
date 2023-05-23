@@ -18,11 +18,11 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
-  getRootWorkspacePath,
   getTestResultsFolder,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -111,7 +111,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
   private async handleDiagnostics(result: TestResult) {
     ApexLibraryTestRunExecutor.diagnostics.clear();
-    const projectPath = getRootWorkspacePath();
+    const projectPath = workspaceUtils.getRootWorkspacePath();
     const project = await SfProject.resolve(projectPath);
     const defaultPackage = project.getDefaultPackage().fullPath;
 

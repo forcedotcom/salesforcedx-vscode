@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 
-import { sfdxCoreSettings } from '@salesforce/salesforcedx-utils-vscode';
+import { getSfdxCoreSettings } from '@salesforce/salesforcedx-utils-vscode';
 
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { DeployQueue } from '../../../src/settings';
@@ -21,11 +21,11 @@ describe('DeployQueue', () => {
 
     beforeEach(() => {
       getPushOrDeployOnSaveEnabledMock = jest.spyOn(
-        sfdxCoreSettings,
+        getSfdxCoreSettings(),
         'getPushOrDeployOnSaveEnabled'
       );
       getPreferDeployOnSaveEnabledMock = jest.spyOn(
-        sfdxCoreSettings,
+        getSfdxCoreSettings(),
         'getPreferDeployOnSaveEnabled'
       );
       getWorkspaceOrgTypeMock = jest.spyOn(
