@@ -20,9 +20,7 @@ describe('MetadataCacheService', () => {
     ]);
     const dummyEmptyComponentSet = new ComponentSet([]);
     let workspaceContextStub: jest.SpyInstance;
-    let getSourceComponentsStub: jest.SpyInstance;
     let setApiVersionStub: jest.SpyInstance;
-    let retrieveStub: jest.SpyInstance;
 
     beforeEach(() => {
       workspaceContextStub = jest
