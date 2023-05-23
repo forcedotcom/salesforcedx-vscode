@@ -14,7 +14,7 @@ import {
   ForceSourcePullExecutor,
   ForceSourcePushExecutor
 } from '../../../../src/commands';
-import { DeployType } from '../../../../src/commands/baseDeployCommand';
+import { DeployType } from '../../../../src/commands/forceSourcePush';
 import { CommandParams } from '../../../../src/commands/util';
 import { PersistentStorageService } from '../../../../src/conflict';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';

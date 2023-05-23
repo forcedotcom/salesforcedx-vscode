@@ -39,7 +39,7 @@ import { basename, dirname, join, sep } from 'path';
 import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands';
+import { ForceSourcePushExecutor } from '../../../src/commands';
 import {
   DeployExecutor,
   DeployRetrieveExecutor,
@@ -595,7 +595,7 @@ describe('Base Deploy Retrieve Commands', () => {
         sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
 
         const setDiagnosticsStub = sb.stub(
-          BaseDeployExecutor.errorCollection,
+          ForceSourcePushExecutor.errorCollection,
           'set'
         );
 

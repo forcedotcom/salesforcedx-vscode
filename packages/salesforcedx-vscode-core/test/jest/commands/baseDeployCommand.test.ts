@@ -6,10 +6,7 @@
  */
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { ForceSourcePushExecutor } from '../../../src/commands';
-import {
-  BaseDeployExecutor,
-  DeployType
-} from '../../../src/commands/baseDeployCommand';
+import { DeployType } from '../../../src/commands/forceSourcePush';
 import { CommandParams } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
 import { dummyStdOut } from './data/testData';
@@ -23,12 +20,12 @@ describe('BaseDeployExecutor', () => {
     beforeEach(() => {
       jest.spyOn(ChannelService, 'getInstance').mockReturnValue({} as any);
       jest.spyOn(nls, 'localize').mockReturnValue('');
-      (BaseDeployExecutor as any).errorCollection = {
+      (ForceSourcePushExecutor as any).errorCollection = {
         clear: jest.fn()
       };
-      (BaseDeployExecutor as any).logMetric = jest.fn();
+      (ForceSourcePushExecutor as any).logMetric = jest.fn();
       jest
-        .spyOn(BaseDeployExecutor.prototype, 'logMetric')
+        .spyOn(ForceSourcePushExecutor.prototype, 'logMetric')
         .mockImplementation(jest.fn());
     });
 
