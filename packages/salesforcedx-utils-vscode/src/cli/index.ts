@@ -50,4 +50,4 @@ export {
   DiffResultParser,
   DiffSuccessResponse
 } from './diffResultParser';
-export { ForcePullResultParser } from './pullResultParser';
+export { ForcePullResultParser, PullResult } from './pullResultParser';

@@ -16,11 +16,11 @@ import {
 } from '../../../../src/commands';
 import { DeployType } from '../../../../src/commands/baseDeployCommand';
 import { CommandParams } from '../../../../src/commands/util';
-import { dummyOutputPull } from './data/testData';
 import { PersistentStorageService } from '../../../../src/conflict';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
 import { notificationService } from '../../../../src/notifications';
 import { dummyStdOut } from '../data/testData';
+import { dummyOutputPull } from './data/testData';
 
 const pullCommand: CommandParams = {
   command: 'force:source:pull',

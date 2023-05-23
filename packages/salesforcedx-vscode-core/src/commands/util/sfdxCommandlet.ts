@@ -17,11 +17,11 @@ import {
   PostconditionChecker,
   PreconditionChecker,
   Properties,
+  PullResult,
   Row,
   Table,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
-import { PullResult } from '@salesforce/salesforcedx-utils-vscode/src/cli/pullResultParser';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../constants';

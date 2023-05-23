@@ -6,9 +6,9 @@
  */
 import {
   DeployResult as DeployResultParsed,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  PullResult
 } from '@salesforce/salesforcedx-utils-vscode';
-import { PullResult } from '@salesforce/salesforcedx-utils-vscode/src/cli/pullResultParser';
 import {
   DeployResult,
   FileProperties
