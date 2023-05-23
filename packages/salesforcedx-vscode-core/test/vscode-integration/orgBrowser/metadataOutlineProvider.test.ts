@@ -7,10 +7,14 @@
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
-
 import { nls } from '../../../src/messages';
 import {
-    BrowserNode, ComponentUtils, MetadataOutlineProvider, NodeType, parseErrors, TypeUtils
+  BrowserNode,
+  ComponentUtils,
+  MetadataOutlineProvider,
+  NodeType,
+  parseErrors,
+  TypeUtils
 } from '../../../src/orgBrowser';
 
 /* tslint:disable:no-unused-expression */

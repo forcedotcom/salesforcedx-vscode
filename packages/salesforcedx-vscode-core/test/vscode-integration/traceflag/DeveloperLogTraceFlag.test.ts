@@ -6,7 +6,6 @@
  */
 
 import { expect } from 'chai';
-
 import { developerLogTraceFlag } from '../../../src/commands';
 
 // tslint:disable:no-unused-expression

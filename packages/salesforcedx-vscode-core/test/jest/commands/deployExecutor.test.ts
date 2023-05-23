@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.

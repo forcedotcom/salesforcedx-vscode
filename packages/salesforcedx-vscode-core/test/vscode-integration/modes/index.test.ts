@@ -6,7 +6,6 @@
  */
 
 import { expect } from 'chai';
-
 import { isDemoMode, isProdOrg } from '../../../src/modes/demo-mode';
 
 // tslint:disable:no-unused-expression

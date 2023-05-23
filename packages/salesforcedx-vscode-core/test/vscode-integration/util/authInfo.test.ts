@@ -5,13 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-
 import { nls } from '../../../src/messages';
 import { OrgAuthInfo } from '../../../src/util';
 
