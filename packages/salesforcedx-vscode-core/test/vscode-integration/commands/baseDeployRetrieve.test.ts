@@ -4,30 +4,49 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  channelService,
+  ConfigUtil,
+  ContinueResponse,
+  SfdxPackageDirectories,
+  SourceTrackingService,
+  Table,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ComponentSet,
+  ComponentStatus,
+  DeployResult,
+  FileProperties,
+  MetadataApiDeploy,
+  MetadataApiRetrieve,
+  MetadataApiRetrieveStatus,
+  registry,
+  RetrieveResult,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
+import {
+  MetadataApiDeployStatus,
+  RequestStatus
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
 import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
-import { Connection } from '@salesforce/core';
-import {
-    instantiateContext, MockTestOrgData, restoreContext, stubContext
-} from '@salesforce/core/lib/testSetup';
-import {
-    channelService, ConfigUtil, ContinueResponse, SfdxPackageDirectories, SourceTrackingService,
-    Table, workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-    ComponentSet, ComponentStatus, DeployResult, FileProperties, MetadataApiDeploy,
-    MetadataApiRetrieve, MetadataApiRetrieveStatus, registry, RetrieveResult, SourceComponent
-} from '@salesforce/source-deploy-retrieve';
-import {
-    MetadataApiDeployStatus, RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 
 import { BaseDeployExecutor } from '../../../src/commands';
 import {
-    DeployExecutor, DeployRetrieveExecutor, RetrieveExecutor
+  DeployExecutor,
+  DeployRetrieveExecutor,
+  RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';

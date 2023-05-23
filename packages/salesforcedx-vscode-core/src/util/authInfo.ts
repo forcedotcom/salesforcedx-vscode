@@ -4,11 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import {
-    channelService, ConfigSource, ConfigUtil, notificationService
+  channelService,
+  ConfigSource,
+  ConfigUtil,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';

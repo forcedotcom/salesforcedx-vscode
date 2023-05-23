@@ -4,19 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { join } from 'path';
-import * as vscode from 'vscode';
 import {
-    channelService, ContinueResponse, getRelativeProjectPath,
-    LibraryCommandletExecutor, Row, SfdxPackageDirectories, SourceTrackingService,
-    SourceTrackingType, Table, workspaceUtils
+  channelService, ContinueResponse, getRelativeProjectPath,
+  LibraryCommandletExecutor, Row, SfdxPackageDirectories, SourceTrackingService,
+  SourceTrackingType, Table, workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
-    ComponentSet, DeployResult, MetadataApiDeploy, MetadataApiRetrieve, RetrieveResult
+  ComponentSet, DeployResult, MetadataApiDeploy, MetadataApiRetrieve, RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
-    ComponentStatus, RequestStatus
+  ComponentStatus, RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { join } from 'path';
+import * as vscode from 'vscode';
 
 import { OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';

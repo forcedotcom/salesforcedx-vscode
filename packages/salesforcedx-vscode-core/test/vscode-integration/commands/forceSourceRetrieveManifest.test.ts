@@ -4,20 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext, MockTestOrgData, restoreContext, stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  SfdxPackageDirectories, SourceTrackingService, workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
-import { Connection } from '@salesforce/core';
-import {
-    instantiateContext, MockTestOrgData, restoreContext, stubContext
-} from '@salesforce/core/lib/testSetup';
-import {
-    SfdxPackageDirectories, SourceTrackingService, workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 
 import {
-    LibrarySourceRetrieveManifestExecutor
+  LibrarySourceRetrieveManifestExecutor
 } from '../../../src/commands/forceSourceRetrieveManifest';
 import { WorkspaceContext } from '../../../src/context';
 
