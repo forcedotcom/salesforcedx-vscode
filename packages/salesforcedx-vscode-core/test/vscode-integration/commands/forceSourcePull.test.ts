@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Force Source Pull', () => {
   it('Should build the source pull command with the --json flag', async () => {
     const sourcePullNoFlag = new ForceSourcePullExecutor();
