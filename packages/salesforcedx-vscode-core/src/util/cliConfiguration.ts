@@ -5,12 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  ConfigUtil,
+  GlobalCliEnvironment
+} from '@salesforce/salesforcedx-utils-vscode';
 import { which } from 'shelljs';
 import { window } from 'vscode';
-
-import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
-
-import { ENV_SFDX_DISABLE_TELEMETRY, SFDX_CLI_DOWNLOAD_LINK } from '../constants';
+import {
+  ENV_SFDX_DISABLE_TELEMETRY,
+  SFDX_CLI_DOWNLOAD_LINK
+} from '../constants';
 import { nls } from '../messages';
 
 export function isCLIInstalled(): boolean {

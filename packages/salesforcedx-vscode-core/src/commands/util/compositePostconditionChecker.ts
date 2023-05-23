@@ -6,7 +6,9 @@
  */
 
 import {
-    CancelResponse, ContinueResponse, PostconditionChecker
+  CancelResponse,
+  ContinueResponse,
+  PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 
 export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {

@@ -5,12 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-
+import {
+  Command,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
-    CompositeParametersGatherer, FlagParameter, PromptConfirmGatherer, SelectUsername,
-    SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker
+  CompositeParametersGatherer,
+  FlagParameter,
+  PromptConfirmGatherer,
+  SelectUsername,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
 } from './util';
 
 export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {

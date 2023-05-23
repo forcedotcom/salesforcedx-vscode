@@ -5,11 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-
+import {
+  Command,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
-    CommandParams, EmptyParametersGatherer, FlagParameter, SfdxCommandlet, SfdxCommandletExecutor,
+  CommandParams,
+  EmptyParametersGatherer,
+  FlagParameter,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
     SfdxWorkspaceChecker
 } from './util';
 

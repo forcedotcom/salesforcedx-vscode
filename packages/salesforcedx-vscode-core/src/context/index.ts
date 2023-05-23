@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-    getDefaultUsernameOrAlias, getWorkspaceOrgType, OrgType, setupWorkspaceOrgType,
+  getDefaultUsernameOrAlias,
+  getWorkspaceOrgType,
+  OrgType,
+  setupWorkspaceOrgType,
     setWorkspaceOrgTypeWithOrgType
 } from './workspaceOrgType';
 

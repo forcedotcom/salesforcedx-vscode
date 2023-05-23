@@ -4,13 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
-
 import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import {
-    CancelResponse, ConfigUtil, ContinueResponse, OrgUserInfo
+  CancelResponse,
+  ConfigUtil,
+  ContinueResponse,
+  OrgUserInfo
 } from '@salesforce/salesforcedx-utils-vscode';
-
+import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';

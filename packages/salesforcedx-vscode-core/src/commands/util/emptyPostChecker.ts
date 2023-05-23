@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-    CancelResponse, ContinueResponse, PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(

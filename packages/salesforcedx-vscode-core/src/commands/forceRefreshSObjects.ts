@@ -9,7 +9,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import {
-    SObjectCategory, SObjectRefreshSource, SOBJECTS_DIR, SObjectTransformerFactory,
+  SObjectCategory,
+  SObjectRefreshSource,
+  SOBJECTS_DIR,
+  SObjectTransformerFactory,
     STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import {

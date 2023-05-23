@@ -12,5 +12,4 @@ export {
 export { BrowserNode, NodeType } from './nodeTypes';
 export { CUSTOMOBJECTS_FULLNAME, ComponentUtils } from './metadataCmp';
 import { OrgBrowser } from './browser';
-
 export const orgBrowser = OrgBrowser.getInstance();

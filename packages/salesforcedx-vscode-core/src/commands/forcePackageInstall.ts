@@ -18,7 +18,6 @@ import {
 
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import { taskViewService } from '../statuses';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,

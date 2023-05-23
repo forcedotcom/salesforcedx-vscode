@@ -141,7 +141,6 @@ export {
   forceAuthLogoutDefault
 } from './auth/forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
-
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet, ForceConfigSetExecutor } from './forceConfigSet';
 export {

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionContext, TreeView, window } from 'vscode';
-
 import { nls } from '../messages';
 import { BrowserNode, MetadataOutlineProvider } from '../orgBrowser';
 import { telemetryService } from '../telemetry';

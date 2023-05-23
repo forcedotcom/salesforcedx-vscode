@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-
 import {
-    RetrieveDescriber, RetrieveDescriberFactory, RetrieveMetadataTrigger
+  RetrieveDescriber,
+  RetrieveDescriberFactory,
+  RetrieveMetadataTrigger
 } from '../commands/forceSourceRetrieveMetadata';
 import { nls } from '../messages';
 import { MetadataObject } from './metadataType';

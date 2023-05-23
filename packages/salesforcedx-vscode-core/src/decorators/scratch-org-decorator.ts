@@ -5,10 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
-
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-
+import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { ORG_OPEN_COMMAND } from '../../src/constants';
 import { nls } from '../messages';
 
