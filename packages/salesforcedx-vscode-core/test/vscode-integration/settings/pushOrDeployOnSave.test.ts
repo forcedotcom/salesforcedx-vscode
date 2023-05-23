@@ -114,6 +114,9 @@ describe('Push or Deploy on Save', () => {
         'getWorkspaceOrgType'
       );
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
+      sandbox
+        .stub(SfdxCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
+        .returns(false);
     });
 
     it('should not deploy if nothing has been queued', async () => {
