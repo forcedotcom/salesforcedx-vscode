@@ -5,20 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
-
 import {
-    CancelResponse, ContinueResponse, DirFileNameSelection, ParametersGatherer
+  CancelResponse,
+  ContinueResponse,
+  DirFileNameSelection,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
-
+import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import {
-    CompositeParametersGatherer, PathStrategyFactory, SelectOutputDir, SfdxCommandlet,
-    SfdxWorkspaceChecker, SourcePathStrategy
+  CompositeParametersGatherer,
+  PathStrategyFactory,
+  SelectOutputDir,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  SourcePathStrategy
 } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import { ANALYTICS_TEMPLATE_DIRECTORY, ANALYTICS_TEMPLATE_TYPE } from './metadataTypeConstants';
+import {
+  ANALYTICS_TEMPLATE_DIRECTORY,
+  ANALYTICS_TEMPLATE_TYPE
+} from './metadataTypeConstants';
 
 export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemplateCommand<
   TemplateAndDir

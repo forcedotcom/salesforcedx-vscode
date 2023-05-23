@@ -6,10 +6,17 @@
  */
 import * as path from 'path';
 import {
-    CancellationToken, CodeLens, CodeLensProvider, Command, EventEmitter, ExtensionContext,
-    languages, Position, Range, TextDocument
+  CancellationToken,
+  CodeLens,
+  CodeLensProvider,
+  Command,
+  EventEmitter,
+  ExtensionContext,
+  languages,
+  Position,
+  Range,
+  TextDocument
 } from 'vscode';
-
 import { nls } from '../../messages';
 import { FUNCTION_PAYLOAD_DOCUMENT_SELECTOR } from './types/constants';
 

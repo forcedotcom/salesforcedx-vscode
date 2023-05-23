@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
+import {
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
