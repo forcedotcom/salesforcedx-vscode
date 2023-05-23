@@ -41,11 +41,10 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
     const resolveSourcePaths = packageDirs.map(packageDir =>
       join(rootWorkspacePath, packageDir)
     );
-
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
-      resolveSourcePaths
-      // forceAddWildcards jab ?
+      resolveSourcePaths,
+      forceAddWildcards: undefined
     });
 
     return componentSet;
