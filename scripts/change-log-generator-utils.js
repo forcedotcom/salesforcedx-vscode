@@ -297,7 +297,7 @@ function getReleaseDate() {
 function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
   const parsedCommits = parseCommits(getCommits(remoteReleaseBranch, remotePreviousBranch));
   if (parsedCommits.length > 0) {
-    const localReleaseBranch = remoteReleaseBranch.replace(constants.REMOTE_RELEASE_PREFIX_ONLY, '');
+    const localReleaseBranch = remoteReleaseBranch.replace(constants.ORIGIN_PREFIX_ONLY, '');
     console.log(`\nChecking out ${localReleaseBranch}`);
     const commitCommand = `git checkout ${localReleaseBranch}`;
     shell.exec(commitCommand);
