@@ -16,7 +16,7 @@ import {
 } from '../../../../src/commands';
 import { DeployType } from '../../../../src/commands/baseDeployCommand';
 import { CommandParams } from '../../../../src/commands/util';
-import { dummyOutputPull } from '../../../../src/commands/util/testData';
+import { dummyOutputPull } from './data/testData';
 import { PersistentStorageService } from '../../../../src/conflict';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
 import { notificationService } from '../../../../src/notifications';
