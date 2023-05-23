@@ -1,5 +1,4 @@
 import * as shell from 'shelljs';
-import { window, workspace, Uri } from 'vscode';
 const changeLogGeneratorUtils = require('./change-log-generator-utils');
 const constants = require('./change-log-constants');
 
@@ -17,7 +16,7 @@ const logger = (msg: string, obj?: any) => {
  * Checks if the user has provided a release branch override. If they
  * have not, return the latest release branch.
  */
-function getRemoteReleaseBranch() {
+function getCurrentRemoteReleaseBranch(): string {
   logger('\nStep 1: Determine release branch.');
   let releaseBranch;
   if (!releaseOverride) {
@@ -36,7 +35,7 @@ function getRemoteReleaseBranch() {
  * Returns a list of remote release branches, sorted in reverse order by
  * creation date. This ensures that the first entry is the latest branch.
  */
-function getRemoteReleaseBranches() {
+function getRemoteReleaseBranches(): string[] {
   return shell
     .exec(
       `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
@@ -48,9 +47,20 @@ function getRemoteReleaseBranches() {
 }
 
 /**
- * Confirms the release branch has been created.
+ * Gets the previous release branch from the latest Github tag information we have.
  */
-function validateReleaseBranch(releaseBranch) {
+function getPreviousRemoteReleaseBranch(): string {
+  logger(`\nStep 2: Getting latest tag to compare last published version`);
+  const latestReleasedTag = String(shell.exec(`git describe --tags --abbrev=0`));
+  const latestReleasedBranchName = `${constants.REMOTE_RELEASE_BRANCH_PREFIX_NO_VERSION}/${latestReleasedTag}`;
+  validateReleaseBranch(latestReleasedBranchName);
+  return latestReleasedBranchName;
+}
+
+/**
+ * Confirms the release branch is in the correct format
+ */
+function validateReleaseBranch(releaseBranch): void {
   if (!(releaseBranch && constants.RELEASE_REGEX.exec(releaseBranch))) {
     console.log(
       "Invalid release '" + releaseBranch + "'. Expected format [xx.yy.z]."
@@ -59,14 +69,13 @@ function validateReleaseBranch(releaseBranch) {
   }
 }
 
-const releaseBranchName = getRemoteReleaseBranch();
-logger(`\nStep 2: Getting latest tag to compare last published version`);
-const latestReleasedTag = String(shell.exec(`git describe --tags --abbrev=0`));
-const latestReleasedBranchName = `origin/release/${latestReleasedTag}`;
-validateReleaseBranch(latestReleasedBranchName);
+const currentReleaseBranchName = getCurrentRemoteReleaseBranch();
+const previousReleaseBranchName = getPreviousRemoteReleaseBranch();
 
-changeLogGeneratorUtils.updateChangeLog(releaseBranchName, latestReleasedBranchName);
+changeLogGeneratorUtils.updateChangeLog(currentReleaseBranchName, previousReleaseBranchName);
 logger(`\nOpening changelog for review`);
+//if code-insiders isn't yet set in the PATH or running user doesn't have insiders,
+//this will use VS Code instead
 shell.exec(`code-insiders ${constants.CHANGE_LOG_PATH} || code ${constants.CHANGE_LOG_PATH}`);
 
 process.exit(0);

@@ -91,7 +91,7 @@
       "args": ["${input:needSigning}"]
     },
     {
-      "label": "Create Change Log",
+      "label": "Update Change Log",
       "command": "npm run changelog ${input:releaseOverride}",
       "type": "shell"
     },
