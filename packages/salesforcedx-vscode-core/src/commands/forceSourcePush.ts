@@ -96,7 +96,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      await this.exitProcessHandlerDeploy(
+      await this.exitProcessHandlerPush(
         exitCode,
         stdOut,
         workspacePath,
@@ -110,7 +110,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  protected async exitProcessHandlerDeploy(
+  protected async exitProcessHandlerPush(
     exitCode: number | undefined,
     stdOut: string,
     workspacePath: string,

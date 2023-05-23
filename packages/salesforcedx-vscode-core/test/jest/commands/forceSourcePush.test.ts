@@ -14,7 +14,7 @@ import { PersistentStorageService } from '../../../src/conflict';
 import { dummyPushResult, dummyStdOut } from './data/testData';
 
 describe('ForceSourcePushExecutor', () => {
-  describe('exitProcessHandlerDeploy', () => {
+  describe('exitProcessHandlerPush', () => {
     beforeEach(() => {
       jest.spyOn(ChannelService, 'getInstance').mockReturnValue({} as any);
       jest.spyOn(nls, 'localize').mockReturnValue('');
@@ -46,7 +46,7 @@ describe('ForceSourcePushExecutor', () => {
       executorAsAny.logMetric = jest.fn();
 
       // Act
-      await (executor as any).exitProcessHandlerDeploy(
+      await (executor as any).exitProcessHandlerPush(
         0,
         dummyStdOut,
         '',
