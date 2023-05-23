@@ -14,7 +14,7 @@ import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { isSfdxProjectOpened } from '../../../src/predicates';
 import { workspaceUtils } from '../../../src/workspaces';
-import { stubWorkspace } from '../workspaces/rootWorkspace.test-util';
+import { stubWorkspace } from '../workspaces/workspaceUtils.test-util';
 
 // tslint:disable:no-unused-expression
 describe('SFDX project predicate', () => {

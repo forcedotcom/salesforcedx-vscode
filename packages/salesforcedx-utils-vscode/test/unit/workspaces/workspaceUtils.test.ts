@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { SinonStub } from 'sinon';
 import { WorkspaceFolder } from 'vscode';
 import { workspaceUtils } from '../../../src/workspaces';
-import { stubWorkspace } from './rootWorkspace.test-util';
+import { stubWorkspace } from './workspaceUtils.test-util';
 
 // tslint:disable:no-unused-expression
 describe('RootWorkspace utils should', () => {
