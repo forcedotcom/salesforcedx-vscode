@@ -31,8 +31,7 @@ describe('MetadataCacheService', () => {
           }
         } as any);
       getSourceComponentsStub = jest
-        .spyOn(MetadataCacheService.prototype, 'getSourceComponents')
-        .mockResolvedValue(dummyComponentSet);
+        .spyOn(MetadataCacheService.prototype, 'getSourceComponents');
       setApiVersionStub = jest
         .spyOn(sdrUtils, 'setApiVersion')
         .mockImplementation(jest.fn());
