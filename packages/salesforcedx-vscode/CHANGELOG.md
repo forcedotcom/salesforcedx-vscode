@@ -1,3 +1,33 @@
+# 57.15.0 - May 24, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Expose Org Browser for Scratch Orgs ([PR #4810](https://github.com/forcedotcom/salesforcedx-vscode/pull/4810))
+
+- Add "Prefer deploy on save" setting ([PR #4820](https://github.com/forcedotcom/salesforcedx-vscode/pull/4820))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Update Apex LSP to provide current Database class completions ([PR #4866](https://github.com/forcedotcom/salesforcedx-vscode/pull/4866))
+
+#### salesforcedx-vscode-core
+
+- Prevent mdapi error when deploying an empty project ([PR #4845](https://github.com/forcedotcom/salesforcedx-vscode/pull/4845))
+
+- Remove octokit plugin ([PR #4793](https://github.com/forcedotcom/salesforcedx-vscode/pull/4793))
+
+#### salesforcedx-vscode-lightning
+
+- Update to lightning language server performance ([PR #4872](https://github.com/forcedotcom/salesforcedx-vscode/pull/4872))
+
+#### salesforcedx-vscode-lwc
+
+- Update to lightning language server performance ([PR #4872](https://github.com/forcedotcom/salesforcedx-vscode/pull/4872))
+
 # 57.14.1 - May 17, 2023
 
 ## Fixed
