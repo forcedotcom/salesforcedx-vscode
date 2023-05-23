@@ -8,6 +8,8 @@
 
 - We added a setting "Prefer deploy on save" that will run a deploy instead of a push when "Push or deploy on save" is enabled. ([PR #4820](https://github.com/forcedotcom/salesforcedx-vscode/pull/4820))
 
+- We published our extensions to Open VSX for the first time, and automated the process to publish there going forward. ([PR #4855](https://github.com/forcedotcom/salesforcedx-vscode/pull/4855))
+
 ## Fixed
 
 #### salesforcedx-vscode-apex
