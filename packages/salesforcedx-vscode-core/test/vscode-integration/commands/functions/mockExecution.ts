@@ -1,6 +1,8 @@
+import {
+  Command,
+  CommandExecution
+} from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
-
-import { Command, CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 
 class MockExecution implements CommandExecution {
   public command: Command;

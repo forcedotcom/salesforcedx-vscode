@@ -6,15 +6,18 @@
  */
 
 import { forceApexClassCreate } from '../../../../src/commands/templates';
+import { LibraryForceApexClassCreateExecutor } from '../../../../src/commands/templates/executors/LibraryForceApexClassCreateExecutor';
 import {
-    LibraryForceApexClassCreateExecutor
-} from '../../../../src/commands/templates/executors/LibraryForceApexClassCreateExecutor';
-import {
-    APEX_CLASS_DIRECTORY, APEX_CLASS_NAME_MAX_LENGTH, APEX_CLASS_TYPE
+  APEX_CLASS_DIRECTORY,
+  APEX_CLASS_NAME_MAX_LENGTH,
+  APEX_CLASS_TYPE
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
-    CompositeParametersGatherer, MetadataTypeGatherer, SelectFileName, SelectOutputDir
+  CompositeParametersGatherer,
+  MetadataTypeGatherer,
+  SelectFileName,
+  SelectOutputDir
 } from '../../../../src/commands/util/parameterGatherers';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';

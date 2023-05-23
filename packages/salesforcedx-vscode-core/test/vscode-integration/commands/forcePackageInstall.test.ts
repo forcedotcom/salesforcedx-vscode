@@ -8,9 +8,10 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-
 import {
-    ForcePackageInstallExecutor, SelectInstallationKey, SelectPackageID
+  ForcePackageInstallExecutor,
+  SelectInstallationKey,
+  SelectPackageID
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

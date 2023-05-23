@@ -1,10 +1,6 @@
-import * as path from 'path';
-
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-
-import {
-    INSTALLED_PACKAGES, IsvDebugBootstrapExecutor, ISVDEBUGGER, PACKAGE_XML
-} from '../../../../src/commands/isvdebugging/bootstrapCmd';
+import * as path from 'path';
+import { INSTALLED_PACKAGES, IsvDebugBootstrapExecutor, ISVDEBUGGER, PACKAGE_XML } from '../../../../src/commands/isvdebugging/bootstrapCmd';
 
 describe('isvdebugging unit test', () => {
 

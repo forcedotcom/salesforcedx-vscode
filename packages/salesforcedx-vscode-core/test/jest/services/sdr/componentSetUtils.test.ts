@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -8,7 +6,7 @@ import * as vscode from 'vscode';
  */
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-
+import * as vscode from 'vscode';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
 import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 

@@ -8,11 +8,17 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-
 import {
-    AuthParamsGatherer, createAuthWebLoginExecutor, DEFAULT_ALIAS, DeviceCodeResponse,
-    ForceAuthWebLoginContainerExecutor, ForceAuthWebLoginDemoModeExecutor,
-    ForceAuthWebLoginExecutor, OrgTypeItem, PRODUCTION_URL, SANDBOX_URL
+  AuthParamsGatherer,
+  createAuthWebLoginExecutor,
+  DEFAULT_ALIAS,
+  DeviceCodeResponse,
+  ForceAuthWebLoginContainerExecutor,
+  ForceAuthWebLoginDemoModeExecutor,
+  ForceAuthWebLoginExecutor,
+  OrgTypeItem,
+  PRODUCTION_URL,
+  SANDBOX_URL
 } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
 

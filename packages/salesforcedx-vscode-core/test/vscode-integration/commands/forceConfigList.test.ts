@@ -6,7 +6,6 @@
  */
 
 import { expect } from 'chai';
-
 import { ForceConfigList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

@@ -6,7 +6,6 @@
  */
 
 import { expect } from 'chai';
-
 import { ForceOrgDisplay } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

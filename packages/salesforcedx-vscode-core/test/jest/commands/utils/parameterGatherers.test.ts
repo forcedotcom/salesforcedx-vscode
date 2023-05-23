@@ -6,8 +6,11 @@
  */
 
 import * as vscode from 'vscode';
-
-import { CANCEL, CONTINUE, SelectFileName } from '../../../../src/commands/util/parameterGatherers';
+import {
+  CANCEL,
+  CONTINUE,
+  SelectFileName
+} from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
 
 describe('ParameterGatherers Unit Tests.', () => {

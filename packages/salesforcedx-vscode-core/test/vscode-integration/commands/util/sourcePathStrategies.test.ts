@@ -6,7 +6,6 @@
  */
 import { expect } from 'chai';
 import { join } from 'path';
-
 import { PathStrategyFactory } from '../../../../src/commands/util';
 
 describe('Source Path Strategies', () => {

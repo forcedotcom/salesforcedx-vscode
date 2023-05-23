@@ -6,9 +6,10 @@
  */
 
 import { expect } from 'chai';
-
 import {
-    ForceOrgOpenContainerExecutor, ForceOrgOpenExecutor, getExecutor
+  ForceOrgOpenContainerExecutor,
+  ForceOrgOpenExecutor,
+  getExecutor
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 

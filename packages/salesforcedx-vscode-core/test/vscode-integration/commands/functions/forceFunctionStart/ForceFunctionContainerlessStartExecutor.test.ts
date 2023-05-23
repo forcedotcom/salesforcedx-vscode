@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LocalRunProcess } from '@heroku/functions-core';
+import { vscodeStub } from '@salesforce/salesforcedx-utils-vscode/out/test/unit/commands/mocks';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
-
-import { LocalRunProcess } from '@heroku/functions-core';
-import { vscodeStub } from '@salesforce/salesforcedx-utils-vscode/out/test/unit/commands/mocks';
 
 const proxyquireStrict = proxyquire.noCallThru();
 

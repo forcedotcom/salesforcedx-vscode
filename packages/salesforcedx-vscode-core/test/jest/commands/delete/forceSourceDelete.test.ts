@@ -6,7 +6,6 @@
  */
 
 import * as path from 'path';
-
 import { ForceSourceDeleteExecutor } from '../../../../src/commands';
 
 describe('Force Source Delete', () => {

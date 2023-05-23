@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -9,11 +7,10 @@ import * as fs from 'fs';
 import {
   ConfigUtil,
   ContinueResponse,
-  SfdxProjectConfig,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-
+import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';

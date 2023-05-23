@@ -6,8 +6,10 @@
  */
 
 import { expect } from 'chai';
-
-import { ForceSourceStatusExecutor, SourceStatusFlags } from '../../../src/commands';
+import {
+  ForceSourceStatusExecutor,
+  SourceStatusFlags
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

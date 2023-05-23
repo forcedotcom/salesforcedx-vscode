@@ -8,9 +8,10 @@
 import { expect } from 'chai';
 import { assert, createSandbox, match, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-
 import {
-    AccessTokenParamsGatherer, DEFAULT_ALIAS, INSTANCE_URL_PLACEHOLDER
+  AccessTokenParamsGatherer,
+  DEFAULT_ALIAS,
+  INSTANCE_URL_PLACEHOLDER
 } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
 

@@ -5,17 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigFile } from '@salesforce/core';
+import {
+  instantiateContext,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-
-import { ConfigFile } from '@salesforce/core';
-import { instantiateContext, restoreContext, stubContext } from '@salesforce/core/lib/testSetup';
-import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
-
 import {
-    AuthDevHubParams, AuthDevHubParamsGatherer, createAuthDevHubExecutor, DEFAULT_ALIAS,
-    ForceAuthDevHubContainerExecutor, ForceAuthDevHubDemoModeExecutor, ForceAuthDevHubExecutor
+  AuthDevHubParams,
+  AuthDevHubParamsGatherer,
+  createAuthDevHubExecutor,
+  DEFAULT_ALIAS,
+  ForceAuthDevHubContainerExecutor,
+  ForceAuthDevHubDemoModeExecutor,
+  ForceAuthDevHubExecutor
 } from '../../../../src/commands';
 import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
