@@ -137,8 +137,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     try {
       if (result) {
-        ForceSourcePushExecutor.errorCollection.clear();
-
         // Update Persistent Storage for the files that were deployed
         PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
           result
