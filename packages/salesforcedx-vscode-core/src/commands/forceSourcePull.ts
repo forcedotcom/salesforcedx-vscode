@@ -73,6 +73,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       cwd: this.executionCwd,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
+    channelService.streamCommandStartStop(execution);
 
     let output = '';
     execution.stdoutSubject.subscribe(realData => {
