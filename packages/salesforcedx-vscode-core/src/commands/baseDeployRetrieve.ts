@@ -36,7 +36,6 @@ import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { ForceSourcePushExecutor } from './forceSourcePush';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
