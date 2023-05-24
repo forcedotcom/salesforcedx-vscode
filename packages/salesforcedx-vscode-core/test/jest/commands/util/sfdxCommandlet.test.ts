@@ -81,51 +81,53 @@ describe('SfdxCommandletExecutor', () => {
       expect(updateCacheAfterPushPullMock).toHaveBeenCalled();
       expect(setPropertiesForFilesPushPullMock).toHaveBeenCalled();
     });
+  });
 
-    describe('parseOutput', () => {
-      let showWarningMessageMock: jest.SpyInstance;
-      let parseSpy: jest.SpyInstance;
+  describe('parseOutput', () => {
+    let showWarningMessageMock: jest.SpyInstance;
+    let parseSpy: jest.SpyInstance;
 
-      beforeEach(() => {
-        showWarningMessageMock = jest
-          .spyOn(notificationService, 'showWarningMessage')
-          .mockImplementation(jest.fn());
+    beforeEach(() => {
+      showWarningMessageMock = jest
+        .spyOn(notificationService, 'showWarningMessage')
+        .mockImplementation(jest.fn());
 
-        parseSpy = jest.spyOn(JSON, 'parse');
-      });
+      parseSpy = jest.spyOn(JSON, 'parse');
+    });
 
-      it('should parse well formatted response and return JSON', () => {
-        // Arrange
-        const executor = new ForceSourcePushExecutor(flag, pushCommand);
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
 
+    it('should parse well formatted response and return JSON', () => {
+      // Arrange
+      const executor = new ForceSourcePushExecutor(flag, pushCommand);
+
+      // Act
+      const parsed = (executor as any).parseOutput(dummyStdOut);
+
+      // Assert
+      expect(parseSpy).toHaveBeenCalledWith(dummyStdOut);
+    });
+
+    it('should show a message to the User if there is a parsing error', async () => {
+      // Arrange
+      const executor = new ForceSourcePushExecutor(flag, pushCommand);
+      const updateCacheMock = jest.fn();
+      const executorAsAny = executor as any;
+      executorAsAny.updateCache = updateCacheMock;
+      executorAsAny.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
+      executorAsAny.logMetric = jest.fn();
+
+      try {
         // Act
-        const parsed = (executor as any).parseOutput(dummyStdOut);
-
+        (executor as any).parseOutput('{abcdef}');
+      } catch (error) {
         // Assert
-        expect(parseSpy).toHaveBeenCalledWith(dummyStdOut);
-      });
-
-      it('should show a message to the User if there is a parsing error', async () => {
-        // Arrange
-        const executor = new ForceSourcePushExecutor(flag, pushCommand);
-        const updateCacheMock = jest.fn();
-        const executorAsAny = executor as any;
-        executorAsAny.updateCache = updateCacheMock;
-        executorAsAny.getDeployType = jest
-          .fn()
-          .mockReturnValue(DeployType.Push);
-        executorAsAny.logMetric = jest.fn();
-
-        try {
-          // Act
-          (executor as any).parseOutput('{abcdef}');
-        } catch (error) {
-          // Assert
-          expect(error).toBeInstanceOf(Error);
-          expect(updateCacheMock).not.toHaveBeenCalled();
-          expect(showWarningMessageMock).toHaveBeenCalled();
-        }
-      });
+        expect(error).toBeInstanceOf(Error);
+        expect(updateCacheMock).not.toHaveBeenCalled();
+        expect(showWarningMessageMock).toHaveBeenCalled();
+      }
     });
   });
 
