@@ -6,7 +6,6 @@
  */
 import { Connection, SfProject } from '@salesforce/core';
 import {
-  ConfigAggregatorProvider,
   ConfigUtil,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -92,13 +91,19 @@ export class SObjectTransformerFactory {
 
   public static async createConnection(): Promise<Connection> {
     const userApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
-    const sourceApiVersion = await SfProject.getInstance()
-      .getSfProjectJson()
-      .getContents().sourceApiVersion;
-    const connection = await WorkspaceContextUtil.getInstance().getConnection();
-    connection.setApiVersion(
-      userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
-    );
+    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
+    const connection = await workspaceContextUtil.getConnection();
+    try {
+      const sfProject = await SfProject.resolve();
+      const sourceApiVersion = sfProject.getSfProjectJson().getContents()
+        .sourceApiVersion;
+      // precedence user override > project config > connection default
+      connection.setApiVersion(
+        userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
+      );
+    } catch (e) {
+      // If we can't resolve a project, we'll just use the default connection
+    }
     return connection;
   }
 }

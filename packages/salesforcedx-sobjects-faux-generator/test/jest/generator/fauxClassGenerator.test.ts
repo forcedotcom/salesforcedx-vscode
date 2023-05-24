@@ -1,4 +1,4 @@
-import { TOOLS } from '@salesforce/salesforcedx-utils-vscode/src';
+import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import {join} from 'path';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
