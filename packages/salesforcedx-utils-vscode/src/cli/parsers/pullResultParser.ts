@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../helpers';
+import { extractJsonObject } from '../../helpers';
+
+export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
 
 export interface PullResult {
   columnNumber?: string;
@@ -64,5 +66,11 @@ export class ForcePullResultParser {
     if (partialSuccess) {
       return { status, result: { pulledSource: partialSuccess } };
     }
+  }
+
+  public hasConflicts(): boolean {
+    return (
+      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
+    );
   }
 }

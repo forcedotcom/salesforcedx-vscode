@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../helpers';
+import { extractJsonObject } from '../../helpers';
 
-export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
+export const CONFLICT_ERROR_NAME = 'DeployFailed';
 
-export interface DeployResult {
+export interface PushResult {
   columnNumber?: string;
   error?: string;
   filePath: string;
@@ -19,52 +19,52 @@ export interface DeployResult {
   type: string;
 }
 
-export interface ForceSourceDeployErrorResponse {
+export interface ForceSourcePushErrorResponse {
   message: string;
   name: string;
-  result: DeployResult[];
+  result: PushResult[];
   stack: string;
   status: number;
   warnings: any[];
 }
 
-export interface ForceSourceDeploySuccessResponse {
+export interface ForceSourcePushSuccessResponse {
   status: number;
   result: {
-    deployedSource: DeployResult[];
+    pushedSource: PushResult[];
   };
 }
 
-export class ForceDeployResultParser {
+export class ForcePushResultParser {
   private response: any;
 
   constructor(stdout: string) {
     try {
       this.response = extractJsonObject(stdout);
     } catch (e) {
-      const err = new Error('Error parsing deploy result');
-      err.name = 'DeployParserFail';
+      const err = new Error('Error parsing push result');
+      err.name = 'PushParserFail';
       throw err;
     }
   }
 
-  public getErrors(): ForceSourceDeployErrorResponse | undefined {
+  public getErrors(): ForceSourcePushErrorResponse | undefined {
     if (this.response.status === 1) {
-      return this.response as ForceSourceDeployErrorResponse;
+      return this.response as ForceSourcePushErrorResponse;
     }
   }
 
-  public getSuccesses(): ForceSourceDeploySuccessResponse | undefined {
+  public getSuccesses(): ForceSourcePushSuccessResponse | undefined {
     const { status, result, partialSuccess } = this.response;
     if (status === 0) {
       const { pushedSource } = result;
       if (pushedSource) {
-        return { status, result: { deployedSource: pushedSource } };
+        return { status, result: { pushedSource } };
       }
-      return this.response as ForceSourceDeploySuccessResponse;
+      return this.response as ForceSourcePushSuccessResponse;
     }
     if (partialSuccess) {
-      return { status, result: { deployedSource: partialSuccess } };
+      return { status, result: { pushedSource: partialSuccess } };
     }
   }
 

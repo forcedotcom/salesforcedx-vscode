@@ -5,28 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CliCommandExecution,
-  CliCommandExecutor,
   Command,
   CommandExecution,
   ContinueResponse,
-  DeployResult,
-  ForcePullResultParser,
   Measurements,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker,
   Properties,
   PullResult,
+  PushResult,
   Row,
   Table,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-import { FORCE_SOURCE_PULL_LOG_NAME } from '../../constants';
+import {
+  FORCE_SOURCE_PULL_LOG_NAME,
+  FORCE_SOURCE_PUSH_LOG_NAME
+} from '../../constants';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { ProgressNotification, notificationService } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
@@ -59,15 +59,26 @@ export abstract class SfdxCommandletExecutor<T>
   public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
     .onDidFinishExecutionEventEmitter.event;
 
+  /**
+   * No-op base class implementation to be implemented by extending classes.
+   * @param response
+   */
+  execute(response: ContinueResponse<T>): void {}
+
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
     const commandLogName = execution.command.logName;
-    // If Pull operation, output text will be
-    // generated later by ForcePullResultParser
-    if (commandLogName !== FORCE_SOURCE_PULL_LOG_NAME) {
+    // If Push or Pull operation, output text will be
+    // generated later using a parser.
+    if (
+      !(
+        commandLogName === FORCE_SOURCE_PULL_LOG_NAME ||
+        commandLogName === FORCE_SOURCE_PUSH_LOG_NAME
+      )
+    ) {
       channelService.streamCommandOutput(execution);
     }
 
@@ -95,70 +106,6 @@ export abstract class SfdxCommandletExecutor<T>
       properties,
       measurements
     );
-  }
-
-  public execute(response: ContinueResponse<T>): void {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-
-    let output = '';
-    execution.stdoutSubject.subscribe(realData => {
-      output += realData.toString();
-    });
-
-    execution.processExitSubject.subscribe(exitCode => {
-      this.exitProcessHandler(exitCode, execution, response, startTime, output);
-    });
-
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-  }
-
-  protected exitProcessHandler(
-    exitCode: number | undefined,
-    execution: CliCommandExecution,
-    response: ContinueResponse<T>,
-    startTime: [number, number],
-    output: string
-  ): void {
-    if (
-      exitCode === 0 &&
-      execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME
-    ) {
-      const pullResult = this.parseOutput(output);
-      this.updateCache(pullResult);
-
-      const pullParser = new ForcePullResultParser(output);
-      const errors = pullParser.getErrors();
-      if (errors) {
-        channelService.showChannelOutput();
-      }
-
-      this.outputResultPull(pullParser);
-    }
-
-    const telemetryData = this.getTelemetryData(
-      exitCode === 0,
-      response,
-      output
-    );
-    let properties;
-    let measurements;
-    if (telemetryData) {
-      properties = telemetryData.properties;
-      measurements = telemetryData.measurements;
-    }
-    this.logMetric(
-      execution.command.logName,
-      startTime,
-      properties,
-      measurements
-    );
-    this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 
   /**
@@ -190,73 +137,6 @@ export abstract class SfdxCommandletExecutor<T>
     output: string
   ): TelemetryData | undefined {
     return;
-  }
-
-  public outputResultPull(parser: ForcePullResultParser) {
-    const table = new Table();
-    const titleType = 'pull';
-
-    const successes = parser.getSuccesses();
-    const errors = parser.getErrors();
-    const pulledSource = successes ? successes?.result.pulledSource : undefined;
-    if (pulledSource) {
-      const rows = pulledSource || errors?.result;
-      const tableTitle = nls.localize(`table_title_${titleType}ed_source`);
-      const outputTable = this.getOutputTable(table, rows, tableTitle);
-
-      channelService.appendLine(outputTable);
-      if (pulledSource && pulledSource.length === 0) {
-        const noResults = nls.localize('table_no_results_found') + '\n';
-        channelService.appendLine(noResults);
-      }
-    }
-
-    if (errors) {
-      const { name, message, result } = errors;
-      if (result) {
-        const outputTable = this.getErrorTable(table, result, titleType);
-        channelService.appendLine(outputTable);
-      } else if (name && message) {
-        channelService.appendLine(`${name}: ${message}\n`);
-      } else {
-        console.log(
-          `There were errors parsing the pull operation response.  Raw response: ${errors}`
-        );
-      }
-    }
-  }
-
-  protected getOutputTable(
-    table: Table,
-    rows: DeployResult[] | PullResult[] | undefined,
-    outputTableTitle: string | undefined
-  ) {
-    const outputTable = table.createTable(
-      (rows as unknown) as Row[],
-      [
-        { key: 'state', label: nls.localize('table_header_state') },
-        { key: 'fullName', label: nls.localize('table_header_full_name') },
-        { key: 'type', label: nls.localize('table_header_type') },
-        { key: 'filePath', label: nls.localize('table_header_project_path') }
-      ],
-      outputTableTitle
-    );
-    return outputTable;
-  }
-
-  protected getErrorTable(table: Table, result: unknown, titleType: string) {
-    const outputTable = table.createTable(
-      (result as unknown) as Row[],
-      [
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ],
-      nls.localize(`table_title_${titleType}_errors`)
-    );
-    return outputTable;
   }
 
   /**

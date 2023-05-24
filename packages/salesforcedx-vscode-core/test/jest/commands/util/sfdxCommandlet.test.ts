@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ForcePullResultParser } from '@salesforce/salesforcedx-utils-vscode/src';
+import { ForcePullResultParser } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ForceSourcePullErrorResponse,
   ForceSourcePullSuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode/src/cli/pullResultParser';
+} from '@salesforce/salesforcedx-utils-vscode/src/cli/parsers/pullResultParser';
 import { channelService } from '../../../../src/channels';
 import {
   ForceSourcePullExecutor,

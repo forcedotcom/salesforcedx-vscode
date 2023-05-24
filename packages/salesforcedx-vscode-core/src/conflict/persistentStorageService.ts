@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  DeployResult as DeployResultParsed,
   getRootWorkspacePath,
-  PullResult
+  PullResult,
+  PushResult
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   DeployResult,
@@ -80,7 +80,7 @@ export class PersistentStorageService {
   }
 
   public setPropertiesForFilesPushPull(
-    pushOrPullResults: DeployResultParsed[] | PullResult[]
+    pushOrPullResults: PushResult[] | PullResult[]
   ) {
     const afterPushPullTimestamp = new Date().toISOString();
     for (const file of pushOrPullResults) {

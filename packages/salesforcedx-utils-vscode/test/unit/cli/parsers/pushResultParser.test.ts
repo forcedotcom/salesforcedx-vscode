@@ -9,28 +9,27 @@ import { expect } from 'chai';
 import { EOL } from 'os';
 import {
   CONFLICT_ERROR_NAME,
-  ForceDeployResultParser,
-  ForceSourceDeployErrorResponse,
-  ForceSourceDeploySuccessResponse
-} from '../../../src/cli';
+  ForcePushResultParser,
+  ForceSourcePushErrorResponse,
+  ForceSourcePushSuccessResponse
+} from '../../../../src/cli';
 
-// tslint:disable:no-unused-expression
-describe('force:source:deploy parser', () => {
-  let deployErrorResult: ForceSourceDeployErrorResponse;
-  let deploySuccessResult: ForceSourceDeploySuccessResponse;
+describe('force:source:push parser', () => {
+  let pushErrorResult: ForceSourcePushErrorResponse;
+  let pushSuccessResult: ForceSourcePushSuccessResponse;
 
   beforeEach(() => {
-    deployErrorResult = {
-      message: 'Deploy failed.',
-      name: 'DeployFailed',
+    pushErrorResult = {
+      message: 'Push failed.',
+      name: 'PushFailed',
       stack: '123',
       status: 1,
       warnings: [],
       result: []
     };
-    deploySuccessResult = {
+    pushSuccessResult = {
       status: 0,
-      result: { deployedSource: [] }
+      result: { pushedSource: [] }
     };
   });
 
@@ -44,22 +43,20 @@ describe('force:source:deploy parser', () => {
       fullName: 'Testing'
     };
 
-    deployErrorResult.result.push(resultItem);
+    pushErrorResult.result.push(resultItem);
 
-    const parser = new ForceDeployResultParser(
-      JSON.stringify(deployErrorResult)
-    );
+    const parser = new ForcePushResultParser(JSON.stringify(pushErrorResult));
     const errs = parser.getErrors();
     if (errs) {
-      expect(errs.message).to.be.equals(deployErrorResult.message);
-      expect(errs.name).to.be.equals(deployErrorResult.name);
+      expect(errs.message).to.be.equals(pushErrorResult.message);
+      expect(errs.name).to.be.equals(pushErrorResult.name);
       expect(errs.result)
         .to.be.an('array')
         .to.have.lengthOf(1);
       expect(errs.result[0]).to.deep.equals(resultItem);
-      expect(errs.stack).to.be.equals(deployErrorResult.stack);
-      expect(errs.status).to.be.equals(deployErrorResult.status);
-      expect(errs.warnings).to.deep.equals(deployErrorResult.warnings);
+      expect(errs.stack).to.be.equals(pushErrorResult.stack);
+      expect(errs.status).to.be.equals(pushErrorResult.status);
+      expect(errs.warnings).to.deep.equals(pushErrorResult.warnings);
     } else {
       throw Error('Errors should be present but were not returned');
     }
@@ -76,7 +73,7 @@ describe('force:source:deploy parser', () => {
       warnings: ['Some warning message from sfdx cli.']
     };
 
-    const parser = new ForceDeployResultParser(JSON.stringify(stdOut));
+    const parser = new ForcePushResultParser(JSON.stringify(stdOut));
     const errs = parser.getErrors();
     if (errs) {
       expect(errs.message).to.be.equals(stdOut.message);
@@ -91,7 +88,7 @@ describe('force:source:deploy parser', () => {
   });
 
   it('Should properly parse stdOut amongst output that needs to be ignored', async () => {
-    deployErrorResult.result.push({
+    pushErrorResult.result.push({
       filePath: 'src/apexclasses/Testing.cls',
       error: 'Invalid dependency ...',
       lineNumber: '10',
@@ -100,23 +97,23 @@ describe('force:source:deploy parser', () => {
       fullName: 'Testing'
     });
 
-    const parser = new ForceDeployResultParser(
+    const parser = new ForcePushResultParser(
       `sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/manifest/package.xml ${EOL} ${JSON.stringify(
-        deployErrorResult
+        pushErrorResult
       )} ${EOL} sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`
     );
     const errs = parser.getErrors();
 
     if (errs) {
-      expect(errs.message).to.be.equals(deployErrorResult.message);
-      expect(errs.name).to.be.equals(deployErrorResult.name);
+      expect(errs.message).to.be.equals(pushErrorResult.message);
+      expect(errs.name).to.be.equals(pushErrorResult.name);
       expect(errs.result)
         .to.be.an('array')
         .to.have.lengthOf(1);
-      expect(errs.result[0]).to.deep.equals(deployErrorResult.result[0]);
-      expect(errs.stack).to.be.equals(deployErrorResult.stack);
-      expect(errs.status).to.be.equals(deployErrorResult.status);
-      expect(errs.warnings).to.deep.equals(deployErrorResult.warnings);
+      expect(errs.result[0]).to.deep.equals(pushErrorResult.result[0]);
+      expect(errs.stack).to.be.equals(pushErrorResult.stack);
+      expect(errs.status).to.be.equals(pushErrorResult.status);
+      expect(errs.warnings).to.deep.equals(pushErrorResult.warnings);
     } else {
       throw Error('Errors should be present but were not returned');
     }
@@ -124,7 +121,7 @@ describe('force:source:deploy parser', () => {
 
   it('Should aggregate multiple errors on same path', async () => {
     const path = 'src/apexclasses/Testing.cls';
-    deployErrorResult.result.push({
+    pushErrorResult.result.push({
       filePath: path,
       error: 'asdf',
       lineNumber: '1',
@@ -133,7 +130,7 @@ describe('force:source:deploy parser', () => {
       fullName: 'Testing'
     });
 
-    deployErrorResult.result.push({
+    pushErrorResult.result.push({
       filePath: path,
       error: 'asdf2',
       lineNumber: '2',
@@ -142,50 +139,44 @@ describe('force:source:deploy parser', () => {
       fullName: 'Testing'
     });
 
-    const parser = new ForceDeployResultParser(
-      JSON.stringify(deployErrorResult)
-    );
+    const parser = new ForcePushResultParser(JSON.stringify(pushErrorResult));
     const errs = parser.getErrors();
     if (errs) {
-      expect(errs.message).to.be.equals(deployErrorResult.message);
-      expect(errs.name).to.be.equals(deployErrorResult.name);
+      expect(errs.message).to.be.equals(pushErrorResult.message);
+      expect(errs.name).to.be.equals(pushErrorResult.name);
       expect(errs.result)
         .to.be.an('array')
         .to.have.lengthOf(2);
-      expect(errs.result[0]).to.deep.equals(deployErrorResult.result[0]);
-      expect(errs.result[1]).to.deep.equals(deployErrorResult.result[1]);
-      expect(errs.stack).to.be.equals(deployErrorResult.stack);
-      expect(errs.status).to.be.equals(deployErrorResult.status);
-      expect(errs.warnings).to.deep.equals(deployErrorResult.warnings);
+      expect(errs.result[0]).to.deep.equals(pushErrorResult.result[0]);
+      expect(errs.result[1]).to.deep.equals(pushErrorResult.result[1]);
+      expect(errs.stack).to.be.equals(pushErrorResult.stack);
+      expect(errs.status).to.be.equals(pushErrorResult.status);
+      expect(errs.warnings).to.deep.equals(pushErrorResult.warnings);
     } else {
       throw Error('Errors should be present but were not returned');
     }
   });
 
   it('Should parse success info successfully', () => {
-    deploySuccessResult.result.deployedSource.push({
+    pushSuccessResult.result.pushedSource.push({
       state: 'Add',
       type: 'ApexClass',
       fullName: 'MyClass',
       filePath: 'src/classes/MyClass.cls'
     });
 
-    const parser = new ForceDeployResultParser(
-      JSON.stringify(deploySuccessResult)
-    );
+    const parser = new ForcePushResultParser(JSON.stringify(pushSuccessResult));
     const successes = parser.getSuccesses();
     if (successes) {
-      const parsedDeployedSource = successes.result.deployedSource;
-      const { deployedSource } = deploySuccessResult.result;
-      expect(parsedDeployedSource[0].type).to.be.equals(deployedSource[0].type);
-      expect(parsedDeployedSource[0].state).to.be.equals(
-        deployedSource[0].state
+      const parsedPushedSource = successes.result.pushedSource;
+      const { pushedSource } = pushSuccessResult.result;
+      expect(parsedPushedSource[0].type).to.be.equals(pushedSource[0].type);
+      expect(parsedPushedSource[0].state).to.be.equals(pushedSource[0].state);
+      expect(parsedPushedSource[0].fullName).to.be.equals(
+        pushedSource[0].fullName
       );
-      expect(parsedDeployedSource[0].fullName).to.be.equals(
-        deployedSource[0].fullName
-      );
-      expect(parsedDeployedSource[0].filePath).to.be.equals(
-        deployedSource[0].filePath
+      expect(parsedPushedSource[0].filePath).to.be.equals(
+        pushedSource[0].filePath
       );
     } else {
       throw Error('Successes should be present but were not returned');
@@ -203,22 +194,20 @@ describe('force:source:deploy parser', () => {
         }
       ]
     };
-    response = Object.assign(response, deployErrorResult);
+    response = Object.assign(response, pushErrorResult);
 
-    const parser = new ForceDeployResultParser(JSON.stringify(response));
+    const parser = new ForcePushResultParser(JSON.stringify(response));
     const successes = parser.getSuccesses();
     if (successes) {
-      const parsedDeployedSource = successes.result.deployedSource;
+      const parsedPushedSource = successes.result.pushedSource;
       const { partialSuccess } = response;
       expect(successes.status).to.be.equal(1);
-      expect(parsedDeployedSource[0].type).to.be.equals(partialSuccess[0].type);
-      expect(parsedDeployedSource[0].state).to.be.equals(
-        partialSuccess[0].state
-      );
-      expect(parsedDeployedSource[0].fullName).to.be.equals(
+      expect(parsedPushedSource[0].type).to.be.equals(partialSuccess[0].type);
+      expect(parsedPushedSource[0].state).to.be.equals(partialSuccess[0].state);
+      expect(parsedPushedSource[0].fullName).to.be.equals(
         partialSuccess[0].fullName
       );
-      expect(parsedDeployedSource[0].filePath).to.be.equals(
+      expect(parsedPushedSource[0].filePath).to.be.equals(
         partialSuccess[0].filePath
       );
     } else {
@@ -241,19 +230,19 @@ describe('force:source:deploy parser', () => {
       }
     };
 
-    const parser = new ForceDeployResultParser(JSON.stringify(response));
+    const parser = new ForcePushResultParser(JSON.stringify(response));
     const successes = parser.getSuccesses();
     if (successes) {
-      const parsedDeployedSource = successes.result.deployedSource;
+      const parsedPushedSource = successes.result.pushedSource;
       const pushedSource = response.result.pushedSource;
       expect(successes.status).to.be.equal(0);
-      expect(parsedDeployedSource.length).to.be.equals(1);
-      expect(parsedDeployedSource[0].type).to.be.equals(pushedSource[0].type);
-      expect(parsedDeployedSource[0].state).to.be.equals(pushedSource[0].state);
-      expect(parsedDeployedSource[0].fullName).to.be.equals(
+      expect(parsedPushedSource.length).to.be.equals(1);
+      expect(parsedPushedSource[0].type).to.be.equals(pushedSource[0].type);
+      expect(parsedPushedSource[0].state).to.be.equals(pushedSource[0].state);
+      expect(parsedPushedSource[0].fullName).to.be.equals(
         pushedSource[0].fullName
       );
-      expect(parsedDeployedSource[0].filePath).to.be.equals(
+      expect(parsedPushedSource[0].filePath).to.be.equals(
         pushedSource[0].filePath
       );
     } else {
@@ -262,17 +251,15 @@ describe('force:source:deploy parser', () => {
   });
 
   it('Should detect source conflicts', () => {
-    deployErrorResult.name = CONFLICT_ERROR_NAME;
-    deployErrorResult.result.push({
+    pushErrorResult.name = CONFLICT_ERROR_NAME;
+    pushErrorResult.result.push({
       filePath: 'src/apexclasses/Testing.cls',
       type: 'ApexClass',
       fullName: 'Testing',
       state: 'Conflict'
     });
 
-    const parser = new ForceDeployResultParser(
-      JSON.stringify(deployErrorResult)
-    );
-    expect(parser.hasConflicts()).to.be.true;
+    const parser = new ForcePushResultParser(JSON.stringify(pushErrorResult));
+    expect(parser.hasConflicts()).to.be.equals(true);
   });
 });
