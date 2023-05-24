@@ -51,7 +51,7 @@ describe('SfdxCommandletExecutor', () => {
       .mockImplementation(jest.fn());
   });
 
-  describe('exitProcessHandler', () => {
+  describe('exitProcessHandlerPull', () => {
     const setPropertiesForFilesPushPullMock = jest.fn();
 
     beforeEach(() => {
@@ -70,7 +70,7 @@ describe('SfdxCommandletExecutor', () => {
       );
       (executor as any).channel = { appendLine: appendLineMock };
 
-      (executor as any).exitProcessHandler(
+      (executor as any).exitProcessHandlerPull(
         0,
         { command: { logName: FORCE_SOURCE_PULL_LOG_NAME } },
         '',
@@ -130,7 +130,7 @@ describe('SfdxCommandletExecutor', () => {
   });
 
   describe('outputResultPull', () => {
-    it('should output a message to the channel when there are errors and no result', () => {
+    it('should output a message to the channel when there are errors and no data', () => {
       // Arrange
       const executor = new ForceSourcePullExecutor(undefined, pullCommand);
       (executor as any).channel = {
@@ -165,7 +165,7 @@ describe('SfdxCommandletExecutor', () => {
       ).toEqual(true);
     });
 
-    it('should output at least something to the console when there are errors and no result and the response is missing information', () => {
+    it('should output at least something to the console when there are errors and no data and the response is missing information', () => {
       // Arrange
       const executor = new ForceSourcePullExecutor(undefined, pullCommand);
       (executor as any).channel = {
