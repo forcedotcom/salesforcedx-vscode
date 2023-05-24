@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { Connection, SfProject } from '@salesforce/core';
+import {
+  ConfigAggregatorProvider,
+  ConfigUtil,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
@@ -87,7 +91,14 @@ export class SObjectTransformerFactory {
   }
 
   public static async createConnection(): Promise<Connection> {
+    const userApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
+    const sourceApiVersion = await SfProject.getInstance()
+      .getSfProjectJson()
+      .getContents().sourceApiVersion;
     const connection = await WorkspaceContextUtil.getInstance().getConnection();
+    connection.setApiVersion(
+      userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
+    );
     return connection;
   }
 }
