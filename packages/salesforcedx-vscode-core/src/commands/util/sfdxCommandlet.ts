@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CliCommandExecutor,
   Command,
   CommandExecution,
   ContinueResponse,
@@ -13,10 +14,6 @@ import {
   PostconditionChecker,
   PreconditionChecker,
   Properties,
-  PullResult,
-  PushResult,
-  Row,
-  Table,
   TelemetryData
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -26,7 +23,7 @@ import {
   FORCE_SOURCE_PUSH_LOG_NAME
 } from '../../constants';
 import { nls } from '../../messages';
-import { ProgressNotification, notificationService } from '../../notifications';
+import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
@@ -63,7 +60,7 @@ export abstract class SfdxCommandletExecutor<T>
    * No-op base class implementation to be implemented by extending classes.
    * @param response
    */
-  execute(response: ContinueResponse<T>): void {}
+  // execute(response: ContinueResponse<T>): void {}
 
   protected attachExecution(
     execution: CommandExecution,
@@ -106,6 +103,43 @@ export abstract class SfdxCommandletExecutor<T>
       properties,
       measurements
     );
+  }
+
+  public execute(response: ContinueResponse<T>): void {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: this.executionCwd,
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    let output = '';
+    execution.stdoutSubject.subscribe(realData => {
+      output += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(exitCode => {
+      const telemetryData = this.getTelemetryData(
+        exitCode === 0,
+        response,
+        output
+      );
+      let properties;
+      let measurements;
+      if (telemetryData) {
+        properties = telemetryData.properties;
+        measurements = telemetryData.measurements;
+      }
+      this.logMetric(
+        execution.command.logName,
+        startTime,
+        properties,
+        measurements
+      );
+      this.onDidFinishExecutionEventEmitter.fire(startTime);
+    });
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   /**

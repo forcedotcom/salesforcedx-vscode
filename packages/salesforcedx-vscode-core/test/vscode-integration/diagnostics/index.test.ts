@@ -30,7 +30,7 @@ describe('Diagnostics', () => {
       stack: '123',
       status: 1,
       warnings: [],
-      result: []
+      data: []
     };
   });
 
@@ -64,7 +64,7 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    deployErrorResult.result.push(resultItem);
+    deployErrorResult.data.push(resultItem);
 
     handleDiagnosticErrors(
       deployErrorResult,
@@ -109,8 +109,8 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    deployErrorResult.data.push(resultItem1);
+    deployErrorResult.data.push(resultItem2);
 
     handleDiagnosticErrors(
       deployErrorResult,
@@ -165,7 +165,7 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    deployErrorResult.result.push(resultItem);
+    deployErrorResult.data.push(resultItem);
     handleDiagnosticErrors(
       deployErrorResult,
       workspacePath,
@@ -202,8 +202,8 @@ describe('Diagnostics', () => {
       filePath: 'N/A'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    deployErrorResult.data.push(resultItem1);
+    deployErrorResult.data.push(resultItem2);
     handleDiagnosticErrors(
       deployErrorResult,
       workspacePath,

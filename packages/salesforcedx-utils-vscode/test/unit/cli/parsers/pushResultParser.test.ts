@@ -25,7 +25,7 @@ describe('force:source:push parser', () => {
       stack: '123',
       status: 1,
       warnings: [],
-      result: []
+      data: []
     };
     pushSuccessResult = {
       status: 0,
@@ -43,17 +43,17 @@ describe('force:source:push parser', () => {
       fullName: 'Testing'
     };
 
-    pushErrorResult.result.push(resultItem);
+    pushErrorResult.data.push(resultItem);
 
     const parser = new ForcePushResultParser(JSON.stringify(pushErrorResult));
     const errs = parser.getErrors();
     if (errs) {
       expect(errs.message).to.be.equals(pushErrorResult.message);
       expect(errs.name).to.be.equals(pushErrorResult.name);
-      expect(errs.result)
+      expect(errs.data)
         .to.be.an('array')
         .to.have.lengthOf(1);
-      expect(errs.result[0]).to.deep.equals(resultItem);
+      expect(errs.data[0]).to.deep.equals(resultItem);
       expect(errs.stack).to.be.equals(pushErrorResult.stack);
       expect(errs.status).to.be.equals(pushErrorResult.status);
       expect(errs.warnings).to.deep.equals(pushErrorResult.warnings);
@@ -88,7 +88,7 @@ describe('force:source:push parser', () => {
   });
 
   it('Should properly parse stdOut amongst output that needs to be ignored', async () => {
-    pushErrorResult.result.push({
+    pushErrorResult.data.push({
       filePath: 'src/apexclasses/Testing.cls',
       error: 'Invalid dependency ...',
       lineNumber: '10',
@@ -107,10 +107,10 @@ describe('force:source:push parser', () => {
     if (errs) {
       expect(errs.message).to.be.equals(pushErrorResult.message);
       expect(errs.name).to.be.equals(pushErrorResult.name);
-      expect(errs.result)
+      expect(errs.data)
         .to.be.an('array')
         .to.have.lengthOf(1);
-      expect(errs.result[0]).to.deep.equals(pushErrorResult.result[0]);
+      expect(errs.data[0]).to.deep.equals(pushErrorResult.data[0]);
       expect(errs.stack).to.be.equals(pushErrorResult.stack);
       expect(errs.status).to.be.equals(pushErrorResult.status);
       expect(errs.warnings).to.deep.equals(pushErrorResult.warnings);
@@ -121,7 +121,7 @@ describe('force:source:push parser', () => {
 
   it('Should aggregate multiple errors on same path', async () => {
     const path = 'src/apexclasses/Testing.cls';
-    pushErrorResult.result.push({
+    pushErrorResult.data.push({
       filePath: path,
       error: 'asdf',
       lineNumber: '1',
@@ -130,7 +130,7 @@ describe('force:source:push parser', () => {
       fullName: 'Testing'
     });
 
-    pushErrorResult.result.push({
+    pushErrorResult.data.push({
       filePath: path,
       error: 'asdf2',
       lineNumber: '2',
@@ -144,11 +144,11 @@ describe('force:source:push parser', () => {
     if (errs) {
       expect(errs.message).to.be.equals(pushErrorResult.message);
       expect(errs.name).to.be.equals(pushErrorResult.name);
-      expect(errs.result)
+      expect(errs.data)
         .to.be.an('array')
         .to.have.lengthOf(2);
-      expect(errs.result[0]).to.deep.equals(pushErrorResult.result[0]);
-      expect(errs.result[1]).to.deep.equals(pushErrorResult.result[1]);
+      expect(errs.data[0]).to.deep.equals(pushErrorResult.data[0]);
+      expect(errs.data[1]).to.deep.equals(pushErrorResult.data[1]);
       expect(errs.stack).to.be.equals(pushErrorResult.stack);
       expect(errs.status).to.be.equals(pushErrorResult.status);
       expect(errs.warnings).to.deep.equals(pushErrorResult.warnings);
@@ -252,7 +252,7 @@ describe('force:source:push parser', () => {
 
   it('Should detect source conflicts', () => {
     pushErrorResult.name = CONFLICT_ERROR_NAME;
-    pushErrorResult.result.push({
+    pushErrorResult.data.push({
       filePath: 'src/apexclasses/Testing.cls',
       type: 'ApexClass',
       fullName: 'Testing',

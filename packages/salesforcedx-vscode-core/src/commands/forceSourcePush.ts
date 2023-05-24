@@ -21,6 +21,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
+import { FORCE_SOURCE_PUSH_LOG_NAME } from '../constants';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
@@ -32,7 +33,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import { FORCE_SOURCE_PUSH_LOG_NAME } from '../constants';
 
 export enum DeployType {
   Deploy = 'deploy',
@@ -134,9 +134,9 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       try {
         this.errorCollection.clear();
         if (stdOut) {
-          const deployParser = new ForcePushResultParser(stdOut);
-          const errors = deployParser.getErrors();
-          if (errors && !deployParser.hasConflicts()) {
+          const pushParser = new ForcePushResultParser(stdOut);
+          const errors = pushParser.getErrors();
+          if (errors && !pushParser.hasConflicts()) {
             channelService.showChannelOutput();
             handleDiagnosticErrors(
               errors,
@@ -147,7 +147,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
           } else {
             success = true;
           }
-          this.outputResult(deployParser);
+          this.outputResult(pushParser);
         }
       } catch (e) {
         this.errorCollection.clear();
@@ -188,7 +188,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.pushedSource : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.result);
+      const rows = pushedSource || (errors && errors.data);
       const title = !parser.hasConflicts()
         ? nls.localize(`table_title_${titleType}ed_source`)
         : undefined;
@@ -203,11 +203,10 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       }
     }
 
-    // if (errors && !parser.hasConflicts()) {
-    if (errors) {
-      const { name, message, result } = errors;
-      if (result) {
-        const outputTable = this.getErrorTable(table, result, titleType);
+    if (errors && !parser.hasConflicts()) {
+      const { name, message, data } = errors;
+      if (data) {
+        const outputTable = this.getErrorTable(table, data, titleType);
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);

@@ -54,7 +54,7 @@ export function handleDiagnosticErrors(
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
   if (errors.hasOwnProperty('result')) {
-    errors.result.forEach(error => {
+    errors.data.forEach(error => {
       const fileUri = getFileUri(
         workspacePath,
         error.filePath,

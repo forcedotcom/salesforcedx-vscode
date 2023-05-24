@@ -22,7 +22,7 @@ export interface PullResult {
 export interface ForceSourcePullErrorResponse {
   message: string;
   name: string;
-  result: PullResult[];
+  data: PullResult[];
   stack: string;
   status: number;
   warnings: any[];

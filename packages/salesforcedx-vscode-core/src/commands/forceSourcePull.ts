@@ -152,11 +152,15 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     const successes = parser.getSuccesses();
     const errors = parser.getErrors();
     const pulledSource = successes ? successes?.result.pulledSource : undefined;
-    if (pulledSource) {
-      const rows = pulledSource || errors?.result;
-      const tableTitle = nls.localize(`table_title_${titleType}ed_source`);
+    if (pulledSource || parser.hasConflicts()) {
+      const rows = pulledSource || errors?.data;
+      const tableTitle = !parser.hasConflicts()
+        ? nls.localize(`table_title_${titleType}ed_source`)
+        : undefined;
       const outputTable = this.getOutputTable(table, rows, tableTitle);
-
+      if (parser.hasConflicts()) {
+        channelService.appendLine(nls.localize('pull_conflicts_error') + '\n');
+      }
       channelService.appendLine(outputTable);
       if (pulledSource && pulledSource.length === 0) {
         const noResults = nls.localize('table_no_results_found') + '\n';
@@ -164,10 +168,10 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       }
     }
 
-    if (errors) {
-      const { name, message, result } = errors;
-      if (result) {
-        const outputTable = this.getErrorTable(table, result, titleType);
+    if (errors && !parser.hasConflicts()) {
+      const { name, message, data } = errors;
+      if (data) {
+        const outputTable = this.getErrorTable(table, data, titleType);
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
@@ -178,7 +182,6 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       }
     }
   }
-
 
   protected getOutputTable(
     table: Table,
@@ -212,7 +215,6 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     );
     return outputTable;
   }
-
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();

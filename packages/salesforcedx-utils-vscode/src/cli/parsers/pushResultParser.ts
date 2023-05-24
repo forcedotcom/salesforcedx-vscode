@@ -7,7 +7,7 @@
 
 import { extractJsonObject } from '../../helpers';
 
-export const CONFLICT_ERROR_NAME = 'DeployFailed';
+export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
 
 export interface PushResult {
   columnNumber?: string;
@@ -22,7 +22,7 @@ export interface PushResult {
 export interface ForceSourcePushErrorResponse {
   message: string;
   name: string;
-  result: PushResult[];
+  data: PushResult[];
   stack: string;
   status: number;
   warnings: any[];
