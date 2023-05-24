@@ -172,9 +172,12 @@ export abstract class SfdxCommandletExecutor<T>
     try {
       parsed = JSON.parse(output);
     } catch (error) {
+      console.log(
+        `There was an error parsing the output. Raw output: ${output}`
+      );
+
       notificationService.showWarningMessage(
-        nls.localize('lib_retrieve_result_parse_error'),
-        output
+        nls.localize('lib_retrieve_result_parse_error')
       );
       throw error;
     }
