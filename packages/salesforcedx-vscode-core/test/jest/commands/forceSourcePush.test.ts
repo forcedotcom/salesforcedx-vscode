@@ -18,9 +18,6 @@ describe('ForceSourcePushExecutor', () => {
     beforeEach(() => {
       jest.spyOn(ChannelService, 'getInstance').mockReturnValue({} as any);
       jest.spyOn(nls, 'localize').mockReturnValue('');
-      (ForceSourcePushExecutor as any).errorCollection = {
-        clear: jest.fn()
-      };
       (ForceSourcePushExecutor as any).logMetric = jest.fn();
       jest
         .spyOn(ForceSourcePushExecutor.prototype, 'logMetric')
@@ -41,6 +38,7 @@ describe('ForceSourcePushExecutor', () => {
       const executor = new ForceSourcePushExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
       const executorAsAny = executor as any;
+      executorAsAny.errorCollection = { clear: jest.fn() };
       executorAsAny.updateCache = updateCacheMock;
       executorAsAny.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
       executorAsAny.logMetric = jest.fn();

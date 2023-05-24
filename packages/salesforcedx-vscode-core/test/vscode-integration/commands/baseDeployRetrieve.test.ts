@@ -595,7 +595,7 @@ describe('Base Deploy Retrieve Commands', () => {
         sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
 
         const setDiagnosticsStub = sb.stub(
-          ForceSourcePushExecutor.errorCollection,
+          (executor as any).errorCollection,
           'set'
         );
 

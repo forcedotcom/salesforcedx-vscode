@@ -47,8 +47,8 @@ export const pushCommand: CommandParams = {
 
 export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
-  public static errorCollection = vscode.languages.createDiagnosticCollection(
-    'deploy-errors'
+  public errorCollection = vscode.languages.createDiagnosticCollection(
+    'push-errors'
   );
   public constructor(
     flag?: string,
@@ -128,7 +128,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     const telemetry = new TelemetryBuilder();
     let success = false;
     try {
-      ForceSourcePushExecutor.errorCollection.clear();
+      this.errorCollection.clear();
       if (stdOut) {
         const deployParser = new ForceDeployResultParser(stdOut);
         const errors = deployParser.getErrors();
@@ -138,7 +138,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
             errors,
             workspacePath,
             execFilePathOrPaths,
-            ForceSourcePushExecutor.errorCollection
+            this.errorCollection
           );
         } else {
           success = true;
@@ -146,7 +146,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         this.outputResult(deployParser);
       }
     } catch (e) {
-      ForceSourcePushExecutor.errorCollection.clear();
+      this.errorCollection.clear();
       if (e.name !== 'DeployParserFail') {
         e.message = 'Error while creating diagnostics for vscode problem view.';
       }

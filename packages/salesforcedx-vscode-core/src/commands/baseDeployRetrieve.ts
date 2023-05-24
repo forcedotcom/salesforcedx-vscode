@@ -109,6 +109,10 @@ export abstract class DeployRetrieveExecutor<
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
+  protected errorCollection = vscode.languages.createDiagnosticCollection(
+    'push-errors'
+  );
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
@@ -148,15 +152,19 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
         const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
-          handleDeployDiagnostics(
-            result,
-            ForceSourcePushExecutor.errorCollection
-          );
+          this.unsuccessfulOperationHandler(result, this.errorCollection);
         }
       }
     } finally {
       await DeployQueue.get().unlock();
     }
+  }
+
+  protected unsuccessfulOperationHandler(
+    result: DeployResult,
+    errorCollection: any
+  ) {
+    handleDeployDiagnostics(result, this.errorCollection);
   }
 
   private createOutput(
