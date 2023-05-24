@@ -22,7 +22,7 @@ import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
+import { SfdxCommandletExecutor } from './util/sfdxCommandletExecutor';
 
 export enum DeployType {
   Deploy = 'deploy',
