@@ -110,7 +110,7 @@ export abstract class DeployRetrieveExecutor<
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   protected errorCollection = vscode.languages.createDiagnosticCollection(
-    'push-errors'
+    'deploy-errors'
   );
 
   protected async doOperation(
