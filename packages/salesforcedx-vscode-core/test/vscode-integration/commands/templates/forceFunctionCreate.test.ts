@@ -5,21 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import * as cp from 'child_process';
 import * as path from 'path';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { assert, createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
   forceFunctionCreate,
   ForceFunctionCreateExecutor,
   FunctionInfoGatherer
 } from '../../../../src/commands/templates/forceFunctionCreate';
-import {
-  FUNCTION_TYPE_JAVA,
-  FUNCTION_TYPE_JS
-} from '../../../../src/commands/templates/metadataTypeConstants';
-import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
+import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
@@ -27,7 +22,7 @@ import { workspaceUtils } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
 import sinon = require('sinon');
-// tslint:disable:no-unused-expression
+
 describe('Force Function Create', () => {
   let execStub: SinonStub;
   const sandbox = createSandbox();

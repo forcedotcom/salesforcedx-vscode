@@ -19,13 +19,13 @@ import {
   SelectFileName,
   SelectOutputDir
 } from '../../../../src/commands/util/parameterGatherers';
-import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
+import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
 
 jest.mock('../../../../src/commands/templates/executors/LibraryForceApexClassCreateExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
-jest.mock('../../../../src/commands/util/preconditionCheckers');
+jest.mock('../../../../src/commands/util/sfdxWorkspaceChecker');
 jest.mock('../../../../src/commands/util/timestampConflictChecker');
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
@@ -56,6 +56,7 @@ describe('forceApexClassCreate Unit Tests.', () => {
         };
       });
   });
+
   it('Should be able to execute forceApexClassCreate.', async () => {
     await forceApexClassCreate();
     expect(selectFileNameMocked).toHaveBeenCalledWith(
