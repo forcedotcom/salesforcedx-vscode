@@ -98,7 +98,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    return (await SfdxProjectConfig.getValue('sfdcLoginUrl')) as string;
+    return await SfdxProjectConfig.getValue<string | undefined>('sfdcLoginUrl');
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
@@ -119,6 +119,11 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AuthParams>
   > {
+
+    // jab
+    // debugger;
+    // looks like this is only used in tests?
+
     const quickPickItems = await this.getQuickPickItems();
     const selection = await vscode.window.showQuickPick(quickPickItems);
     if (!selection) {

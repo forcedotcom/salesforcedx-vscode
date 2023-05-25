@@ -16,7 +16,7 @@ import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { DeployExecutor } from './baseDeployRetrieve';
+import { DeployExecutor } from './deployExecutor';
 import {
   FilePathGatherer,
   SfdxCommandlet,

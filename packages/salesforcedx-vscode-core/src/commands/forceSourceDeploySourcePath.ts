@@ -12,7 +12,7 @@ import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { DeployExecutor } from './baseDeployRetrieve';
+import { DeployExecutor } from './deployExecutor';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
   LibraryPathsGatherer,

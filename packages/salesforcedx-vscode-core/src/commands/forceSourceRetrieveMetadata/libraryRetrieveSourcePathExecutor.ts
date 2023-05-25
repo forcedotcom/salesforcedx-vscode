@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { workspaceUtils } from '../../util';
-import { RetrieveExecutor } from '../baseDeployRetrieve';
+import { RetrieveExecutor } from '../retrieveExecutor';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   LocalComponent[]

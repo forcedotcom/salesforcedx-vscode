@@ -246,6 +246,11 @@ export function createAuthWebLoginExecutor(): SfdxCommandletExecutor<{}> {
 }
 
 export async function forceAuthWebLogin() {
+
+  // jab
+  // debugger;
+  // is getQuickPickItems() ever used?
+
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

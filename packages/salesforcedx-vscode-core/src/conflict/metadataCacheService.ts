@@ -17,7 +17,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
-import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
+import { RetrieveExecutor } from '../commands/retrieveExecutor';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { setApiVersion } from '../services/sdr/componentSetUtils';
 import { SfdxPackageDirectories } from '../sfdxProject';
