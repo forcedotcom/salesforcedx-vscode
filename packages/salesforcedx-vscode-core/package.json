@@ -976,6 +976,11 @@
           "default": false,
           "description": "%conflict_detection_enabled_description%"
         },
+        "salesforcedx-vscode-core.disableSourceTrackingForDeployAndRetrieve": {
+          "type": "boolean",
+          "default": false,
+          "description": "%disable_Source_Tracking_For_Deploy_And_Retrieve%"
+        },
         "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
           "type": "boolean",
           "default": false,

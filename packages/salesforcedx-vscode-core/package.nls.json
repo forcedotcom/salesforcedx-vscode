@@ -49,6 +49,7 @@
   "telemetry_enabled_description": "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
   "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically run force:source:push (for source-tracked orgs) or force:source:deploy (for non-source-tracked orgs) when a local source file is saved.",
   "prefer_deploy_on_save_enabled_description": "Specifies whether to always run deploy instead of push when a local source file is saved and `Push or deploy on save` is enabled.",
+  "disable_Source_Tracking_For_Deploy_And_Retrieve":"Specifies whether to disable source tracking for deploy and retrieve operations [TBD]",
   "override_conflicts_on_push_description": "Specifies whether to always use --forceoverwrite when you run force:source:push on save",
   "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy commands executed from VS Code",
   "conflict_detect_resolve_view": "Org Differences",
