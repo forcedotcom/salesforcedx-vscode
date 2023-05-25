@@ -89,7 +89,7 @@ describe('Correctly output deploy results', () => {
   });
 
   it('Should show no results found for source:push operation with no new source', () => {
-    successesStub.returns({ status: 0, result: { deployedSource: [] } });
+    successesStub.returns({ status: 0, result: { pushedSource: [] } });
     errorsStub.returns(undefined);
 
     const executor = new ForceSourcePushExecutor();

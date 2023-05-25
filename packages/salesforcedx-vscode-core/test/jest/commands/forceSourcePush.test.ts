@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/src';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
 import { ForceSourcePushExecutor } from '../../../src/commands';
 import { DeployType } from '../../../src/commands/forceSourcePush';
