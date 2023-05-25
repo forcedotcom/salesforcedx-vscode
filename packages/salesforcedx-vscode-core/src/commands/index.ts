@@ -160,7 +160,6 @@ export {
 export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
-export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
   forceFunctionContainerlessStartCommand,

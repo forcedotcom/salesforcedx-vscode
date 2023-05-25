@@ -7,19 +7,16 @@
 
 import {
   CONFLICT_ERROR_NAME,
-  DeployResult,
-  ForceDeployResultParser,
-  ForceSourceDeployErrorResponse,
-  ForceSourceDeploySuccessResponse
+  ForcePushResultParser,
+  ForceSourcePushErrorResponse,
+  ForceSourcePushSuccessResponse,
+  PushResult
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';
-import {
-  BaseDeployExecutor,
-  ForceSourcePushExecutor
-} from '../../../src/commands';
+import { ForceSourcePushExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Correctly output deploy results', () => {
@@ -28,19 +25,19 @@ describe('Correctly output deploy results', () => {
   let channelServiceStub: sinon.SinonStub;
   let output = '';
   const table = new Table();
-  let deploySuccess: ForceSourceDeploySuccessResponse;
-  let deployError: ForceSourceDeployErrorResponse;
+  let deploySuccess: ForceSourcePushSuccessResponse;
+  let deployError: ForceSourcePushErrorResponse;
 
   beforeEach(() => {
     output = '';
-    errorsStub = stub(ForceDeployResultParser.prototype, 'getErrors');
-    successesStub = stub(ForceDeployResultParser.prototype, 'getSuccesses');
+    errorsStub = stub(ForcePushResultParser.prototype, 'getErrors');
+    successesStub = stub(ForcePushResultParser.prototype, 'getSuccesses');
     channelServiceStub = stub(channelService, 'appendLine');
     channelServiceStub.callsFake(line => (output += line + '\n'));
     deploySuccess = {
       status: 0,
       result: {
-        deployedSource: [
+        pushedSource: [
           {
             state: 'Add',
             type: 'ApexClass',
@@ -56,11 +53,11 @@ describe('Correctly output deploy results', () => {
       message: 'There was a failure',
       stack: 'A stack',
       warnings: ['A warning'],
-      result: [
+      data: [
         {
           filePath: 'src/classes/MyClass2.cls',
           error: 'Some Error'
-        } as DeployResult
+        } as PushResult
       ]
     };
   });
@@ -76,10 +73,10 @@ describe('Correctly output deploy results', () => {
     errorsStub.returns(undefined);
 
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'));
+    executor.outputResult(new ForcePushResultParser('{}'));
 
     const successTable = table.createTable(
-      (deploySuccess.result.deployedSource as unknown) as Row[],
+      (deploySuccess.result.pushedSource as unknown) as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -92,11 +89,11 @@ describe('Correctly output deploy results', () => {
   });
 
   it('Should show no results found for source:push operation with no new source', () => {
-    successesStub.returns({ status: 0, result: { deployedSource: [] } });
+    successesStub.returns({ status: 0, result: { pushedSource: [] } });
     errorsStub.returns(undefined);
 
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'));
+    executor.outputResult(new ForcePushResultParser('{}'));
 
     const successTable = table.createTable(
       [],
@@ -123,17 +120,17 @@ describe('Correctly output deploy results', () => {
     });
 
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'));
+    executor.outputResult(new ForcePushResultParser('{}'));
     expect(output).to.be.equal('Deploy Failed: An error has occurred\n\n');
   });
 
   it('Should show deploy conflicts correctly', () => {
     const hasConflictsStub = stub(
-      ForceDeployResultParser.prototype,
+      ForcePushResultParser.prototype,
       'hasConflicts'
     ).returns(true);
     deployError.name = CONFLICT_ERROR_NAME;
-    deployError.result = [
+    deployError.data = [
       {
         state: 'Conflict',
         fullName: 'SomeClass',
@@ -143,7 +140,7 @@ describe('Correctly output deploy results', () => {
     ];
     errorsStub.returns(deployError);
     const conflictsTable = table.createTable(
-      (deployError.result as unknown) as Row[],
+      (deployError.data as unknown) as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -155,7 +152,7 @@ describe('Correctly output deploy results', () => {
       'push_conflicts_error'
     )}\n\n${conflictsTable}\n`;
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'));
+    executor.outputResult(new ForcePushResultParser('{}'));
 
     expect(output).to.be.equal(expectedOutput);
 
