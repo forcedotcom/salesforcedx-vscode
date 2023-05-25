@@ -44,7 +44,7 @@ export abstract class DeployRetrieveExecutor<T>
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    let result: DeployRetrieveResult | undefined = undefined;
+    let result: DeployRetrieveResult | undefined;
 
     try {
       const components = await this.getComponents(response);
