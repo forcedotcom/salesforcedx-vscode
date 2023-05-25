@@ -213,7 +213,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
-      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getUserConfiguredApiVersionStub.called).to.equal(true);
       expect(connectionGetApiVersionStub.called).to.equal(false);
     });
 
@@ -226,7 +226,7 @@ describe('Base Deploy Retrieve Commands', () => {
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
-      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getUserConfiguredApiVersionStub.called).to.equal(true);
       expect(connectionGetApiVersionStub.callCount).to.be.greaterThan(0);
       expect(components.apiVersion).to.equal(mockConnection.getApiVersion());
     });
@@ -252,7 +252,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
-    let setApiVersionOnStub: SinonStub;
+    let setApiVersionStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -262,7 +262,7 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
-      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
+      setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
@@ -341,9 +341,9 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(setApiVersionOnStub.calledOnce).to.equal(true);
+      expect(setApiVersionStub.calledOnce).to.equal(true);
       expect(executor.deployStub.calledOnce).to.equal(true);
-      expect(setApiVersionOnStub.calledBefore(executor.deployStub)).to.equal(
+      expect(setApiVersionStub.calledBefore(executor.deployStub)).to.equal(
         true
       );
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
@@ -651,7 +651,7 @@ describe('Base Deploy Retrieve Commands', () => {
         children: [basename(props.content), basename(props.xml)]
       }
     ]);
-    let setApiVersionOnStub: SinonStub;
+    let setApiVersionStub: SinonStub;
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
@@ -685,7 +685,7 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
-      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
+      setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
       sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
         updateTrackingFromRetrieve: async () => {}
       });
@@ -700,9 +700,9 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(setApiVersionOnStub.calledOnce);
+      expect(setApiVersionStub.calledOnce);
       expect(executor.retrieveStub.calledOnce);
-      expect(setApiVersionOnStub.calledBefore(executor.retrieveStub)).to.equal(
+      expect(setApiVersionStub.calledBefore(executor.retrieveStub)).to.equal(
         true
       );
     });
