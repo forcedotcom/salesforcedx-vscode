@@ -223,8 +223,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const disableSourceTracking = sfdxCoreSettings.getDisableSourceTrackingForDeployAndRetrieve();
-    if (!disableSourceTracking) {
+    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    if (sourceTrackingEnabled) {
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
         this.sourceTracking = await SourceTrackingService.createSourceTracking(
@@ -249,7 +249,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-    if (!disableSourceTracking) {
+    if (sourceTrackingEnabled) {
       const status = result?.response?.status;
       if (
         (status === 'Succeeded' || status === 'SucceededPartial') &&

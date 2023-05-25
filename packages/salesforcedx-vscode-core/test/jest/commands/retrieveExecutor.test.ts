@@ -43,7 +43,7 @@ describe('Retrieve Executor', () => {
   let pollStatusMock: jest.SpyInstance;
   let updateTrackingAfterRetrieveMock: jest.SpyInstance;
   let getWorkspaceOrgTypeMock: jest.SpyInstance;
-  let getDisableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
+  let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
     protected getComponents(
@@ -78,16 +78,16 @@ describe('Retrieve Executor', () => {
       workspaceContextUtils,
       'getWorkspaceOrgType'
     );
-    getDisableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
+    getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
       sfdxCoreSettings,
-      'getDisableSourceTrackingForDeployAndRetrieve'
+      'getEnableSourceTrackingForDeployAndRetrieve'
     );
   });
 
-  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org when “Disable source tracking” is disabled', async () => {
+  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org and “Enable source tracking” is enabled or true', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
-    getDisableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
     const executor = new TestRetrieveExecutor(
       'testRetrieve',
       'testRetrieveLog'
@@ -113,10 +113,10 @@ describe('Retrieve Executor', () => {
     );
   });
 
-  it('should NOT update source tracking after retrieving without a successful response when “Disable source tracking” is disabled', async () => {
+  it('should NOT update source tracking after retrieving without a successful response when “Enable source tracking” is enabled or true', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
-    getDisableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
     const executor = new TestRetrieveExecutor(
       'testRetrieve',
       'testRetrieveLog'
@@ -139,10 +139,10 @@ describe('Retrieve Executor', () => {
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
-  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org and “Disable source tracking” is disabled', async () => {
+  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org and “Enable source tracking” is enabled', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
-    getDisableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
     const executor = new TestRetrieveExecutor(
       'testRetrieve',
       'testRetrieveLog'
@@ -160,10 +160,10 @@ describe('Retrieve Executor', () => {
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
-  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a source-tracked org when “Disable source tracking” is enabled', async () => {
+  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a source-tracked org when “Enable source tracking” is disabled(false) by default', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
-    getDisableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
     const executor = new TestRetrieveExecutor(
       'testRetrieve',
       'testRetrieveLog'
