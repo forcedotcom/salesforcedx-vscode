@@ -31,9 +31,9 @@ jest.mock('@salesforce/source-deploy-retrieve', () => {
   };
 });
 
-jest.mock('../../../src/commands/baseDeployRetrieve', () => {
+jest.mock('../../../src/commands/retrieveExecutor', () => {
   return {
-    ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
+    ...jest.requireActual('../../../src/commands/retrieveExecutor'),
     RetrieveExecutor: jest.fn()
   };
 });
