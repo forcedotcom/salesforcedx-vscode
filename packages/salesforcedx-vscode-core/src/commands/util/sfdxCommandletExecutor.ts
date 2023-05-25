@@ -16,24 +16,43 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
+import {
+  FORCE_SOURCE_PULL_LOG_NAME,
+  FORCE_SOURCE_PUSH_LOG_NAME
+} from '../../constants';
+import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { CommandletExecutor } from './commandletExecutor';
 
-export abstract class SfdxCommandletExecutor<T> implements CommandletExecutor<T> {
+export abstract class SfdxCommandletExecutor<T>
+  implements CommandletExecutor<T> {
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
+    [number, number]
+  >();
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
+    .onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-    channelService.streamCommandOutput(execution);
+    const commandLogName = execution.command.logName;
+    // If Push or Pull operation, output text will be
+    // generated later using a parser.
+    if (
+      !(
+        commandLogName === FORCE_SOURCE_PULL_LOG_NAME ||
+        commandLogName === FORCE_SOURCE_PUSH_LOG_NAME
+      )
+    ) {
+      channelService.streamCommandOutput(execution);
+    }
 
     if (this.showChannelOutput) {
       channelService.showChannelOutput();
@@ -98,6 +117,29 @@ export abstract class SfdxCommandletExecutor<T> implements CommandletExecutor<T>
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
+  /**
+   * Shows a notification and the raw response
+   * before throwing when a parsing error is encountered.
+   * @param output usually stdOut JSON string from a cli command.
+   * @returns parsed JSON object.
+   */
+  protected parseOutput(output: string) {
+    let parsed: JSON;
+    try {
+      parsed = JSON.parse(output);
+    } catch (error) {
+      console.log(
+        `There was an error parsing the output. Raw output: ${output}`
+      );
+
+      notificationService.showWarningMessage(
+        nls.localize('lib_retrieve_result_parse_error')
+      );
+      throw error;
+    }
+    return parsed;
+  }
+
   protected getTelemetryData(
     success: boolean,
     response: ContinueResponse<T>,
@@ -105,6 +147,14 @@ export abstract class SfdxCommandletExecutor<T> implements CommandletExecutor<T>
   ): TelemetryData | undefined {
     return;
   }
+
+  /**
+   * Base method (no-op) that is overridden by sub-classes
+   * forceSourcePush and forceSourcePull to update the local cache's
+   * timestamps post-operation, in order to be in sync for the
+   * "Detect Conflicts at Sync" setting.
+   */
+  protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;
 }

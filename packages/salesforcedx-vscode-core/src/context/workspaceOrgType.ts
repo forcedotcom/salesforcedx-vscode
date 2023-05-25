@@ -15,7 +15,7 @@ export enum OrgType {
 }
 
 /**
- * @description determines whether the default org is source-tracked or not.
+ * Determines whether the default org is source-tracked or not.
  * During dev it was observed that there were some potential issues with other options
  * (org.isScratch, org.tracksSource) related to cache-ing and a newly created
  * Scratch Org would sometimes return false.  Using org.supportsSourceTracking()

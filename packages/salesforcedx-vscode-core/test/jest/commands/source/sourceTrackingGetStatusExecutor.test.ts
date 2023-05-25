@@ -13,6 +13,10 @@ import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source
 import { nls } from '../../../../src/messages';
 
 describe('SourceTrackingGetStatusExecutor', () => {
+  beforeEach(() => {
+    jest.spyOn(nls, 'localize').mockReturnValue('');
+  });
+
   describe('execute', () => {
     const FAKE_WORKSPACE_INSTANCE: any = { getConnection: jest.fn() };
     let getSourceStatusSummaryMock: jest.SpyInstance;

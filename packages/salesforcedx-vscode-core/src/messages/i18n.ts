@@ -308,10 +308,14 @@ export const messages = {
   table_no_results_found: 'No results found',
   table_title_deployed_source: 'Deployed Source',
   table_title_deploy_errors: 'Deploy Errors',
+  table_title_pulled_source: 'Pulled Source',
+  table_title_pull_errors: 'Pull Errors',
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
+  pull_conflicts_error:
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Override Conflicts".',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
@@ -632,8 +636,7 @@ export const messages = {
   beta_tapi_car_error: 'Unexpected error creating container async request',
   beta_tapi_queue_status: 'The deploy is still in the Queue',
   lib_retrieve_result_title: 'Retrieved Source',
-  lib_retrieve_result_parse_error:
-    'Not able to parse current results. Raw result: %s',
+  lib_retrieve_result_parse_error: 'Not able to parse current results.',
   lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',

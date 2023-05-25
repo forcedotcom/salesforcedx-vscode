@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import { ForceSourcePushExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Force Source Push', () => {
   const commonParams = '--json --loglevel fatal';
   it('Should build the source push command with no flag', async () => {

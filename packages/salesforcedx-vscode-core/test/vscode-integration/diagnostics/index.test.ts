@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ForceSourcePushErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
@@ -17,20 +17,20 @@ import {
 } from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
-  let deployErrorResult: ForceSourceDeployErrorResponse;
+  let pushErrorResult: ForceSourcePushErrorResponse;
   const workspacePath = 'local/workspace/path';
   const sourcePath = 'source/file/path';
   let errorCollection: DiagnosticCollection;
 
   beforeEach(() => {
     errorCollection = languages.createDiagnosticCollection('test-errors');
-    deployErrorResult = {
-      message: 'Deploy failed.',
-      name: 'DeployFailed',
+    pushErrorResult = {
+      message: 'Push failed.',
+      name: 'PushFailed',
       stack: '123',
       status: 1,
       warnings: [],
-      result: []
+      data: []
     };
   });
 
@@ -54,7 +54,7 @@ describe('Diagnostics', () => {
     expect(range.end.character).to.equal(1);
   });
 
-  it('Should create diagnostics based off of deploy error results', () => {
+  it('Should create diagnostics based off of push error results', () => {
     const resultItem = {
       filePath: 'src/classes/Testing.cls',
       error: 'Invalid method referenced.',
@@ -64,10 +64,10 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    deployErrorResult.result.push(resultItem);
+    pushErrorResult.data.push(resultItem);
 
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -89,7 +89,7 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[0].range).to.deep.equal(testRange);
   });
 
-  it('Should create multiple diagnostics based off of deploy error results', () => {
+  it('Should create multiple diagnostics based off of push error results', () => {
     const resultItem1 = {
       filePath: 'src/classes/Testing.cls',
       error: 'Invalid method referenced.',
@@ -109,11 +109,11 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    pushErrorResult.data.push(resultItem1);
+    pushErrorResult.data.push(resultItem2);
 
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -165,9 +165,9 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    deployErrorResult.result.push(resultItem);
+    pushErrorResult.data.push(resultItem);
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -202,10 +202,10 @@ describe('Diagnostics', () => {
       filePath: 'N/A'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    pushErrorResult.data.push(resultItem1);
+    pushErrorResult.data.push(resultItem2);
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
