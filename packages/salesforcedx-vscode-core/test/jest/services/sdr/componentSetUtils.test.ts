@@ -6,8 +6,9 @@
  */
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import * as vscode from 'vscode';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
-import { setApiVersion } from '../../../../src/services/sdr/componentSetUtils';
+import { setApiVersionOn } from '../../../../src/services/sdr/componentSetUtils';
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   return {
@@ -40,10 +41,10 @@ describe('componentSetUtils', () => {
       } as any);
   });
 
-  describe('setApiVersion', () => {
+  describe('setApiVersionOn', () => {
     it('should use the api version from SFDX configuration when it is set', async () => {
       const dummyComponentSet = new ComponentSet();
-      await setApiVersion(dummyComponentSet);
+      await setApiVersionOn(dummyComponentSet);
 
       expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
       expect(mockConnection.getApiVersion).not.toHaveBeenCalled();
@@ -54,7 +55,7 @@ describe('componentSetUtils', () => {
       getUserConfiguredApiVersionMock.mockResolvedValue(undefined);
 
       const dummyComponentSet = new ComponentSet();
-      await setApiVersion(dummyComponentSet);
+      await setApiVersionOn(dummyComponentSet);
 
       expect(getUserConfiguredApiVersionMock).toHaveBeenCalled();
       expect(workspaceContextGetConnectionMock).toHaveBeenCalled();
