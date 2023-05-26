@@ -75,7 +75,7 @@ export class SfdxCoreSettings {
   }
 
   public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
-    return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, false);
+    return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
   }
 
   public getRetrieveTestCodeCoverage(): boolean {
