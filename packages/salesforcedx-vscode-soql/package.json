@@ -78,7 +78,7 @@
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
     "build": "npm run compile",
     "compile": "tsc -p ./",
-    "lint": "eslint -c .eslintrc.json --ext .ts ./src",
+    "lint": "eslint -c .eslintrc.js --ext .ts ./src",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
