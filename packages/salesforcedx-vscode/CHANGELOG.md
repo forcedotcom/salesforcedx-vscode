@@ -1,3 +1,43 @@
+# 57.15.0 - May 24, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We enabled our Org Browser functionality when users are working with Scratch Orgs ([PR #4810](https://github.com/forcedotcom/salesforcedx-vscode/pull/4810))
+
+- We added a setting "Prefer deploy on save" that will run a deploy instead of a push when "Push or deploy on save" is enabled. ([PR #4820](https://github.com/forcedotcom/salesforcedx-vscode/pull/4820))
+
+- We published our extensions to Open VSX for the first time, and automated the process to publish there going forward. ([PR #4855](https://github.com/forcedotcom/salesforcedx-vscode/pull/4855))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We updated the Apex language server so that the syntax for Database class methods like _insert_ and _delete_ include _accessLevel_ parameters. ([PR #4866](https://github.com/forcedotcom/salesforcedx-vscode/pull/4866))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where a MetadataApiRetrieveError was displayed when attempting to deploy an empty project ([PR #4845](https://github.com/forcedotcom/salesforcedx-vscode/pull/4845))
+
+- We made some changes under the hood. ([PR #4793](https://github.com/forcedotcom/salesforcedx-vscode/pull/4793))
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- We've made an update to the lightning language server version that may help the server load faster for users with large projects. Thank you [mwaddoupffdc](https://github.com/mwaddoupffdc) for contributing this improvement! ([PR #4872](https://github.com/forcedotcom/salesforcedx-vscode/pull/4872))
+
+# 57.14.1 - May 17, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Update @salesforce/templates version so that the latest API version 57.0 is used for `assetVersion` when creating a sample analytics app template. ([PR #4851](https://github.com/forcedotcom/salesforcedx-vscode/pull/4851))
+
+#### salesforcedx-vscode-soql
+
+- Updated SOQL Builder so that it does not show an error when there is no default org set and a SOQL file is not currently open. ([PR #4847](https://github.com/forcedotcom/salesforcedx-vscode/pull/4847))
+
 # 57.13.1 - May 10, 2023
 
 ## Added
@@ -9,12 +49,13 @@
 #### salesforcedx-vscode-core
 
 - We enabled the following Deploy and Retrieve commands for scratch orgs ([PR #4809](https://github.com/forcedotcom/salesforcedx-vscode/pull/4809)):
-  * **SFDX: Deploy Source to Org**
-  * **SFDX: Deploy This Source to Org**
-  * **SFDX: Deploy Source in Manifest to Org**
-  * **SFDX: Retrieve Source from Org**
-  * **SFDX: Retrieve This Source from Org**
-  * **SFDX: Retrieve Source in Manifest from Org**
+
+  - **SFDX: Deploy Source to Org**
+  - **SFDX: Deploy This Source to Org**
+  - **SFDX: Deploy Source in Manifest to Org**
+  - **SFDX: Retrieve Source from Org**
+  - **SFDX: Retrieve This Source from Org**
+  - **SFDX: Retrieve Source in Manifest from Org**
 
 - **SFDX: Delete This from Project and Org** and **SFDX: Delete from Project and Org** commands are now available in the Command Palette and in the context menu for scratch orgs. ([PR #4757](https://github.com/forcedotcom/salesforcedx-vscode/pull/4757))
 
