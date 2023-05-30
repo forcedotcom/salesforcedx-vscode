@@ -21,13 +21,14 @@ on:
           - 'debugApexTests.e2e.ts'
           - 'deployAndRetrieve.e2e.ts'
           - 'lwcLsp.e2e.ts'
+          - 'manifestBuilder.e2e.ts'
           - 'orgBrowser.e2e.ts'
           - 'pushAndPull.e2e.ts'
           - 'runApexTests.e2e.ts'
           - 'sObjectsDefinitions.e2e.ts'
           - 'templates.e2e.ts'
           - 'trailApexReplayDebugger.e2e.ts'
-          - 'visualForceLsp.e2e.ts'
+          - 'visualforceLsp.e2e.ts'
 
 jobs:
   build:
