@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE } from "../../../src/constants";
-import { SfdxCoreSettings } from "../../../src/settings/sfdxCoreSettings";
+import { ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE } from '../../../src/constants';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 
 describe('sfdxCoreSettings', () => {
-  let sfdxCoreSettingsInstance = SfdxCoreSettings.getInstance();
+  const sfdxCoreSettingsInstance = SfdxCoreSettings.getInstance();
   let getConfigValueSpy: jest.SpyInstance;
   getConfigValueSpy = jest.spyOn((SfdxCoreSettings as any).prototype, 'getConfigValue');
   describe('getEnableSourceTrackingForDeployAndRetrieve', () => {
