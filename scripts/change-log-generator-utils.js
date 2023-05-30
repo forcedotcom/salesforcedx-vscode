@@ -28,13 +28,21 @@ const typesToIgnore = [
   'revert'
 ];
 
+const logger = (msg, obj) => {
+  if (!obj) {
+    console.log(`*** ${msg}`);
+  } else {
+    console.log(`*** ${msg}`, obj);
+  }
+};
+
 /**
  * Returns the previous release branch
  * @returns 
  */
 
 function getPreviousReleaseBranch() {
-  const releaseBranches = getReleaseBranches();
+  const releaseBranches = getRemoteReleaseBranches();
   return releaseBranches[0];
 }
 
@@ -42,7 +50,7 @@ function getPreviousReleaseBranch() {
  * Returns a list of remote release branches, sorted in reverse order by
  * creation date. This ensures that the first entry is the latest branch.
  */
- function getReleaseBranches() {
+ function getRemoteReleaseBranches() {
   return shell
     .exec(
       `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
@@ -62,7 +70,7 @@ function getPreviousReleaseBranch() {
  * @returns 
  */
  function getCommits(releaseBranch, previousBranch) {
-  console.log(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
+  logger(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
   const commits = shell
     .exec(
       `git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`,
@@ -81,7 +89,7 @@ function getPreviousReleaseBranch() {
  * @returns 
  */
  function parseCommits(commits) {
-  console.log(`\nStep 4: Determine which commits we want to share in the changelog`);
+  logger(`\nStep 4: Determine which commits we want to share in the changelog`);
   let commitMaps = [];
   for (let i = 0; i < commits.length; i++) {
     const commitMap = buildMapFromCommit(commits[i]);
@@ -215,7 +223,7 @@ function getPackageHeaders(filesChanged) {
  * @param {string} textToInsert 
  */
 function writeChangeLog(textToInsert) {
-  console.log(`\nStep 5: Adding changelog to: ${constants.CHANGE_LOG_PATH}`);
+  logger(`\nStep 5: Adding changelog to: ${constants.CHANGE_LOG_PATH}`);
   let data = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let fd = fs.openSync(constants.CHANGE_LOG_PATH, 'w+');
   let buffer = Buffer.from(textToInsert.toString());
@@ -291,7 +299,6 @@ function getReleaseDate() {
  * new commits, grouping everything, and creating the text for editing.
  * @param {string} remoteReleaseBranch
  * @param {string} remotePreviousBranch
- * @returns
  */
 
 function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
@@ -312,5 +319,5 @@ function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
 }
 
 module.exports = {
-  updateChangeLog
+  getPreviousReleaseBranch, updateChangeLog
 }

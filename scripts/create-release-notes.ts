@@ -1,8 +1,8 @@
+import * as changeLogGeneratorUtils from './change-log-generator-utils';
+import * as constants from './change-log-constants';
 import * as shell from 'shelljs';
-const changeLogGeneratorUtils = require('./change-log-generator-utils');
-const constants = require('./change-log-constants');
 
-const [_, __, releaseOverride] = process.argv
+const [_, __, releaseOverride] = process.argv;
 
 const logger = (msg: string, obj?: any) => {
   if (!obj) {
@@ -21,29 +21,14 @@ function getCurrentRemoteReleaseBranch(): string {
   let releaseBranch;
   if (!releaseOverride) {
     console.log(`releaseOverride not provided. Getting latest release.`);
-    releaseBranch = getRemoteReleaseBranches()[0];
+    releaseBranch = changeLogGeneratorUtils.getPreviousReleaseBranch();
   } else {
     console.log(`releaseOverride set to ${releaseOverride}`);
     releaseBranch = constants.REMOTE_RELEASE_BRANCH_PREFIX + releaseOverride;
   }
   validateReleaseBranch(releaseBranch);
-  console.log(`\nBranch to be released is: ${releaseBranch}`)
+  console.log(`\nBranch to be released is: ${releaseBranch}`);
   return releaseBranch;
-}
-
-/**
- * Returns a list of remote release branches, sorted in reverse order by
- * creation date. This ensures that the first entry is the latest branch.
- */
-function getRemoteReleaseBranches(): string[] {
-  return shell
-    .exec(
-      `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
-      { silent: true }
-    )
-    .replace(/\n/g, ',')
-    .split(',')
-    .map(Function.prototype.call, String.prototype.trim);
 }
 
 /**
@@ -51,7 +36,9 @@ function getRemoteReleaseBranches(): string[] {
  */
 function getPreviousRemoteReleaseBranch(): string {
   logger(`\nStep 2: Getting latest tag to compare last published version`);
-  const latestReleasedTag = String(shell.exec(`git describe --tags --abbrev=0`));
+  const latestReleasedTag = String(
+    shell.exec(`git describe --tags --abbrev=0`)
+  );
   const latestReleasedBranchName = `${constants.REMOTE_RELEASE_BRANCH_PREFIX_NO_VERSION}/${latestReleasedTag}`;
   validateReleaseBranch(latestReleasedBranchName);
   return latestReleasedBranchName;
@@ -65,17 +52,22 @@ function validateReleaseBranch(releaseBranch): void {
     console.log(
       "Invalid release '" + releaseBranch + "'. Expected format [xx.yy.z]."
     );
-    process.exit(-1);
+    process.exit(1);
   }
 }
 
 const currentReleaseBranchName = getCurrentRemoteReleaseBranch();
 const previousReleaseBranchName = getPreviousRemoteReleaseBranch();
 
-changeLogGeneratorUtils.updateChangeLog(currentReleaseBranchName, previousReleaseBranchName);
+changeLogGeneratorUtils.updateChangeLog(
+  currentReleaseBranchName,
+  previousReleaseBranchName
+);
 logger(`\nOpening changelog for review`);
 //if code-insiders isn't yet set in the PATH or running user doesn't have insiders,
 //this will use VS Code instead
-shell.exec(`code-insiders ${constants.CHANGE_LOG_PATH} || code ${constants.CHANGE_LOG_PATH}`);
+shell.exec(
+  `code-insiders ${constants.CHANGE_LOG_PATH} || code ${constants.CHANGE_LOG_PATH}`
+);
 
 process.exit(0);
