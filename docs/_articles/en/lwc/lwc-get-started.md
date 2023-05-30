@@ -38,7 +38,7 @@ LIMIT 10
 Next, add the LWC component that displays queried fields.
 
 ### Create an LWC Component that Displays Contact Information
-1. From the Command Palette run **SFDX: Create Lightning Web Component** and create a component called `contactList` in the default location.
+1. From the Command Palette, run **SFDX: Create Lightning Web Component** and create a component called `contactList` in the default location.
 2. In the `contactList.html file`, cut and paste the following code and save the file:
 
 ```
