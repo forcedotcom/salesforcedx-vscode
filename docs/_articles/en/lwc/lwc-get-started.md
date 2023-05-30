@@ -12,7 +12,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/vscode-deskto
 1. In VS Code, run the command **SFDX: Create Project** from the Command Palette to create a Salesforce DX project if you don’t have one.
 2. Log in to the org to which you want to add the LWC.
 3. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette to get completion suggestions for your SObjects related code.
-4. From the Command Palette run **SFDX: Create Apex Class** and create a class called `ContactController`.
+4. From the Command Palette, run **SFDX: Create Apex Class** and create a class called `ContactController`.
 
 Next let's add a method called `getContacts` to this class. We’ll make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method—you can just use the name of the class followed by a dot (`.`) and the name of the method. This method queries a set of fields on the contact object. Paste this code into `ContactController.cls`:
 
