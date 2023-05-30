@@ -1,11 +1,11 @@
-name: End to End Tests
+name: End to End Tests (Performance)
 on:
   workflow_dispatch:
     inputs:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'phale/perf-poc'
         type: string
 
 # all possible combinations of OS and architecture supported by yourkit
