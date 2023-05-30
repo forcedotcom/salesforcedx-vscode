@@ -6,10 +6,11 @@
  */
 import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
+  ChannelService,
   getRootWorkspacePath,
-  SFDX_CORE_CONFIGURATION_NAME
+  SFDX_CORE_CONFIGURATION_NAME,
+  TelemetryService
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -672,7 +673,11 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     SfdxWorkspaceChecker,
     WorkspaceContext,
     taskViewService,
-    telemetryService
+    telemetryService,
+    services: {
+      ChannelService,
+      TelemetryService
+    }
   };
 
   registerFunctionInvokeCodeLensProvider(extensionContext);

@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.13.1",
+  "version": "58.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -41,9 +41,9 @@
     "jsforce": "2.0.0-beta.20"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.13.1",
-    "@salesforce/salesforcedx-test-utils-vscode": "57.13.1",
-    "@salesforce/salesforcedx-utils-vscode": "57.13.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "58.0.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.0.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "1.5.13",
@@ -78,7 +78,7 @@
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
     "build": "npm run compile",
     "compile": "tsc -p ./",
-    "lint": "eslint -c .eslintrc.json --ext .ts ./src",
+    "lint": "eslint -c .eslintrc.js --ext .ts ./src",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
