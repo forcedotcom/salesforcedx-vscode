@@ -71,8 +71,10 @@ jobs:
             echo "The sfdx-cli installation could not be verified"
             exit 1
           fi
-      - name: Setup YourKit
-        run: echo "YOURKIT_PROFILER_AGENT=${{ env.RUNNER_OS }}-${{ env.RUNNER_ARCH}}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting" >> $GITHUB_ENV
+      - name: Setup YourKit Agent
+        run: echo "YOURKIT_PROFILER_AGENT=${{ env.RUNNER_OS }}-${{ env.RUNNER_ARCH}}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
+      - name: Create Yourkit Snapshot directory
+        run: mkdir snapshots
       - name: Verify YourKit
         run: env
       # - name: Run headless test
@@ -82,3 +84,7 @@ jobs:
       #     working-directory: salesforcedx-vscode-automation-tests
       #   env:
       #     VSCODE_VERSION: ${{ matrix.vscodeVersion }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: yourkit-snapshot
+          path: snapshots
