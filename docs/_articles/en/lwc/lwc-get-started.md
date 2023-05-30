@@ -68,7 +68,7 @@ export default class ContactList extends LightningElement {
     @wire(getContacts) contacts;
 }
 ```
-4. Cut and paste the following code in the contactList.js-meta.xml file and save:
+4. Cut and paste the following code in the `contactList.js-meta.xml` file and save:
    
 ```
 <?xml version="1.0" encoding="UTF-8"?>
