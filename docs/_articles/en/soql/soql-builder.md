@@ -42,7 +42,7 @@ You can also open a `.soql` file in SOQL Builder from the VS Code menu. Right-cl
 
 ### Launch SOQL Builder and Create a Query
 
-1. From the command palette, run **SFDX: Create Query in SOQL Builder**.
+1. From the Command Palette, run **SFDX: Create Query in SOQL Builder**.
 1. Click **File > Save** to save the query. Make sure to retain the `.soql` file extension.
 
 ## Build a Query

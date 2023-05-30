@@ -187,6 +187,10 @@
         ja: 作成
       url: /lwc/writing
     - title:
+        en: LWC Development Quick Start
+        ja: LWC 開発クイック スタート
+      url: /lwc/lwc-get-started
+    - title:
         en: Testing
         ja: テスト
       url: /lwc/testing

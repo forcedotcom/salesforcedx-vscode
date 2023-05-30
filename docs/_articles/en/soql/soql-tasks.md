@@ -8,7 +8,7 @@ This is a repository of sample tasks using SOQL that you can complete in Code Bu
 
 ## Use the SOQL Query Editor Create a Query To List Accounts with a New York State Address
 
-1. From the command palette, run **SFDX: Create Query in SOQL Builder** to open SOQL Query Builder.
+1. From the Command Palette, run **SFDX: Create Query in SOQL Builder** to open SOQL Query Builder.
 2. Click **File > Save** to save the query. Make sure to retain the `.soql` file extension.
 3. Click the **Switch Between SOQL Builder and Text Editors** icon (<img src="../../../images/go-to-file.svg">) to reopen the SOQL Query Builder.
 4. In the `From` field, search for the object, and then select the `Account` object.
