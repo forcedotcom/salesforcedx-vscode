@@ -4,7 +4,7 @@ lang: en
 ---
 
 ## Overview
-You’ll create an LWC component called `contactList` that displays contact names and phone numbers in your App. We’ll get the contact information to display from an Apex class called `ContactController`.
+Create an LWC component called `contactList` that displays contact names and phone numbers in your app. You’ll get the contact information to display from an Apex class called `ContactController`.
 
 Before you start, install [Salesforce Extensions for Desktop](./en/vscode-desktop/install) or [Set Up Code Builder](./en/codebuilder/cb-setup)
 
