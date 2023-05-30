@@ -88,7 +88,7 @@ export default class ContactList extends LightningElement {
 1. In Visual Studio Code, open the Command Palette and run **SFDX: Open Default Org**.
 2. This opens your org in a separate browser.
 3. From the App Launcher (App Launcher), find and select **Sales**.
-4. Click **Setup** gear then select Edit Page.
+4. Click **Setup** gear then select **Edit Page**.
 5. Drag the `contactList` Lightning web component from the Custom area of the Lightning Components list to the top of the Page Canvas. 
 6. Click **Save**.
 7. Click **Activate**.
