@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection, SfProject } from '@salesforce/core';
+import { AuthInfo, Connection, SfProject } from '@salesforce/core';
 import {
   ConfigUtil,
   WorkspaceContextUtil
@@ -93,18 +93,21 @@ export class SObjectTransformerFactory {
     const userApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     const connection = await workspaceContextUtil.getConnection();
+    const connectionForSourceApiVersion = await Connection.create({
+      authInfo: await AuthInfo.create({ username: connection.getUsername() })
+    });
     try {
       const sfProject = await SfProject.resolve();
       const sourceApiVersion = sfProject.getSfProjectJson().getContents()
         .sourceApiVersion;
       // precedence user override > project config > connection default
-      connection.setApiVersion(
+      connectionForSourceApiVersion.setApiVersion(
         userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
       );
     } catch (e) {
       // If we can't resolve a project, we'll just use the default connection
     }
-    return connection;
+    return connectionForSourceApiVersion;
   }
 }
 
