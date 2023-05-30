@@ -8,15 +8,19 @@ import { ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE } from '../../../src/constan
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 
 describe('sfdxCoreSettings', () => {
-  const sfdxCoreSettingsInstance = SfdxCoreSettings.getInstance();
   let getConfigValueSpy: jest.SpyInstance;
-  getConfigValueSpy = jest.spyOn((SfdxCoreSettings as any).prototype, 'getConfigValue');
+  beforeEach( () => {
+    getConfigValueSpy = jest.spyOn((SfdxCoreSettings as any).prototype, 'getConfigValue');
+  });
   describe('getEnableSourceTrackingForDeployAndRetrieve', () => {
-    it('should set the default value for enable source tracking to be true', () => {
-      sfdxCoreSettingsInstance.getEnableSourceTrackingForDeployAndRetrieve();
+    it('should set the default value for enable source tracking to be true.', () => {
+      getConfigValueSpy.mockReturnValue(true);
+      const sfdxCoreSettingsInstance = SfdxCoreSettings.getInstance();
+      const defaultValue = sfdxCoreSettingsInstance.getEnableSourceTrackingForDeployAndRetrieve();
       expect(sfdxCoreSettingsInstance).toBeInstanceOf(SfdxCoreSettings);
       expect(getConfigValueSpy).toHaveBeenCalled();
       expect(getConfigValueSpy).toBeCalledWith(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
+      expect(defaultValue).toEqual(true);
     });
   });
 });
