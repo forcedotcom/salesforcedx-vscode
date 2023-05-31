@@ -62,6 +62,7 @@ jobs:
         - name: Install Extension Dependencies
           run: |
             npm install
+            npm run compile
           working-directory: salesforcedx-vscode
         - name: Install Test Dependencies
           run: |
