@@ -24,7 +24,8 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
+import { SfdxCommandlet } from './util/sfdxCommandlet';
+import { SfdxCommandletExecutor } from './util/sfdxCommandletExecutor';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
