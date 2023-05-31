@@ -24,6 +24,8 @@ export {
   DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
+  AuthDevHubParams,
+  AuthDevHubParamsGatherer,
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
@@ -67,6 +69,11 @@ export {
   ForceSourceStatusExecutor,
   SourceStatusFlags
 } from './forceSourceStatus';
+export {
+  viewAllChanges,
+  viewLocalChanges,
+  viewRemoteChanges
+} from './source/viewChanges';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceAnalyticsTemplateCreate,
@@ -153,10 +160,8 @@ export {
 export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
-export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
-  forceFunctionContainerStartCommand,
   forceFunctionContainerlessStartCommand,
   forceFunctionStop,
   forceFunctionDebugInvoke,

@@ -11,12 +11,13 @@ import {
   restoreContext,
   stubContext
 } from '@salesforce/core/lib/testSetup';
+import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
@@ -24,6 +25,10 @@ const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
 describe('Force Source Retrieve with Manifest Option', () => {
+  beforeEach(() => {
+    env.stub(SourceTrackingService, 'createSourceTracking');
+    env.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
+  });
   afterEach(() => {
     restoreContext($$);
   });
@@ -60,7 +65,9 @@ describe('Force Source Retrieve with Manifest Option', () => {
       env
         .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
         .resolves(packageDirs[0]);
-      env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      env
+        .stub(WorkspaceContext.prototype, 'getConnection')
+        .resolves(mockConnection);
       env
         .stub(ComponentSet, 'fromManifest')
         .withArgs({
@@ -82,7 +89,8 @@ describe('Force Source Retrieve with Manifest Option', () => {
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: defaultPackagePath,
-        merge: true
+        merge: true,
+        suppressEvents: false
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
     });

@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
   ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
+  SourceTrackingService,
+  SourceTrackingType,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -26,16 +27,15 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContext } from '../context';
+import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
+import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -62,7 +62,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      await this.setApiVersionOn(components);
+      await setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -82,23 +82,6 @@ export abstract class DeployRetrieveExecutor<
     } finally {
       await this.postOperation(result);
     }
-  }
-
-  private async setApiVersionOn(components: ComponentSet) {
-    // Check the SFDX configuration to see if there is an overridden api version.
-    // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-    const userConfiguredApiVersion:
-      | string
-      | undefined = await ConfigUtil.getUserConfiguredApiVersion();
-
-    if (userConfiguredApiVersion) {
-      components.apiVersion = userConfiguredApiVersion;
-      return;
-    }
-
-    // If no user-configured Api Version is present, then get the version from the Org.
-    const orgApiVersion = await OrgAuthInfo.getOrgApiVersion();
-    components.apiVersion = orgApiVersion ?? components.apiVersion;
   }
 
   protected setupCancellation(
@@ -125,12 +108,26 @@ export abstract class DeployRetrieveExecutor<
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
+  protected errorCollection = vscode.languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+
+    components.projectDirectory = projectPath;
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
+    await sourceTracking.ensureLocalTracking();
+
     const operation = await components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+      usernameOrConnection: connection
     });
 
     this.setupCancellation(operation, token);
@@ -143,7 +140,10 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     try {
       if (result) {
-        BaseDeployExecutor.errorCollection.clear();
+        // Update Persistent Storage for the files that were deployed
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+          result
+        );
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
@@ -151,12 +151,19 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
         const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
-          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
+          this.unsuccessfulOperationHandler(result, this.errorCollection);
         }
       }
     } finally {
       await DeployQueue.get().unlock();
     }
+  }
+
+  protected unsuccessfulOperationHandler(
+    result: DeployResult,
+    errorCollection: any
+  ) {
+    handleDeployDiagnostics(result, this.errorCollection);
   }
 
   private createOutput(
@@ -208,26 +215,50 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+  private sourceTracking?: SourceTrackingType;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+      this.sourceTracking = await SourceTrackingService.createSourceTracking(
+        projectPath,
+        connection
+      );
+    }
 
     const defaultOutput = join(
-      getRootWorkspacePath(),
+      projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
     const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
-      merge: true
+      merge: true,
+      suppressEvents: false
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    const result: RetrieveResult = await operation.pollStatus();
+
+    const status = result?.response?.status;
+    if (
+      (status === 'Succeeded' || status === 'SucceededPartial') &&
+      this.sourceTracking
+    ) {
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+        this.sourceTracking,
+        result
+      );
+    }
+
+    return result;
   }
 
   protected async postOperation(

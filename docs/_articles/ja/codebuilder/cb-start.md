@@ -57,7 +57,7 @@ The Code Builder user interface is divided into five main areas.
 **Status Bar**: Shows information about the opened project and the files you’re editing. The Status Bar displays the org that you're connected to. 
 
 ## Get To Know Your Org – Use the Org Browser
-Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs. User Org Browser to retrieve the metadata source into your local project. 
+Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. Use the Org Browser to retrieve metadata. 
 
 **More Information**: You can find more information about the [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) in the Salesforce Extension Pack documentation.
 
@@ -93,7 +93,7 @@ During the course of development, you'll use different types of orgs for differe
 
 To log into another org:
 
-1. Click the org picker(which show the alias for the current org) in the status bar, to  bring  up the command palette.
+1. Click the org picker(which show the alias for the current org) in the status bar, to  bring  up the Command Palette.
 2. From the Command Palette run **SFDX: Authorize an Org**.
 3. Enter the login URL or select the org you want to log into.
 4. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.

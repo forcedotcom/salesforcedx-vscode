@@ -11,12 +11,25 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 
 export class OrgAuthInfo {
+  public static async getDevHubUsername() {
+    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      false
+    );
+    let defaultDevHubUsername: string | undefined;
+    if (defaultDevHubUsernameOrAlias) {
+      defaultDevHubUsername = await OrgAuthInfo.getUsername(
+        defaultDevHubUsernameOrAlias
+      );
+    }
+    return defaultDevHubUsername;
+  }
+
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
@@ -124,7 +137,7 @@ export class OrgAuthInfo {
   }
 
   public static async getOrgApiVersion(): Promise<string | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContext.getInstance().getConnection();
     const apiVersion = connection.getApiVersion();
     return apiVersion ? String(apiVersion) : undefined;
   }

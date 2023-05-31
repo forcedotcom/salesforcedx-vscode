@@ -4,7 +4,7 @@ lang: en
 ---
 ## Overview
 
-When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the Org. The conflict detection feature is available for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs.
+When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the org. The conflict detection feature can be turned on for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs. Note that this feature is always on for scratch orgs and source-tracked sandboxes.
 
 A conflict occurs when the metadata file in the org was last modified more recently than the last successful deployment or retrieval of this file to your local project.
 If conflicts are detected in your project manifest or files, you can cancel the deploy operation and view the differences between your local files and default org.
@@ -20,7 +20,7 @@ If conflicts aren’t detected, the deploy operation is completed.
 You must enable the conflict detection feature to use it:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under Salesforce Feature Previews, select **Detect Conflicts At Sync**.
+2. Under Salesforce Core Configuration, select **Detect Conflicts At Sync**.
 
 You can also enter conflict detection in the search box to find the feature and then enable it.
 
@@ -30,6 +30,6 @@ When enabled, conflict detection will check for potential conflicts for all Depl
 
 You can either select to override conflicts or cancel the operation and view the conflicts in the Org Differences view.
 
-You can use [Source Diff](source-diff.md)  if you are interested in detecting conflicts in advance of any retrieve operation. 
+You can use [Source Diff](./en/user-guide/source-diff) if you are interested in detecting conflicts in advance of any retrieve operation. 
 
 ![Retrieve metadata flow](../../../images/RetrieveMetadataFlow.gif)

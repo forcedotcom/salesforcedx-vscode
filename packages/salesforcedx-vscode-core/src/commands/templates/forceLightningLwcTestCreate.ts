@@ -6,23 +6,23 @@
  */
 import {
   Command,
+  DirFileNameSelection,
+  LocalComponent,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as path from 'path';
 import { nls } from '../../messages';
 import { workspaceUtils } from '../../util';
 import {
   CompositeParametersGatherer,
+  MetadataTypeGatherer,
   PathStrategyFactory,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
-import { MetadataTypeGatherer } from '../util';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import { LWC_TYPE } from './metadataTypeConstants';
 

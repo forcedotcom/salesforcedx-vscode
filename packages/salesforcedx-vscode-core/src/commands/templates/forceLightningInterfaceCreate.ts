@@ -8,7 +8,7 @@
 import {
   DirFileNameSelection,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { LightningInterfaceOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -21,7 +21,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker

@@ -12,7 +12,12 @@ import * as events from 'events';
 import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { APEX_GROUP_RANGE } from '../../../src/constants';
+import {
+  APEX_GROUP_RANGE,
+  APEX_TESTS,
+  FAIL_RESULT,
+  PASS_RESULT
+} from '../../../src/constants';
 import {
   ClientStatus,
   LanguageClientUtils
@@ -123,17 +128,17 @@ describe('TestView', () => {
   describe('Get Tests and Create Tree', () => {
     it('Should add no tests', () => {
       testOutline = new ApexTestOutlineProvider(null);
-      const expected = new ApexTestGroupNode('ApexTests', null);
+      const expected = new ApexTestGroupNode(APEX_TESTS, null);
       expected.description = NO_TESTS_DESCRIPTION;
       expect(testOutline.getHead()).to.deep.equal(
-        new ApexTestGroupNode('ApexTests', null)
+        new ApexTestGroupNode(APEX_TESTS, null)
       );
     });
 
     it('Should create one test and one class', () => {
       testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       if (testOutline.getHead()) {
-        expect(testOutline.getHead().name).to.equal('ApexTests');
+        expect(testOutline.getHead().name).to.equal(APEX_TESTS);
         expect(testOutline.getHead().children.length).to.equal(1);
         const testChildGroup = testOutline.getHead().children[0];
         expect(testChildGroup).instanceof(ApexTestGroupNode);
@@ -267,7 +272,7 @@ describe('TestView', () => {
         .children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
       const testNode = testGroupNode.children[0] as ApexTestNode;
-      expect(testNode.outcome).to.equal('Pass');
+      expect(testNode.outcome).to.equal(PASS_RESULT);
     });
 
     it('Should update tests and test groups with passing/failing tests using Apex library', () => {
@@ -283,11 +288,17 @@ describe('TestView', () => {
       expect(groupNode.failing).to.eql(1);
 
       expect(groupNode.children[0].name).to.equal('file0.test0');
-      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal('Pass');
+      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal(
+        PASS_RESULT
+      );
       expect(groupNode.children[1].name).to.equal('file0.test1');
-      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal('Fail');
+      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal(
+        FAIL_RESULT
+      );
       expect(groupNode.children[2].name).to.equal('file0.test2');
-      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal('Pass');
+      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal(
+        PASS_RESULT
+      );
     });
   });
 

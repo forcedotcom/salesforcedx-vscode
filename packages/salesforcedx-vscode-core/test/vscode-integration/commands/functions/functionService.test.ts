@@ -103,7 +103,6 @@ describe('Function Service', () => {
           console: 'integratedTerminal',
           internalConsoleOptions: 'openOnSessionStart',
           localRoot: rootDir,
-          remoteRoot: '/workspace',
           port: debugPort,
           hostName: '127.0.0.1'
         }
@@ -212,11 +211,10 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
+        terminate: () => Promise.resolve()
       });
 
-      service.updateFunction('Foo', 'Java', false);
+      service.updateFunction('Foo', 'Java');
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
       expect(service.getFunctionLanguage()).to.equal('java');
     });
@@ -228,11 +226,10 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
+        terminate: () => Promise.resolve()
       });
 
-      service.updateFunction('Foo', 'jvm', false);
+      service.updateFunction('Foo', 'jvm');
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
       expect(service.getFunctionLanguage()).to.equal('java');
     });
@@ -244,11 +241,10 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
+        terminate: () => Promise.resolve()
       });
 
-      service.updateFunction('Bar', 'Node.js', false);
+      service.updateFunction('Bar', 'Node.js');
       expect(service.getStartedFunction('Bar')?.debugType).to.equal('node');
       expect(service.getFunctionLanguage()).to.equal('node');
     });
@@ -260,19 +256,18 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
+        terminate: () => Promise.resolve()
       });
 
       // right function, wrong type
-      service.updateFunction('FirstFunction', 'random', false);
+      service.updateFunction('FirstFunction', 'random');
       expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
         'unknown'
       );
       expect(service.getFunctionLanguage()).to.equal('unknown');
 
       // wrong function, right type
-      service.updateFunction('Foo', 'Java', false);
+      service.updateFunction('Foo', 'Java');
       expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
         'unknown'
       );
@@ -288,8 +283,7 @@ describe('Function Service', () => {
       debugPort: 7777,
       port: 8080,
       debugType: 'unknown',
-      terminate: () => Promise.resolve(),
-      isContainerLess: false
+      terminate: () => Promise.resolve()
     };
 
     beforeEach(() => {
@@ -336,153 +330,6 @@ describe('Function Service', () => {
       const functionTypeVal = service.getFunctionType();
       expect(functionTypeVal).to.equal(functionType.JAVA);
       expect(fsSyncStub.callCount).to.equal(2);
-    });
-  });
-
-  describe('Debug Configuration', () => {
-    let getFunctionTypeStub: SinonStub;
-
-    beforeEach(() => {
-      getFunctionTypeStub = sandbox.stub(
-        FunctionService.prototype,
-        'getFunctionType'
-      );
-    });
-
-    afterEach(() => {
-      getFunctionTypeStub.restore();
-    });
-
-    it('Should set remoteRoot to /workspace when JavaScript and running in a container.', () => {
-      const functionDef: FunctionExecution = {
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
-      };
-      getFunctionTypeStub.returns(functionType.JAVASCRIPT);
-
-      const service = FunctionService.instance;
-      service.registerStartedFunction(functionDef);
-      const rootDir = 'FirstFunction';
-      const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(
-        functionExecution!,
-        rootDir
-      );
-      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
-    });
-
-    it('Should validate that remoteRoot is not defined when JavaScript and running containerless.', () => {
-      const functionDef: FunctionExecution = {
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: true
-      };
-      getFunctionTypeStub.returns(functionType.JAVASCRIPT);
-
-      const service = FunctionService.instance;
-      service.registerStartedFunction(functionDef);
-      const rootDir = 'FirstFunction';
-      const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(
-        functionExecution!,
-        rootDir
-      );
-      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
-    });
-
-    it('Should set remoteRoot to /workspace when TypeScript and running in a container.', () => {
-      const functionDef: FunctionExecution = {
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
-      };
-      getFunctionTypeStub.returns(functionType.TYPESCRIPT);
-
-      const service = FunctionService.instance;
-      service.registerStartedFunction(functionDef);
-      const rootDir = 'FirstFunction';
-      const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(
-        functionExecution!,
-        rootDir
-      );
-      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
-    });
-
-    it('Should validate that remoteRoot is not defined when TypeScript and running containerless.', () => {
-      const functionDef: FunctionExecution = {
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: true
-      };
-      getFunctionTypeStub.returns(functionType.TYPESCRIPT);
-
-      const service = FunctionService.instance;
-      service.registerStartedFunction(functionDef);
-      const rootDir = 'FirstFunction';
-      const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(
-        functionExecution!,
-        rootDir
-      );
-      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
-    });
-
-    it('Should set remoteRoot to /workspace when Java and running in a container.', () => {
-      const functionDef: FunctionExecution = {
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: false
-      };
-      getFunctionTypeStub.returns(functionType.JAVA);
-
-      const service = FunctionService.instance;
-      service.registerStartedFunction(functionDef);
-      const rootDir = 'FirstFunction';
-      const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(
-        functionExecution!,
-        rootDir
-      );
-      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
-    });
-
-    it('Should validate that remoteRoot is not defined when Java and running containerless.', () => {
-      const functionDef: FunctionExecution = {
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve(),
-        isContainerLess: true
-      };
-      getFunctionTypeStub.returns(functionType.JAVA);
-
-      const service = FunctionService.instance;
-      service.registerStartedFunction(functionDef);
-      const rootDir = 'FirstFunction';
-      const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(
-        functionExecution!,
-        rootDir
-      );
-      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
   });
 });

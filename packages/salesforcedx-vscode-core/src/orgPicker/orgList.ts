@@ -12,17 +12,10 @@ import {
   OrgUserInfo
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';
 
-export interface FileInfo {
-  scratchAdminUsername?: string;
-  isDevHub?: boolean;
-  username: string;
-  devHubUsername?: string;
-  expirationDate?: string;
-}
 export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
@@ -35,14 +28,14 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
-    workspaceContext.onOrgChange((orgInfo: OrgUserInfo) =>
+    WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
       this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
     );
-    const { username, alias } = workspaceContext;
+    const { username, alias } = WorkspaceContext.getInstance();
     this.displayDefaultUsername(alias || username);
   }
 
-  public displayDefaultUsername(defaultUsernameOrAlias?: string) {
+  private displayDefaultUsername(defaultUsernameOrAlias?: string) {
     if (defaultUsernameOrAlias) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameOrAlias}`;
     } else {
@@ -65,19 +58,21 @@ export class OrgList implements vscode.Disposable {
   public async filterAuthInfo(
     orgAuthorizations: OrgAuthorization[]
   ): Promise<string[]> {
-    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-      false
-    );
-    let defaultDevHubUsername: string | undefined;
-    if (defaultDevHubUsernameOrAlias) {
-      defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameOrAlias
-      );
-    }
+    const defaultDevHubUsername = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
     const today = new Date();
     for (const orgAuth of orgAuthorizations) {
+      // When this is called right after logging out of an org, there can
+      // still be a cached Org Auth in the list with a "No auth information found"
+      // error. This warning prevents that error from stopping the process, and
+      // should help in debugging if there are any other Org Auths with errors.
+      if (orgAuth.error) {
+        console.warn(
+          `Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`
+        );
+        continue;
+      }
       const authFields: AuthFields = await this.getAuthFieldsFor(
         orgAuth.username
       );

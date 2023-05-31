@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
-import { workspaceContext } from '../../context';
+import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { workspaceUtils } from '../../util';
 
@@ -53,10 +53,6 @@ export interface FunctionExecution extends Terminable {
    * Active debug session attached
    */
   debugSession?: vscode.DebugSession;
-  /**
-   * Flag to determine whether running in a container
-   */
-  isContainerLess: boolean;
 }
 
 export class FunctionService {
@@ -68,7 +64,7 @@ export class FunctionService {
     return FunctionService._instance;
   }
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Locate the directory that has project.toml.
@@ -96,7 +92,7 @@ export class FunctionService {
   private startedExecutions: Map<string, FunctionExecution> = new Map();
 
   /**
-   * Register started functions, in order to terminate the container.
+   * Register started functions
    * Returns a disposable to unregister in case an error happens when starting function
    *
    * @returns {Disposable} disposable to unregister
@@ -114,8 +110,7 @@ export class FunctionService {
 
   public updateFunction(
     rootDir: string,
-    debugType: string,
-    isContainerLess: boolean
+    debugType: string
   ): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
@@ -125,8 +120,6 @@ export class FunctionService {
       } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
       }
-
-      functionExecution.isContainerLess = isContainerLess;
     }
   }
 
@@ -227,14 +220,9 @@ export class FunctionService {
       console: 'integratedTerminal',
       internalConsoleOptions: 'openOnSessionStart',
       localRoot: rootDir,
-      remoteRoot: '/workspace',
       hostName: '127.0.0.1',
       port: debugPort
     };
-
-    if (functionExecution.isContainerLess) {
-      delete debugConfiguration.remoteRoot;
-    }
 
     return debugConfiguration;
   }
@@ -278,7 +266,7 @@ export class FunctionService {
         }
 
         (async () => {
-          const connection = await workspaceContext.getConnection();
+          const connection = await WorkspaceContext.getInstance().getConnection();
           await TraceFlagsRemover.getInstance(connection).removeNewTraceFlags();
         })().catch(err => {
           throw err;

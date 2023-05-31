@@ -25,11 +25,19 @@ export const TELEMETRY_OPT_OUT_LINK =
   'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
 export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 
+export const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
+export const CONFIG_SET_NAME = 'force_config_set_title';
+export const TABLE_NAME_COL = 'table_header_name';
+export const TABLE_VAL_COL = 'table_header_value';
+export const TABLE_SUCCESS_COL = 'table_header_success';
+
 // sfdxCore setting config values
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
+export const PREFER_DEPLOY_ON_SAVE_ENABLED =
+  'push-or-deploy-on-save.preferDeployOnSave';
 export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS =
   'push-or-deploy-on-save.overrideConflictsOnPush';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
@@ -49,3 +57,10 @@ export const AURA_PATH = '/force-app/main/default/aura/';
 export const APEX_CLASSES_PATH = '/force-app/main/default/classes/';
 export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
+
+// Commands
+export const ORG_OPEN_COMMAND = 'sfdx.force.org.open';
+export const FORCE_SOURCE_PULL_LOG_NAME =
+  'force_source_pull_default_scratch_org';
+export const FORCE_SOURCE_PUSH_LOG_NAME =
+  'force_source_push_default_scratch_org';

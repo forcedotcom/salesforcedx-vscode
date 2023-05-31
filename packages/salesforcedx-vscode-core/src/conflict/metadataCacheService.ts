@@ -18,6 +18,8 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
+import { WorkspaceContext } from '../context/workspaceContext';
+import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { workspaceUtils } from '../util';
 
@@ -107,6 +109,9 @@ export class MetadataCacheService {
   ): Promise<MetadataCacheResult | undefined> {
     this.initialize(componentPath, projectPath, isManifest);
     const components = await this.getSourceComponents();
+    if (components.size === 0) {
+      return undefined;
+    }
     const operation = await this.createRetrieveOperation(components);
     const results = await operation.pollStatus();
     return this.processResults(results);
@@ -133,10 +138,13 @@ export class MetadataCacheService {
     const components = comps || (await this.getSourceComponents());
     this.clearDirectory(this.cachePath, true);
 
-    const operation = components.retrieve({
-      usernameOrConnection: this.username,
+    await setApiVersionOn(components);
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const operation = await components.retrieve({
+      usernameOrConnection: connection,
       output: this.cachePath,
-      merge: false
+      merge: false,
+      suppressEvents: true
     });
 
     return operation;
