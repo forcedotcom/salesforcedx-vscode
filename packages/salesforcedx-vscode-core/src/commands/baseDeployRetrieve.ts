@@ -34,7 +34,7 @@ import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { setApiVersionOn } from '../services/sdr/componentSetUtils';
-import { DeployQueue } from '../settings';
+import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { createComponentCount, formatException } from './util';
 
@@ -118,13 +118,15 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<DeployResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-
     components.projectDirectory = projectPath;
-    const sourceTracking = await SourceTrackingService.createSourceTracking(
-      projectPath,
-      connection
-    );
-    await sourceTracking.ensureLocalTracking();
+    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    if (sourceTrackingEnabled) {
+      const sourceTracking = await SourceTrackingService.createSourceTracking(
+        projectPath,
+        connection
+      );
+      await sourceTracking.ensureLocalTracking();
+    }
 
     const operation = await components.deploy({
       usernameOrConnection: connection
@@ -223,12 +225,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-    if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-      this.sourceTracking = await SourceTrackingService.createSourceTracking(
-        projectPath,
-        connection
-      );
+    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    if (sourceTrackingEnabled) {
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+      if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+        this.sourceTracking = await SourceTrackingService.createSourceTracking(
+          projectPath,
+          connection
+        );
+      }
     }
 
     const defaultOutput = join(
@@ -246,16 +251,17 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-
-    const status = result?.response?.status;
-    if (
-      (status === 'Succeeded' || status === 'SucceededPartial') &&
-      this.sourceTracking
-    ) {
-      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-        this.sourceTracking,
-        result
-      );
+    if (sourceTrackingEnabled) {
+      const status = result?.response?.status;
+      if (
+        (status === 'Succeeded' || status === 'SucceededPartial') &&
+        this.sourceTracking
+      ) {
+        await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+          this.sourceTracking,
+          result
+        );
+      }
     }
 
     return result;
