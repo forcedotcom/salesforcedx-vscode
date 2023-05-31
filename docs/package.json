@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "57.12.0",
+  "version": "58.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
