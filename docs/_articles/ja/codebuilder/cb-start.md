@@ -93,7 +93,7 @@ During the course of development, you'll use different types of orgs for differe
 
 To log into another org:
 
-1. Click the org picker(which show the alias for the current org) in the status bar, to  bring  up the command palette.
+1. Click the org picker(which show the alias for the current org) in the status bar, to  bring  up the Command Palette.
 2. From the Command Palette run **SFDX: Authorize an Org**.
 3. Enter the login URL or select the org you want to log into.
 4. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
