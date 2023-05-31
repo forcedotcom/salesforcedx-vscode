@@ -66,6 +66,7 @@ jobs:
         - name: Install Test Dependencies
           run: |
             npm install
+            npm run compile
           working-directory: salesforcedx-vscode-automation-tests
         - name: Install the SFDX CLI
           run: npm install -g sfdx-cli
