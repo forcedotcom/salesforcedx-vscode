@@ -4,9 +4,9 @@
 
 #### salesforcedx-vscode-core
 
-- We added a setting that enables or disable source tracking. ([PR #4885](https://github.com/forcedotcom/salesforcedx-vscode/pull/4885))
+- We added a setting that enables or disables source tracking. ([PR #4885](https://github.com/forcedotcom/salesforcedx-vscode/pull/4885))
 
-- We exposed the 1TelemetryService` class in core API ([PR #4879](https://github.com/forcedotcom/salesforcedx-vscode/pull/4879))
+- We exposed the `TelemetryService` class in core API ([PR #4879](https://github.com/forcedotcom/salesforcedx-vscode/pull/4879))
 
 #### salesforcedx-vscode-lwc
 
