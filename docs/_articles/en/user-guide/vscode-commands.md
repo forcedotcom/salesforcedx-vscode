@@ -3,7 +3,7 @@ title: Command Palette
 lang: en
 ---
 
-To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) and type **SFDX** in the command palette.  
+To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) and type **SFDX** in the Command Palette.  
 ![Command palette, filtered to show SFDX commands](./images/sfdx_commands.png)
 
 When a command finishes running (due to success, failure, or cancellation), a notification displays at the top of the window.  

@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.12.0",
+  "version": "58.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,13 +26,12 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
-    "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.34.8",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.12.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.12.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "58.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.0.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "^8.0.1",
-    "@salesforce/templates": "^57.0.2",
+    "@salesforce/templates": "^57.1.2",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
@@ -43,7 +42,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.12.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.0.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -88,7 +87,8 @@
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
         "@salesforce/core": "^3.34.8",
-        "@salesforce/templates": "57.0.2",
+        "@salesforce/source-tracking": "3.1.1",
+        "@salesforce/templates": "^57.1.2",
         "@salesforce/source-deploy-retrieve": "^8.0.1",
         "shelljs": "0.8.5"
       },
@@ -150,7 +150,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
+          "when": "sfdx:project_opened"
         }
       ],
       "conflicts": [
@@ -965,6 +965,11 @@
           "type": "boolean",
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "%prefer_deploy_on_save_enabled_description%"
         },
         "salesforcedx-vscode-core.detectConflictsAtSync": {
           "type": "boolean",

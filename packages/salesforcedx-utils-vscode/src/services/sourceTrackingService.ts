@@ -17,9 +17,11 @@ import { nls } from '../messages';
 import { Row, Table } from '../output';
 import { getRootWorkspacePath } from '../workspaces';
 
+export type SourceTrackingType = SourceTracking;
+
 export class SourceTrackingService {
   /**
-   * @description creates an instance of SourceTracking with options
+   * Creates an instance of SourceTracking with options
    * configured to work in VSCE.
    * Since SourceTracking is initialized with an SfProject, which
    * contains the project path, and PR #4643 made it so that VSCE is
