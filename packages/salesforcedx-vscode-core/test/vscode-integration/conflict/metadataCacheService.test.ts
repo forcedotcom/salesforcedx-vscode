@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
   MetadataApiRetrieve,
-  RetrieveResult
+  RetrieveResult,
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
   MetadataApiRetrieveStatus,
@@ -26,9 +28,9 @@ import {
   MetadataCacheService,
   PathType
 } from '../../../src/conflict/metadataCacheService';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -87,16 +89,17 @@ describe('Metadata Cache', () => {
         components: new ComponentSet(),
         output: ''
       });
-      const startStub = sinon.stub(mockOperation, 'start');
-      startStub.callsFake(() => {});
+      const pollStatusStub = sinon.stub(mockOperation, 'pollStatus');
+      pollStatusStub.callsFake(() => {});
       operationStub.resolves(mockOperation);
       processStub.resolves(undefined);
+      sinon.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves('55.0');
 
       await executor.run({ data: PROJECT_DIR, type: 'CONTINUE' });
 
       expect(componentStub.callCount).to.equal(1);
       expect(operationStub.callCount).to.equal(1);
-      expect(startStub.callCount).to.equal(1);
+      expect(pollStatusStub.callCount).to.equal(1);
       expect(processStub.callCount).to.equal(1);
     });
   });
@@ -300,4 +303,116 @@ describe('Metadata Cache', () => {
     const results = new RetrieveResult(response, cacheComps);
     return results;
   }
+
+  describe('Static Methods', () => {
+    const compOne = {
+      fullName: 'HandlerCostCenter',
+      type: {
+        name: 'ApexClass'
+      }
+    };
+    const compTwo = {
+      fullName: 'Account',
+      type: {
+        name: 'CustomObject'
+      }
+    };
+    const childComp = {
+      fullName: 'AccountNumber',
+      parent: compTwo,
+      type: {
+        name: 'CustomField'
+      }
+    };
+    const fileProperties: FileProperties[] = [
+      {
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass',
+        id: '1',
+        createdById: '2',
+        createdByName: 'Me',
+        createdDate: 'Today',
+        fileName: 'One.cls',
+        lastModifiedById: '3',
+        lastModifiedByName: 'You'
+      },
+      {
+        fullName: 'Account',
+        lastModifiedDate: 'Yesterday',
+        type: 'CustomObject',
+        id: '2',
+        createdById: '2',
+        createdByName: 'Me',
+        createdDate: 'Today',
+        fileName: 'Two.cls',
+        lastModifiedById: '3',
+        lastModifiedByName: 'You'
+      }
+    ];
+
+    it('Should correlate results correctly', () => {
+      const cacheResults = {
+        cache: {
+          baseDirectory: path.normalize('/a/b'),
+          commonRoot: 'c',
+          components: [compOne, compTwo, childComp] as SourceComponent[]
+        },
+        project: {
+          baseDirectory: path.normalize('/d'),
+          commonRoot: path.normalize('e/f'),
+          components: [compTwo, childComp, compOne] as SourceComponent[]
+        },
+        properties: fileProperties
+      } as MetadataCacheResult;
+
+      const components = MetadataCacheService.correlateResults(cacheResults);
+
+      expect(components.length).to.equal(2);
+      expect(components).to.have.deep.members([
+        {
+          cacheComponent: compOne,
+          projectComponent: compOne,
+          lastModifiedDate: 'Today'
+        },
+        {
+          cacheComponent: compTwo,
+          projectComponent: compTwo,
+          lastModifiedDate: 'Yesterday'
+        }
+      ]);
+    });
+
+    it('Should correlate results for just a child component', () => {
+      const cacheResults = {
+        cache: {
+          baseDirectory: path.normalize('/a/b'),
+          commonRoot: 'c',
+          components: [compOne, childComp] as SourceComponent[]
+        },
+        project: {
+          baseDirectory: path.normalize('/d'),
+          commonRoot: path.normalize('e/f'),
+          components: [childComp, compOne] as SourceComponent[]
+        },
+        properties: fileProperties
+      } as MetadataCacheResult;
+
+      const components = MetadataCacheService.correlateResults(cacheResults);
+
+      expect(components.length).to.equal(2);
+      expect(components).to.have.deep.members([
+        {
+          cacheComponent: compOne,
+          projectComponent: compOne,
+          lastModifiedDate: 'Today'
+        },
+        {
+          cacheComponent: childComp,
+          projectComponent: childComp,
+          lastModifiedDate: 'Yesterday'
+        }
+      ]);
+    });
+  });
 });

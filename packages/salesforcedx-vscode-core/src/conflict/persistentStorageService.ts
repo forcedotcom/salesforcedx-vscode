@@ -4,17 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
-  ComponentSet,
+  getRootWorkspacePath,
+  PullResult,
+  PushResult
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
+  DeployResult,
   FileProperties
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataApiDeployStatus} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import {
-  ExtensionContext,
-  Memento
-} from 'vscode';
-import { workspaceContext } from '../context';
+import { ExtensionContext, Memento } from 'vscode';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 
 interface ConflictFileProperties {
@@ -25,12 +25,14 @@ export class PersistentStorageService {
   private storage: Memento;
   private static instance?: PersistentStorageService;
 
-  private constructor(context: ExtensionContext) {
-    this.storage = context.globalState;
+  private constructor(extensionContext: ExtensionContext) {
+    this.storage = extensionContext.globalState;
   }
 
-  public static initialize(context: ExtensionContext) {
-    PersistentStorageService.instance = new PersistentStorageService(context);
+  public static initialize(extensionContext: ExtensionContext) {
+    PersistentStorageService.instance = new PersistentStorageService(
+      extensionContext
+    );
   }
 
   public static getInstance(): PersistentStorageService {
@@ -45,34 +47,54 @@ export class PersistentStorageService {
     return this.storage.get<ConflictFileProperties>(key);
   }
 
-  public setPropertiesForFile(key: string, conflictFileProperties: ConflictFileProperties | undefined) {
+  public setPropertiesForFile(
+    key: string,
+    conflictFileProperties: ConflictFileProperties | undefined
+  ) {
     this.storage.update(key, conflictFileProperties);
   }
 
-  public setPropertiesForFilesRetrieve(fileProperties: FileProperties | FileProperties[]) {
-    const fileArray = Array.isArray(fileProperties) ? fileProperties : [fileProperties];
+  public setPropertiesForFilesRetrieve(
+    fileProperties: FileProperties | FileProperties[]
+  ) {
+    const fileArray = Array.isArray(fileProperties)
+      ? fileProperties
+      : [fileProperties];
     for (const fileProperty of fileArray) {
       this.setPropertiesForFile(
         this.makeKey(fileProperty.type, fileProperty.fullName),
         {
           lastModifiedDate: fileProperty.lastModifiedDate
-        });
+        }
+      );
     }
   }
 
-  public setPropertiesForFilesDeploy(components: ComponentSet, status: MetadataApiDeployStatus) {
-    const sourceComponents = components.getSourceComponents();
-    for (const comp of sourceComponents) {
-      this.setPropertiesForFile(
-        this.makeKey(comp.type.name, comp.fullName),
-        {
-          lastModifiedDate: status.lastModifiedDate
-        });
+  public setPropertiesForFilesDeploy(result: DeployResult) {
+    const fileResponses = result.getFileResponses();
+    for (const file of fileResponses) {
+      this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
+        lastModifiedDate: String(result.response.lastModifiedDate)
+      });
+    }
+  }
+
+  public setPropertiesForFilesPushPull(
+    pushOrPullResults: PushResult[] | PullResult[]
+  ) {
+    const afterPushPullTimestamp = new Date().toISOString();
+    for (const file of pushOrPullResults) {
+      if (!file.fullName) {
+        continue;
+      }
+      this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
+        lastModifiedDate: afterPushPullTimestamp
+      });
     }
   }
 
   public makeKey(type: string, fullName: string): string {
-    const orgUserName = workspaceContext.username;
+    const orgUserName = WorkspaceContext.getInstance().username;
     const projectPath = getRootWorkspacePath();
     return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }

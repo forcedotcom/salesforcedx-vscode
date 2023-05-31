@@ -1,0 +1,59 @@
+{
+  // https://www.typescriptlang.org/docs/handbook/project-references.html
+  "files": [
+    /* only process references */
+  ],
+  "references": [
+    {
+      "path": "packages/salesforcedx-apex-debugger"
+    },
+    {
+      "path": "packages/salesforcedx-apex-replay-debugger"
+    },
+    {
+      "path": "packages/salesforcedx-sobjects-faux-generator"
+    },
+    {
+      "path": "packages/salesforcedx-test-utils-vscode"
+    },
+    {
+      "path": "packages/salesforcedx-utils"
+    },
+    {
+      "path": "packages/salesforcedx-utils-vscode"
+    },
+    {
+      "path": "packages/salesforcedx-visualforce-language-server"
+    },
+    {
+      "path": "packages/salesforcedx-visualforce-markup-language-server"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-apex"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-apex-debugger"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-apex-replay-debugger"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-core"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-lightning"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-lwc"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-soql"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-visualforce"
+    },
+    {
+      "path": "packages/system-tests"
+    }
+  ]
+}

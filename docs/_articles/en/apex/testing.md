@@ -3,11 +3,11 @@ title: Apex Tests
 lang: en
 ---
 
-Apex extension allows you to run Apex tests to verify the functionality of your code.
+The Apex extension allows you to run Apex tests to verify the functionality of your code.
 
 ## Explore Your Apex Tests
 
-The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](./en/getting-started/java-setup) is configured correctly.
+The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](./en/vscode-desktop/java-setup) is configured correctly.
 
 Use the Apex Tests feature to run one test method, test methods in one class, or all your Apex tests.
 
@@ -17,7 +17,7 @@ Use the Apex Tests feature to run one test method, test methods in one class, or
 - Run tests for all the methods in a class: Hover over the name of a test class and click the play icon (hover text: Run Tests).
 - Run all tests: Hover over the Apex Tests view and click the play icon ({% octicon play %}).
 
-After you run Apex tests, `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands are available in the Command Palette.
+After you run Apex tests, **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method** commands are available in the Command Palette.
 
 ### View Test Results
 
@@ -25,6 +25,8 @@ After you run Apex tests, `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX:
 - For failing tests, the icons turn red.
 
 To see the details of your test runs, hover over the name of a test class in the Side Bar.
+The results of the test are displayed in the Output panel. 
+
 
 ### Go to Test Class Definitions
 
@@ -46,7 +48,7 @@ You can run Apex tests from the class file open in the editor window. Click **Ru
 
 ### Highlight Apex Test Code Coverage
 
-You can retrieve code coverage results for your Apex Classes and Apex Triggers every time you run one or more tests. To do this, [edit your workspace settings](https://code.visualstudio.com/docs/getstarted/settings) to set `salesforcedx-vscode-core.retrieve-test-code-coverage` to **true** and then run your Apex tests. You can now see the code coverage in the Output panel, which shows the coverage percentage per Apex Class and Apex Trigger and lines that were not covered by the test run results.
+You can retrieve code coverage results for your Apex classes and Apex triggers every time you run one or more tests. To do this, [edit your workspace settings](https://code.visualstudio.com/docs/getstarted/settings) and check `retrive-test-code-coverage` and then run your Apex tests. You can now see the code coverage in the Output panel, which shows the coverage percentage per Apex class and Apex trigger and lines that were not covered by the test run results.
 
 ![Apex test results with code coverage](./images/code_coverage_output.png)
 
@@ -55,3 +57,6 @@ To see code coverage for your test, click the three-bars icon ({% octicon three-
 ![Enable Apex test visual code coverage](./images/code_coverage_footer.png)
 
 ![Apex test visual code coverage demo](./images/code_coverage_demo.gif)
+
+### Resources
+[Testing Apex | Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_testing.htm)

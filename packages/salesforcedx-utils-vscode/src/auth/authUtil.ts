@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Aliases } from '@salesforce/core';
+import { StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '..';
 import { TelemetryService } from '../telemetry/telemetry';
-import { DEFAULT_USERNAME_KEY } from '../types';
 
 export class AuthUtil {
   private static instance?: AuthUtil;
@@ -24,9 +23,7 @@ export class AuthUtil {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
-      );
+      const defaultUserName = await ConfigUtil.getDefaultUsernameOrAlias();
       if (defaultUserName === undefined) {
         return undefined;
       }
@@ -34,15 +31,18 @@ export class AuthUtil {
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      TelemetryService.getInstance().sendException(
-        'get_default_username_alias',
-        err.message
-      );
+      if (err instanceof Error) {
+        TelemetryService.getInstance().sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
       return undefined;
     }
   }
 
   public async getUsername(usernameOrAlias: string): Promise<string> {
-    return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
+    const info = await StateAggregator.getInstance();
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 }

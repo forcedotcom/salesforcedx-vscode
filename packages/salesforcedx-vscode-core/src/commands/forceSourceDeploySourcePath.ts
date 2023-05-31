@@ -4,45 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  LibraryPathsGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from './util';
+import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
+import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
-export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
-  public build(sourcePath: string): Command {
-    const commandBuilder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_deploy_text'))
-      .withArg('force:source:deploy')
-      .withLogName('force_source_deploy_with_sourcepath')
-      .withFlag('--sourcepath', sourcePath)
-      .withJson();
-    return commandBuilder.build();
-  }
-
-  protected getDeployType() {
-    return DeployType.Deploy;
-  }
-}
-
-export class LibraryDeploySourcePathExecutor extends DeployExecutor<
-  string | string[]
-> {
+export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor() {
     super(
       nls.localize('force_source_deploy_text'),
@@ -50,82 +31,89 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
     );
   }
 
-  protected async getComponents(
-    response: ContinueResponse<string | string[]>
+  public async getComponents(
+    response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const paths = typeof response.data === 'string' ? [response.data] : response.data;
-    return ComponentSet.fromSource(paths);
+    const sourceApiVersion = (await SfdxProjectConfig.getValue(
+      'sourceApiVersion'
+    )) as string;
+    const paths =
+      typeof response.data === 'string' ? [response.data] : response.data;
+    const componentSet = ComponentSet.fromSource(paths);
+    componentSet.sourceApiVersion = sourceApiVersion;
+    return componentSet;
   }
 }
 
-export class MultipleSourcePathsGatherer implements ParametersGatherer<string> {
-  private uris: vscode.Uri[];
-  public constructor(uris: vscode.Uri[]) {
-    this.uris = uris;
-  }
-  public async gather(): Promise<ContinueResponse<string>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath).join(',');
-    return {
-      type: 'CONTINUE',
-      data: sourcePaths
-    };
-  }
-}
-
-export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
-  private uris: vscode.Uri[];
-  public constructor(uris: vscode.Uri[]) {
-    this.uris = uris;
-  }
-  public async gather(): Promise<ContinueResponse<string[]>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath);
-    return {
-      type: 'CONTINUE',
-      data: sourcePaths
-    };
-  }
-}
-
-export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
+export const forceSourceDeploySourcePaths = async (
+  sourceUri: vscode.Uri | vscode.Uri[] | undefined,
+  uris: vscode.Uri[] | undefined
+) => {
   if (!sourceUri) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-      sourceUri = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize(
-        'force_source_deploy_select_file_or_directory'
-      );
-      telemetryService.sendException(
-        'force_source_deploy_with_sourcepath',
-        errorMessage
-      );
-      notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
+    // When the source is deployed via the command palette, both sourceUri and uris are
+    // each undefined, and sourceUri needs to be obtained from the active text editor.
+    sourceUri = getUriFromActiveEditor();
+    if (!sourceUri) {
       return;
     }
   }
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new FilePathGatherer(sourceUri),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor(),
-    new SourcePathChecker()
-  );
-  await commandlet.run();
-}
 
-export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
-  const useBeta = sfdxCoreSettings.getBetaDeployRetrieve();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    useBeta
-      ? new LibraryPathsGatherer(uris)
-      : new MultipleSourcePathsGatherer(uris),
-    useBeta
-      ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor()
+  // When a single file is selected and "Deploy Source from Org" is executed,
+  // sourceUri is passed, and the uris array contains a single element, the same
+  // path as sourceUri.
+  //
+  // When multiple files are selected and "Deploy Source from Org" is executed,
+  // sourceUri is passed, and is the path to the first selected file, and the uris
+  // array contains an array of all paths that were selected.
+  //
+  // When editing a file and "Deploy This Source from Org" is executed,
+  // sourceUri is passed, but uris is undefined.
+  if (!uris || uris.length < 1) {
+    if (Array.isArray(sourceUri)) {
+      // When "Push-or-deploy-on-save" is enabled, the first parameter
+      // passed in (sourceUri) is actually an array and not a single URI.
+      uris = sourceUri;
+    } else {
+      uris = [];
+      uris.push(sourceUri);
+    }
+  }
+
+  const messages = getConflictMessagesFor(
+    'force_source_deploy_with_sourcepath_beta'
   );
-  await commandlet.run();
-}
+
+  if (messages) {
+    const commandlet = new SfdxCommandlet<string[]>(
+      new SfdxWorkspaceChecker(),
+      new LibraryPathsGatherer(uris),
+      new LibraryDeploySourcePathExecutor(),
+      new CompositePostconditionChecker(
+        new SourcePathChecker(),
+        new TimestampConflictChecker(false, messages)
+      )
+    );
+
+    await commandlet.run();
+  }
+};
+
+export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+  const editor = vscode.window.activeTextEditor;
+  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+    return editor.document.uri;
+  }
+
+  const errorMessage = nls.localize(
+    'force_source_deploy_select_file_or_directory'
+  );
+  telemetryService.sendException(
+    'force_source_deploy_with_sourcepath',
+    errorMessage
+  );
+  notificationService.showErrorMessage(errorMessage);
+  channelService.appendLine(errorMessage);
+  channelService.showChannelOutput();
+
+  return undefined;
+};

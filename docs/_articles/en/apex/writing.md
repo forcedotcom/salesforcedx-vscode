@@ -1,5 +1,5 @@
 ---
-title: Write Apex Code
+title: Tools for Writing Apex Code
 lang: en
 ---
 
@@ -21,13 +21,67 @@ If you want to change how suggestions are pre-selected, see [IntelliSense - Sugg
 
 Code snippets are available for scaffolding class and interface definitions, and a variety of statements such as loops and conditional statements, and so on. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions.
 
-If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
+Out of the box snippets for Salesforce development are available in these repositories:
+- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
+- [Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc.json) 
 
-## Code Smartness for SObjects
 
-To ensure that the code smartness feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
+### Example Custom Snippet
+The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a custom Apex snippet that lets you quickly write a simple SOQL query:
 
-You can preview, view, or go to definitions of:
+1. Run the **Snippets: Configure User Snippets** command from the Command Palette. 
+2. Select ``apex.json`` to open the file.
+3. Add this snippet code to the file:
+   
+   ```
+   "SOQL" : {
+        "prefix": "soql",
+        "body": [
+            "[SELECT ${1:field1, field2} FROM ${2:SobjectName} WHERE ${3:clause}];"
+        ],
+        "description": "Apex SOQL query"
+    }
+   ```
+4. Save the file.
+5.  Use this snippet in your Apex class file by typing "soql" and selecting to add this snippet to your code.
+6.  The code snippet `` [SELECT field1, field2 FROM SobjectName WHERE clause];`` is added to your Apex file. 
+
+See [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets) for more information about snippets.
+
+## Custom Metadata Templates
+
+In addition to the generic snippets feature available in VS Code, you can use custom templates to create new metadata for an Apex class or trigger. See [Custom Code Templates](./en/user-guide/byotemplate) for information on how to set up your custom templates. Here's an example of using a template for your Apex classes:
+
+1. Edit the `DefaultApexClass.cls` file with your custom code:
+
+```
+//Copyright (c) <year><copyright holder>
+
+public with sharing class <%= apiName %> {
+    		public <%= apiName %>(String prop) {
+			this.prop = prop;
+    		}
+		@AuraEnabled
+    public static List<SObject> getRecords(){
+      try {
+          return [Select Id from Sobject];
+      } catch (Exception e){
+          throw new AuraHandledException(e.getMessage());
+      }
+    }
+}
+```
+1. Run the **SFDX: Create Apex Class** command from the Command Palette.
+2. Enter `ApexClass` for filename.
+3. Accept the default directory location.
+   
+Confirm that the `ApexClass.cls` file contains your custom code.
+
+## Intellisense for SObjects
+
+To ensure that the Intellisense feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette.
+
+You can now preview, view, or go to definitions of:
 
 - User-defined Apex
   - Classes (from definitions of extending classes)
@@ -47,27 +101,27 @@ When you refresh SObject definitions, the extension uses the default org to gene
 
 Whenever you refresh SObject definitions, the representative Apex classes are deleted and regenerated. You can modify the SObjects either by updating the objects’ `.object-meta.xml` and `.field-meta.xml` files; Or by making changes declaratively in the default org. After modifying the SObjects, make sure to sync your local project and the default org.
 
-When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, `SFDX: Refresh SObject Definitions` command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
+When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, **SFDX: Refresh SObject Definitions** command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
 
 ## Go To Definitions
 
 Apex extension provides go to definition support for user-defined Apex such as classes and methods, standard objects, and custom objects.
 
 - To preview a definition, press and hold Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
-- To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
-- To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.
+- To view a definition, right-click the item and select **Peek Definition**, or press <kbd>Alt+F12</kbd>.
+- To jump to the location of a definition, right-click the item and select **Go to Definition**, or press <kbd>F12</kbd>.
 
 ![Previewing, viewing, and jumping to a definition](./images/apex_go_to_definition.gif)
 
 ## Find All References
 
-You can find all references to user-defined Apex such as Classes, Class variables, Enums, Interfaces, Methods, and Properties. To find references, select an item and press Shift+F12; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
+You can find all references to user-defined Apex such as classes, class variables, enums, interfaces, methods, and properties. To find references, right-click the item and select **Go To References** or press <kbd>Shift+F12</kbd>; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
 
 ## Outline View
 
 The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor.
 
-- To view the list of the symbols in the file, press Ctrl+Shift+O (Windows or Linux) or Cmd+Shift+O (macOS).
+- To view the list of the symbols in the file, press <kbd>Ctrl+Shift+O</kbd> (Windows or Linux) or Cmd+Shift+O (macOS).
 - To go to one of the symbols, select it from the list.
 
 ![Outline view, showing the symbols in an Apex class](./images/apex_outline.png)
@@ -76,7 +130,7 @@ The Explorer in the Side Bar also provides an Outline view to assist you while w
 
 ## Syntax Errors
 
-Any syntax errors such as a missing semi-colon or a bracket are marked with a red squiggly line in the editor. The Problems panel also lists the syntax errors. To go to the source file with the syntax error, double-click the error.
+Any syntax errors such as a missing semicolon or a bracket are marked with a red squiggly line in the editor. The Problems panel also lists the syntax errors. To go to the source file with the syntax error, double-click the error.
 
 ![Problems view, showing a missing semicolon in an Apex class](./images/apex_problems.png)
 
@@ -94,12 +148,17 @@ Declare Missing Methods quick fix can be invoked in the following ways:
 
 ![GIF showing declare missing methods quick fix invocation via window popup](./images/declare-missing-methods-2.gif)
 
-> Note: Keyboard shortcut for the Quick Fix widget is Cmd+. in macOS and Ctrl+. in Windows and Linux.
+> Note: Keyboard shortcut for the Quick Fix widget is <kbd>Cmd+</kbd>. in macOS and <kbd>Ctrl+</kbd> in Windows and Linux.
 
 ## Anonymous Apex
+It’s common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/`apex that contains an example `hello.apex` file. We recommend that you use this folder to create your Anonymous Apex files using the `.apex` file extension.
 
-You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways. First, just select any Apex code and run the command `SFDX: Execute Anonymous Apex with Currently Selected Text`. Additionally, if you want to execute the entire context of a file, you can run the command `SFDX: Execute Anonymous Apex with Editor Contents`. In either case, the result of the executed code is printed to the output pane.
+You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways:
+ 1. Select any Apex code and run the command **SFDX: Execute Anonymous Apex with Currently Selected Text**.
+ 2. Run the command **SFDX: Execute Anonymous Apex with Editor Contents** to execute the entire context of a file.
+
+In both cases, the result of the executed code is printed to the output pane.
 
 ![SFDX: Execute Anonymous Apex with Currently Selected Text](./images/apex_execute_selected.png)
 
-It is common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/apex` that contains an example `hello.apex` file. It's recommneded that you use this folder to create your anonymous Apex files using the `.apex` file extension.
+It is common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/apex` that contains an example `hello.apex` file. It's recommended that you use this folder to create your Anonymous Apex files using the `.apex` file extension.

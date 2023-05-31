@@ -3,5 +3,14 @@
     "docs",
     "packages/*"
   ],
-  "version": "52.1.0"
+  "version": "58.0.0",
+  "command": {
+    "version": {
+      "allowBranch": [
+        "develop",
+        "release/*"
+      ]
+    }
+  },
+  "useNx": true
 }

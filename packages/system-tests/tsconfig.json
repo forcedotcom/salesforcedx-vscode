@@ -1,15 +1,22 @@
 {
+  "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "lib": ["es6", "dom"],
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "out",
-    "preserveConstEnums": true,
-    "strict": true
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "src",
+    "scenarios"
+  ],
+  "references": [
+    {
+      "path": "../salesforcedx-test-utils-vscode"
+    },
+    {
+      "path": "../salesforcedx-utils-vscode"
+    }
+  ]
 }

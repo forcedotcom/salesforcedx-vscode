@@ -6,7 +6,7 @@
  */
 
 import { channelService } from '../channels';
-import { getWorkspaceOrgType, OrgType } from '../context';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -16,7 +16,6 @@ import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds
@@ -67,36 +66,47 @@ export class DeployQueue {
     });
   }
 
+  private async executeDeployCommand(toDeploy: vscode.Uri[]) {
+    vscode.commands.executeCommand(
+      'sfdx.force.source.deploy.multiple.source.paths',
+      toDeploy
+    );
+  }
+
+  private async executePushCommand() {
+    const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
+      ? '.force'
+      : '';
+    const command = `sfdx.force.source.push${forceCommand}`;
+    vscode.commands.executeCommand(command);
+  }
+
   private async doDeploy(): Promise<void> {
     if (!this.locked && this.queue.size > 0) {
       this.locked = true;
       const toDeploy = Array.from(this.queue);
       this.queue.clear();
+      let deployType: string = '';
       try {
-        let defaultUsernameorAlias: string | undefined;
-        if (hasRootWorkspace()) {
-          defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-            false
-          );
-        }
-        const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
-        if (orgType === OrgType.SourceTracked) {
-          const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
-            ? '.force'
-            : '';
-          const command = `sfdx.force.source.push${forceCommand}`;
-          vscode.commands.executeCommand(command);
+        const preferDeployOnSaveEnabled = sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+        if (preferDeployOnSaveEnabled) {
+          await this.executeDeployCommand(toDeploy);
+          deployType = 'Deploy';
         } else {
-          vscode.commands.executeCommand(
-            'sfdx.force.source.deploy.multiple.source.paths',
-            toDeploy
-          );
+          const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+          if (orgType === OrgType.SourceTracked) {
+            await this.executePushCommand();
+            deployType = 'Push';
+          } else {
+            await this.executeDeployCommand(toDeploy);
+            deployType = 'Deploy';
+          }
         }
 
         telemetryService.sendEventData(
           'deployOnSave',
           {
-            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
+            deployType
           },
           {
             documentsToDeploy: toDeploy.length,
@@ -130,11 +140,12 @@ export class DeployQueue {
 export async function registerPushOrDeployOnSave() {
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
+      const documentUri = textDocument.uri;
       if (
         sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-        !(await ignorePath(textDocument.uri))
+        !(await ignorePath(documentUri.fsPath))
       ) {
-        await DeployQueue.get().enqueue(textDocument.uri);
+        await DeployQueue.get().enqueue(documentUri);
       }
     }
   );
@@ -150,14 +161,16 @@ function displayError(message: string) {
   );
 }
 
-async function ignorePath(uri: vscode.Uri) {
-  return isDotFile(uri) || !(await pathIsInPackageDirectory(uri));
+async function ignorePath(documentPath: string) {
+  return (
+    fileShouldNotBeDeployed(documentPath) ||
+    !(await pathIsInPackageDirectory(documentPath))
+  );
 }
 
 export async function pathIsInPackageDirectory(
-  documentUri: vscode.Uri
+  documentPath: string
 ): Promise<boolean> {
-  const documentPath = documentUri.fsPath;
   try {
     return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
@@ -178,6 +191,18 @@ export async function pathIsInPackageDirectory(
   }
 }
 
-function isDotFile(uri: vscode.Uri) {
-  return path.basename(uri.fsPath).startsWith('.');
+export function fileShouldNotBeDeployed(fsPath: string) {
+  return isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
+}
+
+function isDotFile(fsPath: string) {
+  return path.basename(fsPath).startsWith('.');
+}
+
+function isSoql(fsPath: string) {
+  return path.basename(fsPath).endsWith('.soql');
+}
+
+function isAnonApex(fsPath: string) {
+  return path.basename(fsPath).endsWith('.apex');
 }

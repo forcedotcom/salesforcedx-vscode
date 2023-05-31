@@ -8,9 +8,12 @@
 // tslint:disable:no-unused-expression
 
 import { expect } from 'chai';
-import { createSandbox } from 'sinon';
-import { Uri } from 'vscode';
+import * as fs from 'fs';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+import { Uri } from 'vscode';
+import { RevealOutputChannelOn } from 'vscode-languageclient';
+import { languageServerUtils } from '../../src/helpers/languageServerUtils';
 import {
   buildClientOptions,
   code2ProtocolConverter
@@ -91,6 +94,98 @@ describe('Apex Language Server Client', () => {
       expect(clientOptions.initializationOptions).not.to.be.undefined;
       expect(clientOptions.initializationOptions.enableEmbeddedSoqlCompletion)
         .to.be.false;
+    });
+  });
+
+  describe('Should not actively disturb user while running in the background', () => {
+    const sandbox = createSandbox();
+
+    beforeEach(() => {});
+    afterEach(() => sandbox.restore());
+
+    it('should never reveal output channel', () => {
+      sandbox
+        .stub(vscode.extensions, 'getExtension')
+        .withArgs('salesforce.salesforcedx-vscode-soql')
+        .returns({});
+
+      const clientOptions = buildClientOptions();
+
+      expect(clientOptions.revealOutputChannelOn).to.equal(
+        RevealOutputChannelOn.Never
+      );
+    });
+  });
+
+  describe('Setup Apex DB', () => {
+    const sandbox = createSandbox();
+    let existsStub: SinonStub;
+    let unlinkStub: SinonStub;
+    let copyStub: SinonStub;
+
+    beforeEach(() => {
+      existsStub = sandbox.stub(fs, 'existsSync').returns(true);
+      unlinkStub = sandbox.stub(fs, 'unlinkSync');
+      copyStub = sandbox.stub(fs, 'copyFileSync');
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    it('should check if apex db and system db exist', async () => {
+      languageServerUtils.setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+    });
+
+    it('should delete apex db if it exists', async () => {
+      languageServerUtils.setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+    });
+
+    it('should do nothing if apex db does not exist', async () => {
+      existsStub.onFirstCall().returns(false);
+      languageServerUtils.setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(unlinkStub.notCalled).to.be.true;
+    });
+
+    it('should copy system db to apex db location if system db exists', async () => {
+      languageServerUtils.setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(copyStub.calledOnce).to.be.true;
+    });
+
+    it('should do nothing if system db does not exist', async () => {
+      existsStub.onFirstCall().returns(true);
+      existsStub.onSecondCall().returns(false);
+      languageServerUtils.setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(unlinkStub.calledOnce).to.be.true;
+      expect(copyStub.notCalled).to.be.true;
+    });
+  });
+
+  describe('Anonymous Apex Support', () => {
+    const sandbox = createSandbox();
+
+    beforeEach(() => {});
+    afterEach(() => sandbox.restore());
+
+    it('should enable document selector for anon-apex', () => {
+      const clientOptions = buildClientOptions();
+
+      expect(clientOptions.documentSelector).not.to.be.undefined;
+      expect(clientOptions.documentSelector).to.deep.include.members([
+        {
+          language: 'apex-anon',
+          scheme: 'file'
+        }
+      ]);
     });
   });
 });

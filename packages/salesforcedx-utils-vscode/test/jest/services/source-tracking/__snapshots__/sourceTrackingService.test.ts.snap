@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Source Tracking Service getSourceStatusSummary Should return a friendly message when no changes exist 1`] = `"No local or remote changes found."`;
+
+exports[`Source Tracking Service getSourceStatusSummary Should return a properly formatted string when changes exist in the response 1`] = `
+"IGNORED  STATE          FULL NAME                         TYPE       PROJECT PATH                                                       
+───────  ─────────────  ────────────────────────────────  ─────────  ───────────────────────────────────────────────────────────────────
+false    Local Changed  CommunitiesLandingController      ApexClass  force-app/main/default/classes/CommunitiesLandingController.cls    
+false    Local Changed  CommunitiesLandingControllerTest  ApexClass  force-app/main/default/classes/CommunitiesLandingControllerTest.cls
+false    Local Changed  ProductController                 ApexClass  force-app/main/default/classes/ProductController.cls               
+false    Remote Add     Default                           Audience                                                                      
+true     Remote Add     Admin                             Profile                                                                       
+"
+`;

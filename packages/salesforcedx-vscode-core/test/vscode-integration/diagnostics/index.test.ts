@@ -5,27 +5,32 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ForceSourcePushErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
-import { getRange, handleDiagnosticErrors } from '../../../src/diagnostics';
+import {
+  getAbsoluteFilePath,
+  getFileUri,
+  getRange,
+  handleDiagnosticErrors
+} from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
-  let deployErrorResult: ForceSourceDeployErrorResponse;
+  let pushErrorResult: ForceSourcePushErrorResponse;
   const workspacePath = 'local/workspace/path';
   const sourcePath = 'source/file/path';
   let errorCollection: DiagnosticCollection;
 
   beforeEach(() => {
     errorCollection = languages.createDiagnosticCollection('test-errors');
-    deployErrorResult = {
-      message: 'Deploy failed.',
-      name: 'DeployFailed',
+    pushErrorResult = {
+      message: 'Push failed.',
+      name: 'PushFailed',
       stack: '123',
       status: 1,
       warnings: [],
-      result: []
+      data: []
     };
   });
 
@@ -49,7 +54,7 @@ describe('Diagnostics', () => {
     expect(range.end.character).to.equal(1);
   });
 
-  it('Should create diagnostics based off of deploy error results', () => {
+  it('Should create diagnostics based off of push error results', () => {
     const resultItem = {
       filePath: 'src/classes/Testing.cls',
       error: 'Invalid method referenced.',
@@ -59,10 +64,10 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    deployErrorResult.result.push(resultItem);
+    pushErrorResult.data.push(resultItem);
 
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -84,7 +89,7 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[0].range).to.deep.equal(testRange);
   });
 
-  it('Should create multiple diagnostics based off of deploy error results', () => {
+  it('Should create multiple diagnostics based off of push error results', () => {
     const resultItem1 = {
       filePath: 'src/classes/Testing.cls',
       error: 'Invalid method referenced.',
@@ -104,11 +109,11 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    pushErrorResult.data.push(resultItem1);
+    pushErrorResult.data.push(resultItem2);
 
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -160,9 +165,9 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    deployErrorResult.result.push(resultItem);
+    pushErrorResult.data.push(resultItem);
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -197,10 +202,10 @@ describe('Diagnostics', () => {
       filePath: 'N/A'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    pushErrorResult.data.push(resultItem1);
+    pushErrorResult.data.push(resultItem2);
     handleDiagnosticErrors(
-      deployErrorResult,
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -226,5 +231,38 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[1].range).to.be.an('object');
     const testRange1 = getRange('1', '1');
     expect(testDiagnostics[1].range).to.deep.equal(testRange1);
+  });
+
+  it('Should not duplicate the workspace path when constructing the fileUri', () => {
+    const absoluteFilePath = `${workspacePath}/src/classes/Testing.cls`;
+    const fileUri = getFileUri(workspacePath, absoluteFilePath, '');
+    const regEx = new RegExp(workspacePath, 'g');
+    const count = (fileUri.match(regEx) || []).length;
+    expect(count).to.equal(1);
+  });
+
+  it('Should use the default error path as fileUri when N/A is returned as filePath', () => {
+    const defaultErrorPath = 'default/error/path';
+    const filePath = 'N/A';
+    const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
+    expect(fileUri).to.equal(defaultErrorPath);
+  });
+
+  it('Should build the absolute file path when constructing the fileUri', () => {
+    const filePath = 'src/classes/Testing.cls';
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(workspacePath + '/' + filePath);
+  });
+
+  it('Should not duplicate the workspace path when filePath is already absolute', () => {
+    const filePath = `${workspacePath}/src/classes/Testing.cls`;
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(filePath);
+  });
+
+  it('Should use the workspace path as fileUri when filePath is undefined', () => {
+    const filePath = undefined;
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(workspacePath);
   });
 });

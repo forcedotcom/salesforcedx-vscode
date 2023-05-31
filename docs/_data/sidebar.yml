@@ -1,33 +1,75 @@
 - title:
-    en: Get Started
+    en: Salesforce Extensions for Desktop
     ja: 使用開始
-  baseUrl: /getting-started/
+  baseUrl: /vscode-desktop/
   children:
     - title:
         en: Salesforce Extensions for Desktop
         ja: インストール
-      url: /getting-started/install
+      url: /vscode-desktop/desktop-intro
     - title:
-        en: Recommended Extensions
+        en: Install Salesforce Extensions for Desktop
+        ja: インストール
+      url: /vscode-desktop/install
+    - title:
+        en: Other Recommended Extensions
         ja: 推奨の拡張機能
-      url: /getting-started/recommended-extensions
+      url: /vscode-desktop/recommended-extensions
     - title:
         en: Settings
         ja: 設定
-      url: /getting-started/settings
+      url: /vscode-desktop/settings
     - title:
         en: Tips & Tricks
         ja: ヒントとコツ
-      url: /getting-started/tips-and-tricks
+      url: /vscode-desktop/tips-and-tricks
+- title:
+    en: Code Builder (Beta)
+    ja: コードビルダー（ベータ版）
+  baseUrl: /codebuilder/
+  children:
+    - title:
+        en: Code Builder Overview
+        ja: コードビルダーの概要
+      url: /codebuilder/about
+    - title:
+        en: What's Different
+        ja: 何が違うの
+      url: /codebuilder/cb-diffs
+    - title:
+        en: Set Up Code Builder
+        ja: コードビルダーを設定する
+      url: /codebuilder/cb-setup
+    - title:
+        en: Get Started with Code Builder
+        ja: コードビルダーを使い始める
+      url: /codebuilder/cb-start
+- title:
+    en: Salesforce Development Models
+    ja: Salesforce 開発モデル
+  baseUrl: /sf-dev-models/
+  children:
+    - title:
+        en: Development Models Overview
+        ja: 開発モデル
+      url: /sf-dev-models/development-models
+    - title:
+        en: Org Dev Model
+        ja: 開発モデル
+      url: /sf-dev-models/orgdev
+    - title:
+        en: Package Development Model
+        ja: 開発モデル
+      url: /sf-dev-models/pkgdev
 - title:
     en: User Guide
     ja: ユーザガイド
   baseUrl: /user-guide/
   children:
     - title:
-        en: Development Models
-        ja: 開発モデル
-      url: /user-guide/development-models
+        en: Metadata Operations
+        ja: メタデータ操作
+      url: /user-guide/metadata-operations
     - title:
         en: Detect Conflicts
         ja: 競合の検知
@@ -40,14 +82,6 @@
         en: Org Browser
         ja: 組織ブラウザ
       url: /user-guide/org-browser
-    - title:
-        en: Source Diff
-        ja: ソースの差分
-      url: /user-guide/source-diff
-    - title:
-        en: Performance Enhancements
-        ja: パフォーマンスの改善
-      url: /user-guide/perf-enhancements
     - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
@@ -69,6 +103,14 @@
         ja: リモートコンテナ
       url: /user-guide/remote-development
     - title:
+        en: Custom Templates
+        ja: カスタムテンプレート
+      url: /user-guide/byotemplate
+    - title:
+        en: Manifest Builder
+        ja: マニフェスト ビルダー
+      url: /user-guide/manifestbuilder
+    - title:
         en: Demo Mode
         ja: デモモード
       url: /user-guide/demo-mode
@@ -78,17 +120,29 @@
   baseUrl: /apex/
   children:
     - title:
-        en: Writing
+        en: Overview
+        ja: 概要
+      url: /apex/apex-overview
+    - title:
+        en: Apex Development Quick Start
+        ja: 始めましょう
+      url: /apex/apex-get-started
+    - title:
+        en: Tools for Writing Apex Code
         ja: 作成
       url: /apex/writing
     - title:
-        en: Testing
+        en: Testing Apex
         ja: テスト
       url: /apex/testing
     - title:
         en: Refactoring
         ja: リファクタリング
       url: /apex/refactoring
+    - title:
+        en: Debugging Apex
+        ja: Apex のデバッグ
+      url: /apex/apex-debugging
     - title:
         en: Replay Debugger
         ja: Replay デバッガ
@@ -101,6 +155,10 @@
         en: ISV Debugger
         ja: ISV デバッガ
       url: /apex/isv-debugger
+    - title:
+        en: Example Apex Tasks
+        ja: Example Apex Tasks
+      url: /apex/apex-tasks
 - title:
     en: Aura
     ja: Aura
@@ -111,6 +169,15 @@
         ja: 作成
       url: /aura/writing
 - title:
+    en: Salesforce Functions
+    ja: Salesforce の機能
+  baseUrl: /functions/
+  children:
+    - title:
+        en: Overview
+        ja: 作成
+      url: /functions/overview
+- title:
     en: Lightning Web Components
     ja: Lightning Web コンポーネント
   baseUrl: /lwc/
@@ -119,6 +186,10 @@
         en: Overview
         ja: 作成
       url: /lwc/writing
+    - title:
+        en: LWC Development Quick Start
+        ja: LWC 開発クイック スタート
+      url: /lwc/lwc-get-started
     - title:
         en: Testing
         ja: テスト
@@ -166,6 +237,10 @@
         en: Writing
         ja: 作成
       url: /soql/writing
+    - title:
+        en: Example SOQL Tasks
+        ja: Example SOQL Tasks
+      url: /soql/soql-tasks/
 - title:
     en: FAQ
     ja: FAQ

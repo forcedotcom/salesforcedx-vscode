@@ -15,6 +15,7 @@ class DefaultPathStrategy implements SourcePathStrategy {
     return join(dirPath, `${fileName}${fileExt}`);
   }
 }
+
 class BundlePathStrategy implements SourcePathStrategy {
   public getPathToSource(
     dirPath: string,
@@ -44,7 +45,7 @@ class FunctionTemplatePathStrategy implements SourcePathStrategy {
     fileName: string,
     fileExt: string
   ): string {
-    return join(dirPath, 'functions', fileName, `index${fileExt}`);
+    return join(dirPath, `index${fileExt}`);
   }
 }
 
@@ -54,8 +55,17 @@ class FunctionJavaTemplatePathStrategy implements SourcePathStrategy {
     fileName: string,
     fileExt: string
   ): string {
-    const className = fileName.charAt(0).toUpperCase() + fileName.slice(1) + 'Function';
-    return join(dirPath, 'functions', fileName, 'src', 'main', 'java', 'com', 'example', `${className}${fileExt}`);
+    const className =
+      fileName.charAt(0).toUpperCase() + fileName.slice(1) + 'Function';
+    return join(
+      dirPath,
+      'src',
+      'main',
+      'java',
+      'com',
+      'example',
+      `${className}${fileExt}`
+    );
   }
 }
 

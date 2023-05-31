@@ -19,3 +19,24 @@
       from = "/tools/vscode/*"
       to = "/:splat"
       status = 200
+      
+    [[redirects]]
+      from = "/shared-components/*"
+      to = "https://developer.salesforce.com/shared-components/:splat"
+      status = 200
+
+    [[redirects]]
+      from = "/header-settings.json"
+      to = "https://developer.salesforce.com/header-settings.json"
+      status = 200  
+    
+    [[redirects]]
+      from = "/assets/svg/*"
+      to = "https://developer.salesforce.com/shared-components/assets/svg/:splat"
+      status = 200  
+
+    [[redirects]]
+      from = "/assets/icons/brand-sprite/*"
+      to = "https://developer.salesforce.com/shared-components/assets/icons/brand-sprite/:splat"
+      status = 200    
+      

@@ -36,7 +36,7 @@ export class TypingGenerator implements SObjectGenerator {
 
   public generateTypes(sobjects: SObject[], targetFolder: string): void {
     if (!fs.existsSync(targetFolder)) {
-      fs.mkdirSync(targetFolder);
+      fs.mkdirSync(targetFolder, { recursive: true });
     }
 
     for (const sobj of sobjects) {

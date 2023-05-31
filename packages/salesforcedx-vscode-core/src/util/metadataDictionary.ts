@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { PathStrategyFactory, SourcePathStrategy } from '../commands/util';
+import { sep } from 'path';
+import { PathStrategyFactory, SourcePathStrategy } from '../commands/util/sourcePathStrategies';
 
 const DEFINITIONS: { [key: string]: MetadataInfo } = {
   apexclass: {
@@ -82,6 +82,13 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     directory: 'functions',
     pathStrategy: PathStrategyFactory.createFunctionJavaTemplateStrategy(),
     extensions: ['.java']
+  },
+  experiencepropertytypebundle: {
+    type: 'ExperiencePropertyTypeBundle',
+    suffix: 'json',
+    directory: 'experiencePropertyTypeBundles',
+    pathStrategy: PathStrategyFactory.createDefaultStrategy(),
+    extensions: [`${sep}schema.json`]
   }
 };
 

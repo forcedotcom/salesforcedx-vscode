@@ -12,10 +12,12 @@ import * as cp from 'child_process';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
+import path = require('path');
 import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
+
 // tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
 
@@ -62,6 +64,12 @@ function checkJavaRuntime(): Promise<string> {
 
     if (javaHome) {
       javaHome = expandHomeDir(javaHome) as string;
+      if (isLocal(javaHome)) {
+        // prevent injecting malicious code from unknown repositories
+        return reject(
+          nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
+        );
+      }
       if (!pathExists.sync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
@@ -88,7 +96,11 @@ function readJavaConfig(): string {
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
 }
 
-function checkJavaVersion(javaHome: string): Promise<any> {
+function isLocal(javaHome: string): boolean {
+  return !path.isAbsolute(javaHome);
+}
+
+export function checkJavaVersion(javaHome: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     cp.execFile(
       javaHome + '/bin/java',
@@ -97,7 +109,8 @@ function checkJavaVersion(javaHome: string): Promise<any> {
       (error, stdout, stderr) => {
         if (
           stderr.indexOf('build 1.8') < 0 &&
-          stderr.indexOf('build 11.') < 0
+          stderr.indexOf('build 11.') < 0 &&
+          stderr.indexOf('build 17.') < 0
         ) {
           reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
         } else {

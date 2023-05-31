@@ -13,17 +13,17 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { SfdxProject } from '@salesforce/core';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfProject } from '@salesforce/core';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  ContinueResponse,
   EmptyParametersGatherer,
+  getRootWorkspacePath,
+  getTestResultsFolder,
   LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   SourceComponent
@@ -85,12 +85,13 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
         }
       }
     };
-    const result = await testService.runTestAsynchronous(
+    const result = (await testService.runTestAsynchronous(
       payload,
       this.codeCoverage,
+      false,
       progressReporter,
       token
-    );
+    )) as TestResult;
 
     if (token?.isCancellationRequested) {
       return false;
@@ -111,7 +112,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private async handleDiagnostics(result: TestResult) {
     ApexLibraryTestRunExecutor.diagnostics.clear();
     const projectPath = getRootWorkspacePath();
-    const project = await SfdxProject.resolve(projectPath);
+    const project = await SfProject.resolve(projectPath);
     const defaultPackage = project.getDefaultPackage().fullPath;
 
     result.tests.forEach(test => {

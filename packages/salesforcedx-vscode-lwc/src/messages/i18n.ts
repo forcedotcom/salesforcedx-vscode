@@ -13,14 +13,14 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   command_failure: '%s failed to run.',
   command_canceled: '%s was canceled.',
   force_lightning_lwc_start_text: 'SFDX: Start Local Development Server',
   force_lightning_lwc_start_not_found:
-    'To run this command, install the @salesforce/lwc-dev-server plugin. For more info, see [https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).',
+    'To run this command, install the @salesforce/lwc-dev-server plugin. For more info, see [Set Up LWC Local Development](https://developer.salesforce.com/tools/vscode/en/localdev/set-up-lwc-local-dev).',
   force_lightning_lwc_start_addr_in_use:
     "The local development server can't start because the address is already in use. To fix, try one of these options:\n 1) Stop the local dev server running on any another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n 3) Kill the process running on the specified port.",
   force_lightning_lwc_inactive_scratch_org:

@@ -7,13 +7,13 @@
 
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
   PathType
-} from '../conflict/metadataCacheService';
-import { workspaceContext } from '../context';
+} from '../conflict';
+import * as differ from '../conflict/directoryDiffer';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -36,7 +36,7 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
     }
   }
 
-  const defaultUsernameorAlias = workspaceContext.username;
+  const defaultUsernameorAlias = WorkspaceContext.getInstance().username;
   if (!defaultUsernameorAlias) {
     notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;
@@ -70,7 +70,7 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
     }
   }
 
-  const username = workspaceContext.username;
+  const username = WorkspaceContext.getInstance().username;
   if (!username) {
     notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;
@@ -95,13 +95,13 @@ export async function handleCacheResults(
 ): Promise<void> {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
-      await conflictDetectionService.diffOneFile(
+      await differ.diffOneFile(
         cache.selectedPath,
         cache.cache.components[0],
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      await conflictDetectionService.diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('force_source_diff_components_not_in_org');

@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import {
+  MetadataType,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
@@ -14,7 +17,7 @@ import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
-import * as conflictDetectionService from '../../../src/conflict/conflictDetectionService';
+import * as differ from '../../../src/conflict/directoryDiffer';
 import {
   MetadataCacheResult,
   MetadataCacheService,
@@ -28,7 +31,7 @@ import {
   FilePathGatherer,
   SfdxWorkspaceChecker
 } from '../../../src/commands/util';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { telemetryService } from '../../../src/telemetry';
 
 const sandbox = createSandbox();
@@ -56,12 +59,12 @@ describe('Force Source Diff', () => {
 
     beforeEach(() => {
       workspaceContextUsernameStub = sandbox
-        .stub(workspaceContext, 'username')
+        .stub(WorkspaceContext.prototype, 'username')
         .get(() => {
           return mockUsername;
         });
       workspaceContextAliasStub = sandbox
-        .stub(workspaceContext, 'alias')
+        .stub(WorkspaceContext.prototype, 'alias')
         .get(() => {
           return mockAlias;
         });
@@ -111,7 +114,7 @@ describe('Force Source Diff', () => {
         type: {
           id: 'ApexClass',
           name: 'ApexClass'
-        }
+        } as any
       });
       const mockResult: MetadataCacheResult = {
         selectedType: PathType.Individual,
@@ -125,7 +128,8 @@ describe('Force Source Diff', () => {
           baseDirectory: path.join('/projects/trailheadapps/lwc-recipes'),
           commonRoot: path.join('force-app/main/default/classes'),
           components: []
-        }
+        },
+        properties: []
       };
       const remoteFsPath = path.join(
         mockResult.cache.baseDirectory,
@@ -193,8 +197,8 @@ describe('Force Source Diff', () => {
 
     beforeEach(() => {
       notificationStub = stub(notificationService, 'showErrorMessage');
-      diffOneFileStub = stub(conflictDetectionService, 'diffOneFile');
-      diffFolderStub = stub(conflictDetectionService, 'diffFolder');
+      diffOneFileStub = stub(differ, 'diffOneFile');
+      diffFolderStub = stub(differ, 'diffFolder');
     });
 
     afterEach(() => {
@@ -230,7 +234,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Individual,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffOneFileStub);
@@ -246,7 +251,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Folder,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffFolderStub);

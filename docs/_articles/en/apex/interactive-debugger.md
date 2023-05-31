@@ -3,7 +3,7 @@ title: Apex Interactive Debugger
 lang: en
 ---
 
-Apex Debugger allows customers to debug their Apex code in sandboxes and scratch orgs, in real time, using VS Code as the client. You can use it to:
+Apex Interactive Debugger, also called the Apex Debugger, is a traditional debugger that allows customers to debug their Apex code in sandboxes and scratch orgs, in real time, using VS Code as the client. You can use it to:
 
 - Set breakpoints in Apex classes and triggers.
 - View variables, including sObject types, collections, and Apex System types.
@@ -56,11 +56,11 @@ Note: You can use the default license provided to License Management orgs only w
       ```
    1. Save your `launch.json` file. Each project needs only one `launch.json` file, even if you work with multiple scratch orgs. This file lives in the project’s `.vscode` directory.
 
-> NOTE: There is an unofficial debugger extension that conflicts with ours: https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug. Disable that extension while using ours.
+:::note
+An unofficial debugger extension called [Salesforce Apex Debug](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug) is available in the Visual Studio Marketplace. It conflicts with our official extension. Make sure you disable that extension while using ours.
+:::
 
 ## Debug Your Code
-
-Nice job! You’ve set up Apex Debugger. Now, set breakpoints and start a debugging session. Then, debug your code.
 
 To set a line breakpoint, open a `.cls` or `.trigger` file and click the column to the left of the line numbers. Active breakpoints are red. Inactive breakpoints are grey. You can see a list of your breakpoints in the Breakpoints panel of the Debug view.
 
@@ -72,7 +72,7 @@ While a debugging session is in progress, any synchronous activity that runs a l
 
 To make Apex Debugger halt execution when an exception is thrown during a debugging session, set breakpoints on exceptions. When an exception breakpoint is hit, the debugger pauses on the line of code that caused the exception. The Call Stack panel in the Debug view shows the name of the exception.
 
-To set an exception breakpoint, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then select **SFDX: Configure Apex Debug Exceptions**. The list of available exceptions includes the [exceptions in the `System` namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) and the Apex classes in your project that extend `Exception`. Select an exception from the list, and then select **Always break**.
+To set an exception breakpoint, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the Command Palette, then select **SFDX: Configure Apex Debug Exceptions**. The list of available exceptions includes the [exceptions in the System namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) and the Apex classes in your project that extend `Exception`. Select an exception from the list, and then select **Always break**.
 
 To see your exception breakpoints, run **SFDX: Configure Apex Debug Exceptions**. The top of the list shows the exception classes that have active breakpoints, labeled `Always break`. To remove an exception breakpoint, select an exception from the list and then select **Never break**.
 
@@ -90,7 +90,7 @@ Add filters to the `"Launch Apex Debugger"` configuration:
     "name": "Launch Apex Debugger",
     "type": "apex",
     "request": "launch",
-    "sfdxProject": "${workspaceRoot}"
+    "sfdxProject": "${workspaceRoot}",
     "userIdFilter": [],
     "requestTypeFilter": [],
     "entryPointFilter": ""

@@ -10,14 +10,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   APEX_GROUP_RANGE,
-  DARK_BLUE_BUTTON,
-  DARK_GREEN_BUTTON,
-  DARK_ORANGE_BUTTON,
-  DARK_RED_BUTTON,
-  LIGHT_BLUE_BUTTON,
-  LIGHT_GREEN_BUTTON,
-  LIGHT_ORANGE_BUTTON,
-  LIGHT_RED_BUTTON
+  APEX_TESTS,
+  FAIL_RESULT,
+  PASS_RESULT,
+  SKIP_RESULT
 } from '../constants';
 import {
   getApexTests,
@@ -25,6 +21,7 @@ import {
   languageClientUtils
 } from '../languageClientUtils';
 import { nls } from '../messages';
+import { iconHelpers, IconsEnum } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
 // Message
@@ -33,6 +30,9 @@ const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
 const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
 );
+
+const TEST_RUN_ID_FILE = 'test-run-id.txt';
+const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 export class ApexTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode> {
@@ -45,10 +45,12 @@ export class ApexTestOutlineProvider
   private rootNode: TestNode | null;
   public testStrings: Set<string> = new Set<string>();
   private apexTestInfo: ApexTestMethod[] | null;
+  private testIndex: Map<string, string> = new Map<string, string>();
 
   constructor(apexTestInfo: ApexTestMethod[] | null) {
     this.rootNode = null;
     this.apexTestInfo = apexTestInfo;
+    this.createTestIndex();
     this.getAllApexTests();
   }
 
@@ -117,6 +119,7 @@ export class ApexTestOutlineProvider
     this.apexTestInfo = null;
     if (languageClientUtils.getStatus().isReady()) {
       this.apexTestInfo = await getApexTests();
+      this.createTestIndex();
     }
     this.getAllApexTests();
     this.onDidChangeTestData.fire(undefined);
@@ -126,22 +129,43 @@ export class ApexTestOutlineProvider
     apexTestPath: string,
     testResultFile: string
   ) {
-    const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
+    const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
     const testRunId = readFileSync(testRunIdFile);
-    const testResultFilePath = path.join(
-      apexTestPath,
-      `test-result-${testRunId}.json`
-    );
+    let testResultFilePath;
+    if (testRunId.toString() === '') {
+      testResultFilePath = path.join(apexTestPath, TEST_RESULT_JSON_FILE);
+    } else {
+      testResultFilePath = path.join(
+        apexTestPath,
+        `test-result-${testRunId}.json`
+      );
+    }
     if (testResultFile === testResultFilePath) {
       await this.refresh();
       this.updateTestResults(testResultFile);
     }
   }
 
+  public getTestClassName(uri: vscode.Uri): string | undefined {
+    return this.testIndex.get(uri.toString());
+  }
+
+  private createTestIndex(): void {
+    this.testIndex.clear();
+    if (this.apexTestInfo) {
+      this.apexTestInfo.forEach(testMethod => {
+        this.testIndex.set(
+          testMethod.location.uri.toString(),
+          testMethod.definingType
+        );
+      });
+    }
+  }
+
   private getAllApexTests(): TestNode {
     if (this.rootNode == null) {
       // Starting Out
-      this.rootNode = new ApexTestGroupNode('ApexTests', null);
+      this.rootNode = new ApexTestGroupNode(APEX_TESTS, null);
     }
     this.rootNode.children = new Array<TestNode>();
     if (this.apexTestInfo) {
@@ -206,7 +230,7 @@ export class ApexTestOutlineProvider
       if (apexTestNode) {
         apexTestNode.outcome = test.outcome;
         apexTestNode.updateOutcome();
-        if (test.outcome === 'Fail') {
+        if (test.outcome === FAIL_RESULT) {
           apexTestNode.errorMessage = test.message || '';
           apexTestNode.stackTrace = test.stackTrace || '';
           apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
@@ -242,32 +266,34 @@ export abstract class TestNode extends vscode.TreeItem {
   }
 
   public iconPath = {
-    light: LIGHT_BLUE_BUTTON,
-    dark: DARK_BLUE_BUTTON
+    light: iconHelpers.getIconPath(IconsEnum.LIGHT_BLUE_BUTTON),
+    dark: iconHelpers.getIconPath(IconsEnum.DARK_BLUE_BUTTON)
   };
 
+  // TODO: create a ticket to address this particular issue.
+  // @ts-ignore
   get tooltip(): string {
     return this.description;
   }
 
   public updateOutcome(outcome: string) {
-    if (outcome === 'Pass') {
+    if (outcome === PASS_RESULT) {
       // Passed Test
       this.iconPath = {
-        light: LIGHT_GREEN_BUTTON,
-        dark: DARK_GREEN_BUTTON
+        light: iconHelpers.getIconPath(IconsEnum.LIGHT_GREEN_BUTTON),
+        dark: iconHelpers.getIconPath(IconsEnum.DARK_GREEN_BUTTON)
       };
-    } else if (outcome === 'Fail') {
+    } else if (outcome === FAIL_RESULT) {
       // Failed test
       this.iconPath = {
-        light: LIGHT_RED_BUTTON,
-        dark: DARK_RED_BUTTON
+        light: iconHelpers.getIconPath(IconsEnum.LIGHT_RED_BUTTON),
+        dark: iconHelpers.getIconPath(IconsEnum.DARK_RED_BUTTON)
       };
-    } else if (outcome === 'Skip') {
+    } else if (outcome === SKIP_RESULT) {
       // Skipped test
       this.iconPath = {
-        light: LIGHT_ORANGE_BUTTON,
-        dark: DARK_ORANGE_BUTTON
+        light: iconHelpers.getIconPath(IconsEnum.LIGHT_ORANGE_BUTTON),
+        dark: iconHelpers.getIconPath(IconsEnum.DARK_ORANGE_BUTTON)
       };
     }
 
@@ -294,27 +320,27 @@ export class ApexTestGroupNode extends TestNode {
     this.failing = 0;
     this.skipping = 0;
     this.children.forEach(child => {
-      if ((child as ApexTestNode).outcome === 'Pass') {
+      if ((child as ApexTestNode).outcome === PASS_RESULT) {
         this.passing++;
-      } else if ((child as ApexTestNode).outcome === 'Fail') {
+      } else if ((child as ApexTestNode).outcome === FAIL_RESULT) {
         this.failing++;
-      } else if ((child as ApexTestNode).outcome === 'Skip') {
+      } else if ((child as ApexTestNode).outcome === SKIP_RESULT) {
         this.skipping++;
       }
     });
 
     if (this.passing + this.failing + this.skipping === this.children.length) {
       if (this.failing !== 0) {
-        this.updateOutcome('Fail');
+        this.updateOutcome(FAIL_RESULT);
       } else {
-        this.updateOutcome('Pass');
+        this.updateOutcome(PASS_RESULT);
       }
     }
   }
 
   public updateOutcome(outcome: string) {
     super.updateOutcome(outcome);
-    if (outcome === 'Pass') {
+    if (outcome === PASS_RESULT) {
       this.children.forEach(child => {
         // Update all the children as well
         child.updateOutcome(outcome);
@@ -334,10 +360,19 @@ export class ApexTestNode extends TestNode {
 
   public updateOutcome() {
     super.updateOutcome(this.outcome);
-    if (this.outcome === 'Pass') {
+    if (this.outcome === PASS_RESULT) {
       this.errorMessage = '';
     }
   }
 
   public contextValue = 'apexTest';
 }
+
+let testOutlineProviderInst: ApexTestOutlineProvider;
+
+export const getTestOutlineProvider = () => {
+  if (!testOutlineProviderInst) {
+    testOutlineProviderInst = new ApexTestOutlineProvider(null);
+  }
+  return testOutlineProviderInst;
+};

@@ -4,11 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  ConfigUtil,
+  ContinueResponse,
+  SourceTrackingService,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   ComponentStatus,
@@ -27,47 +35,54 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
+import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands';
+import { ForceSourcePushExecutor } from '../../../src/commands';
 import {
   DeployExecutor,
   DeployRetrieveExecutor,
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
+import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
+import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
-import { MockContext } from '../telemetry/MockContext';
+import { workspaceUtils } from '../../../src/util';
+import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 describe('Base Deploy Retrieve Commands', () => {
   let mockConnection: Connection;
+  const dummyOrgApiVersion = '55.0';
+  let connectionGetApiVersionStub: SinonStub;
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
-    sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+    mockConnection = await testData.getConnection();
+    connectionGetApiVersionStub = sb
+      .stub(mockConnection, 'getApiVersion')
+      .returns(dummyOrgApiVersion);
+    sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
+      mockConnection
+    );
   });
 
-  afterEach(() => sb.restore());
+  afterEach(() => {
+    restoreContext($$);
+  });
 
   describe('DeployRetrieveCommand', () => {
     class TestDeployRetrieve extends DeployRetrieveExecutor<{}> {
@@ -175,7 +190,7 @@ describe('Base Deploy Retrieve Commands', () => {
         'classes',
         'someclass.xyz'
       );
-      const fullPath = join(getRootWorkspacePath(), projectPath);
+      const fullPath = join(workspaceUtils.getRootWorkspacePath(), projectPath);
       const error = new Error(`Problem with ${fullPath}`);
       executor.lifecycle.getComponentsStub.throws(error);
 
@@ -190,14 +205,30 @@ describe('Base Deploy Retrieve Commands', () => {
     it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
       const configApiVersion = '30.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      const getUserConfiguredApiVersionStub = sb
+        .stub(ConfigUtil, 'getUserConfiguredApiVersion')
+        .resolves(configApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
+      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(connectionGetApiVersionStub.called).to.equal(false);
+    });
+
+    it('should use the api version from the Org when no User-configured api version is set', async () => {
+      const executor = new TestDeployRetrieve();
+      const getUserConfiguredApiVersionStub = sb
+        .stub(ConfigUtil, 'getUserConfiguredApiVersion')
+        .resolves(undefined);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(connectionGetApiVersionStub.callCount).to.be.greaterThan(0);
+      expect(components.apiVersion).to.equal(mockConnection.getApiVersion());
     });
 
     it('should not override api version if getComponents set it already', async () => {
@@ -208,32 +239,20 @@ describe('Base Deploy Retrieve Commands', () => {
       executor.lifecycle.getComponentsStub.returns(getComponentsResult);
 
       const configApiVersion = '45.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').returns(
+        configApiVersion
+      );
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
     });
-
-    it('should use the registry api version by default', async () => {
-      const executor = new TestDeployRetrieve();
-      const registryApiVersion = registry.apiVersion;
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(undefined);
-
-      await executor.run({ data: {}, type: 'CONTINUE' });
-      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
-
-      expect(components.apiVersion).to.equal(registryApiVersion);
-    });
   });
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
+    let setApiVersionOnStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -243,22 +262,56 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
+      const mockExtensionContext = new MockExtensionContext(false);
+      PersistentStorageService.initialize(mockExtensionContext);
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
+      });
     });
 
     class TestDeploy extends DeployExecutor<{}> {
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
-      public startStub: SinonStub;
+      public pollStatusStub: SinonStub;
       public deployStub: SinonStub;
       public cancellationStub = sb.stub();
+      public cacheSpy: SinonSpy;
+      public getFileResponsesStub = sb.stub();
+
+      private fileResponses: any[] = [
+        {
+          fullName: 'MyClass',
+          type: 'ApexClass',
+          state: ComponentStatus.Changed,
+          filePath: join('project', packageDir, 'MyClass.cls')
+        },
+        {
+          fullName: 'MyClass',
+          type: 'ApexClass',
+          state: ComponentStatus.Changed,
+          filePath: join('project', packageDir, 'MyClass.cls-meta.xml')
+        },
+        {
+          fullName: 'MyLayout',
+          type: 'Layout',
+          state: ComponentStatus.Created,
+          filePath: join('project', packageDir, 'MyLayout.layout-meta.xml')
+        }
+      ];
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
         this.components = toDeploy;
-        this.startStub = sb.stub();
+        this.pollStatusStub = sb.stub();
         this.deployStub = sb
           .stub(this.components, 'deploy')
-          .returns({ start: this.startStub });
+          .returns({ pollStatus: this.pollStatusStub });
+        this.cacheSpy = sb.spy(
+          PersistentStorageService.getInstance(),
+          'setPropertiesForFilesDeploy'
+        );
+        this.getFileResponsesStub = sb.stub().returns(this.fileResponses);
       }
 
       protected async getComponents(
@@ -283,16 +336,130 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(operationSpy.calledOnce).to.equal(true);
     });
 
-    it('should call deploy on component set', async () => {
+    it('should set the apiVersion and then call deploy on component set', async () => {
       const executor = new TestDeploy();
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
+      expect(setApiVersionOnStub.calledOnce).to.equal(true);
       expect(executor.deployStub.calledOnce).to.equal(true);
+      expect(setApiVersionOnStub.calledBefore(executor.deployStub)).to.equal(
+        true
+      );
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(executor.startStub.calledOnce).to.equal(true);
+      expect(executor.pollStatusStub.calledOnce).to.equal(true);
+    });
+
+    it('should store properties in metadata cache on successful deploy', async () => {
+      const executor = new TestDeploy();
+      const props: FileProperties[] = [
+        {
+          id: '1',
+          createdById: '2',
+          createdByName: 'Me',
+          createdDate: 'Today',
+          fileName: join('classes', 'One.cls'),
+          fullName: 'One',
+          lastModifiedById: '3',
+          lastModifiedByName: 'You',
+          lastModifiedDate: 'Tomorrow',
+          type: 'ApexClass'
+        },
+        {
+          id: '4',
+          createdById: '2',
+          createdByName: 'Me',
+          createdDate: 'Yesterday',
+          fileName: join('objects', 'Two.cls'),
+          fullName: 'Two',
+          lastModifiedById: '2',
+          lastModifiedByName: 'Me',
+          lastModifiedDate: 'Yesterday',
+          type: 'CustomObject'
+        }
+      ];
+      const deployPropsOne = {
+        name: 'One',
+        fullName: 'One',
+        type: registry.types.apexclass,
+        content: join('project', 'classes', 'One.cls'),
+        xml: join('project', 'classes', 'One.cls-meta.xml')
+      };
+      const deployComponentOne = SourceComponent.createVirtualComponent(
+        deployPropsOne,
+        [
+          {
+            dirPath: dirname(deployPropsOne.content),
+            children: [
+              basename(deployPropsOne.content),
+              basename(deployPropsOne.xml)
+            ]
+          }
+        ]
+      );
+      const deployPropsTwo = {
+        name: 'Two',
+        fullName: 'Two',
+        type: registry.types.customobject,
+        content: join('project', 'classes', 'Two.cls'),
+        xml: join('project', 'classes', 'Two.cls-meta.xml')
+      };
+      const deployComponentTwo = SourceComponent.createVirtualComponent(
+        deployPropsTwo,
+        [
+          {
+            dirPath: dirname(deployPropsTwo.content),
+            children: [
+              basename(deployPropsTwo.content),
+              basename(deployPropsTwo.xml)
+            ]
+          }
+        ]
+      );
+      const mockDeployResult = new DeployResult(
+        {
+          status: RequestStatus.Succeeded,
+          lastModifiedDate: 'Yesterday'
+        } as MetadataApiDeployStatus,
+        new ComponentSet([deployComponentOne, deployComponentTwo])
+      );
+      mockDeployResult.getFileResponses = sb.stub().returns([
+        { fullName: 'one', type: 'ApexClass', state: '', filePath: '' },
+        { fullName: 'two', type: 'CustomObject', state: '', filePath: '' }
+      ]);
+      const cache = PersistentStorageService.getInstance();
+      executor.pollStatusStub.resolves(mockDeployResult);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].components.size).to.equal(2);
+      expect(
+        cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))
+          ?.lastModifiedDate
+      ).to.equal('Yesterday');
+      expect(
+        cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))
+          ?.lastModifiedDate
+      ).to.equal('Yesterday');
+    });
+
+    it('should not store any properties in metadata cache on failed deploy', async () => {
+      const executor = new TestDeploy();
+      const mockDeployResult = new DeployResult(
+        {
+          status: RequestStatus.Failed
+        } as MetadataApiDeployStatus,
+        new ComponentSet()
+      );
+      const fileResponses: any[] = [];
+      sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
+      executor.pollStatusStub.resolves(mockDeployResult);
+      const success = await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(success).to.equal(false);
     });
 
     describe('Result Output', () => {
@@ -333,7 +500,7 @@ describe('Base Deploy Retrieve Commands', () => {
           new ComponentSet()
         );
         sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
-        executor.startStub.resolves(mockDeployResult);
+        executor.pollStatusStub.resolves(mockDeployResult);
 
         const formattedRows = fileResponses.map(r => ({
           fullName: r.fullName,
@@ -370,7 +537,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiDeployStatus,
           new ComponentSet()
         );
-        executor.startStub.resolves(mockDeployResult);
+        executor.pollStatusStub.resolves(mockDeployResult);
 
         const failedRows = fileResponses.map(r => ({
           fullName: r.fullName,
@@ -413,7 +580,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiDeployStatus,
           new ComponentSet()
         );
-        executor.startStub.resolves(mockDeployResult);
+        executor.pollStatusStub.resolves(mockDeployResult);
 
         const failedRows = fileResponses.map(r => ({
           fullName: r.fullName,
@@ -428,7 +595,7 @@ describe('Base Deploy Retrieve Commands', () => {
         sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
 
         const setDiagnosticsStub = sb.stub(
-          BaseDeployExecutor.errorCollection,
+          (executor as any).errorCollection,
           'set'
         );
 
@@ -436,21 +603,26 @@ describe('Base Deploy Retrieve Commands', () => {
 
         expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
         failedRows.forEach((row, index) => {
-          expect(setDiagnosticsStub.getCall(index).args).to.deep.equal([
-            vscode.Uri.file(row.filePath),
-            [
-              {
-                message: row.error,
-                range: new vscode.Range(
-                  row.lineNumber - 1,
-                  row.columnNumber - 1,
-                  row.lineNumber - 1,
-                  row.columnNumber - 1
-                ),
-                severity: vscode.DiagnosticSeverity.Error,
-                source: row.type
-              }
-            ]
+          const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
+          const expectedFileUri = vscode.Uri.file(
+            getAbsoluteFilePath(
+              row.filePath,
+              workspaceUtils.getRootWorkspacePath()
+            )
+          );
+          expect(fileUri).to.deep.equal(expectedFileUri);
+          expect(diagnostics).to.deep.equal([
+            {
+              message: row.error,
+              range: new vscode.Range(
+                row.lineNumber - 1,
+                row.columnNumber - 1,
+                row.lineNumber - 1,
+                row.columnNumber - 1
+              ),
+              severity: vscode.DiagnosticSeverity.Error,
+              source: row.type
+            }
           ]);
         });
       });
@@ -479,21 +651,25 @@ describe('Base Deploy Retrieve Commands', () => {
         children: [basename(props.content), basename(props.xml)]
       }
     ]);
+    let setApiVersionOnStub: SinonStub;
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
-      public startStub: SinonStub;
+      public pollStatusStub: SinonStub;
       public retrieveStub: SinonStub;
       public cacheSpy: SinonSpy;
 
       constructor(toRetrieve = new ComponentSet()) {
         super('test', 'testlog');
         this.components = toRetrieve;
-        this.startStub = sb.stub();
+        this.pollStatusStub = sb.stub();
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
-          .returns({ start: this.startStub });
-        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
+          .returns({ pollStatus: this.pollStatusStub });
+        this.cacheSpy = sb.spy(
+          PersistentStorageService.getInstance(),
+          'setPropertiesForFilesRetrieve'
+        );
       }
 
       protected async getComponents(
@@ -507,11 +683,15 @@ describe('Base Deploy Retrieve Commands', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         packageDir
       ]);
-      const mockContext = new MockContext(false);
-      PersistentStorageService.initialize(mockContext);
+      const mockExtensionContext = new MockExtensionContext(false);
+      PersistentStorageService.initialize(mockExtensionContext);
+      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        updateTrackingFromRetrieve: async () => {}
+      });
     });
 
-    it('should call retrieve on component set', async () => {
+    it('should set the apiVersion and then call retrieve on component set', async () => {
       const components = new ComponentSet([
         { fullName: 'MyClass', type: 'ApexClass' },
         { fullName: 'MyTrigger', type: 'ApexTrigger' }
@@ -520,7 +700,11 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(executor.retrieveStub.callCount).to.equal(1);
+      expect(setApiVersionOnStub.calledOnce);
+      expect(executor.retrieveStub.calledOnce);
+      expect(setApiVersionOnStub.calledBefore(executor.retrieveStub)).to.equal(
+        true
+      );
     });
 
     it('should call setup cancellation logic', async () => {
@@ -538,21 +722,31 @@ describe('Base Deploy Retrieve Commands', () => {
         {
           status: RequestStatus.Succeeded,
           fileProperties: [
-            {fullName: 'one', type: 'ApexClass', lastModifiedDate: 'Today'},
-            {fullName: 'two', type: 'CustomObject', lastModifiedDate: 'Yesterday'}
+            { fullName: 'one', type: 'ApexClass', lastModifiedDate: 'Today' },
+            {
+              fullName: 'two',
+              type: 'CustomObject',
+              lastModifiedDate: 'Yesterday'
+            }
           ]
         } as MetadataApiRetrieveStatus,
         new ComponentSet()
       );
       const cache = PersistentStorageService.getInstance();
-      executor.startStub.resolves(mockRetrieveResult);
+      executor.pollStatusStub.resolves(mockRetrieveResult);
 
-      await executor.run({data: {}, type: 'CONTINUE' });
+      await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].length).to.equal(2);
-      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))?.lastModifiedDate).to.equal('Today');
-      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))?.lastModifiedDate).to.equal('Yesterday');
+      expect(
+        cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))
+          ?.lastModifiedDate
+      ).to.equal('Today');
+      expect(
+        cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))
+          ?.lastModifiedDate
+      ).to.equal('Yesterday');
     });
 
     it('should not store any properties in metadata cache on failed retrieve', async () => {
@@ -564,9 +758,9 @@ describe('Base Deploy Retrieve Commands', () => {
         } as MetadataApiRetrieveStatus,
         new ComponentSet()
       );
-      executor.startStub.resolves(mockRetrieveResult);
+      executor.pollStatusStub.resolves(mockRetrieveResult);
 
-      await executor.run({data: {}, type: 'CONTINUE' });
+      await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].length).to.equal(0);
@@ -588,7 +782,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
-        executor.startStub.resolves(mockRetrieveResult);
+        executor.pollStatusStub.resolves(mockRetrieveResult);
 
         const fileResponses = [
           {
@@ -642,7 +836,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
-        executor.startStub.resolves(mockRetrieveResult);
+        executor.pollStatusStub.resolves(mockRetrieveResult);
 
         const fileResponses = [
           {

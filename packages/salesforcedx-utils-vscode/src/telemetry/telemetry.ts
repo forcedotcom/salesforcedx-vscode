@@ -6,7 +6,8 @@
  */
 
 import * as util from 'util';
-import { env, ExtensionContext, workspace } from 'vscode';
+import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -53,7 +54,7 @@ export class TelemetryBuilder {
 
 export class TelemetryService {
   private static instance: TelemetryService;
-  private context: ExtensionContext | undefined;
+  private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
   private aiKey: string = '';
   private version: string = '';
@@ -72,16 +73,16 @@ export class TelemetryService {
 
   /**
    * Initialize Telemetry Service during extension activation.
-   * @param context extension context
+   * @param extensionContext extension context
    * @param extensionName extension name
    */
   public async initializeService(
-    context: ExtensionContext,
+    extensionContext: ExtensionContext,
     extensionName: string,
     aiKey: string,
     version: string
   ): Promise<void> {
-    this.context = context;
+    this.extensionContext = extensionContext;
     this.extensionName = extensionName;
     this.aiKey = aiKey;
     this.version = version;
@@ -97,12 +98,13 @@ export class TelemetryService {
       });
 
     const machineId = env ? env.machineId : 'someValue.machineId';
-    const isDevMode = machineId === 'someValue.machineId';
+    const isDevMode =
+      extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
-      this.isTelemetryEnabled() &&
+      (await this.isTelemetryEnabled()) &&
       !isDevMode
     ) {
       this.reporter = new TelemetryReporter(
@@ -111,7 +113,7 @@ export class TelemetryService {
         this.aiKey,
         true
       );
-      this.context.subscriptions.push(this.reporter);
+      this.extensionContext.subscriptions.push(this.reporter);
     }
   }
 
@@ -140,7 +142,7 @@ export class TelemetryService {
         .getConfiguration('telemetry')
         .get<boolean>('enableTelemetry', true) &&
       workspace
-        .getConfiguration('salesforcedx-vscode-core')
+        .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
         .get<boolean>('telemetry.enabled', true)
     );
   }

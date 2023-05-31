@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CommandOutput, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,17 +12,22 @@ import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
-  const rootWorkspacePath = getRootWorkspacePath();
+  let metadataFolderStub: SinonStub;
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
+  const metadataDirectoryPath = 'test/path/.sfdx/orgs/test-username1@example.com/metadata';
   const typeUtil = new TypeUtils();
   beforeEach(() => {
     getDefaultUsernameStub = stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
     getUsernameStub = stub(OrgAuthInfo, 'getUsername');
+    metadataFolderStub = stub(projectPaths, 'metadataFolder').returns(
+      metadataDirectoryPath
+    );
   });
   afterEach(() => {
     getDefaultUsernameStub.restore();
@@ -30,18 +35,7 @@ describe('get metadata types folder', () => {
   });
 
   it('should return the path for a given username', async () => {
-    getDefaultUsernameStub.returns('defaultAlias');
-    getUsernameStub.returns('test-username1@example.com');
-    const filePath = path.join(
-      rootWorkspacePath,
-      '.sfdx',
-      'orgs',
-      'test-username1@example.com',
-      'metadata'
-    );
-    expect(
-      await typeUtil.getTypesFolder('test-username1@example.com')
-    ).to.equal(filePath);
+    expect(await typeUtil.getTypesFolder()).to.equal(metadataDirectoryPath);
   });
 });
 
@@ -89,9 +83,9 @@ describe('build metadata types list', () => {
     const data = JSON.stringify({
       status: 0,
       result: {
-        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(
-          xmlName => ({ xmlName })
-        )
+        metadataObjects: Array.from(
+          TypeUtils.UNSUPPORTED_TYPES
+        ).map(xmlName => ({ xmlName }))
       }
     });
     const types = await typeUtil.buildTypesList(data, undefined);
@@ -109,7 +103,6 @@ describe('load metadata types data', () => {
   let writeFileStub: SinonStub;
   let getTypesFolderStub: SinonStub;
   const typeUtil = new TypeUtils();
-  const defaultOrg = 'defaultOrg@test.com';
   let filePath = '/test/metadata/';
   beforeEach(() => {
     readFileStub = stub(fs, 'readFileSync');
@@ -146,7 +139,7 @@ describe('load metadata types data', () => {
       }
     });
     cmdOutputStub.returns(fileData);
-    const components = await typeUtil.loadTypes(defaultOrg);
+    const components = await typeUtil.loadTypes();
     expect(cmdOutputStub.called).to.equal(true);
     expect(buildTypesStub.calledWith(fileData, undefined)).to.be.true;
   });
@@ -154,14 +147,14 @@ describe('load metadata types data', () => {
   it('should load metadata types from file if file exists', async () => {
     fileExistsStub.returns(true);
     filePath = path.join(filePath, 'metadataTypes.json');
-    const components = await typeUtil.loadTypes(defaultOrg);
+    const components = await typeUtil.loadTypes();
     expect(cmdOutputStub.called).to.equal(false);
     expect(buildTypesStub.calledWith(undefined, filePath)).to.be.true;
   });
 
   it('should load metadata types through cli if file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
-    await typeUtil.loadTypes(defaultOrg, true);
+    await typeUtil.loadTypes(true);
     expect(cmdOutputStub.calledOnce).to.be.true;
   });
 });

@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
+import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
-import { ConfigUtil } from '../generator/configUtil';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
 import {
   MinObjectRetriever,
@@ -31,7 +32,6 @@ export class SObjectTransformerFactory {
   public static async create(
     emitter: EventEmitter,
     cancellationToken: CancellationToken,
-    projectPath: string,
     category: SObjectCategory,
     source: SObjectRefreshSource
   ): Promise<SObjectTransformer> {
@@ -39,20 +39,18 @@ export class SObjectTransformerFactory {
     const generators: SObjectGenerator[] = [];
     const standardGenerator = new FauxClassGenerator(
       SObjectCategory.STANDARD,
-      'standardObjects'
+      STANDARDOBJECTS_DIR
     );
     const customGenerator = new FauxClassGenerator(
       SObjectCategory.CUSTOM,
-      'customObjects'
+      CUSTOMOBJECTS_DIR
     );
 
     if (source === SObjectRefreshSource.StartupMin) {
       retrievers.push(new MinObjectRetriever());
       generators.push(standardGenerator);
     } else {
-      const connection = await SObjectTransformerFactory.createConnection(
-        projectPath
-      );
+      const connection = await SObjectTransformerFactory.createConnection();
 
       retrievers.push(
         new OrgObjectRetriever(connection),
@@ -76,9 +74,8 @@ export class SObjectTransformerFactory {
         generators.push(customGenerator);
       }
     }
-    // TODO Enable as part of W-8912293
-    // generators.push(new TypingGenerator());
 
+    generators.push(new TypingGenerator());
     generators.push(new SOQLMetadataGenerator(category));
 
     return new SObjectTransformer(
@@ -89,14 +86,8 @@ export class SObjectTransformerFactory {
     );
   }
 
-  public static async createConnection(
-    projectPath: string
-  ): Promise<Connection> {
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: await ConfigUtil.getUsername(projectPath)
-      })
-    });
+  public static async createConnection(): Promise<Connection> {
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
     return connection;
   }
 }

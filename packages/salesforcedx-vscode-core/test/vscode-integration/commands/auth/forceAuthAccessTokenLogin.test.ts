@@ -21,9 +21,7 @@ describe('Force Auth Access Token Login', () => {
   let workspaceCheckerStub: SinonStub;
   let accessTokenParamsGathererStub: SinonStub;
   let authInfoCreateStub: SinonStub;
-  let authInfoSaveStub: SinonStub;
-  let authInfoSetAliasStub: SinonStub;
-  let authInfoSetAsDefaultStub: SinonStub;
+  let handleAliasAndDefaultSettingsStub: SinonStub;
   let channelServiceStub: SinonStub;
   const mockAccessToken = 'mockAccessToken';
   const mockAlias = 'mockAlias';
@@ -56,9 +54,9 @@ describe('Force Auth Access Token Login', () => {
         }
       })
     );
-    authInfoSaveStub = sandbox.stub(AuthInfo.prototype, 'save');
-    authInfoSetAliasStub = sandbox.stub(AuthInfo.prototype, 'setAlias');
-    authInfoSetAsDefaultStub = sandbox.stub(AuthInfo.prototype, 'setAsDefault');
+    handleAliasAndDefaultSettingsStub = sandbox
+      .stub(AuthInfo.prototype, 'handleAliasAndDefaultSettings')
+      .resolves();
     channelServiceStub = sandbox.stub(channelService, 'appendLine');
   });
   afterEach(() => {
@@ -74,12 +72,11 @@ describe('Force Auth Access Token Login', () => {
         instanceUrl: mockInstanceUrl
       }
     });
-    assert.calledOnce(authInfoSaveStub);
-    assert.calledOnce(authInfoSetAliasStub);
-    assert.calledWith(authInfoSetAliasStub, mockAlias);
-    assert.calledOnce(authInfoSetAsDefaultStub);
-    assert.calledWith(authInfoSetAsDefaultStub, {
-      defaultUsername: true
+
+    assert.calledWith(handleAliasAndDefaultSettingsStub, {
+      alias: mockAlias,
+      setDefault: true,
+      setDefaultDevHub: false
     });
   });
 
@@ -97,8 +94,6 @@ describe('Force Auth Access Token Login', () => {
       channelServiceStub,
       nls.localize('force_auth_access_token_login_bad_oauth_token_message')
     );
-    assert.notCalled(authInfoSaveStub);
-    assert.notCalled(authInfoSetAliasStub);
-    assert.notCalled(authInfoSetAsDefaultStub);
+    assert.notCalled(handleAliasAndDefaultSettingsStub);
   });
 });

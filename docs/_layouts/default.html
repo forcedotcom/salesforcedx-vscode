@@ -1,8 +1,17 @@
 <html>
   <head>
-    <title>{{ page.title }}</title>
+    {% if page.url != '/' %}
+      {% if page.lang == 'en' %}
+        <title>{{ page.title }} | Salesforce for VSCode</title>
+      {% elsif page.lang == 'ja' %}
+        <title>Salesforce Developers Japan | {{ page.title }}</title>
+      {% endif %}
+    {% else %}
+      <title>{{ page.title }}</title>
+    {% endif %}
+
     <base href="{{ site.baseurl }}/" />
-    {% include head.generated.html %}
+    {% include head.html %}
     <!-- Google Tag Manager -->
     <script>
       (function(w, d, s, l, i) {
@@ -76,7 +85,7 @@
     ></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <div class="site-page-wrapper" id="site-page-wrapper" tabindex="-1">
-      {% include header.generated.html %} {% include sidebar.html %}
+      {% include header.html %} {% include sidebar.html %}
       <main
         class="site-main slds-order_1"
         role="main"
@@ -102,7 +111,7 @@
           </div>
         </div>
       </main>
-      {% include footer.generated.html %}
+      {% include footer.html %}
     </div>
     <script>
       let tags = document.getElementsByTagName('h2');
@@ -198,5 +207,7 @@
         element.append(link);
       }
     </script>
+    <script type="module" src="/shared-components/header-footer/import.js"></script>
+
   </body>
 </html>

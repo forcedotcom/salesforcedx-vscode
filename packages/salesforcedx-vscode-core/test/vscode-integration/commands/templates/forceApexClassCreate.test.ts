@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
@@ -18,7 +19,9 @@ import { forceApexClassCreate } from '../../../../src/commands/templates/forceAp
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
+
+const sandbox = createSandbox();
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
@@ -30,43 +33,41 @@ describe('Force Apex Class Create', () => {
   let openTextDocumentStub: SinonStub;
   let sendCommandEventStub: SinonStub;
   let sendExceptionStub: SinonStub;
+  let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
-    showInputBoxStub = stub(vscode.window, 'showInputBox');
-    quickPickStub = stub(vscode.window, 'showQuickPick');
-    appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
+    showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+    quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+    appendLineStub = sandbox.stub(channelService, 'appendLine');
+    showSuccessfulExecutionStub = sandbox
+      .stub(notificationService, 'showSuccessfulExecution')
+      .resolves();
+    showFailedExecutionStub = sandbox.stub(
       notificationService,
-      'showSuccessfulExecution'
+      'showFailedExecution'
     );
-    showSuccessfulExecutionStub.returns(Promise.resolve());
-    showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
-    sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
-    sendExceptionStub = stub(telemetryService, 'sendException');
+    openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
+    sendCommandEventStub = sandbox.stub(telemetryService, 'sendCommandEvent');
+    sendExceptionStub = sandbox.stub(telemetryService, 'sendException');
+    getTemplatesDirectoryStub = sandbox
+      .stub(ConfigUtil, 'getTemplatesDirectory')
+      .returns(undefined);
   });
 
   afterEach(() => {
-    showInputBoxStub.restore();
-    quickPickStub.restore();
-    showSuccessfulExecutionStub.restore();
-    showFailedExecutionStub.restore();
-    appendLineStub.restore();
-    openTextDocumentStub.restore();
-    sendCommandEventStub.restore();
-    sendExceptionStub.restore();
+    sandbox.restore();
   });
 
   it('Should create Apex Class', async () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls'
     );
     const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
@@ -104,7 +105,8 @@ describe('Force Apex Class Create', () => {
       sinon.match.array,
       {
         dirType: 'defaultDir',
-        commandExecutor: 'library'
+        commandExecutor: 'library',
+        isUsingCustomOrgMetadataTemplates: 'false'
       }
     );
 

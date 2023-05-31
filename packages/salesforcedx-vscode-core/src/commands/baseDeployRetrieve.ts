@@ -5,22 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
+  ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
+  LibraryCommandletExecutor,
   Row,
+  SourceTrackingService,
+  SourceTrackingType,
   Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  registry,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -29,13 +27,13 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContext } from '../context';
+import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
+import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { createComponentCount, formatException } from './util';
@@ -64,16 +62,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-
-      // concrete classes may have purposefully changed the api version.
-      // if there's an indication they didn't, check the SFDX configuration to see
-      // if there is an overridden api version.
-      if (components.apiVersion === registry.apiVersion) {
-        const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-          | string
-          | undefined;
-        components.apiVersion = apiVersion ?? components.apiVersion;
-      }
+      await setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -100,8 +89,8 @@ export abstract class DeployRetrieveExecutor<
     token?: vscode.CancellationToken
   ) {
     if (token && operation) {
-      token.onCancellationRequested(() => {
-        operation.cancel();
+      token.onCancellationRequested(async () => {
+        await operation.cancel();
       });
     }
   }
@@ -119,17 +108,31 @@ export abstract class DeployRetrieveExecutor<
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
+  protected errorCollection = vscode.languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+
+    components.projectDirectory = projectPath;
+    const sourceTracking = await SourceTrackingService.createSourceTracking(
+      projectPath,
+      connection
+    );
+    await sourceTracking.ensureLocalTracking();
+
+    const operation = await components.deploy({
+      usernameOrConnection: connection
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.start();
+    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -137,21 +140,30 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     try {
       if (result) {
-        BaseDeployExecutor.errorCollection.clear();
+        // Update Persistent Storage for the files that were deployed
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+          result
+        );
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
 
         const success = result.response.status === RequestStatus.Succeeded;
-
         if (!success) {
-          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
+          this.unsuccessfulOperationHandler(result, this.errorCollection);
         }
       }
     } finally {
       await DeployQueue.get().unlock();
     }
+  }
+
+  protected unsuccessfulOperationHandler(
+    result: DeployResult,
+    errorCollection: any
+  ) {
+    handleDeployDiagnostics(result, this.errorCollection);
   }
 
   private createOutput(
@@ -203,26 +215,50 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+  private sourceTracking?: SourceTrackingType;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const projectPath = getRootWorkspacePath();
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+      this.sourceTracking = await SourceTrackingService.createSourceTracking(
+        projectPath,
+        connection
+      );
+    }
 
     const defaultOutput = join(
-      getRootWorkspacePath(),
+      projectPath,
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = components.retrieve({
+    const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
-      merge: true
+      merge: true,
+      suppressEvents: false
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.start();
+    const result: RetrieveResult = await operation.pollStatus();
+
+    const status = result?.response?.status;
+    if (
+      (status === 'Succeeded' || status === 'SucceededPartial') &&
+      this.sourceTracking
+    ) {
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+        this.sourceTracking,
+        result
+      );
+    }
+
+    return result;
   }
 
   protected async postOperation(
@@ -232,7 +268,9 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
-      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
+      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
+        result.response.fileProperties
+      );
     }
   }
 

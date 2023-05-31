@@ -4,42 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import {
-  SFDX_DIR,
-  SOBJECTS_DIR,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { SObjectTransformerFactory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
-  SObjectRefreshSource
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
+  SObjectRefreshSource,
+  SOBJECTS_DIR,
+  SObjectTransformerFactory,
+  STANDARDOBJECTS_DIR
+} from '@salesforce/salesforcedx-sobjects-faux-generator';
 import {
+  CancelResponse,
+  Command,
+  ContinueResponse,
+  LocalCommandExecution,
+  notificationService,
+  ParametersGatherer,
+  ProgressNotification,
+  projectPaths,
+  SfdxCommandBuilder,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  LocalCommandExecution,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  notificationService,
-  ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -140,7 +130,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
       progressLocation
     );
 
-    const projectPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
     const commandName = execution.command.logName;
     try {
       let result;
@@ -149,7 +138,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         transformer = await SObjectTransformerFactory.create(
           execution.cmdEmitter,
           cancellationToken,
-          projectPath,
           SObjectCategory.STANDARD,
           SObjectRefreshSource.StartupMin
         );
@@ -157,12 +145,11 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         transformer = await SObjectTransformerFactory.create(
           execution.cmdEmitter,
           cancellationToken,
-          projectPath,
           response.data.category,
           response.data.source
         );
       }
-      result = await transformer.transform(projectPath);
+      result = await transformer.transform();
 
       console.log('Generate success ' + result.data);
       this.logMetric(
@@ -178,9 +165,12 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           customObjects: result.data.customObjects ?? 0
         }
       );
-    } catch (result) {
-      console.log('Generate error ' + result.error);
-      telemetryService.sendException(result.name, result.error);
+    } catch (error) {
+      console.log('Generate error ' + error.error);
+      telemetryService.sendException(error.name, error.error);
+      ForceRefreshSObjectsExecutor.isActive = false;
+
+      throw error;
     }
 
     ForceRefreshSObjectsExecutor.isActive = false;
@@ -204,7 +194,8 @@ export async function verifyUsernameAndInitSObjectDefinitions(
   projectPath: string
 ) {
   const hasDefaultUsernameSet =
-    (await workspaceContext.getConnection()).getUsername() !== undefined;
+    (await WorkspaceContext.getInstance().getConnection()).getUsername() !==
+    undefined;
   if (hasDefaultUsernameSet) {
     initSObjectDefinitions(projectPath).catch(e =>
       telemetryService.sendException(e.name, e.message)
@@ -214,7 +205,7 @@ export async function verifyUsernameAndInitSObjectDefinitions(
 
 export async function initSObjectDefinitions(projectPath: string) {
   if (projectPath) {
-    const sobjectFolder = getSObjectsDirectory(projectPath);
+    const sobjectFolder = getSObjectsDirectory();
     if (!fs.existsSync(sobjectFolder)) {
       telemetryService.sendEventData(
         'sObjectRefreshNotification',
@@ -228,25 +219,20 @@ export async function initSObjectDefinitions(projectPath: string) {
   }
 }
 
-function getSObjectsDirectory(projectPath: string) {
-  return path.join(projectPath, SFDX_DIR, TOOLS_DIR, SOBJECTS_DIR);
+function getSObjectsDirectory() {
+  return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 }
 
-function getStandardSObjectsDirectory(projectPath: string) {
+function getStandardSObjectsDirectory() {
   return path.join(
-    projectPath,
-    SFDX_DIR,
-    TOOLS_DIR,
+    projectPaths.toolsFolder(),
     SOBJECTS_DIR,
     STANDARDOBJECTS_DIR
   );
 }
 
 export async function checkSObjectsAndRefresh(projectPath: string) {
-  if (
-    projectPath &&
-    !fs.existsSync(getStandardSObjectsDirectory(projectPath))
-  ) {
+  if (projectPath && !fs.existsSync(getStandardSObjectsDirectory())) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',
       { type: SObjectRefreshSource.StartupMin },

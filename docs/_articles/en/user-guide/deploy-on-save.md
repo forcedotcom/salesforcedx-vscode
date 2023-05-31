@@ -12,11 +12,12 @@ To enable deploy on save, you can:
 - Add `"salesforcedx-vscode-core.push-or-deploy-on-save.enabled": true` to the `.vscode/settings.json` file.
 - Or update Workspace settings:
   - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-  - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`.
+  - Under Salesforce Core Configuration, select `Push-or-deploy-on-save: Enabled`.
 
-![Deploy on save feature](./images/deploy-on-save.png)
 
-> We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
+**Note:**
+We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
+
 
 ## How it Works
 
@@ -30,4 +31,8 @@ When you enable deploy on save for your project:
 
 - If there isn’t an active deployment and no files are queued for deployment, a file save triggers an immediate deployment.
 
-If you enable deploy on save while working against a scratch org, the context of the extension is package development model. This means that every time you save a file, **SFDX: Push Source to Default Scratch Org** is initiated and runs `force:source:push` under the hood. In org development model that works with non-source-tracked-orgs, every file save initiates **SFDX: Deploy Source to Org**, which runs `force:source:deploy`.
+If you enable deploy on save while working against a source-tracked org, every time you save a file, **SFDX: Push Source to Default Org** is initiated and runs `force:source:push` under the hood. For non-source-tracked orgs, every file save initiates **SFDX: Deploy Source to Org**, which runs `force:source:deploy`.
+
+## Detect Conflicts At Sync
+
+Check the setting, **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS)> **Salesforce Core Configurations** `Detect Conflicts At Sync` to enable conflict detection for all deploy commands executed from VS Code. See [Detect Conflicts on Deploy](detect-conflicts.md)for more information on conflict detection.

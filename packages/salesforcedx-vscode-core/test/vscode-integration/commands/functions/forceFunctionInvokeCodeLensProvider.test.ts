@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import { CancellationTokenSource, RelativePattern, workspace } from 'vscode';
 import { provideFunctionInvokeCodeLens } from '../../../../src/commands/functions';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 describe('Force Function Invoke Codelens', () => {
   it('should create codelens for a json payload file', async () => {
@@ -45,7 +45,7 @@ describe('Force Function Invoke Codelens', () => {
   it('should not create codelens for non payload jsons', async () => {
     const files = await workspace.findFiles(
       new RelativePattern(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'functions/demoJavaScriptFunction/package.json'
       )
     );

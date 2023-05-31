@@ -7,16 +7,16 @@
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
 import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/';
-import {
   CliCommandExecutor,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  EmptyParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -559,7 +559,10 @@ async function executeMobilePreview(
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
       notificationService
-        .showSuccessfulExecution(previewExecution.command.toString(), channelService)
+        .showSuccessfulExecution(
+          previewExecution.command.toString(),
+          channelService
+        )
         .catch();
       vscode.window.showInformationMessage(
         nls.localize('force_lightning_lwc_ios_start', targetDevice)
@@ -573,7 +576,10 @@ async function executeMobilePreview(
     previewExecution.stdoutSubject.subscribe(async data => {
       if (data && data.toString().includes(androidSuccessString)) {
         notificationService
-          .showSuccessfulExecution(previewExecution.command.toString(), channelService)
+          .showSuccessfulExecution(
+            previewExecution.command.toString(),
+            channelService
+          )
           .catch();
         vscode.window.showInformationMessage(
           nls.localize('force_lightning_lwc_android_start', targetDevice)

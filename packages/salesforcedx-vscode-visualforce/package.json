@@ -14,56 +14,99 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "52.1.0",
+  "version": "58.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "categories": [
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "52.1.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "52.1.0",
+    "@salesforce/salesforcedx-visualforce-language-server": "58.0.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "58.0.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "5.2.1",
     "vscode-languageserver-protocol": "3.14.1",
     "vscode-languageserver-types": "3.14.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "52.1.0",
-    "@types/chai": "^4.0.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.0.0",
+    "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
-    "@types/sinon": "^2.3.2",
-    "@types/vscode": "1.49.0",
+    "@types/sinon": "^2.3.7",
+    "@types/vscode": "^1.61.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "mocha": "^5",
-    "sinon": "^7.3.1",
-    "typescript": "3.8.3"
+    "mocha": "^10",
+    "sinon": "^13.0.1",
+    "typescript": "^4.7.4"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension:build": "esbuild ./src/extension.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --minify",
+    "bundle:extension:copy": "cp ../salesforcedx-visualforce-language-server/dist/visualforceServer.js ./dist/",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "lint:fix": "npm run lint -- --fix",
     "test": "npm run test:vscode-integration",
+    "test:jest": "jest --coverage",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:prepublish": "npm prune --production",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "watch": "tsc -watch -p ."
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src/extension",
+  "serverPath": [
+    "node_modules",
+    "@salesforce",
+    "salesforcedx-visualforce-language-server",
+    "out",
+    "src",
+    "visualforceServer.js"
+  ],
+  "packaging": {
+    "assets": [
+      "License.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "OSSREADME.json",
+      "images",
+      "syntaxes",
+      "images",
+      "dist"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "dependencies": {
+        "vscode-css-languageservice": "2.1.9",
+        "vscode-languageserver": "5.2.1",
+        "vscode-languageserver-protocol": "3.14.1",
+        "vscode-languageserver-types": "3.14.0",
+        "vscode-nls": "2.0.2",
+        "vscode-uri": "1.0.1"
+      },
+      "devDependencies": {},
+      "serverPath": [
+        "dist",
+        "visualforceServer.js"
+      ]
+    }
+  },
   "contributes": {
     "languages": [
       {

@@ -6,13 +6,18 @@
  */
 
 // tslint:disable:no-unused-expression
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub, spy, stub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { APEX_GROUP_RANGE } from '../../../src/constants';
+import {
+  APEX_GROUP_RANGE,
+  APEX_TESTS,
+  FAIL_RESULT,
+  PASS_RESULT
+} from '../../../src/constants';
 import {
   ClientStatus,
   LanguageClientUtils
@@ -123,17 +128,17 @@ describe('TestView', () => {
   describe('Get Tests and Create Tree', () => {
     it('Should add no tests', () => {
       testOutline = new ApexTestOutlineProvider(null);
-      const expected = new ApexTestGroupNode('ApexTests', null);
+      const expected = new ApexTestGroupNode(APEX_TESTS, null);
       expected.description = NO_TESTS_DESCRIPTION;
       expect(testOutline.getHead()).to.deep.equal(
-        new ApexTestGroupNode('ApexTests', null)
+        new ApexTestGroupNode(APEX_TESTS, null)
       );
     });
 
     it('Should create one test and one class', () => {
       testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       if (testOutline.getHead()) {
-        expect(testOutline.getHead().name).to.equal('ApexTests');
+        expect(testOutline.getHead().name).to.equal(APEX_TESTS);
         expect(testOutline.getHead().children.length).to.equal(1);
         const testChildGroup = testOutline.getHead().children[0];
         expect(testChildGroup).instanceof(ApexTestGroupNode);
@@ -149,6 +154,9 @@ describe('TestView', () => {
           apexTestInfo[0].definingType + '.' + apexTestInfo[0].methodName;
         expect(testChild.name).to.deep.equal(fullName);
         expect(testChild.location).to.deep.equal(apexTestInfo[0].location);
+        expect(
+          testOutline.getTestClassName(apexTestInfo[0].location.uri)
+        ).to.equal(apexTestInfo[0].definingType);
       }
     });
 
@@ -178,8 +186,61 @@ describe('TestView', () => {
           expect(test1.location).to.deep.equal(testInfo1.location);
           expect(test2.location).to.deep.equal(testInfo2.location);
           i++;
+
+          expect(testOutline.getTestClassName(testInfo1.location.uri)).to.equal(
+            testInfo1.definingType
+          );
+          expect(testOutline.getTestClassName(testInfo2.location.uri)).to.equal(
+            testInfo2.definingType
+          );
         }
       }
+    });
+
+    it('Should index test classes', () => {
+      const pos = new vscode.Position(0, 0);
+      testOutline = new ApexTestOutlineProvider([
+        {
+          definingType: 'Test1',
+          methodName: 'validate1',
+          location: {
+            uri: vscode.Uri.file('/force-app/test/Test1.cls'),
+            range: new vscode.Range(pos, pos)
+          }
+        },
+        {
+          definingType: 'Test1',
+          methodName: 'validate2',
+          location: {
+            uri: vscode.Uri.file('/force-app/test/Test1.cls'),
+            range: new vscode.Range(pos, pos)
+          }
+        },
+        {
+          definingType: 'Test2',
+          methodName: 'verify',
+          location: {
+            uri: vscode.Uri.file('/force-app/test/Test2.cls'),
+            range: new vscode.Range(pos, pos)
+          }
+        }
+      ]);
+
+      expect(
+        testOutline.getTestClassName(
+          vscode.Uri.file('/force-app/test/Test1.cls')
+        )
+      ).to.equal('Test1');
+      expect(
+        testOutline.getTestClassName(
+          vscode.Uri.file('/force-app/test/Test2.cls')
+        )
+      ).to.equal('Test2');
+      expect(
+        testOutline.getTestClassName(
+          vscode.Uri.file('/force-app/test/Test3.cls')
+        )
+      ).to.be.undefined;
     });
   });
 
@@ -211,7 +272,7 @@ describe('TestView', () => {
         .children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
       const testNode = testGroupNode.children[0] as ApexTestNode;
-      expect(testNode.outcome).to.equal('Pass');
+      expect(testNode.outcome).to.equal(PASS_RESULT);
     });
 
     it('Should update tests and test groups with passing/failing tests using Apex library', () => {
@@ -227,11 +288,17 @@ describe('TestView', () => {
       expect(groupNode.failing).to.eql(1);
 
       expect(groupNode.children[0].name).to.equal('file0.test0');
-      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal('Pass');
+      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal(
+        PASS_RESULT
+      );
       expect(groupNode.children[1].name).to.equal('file0.test1');
-      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal('Fail');
+      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal(
+        FAIL_RESULT
+      );
       expect(groupNode.children[2].name).to.equal('file0.test2');
-      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal('Pass');
+      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal(
+        PASS_RESULT
+      );
     });
   });
 

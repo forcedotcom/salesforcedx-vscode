@@ -19,15 +19,21 @@ export {
   forceAuthWebLogin,
   createAuthWebLoginExecutor,
   ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor
+  ForceAuthWebLoginExecutor,
+  ForceAuthWebLoginContainerExecutor,
+  DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
+  AuthDevHubParams,
+  AuthDevHubParamsGatherer,
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor
+  ForceAuthDevHubExecutor,
+  ForceAuthDevHubContainerExecutor
 } from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
+export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
   forceOrgCreate,
   AliasGatherer,
@@ -45,33 +51,29 @@ export {
   ForceSourceDeleteExecutor,
   ManifestChecker
 } from './forceSourceDelete';
+export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
-  forceSourceDeployManifest,
-  ForceSourceDeployManifestExecutor
-} from './forceSourceDeployManifest';
-export {
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
-  ForceSourceDeploySourcePathExecutor,
+  forceSourceDeploySourcePaths,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePath,
-  ForceSourceRetrieveSourcePathExecutor,
+  forceSourceRetrieveSourcePaths,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
-export {
-  forceSourceRetrieveManifest,
-  ForceSourceRetrieveManifestExecutor
-} from './forceSourceRetrieveManifest';
+export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export {
   forceSourceStatus,
   ForceSourceStatusExecutor,
   SourceStatusFlags
 } from './forceSourceStatus';
+export {
+  viewAllChanges,
+  viewLocalChanges,
+  viewRemoteChanges
+} from './source/viewChanges';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceAnalyticsTemplateCreate,
@@ -133,7 +135,11 @@ export {
   turnOffLogging,
   ForceStopApexDebugLoggingExecutor
 } from './forceStopApexDebugLogging';
-export { forceAuthLogoutAll, ForceAuthLogoutAll } from './auth/forceAuthLogout';
+export {
+  forceAuthLogoutAll,
+  ForceAuthLogoutAll,
+  forceAuthLogoutDefault
+} from './auth/forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet, ForceConfigSetExecutor } from './forceConfigSet';
@@ -151,12 +157,12 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
+export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
-export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
-  forceFunctionStart,
+  forceFunctionContainerlessStartCommand,
   forceFunctionStop,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
@@ -167,3 +173,4 @@ export {
   forceRefreshSObjects,
   initSObjectDefinitions
 } from './forceRefreshSObjects';
+export { forceRenameLightningComponent } from './forceRenameLightningComponent';

@@ -9,25 +9,33 @@ import * as path from 'path';
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
   PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
-
 import { channelService } from '../channels';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { workspaceUtils } from '../util';
+import { SfdxCommandlet } from './util/sfdxCommandlet';
+import { SfdxCommandletExecutor } from './util/sfdxCommandletExecutor';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
 }> {
+  private isSourceTracked: boolean;
+
+  public constructor(isSourceTracked: boolean) {
+    super();
+    this.isSourceTracked = isSourceTracked;
+  }
   public build(data: { filePath: string }): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_delete_text'))
@@ -35,6 +43,9 @@ export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
       .withLogName('force_source_delete')
       .withFlag('--sourcepath', data.filePath)
       .withArg('--noprompt');
+    if (this.isSourceTracked) {
+      commandBuilder.args.push('--tracksource');
+    }
     return commandBuilder.build();
   }
 }
@@ -43,12 +54,12 @@ export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = uri.fsPath;
+    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
   public check(): boolean {
-    if (hasRootWorkspace()) {
-      const workspaceRootPath = getRootWorkspacePath();
+    if (workspaceUtils.hasRootWorkspace()) {
+      const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {
@@ -70,7 +81,7 @@ export class ConfirmationAndSourcePathGatherer
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = uri.fsPath;
+    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
   public async gather(): Promise<
@@ -90,6 +101,11 @@ export class ConfirmationAndSourcePathGatherer
 }
 
 export async function forceSourceDelete(sourceUri: vscode.Uri) {
+  let isSourceTracked: boolean = false;
+  const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+  if (orgType === OrgType.SourceTracked) {
+    isSourceTracked = true;
+  }
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -109,7 +125,7 @@ export async function forceSourceDelete(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     manifestChecker,
     new ConfirmationAndSourcePathGatherer(sourceUri),
-    new ForceSourceDeleteExecutor()
+    new ForceSourceDeleteExecutor(isSourceTracked)
   );
   await commandlet.run();
 }

@@ -4,26 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo, AuthInfoConfig } from '@salesforce/core';
+import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import {
   CancelResponse,
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { readFileSync } from 'fs';
-import * as path from 'path';
-import { isNullOrUndefined } from 'util';
+  ConfigUtil,
+  ContinueResponse,
+  OrgUserInfo
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { OrgInfo, workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { OrgAuthInfo } from '../util';
 
-export interface FileInfo {
-  scratchAdminUsername?: string;
-  isDevHub?: boolean;
-  username: string;
-  devHubUsername?: string;
-  expirationDate?: string;
-}
 export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
@@ -36,82 +28,81 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
-    workspaceContext.onOrgChange((orgInfo: OrgInfo) =>
+    WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
       this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
     );
-    const { username, alias } = workspaceContext;
+    const { username, alias } = WorkspaceContext.getInstance();
     this.displayDefaultUsername(alias || username);
   }
 
-  public displayDefaultUsername(defaultUsernameorAlias?: string) {
-    if (!isNullOrUndefined(defaultUsernameorAlias)) {
-      this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
+  private displayDefaultUsername(defaultUsernameOrAlias?: string) {
+    if (defaultUsernameOrAlias) {
+      this.statusBarItem.text = `$(plug) ${defaultUsernameOrAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
   }
 
-  public async getAuthInfoObjects() {
-    const authFilesArray = await AuthInfo.listAllAuthFiles().catch(err => null);
-
-    if (authFilesArray === null || authFilesArray.length === 0) {
-      return null;
-    }
-    const authInfoObjects: FileInfo[] = [];
-    for (const username of authFilesArray) {
-      try {
-        const filePath = path.join(
-          await AuthInfoConfig.resolveRootFolder(true),
-          '.sfdx',
-          username
-        );
-        const fileData = readFileSync(filePath, 'utf8');
-        authInfoObjects.push(JSON.parse(fileData));
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    return authInfoObjects;
+  public async getOrgAuthorizations(): Promise<OrgAuthorization[]> {
+    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
+    return orgAuthorizations;
   }
 
-  public async filterAuthInfo(authInfoObjects: FileInfo[]) {
-    authInfoObjects = authInfoObjects.filter(fileData =>
-      isNullOrUndefined(fileData.scratchAdminUsername)
-    );
+  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
+    const authInfo: AuthInfo = await AuthInfo.create({
+      username
+    });
+    return authInfo.getFields();
+  }
 
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
-    if (defaultDevHubUsernameorAlias) {
-      const defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameorAlias
-      );
+  public async filterAuthInfo(
+    orgAuthorizations: OrgAuthorization[]
+  ): Promise<string[]> {
+    const defaultDevHubUsername = await OrgAuthInfo.getDevHubUsername();
 
-      authInfoObjects = authInfoObjects.filter(
-        fileData =>
-          isNullOrUndefined(fileData.devHubUsername) ||
-          (!isNullOrUndefined(fileData.devHubUsername) &&
-            fileData.devHubUsername === defaultDevHubUsername)
-      );
-    }
-
-    const aliases = await Aliases.create(Aliases.getDefaultOptions());
     const authList = [];
     const today = new Date();
-    for (const authInfo of authInfoObjects) {
-      const alias = await aliases.getKeysByValue(authInfo.username);
-      const isExpired = authInfo.expirationDate
-        ? today >= new Date(authInfo.expirationDate)
-        : false;
+    for (const orgAuth of orgAuthorizations) {
+      // When this is called right after logging out of an org, there can
+      // still be a cached Org Auth in the list with a "No auth information found"
+      // error. This warning prevents that error from stopping the process, and
+      // should help in debugging if there are any other Org Auths with errors.
+      if (orgAuth.error) {
+        console.warn(
+          `Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`
+        );
+        continue;
+      }
+      const authFields: AuthFields = await this.getAuthFieldsFor(
+        orgAuth.username
+      );
+      if (authFields && 'scratchAdminUsername' in authFields) {
+        // non-Admin scratch org users
+        continue;
+      }
+      if (
+        authFields &&
+        'devHubUsername' in authFields &&
+        authFields.devHubUsername !== defaultDevHubUsername
+      ) {
+        // scratch orgs parented by other (non-default) devHub orgs
+        continue;
+      }
+      const isExpired =
+        authFields && authFields.expirationDate
+          ? today >= new Date(authFields.expirationDate)
+          : false;
+
+      const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =
-        alias.length > 0
-          ? alias + ' - ' + authInfo.username
-          : authInfo.username;
+        aliases && aliases.length > 0
+          ? `${aliases} - ${orgAuth.username}`
+          : orgAuth.username;
 
       if (isExpired) {
-        authListItem +=
-          ' - ' +
-          nls.localize('org_expired') +
-          ' ' +
-          String.fromCodePoint(0x274c); // cross-mark
+        authListItem += ` - ${nls.localize(
+          'org_expired'
+        )} ${String.fromCodePoint(0x274c)}`; // cross-mark
       }
 
       authList.push(authListItem);
@@ -119,12 +110,12 @@ export class OrgList implements vscode.Disposable {
     return authList;
   }
 
-  public async updateOrgList() {
-    const authInfoObjects = await this.getAuthInfoObjects();
-    if (isNullOrUndefined(authInfoObjects)) {
-      return null;
+  public async updateOrgList(): Promise<string[]> {
+    const orgAuthorizations = await this.getOrgAuthorizations();
+    if (orgAuthorizations && orgAuthorizations.length === 0) {
+      return [];
     }
-    const authUsernameList = await this.filterAuthInfo(authInfoObjects);
+    const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
     return authUsernameList;
   }
 
@@ -133,13 +124,12 @@ export class OrgList implements vscode.Disposable {
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text'),
       '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text'),
-      '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text')
+      '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
+      '$(plus) ' + nls.localize('force_org_list_clean_text')
     ];
 
     const authInfoList = await this.updateOrgList();
-    if (!isNullOrUndefined(authInfoList)) {
-      quickPickList = quickPickList.concat(authInfoList);
-    }
+    quickPickList = quickPickList.concat(authInfoList);
 
     const selection = await vscode.window.showQuickPick(quickPickList, {
       placeHolder: nls.localize('org_select_text')
@@ -152,10 +142,7 @@ export class OrgList implements vscode.Disposable {
       case '$(plus) ' +
         nls.localize('force_auth_web_login_authorize_org_text'): {
         vscode.commands.executeCommand('sfdx.force.auth.web.login');
-        return {
-          type: 'CONTINUE',
-          data: {}
-        };
+        return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +
         nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
@@ -172,6 +159,10 @@ export class OrgList implements vscode.Disposable {
         vscode.commands.executeCommand('sfdx.force.auth.accessToken');
         return { type: 'CONTINUE', data: {} };
       }
+      case '$(plus) ' + nls.localize('force_org_list_clean_text'): {
+        vscode.commands.executeCommand('sfdx.force.org.list.clean');
+        return { type: 'CONTINUE', data: {} };
+      }
       default: {
         const usernameOrAlias = selection.split(' - ', 1);
         vscode.commands.executeCommand(
@@ -180,12 +171,6 @@ export class OrgList implements vscode.Disposable {
         );
         return { type: 'CONTINUE', data: {} };
       }
-    }
-  }
-
-  public async getDefaultDevHubUsernameorAlias(): Promise<string | undefined> {
-    if (hasRootWorkspace()) {
-      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
     }
   }
 

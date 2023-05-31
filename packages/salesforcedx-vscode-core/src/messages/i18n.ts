@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -46,7 +46,11 @@ export const messages = {
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
-
+  force_auth_web_login_device_code_parse_error:
+    'There was an unexpected error authorizing to your org in a container environment.',
+  force_auth_device_login_enter_code:
+    'Enter %s user code in the verification URL %s',
+  action_required: '=== Action Required!',
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
 
@@ -98,17 +102,13 @@ export const messages = {
     'There was an unexpected error when processing the org open response.',
   force_org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
-
-  force_source_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org',
-  force_source_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
-
-  force_source_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org',
-  force_source_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
-
+  force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
+  force_source_pull_force_default_org_text:
+    'SFDX: Pull Source from Default Org and Override Conflicts',
+  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
+  force_source_push_force_default_org_text:
+    'SFDX: Push Source to Default Org and Override Conflicts',
+  force_source_status_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
     'You can run SFDX: Deploy Source to Org only on a source file or directory.',
@@ -130,10 +130,6 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
-
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
@@ -145,7 +141,8 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
-  force_function_start_text: 'SFDX: Start Function',
+  force_function_containerless_start_text: 'SFDX: Start Local Function',
+  force_create_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
@@ -153,11 +150,11 @@ export const messages = {
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
-    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://dev.beta.developer.salesforce.com/docs/platform/functions/guide/vs-intro.html#prerequisites).',
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/set-up.html).',
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
-    'SFDX: Start Function exited unexpectedly with code %s',
+    'SFDX: Start Function exited unexpectedly',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Invoke',
   force_function_debug_invoke_tooltip: 'Debug Invoke',
@@ -165,7 +162,7 @@ export const messages = {
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
   force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
+  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
   warning_prompt_file_overwrite:
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
@@ -194,9 +191,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
@@ -250,7 +247,13 @@ export const messages = {
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
-  manifest_editor_title_message: 'Manifest Editor',
+  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  manifest_input_dupe_error:
+    'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_input_save_placeholder:
+    'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt:
+    'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
@@ -269,6 +272,10 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
+  auth_logout_scratch_prompt:
+    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  auth_logout_scratch_logout: 'Logout',
+  auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
@@ -283,6 +290,10 @@ export const messages = {
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
+  force_config_set_title: 'Set Config',
+  table_header_name: 'Name',
+  table_header_value: 'Value',
+  table_header_success: 'Success',
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
@@ -297,10 +308,14 @@ export const messages = {
   table_no_results_found: 'No results found',
   table_title_deployed_source: 'Deployed Source',
   table_title_deploy_errors: 'Deploy Errors',
+  table_title_pulled_source: 'Pulled Source',
+  table_title_pull_errors: 'Pull Errors',
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
+  pull_conflicts_error:
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Override Conflicts".',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
@@ -338,7 +353,10 @@ export const messages = {
   force_apex_execute_library: 'Apex Library: Execute Anonymous',
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
+  AIApplication: 'AI Applications',
+  AIApplicationConfig: 'AI Application Configs',
   AIAssistantTemplate: 'AI Assistant Templates',
+  ActionLauncherItemDef: 'Action Launcher Item Definitions',
   AnalyticSnapshot: 'Analytic Snapshots',
   AnimationRule: 'Animation Rules',
   ApexClass: 'Apex Classes',
@@ -347,21 +365,29 @@ export const messages = {
   ApexTestSuite: 'Apex Test Suites',
   ApexTrigger: 'Apex Triggers',
   AppMenu: 'App Menus',
+  AppointmentAssignmentPolicy: 'Appointment Assignment Policies',
+  AppointmentSchedulingPolicy: 'Appointment Scheduling Policies',
   ApprovalProcess: 'Approval Processes',
   AssignmentRules: 'Assignment Rules',
   AssistantRecommendationType: 'Assistant Recommendation Types',
+  Audience: 'Audiences',
   AuraDefinitionBundle: 'Aura Components',
   AuthProvider: 'Auth Providers',
   AutoResponseRules: 'Auto Response Rules',
+  BatchProcessJobDefinition: 'Batch Process Job Definitions',
+  BlacklistedConsumer: 'Blacklisted Consumers',
   BrandingSet: 'Branding Sets',
+  BriefcaseDefinition: 'Briefcase Definitions',
   BusinessProcess: 'Business Processes',
   CallCenter: 'Call Centers',
+  CallCenterRoutingMap: 'Call Center Routing Maps',
   CampaignInfluenceModel: 'Campaign Influence Models',
   CaseSubjectParticle: 'Case Subject Particles',
   Certificate: 'Certificates',
   ChannelLayout: 'Channel Layouts',
   ChatterExtension: 'Chatter Extensions',
   CleanDataService: 'Clean Data Services',
+  CMSConnectSource: 'CMS Connect Sources',
   CommandAction: 'Command Actions',
   Community: 'Communities',
   CommunityTemplateDefinition: 'Community Template Definitions',
@@ -369,6 +395,7 @@ export const messages = {
   CompactLayout: 'Compact Layouts',
   ConnectedApp: 'Connected Apps',
   ContentAsset: 'Content Assets',
+  ConversationVendorInfo: 'Conversation Vendor Info',
   CorsWhitelistOrigin: 'Cors Whitelist Origins',
   CspTrustedSite: 'Csp Trusted Sites',
   CustomApplication: 'Custom Applications',
@@ -379,6 +406,7 @@ export const messages = {
   CustomField: 'Custom Fields',
   CustomFieldTranslation: 'Custom Field Translations',
   CustomHelpMenuSection: 'Custom Help Menu Sections',
+  CustomIndex: 'Custom Indexes',
   CustomLabels: 'Custom Labels',
   CustomMetadata: 'Custom Metadatas',
   CustomNotificationType: 'Custom Notification Types',
@@ -392,7 +420,10 @@ export const messages = {
   DashboardFolder: 'Dashboard Folders',
   DataCategoryGroup: 'Data Category Groups',
   DataPipeline: 'Data Pipelines',
+  DataWeaveResource: 'Data Category Resources',
   DelegateGroup: 'Delegate Groups',
+  DigitalExperienceBundle: 'Digital Experience Bundles',
+  DigitalExperienceConfig: 'Digital Experience Configs',
   Document: 'Documents',
   DocumentFolder: 'Document Folders',
   DuplicateRule: 'Duplicate Rules',
@@ -407,33 +438,42 @@ export const messages = {
   EmbeddedServiceLiveAgent: 'Embedded Service Live Agents',
   EntitlementProcess: 'Entitlement Processes',
   EntitlementTemplate: 'Entitlement Templates',
+  EntityImplements: 'Entity Implements',
   EscalationRules: 'Escalation Rules',
   EventDelivery: 'Event Deliveries',
+  EventRelayConfig: 'Event Relay Configs',
   EventSubscription: 'Event Subscriptions',
   EventType: 'Event Types',
   ExperienceBundle: 'Experience Bundles',
+  ExperiencePropertyTypeBundle: 'Experience Property Type Bundles',
+  ExternalCredential: 'External Credentials',
   ExternalDataSource: 'External Data Sources',
   ExternalServiceRegistration: 'External Service Registrations',
   FeatureParameterBoolean: 'Feature Parameter Booleans',
   FeatureParameterDate: 'Feature Parameter Dates',
   FeatureParameterInteger: 'Feature Parameter Integers',
+  FieldRestrictionRule: 'Field Restriction Rules',
   FieldSet: 'Field Sets',
   FlexiPage: 'Flexi Pages',
   Flow: 'Flows',
+  FlowTest: 'Flow Tests',
   FlowCategory: 'Flow Categories',
   FlowDefinition: 'Flow Definitions',
   Form: 'Forms',
+  GatewayProviderPaymentMethodType: 'Gateway Provider Payment Method Types',
   GlobalPicklist: 'Global Picklists',
   GlobalValueSet: 'Global Value Sets',
   GlobalValueSetTranslation: 'Global Value Set Translations',
   Group: 'Groups',
   HomePageComponent: 'Home Page Components',
   HomePageLayout: 'Home Page Layouts',
+  IframeWhiteListUrlSettings: 'Iframe White List Url Settings',
   Index: 'Indexes',
   InsightType: 'Insight Types',
   InstalledPackage: 'Installed Packages',
   IntegrationHubSettings: 'Integration Hub Settings',
   IntegrationHubSettingsType: 'Integration Hub Settings Types',
+  IPAddressRange: 'IP Address Ranges',
   KeywordList: 'Keyword Lists',
   Layout: 'Layouts',
   LeadConvertSettings: 'Lead Convert Settings',
@@ -451,8 +491,12 @@ export const messages = {
   MarketingResourceType: 'Marketing Resource Types',
   MatchingRules: 'Matching Rules',
   MilestoneType: 'Milestone Types',
+  MLDataDefinition: 'ML Data Definitions',
+  MLPredictionDefinition: 'ML Prediction Definitions',
+  MLRecommendationDefinition: 'ML Recommendation Definitions',
   ModerationRule: 'Moderation Rules',
   NamedCredential: 'Named Credentials',
+  NavigationMenu: 'Navigation Menu',
   Network: 'Networks',
   NetworkBranding: 'Network Brandings',
   OauthCustomScope: 'OAuth Custom Scopes',
@@ -461,12 +505,16 @@ export const messages = {
   PathAssistant: 'Path Assistants',
   PermissionSet: 'Permission Sets',
   PermissionSetGroup: 'Permission Set Groups',
+  PersonAccountOwnerPowerUser: 'Person Account Owner Power Users',
   PlatformCachePartition: 'Platform Cache Partitions',
   PlatformEventChannel: 'Platform Event Channels',
+  PlatformEventSubscriberConfig: 'Platform Event Subscriber Configs',
   Portal: 'Portals',
+  PortalDelegablePermissionSet: 'Portal Delegable Permission Sets',
   PostTemplate: 'Post Templates',
   PresenceDeclineReason: 'Presence Decline Reasons',
   PresenceUserConfig: 'Presence User Configs',
+  ProductAttributeSet: 'Product Attribute Sets',
   Profile: 'Profiles',
   ProfilePasswordPolicy: 'Profile Password Policies',
   ProfileSessionSetting: 'Profile Session Settings',
@@ -477,13 +525,17 @@ export const messages = {
   RecommendationStrategy: 'Recommendation Strategies',
   RecordActionDeployment: 'Record Action Deployments',
   RecordType: 'Record Types',
+  RedirectWhitelistUrl: 'Redirect Whitelist Urls',
+  RegisteredExternalService: 'Registered External Services',
   RemoteSiteSetting: 'Remote Site Settings',
   Report: 'Reports',
   ReportFolder: 'Report Folders',
   ReportType: 'Report Types',
+  RestrictionRule: 'Restriction Rules',
   Role: 'Roles',
   SamlSsoConfig: 'Saml Sso Configs',
   Scontrol: 'Scontrols',
+  SearchCustomization: 'Search Customizations',
   ServiceChannel: 'Service Channels',
   ServicePresenceStatus: 'Service Presence Status',
   Settings: 'Settings',
@@ -509,6 +561,7 @@ export const messages = {
   Translations: 'Translations',
   UiPlugin: 'Ui Plugins',
   UserCriteria: 'User Criterias',
+  UserProfileSearchScope: 'User Profile Search Scopes',
   ValidationRule: 'Validation Rules',
   VisualizationPlugin: 'Visualization Plugins',
   WaveApplication: 'Wave Applications',
@@ -543,17 +596,17 @@ export const messages = {
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
   conflict_detect_initialization_error:
-    'Unexpected error initiliazing metadata cache',
-  conflict_detect_empty_results:
-    'Conflict Detection failed to retrieve org file state',
+    'Unexpected error initializing metadata cache',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
+    'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
-  conflict_detect_override: 'Override Conflicts',
-  conflict_detect_show_conflicts: 'Show Conflicts',
+  conflict_detect_override: 'Override Conflicts and Deploy',
+  conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_conflict_header_timestamp:
+    'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_no_default_username: 'No default username for this project',
@@ -568,6 +621,8 @@ export const messages = {
   conflict_detect_no_differences: 'No differences',
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'Compare Files',
+  conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
+  conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_components_not_in_org:
@@ -576,15 +631,12 @@ export const messages = {
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
   force_source_diff_folder_title: '%s - File Diffs',
-  force_source_diff_command_not_found:
-    'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
   beta_tapi_queue_status: 'The deploy is still in the Queue',
   lib_retrieve_result_title: 'Retrieved Source',
-  lib_retrieve_result_parse_error:
-    'Not able to parse current results. Raw result: %s',
+  lib_retrieve_result_parse_error: 'Not able to parse current results.',
   lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
@@ -603,5 +655,38 @@ export const messages = {
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  force_sobjects_no_refresh_if_already_active_error_text:
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
+  force_rename_lightning_component: 'SFDX: Rename Component',
+  rename_component_input_dup_error:
+    'Component name is already in use in LWC or Aura',
+  rename_component_input_dup_file_name_error:
+    'This file name is already in use in the current component directory. Choose a different name and try again.',
+  rename_component_input_placeholder: 'Enter a unique component name',
+  rename_component_input_prompt:
+    'Press Enter to confirm your input or Escape to cancel',
+  rename_component_warning:
+    'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  rename_component_error:
+    'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
+  error_function_type: 'Unable to determine type of executing function.',
+  error_unable_to_get_started_function:
+    'Unable to access the function in "{0}".',
+  pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
+  pending_org_expiration_notification_message:
+    'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
+  pending_org_expiration_output_channel_message:
+    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode',
+  parameter_gatherer_file_name_max_length_validation_error_message:
+    'File name cannot exceed {0} characters',
+  source_status: 'Source Status'
 };

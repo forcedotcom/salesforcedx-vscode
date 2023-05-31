@@ -3,31 +3,19 @@
 const shell = require('shelljs');
 const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
+const changeLogGeneratorUtils = require('./change-log-generator-utils');
+
+const RELEASE_TYPE = process.env['RELEASE_TYPE'];
 
 shell.set('-e');
 shell.set('+v');
-
-function getReleaseType() {
-  const releaseTypeIndex = process.argv.indexOf('-r');
-  if (releaseTypeIndex > -1) {
-    if (!/patch|minor|major/.exec(`${process.argv[releaseTypeIndex + 1]}`)) {
-      console.error(
-        `Release Type was specified (-r), but received invalid value ${process.argv[releaseTypeIndex + 1]}.
-        Accepted Values: 'patch', 'minor', or 'major'`
-      );
-      process.exit(-1);
-    }
-    return process.argv[releaseTypeIndex + 1];
-  }
-  return 'minor';
-}
 
 function getReleaseVersion() {
   const currentVersion = require('../packages/salesforcedx-vscode/package.json')
     .version;
   let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
 
-  switch(getReleaseType()) {
+  switch(RELEASE_TYPE) {
     case 'major':
       major = parseInt(major) + 1;
       minor = 0;
@@ -40,8 +28,21 @@ function getReleaseVersion() {
     case 'patch':
       patch = parseInt(patch) + 1;
       break;
+    case 'beta':
+      patch = getBetaVersion();
+      break;
   }
   return `${major}.${minor}.${patch}`;
+}
+
+function getBetaVersion() {
+  //ISO returns UTC for consistency; new betas can be made every minute
+  const yearMonthDateHourMin = new Date().toISOString().replace(/\D/g, '').substring(0, 12);
+  return yearMonthDateHourMin;
+}
+
+function isBetaRelease() {
+  return /beta/.exec(`${RELEASE_TYPE}`);
 }
 
 shell.env['SALESFORCEDX_VSCODE_VERSION'] = getReleaseVersion();
@@ -54,18 +55,21 @@ checkBaseBranch('develop');
 const releaseBranchName = `release/v${nextVersion}`;
 
 // Check if release branch has already been created
-const isRemoteReleaseBranchExist = shell
+const remoteReleaseBranchExists = shell
   .exec(`git ls-remote --heads origin ${releaseBranchName}`, {
     silent: true
   })
   .stdout.trim();
 
-if (isRemoteReleaseBranchExist) {
+if (remoteReleaseBranchExists) {
   logger.error(
     `${releaseBranchName} already exists in remote. You might want to verify the value assigned to SALESFORCEDX_VSCODE_VERSION`
   );
   process.exit(-1);
 }
+
+// Create the new release branch and switch to it
+shell.exec(`git checkout -b ${releaseBranchName}`);
 
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
@@ -74,7 +78,7 @@ shell.exec('git clean -xfd -e node_modules');
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
 shell.exec(
-  `lerna version ${nextVersion} --force-publish --allow-branch develop --no-git-tag-version --exact --yes`
+  `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
 );
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
@@ -82,17 +86,47 @@ shell.exec(
 // Add all package.json version update changes
 shell.exec(`git add "**/package.json"`);
 
+// Execute an npm install so that we update the package-lock.json file with the new version 
+// found in the packages for each submodule.
+shell.exec(`npm install --ignore-scripts --package-lock-only --no-audit`);
+
+// Add change to package lockfile that includes version bump
+shell.exec('git add package-lock.json');
+
 // Add change to lerna.json
 shell.exec('git add lerna.json');
 
 // Git commit
 shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
-// Push version update commits to develop
-shell.exec(`git push origin develop`);
+// Merge release branch to develop as soon as it is cut.
+// In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
+// beta versions should not be merged directly to develop, so we don't merge back or add to the changelog
+if (!isBetaRelease()) {
+  shell.exec(`git checkout develop`)
+  shell.exec(`git merge ${releaseBranchName}`)
+  shell.exec(`git push -u origin develop`)
+  shell.exec(`git checkout ${releaseBranchName}`)
+  shell.exec(`git fetch`)
 
-// Create the new release branch and switch to it
-shell.exec(`git checkout -b ${releaseBranchName}`);
+  // Generate changelog
+  try {
+    //... but don't prevent errors from creating the release branch since we already merged to develop
+    const latestReleasedVersion = String(shell.exec(`git describe --tags --abbrev=0`));
+    const latestReleasedBranchName = `release/${latestReleasedVersion}`
+    const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, latestReleasedBranchName));
+    const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
+    const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
+    changeLogGeneratorUtils.writeChangeLog(changeLog);
+  
+    const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
+    shell.exec(commitCommand);
+  } catch (e) {
+    logger.error(`Changelog could not be generated - you're on your own for this one!`);
+    logger.error(e);
+  }
+
+}
 
 // Push new release branch to remote
 shell.exec(`git push -u origin ${releaseBranchName}`);

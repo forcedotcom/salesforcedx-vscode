@@ -4,27 +4,38 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo, Connection } from '@salesforce/core';
-import { isUndefined } from 'util';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  ConfigSource,
+  ConfigUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  DEFAULT_USERNAME_KEY
-} from '../constants';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil } from './index';
+
 export class OrgAuthInfo {
+  public static async getDevHubUsername() {
+    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      false
+    );
+    let defaultDevHubUsername: string | undefined;
+    if (defaultDevHubUsernameOrAlias) {
+      defaultDevHubUsername = await OrgAuthInfo.getUsername(
+        defaultDevHubUsernameOrAlias
+      );
+    }
+    return defaultDevHubUsername;
+  }
+
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
-      );
-      if (isUndefined(defaultUserName)) {
+      const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+      if (!defaultUsernameOrAlias) {
         displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
@@ -32,10 +43,7 @@ export class OrgAuthInfo {
         );
         return undefined;
       } else {
-        const configSource = await ConfigUtil.getConfigSource(
-          DEFAULT_USERNAME_KEY
-        );
-        if (configSource === ConfigSource.Global) {
+        if (await ConfigUtil.isGlobalDefaultUsername()) {
           displayMessage(
             nls.localize('warning_using_global_username'),
             enableWarning,
@@ -44,10 +52,15 @@ export class OrgAuthInfo {
         }
       }
 
-      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendException('get_default_username_alias', err.message);
+      if (err instanceof Error) {
+        telemetryService.sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
       return undefined;
     }
   }
@@ -57,11 +70,12 @@ export class OrgAuthInfo {
     configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
-      const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_DEV_HUB_USERNAME_KEY,
-        configSource
-      );
-      if (isUndefined(defaultDevHubUserName)) {
+      const defaultDevHubUserName =
+        configSource === ConfigSource.Global
+          ? await ConfigUtil.getGlobalDefaultDevHubUsernameOrAlias()
+          : await ConfigUtil.getDefaultDevHubUsernameOrAlias();
+
+      if (!defaultDevHubUserName) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
@@ -77,28 +91,27 @@ export class OrgAuthInfo {
       return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendException(
-        'get_default_devhub_username_alias',
-        err.message
-      );
+      if (err instanceof Error) {
+        telemetryService.sendException(
+          'get_default_devhub_username_alias',
+          err.message
+        );
+      }
       return undefined;
     }
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {
-    return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
+    const info = await StateAggregator.getInstance();
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {
-    try {
-      const authInfo = await AuthInfo.create({ username });
-      const authInfoFields = authInfo.getFields();
-      return Promise.resolve(
-        typeof authInfoFields.devHubUsername !== 'undefined'
-      );
-    } catch (e) {
-      throw e;
-    }
+    const authInfo = await AuthInfo.create({ username });
+    const authInfoFields = authInfo.getFields();
+    return Promise.resolve(
+      typeof authInfoFields.devHubUsername !== 'undefined'
+    );
   }
 
   public static async getConnection(
@@ -122,6 +135,12 @@ export class OrgAuthInfo {
       authInfo: await AuthInfo.create({ username })
     });
   }
+
+  public static async getOrgApiVersion(): Promise<string | undefined> {
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const apiVersion = connection.getApiVersion();
+    return apiVersion ? String(apiVersion) : undefined;
+  }
 }
 
 enum VSCodeWindowTypeEnum {
@@ -136,7 +155,7 @@ function displayMessage(
   vsCodeWindowType?: VSCodeWindowTypeEnum,
   items?: string[]
 ) {
-  if (!isUndefined(enableWarning) && !enableWarning) {
+  if (enableWarning !== undefined && !enableWarning) {
     return;
   }
   const buttons = items || [];

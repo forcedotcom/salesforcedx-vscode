@@ -4,21 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
+  FileProperties,
   MetadataApiRetrieve,
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { FileProperties } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
+import { WorkspaceContext } from '../context/workspaceContext';
+import { setApiVersionOn } from '../services/sdr/componentSetUtils';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 
 export interface MetadataContext {
   baseDirectory: string;
@@ -40,10 +43,24 @@ export interface MetadataCacheResult {
   cachePropPath?: string;
   cache: MetadataContext;
   project: MetadataContext;
+  properties: FileProperties[];
 }
 
+export interface CorrelatedComponent {
+  cacheComponent: SourceComponent;
+  projectComponent: SourceComponent;
+  lastModifiedDate: string;
+}
+
+interface RecomposedComponent {
+  component?: SourceComponent;
+  children: Map<string, SourceComponent>;
+}
+
+const STATE_FOLDER = projectPaths.relativeStateFolder();
+
 export class MetadataCacheService {
-  private static CACHE_FOLDER = ['.sfdx', 'diff'];
+  private static CACHE_FOLDER = [STATE_FOLDER, 'diff'];
   private static PROPERTIES_FOLDER = ['prop'];
   private static PROPERTIES_FILE = 'file-props.json';
 
@@ -92,8 +109,11 @@ export class MetadataCacheService {
   ): Promise<MetadataCacheResult | undefined> {
     this.initialize(componentPath, projectPath, isManifest);
     const components = await this.getSourceComponents();
+    if (components.size === 0) {
+      return undefined;
+    }
     const operation = await this.createRetrieveOperation(components);
-    const results = await operation.start();
+    const results = await operation.pollStatus();
     return this.processResults(results);
   }
 
@@ -103,7 +123,8 @@ export class MetadataCacheService {
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
-            resolveSourcePaths: packageDirs
+            resolveSourcePaths: packageDirs,
+            forceAddWildcards: true
           })
         : ComponentSet.fromSource(this.componentPath);
       return this.sourceComponents;
@@ -117,10 +138,13 @@ export class MetadataCacheService {
     const components = comps || (await this.getSourceComponents());
     this.clearDirectory(this.cachePath, true);
 
-    const operation = components.retrieve({
-      usernameOrConnection: this.username,
+    await setApiVersionOn(components);
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const operation = await components.retrieve({
+      usernameOrConnection: connection,
       output: this.cachePath,
-      merge: false
+      merge: false,
+      suppressEvents: true
     });
 
     return operation;
@@ -171,7 +195,8 @@ export class MetadataCacheService {
           baseDirectory: this.projectPath,
           commonRoot: projCommon,
           components: sourceComps
-        }
+        },
+        properties
       };
     }
   }
@@ -194,7 +219,7 @@ export class MetadataCacheService {
     baseDir: string
   ): string {
     if (comps.length === 0) {
-      return baseDir;
+      return '';
     }
     if (comps.length === 1) {
       return this.getRelativePath(comps[0], baseDir);
@@ -240,6 +265,106 @@ export class MetadataCacheService {
       return compDir.substring(baseDir.length + path.sep.length);
     }
     return '';
+  }
+
+  /**
+   * Groups the information in a MetadataCacheResult by component.
+   * Child components are returned as an array entry unless their parent is present.
+   * @param result A MetadataCacheResult
+   * @returns An array with one entry per retrieved component, with all corresponding information about the component included
+   */
+  public static correlateResults(
+    result: MetadataCacheResult
+  ): CorrelatedComponent[] {
+    const components: CorrelatedComponent[] = [];
+
+    const projectIndex = new Map<string, RecomposedComponent>();
+    this.pairParentsAndChildren(projectIndex, result.project.components);
+
+    const cacheIndex = new Map<string, RecomposedComponent>();
+    this.pairParentsAndChildren(cacheIndex, result.cache.components);
+
+    const fileIndex = new Map<string, FileProperties>();
+    for (const fileProperty of result.properties) {
+      fileIndex.set(
+        MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName),
+        fileProperty
+      );
+    }
+
+    fileIndex.forEach((fileProperties, key) => {
+      const cacheComponent = cacheIndex.get(key);
+      const projectComponent = projectIndex.get(key);
+      if (cacheComponent && projectComponent) {
+        if (cacheComponent.component && projectComponent.component) {
+          components.push({
+            cacheComponent: cacheComponent.component,
+            projectComponent: projectComponent.component,
+            lastModifiedDate: fileProperties.lastModifiedDate
+          });
+        } else {
+          cacheComponent.children.forEach((cacheChild, childKey) => {
+            const projectChild = projectComponent.children.get(childKey);
+            if (projectChild) {
+              components.push({
+                cacheComponent: cacheChild,
+                projectComponent: projectChild,
+                lastModifiedDate: fileProperties.lastModifiedDate
+              });
+            }
+          });
+        }
+      }
+    });
+
+    return components;
+  }
+
+  /**
+   * Creates a map in which parent components and their children are stored together
+   * @param index The map which is mutated by this function
+   * @param components The parent and/or child components to add to the map
+   */
+  private static pairParentsAndChildren(
+    index: Map<string, RecomposedComponent>,
+    components: SourceComponent[]
+  ) {
+    for (const comp of components) {
+      const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
+      // If the component has a parent it is assumed to be a child
+      if (comp.parent) {
+        const parentKey = MetadataCacheService.makeKey(
+          comp.parent.type.name,
+          comp.parent.fullName
+        );
+        const parentEntry = index.get(parentKey);
+        if (parentEntry) {
+          // Add the child component if we have an entry for the parent
+          parentEntry.children.set(key, comp);
+        } else {
+          // Create a new entry that does not have a parent yet
+          index.set(parentKey, {
+            children: new Map<string, SourceComponent>().set(key, comp)
+          });
+        }
+      } else {
+        const entry = index.get(key);
+        if (entry) {
+          // Add this parent to an existing entry without overwriting the children
+          entry.component = comp;
+        } else {
+          // Create a new entry with just the parent
+          index.set(key, {
+            component: comp,
+            children: new Map<string, SourceComponent>()
+          });
+        }
+      }
+    }
+  }
+
+  private static makeKey(type: string, fullName: string): string {
+    return `${type}#${fullName}`;
   }
 
   public getCachePath(): string {
@@ -302,7 +427,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   protected async getComponents(response: any): Promise<ComponentSet> {
     this.cacheService.initialize(
       response.data,
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       this.isManifest
     );
     return this.cacheService.getSourceComponents();
@@ -316,7 +441,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
       components
     );
     this.setupCancellation(operation, token);
-    return operation.start();
+    return operation.pollStatus();
   }
 
   protected async postOperation(result: RetrieveResult | undefined) {

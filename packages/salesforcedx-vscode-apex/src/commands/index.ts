@@ -16,4 +16,9 @@ export {
 } from './forceApexTestRunCodeAction';
 export { forceApexLogGet } from './forceApexLogGet';
 export { forceApexTestRun } from './forceApexTestRun';
-export { forceApexExecute } from './forceApexExecute';
+export {
+  forceAnonApexDebug,
+  forceAnonApexExecute
+} from './forceAnonApexExecute';
+export { forceApexTestSuiteAdd, forceApexTestSuiteCreate, forceApexTestSuiteRun } from './forceApexTestSuite';
+export { forceLaunchApexReplayDebuggerWithCurrentFile } from './forceLaunchApexReplayDebuggerWithCurrentFile';
