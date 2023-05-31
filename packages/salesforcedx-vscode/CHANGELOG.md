@@ -1,3 +1,27 @@
+# 58.0.1 - June 2, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add setting to enable/disable source tracking ([PR #4885](https://github.com/forcedotcom/salesforcedx-vscode/pull/4885))
+
+- Expose TelemetryService class in core API ([PR #4879](https://github.com/forcedotcom/salesforcedx-vscode/pull/4879))
+
+#### salesforcedx-vscode-lwc
+
+- Support custom property editors in .js-meta.xml validation ([PR #4874](https://github.com/forcedotcom/salesforcedx-vscode/pull/4874))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Make Push and Pull Update Cache to Work with VSCE Conflict Detection ([PR #4853](https://github.com/forcedotcom/salesforcedx-vscode/pull/4853))
+
+#### salesforcedx-vscode-soql
+
+- Copyright template should use current year ([PR #4850](https://github.com/forcedotcom/salesforcedx-vscode/pull/4850))
+
 # 57.15.0 - May 24, 2023
 
 ## Added
