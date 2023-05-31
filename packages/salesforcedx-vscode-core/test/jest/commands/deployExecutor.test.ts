@@ -13,6 +13,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
+import { sfdxCoreSettings } from '../../../src/settings';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
@@ -47,6 +48,7 @@ jest.mock('../../../src/conflict/metadataCacheService', () => {
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../src/commands/util/timestampConflictChecker');
 jest.mock('../../../src/conflict/timestampConflictDetector');
+jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
@@ -59,6 +61,7 @@ describe('Deploy Executor', () => {
   let getUsernameStub: jest.SpyInstance;
   let createSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
+  let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
     constructor(s: string, t: string) {
@@ -89,10 +92,14 @@ describe('Deploy Executor', () => {
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
+    getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
+      sfdxCoreSettings,
+      'getEnableSourceTrackingForDeployAndRetrieve');
   });
 
   it('should create Source Tracking and call ensureLocalTracking before deploying', async () => {
     // Arrange
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
     deploySpy = jest
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
@@ -119,5 +126,26 @@ describe('Deploy Executor', () => {
     // need to be called before the deploy operation is started.
     expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
+  });
+
+  it('should NOT create Source Tracking and NOT call ensureLocalTracking before deploying when "Enable Source Tracking" is disabled(false)', async () => {
+    // Arrange
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
+    deploySpy = jest
+      .spyOn(dummyComponentSet, 'deploy')
+      .mockResolvedValue({ pollStatus: jest.fn() } as any);
+    const executor = new TestDeployExecutor(
+      'testDeploy',
+      'force_source_deploy_with_sourcepath_beta'
+    );
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(createSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
+    expect(deploySpy).toHaveBeenCalled();
   });
 });
