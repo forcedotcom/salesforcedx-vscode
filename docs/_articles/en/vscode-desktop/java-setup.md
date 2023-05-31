@@ -42,11 +42,21 @@ Windows:
 }
 ```
 
-Linux (Pop! OS 20.04, installation via aptitude):
+### Linux
+
+Pop! OS 20.04 (installation via aptitude):
 
 ```json
 {
   "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-17-openjdk-amd64"
+}
+```
+
+Arch Linux (installation via AUR using package `jdk17-adoptopenjdk`):
+
+```json
+{
+  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-17-adoptopenjdk"
 }
 ```
 
@@ -61,7 +71,7 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 5. Select your Architecture.
 6. Select your Java Package (JDK).
 7. Download the installer.
-8.  Once the file is downloaded open it and complete the installation steps.
+8. Once the file is downloaded open it and complete the installation steps.
 
 Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
 
