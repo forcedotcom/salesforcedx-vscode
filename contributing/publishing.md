@@ -24,11 +24,14 @@ For more information about publishing take a look at:
 ## Creating a Release Branch
 
 The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
-Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` file with the correct format and commits being staged.
 
-## Verifying the Change Log
+## Updating the Change Log
 
-One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) will review the changelog and make any changes to the release branch. A pull request will be opened against the release branch with updates to be included.
+After the release branch is created, the changelog should be updated. To do so, our [Doc Maintainer](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) should run the VS Code task `Update Change Log` on Monday. This task takes an optional `releaseOverride` parameter for the release version in the format of `v57.13.1`. If this is omitted, the latest created release branch will be used. The task will gather commits that should be published (like `feat` or `fix`), write the update to `CHANGELOG.md` and then open the file for review.
+
+Once the writer is content with the changes, they should commit the changes in the format `chore: generated CHANGELOG for ${releaseBranchName}"`, and push the update to the release branch.
+
+If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), the task will end by printing a message that the release can be skipped.
 
 ## Compare Changes in the Release
 
@@ -59,7 +62,6 @@ The merge into `main` will trigger a run of the 'Test, Build, and Release' GHA w
 - create a tag and release in GitHub
 
 After the release has been created, it will trigger two publish actions for publishing in the MS Marketplace and the Open VSX. Each action will send a notification to slack to request approval to publish the vsix files.
-
 
 Before approving the release to the marketplace, download the vsix files from the release you just created, install them locally and verify they are working as expected.
 
@@ -176,16 +178,19 @@ from Atlassian on the flow. These steps are manual because you might encounter m
 1. `git merge release/vxx.y.z`
 1. `git push`
 
-## Manual Publish in Open VSX Registry 
+## Manual Publish in Open VSX Registry
+
 ### Option 1: Using the Open VSX Website UI
 
-1. Log in [Open VSX](https://open-vsx.org/) with the svc-idee-bot github account username and password. 
+1. Log in [Open VSX](https://open-vsx.org/) with the svc-idee-bot github account username and password.
 2. In the Open VSX main page, find the settings by clicking the account avatar.
-3. Go to the "Extensions" section under settings. Click the "publish extensions" button to drag and drop the vsix file to publish it. 
+3. Go to the "Extensions" section under settings. Click the "publish extensions" button to drag and drop the vsix file to publish it.
 
 ### Option 2: Using the CLI Tool
-1. Get the publish token from the LastPass shared folder. 
-2. Run `npx ovsx publish <vsix-file> -p <token>` locally to publish the vsix file on Open VSX. 
+
+1. Get the publish token from the LastPass shared folder.
+2. Run `npx ovsx publish <vsix-file> -p <token>` locally to publish the vsix file on Open VSX.
+
 # Tips
 
 1. In order to make a previously unpublished extension publishable there are a
