@@ -1,10 +1,34 @@
+# 58.0.1 - June 2, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We added a setting that enables or disables source tracking for deploy and retrieve operations. ([PR #4885](https://github.com/forcedotcom/salesforcedx-vscode/pull/4885))
+
+- We exposed the `TelemetryService` class in the core extension API ([PR #4879](https://github.com/forcedotcom/salesforcedx-vscode/pull/4879))
+
+#### salesforcedx-vscode-lwc
+
+- We now support custom property editors in `.js-meta.xml` validation. With this update you can now get syntax insights when configuring a component for custom property editing. ([PR #4874](https://github.com/forcedotcom/salesforcedx-vscode/pull/4874))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where local changes were being detected as conflicts in conjunction with the "Detect Conflicts At Sync" setting. ([PR #4853](https://github.com/forcedotcom/salesforcedx-vscode/pull/4853))
+
+#### salesforcedx-vscode-soql
+
+- We updated the copyright template so that it shows the current year ([PR #4850](https://github.com/forcedotcom/salesforcedx-vscode/pull/4850))
+
 # 57.15.0 - May 24, 2023
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- We enabled our Org Browser functionality when users are working with Scratch Orgs ([PR #4810](https://github.com/forcedotcom/salesforcedx-vscode/pull/4810))
+- We enabled our Org Browser functionality when users are working with Scratch Orgs. ([PR #4810](https://github.com/forcedotcom/salesforcedx-vscode/pull/4810))
 
 - We added a setting "Prefer deploy on save" that will run a deploy instead of a push when "Push or deploy on save" is enabled. ([PR #4820](https://github.com/forcedotcom/salesforcedx-vscode/pull/4820))
 
@@ -32,11 +56,11 @@
 
 #### salesforcedx-vscode-core
 
-- Update @salesforce/templates version so that the latest API version 57.0 is used for `assetVersion` when creating a sample analytics app template. ([PR #4851](https://github.com/forcedotcom/salesforcedx-vscode/pull/4851))
+- We updated @salesforce/templates version so that the latest API version 57.0 is used for `assetVersion` when creating a sample analytics app template. ([PR #4851](https://github.com/forcedotcom/salesforcedx-vscode/pull/4851))
 
 #### salesforcedx-vscode-soql
 
-- Updated SOQL Builder so that it does not show an error when there is no default org set and a SOQL file is not currently open. ([PR #4847](https://github.com/forcedotcom/salesforcedx-vscode/pull/4847))
+- We updated SOQL Builder so that it does not show an error when there is no default org set and a SOQL file is not currently open. ([PR #4847](https://github.com/forcedotcom/salesforcedx-vscode/pull/4847))
 
 # 57.13.1 - May 10, 2023
 
