@@ -96,18 +96,23 @@ export class SObjectTransformerFactory {
     const connectionForSourceApiVersion = await Connection.create({
       authInfo: await AuthInfo.create({ username: connection.getUsername() })
     });
+    const sourceApiVersion = await SObjectTransformerFactory.getSourceApiVersion();
+    // precedence user override > project config > connection default
+    connectionForSourceApiVersion.setApiVersion(
+      userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
+    );
+
+    return connectionForSourceApiVersion;
+  }
+
+  private static async getSourceApiVersion(): Promise<string | undefined> {
     try {
       const sfProject = await SfProject.resolve();
-      const sourceApiVersion = sfProject.getSfProjectJson().getContents()
-        .sourceApiVersion;
-      // precedence user override > project config > connection default
-      connectionForSourceApiVersion.setApiVersion(
-        userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
-      );
+      return sfProject.getSfProjectJson().getContents().sourceApiVersion;
     } catch (e) {
-      // If we can't resolve a project, we'll just use the default connection
+      // If we can't resolve a project, then undefined
+      return undefined;
     }
-    return connectionForSourceApiVersion;
   }
 }
 
