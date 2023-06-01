@@ -6,10 +6,8 @@
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
   "dependencies": {
-    "@commitlint/config-conventional": "^17.2.0",
-    "@salesforce/core": "^3.34.6",
+    "@salesforce/core": "^4.0.1",
     "@types/istanbul-reports": "^3.0.1",
-    "commitlint": "^17.2.0",
     "faye": "1.4.0",
     "glob": "^8.0.3",
     "istanbul-lib-coverage": "^3.2.0",
@@ -17,8 +15,9 @@
     "istanbul-reports": "^3.1.4"
   },
   "devDependencies": {
+    "@commitlint/config-conventional": "^17.6.5",
     "@salesforce/ts-sinon": "^1.4.2",
-    "@salesforce/ts-types": "1.2.2",
+    "@salesforce/ts-types": "^2.0.2",
     "@types/chai": "^4",
     "@types/glob": "^8.0.0",
     "@types/istanbul-lib-coverage": "^2.0.4",
@@ -29,6 +28,7 @@
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
     "chai": "^4",
+    "commitlint": "^17.6.5",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.1.0",
     "eslint-config-prettier": "^6.11.0",

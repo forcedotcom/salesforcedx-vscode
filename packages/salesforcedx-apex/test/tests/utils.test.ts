@@ -5,17 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as utils from '../../src/tests/utils';
 
-const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 const testData = new MockTestOrgData();
 
 describe('Query Namespaces', async () => {
+  const $$ = new TestContext();
+
   beforeEach(async () => {
     sandboxStub = createSandbox();
     await $$.stubAuths(testData);

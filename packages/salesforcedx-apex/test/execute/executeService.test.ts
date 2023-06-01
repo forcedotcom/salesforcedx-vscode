@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import * as readline from 'readline';
@@ -19,9 +19,9 @@ import {
   ExecAnonApiResponse
 } from '../../src/execute/types';
 
-const $$ = testSetup();
-
 describe('Apex Execute Tests', async () => {
+  const $$ = new TestContext();
+
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sandboxStub: SinonSandbox;

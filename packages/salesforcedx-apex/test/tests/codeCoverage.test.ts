@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { CodeCoverage } from '../../src/tests/codeCoverage';
@@ -19,13 +19,14 @@ import {
 } from '../../src/tests/types';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 
-const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Get code coverage results', () => {
+  const $$ = new TestContext();
+
   beforeEach(async () => {
     sandboxStub = createSandbox();
 

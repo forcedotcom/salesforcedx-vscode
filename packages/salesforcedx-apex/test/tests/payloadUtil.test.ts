@@ -6,18 +6,19 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { nls } from '../../src/i18n';
 import { TestLevel, TestService } from '../../src/tests';
 import * as utils from '../../src/tests/utils';
 
-const $$ = testSetup();
 let mockConnection: Connection;
 const testData = new MockTestOrgData();
 
 describe('Build async payload', async () => {
+  const $$ = new TestContext();
+
   let sandboxStub: SinonSandbox;
   let testService: TestService;
   beforeEach(async () => {
@@ -261,6 +262,7 @@ describe('Build async payload', async () => {
 });
 
 describe('Build sync payload', async () => {
+  const $$ = new TestContext();
   let sandboxStub: SinonSandbox;
   let testSrv: TestService;
   beforeEach(async () => {

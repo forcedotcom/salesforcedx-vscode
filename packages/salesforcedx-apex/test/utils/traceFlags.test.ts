@@ -6,16 +6,15 @@
  */
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlags } from '../../src/utils/traceFlags';
 import { nls } from '../../src/i18n';
 
-const $$ = testSetup();
-
 describe('Trace Flags', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   const USER_ID = 'abcd';
   let mockConnection: Connection;

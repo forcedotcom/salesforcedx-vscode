@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { expect, assert } from 'chai';
 import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -14,8 +14,6 @@ import { LogService } from '../../src/logs/logService';
 import * as path from 'path';
 import * as stream from 'stream';
 import { LogQueryResult, LogRecord, LogResult } from '../../src/logs/types';
-
-const $$ = testSetup();
 
 const logRecords: LogRecord[] = [
   {
@@ -86,6 +84,8 @@ const rawLogResult: LogQueryResult = {
 };
 
 describe('Apex Log Service Tests', () => {
+  const $$ = new TestContext();
+
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sandboxStub: SinonSandbox;

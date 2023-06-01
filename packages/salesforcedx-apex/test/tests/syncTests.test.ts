@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as fs from 'fs';
@@ -35,13 +35,13 @@ import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'assert';
 import { SyncTests } from '../../src/tests/syncTests';
 
-const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingRequestStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Run Apex tests synchronously', () => {
+  const $$ = new TestContext();
   let testRequest = {};
   const requestOptions: SyncTestConfiguration = {
     tests: [{ className: 'TestSample' }],

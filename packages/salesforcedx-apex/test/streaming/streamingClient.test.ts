@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { StreamingClient } from '../../src/streaming';
 import { Deferred } from '../../src/streaming/streamingClient';
@@ -26,7 +26,6 @@ import { EventEmitter } from 'events';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ApexFayeClient: any = Client;
 
-const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 const testData = new MockTestOrgData();
@@ -40,6 +39,8 @@ const testResultMsg: TestResultMessage = {
   }
 };
 describe('Streaming API Client', () => {
+  const $$ = new TestContext();
+
   beforeEach(async () => {
     sandboxStub = createSandbox();
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
