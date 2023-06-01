@@ -3,7 +3,6 @@
 const shell = require('shelljs');
 const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
-const changeLogGeneratorUtils = require('./change-log-generator-utils');
 
 const RELEASE_TYPE = process.env['RELEASE_TYPE'];
 
@@ -101,31 +100,13 @@ shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
 // Merge release branch to develop as soon as it is cut.
 // In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
-// beta versions should not be merged directly to develop, so we don't merge back or add to the changelog
+// beta versions should not be merged directly to develop, so we don't merge back to main
 if (!isBetaRelease()) {
   shell.exec(`git checkout develop`)
   shell.exec(`git merge ${releaseBranchName}`)
   shell.exec(`git push -u origin develop`)
   shell.exec(`git checkout ${releaseBranchName}`)
   shell.exec(`git fetch`)
-
-  // Generate changelog
-  try {
-    //... but don't prevent errors from creating the release branch since we already merged to develop
-    const latestReleasedVersion = String(shell.exec(`git describe --tags --abbrev=0`));
-    const latestReleasedBranchName = `release/${latestReleasedVersion}`
-    const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, latestReleasedBranchName));
-    const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
-    const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
-    changeLogGeneratorUtils.writeChangeLog(changeLog);
-  
-    const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
-    shell.exec(commitCommand);
-  } catch (e) {
-    logger.error(`Changelog could not be generated - you're on your own for this one!`);
-    logger.error(e);
-  }
-
 }
 
 // Push new release branch to remote

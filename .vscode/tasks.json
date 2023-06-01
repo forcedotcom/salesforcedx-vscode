@@ -91,6 +91,11 @@
       "args": ["${input:needSigning}"]
     },
     {
+      "label": "Update Change Log",
+      "command": "npm run changelog ${input:releaseOverride}",
+      "type": "shell"
+    },
+    {
       "label": "Watch",
       "command": "npm",
       "type": "shell",
@@ -110,6 +115,11 @@
       "description": "Are you publishing Jorje changes? (Need Signed Jar)",
       "options": ["false", "true"],
       "default": "false"
-    }
+    },
+    {
+      "id": "releaseOverride",
+      "type": "promptString",
+      "description": "(Optional) Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 57.13.1)"
+    },
   ]
 }
