@@ -324,6 +324,35 @@ export class SelectOutputDir
   }
 }
 
+export class ProvideOutputDir
+  implements ParametersGatherer<{ outputdir: string }> {
+  private sourceUri: string;
+
+  public constructor(sourceUri: string) {
+    this.sourceUri = sourceUri;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ outputdir: string }>
+  > {
+    let packageDirs: string[] = [];
+    try {
+      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    } catch (e) {
+      if (
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
+        throw e;
+      }
+    }
+
+    return this.sourceUri
+      ? { type: CONTINUE, data: { outputdir: this.sourceUri } }
+      : { type: CANCEL };
+  }
+}
+
 export class SimpleGatherer<T> implements ParametersGatherer<T> {
   private input: T;
 

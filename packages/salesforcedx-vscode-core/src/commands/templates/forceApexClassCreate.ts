@@ -9,9 +9,11 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
+  ProvideOutputDir,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -25,17 +27,17 @@ import {
   APEX_CLASS_TYPE
 } from './metadataTypeConstants';
 
-let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;
 let outputDirGatherer: ParametersGatherer<any>;
 let metadataTypeGatherer: ParametersGatherer<any>;
-function getParamGatherers() {
-  if (!initialized) {
-    fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+function getParamGatherers(sourceUri: string | undefined) {
+  fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+  if (!sourceUri) {
     outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
-    metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
-    initialized = true;
+  } else {
+    outputDirGatherer = new ProvideOutputDir(sourceUri);
   }
+  metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
   return {
     fileNameGatherer,
     outputDirGatherer,
@@ -43,8 +45,11 @@ function getParamGatherers() {
   };
 }
 
-export async function forceApexClassCreate() {
-  const gatherers = getParamGatherers();
+export async function forceApexClassCreate(
+  sourceUri: vscode.Uri | undefined,
+  uris: vscode.Uri[] | undefined
+) {
+  const gatherers = getParamGatherers(sourceUri?.fsPath);
 
   const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
   const commandlet = new SfdxCommandlet(
