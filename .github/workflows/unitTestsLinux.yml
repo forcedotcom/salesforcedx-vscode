@@ -5,6 +5,8 @@ on:
       branch:
         type: string
         required: false
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
 
 jobs:
   linux-unit-tests:
