@@ -93,27 +93,27 @@ describe('Fetch sObjects', () => {
 
   it('Should build the sobject describe url', () => {
     expect(sobjectdescribe.buildSObjectDescribeURL('testObject')).to.equal(
-      'v46.0/sobjects/testObject/describe'
+      'v50.0/sobjects/testObject/describe'
     );
   });
 
   it('Should build the batch request url', async () => {
     expect(sobjectdescribe.buildBatchRequestURL()).to.equal(
-      'https://na1.salesforce.com/services/data/v46.0/composite/batch'
+      'https://na1.salesforce.com/services/data/v50.0/composite/batch'
     );
   });
 
   it('Should build the api version', () => {
-    expect(sobjectdescribe.getVersion()).to.equal('v46.0');
+    expect(sobjectdescribe.getVersion()).to.equal('v50.0');
   });
 
   it('Should create batch request body', () => {
     const sobjectTypes = ['object1', 'object2', 'object3'];
     const testBatchReq = {
       batchRequests: [
-        { method: 'GET', url: 'v46.0/sobjects/object1/describe' },
-        { method: 'GET', url: 'v46.0/sobjects/object2/describe' },
-        { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
+        { method: 'GET', url: 'v50.0/sobjects/object1/describe' },
+        { method: 'GET', url: 'v50.0/sobjects/object2/describe' },
+        { method: 'GET', url: 'v50.0/sobjects/object3/describe' }
       ]
     };
     const requestBody = sobjectdescribe.buildBatchRequestBody(sobjectTypes);
@@ -123,16 +123,16 @@ describe('Fetch sObjects', () => {
   it('Should create the correct request options', async () => {
     const testBatchReq = {
       batchRequests: [
-        { method: 'GET', url: 'v46.0/sobjects/object1/describe' },
-        { method: 'GET', url: 'v46.0/sobjects/object2/describe' },
-        { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
+        { method: 'GET', url: 'v50.0/sobjects/object1/describe' },
+        { method: 'GET', url: 'v50.0/sobjects/object2/describe' },
+        { method: 'GET', url: 'v50.0/sobjects/object3/describe' }
       ]
     };
     const requestStub = env.stub(connection, 'request');
     await sobjectdescribe.runRequest(testBatchReq);
     expect(requestStub.firstCall.args[0]).to.deep.equal({
       method: 'POST',
-      url: `${connection.instanceUrl}/services/data/v46.0/composite/batch`,
+      url: `${connection.instanceUrl}/services/data/v50.0/composite/batch`,
       body: JSON.stringify(testBatchReq),
       headers: {
         'User-Agent': 'salesforcedx-extension',

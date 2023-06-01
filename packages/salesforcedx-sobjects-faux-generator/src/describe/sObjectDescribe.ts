@@ -16,8 +16,6 @@ export const MAX_BATCH_REQUEST_SIZE = 25;
 export class SObjectDescribe {
   private connection: Connection;
   private readonly servicesPath: string = 'services/data';
-  // the targetVersion should be consistent with the Cli even if only using REST calls
-  private readonly targetVersion = '46.0';
   private readonly versionPrefix = 'v';
   private readonly sobjectsPart: string = 'sobjects';
   private readonly batchPart: string = 'composite/batch';
@@ -40,7 +38,7 @@ export class SObjectDescribe {
   }
 
   public getVersion(): string {
-    return `${this.versionPrefix}${this.targetVersion}`;
+    return `${this.versionPrefix}${this.connection.getApiVersion()}`;
   }
 
   public buildSObjectDescribeURL(sObjectName: string): string {
