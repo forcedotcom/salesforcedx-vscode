@@ -4,9 +4,9 @@
 
 #### salesforcedx-vscode-core
 
-- We added a setting that enables or disables source tracking. ([PR #4885](https://github.com/forcedotcom/salesforcedx-vscode/pull/4885))
+- We added a setting that enables or disables source tracking for deploy and retrieve operations. ([PR #4885](https://github.com/forcedotcom/salesforcedx-vscode/pull/4885))
 
-- We exposed the `TelemetryService` class in core API ([PR #4879](https://github.com/forcedotcom/salesforcedx-vscode/pull/4879))
+- We exposed the `TelemetryService` class in the core extension API ([PR #4879](https://github.com/forcedotcom/salesforcedx-vscode/pull/4879))
 
 #### salesforcedx-vscode-lwc
 
@@ -16,7 +16,7 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue where conflict detection would pick up local changes as conflicts in conjunction with the "Detect Conflicts At Sync" setting. ([PR #4853](https://github.com/forcedotcom/salesforcedx-vscode/pull/4853))
+- We fixed an issue where local changes were being detected as conflicts in conjunction with the "Detect Conflicts At Sync" setting. ([PR #4853](https://github.com/forcedotcom/salesforcedx-vscode/pull/4853))
 
 #### salesforcedx-vscode-soql
 
