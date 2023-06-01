@@ -1,6 +1,7 @@
 name: validate pr
 on:
   pull_request:
+    types: [opened, reopened, edited]
     branches: [main]
 
 jobs:
