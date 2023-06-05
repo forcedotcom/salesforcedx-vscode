@@ -33,7 +33,7 @@ Automatically generate a manifest file for a given a set of metadata components 
 
 A new file is created and added to the manifest folder.
    
-Use the new manifest file to deploy and retrieve source from the org using **SFDX: Retrieve Source in Manifest from Org** or **SFDX: Retrieve Source in Manifest from Org** commands. 
+Use the new manifest file to deploy and retrieve source from the org using **SFDX: Deploy Source in Manifest to Org** or **SFDX: Retrieve Source in Manifest from Org** commands. 
 
 
 ### Retrieve Source
@@ -90,7 +90,7 @@ You can deploy source of a manifest, source files, directories, or folders:
 - Source File or Directory
 - In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
-- With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
+- With a source file open in the editor, open the Command Palette and run **SFDX: Deploy This Source File to Org**.
 
 ### Delete Source
 
