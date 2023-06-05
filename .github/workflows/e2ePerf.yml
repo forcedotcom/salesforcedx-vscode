@@ -5,7 +5,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'phale/perf-poc'
+        default: 'develop'
         type: string
 
 # all possible combinations of OS and architecture supported by yourkit
@@ -50,7 +50,8 @@ jobs:
           ref: ${{ inputs.automationBranch }}
       - name: Install Extension Dependencies
         run: |
-          npm install
+          npm install &&
+          npm run compile
         working-directory: salesforcedx-vscode
       - name: Install Test Dependencies
         run: |
