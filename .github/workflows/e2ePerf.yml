@@ -8,17 +8,6 @@ on:
         default: 'develop'
         type: string
 
-# all possible combinations of OS and architecture supported by yourkit
-env:
-  Linux-ARM: ./yourkit-distro/linux-arm-32/libyjpagent.so
-  Windows-X86: ./yourkit-distro/windows-x86-32/yjpagent.dll
-  Linux-X86: ./yourkit-distro/linux-x86-32/libyjpagent.so
-  Windows-X64: ./yourkit-distro/windows-x86-64/yjpagent.dll
-  Linux-ARM64: ./yourkit-distro/linux-arm-64/libyjpagent.so
-  macOs-X64: ./yourkit-distro/mac/libyjpagent.dylib
-  Windows-ARM64: ./yourkit-distro/windows-arm-64/yjpagent.dll
-  Linux-X64: ./yourkit-distro/linux-x86-64/libyjpagent.so
-
 jobs:
   build:
     strategy:
@@ -72,8 +61,19 @@ jobs:
             echo "The sfdx-cli installation could not be verified"
             exit 1
           fi
-      - name: Setup YourKit Agent
-        run: echo "YOURKIT_PROFILER_AGENT=${{ env.RUNNER_OS }}-${{ env.RUNNER_ARCH}}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
+      - name: Export Yourkit Agent libs
+        run: |
+          echo "Linux_ARM=./yourkit-distro/linux-arm-32/libyjpagent.so"  >> $GITHUB_ENV &&
+          echo "Windows_X86=./yourkit-distro/windows-x86-32/yjpagent.dll" >> $GITHUB_ENV &&
+          echo "Linux_X86: ./yourkit-distro/linux-x86-32/libyjpagent.so" >> $GITHUB_ENV &&
+          echo "Windows_X64=./yourkit-distro/windows-x86-64/yjpagent.dll" >> $GITHUB_ENV &&
+          echo "Linux_ARM64=./yourkit-distro/linux-arm-64/libyjpagent.so" >> $GITHUB_ENV &&
+          echo "macOs_X64=./yourkit-distro/mac/libyjpagent.dylib" >> $GITHUB_ENV &&
+          echo "Windows_ARM64=./yourkit-distro/windows-arm-64/yjpagent.dll" >> $GITHUB_ENV &&
+          echo "Linux_X64=./yourkit-distro/linux-x86-64/libyjpagent.so" >> $GITHUB_ENV
+      - name: Setup Yourkit Agent
+        run: |
+          echo "YOURKIT_PROFILER_AGENT=$RUNNER_OS_$RUNNER_ARCH=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
       - name: Create Yourkit Snapshot directory
         run: mkdir snapshots
       - name: Verify YourKit
