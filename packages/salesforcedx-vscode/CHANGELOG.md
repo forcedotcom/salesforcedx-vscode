@@ -1,3 +1,25 @@
+# 58.1.1 - June 7, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Updated the Apex Language Server to include new and modified class. This update also fixed an issue with autocompletion not working for Slack classes. ([PR #4907](https://github.com/forcedotcom/salesforcedx-vscode/pull/4907))
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- SObject refresh now uses the correct API version. ([PR #4883](https://github.com/forcedotcom/salesforcedx-vscode/pull/4883))
+
+#### salesforcedx-vscode-apex
+
+- We made some changes under the hood. ([PR #4906](https://github.com/forcedotcom/salesforcedx-vscode/pull/4906))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #4906](https://github.com/forcedotcom/salesforcedx-vscode/pull/4906))
+
 # 58.0.1 - June 2, 2023
 
 ## Added
