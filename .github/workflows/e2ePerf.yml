@@ -15,7 +15,7 @@ env:
   Linux_X86: ./yourkit-distro/linux-x86-32/libyjpagent.so
   Windows_X64: ./yourkit-distro/windows-x86-64/yjpagent.dll
   Linux_ARM64: ./yourkit-distro/linux-arm-64/libyjpagent.so
-  macOs_X64: ./yourkit-distro/mac/libyjpagent.dylib
+  macOS_X64: ./yourkit-distro/mac/libyjpagent.dylib
   Windows_ARM64: ./yourkit-distro/windows-arm-64/yjpagent.dll
   Linux_X64: ./yourkit-distro/linux-x86-64/libyjpagent.so
 
@@ -73,10 +73,8 @@ jobs:
       #       exit 1
       #     fi
       - name: Setup YourKit Agent
-        env:
-          FORMATTED: ${{ format('{0}_{1}', runner.os, runner.arch)}}
         run: |
-          echo "YOURKIT_PROFILER_AGENT=${{ env[format('{0}_{1}', runner.os, runner.arch)] }}" >> $GITHUB_ENV
+          echo "YOURKIT_PROFILER_AGENT=${{ env[format('{0}_{1}', runner.os, runner.arch)] }}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
       - name: Create Yourkit Snapshot directory
         run: mkdir snapshots
       - name: Verify YourKit
