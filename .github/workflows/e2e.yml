@@ -91,3 +91,8 @@ jobs:
           env:
             VSCODE_VERSION: ${{ matrix.vscodeVersion }}
             SPEC_FILES: ${{ inputs.specFiles || '*.e2e.ts' }}
+        - uses: actions/upload-artifact@v3
+          if: failure()
+          with:
+            name: screenshots
+            path: ./salesforcedx-vscode-automation-tests/screenshots
