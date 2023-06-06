@@ -29,6 +29,8 @@ jobs:
         vscodeVersion:
           - stable
     runs-on: ${{ matrix.os }}
+    env:
+      YOURKIT_LIB: format('{0}_{1}', env.RUNNER_OS, env.RUNNER_ARCH)
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -73,7 +75,7 @@ jobs:
       #       exit 1
       #     fi
       - name: Setup YourKit Agent
-        run: echo "YOURKIT_PROFILER_AGENT=${{ env[format('{0}_{1}', env.RUNNER_OS, env.RUNNER_ARCH)] }}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
+        run: echo "YOURKIT_PROFILER_AGENT=$YOURKIT_LIB=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
       - name: Create Yourkit Snapshot directory
         run: mkdir snapshots
       - name: Verify YourKit
