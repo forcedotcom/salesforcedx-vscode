@@ -73,7 +73,7 @@ jobs:
           echo "Linux_X64=./yourkit-distro/linux-x86-64/libyjpagent.so" >> $GITHUB_ENV
       - name: Setup Yourkit Agent
         run: |
-          echo "YOURKIT_PROFILER_AGENT=$RUNNER_OS_$RUNNER_ARCH=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
+          echo "YOURKIT_PROFILER_AGENT=$${{env.RUNNER_OS}}_${{env.RUNNER_ARCH}}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
       - name: Create Yourkit Snapshot directory
         run: mkdir snapshots
       - name: Verify YourKit
