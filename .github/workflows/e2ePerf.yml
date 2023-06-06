@@ -31,41 +31,41 @@ jobs:
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
-      - name: Clone automation tests
-        uses: actions/checkout@v3
-        with:
-          repository: forcedotcom/salesforcedx-vscode-automation-tests
-          path: salesforcedx-vscode-automation-tests
-          ref: ${{ inputs.automationBranch }}
-      - name: Install Extension Dependencies
-        run: |
-          npm install &&
-          npm run compile
-        working-directory: salesforcedx-vscode
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: salesforcedx-vscode-automation-tests
-      - name: Install the SFDX CLI
-        run: npm install -g sfdx-cli
-      - name: Verify CLI
-        shell: bash
-        run: |
-          set -e
-          sfdx version
-          SFDX_CLI_VERSION=$(sfdx version)
-          if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
-          then
-            echo "sfdx-cli installed -" $SFDX_CLI_VERSION
-          else
-            echo "The sfdx-cli installation could not be verified"
-            exit 1
-          fi
+      # - name: Clone automation tests
+      #   uses: actions/checkout@v3
+      #   with:
+      #     repository: forcedotcom/salesforcedx-vscode-automation-tests
+      #     path: salesforcedx-vscode-automation-tests
+      #     ref: ${{ inputs.automationBranch }}
+      # - name: Install Extension Dependencies
+      #   run: |
+      #     npm install &&
+      #     npm run compile
+      #   working-directory: salesforcedx-vscode
+      # - name: Install Test Dependencies
+      #   run: |
+      #     npm install
+      #   working-directory: salesforcedx-vscode-automation-tests
+      # - name: Install the SFDX CLI
+      #   run: npm install -g sfdx-cli
+      # - name: Verify CLI
+      #   shell: bash
+      #   run: |
+      #     set -e
+      #     sfdx version
+      #     SFDX_CLI_VERSION=$(sfdx version)
+      #     if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
+      #     then
+      #       echo "sfdx-cli installed -" $SFDX_CLI_VERSION
+      #     else
+      #       echo "The sfdx-cli installation could not be verified"
+      #       exit 1
+      #     fi
       - name: Export Yourkit Agent libs
         run: |
           echo "Linux_ARM=./yourkit-distro/linux-arm-32/libyjpagent.so"  >> $GITHUB_ENV &&
           echo "Windows_X86=./yourkit-distro/windows-x86-32/yjpagent.dll" >> $GITHUB_ENV &&
-          echo "Linux_X86: ./yourkit-distro/linux-x86-32/libyjpagent.so" >> $GITHUB_ENV &&
+          echo "Linux_X86=./yourkit-distro/linux-x86-32/libyjpagent.so" >> $GITHUB_ENV &&
           echo "Windows_X64=./yourkit-distro/windows-x86-64/yjpagent.dll" >> $GITHUB_ENV &&
           echo "Linux_ARM64=./yourkit-distro/linux-arm-64/libyjpagent.so" >> $GITHUB_ENV &&
           echo "macOs_X64=./yourkit-distro/mac/libyjpagent.dylib" >> $GITHUB_ENV &&
