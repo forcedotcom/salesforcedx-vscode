@@ -10,14 +10,14 @@ on:
 
 # all possible combinations of OS and architecture supported by yourkit
 env:
-  Linux_ARM: ./yourkit-distro/linux-arm-32/libyjpagent.so
-  Windows_X86: ./yourkit-distro/windows-x86-32/yjpagent.dll
-  Linux_X86: ./yourkit-distro/linux-x86-32/libyjpagent.so
-  Windows_X64: ./yourkit-distro/windows-x86-64/yjpagent.dll
-  Linux_ARM64: ./yourkit-distro/linux-arm-64/libyjpagent.so
-  macOS_X64: ./yourkit-distro/mac/libyjpagent.dylib
-  Windows_ARM64: ./yourkit-distro/windows-arm-64/yjpagent.dll
-  Linux_X64: ./yourkit-distro/linux-x86-64/libyjpagent.so
+  Linux_ARM: yourkit-distro/linux-arm-32/libyjpagent.so
+  Windows_X86: yourkit-distro/windows-x86-32/yjpagent.dll
+  Linux_X86: yourkit-distro/linux-x86-32/libyjpagent.so
+  Windows_X64: yourkit-distro/windows-x86-64/yjpagent.dll
+  Linux_ARM64: yourkit-distro/linux-arm-64/libyjpagent.so
+  macOS_X64: yourkit-distro/mac/libyjpagent.dylib
+  Windows_ARM64: yourkit-distro/windows-arm-64/yjpagent.dll
+  Linux_X64: yourkit-distro/linux-x86-64/libyjpagent.so
 
 jobs:
   build:
@@ -74,7 +74,7 @@ jobs:
           fi
       - name: Setup YourKit Agent
         run: |
-          echo "YOURKIT_PROFILER_AGENT=${{ env[format('{0}_{1}', runner.os, runner.arch)] }}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
+          echo "YOURKIT_PROFILER_AGENT=${{ format('{0}/{1}', runner.workspace, env[format('{0}_{1}', runner.os, runner.arch)]) }}=sampling,async_sampling_cpu,app_name=apex_lsp,alloc_object_counting,onexit=memory,onexit=memory,onexit=snapshot,onexit=hprof,dir=./snapshots" >> $GITHUB_ENV
       - name: Create Yourkit Snapshot directory
         run: mkdir snapshots
       - name: Verify YourKit
@@ -86,7 +86,9 @@ jobs:
           working-directory: salesforcedx-vscode-automation-tests
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-      - uses: actions/upload-artifact@v3
+      - name: Capture yourkit snapshot
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
         with:
           name: yourkit-snapshot
           path: snapshots
