@@ -108,11 +108,11 @@ export const mockAPIResponse = {
         undeletable: false,
         updateable: false,
         urls: {
-          rowTemplate: '/services/data/v46.0/sobjects/ApexPageInfo/{ID}',
+          rowTemplate: '/services/data/v50.0/sobjects/ApexPageInfo/{ID}',
           defaultValues:
-            '/services/data/v46.0/sobjects/ApexPageInfo/defaultValues?recordTypeId&fields',
-          describe: '/services/data/v46.0/sobjects/ApexPageInfo/describe',
-          sobject: '/services/data/v46.0/sobjects/ApexPageInfo'
+            '/services/data/v50.0/sobjects/ApexPageInfo/defaultValues?recordTypeId&fields',
+          describe: '/services/data/v50.0/sobjects/ApexPageInfo/describe',
+          sobject: '/services/data/v50.0/sobjects/ApexPageInfo'
         }
       }
     }
