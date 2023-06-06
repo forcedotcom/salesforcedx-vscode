@@ -73,7 +73,9 @@ jobs:
       #       exit 1
       #     fi
       - name: Setup YourKit Agent
-        run: echo "YOURKIT_PROFILER_AGENT=${{ env[format('{0}_{1}', runner.os, runner.arch)] }}" >> $GITHUB_ENV
+        run: |
+          echo "Formatted: ${{ format('{0}_{1}', runner.os, runner.arch) }}" &&
+          echo "YOURKIT_PROFILER_AGENT=${{ env[format('{0}_{1}', runner.os, runner.arch)] }}" >> $GITHUB_ENV
       - name: Create Yourkit Snapshot directory
         run: mkdir snapshots
       - name: Verify YourKit
