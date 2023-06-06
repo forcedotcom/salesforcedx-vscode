@@ -10,14 +10,14 @@ on:
 
 # all possible combinations of OS and architecture supported by yourkit
 env:
-  Linux-ARM: ./yourkit-distro/linux-arm-32/libyjpagent.so
-  Windows-X86: ./yourkit-distro/windows-x86-32/yjpagent.dll
-  Linux-X86: ./yourkit-distro/linux-x86-32/libyjpagent.so
-  Windows-X64: ./yourkit-distro/windows-x86-64/yjpagent.dll
-  Linux-ARM64: ./yourkit-distro/linux-arm-64/libyjpagent.so
-  macOs-X64: ./yourkit-distro/mac/libyjpagent.dylib
-  Windows-ARM64: ./yourkit-distro/windows-arm-64/yjpagent.dll
-  Linux-X64: ./yourkit-distro/linux-x86-64/libyjpagent.so
+  Linux_ARM: ./yourkit-distro/linux-arm-32/libyjpagent.so
+  Windows_X86: ./yourkit-distro/windows-x86-32/yjpagent.dll
+  Linux_X86: ./yourkit-distro/linux-x86-32/libyjpagent.so
+  Windows_X64: ./yourkit-distro/windows-x86-64/yjpagent.dll
+  Linux_ARM64: ./yourkit-distro/linux-arm-64/libyjpagent.so
+  macOs_X64: ./yourkit-distro/mac/libyjpagent.dylib
+  Windows_ARM64: ./yourkit-distro/windows-arm-64/yjpagent.dll
+  Linux_X64: ./yourkit-distro/linux-x86-64/libyjpagent.so
 
 jobs:
   build:
