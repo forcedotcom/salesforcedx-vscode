@@ -13,9 +13,7 @@ import { workspaceUtils } from '../util';
 
 export default class SfdxPackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {
-    const packageDirectories = (await SfdxProjectConfig.getValue(
-      'packageDirectories'
-    )) as JsonArray;
+    const packageDirectories = await SfdxProjectConfig.getValue<JsonArray>('packageDirectories');
     if (packageDirectories) {
       let packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
