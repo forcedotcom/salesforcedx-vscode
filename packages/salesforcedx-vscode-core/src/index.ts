@@ -676,7 +676,8 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     telemetryService,
     services: {
       ChannelService,
-      TelemetryService
+      TelemetryService,
+      WorkspaceContext
     }
   };
 
