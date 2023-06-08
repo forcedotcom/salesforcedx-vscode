@@ -26,7 +26,7 @@ describe('componentSetUtils', () => {
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionSpy = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
+        .spyOn(componentSetUtils, 'getOrgApiVersion');
 
       await componentSetUtils.setApiVersion(componentSet);
 
