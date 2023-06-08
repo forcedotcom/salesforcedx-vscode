@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
       "type": "node",
       "request": "attach",
@@ -210,7 +209,7 @@
         "setup-and-run",
         "-s",
         "~/.vscode-test-resources",
-        "-o", 
+        "-o",
         "${workspaceFolder}/packages/salesforcedx-vscode-soql/test/ui-test/resources/settings.json",
         "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/ui-test/*.js"
       ],
@@ -622,20 +621,29 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-        "name": "Debug Faux Jest Unit Tests",
-        "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-        "type": "node",
-        "request": "launch",
-        "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
-        "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
-    }, 
-    {
-      "name": "Debug Apex Debug Jest Unit Tests",
+      "name": "Debug Tests - Apex Debug - Unit Tests",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Tests - VSCode Core - Unit Tests",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-core",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-vscode-core/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Tests - SObjects Faux Generator - Unit Tests",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }
