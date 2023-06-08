@@ -1,8 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
-
-    {
+        {
       "type": "node",
       "request": "attach",
       "protocol": "legacy",
@@ -636,6 +635,15 @@
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Vscode Apex Jest Unit Tests",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-apex",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }

@@ -5,11 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  extensionUris,
-  projectPaths
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -18,7 +13,7 @@ import {
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
-import { LSP_ERR, VSCODE_APEX_EXTENSION_NAME } from './constants';
+import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageServerUtils } from './helpers/languageServerUtils';
 import { nls } from './messages';
@@ -36,7 +31,7 @@ async function createServer(
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    languageServerUtils.setupDB();
+    await languageServerUtils.setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
