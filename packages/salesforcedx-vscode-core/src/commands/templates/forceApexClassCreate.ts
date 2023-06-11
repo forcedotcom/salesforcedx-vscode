@@ -29,7 +29,7 @@ import {
 
 class GathererProvider {
   private static selectOutputDirInstance: SelectOutputDir;
-  private static outputDirGathererInstance: SimpleGatherer<{
+  private static simpleGathererInstance: SimpleGatherer<{
     outputdir: string;
   }>;
 
@@ -49,10 +49,10 @@ class GathererProvider {
       return GathererProvider.selectOutputDirInstance;
     } else {
       const outputDirPath = { outputdir: sourceUri.fsPath };
-      GathererProvider.outputDirGathererInstance = new SimpleGatherer(
+      GathererProvider.simpleGathererInstance = new SimpleGatherer(
         outputDirPath
       );
-      return GathererProvider.outputDirGathererInstance;
+      return GathererProvider.simpleGathererInstance;
     }
   }
 }
