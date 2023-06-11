@@ -40,20 +40,20 @@ class GathererProvider {
     | SimpleGatherer<{
         outputdir: string;
       }> {
-    if (!sourceUri) {
-      if (!GathererProvider.selectOutputDirInstance) {
-        GathererProvider.selectOutputDirInstance = new SelectOutputDir(
-          APEX_CLASS_DIRECTORY
-        );
-      }
-      return GathererProvider.selectOutputDirInstance;
-    } else {
+    if (sourceUri) {
       const outputDirPath = { outputdir: sourceUri.fsPath };
       GathererProvider.simpleGathererInstance = new SimpleGatherer(
         outputDirPath
       );
       return GathererProvider.simpleGathererInstance;
     }
+
+    if (!GathererProvider.selectOutputDirInstance) {
+      GathererProvider.selectOutputDirInstance = new SelectOutputDir(
+        APEX_CLASS_DIRECTORY
+      );
+    }
+    return GathererProvider.selectOutputDirInstance;
   }
 }
 
