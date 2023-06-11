@@ -28,7 +28,6 @@ export {
   FilePathGatherer,
   MetadataTypeGatherer,
   PromptConfirmGatherer,
-  ProvideOutputDir,
   SelectOutputDir,
   SelectFileName,
   SelectUsername

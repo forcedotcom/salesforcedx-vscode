@@ -13,11 +13,11 @@ import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
-  ProvideOutputDir,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  SimpleGatherer
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryForceApexClassCreateExecutor } from './executors/LibraryForceApexClassCreateExecutor';
@@ -27,17 +27,48 @@ import {
   APEX_CLASS_TYPE
 } from './metadataTypeConstants';
 
+class GathererProvider {
+  private static selectOutputDirInstance: SelectOutputDir;
+  private static outputDirGathererInstance: SimpleGatherer<{
+    outputdir: string;
+  }>;
+
+  public getGatherer(
+    sourceUri?: vscode.Uri
+  ):
+    | SelectOutputDir
+    | SimpleGatherer<{
+        outputdir: string;
+      }> {
+    if (!sourceUri) {
+      if (!GathererProvider.selectOutputDirInstance) {
+        GathererProvider.selectOutputDirInstance = new SelectOutputDir(
+          APEX_CLASS_DIRECTORY
+        );
+      }
+      return GathererProvider.selectOutputDirInstance;
+    } else {
+      const outputDirPath = { outputdir: sourceUri.fsPath };
+      GathererProvider.outputDirGathererInstance = new SimpleGatherer(
+        outputDirPath
+      );
+      return GathererProvider.outputDirGathererInstance;
+    }
+  }
+}
+
+let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;
 let outputDirGatherer: ParametersGatherer<any>;
 let metadataTypeGatherer: ParametersGatherer<any>;
-function getParamGatherers(sourceUri: string | undefined) {
-  fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
-  if (!sourceUri) {
-    outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
-  } else {
-    outputDirGatherer = new ProvideOutputDir(sourceUri);
+const gathererProvider = new GathererProvider();
+function getParamGatherers(sourceUri?: vscode.Uri) {
+  if (!initialized) {
+    fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+    metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
+    initialized = true;
   }
-  metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
+  outputDirGatherer = gathererProvider.getGatherer(sourceUri);
   return {
     fileNameGatherer,
     outputDirGatherer,
@@ -45,11 +76,8 @@ function getParamGatherers(sourceUri: string | undefined) {
   };
 }
 
-export async function forceApexClassCreate(
-  sourceUri: vscode.Uri | undefined,
-  uris: vscode.Uri[] | undefined
-) {
-  const gatherers = getParamGatherers(sourceUri?.fsPath);
+export async function forceApexClassCreate(sourceUri: vscode.Uri | undefined) {
+  const gatherers = getParamGatherers(sourceUri);
 
   const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
   const commandlet = new SfdxCommandlet(
