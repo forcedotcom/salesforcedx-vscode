@@ -106,7 +106,7 @@ describe('WorkspaceContext', () => {
 
   afterEach(() => env.restore());
 
-  it.only('should load the default username and alias upon initialization', () => {
+  it('should load the default username and alias upon initialization', () => {
     expect(workspaceContextUtil.username).to.equal(testUser);
     expect(workspaceContextUtil.alias).to.equal(testAlias);
     expect(workspaceContextUtil.orgId).to.equal(dummyOrgId);
