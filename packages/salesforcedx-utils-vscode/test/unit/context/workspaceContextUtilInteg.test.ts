@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {  WorkspaceContextUtil } from '../../../src';
+import { WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -62,6 +62,7 @@ const env = createSandbox();
 describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
+  const dummyOrgId = '000dummyOrgId';
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
   let mockFileWatcher: MockFileWatcher;
@@ -93,14 +94,22 @@ describe('WorkspaceContext', () => {
       .withArgs(testAlias)
       .returns(testUser);
 
+    const fakeConnection: any = {
+      getAuthInfoFields: () => {
+        return { orgId: dummyOrgId };
+      }
+    };
+    env.stub(workspaceContextUtil, 'getConnection').resolves(fakeConnection);
+
     await workspaceContextUtil.initialize(context);
   });
 
   afterEach(() => env.restore());
 
-  it('should load the default username and alias upon initialization', () => {
+  it.only('should load the default username and alias upon initialization', () => {
     expect(workspaceContextUtil.username).to.equal(testUser);
     expect(workspaceContextUtil.alias).to.equal(testAlias);
+    expect(workspaceContextUtil.orgId).to.equal(dummyOrgId);
   });
 
   it('should update default username and alias upon config change', async () => {
