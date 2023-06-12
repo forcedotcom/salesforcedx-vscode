@@ -61,4 +61,8 @@ export class WorkspaceContext {
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
+
+  get orgId(): string | undefined {
+    return WorkspaceContextUtil.getInstance().orgId;
+  }
 }

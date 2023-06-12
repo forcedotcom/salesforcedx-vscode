@@ -27,6 +27,7 @@ export class WorkspaceContextUtil {
   protected onOrgChangeEmitter: vscode.EventEmitter<OrgUserInfo>;
   protected _username?: string;
   protected _alias?: string;
+  protected _orgId?: string;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -103,6 +104,9 @@ export class WorkspaceContextUtil {
         defaultUsernameOrAlias !== this._username
           ? defaultUsernameOrAlias
           : undefined;
+
+      const connection = await this.getConnection();
+      this._orgId = connection.getAuthInfoFields().orgId;
     } else {
       this._username = undefined;
       this._alias = undefined;
@@ -120,5 +124,9 @@ export class WorkspaceContextUtil {
 
   get alias(): string | undefined {
     return this._alias;
+  }
+
+  get orgId(): string | undefined {
+    return this._orgId;
   }
 }
