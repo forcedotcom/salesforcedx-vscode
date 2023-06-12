@@ -106,7 +106,7 @@ export class WorkspaceContextUtil {
           : undefined;
 
       const connection = await this.getConnection();
-      this._orgId = connection.getAuthInfoFields().orgId;
+      this._orgId = connection?.getAuthInfoFields().orgId;
     } else {
       this._username = undefined;
       this._alias = undefined;
