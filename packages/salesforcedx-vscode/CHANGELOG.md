@@ -1,3 +1,13 @@
+# 58.2.0 - June 13, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Deploy and retrieve commands now use the correct source API version. ([PR #4891](https://github.com/forcedotcom/salesforcedx-vscode/pull/4891))
+
+- We made some changes under the hood. ([PR #4913](https://github.com/forcedotcom/salesforcedx-vscode/pull/4913))
+
 # 58.1.1 - June 7, 2023
 
 ## Added
