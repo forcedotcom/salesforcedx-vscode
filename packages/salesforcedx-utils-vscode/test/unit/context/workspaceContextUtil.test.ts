@@ -90,13 +90,8 @@ describe('WorkspaceContextUtil', () => {
       workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
       authUtil = workspaceContextUtil.getAuthUtil();
-      getUsernameOrAliasStub = env
-        .stub(authUtil, 'getDefaultUsernameOrAlias')
-        .returns(testAlias);
-      getUsernameStub = env
-        .stub(authUtil, 'getUsername')
-        .withArgs(testAlias)
-        .returns(testUser);
+      getUsernameOrAliasStub = env.stub(authUtil, 'getDefaultUsernameOrAlias');
+      getUsernameStub = env.stub(authUtil, 'getUsername');
 
       const fakeConnection: any = {
         getAuthInfoFields: () => {
@@ -115,9 +110,13 @@ describe('WorkspaceContextUtil', () => {
       expect(workspaceContextUtil.orgId).to.equal(dummyOrgId);
     });
 
+    // this
     it('should update default username and alias upon config change', async () => {
       getUsernameOrAliasStub.returns(testUser2);
       getUsernameStub.withArgs(testUser2).returns(testUser2);
+
+      // getUsernameOrAliasStub.returns(testUser2);
+      // getUsernameStub.withArgs(testUser2).returns(testUser2);
 
       await mockFileWatcher.fire('change');
 
