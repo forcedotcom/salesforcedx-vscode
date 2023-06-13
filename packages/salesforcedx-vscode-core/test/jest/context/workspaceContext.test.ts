@@ -12,7 +12,11 @@ describe('workspaceContext', () => {
   describe('handleCliConfigChange', () => {
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
-      getConnection: jest.fn()
+      getConnection: jest.fn().mockResolvedValue({
+        getAuthInfoFields: () => {
+          return { orgId: '000' };
+        }
+      })
     };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let setupWorkspaceOrgTypeMock: jest.SpyInstance;
@@ -37,6 +41,26 @@ describe('workspaceContext', () => {
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(setupWorkspaceOrgTypeMock).toHaveBeenCalled();
       expect(decoratorsMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('orgId', () => {
+    const dummyOrgId = '000dummyOrgId';
+    let getInstanceMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      getInstanceMock = jest
+        .spyOn(WorkspaceContextUtil, 'getInstance')
+        .mockReturnValue({
+          orgId: dummyOrgId
+        } as any);
+    });
+
+    it('should get the orgId from WorkspaceContextUtil', () => {
+      const orgId = WorkspaceContext.getInstance().orgId;
+
+      expect(getInstanceMock).toHaveBeenCalled();
+      expect(orgId).not.toBeNull();
     });
   });
 });
