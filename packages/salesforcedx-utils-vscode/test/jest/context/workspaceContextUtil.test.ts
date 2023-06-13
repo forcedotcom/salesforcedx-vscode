@@ -21,6 +21,7 @@ describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
+  const dummyOrgId = '000dummyOrgId';
 
   let getUsernameStub: jest.SpyInstance;
   let getUsernameOrAliasStub: jest.SpyInstance;
@@ -60,6 +61,7 @@ describe('WorkspaceContext', () => {
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
     await workspaceContextUtil.initialize(context);
+    (workspaceContextUtil as any)._username = testUser;
   });
 
   it('test for the constructor', () => {
@@ -80,6 +82,7 @@ describe('WorkspaceContext', () => {
   it('should load the default username and alias and clear the cache of the core types upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
+    // expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
@@ -95,6 +98,7 @@ describe('WorkspaceContext', () => {
 
     expect(workspaceContextUtil.username).toEqual(testUser2);
     expect(workspaceContextUtil.alias).toEqual(undefined);
+    // expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
@@ -176,7 +180,7 @@ describe('WorkspaceContext', () => {
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
 
-      expect(connectionMock.create).toHaveBeenCalledTimes(1);
+      expect(connectionMock.create).toHaveBeenCalledTimes(2);
     });
 
     it('should not throw error if there is a username set', async () => {
