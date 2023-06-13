@@ -58,7 +58,7 @@ describe('Force Apex Class Create', () => {
     sandbox.restore();
   });
 
-  it('Should create Apex Class', async () => {
+  it('Should create Apex Class when the command is run from the command palette', async () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
@@ -115,6 +115,128 @@ describe('Force Apex Class Create', () => {
     shell.rm('-f', apexClassMetaPath);
   });
 
+  it('Should create Apex Class when the command is run by right clicking the classes directory', async () => {
+    // arrange
+    const outputPath = 'force-app/main/default/classes';
+    const apexClassPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath,
+      'TestApexClass.cls'
+    );
+    const apexClassMetaPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath,
+      'TestApexClass.cls-meta.xml'
+    );
+    const classOutputPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath
+    );
+    const uri = vscode.Uri.file(classOutputPath);
+    shell.rm('-f', apexClassPath);
+    shell.rm('-f', apexClassMetaPath);
+    assert.noFile([apexClassPath, apexClassMetaPath]);
+    showInputBoxStub.returns('TestApexClass');
+
+    // act
+    await forceApexClassCreate(uri);
+
+    // assert
+    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    assert.file([apexClassPath, apexClassMetaPath]);
+    assert.fileContent(
+      apexClassPath,
+      'public with sharing class TestApexClass'
+    );
+    assert.fileContent(
+      apexClassMetaPath,
+      `<?xml version="1.0" encoding="UTF-8"?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>${defaultApiVersion}</apiVersion>
+    <status>Active</status>
+</ApexClass>`
+    );
+    sinon.assert.calledOnce(openTextDocumentStub);
+    sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
+
+    sinon.assert.calledOnce(sendCommandEventStub);
+    sinon.assert.calledWith(
+      sendCommandEventStub,
+      'force_apex_class_create',
+      sinon.match.array,
+      {
+        dirType: 'defaultDir',
+        commandExecutor: 'library',
+        isUsingCustomOrgMetadataTemplates: 'false'
+      }
+    );
+
+    // clean up
+    shell.rm('-f', apexClassPath);
+    shell.rm('-f', apexClassMetaPath);
+  });
+
+  it('Should create Apex Class when the command is run by right clicking a subdirectory of the classes directory', async () => {
+    // arrange
+    const outputPath = 'force-app/main/default/classes/subdirectory';
+    const apexClassPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath,
+      'TestApexClass.cls'
+    );
+    const apexClassMetaPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath,
+      'TestApexClass.cls-meta.xml'
+    );
+    const classOutputPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath
+    );
+    const uri = vscode.Uri.file(classOutputPath);
+    shell.rm('-f', apexClassPath);
+    shell.rm('-f', apexClassMetaPath);
+    assert.noFile([apexClassPath, apexClassMetaPath]);
+    showInputBoxStub.returns('TestApexClass');
+
+    // act
+    await forceApexClassCreate(uri);
+
+    // assert
+    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    assert.file([apexClassPath, apexClassMetaPath]);
+    assert.fileContent(
+      apexClassPath,
+      'public with sharing class TestApexClass'
+    );
+    assert.fileContent(
+      apexClassMetaPath,
+      `<?xml version="1.0" encoding="UTF-8"?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>${defaultApiVersion}</apiVersion>
+    <status>Active</status>
+</ApexClass>`
+    );
+    sinon.assert.calledOnce(openTextDocumentStub);
+    sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
+
+    sinon.assert.calledOnce(sendCommandEventStub);
+    sinon.assert.calledWith(
+      sendCommandEventStub,
+      'force_apex_class_create',
+      sinon.match.array,
+      {
+        dirType: 'defaultDir',
+        commandExecutor: 'library',
+        isUsingCustomOrgMetadataTemplates: 'false'
+      }
+    );
+
+    // clean up
+    shell.rm('-f', apexClassPath);
+    shell.rm('-f', apexClassMetaPath);
+  });
+
   it('Should handle error and log telemetry for exceptions', async () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
@@ -123,6 +245,66 @@ describe('Force Apex Class Create', () => {
 
     // act
     await forceApexClassCreate();
+
+    // assert
+    const errorMessage = templatesNls.localize('AlphaNumericNameError');
+    sinon.assert.calledOnce(appendLineStub);
+    sinon.assert.calledWith(appendLineStub, errorMessage);
+    sinon.assert.calledOnce(showFailedExecutionStub);
+    sinon.assert.calledWith(
+      showFailedExecutionStub,
+      nls.localize('force_apex_class_create_text')
+    );
+    sinon.assert.calledOnce(sendExceptionStub);
+    sinon.assert.calledWith(
+      sendExceptionStub,
+      'force_template_create_library',
+      errorMessage
+    );
+  });
+
+  it('Should handle error and log telemetry for exceptions when run by right clicking the classes directory', async () => {
+    // arrange
+    const outputPath = 'force-app/main/default/classes';
+    showInputBoxStub.returns('?invalid');
+    const classOutputPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath
+    );
+    const uri = vscode.Uri.file(classOutputPath);
+
+    // act
+    await forceApexClassCreate(uri);
+
+    // assert
+    const errorMessage = templatesNls.localize('AlphaNumericNameError');
+    sinon.assert.calledOnce(appendLineStub);
+    sinon.assert.calledWith(appendLineStub, errorMessage);
+    sinon.assert.calledOnce(showFailedExecutionStub);
+    sinon.assert.calledWith(
+      showFailedExecutionStub,
+      nls.localize('force_apex_class_create_text')
+    );
+    sinon.assert.calledOnce(sendExceptionStub);
+    sinon.assert.calledWith(
+      sendExceptionStub,
+      'force_template_create_library',
+      errorMessage
+    );
+  });
+
+  it('Should handle error and log telemetry for exceptions when run by right clicking a subdirectory of the classes directory', async () => {
+    // arrange
+    const outputPath = 'force-app/main/default/classes/subdirectory';
+    showInputBoxStub.returns('?invalid');
+    const classOutputPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath
+    );
+    const uri = vscode.Uri.file(classOutputPath);
+
+    // act
+    await forceApexClassCreate(uri);
 
     // assert
     const errorMessage = templatesNls.localize('AlphaNumericNameError');

@@ -76,7 +76,7 @@ function getParamGatherers(sourceUri?: vscode.Uri) {
   };
 }
 
-export async function forceApexClassCreate(sourceUri: vscode.Uri | undefined) {
+export async function forceApexClassCreate(sourceUri?: vscode.Uri) {
   const gatherers = getParamGatherers(sourceUri);
 
   const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
