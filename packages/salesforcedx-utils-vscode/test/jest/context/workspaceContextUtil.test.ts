@@ -82,7 +82,6 @@ describe('WorkspaceContext', () => {
   it('should load the default username and alias and clear the cache of the core types upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
-    // expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
@@ -98,7 +97,6 @@ describe('WorkspaceContext', () => {
 
     expect(workspaceContextUtil.username).toEqual(testUser2);
     expect(workspaceContextUtil.alias).toEqual(undefined);
-    // expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });

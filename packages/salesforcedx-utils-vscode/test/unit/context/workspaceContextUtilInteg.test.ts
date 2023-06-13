@@ -52,7 +52,7 @@ export class MockFileWatcher {
     }
 
     for (const subscriber of subscribers) {
-      await subscriber(this.watchUri);
+      subscriber(this.watchUri);
     }
   }
 }
