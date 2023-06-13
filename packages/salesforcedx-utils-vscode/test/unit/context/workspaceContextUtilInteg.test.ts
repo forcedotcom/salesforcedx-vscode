@@ -59,91 +59,95 @@ export class MockFileWatcher {
 
 const env = createSandbox();
 
-describe('WorkspaceContext', () => {
+describe('WorkspaceContextUtil', () => {
   const testUser = 'test@test.com';
-  const testAlias = 'TestOrg';
-  const dummyOrgId = '000dummyOrgId';
-  const testUser2 = 'test2@test.com';
-  const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
-  let mockFileWatcher: MockFileWatcher;
-
-  let getUsernameStub: SinonStub;
-  let getUsernameOrAliasStub: SinonStub;
   let workspaceContextUtil: any; // TODO find a better way
-  let authUtil: any;
-
-  beforeEach(async () => {
-    mockFileWatcher = new MockFileWatcher(cliConfigPath);
-
-    env
-      .stub(vscode.workspace, 'createFileSystemWatcher')
-      .returns(mockFileWatcher);
-
-    const context = {
-      subscriptions: []
-    };
-
-    workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
-
-    authUtil = workspaceContextUtil.getAuthUtil();
-    getUsernameOrAliasStub = env
-      .stub(authUtil, 'getDefaultUsernameOrAlias')
-      .returns(testAlias);
-    getUsernameStub = env
-      .stub(authUtil, 'getUsername')
-      .withArgs(testAlias)
-      .returns(testUser);
-
-    const fakeConnection: any = {
-      getAuthInfoFields: () => {
-        return { orgId: dummyOrgId };
-      }
-    };
-    env.stub(workspaceContextUtil, 'getConnection').resolves(fakeConnection);
-
-    await workspaceContextUtil.initialize(context);
-  });
 
   afterEach(() => env.restore());
 
-  it('should load the default username and alias upon initialization', () => {
-    expect(workspaceContextUtil.username).to.equal(testUser);
-    expect(workspaceContextUtil.alias).to.equal(testAlias);
-    expect(workspaceContextUtil.orgId).to.equal(dummyOrgId);
-  });
+  describe('initialize', () => {
+    const testAlias = 'TestOrg';
+    const dummyOrgId = '000dummyOrgId';
+    const testUser2 = 'test2@test.com';
+    const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
+    let mockFileWatcher: MockFileWatcher;
 
-  it('should update default username and alias upon config change', async () => {
-    getUsernameOrAliasStub.returns(testUser2);
-    getUsernameStub.withArgs(testUser2).returns(testUser2);
+    let getUsernameStub: SinonStub;
+    let getUsernameOrAliasStub: SinonStub;
+    let authUtil: any;
 
-    await mockFileWatcher.fire('change');
+    beforeEach(async () => {
+      mockFileWatcher = new MockFileWatcher(cliConfigPath);
 
-    expect(workspaceContextUtil.username).to.equal(testUser2);
-    expect(workspaceContextUtil.alias).to.equal(undefined);
-  });
+      env
+        .stub(vscode.workspace, 'createFileSystemWatcher')
+        .returns(mockFileWatcher);
 
-  it('should update default username and alias to undefined if one is not set', async () => {
-    getUsernameOrAliasStub.returns(undefined);
-    getUsernameStub.returns(undefined);
+      const context = {
+        subscriptions: []
+      };
 
-    await mockFileWatcher.fire('change');
+      workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
-    expect(workspaceContextUtil.username).to.equal(undefined);
-    expect(workspaceContextUtil.alias).to.equal(undefined);
-  });
+      authUtil = workspaceContextUtil.getAuthUtil();
+      getUsernameOrAliasStub = env
+        .stub(authUtil, 'getDefaultUsernameOrAlias')
+        .returns(testAlias);
+      getUsernameStub = env
+        .stub(authUtil, 'getUsername')
+        .withArgs(testAlias)
+        .returns(testUser);
 
-  it('should notify subscribers that the default org may have changed', async () => {
-    const someLogic = env.stub();
-    workspaceContextUtil.onOrgChange((orgInfo: any) => {
-      someLogic(orgInfo);
+      const fakeConnection: any = {
+        getAuthInfoFields: () => {
+          return { orgId: dummyOrgId };
+        }
+      };
+      env.stub(workspaceContextUtil, 'getConnection').resolves(fakeConnection);
+
+      await workspaceContextUtil.initialize(context);
+      (workspaceContextUtil as any)._username = testUser;
     });
 
-    // awaiting to ensure subscribers run their logic
-    await mockFileWatcher.fire('change');
-    await mockFileWatcher.fire('create');
-    await mockFileWatcher.fire('delete');
+    it('should load the default username and alias upon initialization', () => {
+      expect(workspaceContextUtil.username).to.equal(testUser);
+      expect(workspaceContextUtil.alias).to.equal(testAlias);
+      expect(workspaceContextUtil.orgId).to.equal(dummyOrgId);
+    });
 
-    expect(someLogic.callCount).to.equal(3);
+    it('should update default username and alias upon config change', async () => {
+      getUsernameOrAliasStub.returns(testUser2);
+      getUsernameStub.withArgs(testUser2).returns(testUser2);
+
+      await mockFileWatcher.fire('change');
+
+      expect(workspaceContextUtil.username).to.equal(testUser2);
+      expect(workspaceContextUtil.alias).to.equal(undefined);
+    });
+
+    it('should update default username and alias to undefined if one is not set', async () => {
+      getUsernameOrAliasStub.returns(undefined);
+      getUsernameStub.returns(undefined);
+
+      await mockFileWatcher.fire('change');
+
+      expect(workspaceContextUtil.username).to.equal(undefined);
+      expect(workspaceContextUtil.alias).to.equal(undefined);
+    });
+
+    it('should notify subscribers that the default org may have changed', async () => {
+      const someLogic = env.stub();
+      workspaceContextUtil.onOrgChange((orgInfo: any) => {
+        someLogic(orgInfo);
+      });
+
+      // awaiting to ensure subscribers run their logic
+      await mockFileWatcher.fire('change');
+      await mockFileWatcher.fire('create');
+      await mockFileWatcher.fire('delete');
+
+      expect(someLogic.callCount).to.equal(3);
+    });
   });
 
   describe('getConnection', () => {
@@ -161,6 +165,9 @@ describe('WorkspaceContext', () => {
         .stub(Connection, 'create')
         .withArgs({ authInfo: mockAuthInfo })
         .returns(mockConnection);
+
+      workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
+      (workspaceContextUtil as any)._username = testUser;
     });
 
     it('should return connection for the default org', async () => {
