@@ -104,9 +104,14 @@ export class WorkspaceContextUtil {
         defaultUsernameOrAlias !== this._username
           ? defaultUsernameOrAlias
           : undefined;
-
-      const connection = await this.getConnection();
-      this._orgId = connection?.getAuthInfoFields().orgId;
+      try {
+        const connection = await this.getConnection();
+        this._orgId = connection?.getAuthInfoFields().orgId;
+      } catch (error) {
+        console.log(
+          'There was an problem getting the orgId of the default org.'
+        );
+      }
     } else {
       this._username = undefined;
       this._alias = undefined;
