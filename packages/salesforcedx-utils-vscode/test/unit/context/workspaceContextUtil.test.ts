@@ -52,101 +52,99 @@ export class MockFileWatcher {
     }
 
     for (const subscriber of subscribers) {
-      subscriber(this.watchUri);
+      await subscriber(this.watchUri);
     }
   }
 }
 
 const env = createSandbox();
 
-describe('WorkspaceContextUtil', () => {
+describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
+  const testAlias = 'TestOrg';
+  const testUser2 = 'test2@test.com';
+  const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
+  let mockFileWatcher: MockFileWatcher;
+  const dummyOrgId = '000dummyOrgId';
+
+  let getUsernameStub: SinonStub;
+  let getUsernameOrAliasStub: SinonStub;
+  let getConnectionStub: SinonStub;
   let workspaceContextUtil: any; // TODO find a better way
+  let authUtil: any;
 
-  afterEach(() => env.restore());
+  beforeEach(async () => {
+    mockFileWatcher = new MockFileWatcher(cliConfigPath);
 
-  describe('initialize', () => {
-    const testAlias = 'TestOrg';
-    const dummyOrgId = '000dummyOrgId';
-    const testUser2 = 'test2@test.com';
-    const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
-    let mockFileWatcher: MockFileWatcher;
+    env
+      .stub(vscode.workspace, 'createFileSystemWatcher')
+      .returns(mockFileWatcher);
 
-    let getUsernameStub: SinonStub;
-    let getUsernameOrAliasStub: SinonStub;
-    let authUtil: any;
+    const context = {
+      subscriptions: []
+    };
 
-    beforeEach(async () => {
-      mockFileWatcher = new MockFileWatcher(cliConfigPath);
+    workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
-      env
-        .stub(vscode.workspace, 'createFileSystemWatcher')
-        .returns(mockFileWatcher);
+    authUtil = workspaceContextUtil.getAuthUtil();
+    getUsernameOrAliasStub = env
+      .stub(authUtil, 'getDefaultUsernameOrAlias')
+      .returns(testAlias);
+    getUsernameStub = env
+      .stub(authUtil, 'getUsername')
+      .withArgs(testAlias)
+      .returns(testUser);
 
-      const context = {
-        subscriptions: []
-      };
-
-      workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
-
-      authUtil = workspaceContextUtil.getAuthUtil();
-      getUsernameOrAliasStub = env.stub(authUtil, 'getDefaultUsernameOrAlias');
-      getUsernameStub = env.stub(authUtil, 'getUsername');
-
-      const fakeConnection: any = {
+    getConnectionStub = env
+      .stub(workspaceContextUtil, 'getConnection')
+      .returns({
         getAuthInfoFields: () => {
           return { orgId: dummyOrgId };
         }
-      };
-      env.stub(workspaceContextUtil, 'getConnection').resolves(fakeConnection);
-
-      await workspaceContextUtil.initialize(context);
-      (workspaceContextUtil as any)._username = testUser;
-    });
-
-    it('should load the default username and alias upon initialization', () => {
-      expect(workspaceContextUtil.username).to.equal(testUser);
-      expect(workspaceContextUtil.alias).to.equal(testAlias);
-      expect(workspaceContextUtil.orgId).to.equal(dummyOrgId);
-    });
-
-    // this
-    it('should update default username and alias upon config change', async () => {
-      getUsernameOrAliasStub.returns(testUser2);
-      getUsernameStub.withArgs(testUser2).returns(testUser2);
-
-      // getUsernameOrAliasStub.returns(testUser2);
-      // getUsernameStub.withArgs(testUser2).returns(testUser2);
-
-      await mockFileWatcher.fire('change');
-
-      expect(workspaceContextUtil.username).to.equal(testUser2);
-      expect(workspaceContextUtil.alias).to.equal(undefined);
-    });
-
-    it('should update default username and alias to undefined if one is not set', async () => {
-      getUsernameOrAliasStub.returns(undefined);
-      getUsernameStub.returns(undefined);
-
-      await mockFileWatcher.fire('change');
-
-      expect(workspaceContextUtil.username).to.equal(undefined);
-      expect(workspaceContextUtil.alias).to.equal(undefined);
-    });
-
-    it('should notify subscribers that the default org may have changed', async () => {
-      const someLogic = env.stub();
-      workspaceContextUtil.onOrgChange((orgInfo: any) => {
-        someLogic(orgInfo);
       });
 
-      // awaiting to ensure subscribers run their logic
-      await mockFileWatcher.fire('change');
-      await mockFileWatcher.fire('create');
-      await mockFileWatcher.fire('delete');
+    await workspaceContextUtil.initialize(context);
+  });
 
-      expect(someLogic.callCount).to.equal(3);
+  afterEach(() => env.restore());
+
+  it('should load the default username and alias upon initialization', () => {
+    expect(workspaceContextUtil.username).to.equal(testUser);
+    expect(workspaceContextUtil.alias).to.equal(testAlias);
+  });
+
+  it('should update default username and alias upon config change', async () => {
+    getUsernameOrAliasStub.returns(testUser2);
+    getUsernameStub.withArgs(testUser2).returns(testUser2);
+
+    await mockFileWatcher.fire('change');
+
+    expect(workspaceContextUtil.username).to.equal(testUser2);
+    expect(workspaceContextUtil.alias).to.equal(undefined);
+  });
+
+  it('should update default username and alias to undefined if one is not set', async () => {
+    getUsernameOrAliasStub.returns(undefined);
+    getUsernameStub.returns(undefined);
+
+    await mockFileWatcher.fire('change');
+
+    expect(workspaceContextUtil.username).to.equal(undefined);
+    expect(workspaceContextUtil.alias).to.equal(undefined);
+  });
+
+  it('should notify subscribers that the default org may have changed', async () => {
+    const someLogic = env.stub();
+    workspaceContextUtil.onOrgChange((orgInfo: any) => {
+      someLogic(orgInfo);
     });
+
+    // awaiting to ensure subscribers run their logic
+    await mockFileWatcher.fire('change');
+    await mockFileWatcher.fire('create');
+    await mockFileWatcher.fire('delete');
+
+    expect(someLogic.callCount).to.equal(3);
   });
 
   describe('getConnection', () => {
@@ -164,9 +162,6 @@ describe('WorkspaceContextUtil', () => {
         .stub(Connection, 'create')
         .withArgs({ authInfo: mockAuthInfo })
         .returns(mockConnection);
-
-      workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
-      (workspaceContextUtil as any)._username = testUser;
     });
 
     it('should return connection for the default org', async () => {
