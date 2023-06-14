@@ -76,7 +76,6 @@ describe('WorkspaceContext', () => {
 
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
-  let getConnectionStub: SinonStub;
   let workspaceContextUtil: any; // TODO find a better way
   let authUtil: any;
 
