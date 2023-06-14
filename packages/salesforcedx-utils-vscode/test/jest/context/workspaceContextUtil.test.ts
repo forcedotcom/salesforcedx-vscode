@@ -26,6 +26,7 @@ describe('WorkspaceContext', () => {
   let getUsernameStub: jest.SpyInstance;
   let getUsernameOrAliasStub: jest.SpyInstance;
   let workspaceContextUtil: any; // TODO find a better way
+  let getInstanceMock: jest.SpyInstance;
 
   let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any };
   let mockFileSystemWatcher: jest.SpyInstance;
@@ -60,6 +61,12 @@ describe('WorkspaceContext', () => {
     authUtilMock.getInstance.mockReturnValue(new AuthUtil());
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
+    jest.spyOn(workspaceContextUtil, 'getConnection').mockReturnValue({
+      getAuthInfoFields: () => {
+        return { orgId: dummyOrgId };
+      }
+    });
+
     await workspaceContextUtil.initialize(context);
     (workspaceContextUtil as any)._username = testUser;
   });
@@ -79,14 +86,15 @@ describe('WorkspaceContext', () => {
     );
   });
 
-  it('should load the default username and alias and clear the cache of the core types upon initialization', () => {
+  it('should load the default username, alias, and orgId and clear the cache of the core types upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
+    expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
-  it('should update default username and alias and clear the cache of the core types upon config change', async () => {
+  it('should update default username, alias, and orgId and clear the cache of the core types upon config change', async () => {
     getUsernameOrAliasStub.mockReturnValue(testUser2);
     getUsernameStub.mockReturnValue(testUser2);
 
@@ -97,6 +105,7 @@ describe('WorkspaceContext', () => {
 
     expect(workspaceContextUtil.username).toEqual(testUser2);
     expect(workspaceContextUtil.alias).toEqual(undefined);
+    expect(workspaceContextUtil.orgId).toEqual(undefined);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
@@ -143,6 +152,13 @@ describe('WorkspaceContext', () => {
     await mockWatcher.onDidDelete.mock.calls[0][0]();
 
     expect(someLogic).toHaveBeenCalledTimes(3);
+  });
+
+  it('should return the _orgId property', () => {
+    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
+    (workspaceContextUtil as any)._orgId = dummyOrgId;
+
+    expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
   });
 
   describe('getConnection', () => {
