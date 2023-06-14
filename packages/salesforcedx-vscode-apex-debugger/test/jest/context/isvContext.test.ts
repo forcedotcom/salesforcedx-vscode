@@ -18,7 +18,7 @@ describe('isvContext unit test', () => {
       onDidChangeSpy = jest.fn();
       onDidCreateSpy = jest.fn();
       onDidDeleteSpy = jest.fn();
-      // explictly set this return value due to the VS Code mock not being reset
+      // explicitly set this return value due to the VS Code mock not being reset
       (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
         onDidChange: onDidChangeSpy,
         onDidCreate: onDidCreateSpy,
