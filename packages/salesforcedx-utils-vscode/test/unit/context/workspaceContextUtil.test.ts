@@ -60,12 +60,19 @@ export class MockFileWatcher {
 const env = createSandbox();
 
 describe('WorkspaceContext', () => {
+  const dummyOrgId = '000dummyOrgId';
+  const mockAuthInfo = { test: 'test' };
+  const mockConnection = {
+    authInfo: mockAuthInfo,
+    getAuthInfoFields: () => {
+      return { orgId: dummyOrgId };
+    }
+  };
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
   let mockFileWatcher: MockFileWatcher;
-  const dummyOrgId = '000dummyOrgId';
 
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
@@ -94,14 +101,6 @@ describe('WorkspaceContext', () => {
       .stub(authUtil, 'getUsername')
       .withArgs(testAlias)
       .returns(testUser);
-
-    getConnectionStub = env
-      .stub(workspaceContextUtil, 'getConnection')
-      .returns({
-        getAuthInfoFields: () => {
-          return { orgId: dummyOrgId };
-        }
-      });
 
     await workspaceContextUtil.initialize(context);
   });
@@ -148,9 +147,6 @@ describe('WorkspaceContext', () => {
   });
 
   describe('getConnection', () => {
-    const mockAuthInfo = { test: 'test' };
-    const mockConnection = { authInfo: mockAuthInfo };
-
     let createConnectionStub: SinonStub;
 
     beforeEach(() => {
