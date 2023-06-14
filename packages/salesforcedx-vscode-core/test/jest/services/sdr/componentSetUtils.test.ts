@@ -121,7 +121,7 @@ describe('componentSetUtils', () => {
       expect(getOrgApiVersionMock).not.toHaveBeenCalled();
     });
 
-    it('should validate that sourceApiVersion is set from getUserConfiguredApiVersion', async () => {
+    it('should validate that sourceApiVersion is set from getUserConfiguredApiVersion when not set through componentSet or SfdxProjectConfig', async () => {
       // *** set/fake componentSet.sourceApiVersion
       const componentSet = new ComponentSet();
       componentSet.sourceApiVersion = undefined;
