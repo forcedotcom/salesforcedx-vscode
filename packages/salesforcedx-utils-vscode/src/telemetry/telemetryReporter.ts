@@ -184,9 +184,12 @@ export class TelemetryReporter extends Disposable {
         measurements
       });
 
+      const orgId = WorkspaceContextUtil.getInstance().orgId;
+      const properties = { orgId };
       if (this.logStream) {
         this.logStream.write(
           `telemetry/${exceptionName} ${JSON.stringify({
+            properties,
             measurements
           })}\n`
         );
