@@ -26,7 +26,6 @@ describe('WorkspaceContext', () => {
   let getUsernameStub: jest.SpyInstance;
   let getUsernameOrAliasStub: jest.SpyInstance;
   let workspaceContextUtil: any; // TODO find a better way
-  let getInstanceMock: jest.SpyInstance;
 
   let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any };
   let mockFileSystemWatcher: jest.SpyInstance;
@@ -155,9 +154,6 @@ describe('WorkspaceContext', () => {
   });
 
   it('should return the _orgId property', () => {
-    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
-    (workspaceContextUtil as any)._orgId = dummyOrgId;
-
     expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
   });
 
