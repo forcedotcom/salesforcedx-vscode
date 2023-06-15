@@ -108,6 +108,7 @@ export class WorkspaceContextUtil {
         const connection = await this.getConnection();
         this._orgId = connection?.getAuthInfoFields().orgId;
       } catch (error) {
+        this._orgId = '';
         console.log(
           `There was an problem getting the orgId of the default org: ${error}`
         );

@@ -101,6 +101,23 @@ describe('WorkspaceContextUtil', () => {
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
+  it('should set _orgId to an empty string and log a message if there was a problem getting the connection', async () => {
+    const dummyErrorMessage = 'There was a problem getting the connection.';
+    const logMock = jest.spyOn(console, 'log');
+
+    // Arrange
+    getConnectionMock.mockRejectedValueOnce(new Error(dummyErrorMessage));
+
+    // Act
+    await workspaceContextUtil.initialize(context);
+
+    // Assert
+    expect(workspaceContextUtil.username).toEqual(testUser);
+    expect(workspaceContextUtil.alias).toEqual(testAlias);
+    expect(workspaceContextUtil.orgId).toEqual('');
+    expect(logMock.mock.calls[0][0].includes(dummyErrorMessage)).toBe(true);
+  });
+
   it('should update default username, alias, and orgId and clear the cache of the core types upon config change', async () => {
     getConnectionMock.mockReturnValue({
       getAuthInfoFields: () => {
