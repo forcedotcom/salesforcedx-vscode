@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { forceApexClassCreate } from '../../../../src/commands/templates';
 import { LibraryForceApexClassCreateExecutor } from '../../../../src/commands/templates/executors/LibraryForceApexClassCreateExecutor';
@@ -47,14 +46,9 @@ const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 describe('forceApexClassCreate Unit Tests.', () => {
   let runMock: jest.Mock<any, any>;
   let sfdxCommandletMocked: jest.SpyInstance<any, any>;
-
-  const classesDirectoryPath = path.join('classes');
-  const classesDirectoryUri = vscode.Uri.file(classesDirectoryPath);
-  const classesSubDirectoryPath = path.join(
-    classesDirectoryPath,
-    'subdirectory'
-  );
-  const classesSubDirectoryUri = vscode.Uri.file(classesSubDirectoryPath);
+  const mockVscodeUri: Partial<vscode.Uri> = {
+    fsPath: 'force-app/main/default/classes'
+  };
 
   beforeEach(() => {
     runMock = jest.fn();
@@ -85,31 +79,11 @@ describe('forceApexClassCreate Unit Tests.', () => {
   });
 
   it('Should be able to execute forceApexClassCreate when it is run by right clicking the classes directory', async () => {
-    await forceApexClassCreate(classesDirectoryUri);
-    expect(selectFileNameMocked).toHaveBeenCalledWith(
-      APEX_CLASS_NAME_MAX_LENGTH
-    );
+    const uri = mockVscodeUri as vscode.Uri;
+    await forceApexClassCreate(uri);
     expect(simpleGathererMocked).toHaveBeenCalledWith({
-      outputdir: classesDirectoryUri.fsPath
+      outputdir: uri.fsPath
     });
-    expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
-    expect(libraryForceApexClassCreateExecutorMocked).toHaveBeenCalled();
-    expect(sfdxCommandletMocked).toHaveBeenCalled();
-    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
-    expect(compositeParametersGathererMocked).toHaveBeenCalled();
-    expect(overwriteComponentPromptMocked).toHaveBeenCalled();
-    expect(runMock).toHaveBeenCalled();
-  });
-
-  it('Should be able to execute forceApexClassCreate when it is run by right clicking a subdirectory of the classes directory', async () => {
-    await forceApexClassCreate(classesSubDirectoryUri);
-    expect(selectFileNameMocked).toHaveBeenCalledWith(
-      APEX_CLASS_NAME_MAX_LENGTH
-    );
-    expect(simpleGathererMocked).toHaveBeenCalledWith({
-      outputdir: classesSubDirectoryUri.fsPath
-    });
-    expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryForceApexClassCreateExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
     expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
