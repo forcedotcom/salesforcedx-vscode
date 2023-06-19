@@ -15,6 +15,7 @@ import {
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
 import { ConfigAggregatorProvider } from '../providers';
+import { TelemetryService } from '../telemetry/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -23,6 +24,15 @@ export enum ConfigSource {
 }
 
 export class ConfigUtil {
+  private static instance?: ConfigUtil;
+
+  public static getInstance() {
+    if (ConfigUtil.instance === undefined) {
+      ConfigUtil.instance = new ConfigUtil();
+    }
+    return ConfigUtil.instance;
+  }
+
   public static async getConfigSource(key: string): Promise<ConfigSource> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
@@ -54,11 +64,26 @@ export class ConfigUtil {
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_ORG
-    );
-    return defaultUsernameOrAlias ? String(defaultUsernameOrAlias) : undefined;
+    try {
+      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+        OrgConfigProperties.TARGET_ORG
+      );
+      if (defaultUsernameOrAlias === undefined) {
+        return undefined;
+      }
+
+      return JSON.stringify(String(defaultUsernameOrAlias)).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        TelemetryService.getInstance().sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
+      return undefined;
+    }
   }
 
   public static async isGlobalDefaultUsername(): Promise<boolean> {
@@ -127,7 +152,7 @@ export class ConfigUtil {
       return;
     }
 
-    const username = await getUsernameFor(defaultUsernameOrAlias);
+    const username = await this.getUsernameFor(defaultUsernameOrAlias);
     return username ? String(username) : undefined;
   }
 
@@ -143,7 +168,15 @@ export class ConfigUtil {
       return;
     }
 
-    const username = await getUsernameFor(defaultDevHubUsernameOrAlias);
+    const username = await this.getUsernameFor(defaultDevHubUsernameOrAlias);
+    return username ? String(username) : undefined;
+  }
+
+  public static async getUsernameFor(usernameOrAlias: string) {
+    const info = await StateAggregator.getInstance();
+    const username = usernameOrAlias
+      ? info.aliases.getUsername(String(usernameOrAlias))
+      : undefined;
     return username ? String(username) : undefined;
   }
 
@@ -179,12 +212,4 @@ export class ConfigUtil {
     // authorization info.
     StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
-}
-
-async function getUsernameFor(usernameOrAlias: string) {
-  const info = await StateAggregator.getInstance();
-  const username = usernameOrAlias
-    ? info.aliases.getUsername(String(usernameOrAlias))
-    : undefined;
-  return username ? String(username) : undefined;
 }
