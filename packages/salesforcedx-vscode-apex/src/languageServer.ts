@@ -23,6 +23,8 @@ import { telemetryService } from './telemetry';
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
+const SUSPEND_LANGUAGE_SERVER_STARTUP =
+  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
@@ -71,15 +73,21 @@ async function createServer(
     if (DEBUG) {
       args.push(
         '-Dtrace.protocol=false',
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
+          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        },address=${JDWP_DEBUG_PORT},quiet=y`
       );
+      if (process.env.YOURKIT_PROFILER_AGENT) {
+        if (SUSPEND_LANGUAGE_SERVER_STARTUP) {
+          throw new Error(
+            'Cannot suspend language server startup with profiler agent enabled.'
+          );
+        }
+        args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
+      }
     }
 
     // running with profiling is not a function of debug mode
-    if (process.env.YOURKIT_PROFILER_AGENT) {
-      args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
-    }
-
     args.push(APEX_LANGUAGE_SERVER_MAIN);
 
     return {

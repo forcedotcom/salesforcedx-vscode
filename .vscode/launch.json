@@ -48,6 +48,10 @@
       "sourceMaps": true,
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "env": {
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env.SUSPEND_LANGUAGE_SERVER_STARTUP}",
+        "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
+      },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
