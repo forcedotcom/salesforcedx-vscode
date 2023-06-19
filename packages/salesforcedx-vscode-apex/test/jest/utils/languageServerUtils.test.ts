@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as vscode from 'vscode';
+
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -8,11 +11,10 @@ import {
   extensionUris,
   projectPaths
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as vscode from 'vscode';
+
+import { channelService } from '../../../src/channels';
 import { VSCODE_APEX_EXTENSION_NAME } from '../../../src/constants';
 import { languageServerUtils } from '../../../src/helpers/languageServerUtils';
-import { channelService } from '../../../src/channels';
 
 describe('languageServer Unit Tests.', () => {
   describe('setupDb()', () => {
