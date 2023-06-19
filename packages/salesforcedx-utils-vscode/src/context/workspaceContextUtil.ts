@@ -8,7 +8,7 @@
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider } from '..';
-import { AuthUtil } from '../auth/authUtil';
+import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
 export interface OrgUserInfo {
@@ -46,8 +46,8 @@ export class WorkspaceContextUtil {
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
-  public getAuthUtil(): AuthUtil {
-    return AuthUtil.getInstance();
+  public getConfigUtil(): ConfigUtil {
+    return ConfigUtil.getInstance();
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
@@ -87,17 +87,14 @@ export class WorkspaceContextUtil {
     // this handler is called right after modifying the config file.
     // Reloading the Config Aggregator and StateAggregator here ensures
     // that they are refreshed when the config file changes, and are
-    // loaded with the most recent data when used downstream in
-    // ConfigUtil and AuthUtil.
+    // loaded with the most recent data when used downstream in ConfigUtil.
     await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
     StateAggregator.clearInstance();
 
-    const defaultUsernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
-      false
-    );
+    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
 
     if (defaultUsernameOrAlias) {
-      this._username = await this.getAuthUtil().getUsername(
+      this._username = await ConfigUtil.getUsernameFor(
         defaultUsernameOrAlias
       );
       this._alias =

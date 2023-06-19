@@ -51,8 +51,6 @@ export class OrgAuthInfo {
           );
         }
       }
-
-      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

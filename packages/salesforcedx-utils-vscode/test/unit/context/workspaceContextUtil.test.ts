@@ -77,7 +77,7 @@ describe('WorkspaceContext', () => {
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
   let workspaceContextUtil: any; // TODO find a better way
-  let authUtil: any;
+  let configUtil: any;
 
   beforeEach(async () => {
     mockFileWatcher = new MockFileWatcher(cliConfigPath);
@@ -92,12 +92,12 @@ describe('WorkspaceContext', () => {
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
-    authUtil = workspaceContextUtil.getAuthUtil();
+    configUtil = workspaceContextUtil.getConfigUtil();
     getUsernameOrAliasStub = env
-      .stub(authUtil, 'getDefaultUsernameOrAlias')
+      .stub(configUtil, 'getDefaultUsernameOrAlias')
       .returns(testAlias);
     getUsernameStub = env
-      .stub(authUtil, 'getUsername')
+      .stub(configUtil, 'getUsernameFor')
       .withArgs(testAlias)
       .returns(testUser);
 
