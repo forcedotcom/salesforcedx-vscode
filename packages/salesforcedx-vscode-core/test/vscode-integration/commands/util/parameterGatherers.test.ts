@@ -39,7 +39,7 @@ import { nls } from '../../../../src/messages';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
-const SFDX_SIMPLE_NUM_OF_DIRS = 16;
+const SFDX_SIMPLE_NUM_OF_DIRS = 17;
 
 // tslint:disable:no-unused-expression
 describe('Parameter Gatherers', () => {
