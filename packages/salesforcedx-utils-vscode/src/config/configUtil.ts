@@ -24,15 +24,6 @@ export enum ConfigSource {
 }
 
 export class ConfigUtil {
-  private static instance?: ConfigUtil;
-
-  public static getInstance() {
-    if (ConfigUtil.instance === undefined) {
-      ConfigUtil.instance = new ConfigUtil();
-    }
-    return ConfigUtil.instance;
-  }
-
   public static async getConfigSource(key: string): Promise<ConfigSource> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
@@ -73,7 +64,7 @@ export class ConfigUtil {
         return undefined;
       }
 
-      return JSON.stringify(String(defaultUsernameOrAlias)).replace(/\"/g, '');
+      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

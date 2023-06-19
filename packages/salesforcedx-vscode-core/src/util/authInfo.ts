@@ -51,6 +51,8 @@ export class OrgAuthInfo {
           );
         }
       }
+
+      return defaultUsernameOrAlias;
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

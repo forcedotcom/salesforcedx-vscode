@@ -46,10 +46,6 @@ export class WorkspaceContextUtil {
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
-  public getConfigUtil(): ConfigUtil {
-    return ConfigUtil.getInstance();
-  }
-
   public async initialize(extensionContext: vscode.ExtensionContext) {
     extensionContext.subscriptions.push(
       this.cliConfigWatcher,
