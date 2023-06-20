@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {  WorkspaceContextUtil } from '../../../src';
+import { WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -60,6 +60,14 @@ export class MockFileWatcher {
 const env = createSandbox();
 
 describe('WorkspaceContext', () => {
+  const dummyOrgId = '000dummyOrgId';
+  const mockAuthInfo = { test: 'test' };
+  const mockConnection = {
+    authInfo: mockAuthInfo,
+    getAuthInfoFields: () => {
+      return { orgId: dummyOrgId };
+    }
+  };
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
@@ -138,9 +146,6 @@ describe('WorkspaceContext', () => {
   });
 
   describe('getConnection', () => {
-    const mockAuthInfo = { test: 'test' };
-    const mockConnection = { authInfo: mockAuthInfo };
-
     let createConnectionStub: SinonStub;
 
     beforeEach(() => {
