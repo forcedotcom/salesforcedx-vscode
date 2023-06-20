@@ -55,9 +55,6 @@ describe('WorkspaceContextUtil', () => {
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
 
-    const context = {
-      subscriptions: []
-    };
     getUsernameOrAliasStub = (configUtilMock.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
     getUsernameStub = (configUtilMock.getUsernameFor as any).mockReturnValue(testUser);
 
