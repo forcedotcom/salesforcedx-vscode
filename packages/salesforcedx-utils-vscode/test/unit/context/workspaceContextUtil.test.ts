@@ -10,8 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {  WorkspaceContextUtil } from '../../../src';
-import {  ConfigUtil } from '../../../src';
+import {  ConfigUtil, WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;

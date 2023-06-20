@@ -163,6 +163,12 @@ export class ConfigUtil {
     return username ? String(username) : undefined;
   }
 
+  /**
+   * Get the username of the currently auth'd user for the project
+   * given a username or alias.
+   *
+   * @returns The username for the configured Org if it exists.
+   */
   public static async getUsernameFor(usernameOrAlias: string) {
     const info = await StateAggregator.getInstance();
     const username = usernameOrAlias
