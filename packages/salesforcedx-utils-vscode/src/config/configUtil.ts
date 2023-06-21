@@ -60,7 +60,7 @@ export class ConfigUtil {
       const defaultUsernameOrAlias = configAggregator.getPropertyValue(
         OrgConfigProperties.TARGET_ORG
       );
-      if (defaultUsernameOrAlias === undefined) {
+      if (!defaultUsernameOrAlias) {
         return undefined;
       }
 
@@ -73,7 +73,7 @@ export class ConfigUtil {
           err.message
         );
       }
-      return undefined;
+      throw(err);
     }
   }
 
