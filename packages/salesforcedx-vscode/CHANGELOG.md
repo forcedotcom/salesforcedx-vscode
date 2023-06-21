@@ -1,3 +1,11 @@
+# 58.3.1 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Backed out a change from the v58.3.0 release to fix an issue users were reporting.
+
 # 58.3.0 - June 21, 2023
 
 ## Added
