@@ -192,6 +192,6 @@ describe('componentSetUtils', () => {
       expect(orgApiVersion).toBe('60.0');
       expect(getInstanceMock).toHaveBeenCalled();
     });
-  });
   */
+  });
 });

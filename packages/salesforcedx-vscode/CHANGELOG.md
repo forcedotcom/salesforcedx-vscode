@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Backed out a change from the v58.3.0 release to fix an issue users were reporting.
+- Backed out a change from the v58.3.0 release to fix https://github.com/forcedotcom/salesforcedx-vscode/issues/4938.
 
 # 58.3.0 - June 21, 2023
 
