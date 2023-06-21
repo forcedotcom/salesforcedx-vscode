@@ -235,6 +235,7 @@ describe('Force Apex Class Create', () => {
     // clean up
     shell.rm('-f', apexClassPath);
     shell.rm('-f', apexClassMetaPath);
+    shell.rm('-rf', classOutputPath);
   });
 
   it('Should handle error and log telemetry for exceptions', async () => {
