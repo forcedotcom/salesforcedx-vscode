@@ -28,6 +28,7 @@ export class AuthUtil {
         return undefined;
       }
 
+      console.log(defaultUserName);
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
