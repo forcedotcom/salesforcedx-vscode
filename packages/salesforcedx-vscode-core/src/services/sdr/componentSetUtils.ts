@@ -25,7 +25,7 @@ export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   }
 
   // If no user-configured API Version is present, then get the version from the org.
-  const orgApiVersion = await getOrgApiVersion();
+  const orgApiVersion = await exports.getOrgApiVersion();
   componentSet.apiVersion = orgApiVersion && orgApiVersion.length > 0
     ? orgApiVersion
     : componentSet.apiVersion;
@@ -54,7 +54,7 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
 
   // Next, if it still is not set, set it to the highest API version supported by the target org.
   if (!sourceApiVersion) {
-    const orgApiVersion = await getOrgApiVersion();
+    const orgApiVersion = await exports.getOrgApiVersion();
     sourceApiVersion = orgApiVersion;
   }
 
