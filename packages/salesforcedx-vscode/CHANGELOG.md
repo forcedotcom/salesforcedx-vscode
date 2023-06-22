@@ -1,3 +1,19 @@
+# 58.3.1 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Backed out a change from the v58.3.0 release to fix https://github.com/forcedotcom/salesforcedx-vscode/issues/4938.
+
+# 58.3.0 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We updated telemetry data to include Org Id. ([PR #4917](https://github.com/forcedotcom/salesforcedx-vscode/pull/4917))
+
 # 58.2.0 - June 13, 2023
 
 ## Added
