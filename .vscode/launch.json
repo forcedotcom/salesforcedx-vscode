@@ -630,20 +630,29 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
-      "name": "Debug Tests - VSCode Core - Unit Tests",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-core",
-      "type": "node",
-      "request": "launch",
-      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-vscode-core/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
       "name": "Debug Tests - SObjects Faux Generator - Unit Tests",
       "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Tests - Utils VSCode - Unit Tests",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-utils-vscode",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Tests - VSCode Core - Unit Tests",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-core",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-vscode-core/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }
