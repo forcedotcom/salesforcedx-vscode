@@ -8,7 +8,7 @@
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
-import * as componentSetUtils from '../../../../src/services/sdr/componentSetUtils';
+import { componentSetUtils } from '../../../../src/services/sdr/componentSetUtils';
 import { SfdxProjectConfig } from '../../../../src/sfdxProject';
 
 describe('componentSetUtils', () => {
@@ -17,12 +17,6 @@ describe('componentSetUtils', () => {
   });
 
   describe('setApiVersion', () => {
-    it('should validate that apiVersion is set via ConfigUtil when present', async () => {
-      expect(1).toBe(1);
-      // TODO: needed to back this out for a hot fix.
-    });
-
-    /*
     it('should validate that apiVersion is set via ConfigUtil when present', async () => {
       // *** Set (faked) componentSet.sourceApiVersion
       const componentSet = new ComponentSet();
@@ -192,6 +186,5 @@ describe('componentSetUtils', () => {
       expect(orgApiVersion).toBe('60.0');
       expect(getInstanceMock).toHaveBeenCalled();
     });
-  */
   });
 });
