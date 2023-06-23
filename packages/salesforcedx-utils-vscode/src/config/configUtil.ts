@@ -171,10 +171,7 @@ export class ConfigUtil {
    */
   public static async getUsernameFor(usernameOrAlias: string) {
     const info = await StateAggregator.getInstance();
-    const username = usernameOrAlias
-      ? info.aliases.getUsername(String(usernameOrAlias))
-      : undefined;
-    return username ? String(username) : undefined;
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 
   public static async setDefaultUsernameOrAlias(
