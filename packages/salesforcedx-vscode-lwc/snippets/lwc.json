@@ -1,44 +1,42 @@
 {
   "lwc-accordion": {
-    "prefix": "lwc-accordion",
-    "description": "Creates an event without custom details",
     "body": [
       "<lightning-accordion class=\"$1\"",
       "    onsectiontoggle={${2:clickHandler}}",
       "    active-section-name=\"${3:A}\">",
-      "    <lightning-accordion-section name=\"${3:A}\" label=\"${4:Accordion Title} ${3}\">",
+      "    <lightning-accordion-section name=\"${4:A}\" label=\"${5:Accordion Title1}\">",
+      "      $0",
+      "    </lightning-accordion-section>",
+      "    <lightning-accordion-section name=\"${6:B}\" label=\"${7:Accordion Title2}\">",
       "",
       "    </lightning-accordion-section>",
-      "    <lightning-accordion-section name=\"${5:B}\" label=\"${6:Accordion Title} ${5}\">",
       "",
-      "    </lightning-accordion-section>",
-      "",
-      "    <lightning-accordion-section name=\"${7:C}\" label=\"${8:Accordion Title} ${7}\">",
+      "    <lightning-accordion-section name=\"${8:C}\" label=\"${9:Accordion Title3}\">",
       "",
       "    </lightning-accordion-section>",
       "</lightning-accordion>"
     ],
+    "description": "Accordion - A collection of vertically stacked sections with multiple content areas.",
+    "prefix": "lwc-accordion",
     "scope": "html"
   },
   "lwc-accordion-section": {
-    "prefix": "lwc-accordion-section",
-    "description": "Creates a lightning-accordion-section tag",
     "body": [
-      "<lightning-accordion-section name=\"${1:X}\" label=\"${2:Accordion Title} ${1}\">",
-      "",
+      "<lightning-accordion-section name=\"${1:X}\" label=\"${2:Accordion Title}\">",
+      "  $0",
       "</lightning-accordion-section>"
     ],
+    "description": "Accordion Section - Creates a lightning-accordion-section tag",
+    "prefix": "lwc-accordion-section",
     "scope": "html"
   },
   "lwc-avatar": {
-    "prefix": "lwc-avatar",
-    "description": "Avatar - A visual representation of an object.",
     "body": ["<lightning-avatar src=\"${1:url}\"></lightning-avatar>"],
+    "description": "Avatar - A visual representation of an object.",
+    "prefix": "lwc-avatar",
     "scope": "html"
   },
   "lwc-badge": {
-		"prefix": "lwc-badge",
-		"description":"Badge: Represents a label which holds a small amount of information, such as the number of unread notifications.",
 		"body":["<lightning-badge label=\"${1:Alpha}\"",
 		  "  class=\"${2|slds-badge_inverse,slds-badge_lightest,slds-theme_success,slds-theme_warning,slds-theme_error|}\"", 
 		  "  icon-alternative-text=\"${3:The alternative text which is displayed as tooltip text.}\"",
@@ -46,22 +44,24 @@
 		  "  icon-position=\"${5|start,end|}\"",
 		  "></lightning-badge>"
     ],
+		"description":"Badge - Represents a label which holds a small amount of information, such as the number of unread notifications.",
+    "prefix": "lwc-badge",
     "scope":"html"
 	},
   "lwc-barcode-scanner": {
     "body": [
       "<lightning-barcode-scanner ",
-      "  ${2|disabled,enabled|",
-      "  enable-continuous-scan=${|false,true|",
-      "  enabled-icon-src=\"\"",
-      "  enabled-alternative-text=\"\"",
-      "  disabled-icon-src=\"\"",
-      "  disabled-alternative-text=\"\"",
-      "  icon-size=\"\"",
-      "  scanner-options={$}",
+      "  ${1|disabled,enabled|}",
+      "  enable-continuous-scan=\"${2|false,true|}\"",
+      "  enabled-icon-src=\"${3:enabledSrc}\"",
+      "  enabled-alternative-text=\"${4:enabled state description}\"",
+      "  disabled-icon-src=\"${5:disabledSrc}\"",
+      "  disabled-alternative-text=\"${6:disabed state description}\"",
+      "  icon-size=\"medium\"",
+      "  scanner-options={${7:barcodeScannerConfig}}",
       "></lightning-barcode-scanner>"
     ],
-    "description": "The lightning-barcode-scanner component embeds a barcode scanning function displayed as an icon, which launches the barcode scanner when the user clicks it.",
+    "description": "Barcode Scanner - The lightning-barcode-scanner component embeds a barcode scanning function displayed as an icon, which launches the barcode scanner when the user clicks it.",
     "prefix": "lwc-barcode-scanner",
     "scope": "html"
   },
@@ -73,10 +73,10 @@
       "></lightning-breadcrumb>"
     ],
     "description": "Breadcrumb (element) w/ link navigation - Displays the individual page path relative to a parent page",
-    "prefix": "lwc-breadcrumb-onClick",
+    "prefix": "lwc-breadcrumb-link",
     "scope": "html"
   },
-  "lwc-breadcrumb-onClick": {
+  "lwc-breadcrumb-onclick": {
     "body": [
       "<lightning-breadcrumb",
       "  label=\"${1:Parent Account}\"",
@@ -85,13 +85,13 @@
       "></lightning-breadcrumb>"
     ],
     "description": "Breadcrumb (element) w/ onClick handler - Displays the individual page path relative to a parent page",
-    "prefix": "lwc-breadcrumb-onClick",
+    "prefix": "lwc-breadcrumb-onclick",
     "scope": "html"
   },
-  "lwc-breadcrumbs-forEachLoop": {
+  "lwc-breadcrumbs-for-each-loop": {
     "body": [
       "<lightning-breadcrumbs>",
-      "  <template for:each={${1:myBreadcrumbs}} for:item=\"${2:crumb\">",
+      "  <template for:each={${1:myBreadcrumbs}} for:item=\"${2:crumb}\">",
       "      <lightning-breadcrumb",
       "          key={${2:crumbs}.id}",
       "          label={${2:crumbs}.label}",
@@ -102,7 +102,7 @@
       "</lightning-breadcrumbs>"
     ],
     "description": "Breadcrumbs w/ for each loop - Displays the path of a page relative to a parent page.",
-    "prefix": "lwc-breadcrumbs-forEachLoop",
+    "prefix": "lwc-breadcrumbs-for-each-loop",
     "scope": "html"
   },
   "lwc-breadcrumbs-link": {
@@ -119,10 +119,10 @@
       "</lightning-breadcrumbs>"
     ],
     "description": "Breadcrumbs w/ link navigation - Displays the path of a page relative to a parent page.",
-    "prefix": "lwc-breadcrumbs",
+    "prefix": "lwc-breadcrumbs-link",
     "scope": "html"
   },
-  "lwc-breadcrumbs-onClick": {
+  "lwc-breadcrumbs-onclick": {
     "body": [
       "<lightning-breadcrumbs>",
       "  <lightning-breadcrumb",
@@ -139,22 +139,23 @@
       "  </lightning-breadcrumb>",
       "</lightning-breadcrumbs>"
     ],
-    "description": "Breadcrumbs w/ onClick handler - Displays the path of a page relative to a parent page.",
-    "prefix": "lwc-breadcrumbs",
+    "description": "Breadcrumbs w/ onclick handler - Displays the path of a page relative to a parent page.",
+    "prefix": "lwc-breadcrumbs-onclick",
     "scope": "html"
   },
   "lwc-button": {
-    "body": ["<lightning-button-basic ",
-    "  variant=\"${1|base,neutral,brand,brand-outline,destructive,destructive-text,inverse,success|}\"",
-    "  label=\"${2:Button Label}\" ",
-    "  onclick={${3:handleClick}} ",
-    "  ></lightning-button>"
+    "body": [
+      "<lightning-button ",
+      "  variant=\"${1|base,neutral,brand,brand-outline,destructive,destructive-text,inverse,success|}\"",
+      "  label=\"${2:Button Label}\" ",
+      "  onclick={${3:handleClick}} ",
+      "></lightning-button>"
     ],
     "description": "Button - A clickable element used to perform an action.",
-    "prefix": "lwc-button-basic",
+    "prefix": "lwc-button",
     "scope": "html"
   },
-  "lwc-button-extended": {
+  "lwc-button-advanced": {
     "body": ["<lightning-button ",
     "  variant=\"${1|base,neutral,brand,brand-outline,destructive,destructive-text,inverse,success|}\"",
     "  label=\"${2:Button Label}\" ",
@@ -168,52 +169,55 @@
     "  class=\"${10}\"",
     "></lightning-button>"
     ],
-    "description": "Button - A clickable element used to perform an action.",
-    "prefix": "lwc-button-extended",
+    "description": "Button Advanced - A clickable element used to perform an action.",
+    "prefix": "lwc-button-advanced",
     "scope": "html"
   },
   "lwc-button-group": {
-    "body": ["<lightning-button-group>",
-    "  <lightning-button label=\"${1:Refresh}\"></lightning-button>",
-    "  <lightning-button label=\"${2:Edit}\"></lightning-button>",
-    "  <lightning-button label=\"${3:Save}\"></lightning-button>",
-    "</lightning-button-group>"],
-    "description": "A brief explanation of this snippet",
-    "prefix": "Title or list of titles to prompt user",
+    "body": [
+      "<lightning-button-group>",
+      "  <lightning-button label=\"${1:Refresh}\"></lightning-button>",
+      "  <lightning-button label=\"${2:Edit}\"></lightning-button>",
+      "  <lightning-button label=\"${3:Save}\"></lightning-button>",
+      "</lightning-button-group>"],
+    "description": "Button Group - Represents a set of buttons that can be displayed together to create a navigational bar.",
+    "prefix": "lwc-button-group",
     "scope": "html"
   },
   "lwc-button-group-dropdown-menu": {
-    "body": ["<lightning-button-group>",
-    "  <lightning-button label=\"${1:Refresh}\"></lightning-button>",
-    "  <lightning-button label=\"${2:Edit}\"></lightning-button>",
-    "  <lightning-button label=\"${3:Save}\"></lightning-button>",
-    "  <lightning-button-menu alternative-text=\"Show menu\" variant=\"border-filled\">",
-    "    <lightning-menu-item label=\"${4:Menu Item One}\" value=\"${5:menuOne}\"></lightning-menu-item>",
-    "    <lightning-menu-item label=\"${6:Menu Item Two}\" value=\"${7:menuTwo}\"></lightning-menu-item>",
-    "    <lightning-menu-item label=\"${8:Menu Item Three}\" value=\"${9:menuThree}\"></lightning-menu-item>",
-    "  </lightning-button-menu>",
-    "</lightning-button-group>"],
-    "description": "A brief explanation of this snippet",
-    "prefix": "Title or list of titles to prompt user",
+    "body": [
+      "<lightning-button-group>",
+      "  <lightning-button label=\"${1:Refresh}\"></lightning-button>",
+      "  <lightning-button label=\"${2:Edit}\"></lightning-button>",
+      "  <lightning-button label=\"${3:Save}\"></lightning-button>",
+      "  <lightning-button-menu alternative-text=\"Show menu\" variant=\"border-filled\">",
+      "    <lightning-menu-item label=\"${4:Menu Item One}\" value=\"${5:menuOne}\"></lightning-menu-item>",
+      "    <lightning-menu-item label=\"${6:Menu Item Two}\" value=\"${7:menuTwo}\"></lightning-menu-item>",
+      "    <lightning-menu-item label=\"${8:Menu Item Three}\" value=\"${9:menuThree}\"></lightning-menu-item>",
+      "  </lightning-button-menu>",
+      "</lightning-button-group>"],
+    "description": "Button Group w/ Dropdown Menu - Represents a set of buttons that can be displayed together to create a navigational bar.",
+    "prefix": "lwc-button-group-dropdown-menu",
     "scope": "html"
   },
   "lwc-button-icon": {
-    "body": ["<lightning-button-icon ",
-    "  icon-class=\"${1}\"",
-    "  icon-name=\"${2:utility:adduser}\"",
-    "  alternative-text=\"${3:Add user}\"", 
-    "  class=\"${4}\"",
-    "  name=\"${5}\"",
-    "  size=\"${6|xx-small,x-small,small,medium, large}\"",
-    "  title=\"${7}\"",
-    "  tooltip=\"${8}\"",
-    "  type=\"${9|button,reset,submit|}\"",
-    "  value=\"${10}\"",
-    "  variant=\"${11|bare,bare-inverse,border,border-filled,border-inverse,brand,container|}\"",
-    "></lightning-button-icon>"
+    "body": [
+      "<lightning-button-icon ",
+      "  icon-class=\"${1}\"",
+      "  icon-name=\"${2:utility:adduser}\"",
+      "  alternative-text=\"${3:Add user}\"", 
+      "  class=\"${4}\"",
+      "  name=\"${5}\"",
+      "  size=\"${6|xx-small,x-small,small,medium,large|}\"",
+      "  title=\"${7}\"",
+      "  tooltip=\"${8}\"",
+      "  type=\"${9|button,reset,submit|}\"",
+      "  value=\"${10}\"",
+      "  variant=\"${11|bare,bare-inverse,border,border-filled,border-inverse,brand,container|}\"",
+      "></lightning-button-icon>"
     ],
-    "description": "A brief explanation of this snippet",
-    "prefix": "Title or list of titles to prompt user",
+    "description": "Button Icon - An icon-only HTML button.",
+    "prefix": "lwc-button-icon",
     "scope": "html"
   },
   "lwc-button-icon-stateful": {
@@ -221,9 +225,9 @@
     "  alternative-text=\"${1:Like user}\"", 
     "  icon-class=\"${2}\"",
     "  icon-name=\"${3:utility:like}\"",
-    "  onclick=\"${4:clickHandler}\"",
-    "  selected=\"${5:likeState}\"",
-    "  size=\"${6|xx-small,x-small,small,medium}\"",
+    "  onclick={${4:clickHandler}}",
+    "  selected={${5:likeState}}",
+    "  size=\"${6|xx-small,x-small,small,medium|}\"",
     "  value=\"${7}\"",
     "  variant=\"${8|border,border-filled,border-inverse|}\"",
     "></lightning-button-icon-stateful>"
@@ -237,9 +241,9 @@
       "<lightning-button-menu ",
       "  alternative-text=\"${1:Show menu}\"",
       "  icon-name=\"${2:utility:down}\"",
-      "  icon-size=\"${3|xx-small,x-small,small,medium, large}\"",
+      "  icon-size=\"${3|xx-small,x-small,small,medium, large|}\"",
       "  label=\"${4}\"",
-      "  onclick=\"${5:clickHandler}\"",
+      "  onclick={${5:clickHandler}}",
       "  variant=\"${6|bare,bare-inverse,border,border-filled,border-inverse,brand,container|}\"",
       ">",
       "  <lightning-menu-item value=\"${7:menuItemOne}\" label=\"${8:Menu Item One}\"></lightning-menu-item>",
@@ -248,7 +252,7 @@
       "</lightning-button-menu>"
     ],
     "description": "Button Menu - represents a dropdown menu with a list of actions or functions.",
-    "prefix": "Title or list of titles to prompt user",
+    "prefix": "lwc-button-menu",
     "scope": "html"
   },
   "lwc-button-stateful": {
@@ -261,8 +265,8 @@
       "  icon-name-when-on=\"${6:utility:check}\"",
       "  icon-name-when-hover=\"${7:utility:close}\"",
       "  selected={${8:isSelected}}",
-      "  onclick={${9:handleClick}}>",
-      "  variant={${10|brand,destructive,inverse,neutral,success,text|}}",
+      "  onclick={${9:handleClick}}",
+      "  variant=\"${10|brand,destructive,inverse,neutral,success,text|}\"",
       "></lightning-button-stateful>"
     ],
     "description": "Button Stateful - A button that toggles between states.",
@@ -281,7 +285,10 @@
       "  <div slot=\"footer\">",
       "",
       "  </div>",
-      "  <div>${4:Card Body (custom component)}</div>",
+      "  <div>",
+      "    <!-- Card Body  -->",
+      "    $0",
+      "  </div>",
       "</lightning-card>"
     ],
     "description": "Card - Cards apply a container around a related grouping of information.",
@@ -292,25 +299,25 @@
     "body": [
       "<lightning-carousel ${1| ,disable-auto-scroll|} ${2| ,disable-auto-refresh|} scroll-duration=\"${3:5}\">",
       "  <lightning-carousel-image",
-      "      src = \"${4}\"",
-      "      header = \"${5:First Card}\"",
-      "      description = \"${6:First card description.}\"",
-      "      alternative-text = \"${7:First card accessible description.}\"",
-      "      href = \"${8:javascript:void(0);}\">",
+      "      src=\"${4}\"",
+      "      header=\"${5:First Card}\"",
+      "      description=\"${6:First card description.}\"",
+      "      alternative-text=\"${7:First card accessible description.}\"",
+      "      href=\"${8:javascript:void(0);}\">",
       "  </lightning-carousel-image>",
       "  <lightning-carousel-image",
-      "      src = \"${9}\"",
-      "      header = \"${10:Second Card}\"",
-      "      description = \"${11:Second card description.}\"",
-      "      alternative-text = \"${12:Second card accessible description.}\"",
-      "      href = \"${13:javascript:void(0);}\">",
+      "      src=\"${9}\"",
+      "      header=\"${10:Second Card}\"",
+      "      description=\"${11:Second card description.}\"",
+      "      alternative-text=\"${12:Second card accessible description.}\"",
+      "      href=\"${13:javascript:void(0);}\">",
       "  </lightning-carousel-image>",
       "  <lightning-carousel-image",
-      "      src = \"${14}\"",
-      "      header = \"${15:Third Card}\"",
-      "      description = \"${16:Third card description.}\"",
-      "      alternative-text = \"${17:Third card accessible description.}\"",
-      "      href = \"${18:javascript:void(0);}\">",
+      "      src=\"${14}\"",
+      "      header=\"${15:Third Card}\"",
+      "      description=\"${16:Third card description.}\"",
+      "      alternative-text=\"${17:Third card accessible description.}\"",
+      "      href=\"${18:javascript:void(0);}\">",
       "  </lightning-carousel-image>",
       "</lightning-carousel>"
     ],
@@ -321,11 +328,11 @@
   "lwc-carousel-image": {
     "body": [
       "<lightning-carousel-image",
-      "    src = \"${1}\"",
-      "    header = \"${2:Card}\"",
-      "    description = \"${3:Card description.}\"",
-      "    alternative-text = \"${4:Card accessible description.}\"",
-      "    href = \"${5:javascript:void(0);}\"",
+      "    src=\"${1}\"",
+      "    header=\"${2:Card}\"",
+      "    description=\"${3:Card description.}\"",
+      "    alternative-text=\"${4:Card accessible description.}\"",
+      "    href=\"${5:javascript:void(0);}\"",
       "></lightning-carousel-image>"
     ],
     "description": "Carousel Image - Specifies an image used in lighting-carousel, including description and title.",
@@ -335,12 +342,12 @@
   "lwc-checkbox-group": {
     "body": [
       "<lightning-checkbox-group name=\"${1:Checkbox Group}\"",
-      "  label=\"2{2:Checkbox Group}\"",
-      "  options={${3:options}",
+      "  label=\"${2:Checkbox Group}\"",
+      "  options={${3:options}}",
       "  value={${4:value}}",
-      "  message-when-value-missing=${5:Optional message to be displayed when no checkbox is selected and the required attribute is set.}",
+      "  message-when-value-missing=\"${5:Optional message to be displayed when no checkbox is selected and the required attribute is set.}\"",
       "  onchange={${6:handleChange}}",
-      "  variant=${7|standard,label-hidden,label-inline,label-stacked|}",
+      "  variant=\"${7|standard,label-hidden,label-inline,label-stacked|}\"",
       "  ${8| ,disabled|}",
       "  ${9| ,required|}",
       "></lightning-checkbox-group>"
@@ -356,7 +363,6 @@
       "  record-id=\"${2:500xxxxxxxxxxxx}\" ",
       "  params=\"${3:accountSid=xxx,sourceId=xxx,apiVersion=123}\"",
       "></lightning-click-to-dial>"
-
     ],
     "description": "Click To Dial - Renders a formatted phone number as click-to-dial enabled or disabled for Open CTI and Voice.",
     "prefix": "lwc-click-to-dial",
@@ -365,7 +371,7 @@
   "lwc-combobox": {
     "body": [
       "<lightning-combobox",
-      "  name=\"%{1:progress}\"",
+      "  name=\"${1:progress}\"",
       "  label=\"${2:Status}\"",
       "  value={${3:value}}",
       "  placeholder=\"${4:Select Progress}\"",
@@ -379,25 +385,25 @@
     "prefix": "lwc-combobox",
     "scope": "html"
   },
-  "lwc-combobox-extended": {
+  "lwc-combobox-advanced": {
     "body": [
       "<lightning-combobox",
-      "  name=\"%{1:progress}\"",
+      "  field-level-help=\"${1:Help text detailing the purpose and function of the combobox.}\"",
       "  label=\"${2:Status}\"",
-      "  value={${3:value}}",
-      "  placeholder=\"${4:Select Progress}\"",
+      "  message-when-value-missing=\"${3:Optional message to be displayed when no checkbox is selected and the required attribute is set.}\"",
+      "  name=\"${4:progress}\"",
       "  options={${5:options}}",
       "  onchange={${6:handleChange}} ",
-      "  ${7| ,disabled|}",
-      "  ${8| ,required|}",
-      "  field-level-help=${9:Help text detailing the purpose and function of the combobox.}",
-      "  message-when-value-missing=${11:Optional message to be displayed when no checkbox is selected and the required attribute is set.}",
-      "  ${12| ,read-only|}",
-      "  variant=${13|standard,label-hidden,label-inline,label-stacked|}",
+      "  placeholder=\"${7:Select Progress}\"",
+      "  value={${8:value}}",
+      "  variant=\"${9|standard,label-hidden,label-inline,label-stacked|}\"",
+      "  ${10| ,disabled|}",
+      "  ${11| ,read-only|}",
+      "  ${12| ,required|}",
       "></lightning-combobox>"
     ],
-    "description": "Combobox Extended - All attributes. A widget that provides an input field that is readonly, accompanied by a dropdown list of selectable options.",
-    "prefix": "lwc-combobox",
+    "description": "Combobox Advanced - All attributes. A widget that provides an input field that is readonly, accompanied by a dropdown list of selectable options.",
+    "prefix": "lwc-combobox-advanced",
     "scope": "html"
   },
   "lwc-datatable": {
@@ -412,7 +418,7 @@
     "prefix": "lwc-datatable",
     "scope": "html"
   },
-  "lwc-datatable-extended": {
+  "lwc-datatable-advanced": {
     "body": [
       "<lightning-datatable",
       "  key-field=\"${1:id}\"",
@@ -423,22 +429,22 @@
       "  ${6| ,enable-infinite-loading|}",
       "  ${7| ,hide-checkbox-column|}",
       "  ${8| ,hide-table-header|}",
-      "  load-more-offset=${9:20}",
-      "  max-column-width=${10:1000}",
-      "  max-row-selection=${11}",
-      "  min-column-width=${12:50}",
+      "  load-more-offset=\"${9:20}\"",
+      "  max-column-width=\"${10:1000}\"",
+      "  max-row-selection=\"${11}\"",
+      "  min-column-width=\"${12:50}\"",
       "  onsort={${13:onHandleSort}}",
       "  onrowaction={${14:handleRowAction}}",
-      "  ${15| ,resize-column-disabled}",
-      "  resize-step=${16:10}",
-      "  row-number-offset=${17:0}",
+      "  ${15| ,resize-column-disabled|}",
+      "  resize-step=\"${16:10}\"",
+      "  row-number-offset=\"${17:0}\"",
       "  ${18| ,show-row-number-column|}",
       "  sorted-by={${19:sortedBy}}",
       "  sorted-direction={${20:sortDirection}}",
       "></lightning-datatable>"
     ],
-    "description": "Datatable - A table that displays rows and columns of data",
-    "prefix": "lwc-datatable-extended",
+    "description": "Datatable Advanced - All attributes, a table that displays rows and columns of data",
+    "prefix": "lwc-datatable-advanced",
     "scope": "html"
   },
   "lwc-dual-listbox": {
@@ -486,7 +492,7 @@
       "></lightning-dual-listbox>"
     ],
     "description": "Dual Listbox Min Max - Dual Listbox utilizing minimum and maximum number of selections attributes. A pair of listboxes that enables multiple options to be selected and reordered.",
-    "prefix": "lwc-dual-listbox",
+    "prefix": "lwc-dual-listbox-min-max",
     "scope": "html"
   },
   "lwc-dual-listbox-required-options": {
@@ -533,7 +539,7 @@
       "<lightning-dynamic-icon ",
       "  type=\"eq\" ",
       "  alternative-text=\"${1:Text that describes what is happening not what the icon looks like.}\"",
-      "  option=${2|play,stop|}",
+      "  option=\"${2|play,stop|}\"",
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon EQ - Show an animated graph with three bars that rise and fall randomly. This icon is great for a graph that's refreshing.",
@@ -545,7 +551,7 @@
       "<lightning-dynamic-icon ",
       "  type=\"score\" ",
       "  alternative-text=\"${1:Text that describes what is happening not what the icon looks like.}\"",
-      "  option=${2|positive,negative|",
+      "  option=\"${2|positive,negative|}\"",
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Score - Show a green filled circle or a red unfilled circle. This icon is great for showing positive and negative indicators.",
@@ -557,7 +563,7 @@
       "<lightning-dynamic-icon ",
       "  type=\"strength\" ",
       "  alternative-text=\"${1:Text that describes what is happening not what the icon looks like.}\"",
-      "  option=${2:0}",
+      "  option=\"${2:0}\"",
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Strength - Show three animated horizontal circles that are colored green or red. This icon is great for Einstein calculations or indicating password strengths.",
@@ -569,7 +575,7 @@
       "<lightning-dynamic-icon ",
       "  type=\"trend\" ",
       "  alternative-text=\"${1:Text that describes what is happening not what the icon looks like.}\"",
-      "  option=${2|neutral,up,down|}",
+      "  option=\"${2|neutral,up,down|}\"",
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Trend - Show animated arrows that point up, down, or straight. This icon is great for showing movement of a value from one range to another, like a forecast score.",
@@ -630,9 +636,9 @@
     "body": [
       "<lightning-flow", 
       "  flow-api-name=\"${1:Survey_customers}\"", 
-      "  flow-finish-behavior=\"${2|RESTART,NONE}\"",
+      "  flow-finish-behavior=\"${2|RESTART,NONE|}\"",
       "  flow-input-variables={${3:inputVariables}}", 
-      "  flow-interview-id=${4}",
+      "  flow-interview-id=\"${4}\"",
       "  onstatuschange={${5:handleStatusChange}}", 
       "></lightning-flow>"
     ],
@@ -664,7 +670,7 @@
       "  locale=\"${5}\"",
       "  province=\"${6:CA}\"",
       "  postal-code=\"${7:94105}\"",
-      "  show-static-map=${8|false,true|}",
+      "  show-static-map=\"${8|false,true|}\"",
       "></lightning-formatted-address>"
     ],
     "description": "Formatted Address Extended - All attributes. Displays a formatted address with a link to the given location on Google Maps. The link is opened in a new tab. A static map can be displayed with the address for better context.",
@@ -733,7 +739,7 @@
       "></lightning-formatted-date-time-date>"
     ],
     "description": "Formatted Date",
-    "prefix": "lwc-formatted-date",
+    "prefix": "lwc-formatted-date-time-date",
     "scope": "html"
   },
   "lwc-formatted-date-time-time": {
@@ -804,22 +810,6 @@
     "prefix": "lwc-formatted-name",
     "scope": "html"
   },
-  "lwc-formatted-number-decimal": {
-    "body": [
-      "<lightning-formatted-number ",
-      "  value=\"${1:12.34}\" ",
-      "  format-style=\"decimal\" ",
-      "  maximum-fraction-digits=${2}",
-      "  maximum-significant-digits=\"${3|1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21|}\"",
-      "  minimum-fraction-digits=\"${4}\"",
-      "  minimum-integer-digits=\"${5|1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21|}\"",
-      "  minimum-significant-digits=\"${6|1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21|}\"",
-      "></lightning-formatted-number>"
-    ],
-    "description": "Formatted Number Decimal - Displays formatted numbers in decimals format.",
-    "prefix": "lwc-formatted-number-decimal",
-    "scope": "html"
-  },
   "lwc-formatted-number-currency": {
     "body": [
       "<lightning-formatted-number ",
@@ -831,6 +821,22 @@
     ],
     "description": "Formatted Number Currency - Displays formatted numbers as currency values",
     "prefix": "lwc-formatted-number-currency",
+    "scope": "html"
+  },
+  "lwc-formatted-number-decimal": {
+    "body": [
+      "<lightning-formatted-number ",
+      "  value=\"${1:12.34}\" ",
+      "  format-style=\"decimal\" ",
+      "  maximum-fraction-digits=\"${2}\"",
+      "  maximum-significant-digits=\"${3|1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21|}\"",
+      "  minimum-fraction-digits=\"${4}\"",
+      "  minimum-integer-digits=\"${5|1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21|}\"",
+      "  minimum-significant-digits=\"${6|1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21|}\"",
+      "></lightning-formatted-number>"
+    ],
+    "description": "Formatted Number Decimal - Displays formatted numbers in decimals format.",
+    "prefix": "lwc-formatted-number-decimal",
     "scope": "html"
   },
   "lwc-formatted-number-percentage": {
@@ -861,18 +867,18 @@
     "body": [
       "<lightning-formatted-rich-text",
       "  value={${1:richtext}}",
-      "  ${2| ,disable-linkify}",
+      "  ${2| ,disable-linkify|}",
       "></lightning-formatted-rich-text>"
     ],
     "description": "Formatted Rich Text - Displays rich text that's formatted with allowed tags and attributes. Other tags and attributes are removed and only their text content is displayed.",
-    "prefix": "lwc-",
-    "scope": "javascript,typescript"
+    "prefix": "lwc-formatted-rich-text",
+    "scope": "html"
   },  
   "lwc-formatted-text": {
     "body": [
       "<lightning-formatted-text ",
       "  value=\"${1:Email salesforce.com and info.salesforce.com}\"",
-      "  ${2| ,linkify}",
+      "  ${2| ,linkify|}",
       "></lightning-formatted-text>"
     ],
     "description": "Formatted Text - Displays text, replaces newlines with line breaks, and linkifies if requested.",
@@ -1106,13 +1112,13 @@
       "  type=\"email\" ",
       "  label=\"${1:Email address}\"",
       "  value=\"${2:astro@salesforce.com}\"",
-      "  ${3| ,multiple}",
-      "  ${4| ,disabled}",
-      "  ${5| ,readonly}",
+      "  ${3| ,multiple|}",
+      "  ${4| ,disabled|}",
+      "  ${5| ,readonly|}",
       "></lightning-input>"
     ],
     "description": "Input Email Advanced - Includes attributes to accept multiple addresses, pre-define values, disabled, and read-only",
-    "prefix": "lwc-input-email",
+    "prefix": "lwc-input-email-advanced",
     "scope": "html"
   },
   "lwc-input-field": {
@@ -1138,8 +1144,8 @@
       "></lightning-input>"
     ],
     "description": "Input File - File input fields support upload of single or multiple files and can restrict the accepted types",
-    "prefix": "Title or list of titles to prompt user",
-    "scope": "javascript,typescript"
+    "prefix": "lwc-input-file",
+    "scope": "html"
   },
   "lwc-input-location": {
     "body": [
@@ -1158,14 +1164,14 @@
   "lwc-input-name": {
     "body": [
       "<lightning-input-name",
-      "  label=\"Default Input Name Field\"",
-      "  first-name=\"${1:John}\"",
-      "  middle-name=\"${2:Middleton}\"",
-      "  last-name=\"${3:Doe}\"",
-      "  informal-name=\"${4:Jack}\"",
-      "  suffix=\"${5:The 3rd}\"",
-      "  salutation=\"${6:Mr.}\"",
-      "  options={${7:salutationOptions}} ",
+      "  label=\"${1:Default Input Name Field}\"",
+      "  first-name=\"${2:John}\"",
+      "  middle-name=\"${3:Middleton}\"",
+      "  last-name=\"${4:Doe}\"",
+      "  informal-name=\"${5:Jack}\"",
+      "  suffix=\"${6:The 3rd}\"",
+      "  salutation=\"${7:Mr.}\"",
+      "  options={${8:salutationOptions}} ",
       "></lightning-input-name>"
     ],
     "description": "Input Field - A name compound field displaying Salutation, First Name, and Last Name fields by default.",
@@ -1175,19 +1181,19 @@
   "lwc-input-name-advanced": {
     "body": [
       "<lightning-input-name",
-      "  label=\"Default Input Name Field\"",
-      "  first-name=\"${1:John}\"",
-      "  middle-name=\"${2:Middleton}\"",
-      "  last-name=\"${3:Doe}\"",
-      "  informal-name=\"${4:Jack}\"",
-      "  suffix=\"${5:The 3rd}\"",
-      "  salutation=\"${6:Mr.}\"",
-      "  options={${7:salutationOptions}} ",
-      "  variant=${8|standard,label-hidden,label-inline,label-stacked|}",
-      "  field-level-help=\"${9:Field level text example}\"",
-      "  ${10| ,disabled|}",
-      "  ${11| ,read-only|}",
-      "  ${12| ,required|}",
+      "  label=\"${1:Default Input Name Field}\"",
+      "  first-name=\"${2:John}\"",
+      "  middle-name=\"${3:Middleton}\"",
+      "  last-name=\"${4:Doe}\"",
+      "  informal-name=\"${5:Jack}\"",
+      "  suffix=\"${6:The 3rd}\"",
+      "  salutation=\"${7:Mr.}\"",
+      "  options={${8:salutationOptions}} ",
+      "  variant=${9|standard,label-hidden,label-inline,label-stacked|}",
+      "  field-level-help=\"${10:Field level text example}\"",
+      "  ${11| ,disabled|}",
+      "  ${12| ,read-only|}",
+      "  ${13| ,required|}",
       "></lightning-input-name>"
     ],
     "description": "Input Field - A name compound field displaying Salutation, First Name, and Last Name fields by default.",
@@ -1201,9 +1207,9 @@
      "  name=\"${1:input1}\" ",
      "  label=\"${2:Enter a number}\" ",
      "  formatter=\"${3|currency,decimal,percent|}\"",
-     "  ${4| ,disabled}",
-     "  ${5| ,readonly}",
-     "  ${6| ,required}",
+     "  ${4| ,disabled|}",
+     "  ${5| ,readonly|}",
+     "  ${6| ,required|}",
      "></lightning-input>"
     ],
     "description": "Input Number - Number input fields support decimal, percentage, and currency values.",
@@ -1271,7 +1277,7 @@
       "  label=\"${1:Phone field with pattern matching}\" ",
       "  name=\"${2:phone1}\" ",
       "  value=\"${3:343-343-3434}\" ",
-      "  pattern=\"${4:[0-9]{3}-[0-9]{3}-[0-9]{4}}\"",
+      "  pattern=\"[0-9]{3}-[0-9]{3}-[0-9]{4}}\"",
       "></lightning-input>"
     ],
     "description": "Input Telephone - Input fields that support number pattern matching",
@@ -1343,7 +1349,7 @@
       "  pull-to-boundary=\"${3|small,medium,large|}\"",
       "  vertical-align=\"${4|start,center,end,stretch|}\"",
       ">",
-      "",
+      "  $0",
       "</lightning-layout>"
     ],
     "description": "Layout - A layout can include layout items as columns",
@@ -1353,7 +1359,7 @@
   "lwc-layout-item": {
     "body": [
       "<lightning-layout-item>",
-      "",
+      "  $0",
       "</lightning-layout-item>"
     ],
     "description": "Layout Item - Layout items take the size of their content by default",
@@ -1371,7 +1377,7 @@
       "  size=\"${6|1,2,3,4,5,6,7,8,9,10,11,12|}\"",
       "  small-device-size=\"${7|1,2,3,4,5,6,7,8,9,10,11,12|}\"",
       ">",
-      "",
+      "  $0",
       "</lightning-layout-item>"
     ],
     "description": "Layout Item - Layout items take the size of their content by default",
@@ -1381,15 +1387,15 @@
   "lwc-map": {
     "body": [
       "<lightning-map ",
-      "  center=${1:center}",
+      "  center={${1:center}}",
       "  list-view=\"${2|hidden,visible|}\"",
-      "  map-markers=${3:mapMarkers}",
+      "  map-markers={${3:mapMarkers}}",
       "  markers-title={${4:markersTitle}}",
       "  onmarkerselect={${5:handleMarkerSelect}}",
       "  options={${6:options}}",
-      "  selected-marker-value={${7:markerValue}",
+      "  selected-marker-value={${7:markerValue}}",
       "  ${8| ,show-footer|}",
-      "  zoom-level=\"${9|0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18}",
+      "  zoom-level=\"${9|0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18|}\"",
       "></lightning-map>"
     ],
     "description": "Map - Displays a map of one or more locations.",
@@ -1475,7 +1481,7 @@
   },
   "lwc-modal-header": {
     "body": [
-      "<lightning-modal-header label=${1:headerLabel}>",
+      "<lightning-modal-header label=\"${1:headerLabel}\">",
       "  {${2:tagLine}}",
       "</lightning-modal-header>"
     ],
@@ -1599,9 +1605,9 @@
   },
   "lwc-pill-avatar": {
     "body": [
-      "<lightning-pill label=${1:Pill Label>",
+      "<lightning-pill label=\"${1:Pill Label}\">",
       "  <lightning-avatar ",
-      "    src=${2:imgSrc}",
+      "    src={${2:imgSrc}}",
       "    fallback-icon-name=\"${3:standard:user}\" ",
       "    variant=\"${4|circle,square|}\"  ",
       "    alternative-text=\"${5:User avatar}\"",
@@ -1635,9 +1641,9 @@
   },
   "lwc-pill-icon": {
     "body": [
-      "<lightning-pill label=${1:Pill Label>",
+      "<lightning-pill label=\"${1:Pill Label}\">",
       "  <lightning-icon ",
-      "    icon-name=${2:standard:account}",
+      "    icon-name=\"${2:standard:account}\"",
       "    alternative-text=\"${3:Account}\"",
       "  ></lightning-avatar>",
       "</lightning-pill>"
@@ -1745,7 +1751,7 @@
   "lwc-quick-action-panel": {
     "body": [
       "<lightning-quick-action-panel header=\"${1:My action}\">",
-      "  ${2:bodyContent}",
+      "  ",
       "  <div slot=\"footer\">",
       "      <!-- define custom footer actions here -->",
       "  </div>",
@@ -1773,14 +1779,14 @@
   "lwc-radio-group-advanced": {
     "body": [
       "<lightning-radio-group ",
-      "  ${| ,disabled|}",
-      "  name=\"${1:radioGroup}\"",
-      "  label=\"${2:Radio Group}\"",
-      "  options={${3:options}}",
-      "  ${| ,required|}",
-      "  type=\"${4|button,radio|}\"",
-      "  value={${5:value}}",
-      "  variant\"${6|standard,label-hidden,label-inline,label-stacked|}\"",
+      "  ${1| ,disabled|}",
+      "  name=\"${2:radioGroup}\"",
+      "  label=\"${3:Radio Group}\"",
+      "  options={${4:options}}",
+      "  ${5| ,required|}",
+      "  type=\"${6|button,radio|}\"",
+      "  value={${7:value}}",
+      "  variant\"${8|standard,label-hidden,label-inline,label-stacked|}\"",
       "></lightning-radio-group>"
     ],
     "description": "Radio Group Advanced- A radio button group that can have a single option selected.",
@@ -1794,7 +1800,7 @@
       "  object-api-name={${2:objectApiName}}",
       "  record-id={${3:recordId}}",
       ">",
-      "  ",
+      "  $0",
       "</lightning-record-edit-form>"
     ],
     "description": "Record Edit Form - Represents a record edit layout that displays one or more fields, provided by lightning-input-field.",
@@ -1805,7 +1811,7 @@
     "body": [
       "<lightning-record-form",
       "  columns={${1:columns}}",
-      "  layout-type=\"${2:Compact,Full}\"",
+      "  layout-type=\"${2|Compact,Full|}\"",
       "  object-api-name={${3:objectApiName}}",
       "  record-id={${4:recordId}}",
       "  fields={${5:fields}}",
@@ -1822,7 +1828,7 @@
       "  object-api-name={${2:objectApiName}}",
       "  record-id={${3:recordId}}",
       ">",
-      "",
+      "  $0",
       "</lightning-record-view-form>"
     ],
     "description": "Record View Form - Represents a record view layout that displays one or more fields, provided by lightning-output-field.",
@@ -1846,7 +1852,7 @@
       "  icon-alternative-text=\"${2:Code Snippet}\"",
       "  icon-name=\"${3:utility:insert_tag_field}\"",
       "  onclick={${4:handleCodeBlockButtonClick}}",
-      "  {5| ,selected}",
+      "  ${5| ,selected|}",
       "></lightning-rich-text-toolbar-button>"
     ],
     "description": "Rich Text Toolbar Button - A custom button on the lightning-input-rich-text toolbar.",
@@ -1858,8 +1864,9 @@
       "<lightning-rich-text-toolbar-button-group",
       "  slot=\"${1:toolbar}\"",
       "  aria-label=\"${2:Template Button Group}\"",
-      "",
-      "></lightning-rich-text-toolbar-button-group>"
+      ">",
+      "  $0",
+      "</lightning-rich-text-toolbar-button-group>"
     ],
     "description": "Rich Text Toolbar Button Group - Creates a custom button group in lightning-input-rich-text.",
     "prefix": "lwc-rich-text-toolbar-button-group",
@@ -1883,7 +1890,7 @@
       "  min=\"${4:0}\"",
       "  size=\"${5| ,x-small,small,medium,large|}\"",
       "  step=\"${6|1,0.1,10|}\"",
-      "  type=\"${7|horizontal,vertical|}",
+      "  type=\"${7|horizontal,vertical|}\"",
       "  value={${8:val}}",
       "  variant=\"${9|standard,label-hidden|}\"",
       "></lightning-slider>"
@@ -1908,6 +1915,7 @@
     "body": [
       "<template if:true={${1:loaded}}>",
       "  <!-- place loaded content here -->",
+      "  $0",
       "</template>",
       "<template if:false={${1}}>",
       "  <lightning-spinner ",
@@ -1926,8 +1934,8 @@
       "<lightning-tab ",
       "  label=\"${1:Item One}\"",
       ">",
-      "<!-- tab content -->",
-      "",
+      "  <!-- tab content -->",
+      "  $0",
       "</lightning-tab>"
     ],
     "description": "Tab - A single tab in a tabset component.",
@@ -1945,8 +1953,8 @@
       "  title=\"${6:title}\"",
       "  value=\"${7:tabValue}\"",
       ">",
-      "<!-- tab content -->",
-      "",
+      "  <!-- tab content -->",
+      "  $0",
       "</lightning-tab>"
     ],
     "description": "Tab - A single tab in a tabset component.",
@@ -1957,8 +1965,9 @@
     "body": [
       "<lightning-tabset ",
       "  active-tab-value=\"${1:tabTwo}\"",
-      "  variant=\"${2|standard,scoped,vertical|}\">",
-      "",
+      "  variant=\"${2|standard,scoped,vertical|}\"",
+      ">",
+      "  $0",
       "</lightning-tabset>"
     ],
     "description": "Tabset - Represents a list of tabs",
@@ -1985,13 +1994,13 @@
   "lwc-textarea": {
     "body": [
       "<lightning-textarea ",
-      "  ${1| ,disabled}",
+      "  ${1| ,disabled|}",
       "  max-length=\"${2:1000}\"",
       "  name=\"${3:inputName}\" ",
       "  label=\"${4:Textarea field with a placeholder}\" ",
       "  placeholder=\"${5:type here...}\"",
-      "  ${6| ,read-only}",
-      "  ${7| ,required}",
+      "  ${6| ,read-only|}",
+      "  ${7| ,required|}",
       "  value={${8:value}}",
       "  variant=\"${9|standard,label-hidden,label-inline,label-stacked|}\"",
       "></lightning-textarea>"
@@ -2008,7 +2017,7 @@
       "  actions={${3:actions}}",
       "  onactiontriggered={${4:handleAction}}",
       ">",
-      "",
+      "  $0",
       "</lightning-tile>"
     ],
     "description": "Tile - A grouping of related information associated with a record.",
@@ -2030,7 +2039,7 @@
       "    fallback-icon-name=\"${6:standard:person_account}\"", 
       "    alternative-text=\"${7:Bruce Wayne}\"",
       "  ></lightning-avatar>",
-      "",
+      "  $0",
       "</lightning-tile>"
     ],
     "description": "Tile Avatar - A grouping of related information associated with a record.",
@@ -2047,10 +2056,10 @@
       "  type=\"media\"",
       ">",
       "  <lightning-icon ",
-      "    slot=\"${6:media}\"", 
-      "     icon-name=\"${6:standard:groups}\"",
+      "    slot=\"media\"", 
+      "    icon-name=\"${5:standard:groups}\"",
       "  ></lightning-icon>",
-      "",
+      "  $0",
       "</lightning-tile>"
     ],
     "description": "Tile Icon - A grouping of related information associated with a record.",
@@ -2120,7 +2129,7 @@
   "lwc-vertical-navigation": {
     "body": [
       "<lightning-vertical-navigation>",
-      "",
+      "  $0",
       "</lightning-vertical-navigation>"
     ],
     "description": "Vertical Navigation - A vertical list of links that either take the user to another page or parts of the page the user is in.",
@@ -2167,7 +2176,7 @@
   "lwc-vertical-navigation-overflow": {
     "body": [
       "<lightning-vertical-navigation-overflow>",
-      "",
+      "  $0",
       "</lightning-vertical-navigation-overflow>"],
     "description": "Vertical Navigation Overflow - Creates an expandable section of vertical navigation items.",
     "prefix": "lwc-vertical-navigation-overflow",
@@ -2176,7 +2185,7 @@
   "lwc-vertical-navigation-section": {
     "body": [
       "<lightning-vertical-navigation-section label=\"${1:Reports}\">",
-      "",
+      "  $0",
       "</lightning-vertical-navigation-section>"
     ],
     "description": "Vertical Navigation Section - provides a heading which has vertical navigation items nested underneath",
