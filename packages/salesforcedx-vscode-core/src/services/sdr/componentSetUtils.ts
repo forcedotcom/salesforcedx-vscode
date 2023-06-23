@@ -10,7 +10,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { WorkspaceContext } from '../../context/workspaceContext';
 import { SfdxProjectConfig } from '../../sfdxProject';
 
-export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
+async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   // For a listing (and order of precedence) of how to retrieve the value of apiVersion,
   // see "apiVersion: Order of Precedence" in the "How API Version and Source API Version
   // Work in Salesforce CLI" doc.
@@ -25,13 +25,13 @@ export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   }
 
   // If no user-configured API Version is present, then get the version from the org.
-  const orgApiVersion = await module.exports.getOrgApiVersion();
+  const orgApiVersion = await componentSetUtils.getOrgApiVersion();
   componentSet.apiVersion = orgApiVersion && orgApiVersion.length > 0
     ? orgApiVersion
     : componentSet.apiVersion;
 }
 
-export async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
+async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
   // For a listing (and order of precedence) of how to retrieve the value of sourceApiVersion,
   // see "sourceApiVersion: Order of Precedence" in the "How API Version and Source API Version
   // Work in Salesforce CLI" doc.
@@ -54,21 +54,21 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
 
   // Next, if it still is not set, set it to the highest API version supported by the target org.
   if (!sourceApiVersion) {
-    const orgApiVersion = await module.exports.getOrgApiVersion();
+    const orgApiVersion = await componentSetUtils.getOrgApiVersion();
     sourceApiVersion = orgApiVersion;
   }
 
   componentSet.sourceApiVersion = sourceApiVersion;
 }
 
-export async function getOrgApiVersion(): Promise<string> {
+async function getOrgApiVersion(): Promise<string> {
   const connection = await WorkspaceContext.getInstance().getConnection();
   const apiVersion = connection.getApiVersion();
 
   return apiVersion;
 }
 
-module.exports = {
+export const componentSetUtils = {
   setApiVersion,
   setSourceApiVersion,
   getOrgApiVersion
