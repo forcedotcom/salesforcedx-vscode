@@ -8,14 +8,14 @@
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
-import { AuthUtil } from '../../../src/auth/authUtil';
+import { ConfigUtil } from '../../../src/config/configUtil';
 import { nls } from '../../../src/messages';
 jest.mock('@salesforce/core');
-jest.mock('../../../src/auth/authUtil');
+jest.mock('../../../src/config/configUtil');
 
 const authInfoMock = jest.mocked(AuthInfo);
 const connectionMock = jest.mocked(Connection);
-const authUtilMock = jest.mocked(AuthUtil);
+const configUtilMock = jest.mocked(ConfigUtil);
 
 describe('WorkspaceContextUtil', () => {
   const testUser = 'test@test.com';
@@ -55,11 +55,8 @@ describe('WorkspaceContextUtil', () => {
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
 
-    getUsernameOrAliasStub = (authUtilMock.prototype
-      .getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
-    getUsernameStub = (authUtilMock.prototype
-      .getUsername as any).mockReturnValue(testUser);
-    authUtilMock.getInstance.mockReturnValue(new AuthUtil());
+    getUsernameOrAliasStub = (configUtilMock.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
+    getUsernameStub = (configUtilMock.getUsernameFor as any).mockReturnValue(testUser);
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 

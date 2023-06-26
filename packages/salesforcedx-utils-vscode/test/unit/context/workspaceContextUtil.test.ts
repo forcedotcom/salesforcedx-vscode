@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { WorkspaceContextUtil } from '../../../src';
+import {  ConfigUtil, WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -77,7 +77,6 @@ describe('WorkspaceContext', () => {
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
   let workspaceContextUtil: any; // TODO find a better way
-  let authUtil: any;
 
   beforeEach(async () => {
     mockFileWatcher = new MockFileWatcher(cliConfigPath);
@@ -92,12 +91,11 @@ describe('WorkspaceContext', () => {
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
-    authUtil = workspaceContextUtil.getAuthUtil();
     getUsernameOrAliasStub = env
-      .stub(authUtil, 'getDefaultUsernameOrAlias')
+      .stub(ConfigUtil, 'getDefaultUsernameOrAlias')
       .returns(testAlias);
     getUsernameStub = env
-      .stub(authUtil, 'getUsername')
+      .stub(ConfigUtil, 'getUsernameFor')
       .withArgs(testAlias)
       .returns(testUser);
 
