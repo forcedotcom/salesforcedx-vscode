@@ -52,7 +52,7 @@ export class OrgAuthInfo {
         }
       }
 
-      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
+      return defaultUsernameOrAlias;
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
