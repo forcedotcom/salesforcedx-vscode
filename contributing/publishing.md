@@ -31,6 +31,8 @@ After the release branch is created, the changelog should be updated. To do so, 
 
 Once the writer is content with the changes, they should commit the changes in the format `chore: generated CHANGELOG for ${releaseBranchName}"`, and push the update to the release branch.
 
+If the writer wants to make further changes to changelog through browser, you can do the same by switching the branch from develop to release/vxx.xx.x and go to changelog.md and click on the pencil icon to edit the file.
+
 If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), the task will end by printing a message that the release can be skipped.
 
 ## Compare Changes in the Release
