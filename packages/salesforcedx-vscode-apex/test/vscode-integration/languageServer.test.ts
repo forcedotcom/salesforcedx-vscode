@@ -13,7 +13,6 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';
-import { languageServerUtils } from '../../src/helpers/languageServerUtils';
 import {
   buildClientOptions,
   code2ProtocolConverter

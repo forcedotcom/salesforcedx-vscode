@@ -15,7 +15,6 @@ import {
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
-import { languageServerUtils } from './helpers/languageServerUtils';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -33,7 +32,6 @@ async function createServer(
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    await languageServerUtils.setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
