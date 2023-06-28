@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Rel apex-jorje-lsp with bumped deps ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
+- We made updated dependencies in the Apex LSP and made some changes under the hood to enhance the debugging experience. ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
 
 
 #### salesforcedx-vscode-core
