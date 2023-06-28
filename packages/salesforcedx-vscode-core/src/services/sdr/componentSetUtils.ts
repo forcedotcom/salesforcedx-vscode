@@ -10,7 +10,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { WorkspaceContext } from '../../context/workspaceContext';
 import { SfdxProjectConfig } from '../../sfdxProject';
 
-export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
+async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   // For a listing (and order of precedence) of how to retrieve the value of apiVersion,
   // see "apiVersion: Order of Precedence" in the "How API Version and Source API Version
   // Work in Salesforce CLI" doc.
@@ -24,12 +24,14 @@ export async function setApiVersion(componentSet: ComponentSet): Promise<void> {
     return;
   }
 
-  // If no user-configured Api Version is present, then get the version from the Org.
-  const orgApiVersion = await getOrgApiVersion();
-  componentSet.apiVersion = orgApiVersion ?? componentSet.apiVersion;
+  // If no user-configured API Version is present, then get the version from the org.
+  const orgApiVersion = await componentSetUtils.getOrgApiVersion();
+  componentSet.apiVersion = orgApiVersion && orgApiVersion.length > 0
+    ? orgApiVersion
+    : componentSet.apiVersion;
 }
 
-export async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
+async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
   // For a listing (and order of precedence) of how to retrieve the value of sourceApiVersion,
   // see "sourceApiVersion: Order of Precedence" in the "How API Version and Source API Version
   // Work in Salesforce CLI" doc.
@@ -52,8 +54,8 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
 
   // Next, if it still is not set, set it to the highest API version supported by the target org.
   if (!sourceApiVersion) {
-    const orgApiVersion = await getOrgApiVersion();
-    sourceApiVersion = orgApiVersion ?? componentSet.sourceApiVersion;
+    const orgApiVersion = await componentSetUtils.getOrgApiVersion();
+    sourceApiVersion = orgApiVersion;
   }
 
   componentSet.sourceApiVersion = sourceApiVersion;
@@ -62,5 +64,12 @@ export async function setSourceApiVersion(componentSet: ComponentSet): Promise<v
 async function getOrgApiVersion(): Promise<string> {
   const connection = await WorkspaceContext.getInstance().getConnection();
   const apiVersion = connection.getApiVersion();
+
   return apiVersion;
 }
+
+export const componentSetUtils = {
+  setApiVersion,
+  setSourceApiVersion,
+  getOrgApiVersion
+};

@@ -8,7 +8,7 @@
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider } from '..';
-import { AuthUtil } from '../auth/authUtil';
+import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
 export interface OrgUserInfo {
@@ -27,6 +27,7 @@ export class WorkspaceContextUtil {
   protected onOrgChangeEmitter: vscode.EventEmitter<OrgUserInfo>;
   protected _username?: string;
   protected _alias?: string;
+  protected _orgId?: string;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -43,10 +44,6 @@ export class WorkspaceContextUtil {
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
-  }
-
-  public getAuthUtil(): AuthUtil {
-    return AuthUtil.getInstance();
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
@@ -86,23 +83,29 @@ export class WorkspaceContextUtil {
     // this handler is called right after modifying the config file.
     // Reloading the Config Aggregator and StateAggregator here ensures
     // that they are refreshed when the config file changes, and are
-    // loaded with the most recent data when used downstream in
-    // ConfigUtil and AuthUtil.
+    // loaded with the most recent data when used downstream in ConfigUtil.
     await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
     StateAggregator.clearInstance();
 
-    const defaultUsernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
-      false
-    );
+    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
 
     if (defaultUsernameOrAlias) {
-      this._username = await this.getAuthUtil().getUsername(
+      this._username = await ConfigUtil.getUsernameFor(
         defaultUsernameOrAlias
       );
       this._alias =
         defaultUsernameOrAlias !== this._username
           ? defaultUsernameOrAlias
           : undefined;
+      try {
+        const connection = await this.getConnection();
+        this._orgId = connection?.getAuthInfoFields().orgId;
+      } catch (error) {
+        this._orgId = '';
+        console.log(
+          `There was an problem getting the orgId of the default org: ${error}`
+        );
+      }
     } else {
       this._username = undefined;
       this._alias = undefined;
@@ -120,5 +123,9 @@ export class WorkspaceContextUtil {
 
   get alias(): string | undefined {
     return this._alias;
+  }
+
+  get orgId(): string | undefined {
+    return this._orgId;
   }
 }

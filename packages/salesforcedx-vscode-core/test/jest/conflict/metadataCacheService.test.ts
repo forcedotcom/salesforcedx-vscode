@@ -7,7 +7,7 @@
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { MetadataCacheService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context';
-import * as sdrUtils from '../../../src/services/sdr/componentSetUtils';
+import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 
 describe('MetadataCacheService', () => {
   let getSourceComponentsStub: jest.SpyInstance;
@@ -32,9 +32,11 @@ describe('MetadataCacheService', () => {
         } as any);
       getSourceComponentsStub = jest
         .spyOn(MetadataCacheService.prototype, 'getSourceComponents');
+
       setApiVersionStub = jest
-        .spyOn(sdrUtils, 'setApiVersion')
+        .spyOn(componentSetUtils, 'setApiVersion')
         .mockImplementation(jest.fn());
+
       retrieveStub = jest
         .spyOn(dummyComponentSet, 'retrieve')
         .mockResolvedValue({} as any);
