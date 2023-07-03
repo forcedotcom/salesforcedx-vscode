@@ -59,7 +59,7 @@ export const messages = {
   unable_to_load_vscode_core_extension:
     'unable to load salesforce.salesforcedx-vscode-core extension',
   no_line_breakpoint_information_for_current_project:
-    'There is no line breakpoint informatin for the current project',
+    'There is no line breakpoint information for the current project',
   line_breakpoint_information_success:
     'Retrieved line breakpoint info from language server',
   language_client_not_ready:
