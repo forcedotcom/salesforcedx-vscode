@@ -1,3 +1,16 @@
+# 58.4.1 - June 29, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made updated dependencies in the Apex LSP and made some changes under the hood to enhance the debugging experience. ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
+
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #4941](https://github.com/forcedotcom/salesforcedx-vscode/pull/4941))
+
 # 58.3.1 - June 21, 2023
 
 ## Added
