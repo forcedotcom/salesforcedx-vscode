@@ -25,6 +25,7 @@ You must create a configuration file `.prettierrc` in the root of your project. 
 
 ```json
 {
+  "plugins": ["prettier-plugin-apex"],
   "trailingComma": "none",
   "overrides": [
     {
