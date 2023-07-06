@@ -152,10 +152,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:mdapi:convert')
       .withFlag(
-        '--rootdir',
+        '--root-dir',
         path.join(this.relativeMetdataTempPath, 'unpackaged')
       )
-      .withFlag('--outputdir', 'force-app')
+      .withFlag('--output-dir', 'force-app')
       .withLogName('isv_debug_bootstrap_convert_org_source')
       .build();
   }
