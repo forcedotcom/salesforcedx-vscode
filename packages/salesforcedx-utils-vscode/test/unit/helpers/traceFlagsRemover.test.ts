@@ -6,13 +6,13 @@
  */
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
-const $$ = testSetup();
+const $$ = new TestContext();
 
 describe('Trace Flags Remover', () => {
   const testData = new MockTestOrgData();

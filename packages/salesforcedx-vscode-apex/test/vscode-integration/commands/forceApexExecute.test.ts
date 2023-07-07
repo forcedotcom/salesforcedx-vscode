@@ -6,7 +6,7 @@
  */
 import { ExecuteService } from '@salesforce/apex-node';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import {
   ChannelService,
   ContinueResponse,
@@ -27,7 +27,7 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-const $$ = testSetup();
+const $$ = new TestContext();
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Execute', () => {
