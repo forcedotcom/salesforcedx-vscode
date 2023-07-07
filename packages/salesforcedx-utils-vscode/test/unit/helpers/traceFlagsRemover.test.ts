@@ -12,8 +12,6 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
-
-
 describe('Trace Flags Remover', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();

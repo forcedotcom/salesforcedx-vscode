@@ -19,7 +19,6 @@ import { vscodeStub } from '../commands/mocks';
 //   vscode: vscodeStub
 // });
 
-
 describe('Trace Flags', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();
