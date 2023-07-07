@@ -12,9 +12,10 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
-const $$ = new TestContext();
+
 
 describe('Trace Flags Remover', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sb: SinonSandbox;

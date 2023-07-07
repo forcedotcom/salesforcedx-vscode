@@ -19,9 +19,9 @@ import { vscodeStub } from '../commands/mocks';
 //   vscode: vscodeStub
 // });
 
-const $$ = new TestContext();
 
 describe('Trace Flags', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   const USER_ID = 'abcd';
   let mockConnection: Connection;
