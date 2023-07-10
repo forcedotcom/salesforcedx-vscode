@@ -17,8 +17,7 @@
       "</lightning-accordion>"
     ],
     "description": "Accordion - A collection of vertically stacked sections with multiple content areas.",
-    "prefix": "lwc-accordion",
-    "scope": "html"
+    "prefix": "lwc-accordion"
   },
   "lwc-accordion-section": {
     "body": [
@@ -27,27 +26,25 @@
       "</lightning-accordion-section>"
     ],
     "description": "Accordion Section - Creates a lightning-accordion-section tag",
-    "prefix": "lwc-accordion-section",
-    "scope": "html"
+    "prefix": "lwc-accordion-section"
   },
   "lwc-avatar": {
     "body": ["<lightning-avatar src=\"${1:url}\"></lightning-avatar>"],
     "description": "Avatar - A visual representation of an object.",
-    "prefix": "lwc-avatar",
-    "scope": "html"
+    "prefix": "lwc-avatar"
   },
   "lwc-badge": {
-		"body":["<lightning-badge label=\"${1:Alpha}\"",
-		  "  class=\"${2|slds-badge_inverse,slds-badge_lightest,slds-theme_success,slds-theme_warning,slds-theme_error|}\"", 
-		  "  icon-alternative-text=\"${3:The alternative text which is displayed as tooltip text.}\"",
-		  "  icon-name=\"${4:utility:activity}\"",
-		  "  icon-position=\"${5|start,end|}\"",
-		  "></lightning-badge>"
+    "body": [
+      "<lightning-badge label=\"${1:Alpha}\"",
+      "  class=\"${2|slds-badge_inverse,slds-badge_lightest,slds-theme_success,slds-theme_warning,slds-theme_error|}\"",
+      "  icon-alternative-text=\"${3:The alternative text which is displayed as tooltip text.}\"",
+      "  icon-name=\"${4:utility:activity}\"",
+      "  icon-position=\"${5|start,end|}\"",
+      "></lightning-badge>"
     ],
-		"description":"Badge - Represents a label which holds a small amount of information, such as the number of unread notifications.",
-    "prefix": "lwc-badge",
-    "scope":"html"
-	},
+    "description": "Badge - Represents a label which holds a small amount of information, such as the number of unread notifications.",
+    "prefix": "lwc-badge"
+  },
   "lwc-barcode-scanner": {
     "body": [
       "<lightning-barcode-scanner ",
@@ -62,8 +59,7 @@
       "></lightning-barcode-scanner>"
     ],
     "description": "Barcode Scanner - The lightning-barcode-scanner component embeds a barcode scanning function displayed as an icon, which launches the barcode scanner when the user clicks it.",
-    "prefix": "lwc-barcode-scanner",
-    "scope": "html"
+    "prefix": "lwc-barcode-scanner"
   },
   "lwc-breadcrumb-link": {
     "body": [
@@ -73,8 +69,7 @@
       "></lightning-breadcrumb>"
     ],
     "description": "Breadcrumb (element) w/ link navigation - Displays the individual page path relative to a parent page",
-    "prefix": "lwc-breadcrumb-link",
-    "scope": "html"
+    "prefix": "lwc-breadcrumb-link"
   },
   "lwc-breadcrumb-onclick": {
     "body": [
@@ -85,8 +80,7 @@
       "></lightning-breadcrumb>"
     ],
     "description": "Breadcrumb (element) w/ onClick handler - Displays the individual page path relative to a parent page",
-    "prefix": "lwc-breadcrumb-onclick",
-    "scope": "html"
+    "prefix": "lwc-breadcrumb-onclick"
   },
   "lwc-breadcrumbs-for-each-loop": {
     "body": [
@@ -102,8 +96,7 @@
       "</lightning-breadcrumbs>"
     ],
     "description": "Breadcrumbs w/ for each loop - Displays the path of a page relative to a parent page.",
-    "prefix": "lwc-breadcrumbs-for-each-loop",
-    "scope": "html"
+    "prefix": "lwc-breadcrumbs-for-each-loop"
   },
   "lwc-breadcrumbs-link": {
     "body": [
@@ -119,8 +112,7 @@
       "</lightning-breadcrumbs>"
     ],
     "description": "Breadcrumbs w/ link navigation - Displays the path of a page relative to a parent page.",
-    "prefix": "lwc-breadcrumbs-link",
-    "scope": "html"
+    "prefix": "lwc-breadcrumbs-link"
   },
   "lwc-breadcrumbs-onclick": {
     "body": [
@@ -140,8 +132,7 @@
       "</lightning-breadcrumbs>"
     ],
     "description": "Breadcrumbs w/ onclick handler - Displays the path of a page relative to a parent page.",
-    "prefix": "lwc-breadcrumbs-onclick",
-    "scope": "html"
+    "prefix": "lwc-breadcrumbs-onclick"
   },
   "lwc-button": {
     "body": [
@@ -152,26 +143,25 @@
       "></lightning-button>"
     ],
     "description": "Button - A clickable element used to perform an action.",
-    "prefix": "lwc-button",
-    "scope": "html"
+    "prefix": "lwc-button"
   },
   "lwc-button-advanced": {
-    "body": ["<lightning-button ",
-    "  variant=\"${1|base,neutral,brand,brand-outline,destructive,destructive-text,inverse,success|}\"",
-    "  label=\"${2:Button Label}\" ",
-    "  title=\"${3:Looks like a link}\" ",
-    "  value=\"${4}\" ",
-    "  type=\"${5|button,reset,submit|}\"",
-    "  onclick={${6:handleClick}} ",
-    "  stretch=\"${7|false,true|}\" ",
-    "  icon-name=\"${8:utility:activity}\"",
-    "  icon-position=\"${9|left,right|}\"",
-    "  class=\"${10}\"",
-    "></lightning-button>"
+    "body": [
+      "<lightning-button ",
+      "  variant=\"${1|base,neutral,brand,brand-outline,destructive,destructive-text,inverse,success|}\"",
+      "  label=\"${2:Button Label}\" ",
+      "  title=\"${3:Looks like a link}\" ",
+      "  value=\"${4}\" ",
+      "  type=\"${5|button,reset,submit|}\"",
+      "  onclick={${6:handleClick}} ",
+      "  stretch=\"${7|false,true|}\" ",
+      "  icon-name=\"${8:utility:activity}\"",
+      "  icon-position=\"${9|left,right|}\"",
+      "  class=\"${10}\"",
+      "></lightning-button>"
     ],
     "description": "Button Advanced - A clickable element used to perform an action.",
-    "prefix": "lwc-button-advanced",
-    "scope": "html"
+    "prefix": "lwc-button-advanced"
   },
   "lwc-button-group": {
     "body": [
@@ -179,10 +169,10 @@
       "  <lightning-button label=\"${1:Refresh}\"></lightning-button>",
       "  <lightning-button label=\"${2:Edit}\"></lightning-button>",
       "  <lightning-button label=\"${3:Save}\"></lightning-button>",
-      "</lightning-button-group>"],
+      "</lightning-button-group>"
+    ],
     "description": "Button Group - Represents a set of buttons that can be displayed together to create a navigational bar.",
-    "prefix": "lwc-button-group",
-    "scope": "html"
+    "prefix": "lwc-button-group"
   },
   "lwc-button-group-dropdown-menu": {
     "body": [
@@ -195,17 +185,17 @@
       "    <lightning-menu-item label=\"${6:Menu Item Two}\" value=\"${7:menuTwo}\"></lightning-menu-item>",
       "    <lightning-menu-item label=\"${8:Menu Item Three}\" value=\"${9:menuThree}\"></lightning-menu-item>",
       "  </lightning-button-menu>",
-      "</lightning-button-group>"],
+      "</lightning-button-group>"
+    ],
     "description": "Button Group w/ Dropdown Menu - Represents a set of buttons that can be displayed together to create a navigational bar.",
-    "prefix": "lwc-button-group-dropdown-menu",
-    "scope": "html"
+    "prefix": "lwc-button-group-dropdown-menu"
   },
   "lwc-button-icon": {
     "body": [
       "<lightning-button-icon ",
       "  icon-class=\"${1}\"",
       "  icon-name=\"${2:utility:adduser}\"",
-      "  alternative-text=\"${3:Add user}\"", 
+      "  alternative-text=\"${3:Add user}\"",
       "  class=\"${4}\"",
       "  name=\"${5}\"",
       "  size=\"${6|xx-small,x-small,small,medium,large|}\"",
@@ -217,24 +207,23 @@
       "></lightning-button-icon>"
     ],
     "description": "Button Icon - An icon-only HTML button.",
-    "prefix": "lwc-button-icon",
-    "scope": "html"
+    "prefix": "lwc-button-icon"
   },
   "lwc-button-icon-stateful": {
-    "body": ["<lightning-button-icon-stateful ",
-    "  alternative-text=\"${1:Like user}\"", 
-    "  icon-class=\"${2}\"",
-    "  icon-name=\"${3:utility:like}\"",
-    "  onclick={${4:clickHandler}}",
-    "  selected={${5:likeState}}",
-    "  size=\"${6|xx-small,x-small,small,medium|}\"",
-    "  value=\"${7}\"",
-    "  variant=\"${8|border,border-filled,border-inverse|}\"",
-    "></lightning-button-icon-stateful>"
+    "body": [
+      "<lightning-button-icon-stateful ",
+      "  alternative-text=\"${1:Like user}\"",
+      "  icon-class=\"${2}\"",
+      "  icon-name=\"${3:utility:like}\"",
+      "  onclick={${4:clickHandler}}",
+      "  selected={${5:likeState}}",
+      "  size=\"${6|xx-small,x-small,small,medium|}\"",
+      "  value=\"${7}\"",
+      "  variant=\"${8|border,border-filled,border-inverse|}\"",
+      "></lightning-button-icon-stateful>"
     ],
     "description": "Button Icon Stateful - represents an icon-only button element that toggles between two states.",
-    "prefix": "lwc-button-icon-stateful",
-    "scope": "html"
+    "prefix": "lwc-button-icon-stateful"
   },
   "lwc-button-menu": {
     "body": [
@@ -252,8 +241,7 @@
       "</lightning-button-menu>"
     ],
     "description": "Button Menu - represents a dropdown menu with a list of actions or functions.",
-    "prefix": "lwc-button-menu",
-    "scope": "html"
+    "prefix": "lwc-button-menu"
   },
   "lwc-button-stateful": {
     "body": [
@@ -270,8 +258,7 @@
       "></lightning-button-stateful>"
     ],
     "description": "Button Stateful - A button that toggles between states.",
-    "prefix": "lwc-button-stateful",
-    "scope": "html"
+    "prefix": "lwc-button-stateful"
   },
   "lwc-card": {
     "body": [
@@ -292,8 +279,7 @@
       "</lightning-card>"
     ],
     "description": "Card - Cards apply a container around a related grouping of information.",
-    "prefix": "lwc-card",
-    "scope": "html"
+    "prefix": "lwc-card"
   },
   "lwc-carousel": {
     "body": [
@@ -322,8 +308,7 @@
       "</lightning-carousel>"
     ],
     "description": "Carousel - A collection of images that are displayed one at a time.",
-    "prefix": "lwc-carousel",
-    "scope": "html"
+    "prefix": "lwc-carousel"
   },
   "lwc-carousel-image": {
     "body": [
@@ -336,8 +321,7 @@
       "></lightning-carousel-image>"
     ],
     "description": "Carousel Image - Specifies an image used in lighting-carousel, including description and title.",
-    "prefix": "lwc-carousel-image",
-    "scope": "html"
+    "prefix": "lwc-carousel-image"
   },
   "lwc-checkbox-group": {
     "body": [
@@ -353,8 +337,7 @@
       "></lightning-checkbox-group>"
     ],
     "description": "Checkbox Group - A checkbox group that enables a selection of single or multiple options.",
-    "prefix": "lwc-checkbox-group",
-    "scope": "html"
+    "prefix": "lwc-checkbox-group"
   },
   "lwc-click-to-dial": {
     "body": [
@@ -365,8 +348,7 @@
       "></lightning-click-to-dial>"
     ],
     "description": "Click To Dial - Renders a formatted phone number as click-to-dial enabled or disabled for Open CTI and Voice.",
-    "prefix": "lwc-click-to-dial",
-    "scope": "html"
+    "prefix": "lwc-click-to-dial"
   },
   "lwc-combobox": {
     "body": [
@@ -382,8 +364,7 @@
       "></lightning-combobox>"
     ],
     "description": "Combobox - A widget that provides an input field that is readonly, accompanied by a dropdown list of selectable options.",
-    "prefix": "lwc-combobox",
-    "scope": "html"
+    "prefix": "lwc-combobox"
   },
   "lwc-combobox-advanced": {
     "body": [
@@ -403,8 +384,7 @@
       "></lightning-combobox>"
     ],
     "description": "Combobox Advanced - All attributes. A widget that provides an input field that is readonly, accompanied by a dropdown list of selectable options.",
-    "prefix": "lwc-combobox-advanced",
-    "scope": "html"
+    "prefix": "lwc-combobox-advanced"
   },
   "lwc-datatable": {
     "body": [
@@ -415,8 +395,7 @@
       "></lightning-datatable>"
     ],
     "description": "Datatable - A table that displays rows and columns of data",
-    "prefix": "lwc-datatable",
-    "scope": "html"
+    "prefix": "lwc-datatable"
   },
   "lwc-datatable-advanced": {
     "body": [
@@ -444,8 +423,7 @@
       "></lightning-datatable>"
     ],
     "description": "Datatable Advanced - All attributes, a table that displays rows and columns of data",
-    "prefix": "lwc-datatable-advanced",
-    "scope": "html"
+    "prefix": "lwc-datatable-advanced"
   },
   "lwc-dual-listbox": {
     "body": [
@@ -459,8 +437,7 @@
       "></lightning-dual-listbox>"
     ],
     "description": "Dual Listbox - A pair of listboxes that enables multiple options to be selected and reordered.",
-    "prefix": "lwc-dual-listbox",
-    "scope": "html"
+    "prefix": "lwc-dual-listbox"
   },
   "lwc-dual-listbox-default-values": {
     "body": [
@@ -475,8 +452,7 @@
       "></lightning-dual-listbox>"
     ],
     "description": "Dual Listbox with default values - Dual Listbox utilizing minimum and maximum number of selections attributes. A pair of listboxes that enables multiple options to be selected and reordered.",
-    "prefix": "lwc-dual-listbox-default-values",
-    "scope": "html"
+    "prefix": "lwc-dual-listbox-default-values"
   },
   "lwc-dual-listbox-min-max": {
     "body": [
@@ -492,8 +468,7 @@
       "></lightning-dual-listbox>"
     ],
     "description": "Dual Listbox Min Max - Dual Listbox utilizing minimum and maximum number of selections attributes. A pair of listboxes that enables multiple options to be selected and reordered.",
-    "prefix": "lwc-dual-listbox-min-max",
-    "scope": "html"
+    "prefix": "lwc-dual-listbox-min-max"
   },
   "lwc-dual-listbox-required-options": {
     "body": [
@@ -509,8 +484,7 @@
       "></lightning-dual-listbox>"
     ],
     "description": "Dual Listbox with Required Options - Dual Listbox utilizing minimum and maximum number of selections attributes. A pair of listboxes that enables multiple options to be selected and reordered.",
-    "prefix": "lwc-dual-listbox-required-options",
-    "scope": "html"
+    "prefix": "lwc-dual-listbox-required-options"
   },
   "lwc-dynamic-icon": {
     "body": [
@@ -520,8 +494,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon - Represents various animated icons with different states.",
-    "prefix": "lwc-dynamic-icon",
-    "scope": "html"
+    "prefix": "lwc-dynamic-icon"
   },
   "lwc-dynamic-icon-ellie": {
     "body": [
@@ -531,8 +504,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Ellie - Show a pulsing blue circle, which pulses and stops after one animation cycle. This icon is great for field calculations or a process that's running in the background.",
-    "prefix": "lwc-dynamic-icon-ellie",
-    "scope": "html"
+    "prefix": "lwc-dynamic-icon-ellie"
   },
   "lwc-dynamic-icon-eq": {
     "body": [
@@ -543,8 +515,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon EQ - Show an animated graph with three bars that rise and fall randomly. This icon is great for a graph that's refreshing.",
-    "prefix": "lwc-dynamic-icon-eq",
-    "scope": "html"
+    "prefix": "lwc-dynamic-icon-eq"
   },
   "lwc-dynamic-icon-score": {
     "body": [
@@ -555,8 +526,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Score - Show a green filled circle or a red unfilled circle. This icon is great for showing positive and negative indicators.",
-    "prefix": "lwc-dynamic-icon-score",
-    "scope": "html"
+    "prefix": "lwc-dynamic-icon-score"
   },
   "lwc-dynamic-icon-strength": {
     "body": [
@@ -567,8 +537,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Strength - Show three animated horizontal circles that are colored green or red. This icon is great for Einstein calculations or indicating password strengths.",
-    "prefix": "lwc-dynamic-icon-strength",
-    "scope": "html"
+    "prefix": "lwc-dynamic-icon-strength"
   },
   "lwc-dynamic-icon-trend": {
     "body": [
@@ -579,8 +548,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Trend - Show animated arrows that point up, down, or straight. This icon is great for showing movement of a value from one range to another, like a forecast score.",
-    "prefix": "lwc-dynamic-icon-trend",
-    "scope": "html"
+    "prefix": "lwc-dynamic-icon-trend"
   },
   "lwc-dynamic-icon-waffle": {
     "body": [
@@ -590,32 +558,7 @@
       "></lightning-dynamic-icon>"
     ],
     "description": "Dynamic Icon Waffle - Show a square made up of a 3x3 grid of circles. This icon animates on hover. This icon is great for app-related items, like the App Launcher in Lightning Experience.",
-    "prefix": "lwc-dynamic-icon-waffle",
-    "scope": "html"
-  },
-  "lwc-event": {
-    "prefix": "lwc-event",
-    "description": "Creates an event without custom details",
-    "body": [
-      "this.dispatchEvent(new CustomEvent('${2:event-name}'));"
-    ]
-  },
-  "lwc-event-data": {
-    "prefix": "lwc-event-details",
-    "description": "Creates a standard event for custom details",
-    "body": [
-      "const ${1:event} = new CustomEvent('${2:event-name}', {",
-      "    detail: { $0 }",
-      "});",
-      "this.dispatchEvent(${1:event});"
-    ]
-  },
-  "lwc-event-listener": {
-    "prefix": "lwc-event-listener",
-    "description": "Creates an event listener",
-    "body": [
-      "this.template.addEventListener('${1:event-name}', this.${2:local-method-name}.bind(this));"
-    ]
+    "prefix": "lwc-dynamic-icon-waffle"
   },
   "lwc-file-upload": {
     "body": [
@@ -629,22 +572,20 @@
       "></lightning-file-upload>"
     ],
     "description": "File Upload - provides an easy and integrated way for users to upload multiple files.",
-    "prefix": "lwc-file-upload",
-    "scope": "html"
+    "prefix": "lwc-file-upload"
   },
   "lwc-flow": {
     "body": [
-      "<lightning-flow", 
-      "  flow-api-name=\"${1:Survey_customers}\"", 
+      "<lightning-flow",
+      "  flow-api-name=\"${1:Survey_customers}\"",
       "  flow-finish-behavior=\"${2|RESTART,NONE|}\"",
-      "  flow-input-variables={${3:inputVariables}}", 
+      "  flow-input-variables={${3:inputVariables}}",
       "  flow-interview-id=\"${4}\"",
-      "  onstatuschange={${5:handleStatusChange}}", 
+      "  onstatuschange={${5:handleStatusChange}}",
       "></lightning-flow>"
     ],
     "description": "Flow - Represents a flow interview",
-    "prefix": "lwc-flow",
-    "scope": "html"
+    "prefix": "lwc-flow"
   },
   "lwc-formatted-address": {
     "body": [
@@ -657,8 +598,7 @@
       "></lightning-formatted-address>"
     ],
     "description": "Formatted Address - Displays a formatted address with a link to the given location on Google Maps. The link is opened in a new tab. A static map can be displayed with the address for better context.",
-    "prefix": "lwc-formatted-address",
-    "scope": "html"
+    "prefix": "lwc-formatted-address"
   },
   "lwc-formatted-address-extended": {
     "body": [
@@ -674,8 +614,7 @@
       "></lightning-formatted-address>"
     ],
     "description": "Formatted Address Extended - All attributes. Displays a formatted address with a link to the given location on Google Maps. The link is opened in a new tab. A static map can be displayed with the address for better context.",
-    "prefix": "lwc-formatted-address-extended",
-    "scope": "html"
+    "prefix": "lwc-formatted-address-extended"
   },
   "lwc-formatted-address-lat-long": {
     "body": [
@@ -690,8 +629,7 @@
       "></lightning-formatted-address>"
     ],
     "description": "Formatted Address w/ Lat/Long - Using latitude and longitude coordinates for faster map rendering. Displays a formatted address with a link to the given location on Google Maps. The link is opened in a new tab. A static map can be displayed with the address for better context.",
-    "prefix": "lwc-formatted-address-lat-long",
-    "scope": "html"
+    "prefix": "lwc-formatted-address-lat-long"
   },
   "lwc-formatted-address-locale": {
     "body": [
@@ -704,8 +642,7 @@
       "></lightning-formatted-address>"
     ],
     "description": "Formatted Address Locale - Displays an address in the format of a specific locale.",
-    "prefix": "lwc-formatted-address-locale",
-    "scope": "html"
+    "prefix": "lwc-formatted-address-locale"
   },
   "lwc-formatted-date-time": {
     "body": [
@@ -725,8 +662,7 @@
       "></lightning-formatted-date-time>"
     ],
     "description": "Formatted Date Time - Displays formatted date and time",
-    "prefix": "lwc-formatted-date-time",
-    "scope": "html"
+    "prefix": "lwc-formatted-date-time"
   },
   "lwc-formatted-date-time-date": {
     "body": [
@@ -739,8 +675,7 @@
       "></lightning-formatted-date-time-date>"
     ],
     "description": "Formatted Date",
-    "prefix": "lwc-formatted-date-time-date",
-    "scope": "html"
+    "prefix": "lwc-formatted-date-time-date"
   },
   "lwc-formatted-date-time-time": {
     "body": [
@@ -753,10 +688,9 @@
       "  time-zone=\"${6}\"",
       "  time-zone-name=\"${7|long,short|}\"",
       "></lightning-formatted-date-time>"
-  ],
+    ],
     "description": "Formatted Time",
-    "prefix": "lwc-formatted-date-time-time",
-    "scope": "html"
+    "prefix": "lwc-formatted-date-time-time"
   },
   "lwc-formatted-email": {
     "body": [
@@ -767,8 +701,7 @@
       "></lightning-formatted-email>"
     ],
     "description": "Formatted Email - Displays an email as a hyperlink with the mailto: URL scheme.",
-    "prefix": "lwc-formatted-email",
-    "scope": "html"
+    "prefix": "lwc-formatted-email"
   },
   "lwc-formatted-email-onclick": {
     "body": [
@@ -780,8 +713,7 @@
       "></lightning-formatted-email>"
     ],
     "description": "Formatted Email OnClick- Displays an email as a hyperlink with a custom click hander.",
-    "prefix": "lwc-formatted-email-onclick",
-    "scope": "html"
+    "prefix": "lwc-formatted-email-onclick"
   },
   "lwc-formatted-location": {
     "body": [
@@ -791,8 +723,7 @@
       "></lightning-formatted-location>"
     ],
     "description": "Formatted Location - Displays a geolocation in decimal degrees using the format [latitude, longitude].",
-    "prefix": "lwc-formatted-location",
-    "scope": "html"
+    "prefix": "lwc-formatted-location"
   },
   "formatted-name": {
     "body": [
@@ -807,8 +738,7 @@
       "></lightning-formatted-name>"
     ],
     "description": "Formatted Name - Displays a formatted name that can include a salutation and suffix.",
-    "prefix": "lwc-formatted-name",
-    "scope": "html"
+    "prefix": "lwc-formatted-name"
   },
   "lwc-formatted-number-currency": {
     "body": [
@@ -820,8 +750,7 @@
       "></lightning-formatted-number>"
     ],
     "description": "Formatted Number Currency - Displays formatted numbers as currency values",
-    "prefix": "lwc-formatted-number-currency",
-    "scope": "html"
+    "prefix": "lwc-formatted-number-currency"
   },
   "lwc-formatted-number-decimal": {
     "body": [
@@ -836,8 +765,7 @@
       "></lightning-formatted-number>"
     ],
     "description": "Formatted Number Decimal - Displays formatted numbers in decimals format.",
-    "prefix": "lwc-formatted-number-decimal",
-    "scope": "html"
+    "prefix": "lwc-formatted-number-decimal"
   },
   "lwc-formatted-number-percentage": {
     "body": [
@@ -849,19 +777,17 @@
       "></lightning-formatted-number>"
     ],
     "description": "Formatted Number Percentage - Displays a number in percentage format.",
-    "prefix": "lwc-formatted-number-percentage",
-    "scope": "html"
+    "prefix": "lwc-formatted-number-percentage"
   },
   "lwc-formatted-phone": {
     "body": [
       "<lightning-formatted-phone ",
-      "  value=\"${1:8005551212}\"", 
+      "  value=\"${1:8005551212}\"",
       "  ${2| ,disabled|} ",
       "></lightning-formatted-phone>"
     ],
     "description": "Formatted Phone - Displays a phone number as a hyperlink with the tel: URL scheme.",
-    "prefix": "lwc-formatted-phone",
-    "scope": "html"
+    "prefix": "lwc-formatted-phone"
   },
   "lwc-formatted-rich-text": {
     "body": [
@@ -871,9 +797,8 @@
       "></lightning-formatted-rich-text>"
     ],
     "description": "Formatted Rich Text - Displays rich text that's formatted with allowed tags and attributes. Other tags and attributes are removed and only their text content is displayed.",
-    "prefix": "lwc-formatted-rich-text",
-    "scope": "html"
-  },  
+    "prefix": "lwc-formatted-rich-text"
+  },
   "lwc-formatted-text": {
     "body": [
       "<lightning-formatted-text ",
@@ -882,8 +807,7 @@
       "></lightning-formatted-text>"
     ],
     "description": "Formatted Text - Displays text, replaces newlines with line breaks, and linkifies if requested.",
-    "prefix": "lwc-formatted-text",
-    "scope": "html"
+    "prefix": "lwc-formatted-text"
   },
   "lwc-formatted-time": {
     "body": [
@@ -892,21 +816,19 @@
       "></lightning-formatted-time>"
     ],
     "description": "Formatted Time - Displays a formatted time in user's locale format.",
-    "prefix": "lwc-formatted-time",
-    "scope": "html"
+    "prefix": "lwc-formatted-time"
   },
   "lwc-formatted-url": {
     "body": [
-      "<lightning-formatted-url ", 
-      "  value=\"${1:https://salesforce.com}\"", 
-      "  tooltip=\"${2:Use https://domain-name}\"", 
-      "  label=\"${3:Visit salesforce.com}\"", 
-      "  target=\"${4:_blank}\"", 
+      "<lightning-formatted-url ",
+      "  value=\"${1:https://salesforce.com}\"",
+      "  tooltip=\"${2:Use https://domain-name}\"",
+      "  label=\"${3:Visit salesforce.com}\"",
+      "  target=\"${4:_blank}\"",
       "></lightning-formatted-url>"
     ],
     "description": "Formatted URL - Displays a URL as a hyperlink.",
-    "prefix": "lwc-formatted-url",
-    "scope": "html"
+    "prefix": "lwc-formatted-url"
   },
   "lwc-helptext": {
     "body": [
@@ -915,11 +837,10 @@
       "></lightning-helptext>"
     ],
     "description": "Helptext - An icon with a text popover used for tooltips.",
-    "prefix": "lwc-helptext",
-    "scope": "html"
+    "prefix": "lwc-helptext"
   },
   "lwc-icon": {
-    "body": [        
+    "body": [
       "<lightning-icon ",
       "  icon-name=\"${1:utility:connected_apps}\" ",
       "  alternative-text=\"${2:Connected}\" ",
@@ -929,21 +850,7 @@
       "></lightning-icon>"
     ],
     "description": "Icon - Represents a visual element that provides context and enhances usability.",
-    "prefix": "lwc-icon",
-    "scope": "html"
-  },
-  "lwc-imperative-apex": {
-    "prefix": "lwc-imperative-apex",
-    "description": "Creates an imperative Apex call",
-    "body": [
-      "${1:method name}()",
-      "    .then(result => {",
-      "        ${0}",
-      "    })",
-      "    .catch(error => {",
-      "        // TODO Error handling",
-      "    });"
-    ]
+    "prefix": "lwc-icon"
   },
   "lwc-input": {
     "body": [
@@ -953,8 +860,7 @@
       "></lightning-input>"
     ],
     "description": "Input - Represents interactive controls that accept user input depending on the type attribute.",
-    "prefix": "lwc-input",
-    "scope": "html"
+    "prefix": "lwc-input"
   },
   "lwc-input-address": {
     "body": [
@@ -975,8 +881,7 @@
       "></lightning-input-address>"
     ],
     "description": "Input Address - Address fields can be pre-populated and marked as required.",
-    "prefix": "lwc-input-address",
-    "scope": "html"
+    "prefix": "lwc-input-address"
   },
   "lwc-input-address-state-country-picklists": {
     "body": [
@@ -999,8 +904,7 @@
       "></lightning-input-address>"
     ],
     "description": "Input Address - Address fields support predefined lists of states and countries.",
-    "prefix": "lwc-input-address-state-country-picklists",
-    "scope": "html"
+    "prefix": "lwc-input-address-state-country-picklists"
   },
   "lwc-input-advanced": {
     "body": [
@@ -1012,8 +916,7 @@
       "></lightning-input>"
     ],
     "description": "Input (advanced) - Input element that includes onfocus and onblur attributes to enable custom behavior on the element.",
-    "prefix": "lwc-input-advanced",
-    "scope": "html"
+    "prefix": "lwc-input-advanced"
   },
   "lwc-input-checkbox": {
     "body": [
@@ -1027,8 +930,7 @@
       "></lightning-input>"
     ],
     "description": "Input Checkbox - Checkbox options can be required or disabled",
-    "prefix": "lwc-input-checkbox",
-    "scope": "html"
+    "prefix": "lwc-input-checkbox"
   },
   "lwc-input-checkbox-button": {
     "body": [
@@ -1042,8 +944,7 @@
       "></lightning-input>"
     ],
     "description": "Input Checkbox Button - Checkbox buttons can be required or disabled",
-    "prefix": "lwc-input-checkbox-button",
-    "scope": "html"
+    "prefix": "lwc-input-checkbox-button"
   },
   "lwc-input-color": {
     "body": [
@@ -1055,8 +956,7 @@
       "></lightning-input>"
     ],
     "description": "Input Color - Color input fields provide a color swatch for entering a HEX or RGB value.",
-    "prefix": "lwc-input-color",
-    "scope": "html"
+    "prefix": "lwc-input-color"
   },
   "lwc-input-date": {
     "body": [
@@ -1067,8 +967,7 @@
       "></lightning-input>"
     ],
     "description": "Input Date - Date input fields provide a date picker for entering a date.",
-    "prefix": "lwc-input-date",
-    "scope": "html"
+    "prefix": "lwc-input-date"
   },
   "lwc-input-date-predefined": {
     "body": [
@@ -1080,8 +979,7 @@
       "></lightning-input>"
     ],
     "description": "Input Date w/ Predefined Value",
-    "prefix": "lwc-input-date-predefined",
-    "scope": "html"
+    "prefix": "lwc-input-date-predefined"
   },
   "lwc-input-date-time": {
     "body": [
@@ -1092,8 +990,7 @@
       "></lightning-input>"
     ],
     "description": "Input Date Time - Date/Time input fields provide a date and time picker for entering a date and time.",
-    "prefix": "lwc-input-date-time",
-    "scope": "html"
+    "prefix": "lwc-input-date-time"
   },
   "lwc-input-email": {
     "body": [
@@ -1103,8 +1000,7 @@
       "></lightning-input>"
     ],
     "description": "Input Email - Email input fields are for entering email addresses.",
-    "prefix": "lwc-input-email",
-    "scope": "html"
+    "prefix": "lwc-input-email"
   },
   "lwc-input-email-advanced": {
     "body": [
@@ -1118,8 +1014,7 @@
       "></lightning-input>"
     ],
     "description": "Input Email Advanced - Includes attributes to accept multiple addresses, pre-define values, disabled, and read-only",
-    "prefix": "lwc-input-email-advanced",
-    "scope": "html"
+    "prefix": "lwc-input-email-advanced"
   },
   "lwc-input-field": {
     "body": [
@@ -1132,8 +1027,7 @@
       "></lightning-input-field>"
     ],
     "description": "Input Field - To be used within lightning-record-edit-form components. Represents an editable input for a field on a Salesforce object.",
-    "prefix": "lwc-input-field",
-    "scope": "html"
+    "prefix": "lwc-input-field"
   },
   "lwc-input-file": {
     "body": [
@@ -1144,8 +1038,7 @@
       "></lightning-input>"
     ],
     "description": "Input File - File input fields support upload of single or multiple files and can restrict the accepted types",
-    "prefix": "lwc-input-file",
-    "scope": "html"
+    "prefix": "lwc-input-file"
   },
   "lwc-input-location": {
     "body": [
@@ -1158,8 +1051,7 @@
       "></lightning-input-location>"
     ],
     "description": "Input Location - Geolocation fields include a latitude and longitude field",
-    "prefix": "lwc-input-location",
-    "scope": "html"
+    "prefix": "lwc-input-location"
   },
   "lwc-input-name": {
     "body": [
@@ -1175,8 +1067,7 @@
       "></lightning-input-name>"
     ],
     "description": "Input Field - A name compound field displaying Salutation, First Name, and Last Name fields by default.",
-    "prefix": "lwc-input-name",
-    "scope": "html"
+    "prefix": "lwc-input-name"
   },
   "lwc-input-name-advanced": {
     "body": [
@@ -1197,24 +1088,22 @@
       "></lightning-input-name>"
     ],
     "description": "Input Field - A name compound field displaying Salutation, First Name, and Last Name fields by default.",
-    "prefix": "lwc-input-name-advanced",
-    "scope": "html"
+    "prefix": "lwc-input-name-advanced"
   },
   "lwc-input-number": {
     "body": [
-     "<lightning-input ",
-     "  type=\"number\" ",
-     "  name=\"${1:input1}\" ",
-     "  label=\"${2:Enter a number}\" ",
-     "  formatter=\"${3|currency,decimal,percent|}\"",
-     "  ${4| ,disabled|}",
-     "  ${5| ,readonly|}",
-     "  ${6| ,required|}",
-     "></lightning-input>"
+      "<lightning-input ",
+      "  type=\"number\" ",
+      "  name=\"${1:input1}\" ",
+      "  label=\"${2:Enter a number}\" ",
+      "  formatter=\"${3|currency,decimal,percent|}\"",
+      "  ${4| ,disabled|}",
+      "  ${5| ,readonly|}",
+      "  ${6| ,required|}",
+      "></lightning-input>"
     ],
     "description": "Input Number - Number input fields support decimal, percentage, and currency values.",
-    "prefix": "lwc-input-number",
-    "scope": "html"
+    "prefix": "lwc-input-number"
   },
   "lwc-input-password": {
     "body": [
@@ -1225,8 +1114,7 @@
       "></lightning-input>"
     ],
     "description": "Input Password - Password input fields obscure your text input.",
-    "prefix": "lwc-input-password",
-    "scope": "html"
+    "prefix": "lwc-input-password"
   },
   "lwc-input-rich-text": {
     "body": [
@@ -1236,8 +1124,7 @@
       "></lightning-input-rich-text>"
     ],
     "description": "Input Rich Text - A WYSIWYG editor with a customizable toolbar for entering rich text.",
-    "prefix": "lwc-input-rich-text",
-    "scope": "html"
+    "prefix": "lwc-input-rich-text"
   },
   "lwc-input-rich-text-advanced": {
     "body": [
@@ -1253,8 +1140,7 @@
       "></lightning-input-rich-text>"
     ],
     "description": "Input Rich Text - A WYSIWYG editor with a customizable toolbar for entering rich text.",
-    "prefix": "lwc-input-rich-text-advanced",
-    "scope": "html"
+    "prefix": "lwc-input-rich-text-advanced"
   },
   "lwc-input-search": {
     "body": [
@@ -1267,8 +1153,7 @@
       "</div>"
     ],
     "description": "Input Search - Search input fields enable search queries.",
-    "prefix": "lwc-input-search",
-    "scope": "html"
+    "prefix": "lwc-input-search"
   },
   "lwc-input-telephone": {
     "body": [
@@ -1281,8 +1166,7 @@
       "></lightning-input>"
     ],
     "description": "Input Telephone - Input fields that support number pattern matching",
-    "prefix": "lwc-input-telephone",
-    "scope": "html"
+    "prefix": "lwc-input-telephone"
   },
   "lwc-input-time-basic": {
     "body": [
@@ -1293,8 +1177,7 @@
       "></lightning-input>"
     ],
     "description": "Input Time - Time input fields provide a dropdown list of time values in 15-minute increments.",
-    "prefix": "lwc-input-time-basic",
-    "scope": "html"
+    "prefix": "lwc-input-time-basic"
   },
   "lwc-input-time-advanced": {
     "body": [
@@ -1308,8 +1191,7 @@
       "></lightning-input>"
     ],
     "description": "Input Time - Time input fields support earliest and latest time input.",
-    "prefix": "lwc-input-time-advanced",
-    "scope": "html"
+    "prefix": "lwc-input-time-advanced"
   },
   "lwc-input-toggle": {
     "body": [
@@ -1323,8 +1205,7 @@
       "></lightning-input>"
     ],
     "description": "Input Toggle - Toggle buttons can be required or disabled",
-    "prefix": "lwc-input-toggle",
-    "scope": "html"
+    "prefix": "lwc-input-toggle"
   },
   "lwc-input-url": {
     "body": [
@@ -1335,11 +1216,9 @@
       "  ${3| ,disabled|}",
       "  ${4| ,required|}",
       "></lightning-input>"
-
     ],
     "description": "Input URL - URL input fields support URL pattern matching.",
-    "prefix": "lwc-input-url",
-    "scope": "html"
+    "prefix": "lwc-input-url"
   },
   "lwc-layout": {
     "body": [
@@ -1353,18 +1232,12 @@
       "</lightning-layout>"
     ],
     "description": "Layout - A layout can include layout items as columns",
-    "prefix": "lwc-layout",
-    "scope": "html"
+    "prefix": "lwc-layout"
   },
   "lwc-layout-item": {
-    "body": [
-      "<lightning-layout-item>",
-      "  $0",
-      "</lightning-layout-item>"
-    ],
+    "body": ["<lightning-layout-item>", "  $0", "</lightning-layout-item>"],
     "description": "Layout Item - Layout items take the size of their content by default",
-    "prefix": "lwc-layout-item",
-    "scope": "html"
+    "prefix": "lwc-layout-item"
   },
   "lwc-layout-item-advanced": {
     "body": [
@@ -1381,8 +1254,7 @@
       "</lightning-layout-item>"
     ],
     "description": "Layout Item - Layout items take the size of their content by default",
-    "prefix": "lwc-layout-item-advanced",
-    "scope": "html"
+    "prefix": "lwc-layout-item-advanced"
   },
   "lwc-map": {
     "body": [
@@ -1399,16 +1271,12 @@
       "></lightning-map>"
     ],
     "description": "Map - Displays a map of one or more locations.",
-    "prefix": "lwc-map",
-    "scope": "html"
+    "prefix": "lwc-map"
   },
   "lwc-menu-divider": {
-    "body": [
-      "<lightning-menu-divider></lightning-menu-divider>"
-    ],
+    "body": ["<lightning-menu-divider></lightning-menu-divider>"],
     "description": "Menu Divider - Creates a divider in the list of items for lightning-button-menu.",
-    "prefix": "lwc-menu-divider",
-    "scope": "html"
+    "prefix": "lwc-menu-divider"
   },
   "lwc-menu-item": {
     "body": [
@@ -1419,8 +1287,7 @@
       "></lightning-menu-item>"
     ],
     "description": "Menu Item - Represents a list in a menu.",
-    "prefix": "lwc-menu-item",
-    "scope": "html"
+    "prefix": "lwc-menu-item"
   },
   "lwc-menu-item-for-each": {
     "body": [
@@ -1433,8 +1300,7 @@
       "</template>"
     ],
     "description": "Menu Item - Used a for:each loop to generate menu items.",
-    "prefix": "lwc-menu-item-for-each",
-    "scope": "html"
+    "prefix": "lwc-menu-item-for-each"
   },
   "lwc-menu-subheader": {
     "body": [
@@ -1443,8 +1309,7 @@
       "></lightning-menu-subheader>"
     ],
     "description": "Menu Subheader - Creates a subheader in the list of items in lightning-button-menu.",
-    "prefix": "lwc-menu-subheader",
-    "scope": "html"
+    "prefix": "lwc-menu-subheader"
   },
   "lwc-modal": {
     "body": [
@@ -1456,8 +1321,7 @@
       "</template>"
     ],
     "description": "Modal - Extend this component to create a message modal overlayed on the current app window.",
-    "prefix": "lwc-modal",
-    "scope": "html"
+    "prefix": "lwc-modal"
   },
   "lwc-modal-body": {
     "body": [
@@ -1466,8 +1330,7 @@
       "</lightning-modal-body>"
     ],
     "description": "Modal Body - Displays main content area in a lightning modal",
-    "prefix": "lwc-modal-body",
-    "scope": "html"
+    "prefix": "lwc-modal-body"
   },
   "lwc-modal-footer": {
     "body": [
@@ -1476,8 +1339,7 @@
       "</lightning-modal-footer>"
     ],
     "description": "Modal Footer - Displays footer content in a lightning modal",
-    "prefix": "lwc-modal-footer",
-    "scope": "html"
+    "prefix": "lwc-modal-footer"
   },
   "lwc-modal-header": {
     "body": [
@@ -1486,111 +1348,7 @@
       "</lightning-modal-header>"
     ],
     "description": "Modal Header - Displays heading and tagline at the top of a modal",
-    "prefix": "lwc-modal-header",
-    "scope": "html"
-  },
-  "lwc-nav-item-page": {
-    "prefix": "lwc-nav-item-page",
-    "description": "Navigation to a CustomTab",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__navItemPage',",
-      "    attributes: {",
-      "        apiName: \"${1:The unique name of the CustomTab.}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-knowledge-article": {
-    "prefix": "lwc-nav-knowledge-article",
-    "description": "Navigation to a Knowledge Article",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__knowledgeArticlePage',",
-      "    attributes: {",
-      "        articleType: \"${1:The articleType API name of the Knowledge Article record.}\",",
-      "        urlName: \"${2:The value of the urlName field on the target KnowledgeArticleVersion record. The urlName is the article's URL.}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-lightning-component": {
-    "prefix": "lwc-nav-lightning-component",
-    "description": "Navigation to a custom Lightning component",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__component',",
-      "    attributes: {",
-      "        componentName: \"c__${1:component name}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-object-page": {
-    "prefix": "lwc-nav-object-page",
-    "description": "Navigation to an object page",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__objectPage',",
-      "    attributes: {",
-      "        actionName: \"${1:home, list, or new}\",",
-      "        objectApiName: \"${2:The API name of the standard or custom object. }\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-page": {
-    "prefix": "lwc-nav-page",
-    "description": "Navigation to a named page",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__namedPage',",
-      "    attributes: {",
-      "        pageName: \"${1:home, chatter, today, dataAssessment, or filePreview}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-record-page": {
-    "prefix": "lwc-nav-record-page",
-    "description": "Navigation to a record page",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__recordPage',",
-      "    attributes: {",
-      "        actionName: \"${1:clone, edit, or view}\",",
-      "        recordId: \"${2:recordId}\",",
-      "        objectApiName: \"${3:The API name of the record’s object. Optional for lookups.}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-record-relationship-page": {
-    "prefix": "lwc-nav-record-relationship-page",
-    "description": "Navigation to a record relationship page",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__recordRelationshipPage',",
-      "    attributes: {",
-      "        actionName: \"view\",",
-      "        recordId: \"${1:recordId}\",",
-      "        objectApiName: \"${2:The API name of the record’s object. Optional for lookups.}\",",
-      "        relationshipApiName: \"${3:The API name of the object’s relationship field (optional).}\"",
-      "    }",
-      "});"
-    ]
-  },
-  "lwc-nav-web-page": {
-    "prefix": "lwc-nav-web-page",
-    "description": "Navigation to an external URL",
-    "body": [
-      "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__webPage',",
-      "    attributes: {",
-      "       url: \"${1:The URL of the page you are navigating to.}\"",
-      "    }",
-      "});"
-    ]
+    "prefix": "lwc-modal-header"
   },
   "lwc-output-field": {
     "body": [
@@ -1600,8 +1358,7 @@
       "></lightning-output-field>"
     ],
     "description": "Output Field - Represents a read-only display of a label, help text, and value for a field on a Salesforce object.",
-    "prefix": "lwc-output-field",
-    "scope": "html"
+    "prefix": "lwc-output-field"
   },
   "lwc-pill-avatar": {
     "body": [
@@ -1615,8 +1372,7 @@
       "</lightning-pill>"
     ],
     "description": "Pill w/ Avatar - A pill element containing an avatar",
-    "prefix": "lwc-pill-avatar",
-    "scope": "html"
+    "prefix": "lwc-pill-avatar"
   },
   "lwc-pill-container": {
     "body": [
@@ -1625,8 +1381,7 @@
       "></lightning-pill-container>"
     ],
     "description": "Pill Container - A list of pills grouped in a container. This component requires API version 42.0 and later.",
-    "prefix": "lwc-pill-container",
-    "scope": "html"
+    "prefix": "lwc-pill-container"
   },
   "lwc-pill-error": {
     "body": [
@@ -1636,8 +1391,7 @@
       "></lightning-pill>"
     ],
     "description": "Pill Error - A pill indicates an error condition by specifying the has-error attribute.",
-    "prefix": "lwc-pill-error",
-    "scope": "html"
+    "prefix": "lwc-pill-error"
   },
   "lwc-pill-icon": {
     "body": [
@@ -1649,8 +1403,7 @@
       "</lightning-pill>"
     ],
     "description": "Pill w/ Icon - A pill element containing an icon",
-    "prefix": "lwc-pill-icon",
-    "scope": "html"
+    "prefix": "lwc-pill-icon"
   },
   "lwc-pill-link": {
     "body": [
@@ -1660,8 +1413,7 @@
       "></lightning-pill>"
     ],
     "description": "Pill Link - A pill displays a label that can contain links and be removed from view.",
-    "prefix": "lwc-pill-link",
-    "scope": "html"
+    "prefix": "lwc-pill-link"
   },
   "lwc-pill-remove-handler": {
     "body": [
@@ -1671,8 +1423,7 @@
       "></lightning-pill>"
     ],
     "description": "Pill w/ Remove Handler - A pill displays a label that can contain links and be removed from view.",
-    "prefix": "lwc-pill-remove-handler",
-    "scope": "html"
+    "prefix": "lwc-pill-remove-handler"
   },
   "lwc-progress-bar": {
     "body": [
@@ -1684,8 +1435,7 @@
       "></lightning-progress-bar>"
     ],
     "description": "Progress Bar - Displays a horizontal progress bar from left to right to indicate the progress of an operation.",
-    "prefix": "lwc-progress-bar",
-    "scope": "html"
+    "prefix": "lwc-progress-bar"
   },
   "lwc-progress-indicator": {
     "body": [
@@ -1701,8 +1451,7 @@
       "</lightning-progress-indicator>"
     ],
     "description": "Progress Indicator - Provides a visual indication on the progress of a particular process.",
-    "prefix": "lwc-progress-indicator",
-    "scope": "html"
+    "prefix": "lwc-progress-indicator"
   },
   "lwc-progress-indicator-iteration": {
     "body": [
@@ -1721,8 +1470,7 @@
       "</lightning-progress-indicator>"
     ],
     "description": "Progress Indicator w/ Iteration - Provides a visual indication on the progress of a particular process.",
-    "prefix": "lwc-progress-indicator-iteration",
-    "scope": "html"
+    "prefix": "lwc-progress-indicator-iteration"
   },
   "lwc-progress-ring": {
     "body": [
@@ -1734,8 +1482,7 @@
       "></lightning-progress-ring>"
     ],
     "description": "Progress Ring - Displays a circular progress indicator to provide feedback about an action or process. This component requires API version 48.0 and later.",
-    "prefix": "lwc-progress-ring",
-    "scope": "html"
+    "prefix": "lwc-progress-ring"
   },
   "lwc-progress-step": {
     "body": [
@@ -1745,8 +1492,7 @@
       "></lightning-progress-step>"
     ],
     "description": "Progress Step - Defines a step in the lightning-progress-indicator.",
-    "prefix": "lwc-progress-step",
-    "scope": "html"
+    "prefix": "lwc-progress-step"
   },
   "lwc-quick-action-panel": {
     "body": [
@@ -1758,8 +1504,7 @@
       "</lightning-quick-action-panel>"
     ],
     "description": "Quick Action Panel - Build your own action modals that use the Salesforce Lightning Design System (SLDS) modal styling.",
-    "prefix": "lwc-quick-action-panel",
-    "scope": "html"
+    "prefix": "lwc-quick-action-panel"
   },
   "lwc-radio-group": {
     "body": [
@@ -1773,8 +1518,7 @@
       "></lightning-radio-group>"
     ],
     "description": "Radio Group - A radio button group that can have a single option selected.",
-    "prefix": "lwc-radio-group",
-    "scope": "html"
+    "prefix": "lwc-radio-group"
   },
   "lwc-radio-group-advanced": {
     "body": [
@@ -1790,8 +1534,7 @@
       "></lightning-radio-group>"
     ],
     "description": "Radio Group Advanced- A radio button group that can have a single option selected.",
-    "prefix": "lwc-radio-group-advanced",
-    "scope": "html"
+    "prefix": "lwc-radio-group-advanced"
   },
   "lwc-record-edit-form": {
     "body": [
@@ -1804,8 +1547,7 @@
       "</lightning-record-edit-form>"
     ],
     "description": "Record Edit Form - Represents a record edit layout that displays one or more fields, provided by lightning-input-field.",
-    "prefix": "lwc-record-edit-form",
-    "scope": "html"
+    "prefix": "lwc-record-edit-form"
   },
   "lwc-record-form": {
     "body": [
@@ -1818,8 +1560,7 @@
       "></lightning-record-form>"
     ],
     "description": "Record Form - Creates an editable form or display form for a record.",
-    "prefix": "lwc-record-form",
-    "scope": "html"
+    "prefix": "lwc-record-form"
   },
   "lwc-record-view-form": {
     "body": [
@@ -1832,8 +1573,7 @@
       "</lightning-record-view-form>"
     ],
     "description": "Record View Form - Represents a record view layout that displays one or more fields, provided by lightning-output-field.",
-    "prefix": "lwc-record-view-form",
-    "scope": "html"
+    "prefix": "lwc-record-view-form"
   },
   "lwc-relative-date-time": {
     "body": [
@@ -1842,8 +1582,7 @@
       "></lightning-relative-date-time>"
     ],
     "description": "Relative Date Time - Displays the relative time difference between the source date-time and the provided date-time.",
-    "prefix": "lwc-relative-date-time",
-    "scope": "html"
+    "prefix": "lwc-relative-date-time"
   },
   "lwc-rich-text-toolbar-button": {
     "body": [
@@ -1856,8 +1595,7 @@
       "></lightning-rich-text-toolbar-button>"
     ],
     "description": "Rich Text Toolbar Button - A custom button on the lightning-input-rich-text toolbar.",
-    "prefix": "lwc-rich-text-toolbar-button",
-    "scope": "html"
+    "prefix": "lwc-rich-text-toolbar-button"
   },
   "lwc-rich-text-toolbar-button-group": {
     "body": [
@@ -1869,8 +1607,7 @@
       "</lightning-rich-text-toolbar-button-group>"
     ],
     "description": "Rich Text Toolbar Button Group - Creates a custom button group in lightning-input-rich-text.",
-    "prefix": "lwc-rich-text-toolbar-button-group",
-    "scope": "html"
+    "prefix": "lwc-rich-text-toolbar-button-group"
   },
   "lwc-service-cloud-voice-toolkit-api": {
     "body": [
@@ -1878,8 +1615,7 @@
       "</lightning-service-cloud-voice-toolkit-api>"
     ],
     "description": "Service Cloud Voice Toolkit API - A collection of front-end event listeners and API methods for interacting with Service Cloud Voice. This component requires API version 52.0 and later.",
-    "prefix": "lwc-service-cloud-voice-toolkit-api",
-    "scope": "html"
+    "prefix": "lwc-service-cloud-voice-toolkit-api"
   },
   "lwc-slider": {
     "body": [
@@ -1896,8 +1632,7 @@
       "></lightning-slider>"
     ],
     "description": "Slider - An input range slider for specifying a value between two specified numbers.",
-    "prefix": "lwc-slider",
-    "scope": "html"
+    "prefix": "lwc-slider"
   },
   "lwc-spinner": {
     "body": [
@@ -1908,8 +1643,7 @@
       "></lightning-spinner>"
     ],
     "description": "Spinner - Displays an animated spinner",
-    "prefix": "lwc-spinner",
-    "scope": "html"
+    "prefix": "lwc-spinner"
   },
   "lwc-spinner-conditional": {
     "body": [
@@ -1926,8 +1660,7 @@
       "</template>"
     ],
     "description": "Spinner w/ Conditional- Displays an animated spinner",
-    "prefix": "lwc-spinner-conditional",
-    "scope": "html"
+    "prefix": "lwc-spinner-conditional"
   },
   "lwc-tab": {
     "body": [
@@ -1939,8 +1672,7 @@
       "</lightning-tab>"
     ],
     "description": "Tab - A single tab in a tabset component.",
-    "prefix": "lwc-tab",
-    "scope": "html"
+    "prefix": "lwc-tab"
   },
   "lwc-tab-advanced": {
     "body": [
@@ -1958,8 +1690,7 @@
       "</lightning-tab>"
     ],
     "description": "Tab - A single tab in a tabset component.",
-    "prefix": "lwc-tab-advanced",
-    "scope": "html"
+    "prefix": "lwc-tab-advanced"
   },
   "lwc-tabset": {
     "body": [
@@ -1971,8 +1702,7 @@
       "</lightning-tabset>"
     ],
     "description": "Tabset - Represents a list of tabs",
-    "prefix": "lwc-tabset",
-    "scope": "html"
+    "prefix": "lwc-tabset"
   },
   "lwc-tabset-iteration": {
     "body": [
@@ -1988,8 +1718,7 @@
       "</lightning-tabset>"
     ],
     "description": "Tabset Iterative - Represents a list of tabs",
-    "prefix": "lwc-tabset-iteration",
-    "scope": "html"
+    "prefix": "lwc-tabset-iteration"
   },
   "lwc-textarea": {
     "body": [
@@ -2006,8 +1735,7 @@
       "></lightning-textarea>"
     ],
     "description": "Textarea - Represents a multiline text input field.",
-    "prefix": "lwc-textarea",
-    "scope": "html"
+    "prefix": "lwc-textarea"
   },
   "lwc-tile": {
     "body": [
@@ -2021,8 +1749,7 @@
       "</lightning-tile>"
     ],
     "description": "Tile - A grouping of related information associated with a record.",
-    "prefix": "lwc-tile",
-    "scope": "html"
+    "prefix": "lwc-tile"
   },
   "lwc-tile-avatar": {
     "body": [
@@ -2035,16 +1762,15 @@
       ">",
       "  <lightning-avatar ",
       "    slot=\"media\"",
-      "    src=\"${5:https://www.lightningdesignsystem.com/assets/images/avatar1.jpg}\"", 
-      "    fallback-icon-name=\"${6:standard:person_account}\"", 
+      "    src=\"${5:https://www.lightningdesignsystem.com/assets/images/avatar1.jpg}\"",
+      "    fallback-icon-name=\"${6:standard:person_account}\"",
       "    alternative-text=\"${7:Bruce Wayne}\"",
       "  ></lightning-avatar>",
       "  $0",
       "</lightning-tile>"
     ],
     "description": "Tile Avatar - A grouping of related information associated with a record.",
-    "prefix": "lwc-tile-avatar",
-    "scope": "html"
+    "prefix": "lwc-tile-avatar"
   },
   "lwc-tile-icon": {
     "body": [
@@ -2056,48 +1782,14 @@
       "  type=\"media\"",
       ">",
       "  <lightning-icon ",
-      "    slot=\"media\"", 
+      "    slot=\"media\"",
       "    icon-name=\"${5:standard:groups}\"",
       "  ></lightning-icon>",
       "  $0",
       "</lightning-tile>"
     ],
     "description": "Tile Icon - A grouping of related information associated with a record.",
-    "prefix": "lwc-tile-icon",
-    "scope": "html"
-  },
-  "lwc-toast": {
-    "prefix": "lwc-toast",
-    "description": "Creates toast success function",
-    "body": [
-      "this.dispatchEvent(new ShowToastEvent({",
-      "    title: '${1:title}',",
-      "    message: '${2:message}',",
-      "    variant: 'success'",
-      "}));"
-    ]
-  },
-  "lwc-toast-error": {
-    "prefix": "lwc-toast-error",
-    "description": "Creates toast error function",
-    "body": [
-      "this.dispatchEvent(new ShowToastEvent({",
-      "    title: '${1:title}',",
-      "    message: '${2:message}',",
-      "    variant: 'error'",
-      "}));"
-    ]
-  },
-  "lwc-toast-warning": {
-    "prefix": "lwc-toast-warning",
-    "description": "Creates toast warning function",
-    "body": [
-      "this.dispatchEvent(new ShowToastEvent({",
-      "    title: '${1:title}',",
-      "    message: '${2:message}',",
-      "    variant: 'warning'",
-      "}));"
-    ]
+    "prefix": "lwc-tile-icon"
   },
   "lwc-tree": {
     "body": [
@@ -2107,8 +1799,7 @@
       "></lightning-tree>"
     ],
     "description": "Tree - Displays a nested tree.",
-    "prefix": "lwc-tree",
-    "scope": "html"
+    "prefix": "lwc-tree"
   },
   "lwc-tree-grid": {
     "body": [
@@ -2123,8 +1814,7 @@
       "></lightning-tree-grid>"
     ],
     "description": "Tree Grid - Displays a hierarchical view of data in a table.",
-    "prefix": "lwc-tree-grid",
-    "scope": "html"
+    "prefix": "lwc-tree-grid"
   },
   "lwc-vertical-navigation": {
     "body": [
@@ -2133,8 +1823,7 @@
       "</lightning-vertical-navigation>"
     ],
     "description": "Vertical Navigation - A vertical list of links that either take the user to another page or parts of the page the user is in.",
-    "prefix": "lwc-vertical-navigation",
-    "scope": "html"
+    "prefix": "lwc-vertical-navigation"
   },
   "lwc-vertical-navigation-item": {
     "body": [
@@ -2144,8 +1833,7 @@
       "></lightning-vertical-navigation-item>"
     ],
     "description": "Vertical Navigation Item - A text-only link within lightning-vertical-navigation-section or lightning-vertical-navigation-overflow.",
-    "prefix": "lwc-vertical-navigation-item",
-    "scope": "html"
+    "prefix": "lwc-vertical-navigation-item"
   },
   "lwc-vertical-navigation-item-badge": {
     "body": [
@@ -2158,8 +1846,7 @@
       "></lightning-vertical-navigation-item-badge>"
     ],
     "description": "Vertical Navigation Item Badge - A link and badge within lightning-vertical-navigation-section or lightning-vertical-navigation-overflow.",
-    "prefix": "lwc-vertical-navigation-badge",
-    "scope": "html"
+    "prefix": "lwc-vertical-navigation-badge"
   },
   "lwc-vertical-navigation-item-icon": {
     "body": [
@@ -2170,17 +1857,16 @@
       "></lightning-vertical-navigation-item-icon>"
     ],
     "description": "Vertical Navigation Item Icon - A link and icon within lightning-vertical-navigation-section or lightning-vertical-navigation-overflow.",
-    "prefix": "lwc-vertical-navigation-item-icon",
-    "scope": "html"
+    "prefix": "lwc-vertical-navigation-item-icon"
   },
   "lwc-vertical-navigation-overflow": {
     "body": [
       "<lightning-vertical-navigation-overflow>",
       "  $0",
-      "</lightning-vertical-navigation-overflow>"],
+      "</lightning-vertical-navigation-overflow>"
+    ],
     "description": "Vertical Navigation Overflow - Creates an expandable section of vertical navigation items.",
-    "prefix": "lwc-vertical-navigation-overflow",
-    "scope": "html"
+    "prefix": "lwc-vertical-navigation-overflow"
   },
   "lwc-vertical-navigation-section": {
     "body": [
@@ -2189,79 +1875,6 @@
       "</lightning-vertical-navigation-section>"
     ],
     "description": "Vertical Navigation Section - provides a heading which has vertical navigation items nested underneath",
-    "prefix": "lwc-vertical-navigation-section",
-    "scope": "html"
-  },
-  "lwc-wire-apex-function": {
-    "prefix": "lwc-wire-apex-function",
-    "description": "Creates a @wire'd function for Apex with data modification",
-    "body": [
-      "@wire(${1:apex-method-name}, {$0})",
-      "${2:apex-function-name} ({error, data}) {",
-      "    if (error) {",
-      "        // TODO: Error handling",
-      "    } else if (data) {",
-      "        // TODO: Data handling",
-      "    }",
-      "}"
-    ]
-  },
-  "lwc-wire-apex-property": {
-    "prefix": "lwc-wire-apex-property",
-    "description": "Creates a @wire'd property for Apex",
-    "body": [
-      "@wire(${1:apex-method-name}, {$0})",
-      "${2:apex-property-name}"
-    ]
-  },
-  "lwc-wire-get-record-function": {
-    "prefix": "lwc-wire-get-record-function",
-    "description": "Creates a @wire'd function for getRecord",
-    "body": [
-      "@api recordId;",
-      "",
-      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
-      "${2:record-function-name} ({error, data}) {",
-      "    if (error) {",
-      "        // TODO: Error handling",
-      "    } else if (data) {",
-      "        // TODO: Data handling",
-      "    }",
-      "}"
-    ]
-  },
-  "lwc-wire-get-record-property": {
-    "prefix": "lwc-wire-get-record-property",
-    "description": "Creates a @wire'd property for getRecord",
-    "body": [
-      "@api recordId;",
-      "",
-      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
-      "${2:record-property-name}"
-    ]
-  },
-  "lwc-wire-get-records-function": {
-    "prefix": "lwc-wire-get-records-function",
-    "description": "Creates a @wire'd function for getRecords",
-    "body": [
-      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
-      "${1:records-function-name} ({error, data}) {",
-      "    if (error) {",
-      "        // TODO: Error handling",
-      "    } else if (data) {",
-      "        // TODO: Data handling",
-      "    }",
-      "}"
-    ]
-  },
-  "lwc-wire-get-records-property": {
-    "prefix": "lwc-wire-get-records-property",
-    "description": "Creates a @wire'd property for getRecords",
-    "body": [
-      "@api recordId;",
-      "",
-      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
-      "${1:records-property-name}"
-    ]
+    "prefix": "lwc-vertical-navigation-section"
   }
 }

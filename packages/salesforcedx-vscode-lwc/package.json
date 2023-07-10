@@ -118,7 +118,11 @@
     "snippets": [
       {
         "language": "javascript",
-        "path": "./snippets/lwc.json"
+        "path": "./snippets/lwc-js.json"
+      },
+      {
+        "language": "html",
+        "path": "./snippets/lwc-html.json"
       }
     ],
     "views": {
