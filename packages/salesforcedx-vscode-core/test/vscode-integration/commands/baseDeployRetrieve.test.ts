@@ -569,6 +569,62 @@ describe('Base Deploy Retrieve Commands', () => {
         expect(appendLineStub.calledOnce).to.equal(true);
         expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
       });
+
+      xit('should report any diagnostics if deploy failed', async () => {
+        const executor = new TestDeploy();
+
+        const mockDeployResult = new DeployResult(
+          {
+            status: RequestStatus.Failed
+          } as MetadataApiDeployStatus,
+          new ComponentSet()
+        );
+        executor.pollStatusStub.resolves(mockDeployResult);
+
+        const failedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          error: 'There was an issue',
+          state: ComponentStatus.Failed,
+          filePath: r.filePath,
+          problemType: 'Error',
+          lineNumber: 2,
+          columnNumber: 3
+        }));
+        sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
+
+        const setDiagnosticsStub = sb.stub(
+          (executor as any).errorCollection,
+          'set'
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
+        failedRows.forEach((row, index) => {
+          const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
+          const expectedFileUri = vscode.Uri.file(
+            getAbsoluteFilePath(
+              row.filePath,
+              workspaceUtils.getRootWorkspacePath()
+            )
+          );
+          expect(fileUri).to.deep.equal(expectedFileUri);
+          expect(diagnostics).to.deep.equal([
+            {
+              message: row.error,
+              range: new vscode.Range(
+                row.lineNumber - 1,
+                row.columnNumber - 1,
+                row.lineNumber - 1,
+                row.columnNumber - 1
+              ),
+              severity: vscode.DiagnosticSeverity.Error,
+              source: row.type
+            }
+          ]);
+        });
+      });
     });
 
     it('should unlock the deploy queue when finished', async () => {
