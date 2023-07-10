@@ -65,7 +65,7 @@ class MockEnvironmentVariableCollection
     throw new Error('Method not implemented.');
   }
   public persistent = true;
-  description = 'Mock Environment Variable Collection';
+  public description = 'Mock Environment Variable Collection';
   public replace(variable: string, value: string): void {
     throw new Error('Method not implemented.');
   }
