@@ -1,33 +1,39 @@
 # Publishing
 
-This is a guide for publishing to the Visual Studio Code Marketplace. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the
+This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the
 extensions through the .vsix files.
 
 # Goal
 
 The goal of publishing is to take the extensions under `/packages`, bundle them as
 .vsix files, and push them to the [Visual Studio Code
-Marketplace](https://marketplace.visualstudio.com/vscode).
+Marketplace](https://marketplace.visualstudio.com/vscode) and the [Open VSX Registry](https://open-vsx.org/).
 
 For more information about publishing take a look at:
 
 - [Publishing VS Code Extensions][publish_vscode_ext]
 - [Managing Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
+- [Publishing Extensions on Open VSX Registry](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions)
 
 # Prerequisites
 
-1. Publisher is a part of the GitHub team 'PDT'.
+1. Publisher is a part of the GitHub team 'IDE Experience'.
 
 # Steps
 
 ## Creating a Release Branch
 
 The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
-Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` file with the correct format and commits being staged.
 
-## Verifying the Change Log
+## Updating the Change Log
 
-One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) will review the changelog and make any changes to the release branch. A pull request will be opened against the release branch with updates to be included.
+After the release branch is created, the changelog should be updated. To do so, our [Doc Maintainer](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) should run the VS Code task `Update Change Log` on Monday. This task takes an optional `releaseOverride` parameter for the release version in the format of `v57.13.1`. If this is omitted, the latest created release branch will be used. The task will gather commits that should be published (like `feat` or `fix`), write the update to `CHANGELOG.md` and then open the file for review.
+
+Once the writer is content with the changes, they should commit the changes in the format `chore: generated CHANGELOG for ${releaseBranchName}"`, and push the update to the release branch.
+
+If the writer wants to make further changes to changelog through browser, they can do the same by switching the branch from develop to release/vxx.xx.x and go to changelog.md and click on the pencil icon to edit the file.
+
+If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), the task will end by printing a message that the release can be skipped.
 
 ## Compare Changes in the Release
 
@@ -57,7 +63,7 @@ The merge into `main` will trigger a run of the 'Test, Build, and Release' GHA w
 - send a slack notification that a release workflow has been initiated
 - create a tag and release in GitHub
 
-After the release has been created, it will trigger a publish action that will send a notification to slack to request approval to publish the vsix files to the marketplace.
+After the release has been created, it will trigger two publish actions for publishing in the MS Marketplace and the Open VSX. Each action will send a notification to slack to request approval to publish the vsix files.
 
 Before approving the release to the marketplace, download the vsix files from the release you just created, install them locally and verify they are working as expected.
 
@@ -66,7 +72,7 @@ Alternatively, you can download the files using the [gh cli](https://cli.github.
 `> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vsix'`
 `> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
 
-After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" to allow the extensions to be uploaded to the marketplace and complete the release process.
+After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 
 ## Post-Publishing the .vsix
 
@@ -173,6 +179,19 @@ from Atlassian on the flow. These steps are manual because you might encounter m
 1. `git pull` to get the latest changes.
 1. `git merge release/vxx.y.z`
 1. `git push`
+
+## Manual Publish in Open VSX Registry
+
+### Option 1: Using the Open VSX Website UI
+
+1. Log in [Open VSX](https://open-vsx.org/) with the svc-idee-bot github account username and password.
+2. In the Open VSX main page, find the settings by clicking the account avatar.
+3. Go to the "Extensions" section under settings. Click the "publish extensions" button to drag and drop the vsix file to publish it.
+
+### Option 2: Using the CLI Tool
+
+1. Get the publish token from the LastPass shared folder.
+2. Run `npx ovsx publish <vsix-file> -p <token>` locally to publish the vsix file on Open VSX.
 
 # Tips
 

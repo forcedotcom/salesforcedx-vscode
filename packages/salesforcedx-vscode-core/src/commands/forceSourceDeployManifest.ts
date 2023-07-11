@@ -4,21 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  TimestampConflictChecker
-} from '../commands/util/postconditionCheckers';
+import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
+import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { DeployExecutor } from './baseDeployRetrieve';
-import { ConflictDetectionMessages, FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  FilePathGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from './util';
 
 export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
   string
@@ -34,12 +37,17 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
     response: ContinueResponse<string>
   ): Promise<ComponentSet> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    return ComponentSet.fromManifest({
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
+    const resolveSourcePaths = packageDirs.map(packageDir =>
+      join(rootWorkspacePath, packageDir)
+    );
+    const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
-      resolveSourcePaths: packageDirs.map(dir =>
-        join(workspaceUtils.getRootWorkspacePath(), dir)
-      )
+      resolveSourcePaths,
+      forceAddWildcards: undefined
     });
+
+    return componentSet;
   }
 }
 
@@ -61,22 +69,17 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     }
   }
 
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:deploy')
-        .withFlag('--manifest', input as string)
-        .build()
-        .toString();
-    }
-  };
-
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new FilePathGatherer(manifestUri),
-    new LibrarySourceDeployManifestExecutor(),
-    new TimestampConflictChecker(true, messages)
+  const messages = getConflictMessagesFor(
+    'force_source_deploy_with_manifest_beta'
   );
-  await commandlet.run();
+
+  if (messages) {
+    const commandlet = new SfdxCommandlet(
+      new SfdxWorkspaceChecker(),
+      new FilePathGatherer(manifestUri),
+      new LibrarySourceDeployManifestExecutor(),
+      new TimestampConflictChecker(true, messages)
+    );
+    await commandlet.run();
+  }
 }

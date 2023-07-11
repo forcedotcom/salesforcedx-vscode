@@ -117,23 +117,9 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           defaultPackage
         ),
         merge: true,
-        suppressEvents: true
+        suppressEvents: false
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
-    });
-
-    it('componentSet has sourceApiVersion set', async () => {
-      const executor = new LibraryRetrieveSourcePathExecutor();
-      const data = path.join(
-        workspaceUtils.getRootWorkspacePath(),
-        'force-app/main/default/classes/'
-      );
-      const continueResponse = {
-        type: 'CONTINUE',
-        data: [data]
-      } as ContinueResponse<string[]>;
-      const componentSet = executor.getComponents(continueResponse);
-      expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
 
     it('should retrieve multiple files', async () => {

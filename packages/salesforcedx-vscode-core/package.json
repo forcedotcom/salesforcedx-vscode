@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "57.11.0",
+  "version": "58.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,13 +26,12 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
-    "@octokit/plugin-paginate-rest": "2.21.3",
-    "@salesforce/core": "3.34.7",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "57.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "57.11.0",
+    "@salesforce/core": "^3.34.8",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "58.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.6.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "^7.15.0",
-    "@salesforce/templates": "^57.0.2",
+    "@salesforce/source-deploy-retrieve": "^8.0.1",
+    "@salesforce/templates": "^57.1.2",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
@@ -43,11 +42,12 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.11.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.6.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
+    "@types/jest": "28.1.7",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
@@ -59,6 +59,8 @@
     "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "jest": "28.1.3",
+    "jest-junit": "14.0.1",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
@@ -66,6 +68,7 @@
     "nyc": "^15",
     "proxyquire": "2.1.3",
     "sinon": "^13.0.1",
+    "ts-jest": "28.0.8",
     "typescript": "^4.7.4",
     "yeoman-assert": "^3.1.1"
   },
@@ -87,9 +90,10 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "3.34.7",
-        "@salesforce/templates": "57.0.2",
-        "@salesforce/source-deploy-retrieve": "^7.15.0",
+        "@salesforce/core": "^3.34.8",
+        "@salesforce/source-tracking": "3.1.1",
+        "@salesforce/templates": "^57.1.2",
+        "@salesforce/source-deploy-retrieve": "^8.0.1",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
@@ -150,14 +154,14 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
+          "when": "sfdx:project_opened"
         }
       ],
       "conflicts": [
         {
           "id": "conflicts",
           "name": "Conflicts",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org)"
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -202,19 +206,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
@@ -300,19 +304,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.source.path",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -494,19 +498,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && (sfdx:default_username_has_no_change_tracking || !sfdx:is_scratch_org) && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -966,10 +970,20 @@
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
         },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "%prefer_deploy_on_save_enabled_description%"
+        },
         "salesforcedx-vscode-core.detectConflictsAtSync": {
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"
+        },
+        "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": {
+          "type": "boolean",
+          "default": true,
+          "description": "%enable_source_tracking_for_deploy_and_retrieve%"
         },
         "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
           "type": "boolean",

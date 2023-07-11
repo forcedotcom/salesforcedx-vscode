@@ -6,10 +6,11 @@
  */
 import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
+  ChannelService,
   getRootWorkspacePath,
-  SFDX_CORE_CONFIGURATION_NAME
+  SFDX_CORE_CONFIGURATION_NAME,
+  TelemetryService
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -74,7 +75,10 @@ import {
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
   SourceStatusFlags,
-  turnOffLogging
+  turnOffLogging,
+  viewAllChanges,
+  viewLocalChanges,
+  viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
@@ -218,17 +222,15 @@ function registerCommands(
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
-    forceSourceStatus
+    viewAllChanges
   );
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
-    forceSourceStatus,
-    flagStatusLocal
+    viewLocalChanges
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
-    forceSourceStatus,
-    flagStatusRemote
+    viewRemoteChanges
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -671,7 +673,12 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     SfdxWorkspaceChecker,
     WorkspaceContext,
     taskViewService,
-    telemetryService
+    telemetryService,
+    services: {
+      ChannelService,
+      TelemetryService,
+      WorkspaceContext
+    }
   };
 
   registerFunctionInvokeCodeLensProvider(extensionContext);

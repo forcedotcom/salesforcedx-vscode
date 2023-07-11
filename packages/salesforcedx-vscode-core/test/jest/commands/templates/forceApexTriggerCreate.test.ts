@@ -12,22 +12,20 @@ import {
   APEX_TRIGGER_NAME_MAX_LENGTH,
   APEX_TRIGGER_TYPE
 } from '../../../../src/commands/templates/metadataTypeConstants';
+import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir
 } from '../../../../src/commands/util/parameterGatherers';
-import { OverwriteComponentPrompt } from '../../../../src/commands/util/postconditionCheckers';
-import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
+import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
 
+jest.mock('../../../../src/commands/templates/executors/libraryForceApexTriggerCreateExecutor');
+jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
-jest.mock(
-  '../../../../src/commands/templates/executors/libraryForceApexTriggerCreateExecutor'
-);
-jest.mock('../../../../src/commands/util/preconditionCheckers');
-jest.mock('../../../../src/commands/util/postconditionCheckers');
+jest.mock('../../../../src/commands/util/sfdxWorkspaceChecker');
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
@@ -57,6 +55,7 @@ describe('forceApexTriggerCreate Unit Tests.', () => {
         };
       });
   });
+
   it('Should be able to execute forceApexTriggerCreate.', async () => {
     await forceApexTriggerCreate();
     expect(selectFileNameMocked).toHaveBeenCalledWith(

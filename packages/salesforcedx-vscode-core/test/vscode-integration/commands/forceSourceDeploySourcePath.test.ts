@@ -14,7 +14,8 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
-  fileUtils
+  fileUtils,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -26,7 +27,7 @@ import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
-import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
+import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
 import { WorkspaceContext } from '../../../src/context';
 import {
   SfdxPackageDirectories,
@@ -78,6 +79,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         });
 
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
+      });
     });
 
     afterEach(() => {
@@ -122,20 +126,6 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         usernameOrConnection: mockConnection
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
-    });
-
-    it('componentSet should have sourceApiVersion set', async () => {
-      const executor = new LibraryDeploySourcePathExecutor();
-      const data = path.join(
-        workspaceUtils.getRootWorkspacePath(),
-        'force-app/main/default/classes/'
-      );
-      const continueResponse = {
-        type: 'CONTINUE',
-        data: [data]
-      } as ContinueResponse<string[]>;
-      const componentSet = executor.getComponents(continueResponse);
-      expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
 
     it('should deploy multiple files', async () => {
