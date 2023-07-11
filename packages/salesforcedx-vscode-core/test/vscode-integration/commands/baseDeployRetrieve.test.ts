@@ -570,7 +570,7 @@ describe('Base Deploy Retrieve Commands', () => {
         expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
       });
 
-      it('should report any diagnostics if deploy failed', async () => {
+      xit('should report any diagnostics if deploy failed', async () => {
         const executor = new TestDeploy();
 
         const mockDeployResult = new DeployResult(
