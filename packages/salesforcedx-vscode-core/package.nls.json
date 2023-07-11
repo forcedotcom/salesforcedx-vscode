@@ -84,5 +84,6 @@
   "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
   "force_launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",
-  "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command."
+  "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command.",
+  "setting_suppress_output_tab_description": "When deploy is run, log to output only when ther is an error on deploy."
 }

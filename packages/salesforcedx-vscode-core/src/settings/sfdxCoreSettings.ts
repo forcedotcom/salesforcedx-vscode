@@ -7,6 +7,7 @@
 
 import {
   SETTING_CLEAR_OUTPUT_TAB,
+  SETTING_SUPRESS_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -83,6 +84,11 @@ export class SfdxCoreSettings {
   public getEnableClearOutputBeforeEachCommand(): boolean {
     return this.getConfigValue(SETTING_CLEAR_OUTPUT_TAB, false);
   }
+
+  public getEnableSuppressOutputAfterEachCommand(): boolean {
+    return this.getConfigValue(SETTING_SUPRESS_OUTPUT_TAB, false);
+  }
+  
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
     return this.getConfiguration().get<T>(key, defaultValue);

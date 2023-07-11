@@ -997,6 +997,11 @@
           "default": false,
           "description": "%setting_clear_output_tab_description%"
         },
+        "salesforcedx-vscode-core.suppressOutputTab": {
+          "type": "boolean",
+          "default": false,
+          "description": "%setting_suppress_output_tab_description%"
+        },
         "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
           "type": "boolean",
           "default": false,

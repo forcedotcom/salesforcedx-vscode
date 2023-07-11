@@ -37,6 +37,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import { OrgAuthInfo } from '../util';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
+import { SfdxSettingsService } from '@salesforce/salesforcedx-utils-vscode/src/settings';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -146,8 +147,10 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         BaseDeployExecutor.errorCollection.clear();
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-        const output = this.createOutput(result, relativePackageDirs);
-        channelService.appendLine(output);
+        if (!SfdxSettingsService.getSuppressOutputAfterEachCommand()) {
+          const output = this.createOutput(result, relativePackageDirs);
+          channelService.appendLine(output);
+        }
 
         const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
@@ -234,9 +237,12 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     result: RetrieveResult | undefined
   ): Promise<void> {
     if (result) {
+      DeployRetrieveExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-      const output = this.createOutput(result, relativePackageDirs);
-      channelService.appendLine(output);
+      if (!SfdxSettingsService.getSuppressOutputAfterEachCommand()) {
+        const output = this.createOutput(result, relativePackageDirs);
+        channelService.appendLine(output);
+      }
       PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
         result.response.fileProperties
       );
