@@ -12,16 +12,16 @@ import * as vscode from 'vscode';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 
-const ORGS = 'orgs';
-const METADATA = 'metadata';
+export const ORGS = 'orgs';
+export const METADATA = 'metadata';
 export const TOOLS = 'tools';
-const TEST_RESULTS = 'testresults';
-const APEX = 'apex';
-const DEBUG = 'debug';
-const LOGS = 'logs';
-const APEX_DB = 'apex.db';
-const LWC = 'lwc';
-const SFDX_CONFIG_FILE = 'sfdx-config.json';
+export const TEST_RESULTS = 'testresults';
+export const APEX = 'apex';
+export const DEBUG = 'debug';
+export const LOGS = 'logs';
+export const APEX_DB = 'apex.db';
+export const LWC = 'lwc';
+export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -147,7 +147,10 @@ function relativeStateFolder(): string {
 }
 
 function relativeToolsFolder(): string {
-  const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);
+  const relativePathToToolsFolder = path.join(
+    projectPaths.relativeStateFolder(),
+    TOOLS
+  );
   return relativePathToToolsFolder;
 }
 

@@ -8,11 +8,14 @@
 import {
   Config,
   ConfigAggregator,
+  Org,
   OrgConfigProperties,
   SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
+import { workspaceUtils } from '..';
 import { ConfigAggregatorProvider } from '../providers';
+import { TelemetryService } from '../telemetry/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -52,11 +55,26 @@ export class ConfigUtil {
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_ORG
-    );
-    return defaultUsernameOrAlias ? String(defaultUsernameOrAlias) : undefined;
+    try {
+      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+        OrgConfigProperties.TARGET_ORG
+      );
+      if (!defaultUsernameOrAlias) {
+        return undefined;
+      }
+
+      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        TelemetryService.getInstance().sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
+      throw(err);
+    }
   }
 
   public static async isGlobalDefaultUsername(): Promise<boolean> {
@@ -120,18 +138,72 @@ export class ConfigUtil {
    * @returns The username for the configured Org if it exists.
    */
   public static async getUsername(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_ORG
-    );
+    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
     if (!defaultUsernameOrAlias) {
       return;
     }
 
-    const info = await StateAggregator.getInstance();
-    const username = defaultUsernameOrAlias
-      ? info.aliases.getUsername(String(defaultUsernameOrAlias))
-      : undefined;
+    const username = await this.getUsernameFor(defaultUsernameOrAlias);
     return username ? String(username) : undefined;
+  }
+
+  /**
+   * Get the username of the default dev hub for the project.
+   *
+   * @returns The username for the configured default dev hub
+   * Org if it exists.
+   */
+  public static async getDevHubUsername(): Promise<string | undefined> {
+    const defaultDevHubUsernameOrAlias = await ConfigUtil.getDefaultDevHubUsernameOrAlias();
+    if (!defaultDevHubUsernameOrAlias) {
+      return;
+    }
+
+    const username = await this.getUsernameFor(defaultDevHubUsernameOrAlias);
+    return username ? String(username) : undefined;
+  }
+
+  /**
+   * Get the username of the currently auth'd user for the project
+   * given a username or alias.
+   *
+   * @returns The username for the configured Org if it exists.
+   */
+  public static async getUsernameFor(usernameOrAlias: string) {
+    const info = await StateAggregator.getInstance();
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
+  }
+
+  public static async setDefaultUsernameOrAlias(
+    usernameOrAlias: string
+  ): Promise<void> {
+    const originalDirectory = process.cwd();
+    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+    const workspacePath = workspaceUtils.getRootWorkspacePath();
+    try {
+      // checks if the usernameOrAlias is non-empty and active.
+      if (usernameOrAlias) {
+        // throws an error if the org associated with the usernameOrAlias is expired.
+        await Org.create({ aliasOrUsername: usernameOrAlias });
+      }
+      process.chdir(workspacePath);
+      await this.setUsernameOrAlias(usernameOrAlias);
+    } finally {
+      process.chdir(originalDirectory);
+    }
+  }
+
+  private static async setUsernameOrAlias(usernameOrAlias: string) {
+    const config = await Config.create(Config.getDefaultOptions());
+    config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
+    await config.write();
+    // Force the ConfigAggregatorProvider to reload its stored
+    // ConfigAggregators so that this config file change is accounted
+    // for and the ConfigAggregators are updated with the latest info.
+    const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
+    await configAggregatorProvider.reloadConfigAggregators();
+    // Also force the StateAggregator to reload to have the latest
+    // authorization info.
+    StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
 }

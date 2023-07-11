@@ -12,7 +12,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
-import { join, normalize } from 'path';
+import { join } from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import {
@@ -23,17 +23,18 @@ import {
   PathStrategyFactory,
   SfdxCommandlet
 } from '../../../../src/commands/util';
-import {
-  CompositePostconditionChecker,
-  TimestampConflictChecker
-} from '../../../../src/commands/util/postconditionCheckers';
+import { CompositePostconditionChecker } from '../../../../src/commands/util/compositePostconditionChecker';
+import { TimestampConflictChecker } from '../../../../src/commands/util/timestampConflictChecker';
 import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
+import { WorkspaceContext } from '../../../../src/context';
+import * as workspaceUtil from '../../../../src/context/workspaceOrgType';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { MetadataDictionary, workspaceUtils } from '../../../../src/util';
+import { OrgType } from './../../../../src/context/workspaceOrgType';
+
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
@@ -229,6 +230,35 @@ describe('Postcondition Checkers', () => {
         await checker.check({ type: 'CONTINUE', data });
 
         expect(promptStub.firstCall.args[0]).to.eql([data[0]]);
+      });
+
+      it('Should prompt overwrite for EPT components that exist', async () => {
+        existsStub.returns(false);
+        const data = {
+          fileName: `Test1`,
+          outputdir: 'package/tests',
+          type: 'ExperiencePropertyTypeBundle',
+          suffix: 'json'
+        };
+        pathExists(true, data, '/schema.json');
+
+        await checker.check({ type: 'CONTINUE', data });
+
+        expect(promptStub.firstCall.args[0]).to.eql([data]);
+      });
+
+      it('Should prompt overwrite for EPT components that does not exist', async () => {
+        existsStub.returns(false);
+        const data = {
+          fileName: `Test1`,
+          outputdir: 'package/tests',
+          type: 'ExperiencePropertyTypeBundle',
+          suffix: 'json'
+        };
+
+        await checker.check({ type: 'CONTINUE', data });
+
+        expect(promptStub.firstCall).to.null;
       });
 
       it('Should determine a component exists if at least one of its file extensions do', async () => {
@@ -427,6 +457,7 @@ describe('Postcondition Checkers', () => {
   });
 
   describe('TimestampConflictChecker', () => {
+    const mockWorkspaceContext = { getConnection: () => {} } as any;
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let conflictViewStub: SinonStub;
@@ -440,6 +471,10 @@ describe('Postcondition Checkers', () => {
       settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
+      env.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
+      env
+        .stub(workspaceUtil, 'getWorkspaceOrgType')
+        .returns(OrgType.NonSourceTracked);
       appendLineStub.callsFake(line => channelOutput.push(line));
     });
 

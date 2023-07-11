@@ -25,7 +25,57 @@ Out of the box snippets for Salesforce development are available in these reposi
 - [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
 - [Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc.json) 
 
-If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
+
+### Example Custom Snippet
+The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a custom Apex snippet that lets you quickly write a simple SOQL query:
+
+1. Run the **Snippets: Configure User Snippets** command from the Command Palette. 
+2. Select ``apex.json`` to open the file.
+3. Add this snippet code to the file:
+   
+   ```
+   "SOQL" : {
+        "prefix": "soql",
+        "body": [
+            "[SELECT ${1:field1, field2} FROM ${2:SobjectName} WHERE ${3:clause}];"
+        ],
+        "description": "Apex SOQL query"
+    }
+   ```
+4. Save the file.
+5.  Use this snippet in your Apex class file by typing "soql" and selecting to add this snippet to your code.
+6.  The code snippet `` [SELECT field1, field2 FROM SobjectName WHERE clause];`` is added to your Apex file. 
+
+See [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets) for more information about snippets.
+
+## Custom Metadata Templates
+
+In addition to the generic snippets feature available in VS Code, you can use custom templates to create new metadata for an Apex class or trigger. See [Custom Code Templates](./en/user-guide/byotemplate) for information on how to set up your custom templates. Here's an example of using a template for your Apex classes:
+
+1. Edit the `DefaultApexClass.cls` file with your custom code:
+
+```
+//Copyright (c) <year><copyright holder>
+
+public with sharing class <%= apiName %> {
+    		public <%= apiName %>(String prop) {
+			this.prop = prop;
+    		}
+		@AuraEnabled
+    public static List<SObject> getRecords(){
+      try {
+          return [Select Id from Sobject];
+      } catch (Exception e){
+          throw new AuraHandledException(e.getMessage());
+      }
+    }
+}
+```
+1. Run the **SFDX: Create Apex Class** command from the Command Palette.
+2. Enter `ApexClass` for filename.
+3. Accept the default directory location.
+   
+Confirm that the `ApexClass.cls` file contains your custom code.
 
 ## Intellisense for SObjects
 
@@ -51,7 +101,7 @@ When you refresh SObject definitions, the extension uses the default org to gene
 
 Whenever you refresh SObject definitions, the representative Apex classes are deleted and regenerated. You can modify the SObjects either by updating the objects’ `.object-meta.xml` and `.field-meta.xml` files; Or by making changes declaratively in the default org. After modifying the SObjects, make sure to sync your local project and the default org.
 
-When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, `SFDX: Refresh SObject Definitions` command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
+When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, **SFDX: Refresh SObject Definitions** command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
 
 ## Go To Definitions
 

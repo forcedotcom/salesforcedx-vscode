@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {  WorkspaceContextUtil } from '../../../src';
+import {  ConfigUtil, WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -60,6 +60,14 @@ export class MockFileWatcher {
 const env = createSandbox();
 
 describe('WorkspaceContext', () => {
+  const dummyOrgId = '000dummyOrgId';
+  const mockAuthInfo = { test: 'test' };
+  const mockConnection = {
+    authInfo: mockAuthInfo,
+    getAuthInfoFields: () => {
+      return { orgId: dummyOrgId };
+    }
+  };
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
@@ -69,7 +77,6 @@ describe('WorkspaceContext', () => {
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
   let workspaceContextUtil: any; // TODO find a better way
-  let authUtil: any;
 
   beforeEach(async () => {
     mockFileWatcher = new MockFileWatcher(cliConfigPath);
@@ -84,12 +91,11 @@ describe('WorkspaceContext', () => {
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
-    authUtil = workspaceContextUtil.getAuthUtil();
     getUsernameOrAliasStub = env
-      .stub(authUtil, 'getDefaultUsernameOrAlias')
+      .stub(ConfigUtil, 'getDefaultUsernameOrAlias')
       .returns(testAlias);
     getUsernameStub = env
-      .stub(authUtil, 'getUsername')
+      .stub(ConfigUtil, 'getUsernameFor')
       .withArgs(testAlias)
       .returns(testUser);
 
@@ -138,9 +144,6 @@ describe('WorkspaceContext', () => {
   });
 
   describe('getConnection', () => {
-    const mockAuthInfo = { test: 'test' };
-    const mockConnection = { authInfo: mockAuthInfo };
-
     let createConnectionStub: SinonStub;
 
     beforeEach(() => {

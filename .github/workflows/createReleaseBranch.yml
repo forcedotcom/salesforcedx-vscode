@@ -32,16 +32,16 @@ jobs:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
     steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16.13.x'
     - name: Checkout
       uses: actions/checkout@v3
       with:
         ref: 'develop'
         ssh-strict: false
         token: ${{ secrets.IDEE_GH_TOKEN }}
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: '.nvmrc'
     - uses: ./.github/actions/gitConfig
       with:
         email: ${{ secrets.IDEE_GH_EMAIL }}

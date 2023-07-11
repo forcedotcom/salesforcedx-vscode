@@ -14,7 +14,8 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
-  LocalComponent
+  LocalComponent,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -32,8 +33,8 @@ import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
-import { workspaceContext } from '../../../../src/context';
+import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/libraryRetrieveSourcePathExecutor';
+import { WorkspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
@@ -68,7 +69,9 @@ describe('Force Source Retrieve Component(s)', () => {
         contents: await testData.getConfig()
       });
       mockConnection = await testData.getConnection();
-      sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+      sb.stub(WorkspaceContext.prototype, 'getConnection').returns(
+        mockConnection
+      );
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
         defaultPackageDir
@@ -87,6 +90,8 @@ describe('Force Source Retrieve Component(s)', () => {
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
+      sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
     });
 
     afterEach(() => {
@@ -117,7 +122,8 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
         output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
-        merge: true
+        merge: true,
+        suppressEvents: false
       });
 
       const retrievedSet = retrieveStub.firstCall.thisValue as ComponentSet;
@@ -151,8 +157,8 @@ describe('Force Source Retrieve Component(s)', () => {
           new SourceComponent({
             name: 'MyClassB',
             type,
-            content: path.join(type.directoryName, 'MyClassB.cls'),
-            xml: path.join(type.directoryName, 'MyClassB.cls-meta.xml')
+            content: path.join(String(type.directoryName), 'MyClassB.cls'),
+            xml: path.join(String(type.directoryName), 'MyClassB.cls-meta.xml')
           })
         ])
       );
@@ -172,19 +178,19 @@ describe('Force Source Retrieve Component(s)', () => {
       const className = 'MyClass';
       const className2 = 'MyClass';
       const apexClassPathOne = path.join(
-        type.directoryName,
+        String(type.directoryName),
         `${className}.cls`
       );
       const apexClassPathTwo = path.join(
-        type.directoryName,
+        String(type.directoryName),
         `${className2}.cls`
       );
       const apexClassXmlPathOne = path.join(
-        type.directoryName,
+        String(type.directoryName),
         `${apexClassPathOne}-meta.xml`
       );
       const apexClassXmlPathTwo = path.join(
-        type.directoryName,
+        String(type.directoryName),
         `${className2}.cls-meta.xml`
       );
       const virtualTree = [

@@ -1,12 +1,13 @@
 name: Validate PR
 on:
   pull_request:
+    types: [opened, reopened, edited, synchronize]
     branches: [develop]
 
 jobs:
   pr-validation:
     uses: salesforcecli/github-workflows/.github/workflows/validatePR.yml@main
-  code-quality: 
+  code-quality:
     strategy:
       matrix:
         node_version: [lts/-1]

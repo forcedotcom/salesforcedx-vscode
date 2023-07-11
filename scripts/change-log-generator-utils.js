@@ -28,14 +28,21 @@ const typesToIgnore = [
   'revert'
 ];
 
+const logger = (msg, obj) => {
+  if (!obj) {
+    console.log(`*** ${msg}`);
+  } else {
+    console.log(`*** ${msg}`, obj);
+  }
+};
+
 /**
  * Returns the previous release branch
- * @param {string} releaseBranch current release branch
  * @returns 
  */
 
-function getPreviousReleaseBranch(releaseBranch) {
-  const releaseBranches = getReleaseBranches();
+function getPreviousReleaseBranch() {
+  const releaseBranches = getRemoteReleaseBranches();
   return releaseBranches[0];
 }
 
@@ -43,7 +50,7 @@ function getPreviousReleaseBranch(releaseBranch) {
  * Returns a list of remote release branches, sorted in reverse order by
  * creation date. This ensures that the first entry is the latest branch.
  */
- function getReleaseBranches() {
+ function getRemoteReleaseBranches() {
   return shell
     .exec(
       `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
@@ -63,6 +70,7 @@ function getPreviousReleaseBranch(releaseBranch) {
  * @returns 
  */
  function getCommits(releaseBranch, previousBranch) {
+  logger(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
   const commits = shell
     .exec(
       `git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`,
@@ -81,6 +89,7 @@ function getPreviousReleaseBranch(releaseBranch) {
  * @returns 
  */
  function parseCommits(commits) {
+  logger(`\nStep 4: Determine which commits we want to share in the changelog`);
   let commitMaps = [];
   for (let i = 0; i < commits.length; i++) {
     const commitMap = buildMapFromCommit(commits[i]);
@@ -170,7 +179,7 @@ function filterExistingPREntries(parsedCommits) {
 function getChangeLogText(releaseBranch, groupedMessages) {
   let changeLogText = util.format(
     LOG_HEADER,
-    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, ''),
+    releaseBranch.toString().replace(constants.REMOTE_RELEASE_BRANCH_PREFIX, ''),
     getReleaseDate()
   );
   let lastType = '';
@@ -214,13 +223,13 @@ function getPackageHeaders(filesChanged) {
  * @param {string} textToInsert 
  */
 function writeChangeLog(textToInsert) {
+  logger(`\nStep 5: Adding changelog to: ${constants.CHANGE_LOG_PATH}`);
   let data = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let fd = fs.openSync(constants.CHANGE_LOG_PATH, 'w+');
   let buffer = Buffer.from(textToInsert.toString());
   fs.writeSync(fd, buffer, 0, buffer.length, 0);
   fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
-  console.log(`\nChange log written to: ${constants.CHANGE_LOG_PATH}`);
 }
 
 function getPackageName(filePath) {
@@ -284,6 +293,31 @@ function getReleaseDate() {
     }).format(releaseDate);
 }
 
+/**
+ *
+ * Complete the heavy lifting to update the changelog by grabbing the
+ * new commits, grouping everything, and creating the text for editing.
+ * @param {string} remoteReleaseBranch
+ * @param {string} remotePreviousBranch
+ */
+
+function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
+  const parsedCommits = parseCommits(getCommits(remoteReleaseBranch, remotePreviousBranch));
+  if (parsedCommits.length > 0) {
+    const localReleaseBranch = remoteReleaseBranch.replace(constants.ORIGIN_PREFIX_ONLY, '');
+    console.log(`\nChecking out ${localReleaseBranch}`);
+    const commitCommand = `git checkout ${localReleaseBranch}`;
+    shell.exec(commitCommand);
+    
+    const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
+    const changeLog = getChangeLogText(remoteReleaseBranch, groupedMessages);
+    writeChangeLog(changeLog);
+  } else {
+    console.log(`No commits found, so we can skip this week's release. Carry on!`);
+    process.exit(0);
+  }
+}
+
 module.exports = {
-  getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, getCommits, writeChangeLog
+  getPreviousReleaseBranch, updateChangeLog
 }

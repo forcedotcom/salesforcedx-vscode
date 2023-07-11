@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfProject, SfProjectJson } from '@salesforce/core';
-import { AnyJson } from '@salesforce/ts-types';
+import { JsonArray } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -75,8 +74,8 @@ export default class SfdxProjectConfig {
     return SfdxProjectConfig.instance;
   }
 
-  public static async getValue(key: string): Promise<AnyJson | undefined> {
+  public static async getValue<T extends JsonArray | string | undefined>(key: string): Promise<T> {
     const projectConfig = await SfdxProjectConfig.getInstance();
-    return projectConfig.get(key);
+    return projectConfig.get(key) as T;
   }
 }

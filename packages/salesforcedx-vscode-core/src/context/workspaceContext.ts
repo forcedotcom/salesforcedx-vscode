@@ -23,7 +23,8 @@ export class WorkspaceContext {
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
-    this.onOrgChange = WorkspaceContextUtil.getInstance().onOrgChange;
+    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
+    this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
   }
 
@@ -43,10 +44,12 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
-      // error reported by setupWorkspaceOrgType
-      console.error(e)
-    );
+    await workspaceContextUtils
+      .setupWorkspaceOrgType(orgInfo.username)
+      .catch(e =>
+        // error reported by setupWorkspaceOrgType
+        console.error(e)
+      );
 
     await decorators.showOrg();
   }
@@ -57,5 +60,9 @@ export class WorkspaceContext {
 
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
+  }
+
+  get orgId(): string | undefined {
+    return WorkspaceContextUtil.getInstance().orgId;
   }
 }

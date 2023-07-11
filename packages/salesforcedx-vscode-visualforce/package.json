@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "56.10.0",
+  "version": "58.6.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,15 +24,15 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "56.10.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "56.10.0",
+    "@salesforce/salesforcedx-visualforce-language-server": "58.6.1",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "58.6.1",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "5.2.1",
     "vscode-languageserver-protocol": "3.14.1",
     "vscode-languageserver-types": "3.14.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "56.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.6.1",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
@@ -49,20 +49,21 @@
   ],
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:copy": "cp ../salesforcedx-visualforce-language-server/dist/visualforceServer.js ./dist/",
     "bundle:extension:build": "esbuild ./src/extension.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --minify",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "bundle:extension:copy": "cp ../salesforcedx-visualforce-language-server/dist/visualforceServer.js ./dist/",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
+    "test:jest": "jest --coverage",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:prepublish": "npm prune --production",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "watch": "tsc -watch -p ."
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"

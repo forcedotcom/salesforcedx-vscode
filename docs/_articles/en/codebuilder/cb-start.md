@@ -4,9 +4,7 @@ lang: en
 ---
 
 ## Overview
-Complete this Quick Start to become familiar with the Code Builder interface and perform some simple tasks in your Code Builder environment.
-## Important Considerations
-We've capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using it.
+Complete this Quick Start to become familiar with the Code Builder interface and perform some simple tasks in your Code Builder environment. Before you start, see [Code Builder Overview](./en/codebuilder/about) for more information and important considerations.
 
 ### Don’t Forget to Save Your Work
 Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Save your work before you close the Code Builder tab on your browser so you don’t lose it. 
@@ -57,7 +55,7 @@ The Code Builder user interface is divided into five main areas.
 **Status Bar**: Shows information about the opened project and the files you’re editing. The Status Bar displays the org that you're connected to. 
 
 ## Get To Know Your Org – Use the Org Browser
-Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked sandboxes or Developer Edition orgs. User Org Browser to retrieve the metadata source into your local project. 
+Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. Use Org Browser to retrieve the metadata source into your local project. 
 
 **More Information**: You can find more information about the [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) in the Salesforce Extension Pack documentation.
 
@@ -93,7 +91,7 @@ During the course of development, you'll use different types of orgs for differe
 
 To log into another org:
 
-1. Click the org picker (which show the alias for the current org) in the status bar, to bring up the command palette.
+1. Click the org picker (which shows the alias for the current org) in the status bar, to bring up the Command Palette.
 2. Run **SFDX: Authorize an Org**.
 3. Enter the login URL or select the org you want to log into.
 4. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.

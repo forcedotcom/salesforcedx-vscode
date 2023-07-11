@@ -1,14 +1,14 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "56.10.0",
+  "version": "58.6.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.61.2"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "56.10.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "58.6.1",
     "typescript": "^4.7.4",
     "vscode-css-languageservice": "2.1.9",
     "vscode-languageserver": "5.2.1",
@@ -28,14 +28,15 @@
   },
   "scripts": {
     "bundle:debugger": "esbuild ./src/visualforceServer.ts  --bundle --outfile=dist/visualforceServer.js --format=cjs --platform=node --external:vscode-uri --external:vscode-nls --external:vscode-languageserver-types --external:vscode-languageserver-protocol --external:vscode-css-languageservice --external:vscode-languageserver --minify",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./ && npm run copy:files",
     "copy:files": "shx cp -R test/unit/fixtures out/test/unit",
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit",
-    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --exit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json"
+    "test:jest": "jest --coverage",
+    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --exit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "watch": "tsc -watch -p ."
   },
   "nyc": {
     "reporter": [

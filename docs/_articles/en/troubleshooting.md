@@ -7,7 +7,7 @@ Here’s some information on how to get past roadblocks that you might encounter
 
 ## SFDX Commands Aren’t Available
 
-If you don’t see any SFDX commands in the command palette, make sure that you’re working on a Salesforce DX project and that you have the latest version of Salesforce CLI.
+If you don’t see any SFDX commands in the Command Palette, make sure that you’re working on a Salesforce DX project and that you have the latest version of Salesforce CLI.
 
 1. Make sure that the root directory you have open in VS Code contains an `sfdx-project.json` file. If you haven’t set up a Salesforce DX project, check out [Project Setup](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
 2. [Update Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_update_cli.htm), as described in the _Salesforce DX Setup Guide_.

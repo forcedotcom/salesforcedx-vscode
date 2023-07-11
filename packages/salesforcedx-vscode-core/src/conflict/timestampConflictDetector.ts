@@ -9,12 +9,14 @@ import { join, relative } from 'path';
 import {
   DirectoryDiffResults,
   MetadataCacheResult,
-  MetadataCacheService,
   PersistentStorageService
 } from './';
 import { diffComponents } from './componentDiffer';
 import { TimestampFileProperties } from './directoryDiffer';
-import { CorrelatedComponent } from './metadataCacheService';
+import {
+  CorrelatedComponent,
+  MetadataCacheService
+} from './metadataCacheService';
 
 export class TimestampConflictDetector {
   private diffs: DirectoryDiffResults;
@@ -40,7 +42,9 @@ export class TimestampConflictDetector {
 
   private determineConflicts(components: CorrelatedComponent[]) {
     const cache = PersistentStorageService.getInstance();
-    const conflicts: Set<TimestampFileProperties> = new Set<TimestampFileProperties>();
+    const conflicts: Set<TimestampFileProperties> = new Set<
+      TimestampFileProperties
+    >();
     components.forEach(component => {
       let lastModifiedInOrg: string | undefined;
       let lastModifiedInCache: string | undefined;
@@ -51,8 +55,14 @@ export class TimestampConflictDetector {
         component.cacheComponent.fullName
       );
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
-      if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-        const differences = diffComponents(component.projectComponent, component.cacheComponent);
+      if (
+        !lastModifiedInCache ||
+        this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)
+      ) {
+        const differences = diffComponents(
+          component.projectComponent,
+          component.cacheComponent
+        );
         if (differences) {
           differences.forEach(difference => {
             const cachePathRelative = relative(
@@ -74,6 +84,12 @@ export class TimestampConflictDetector {
       }
     });
     this.diffs.different = conflicts;
+  }
+
+  private dateIsGreater(dateStrOne: string, dateStrTwo: string): boolean {
+    const dateNumOne = new Date(dateStrOne).getTime();
+    const dateNumTwo = new Date(dateStrTwo).getTime();
+    return dateNumOne > dateNumTwo;
   }
 
   private createRootPaths(result: MetadataCacheResult) {
