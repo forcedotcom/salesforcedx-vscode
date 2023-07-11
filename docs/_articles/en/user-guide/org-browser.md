@@ -3,7 +3,7 @@ title: Org Browser
 lang: en
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier to retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs.
+The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier to retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest).
 
 ## Opening the Org Browser
 
@@ -19,7 +19,7 @@ The Org Browser displays the available metadata types and their corresponding co
 8. Retrieve source for all components of metadata type
 9. Retrieve source for metadata component and open it in VS Code
 
-To open the Org Browser, click the cloud icon in the Activity Bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./en/user-guide/default-org/) is set to a non source-tracked org.
+To open the Org Browser, click the cloud icon in the Activity Bar of the VS Code window **(1)**.
 
 When you open the Org Browser, all the metadata for the default org is saved in your local project under the `.sfdx` directory to minimize the number of calls to the org.
 
@@ -83,4 +83,4 @@ After you have made the code changes you can deploy the source files or director
 
 - In VS Code explorer, right-click single or multi-selected source files or directories and select  **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
-- With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
+- With a source file open in the editor, open the Command Palette and run **SFDX: Deploy This Source File to Org**.

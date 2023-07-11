@@ -13,7 +13,6 @@ import {
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
 import { decorators } from '../decorators';
-import { setIsScratchOrg } from './contextVariables';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -52,8 +51,6 @@ export class WorkspaceContext {
         console.error(e)
       );
 
-    await setIsScratchOrg();
-
     await decorators.showOrg();
   }
 
@@ -63,5 +60,9 @@ export class WorkspaceContext {
 
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
+  }
+
+  get orgId(): string | undefined {
+    return WorkspaceContextUtil.getInstance().orgId;
   }
 }

@@ -4,27 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
-  ConflictDetectionMessages,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-import {
-  CompositePostconditionChecker,
-  TimestampConflictChecker
-} from './util/postconditionCheckers';
+import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
+import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor() {
@@ -37,13 +33,10 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue(
-      'sourceApiVersion'
-    )) as string;
     const paths =
       typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
-    componentSet.sourceApiVersion = sourceApiVersion;
+
     return componentSet;
   }
 }
@@ -82,36 +75,23 @@ export const forceSourceDeploySourcePaths = async (
     }
   }
 
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
-    commandHint: inputs => {
-      const commands: string[] = [];
-      (inputs as string[]).forEach(input => {
-        commands.push(
-          new SfdxCommandBuilder()
-            .withArg('force:source:deploy')
-            .withFlag('--sourcepath', input)
-            .build()
-            .toString()
-        );
-      });
-      const hints = commands.join('\n  ');
-
-      return hints;
-    }
-  };
-
-  const commandlet = new SfdxCommandlet<string[]>(
-    new SfdxWorkspaceChecker(),
-    new LibraryPathsGatherer(uris),
-    new LibraryDeploySourcePathExecutor(),
-    new CompositePostconditionChecker(
-      new SourcePathChecker(),
-      new TimestampConflictChecker(false, messages)
-    )
+  const messages = getConflictMessagesFor(
+    'force_source_deploy_with_sourcepath_beta'
   );
 
-  await commandlet.run();
+  if (messages) {
+    const commandlet = new SfdxCommandlet<string[]>(
+      new SfdxWorkspaceChecker(),
+      new LibraryPathsGatherer(uris),
+      new LibraryDeploySourcePathExecutor(),
+      new CompositePostconditionChecker(
+        new SourcePathChecker(),
+        new TimestampConflictChecker(false, messages)
+      )
+    );
+
+    await commandlet.run();
+  }
 };
 
 export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
