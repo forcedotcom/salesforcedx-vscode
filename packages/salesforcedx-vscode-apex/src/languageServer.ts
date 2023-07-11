@@ -136,6 +136,14 @@ export async function createLanguageServer(
   extensionContext: vscode.ExtensionContext
 ): Promise<LanguageClient> {
   const server = await createServer(extensionContext);
+  // we no longer want to watch the StandardApexLibrary folder
+  vscode.workspace
+    .getConfiguration()
+    .update(
+      'files.watcherExclude',
+      { '.apex/tools/**/StandardApexLibrary/*.*': true },
+      vscode.ConfigurationTarget.Workspace
+    );
   const client = new LanguageClient(
     'apex',
     nls.localize('client_name'),
