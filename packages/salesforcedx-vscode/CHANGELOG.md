@@ -4,25 +4,25 @@
 
 #### salesforcedx-vscode-lightning
 
-- Bump lightning-language-server version ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+- We made an update to the lightning language server version. ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
 
 #### salesforcedx-vscode-lwc
 
-- Bump lightning-language-server version ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+- We made an update to the lightning language server version. ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Fixed a typo for the no_line_breakpoint_information_for_current_project message ([PR #4948](https://github.com/forcedotcom/salesforcedx-vscode/pull/4948))
+- We made some changes under the hood. ([PR #4948](https://github.com/forcedotcom/salesforcedx-vscode/pull/4948))
 
 #### salesforcedx-vscode-core
 
-- Fix for problems tab not clearing errors ([PR #4962](https://github.com/forcedotcom/salesforcedx-vscode/pull/4962))
+- We fixed an issue with the problems tab not clearing errors. ([PR #4962](https://github.com/forcedotcom/salesforcedx-vscode/pull/4962))
 
 #### salesforcedx-vscode-lwc
 
-- Add Snippets for LWCsIssue 4857 ([PR #4946](https://github.com/forcedotcom/salesforcedx-vscode/pull/4946))
+- We added new snippets for LWC HTML. Thank you [Mark Vogelgesang](https://github.com/mvogelgesang) for creating the issue. ([PR #4946](https://github.com/forcedotcom/salesforcedx-vscode/pull/4946), [ISSUE #4857](https://github.com/forcedotcom/salesforcedx-vscode/issues/4857))
 
 # 58.4.1 - June 29, 2023
 
