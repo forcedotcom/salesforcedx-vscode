@@ -1,3 +1,64 @@
+# 58.4.1 - June 29, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made updated dependencies in the Apex LSP and made some changes under the hood to enhance the debugging experience. ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
+
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #4941](https://github.com/forcedotcom/salesforcedx-vscode/pull/4941))
+
+# 58.3.1 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Backed out a change from the v58.3.0 release to fix https://github.com/forcedotcom/salesforcedx-vscode/issues/4938.
+
+# 58.3.0 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We updated telemetry data to include Org Id. ([PR #4917](https://github.com/forcedotcom/salesforcedx-vscode/pull/4917))
+
+# 58.2.0 - June 13, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Deploy and retrieve commands now use the correct source API version. ([PR #4891](https://github.com/forcedotcom/salesforcedx-vscode/pull/4891))
+
+- We made some changes under the hood. ([PR #4913](https://github.com/forcedotcom/salesforcedx-vscode/pull/4913))
+
+# 58.1.1 - June 7, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We updated the Apex Language Server to include new and modified class. This update also fixed an issue with autocompletion not working for Slack classes. ([PR #4907](https://github.com/forcedotcom/salesforcedx-vscode/pull/4907))
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- SObject refresh now uses the correct API version. ([PR #4883](https://github.com/forcedotcom/salesforcedx-vscode/pull/4883))
+
+#### salesforcedx-vscode-apex
+
+- We made some changes under the hood. ([PR #4906](https://github.com/forcedotcom/salesforcedx-vscode/pull/4906))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #4906](https://github.com/forcedotcom/salesforcedx-vscode/pull/4906))
+
 # 58.0.1 - June 2, 2023
 
 ## Added

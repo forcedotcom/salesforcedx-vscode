@@ -11,7 +11,6 @@ import { channelService } from '../channels';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
@@ -34,13 +33,10 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue(
-      'sourceApiVersion'
-    )) as string;
     const paths =
       typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
-    componentSet.sourceApiVersion = sourceApiVersion;
+
     return componentSet;
   }
 }

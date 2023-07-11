@@ -33,7 +33,7 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
-import { setApiVersionOn } from '../services/sdr/componentSetUtils';
+import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { createComponentCount, formatException } from './util';
@@ -44,6 +44,9 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
+  protected static errorCollection = vscode.languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -62,7 +65,8 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      await setApiVersionOn(components);
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -108,10 +112,6 @@ export abstract class DeployRetrieveExecutor<
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
-  protected errorCollection = vscode.languages.createDiagnosticCollection(
-    'deploy-errors'
-  );
-
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
@@ -153,7 +153,12 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
         const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
-          this.unsuccessfulOperationHandler(result, this.errorCollection);
+          this.unsuccessfulOperationHandler(
+            result,
+            DeployRetrieveExecutor.errorCollection
+          );
+        } else {
+          DeployRetrieveExecutor.errorCollection.clear();
         }
       }
     } finally {
@@ -165,7 +170,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     result: DeployResult,
     errorCollection: any
   ) {
-    handleDeployDiagnostics(result, this.errorCollection);
+    handleDeployDiagnostics(result, errorCollection);
   }
 
   private createOutput(
@@ -271,6 +276,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     result: RetrieveResult | undefined
   ): Promise<void> {
     if (result) {
+      DeployRetrieveExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);

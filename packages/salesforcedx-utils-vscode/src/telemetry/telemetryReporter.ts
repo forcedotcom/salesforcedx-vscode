@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
+import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 
 export class TelemetryReporter extends Disposable {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
@@ -142,6 +143,12 @@ export class TelemetryReporter extends Disposable {
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
+      const orgId = WorkspaceContextUtil.getInstance().orgId;
+      if (orgId && properties) {
+        properties.orgId = orgId;
+      } else if (orgId) {
+        properties = { orgId };
+      }
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
         // tslint:disable-next-line:object-literal-shorthand
@@ -172,14 +179,18 @@ export class TelemetryReporter extends Disposable {
       error.message = exceptionMessage;
       error.stack = 'DEPRECATED';
 
+      const orgId = WorkspaceContextUtil.getInstance().orgId || '';
+      const properties = { orgId };
       this.appInsightsClient.trackException({
         exception: error,
+        properties,
         measurements
       });
 
       if (this.logStream) {
         this.logStream.write(
           `telemetry/${exceptionName} ${JSON.stringify({
+            properties,
             measurements
           })}\n`
         );

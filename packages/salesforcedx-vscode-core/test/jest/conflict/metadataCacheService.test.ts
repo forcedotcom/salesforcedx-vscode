@@ -7,7 +7,7 @@
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { MetadataCacheService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context';
-import * as sdrUtils from '../../../src/services/sdr/componentSetUtils';
+import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 
 describe('MetadataCacheService', () => {
   let getSourceComponentsStub: jest.SpyInstance;
@@ -20,7 +20,7 @@ describe('MetadataCacheService', () => {
     ]);
     const dummyEmptyComponentSet = new ComponentSet([]);
     let workspaceContextStub: jest.SpyInstance;
-    let setApiVersionOnStub: jest.SpyInstance;
+    let setApiVersionStub: jest.SpyInstance;
 
     beforeEach(() => {
       workspaceContextStub = jest
@@ -30,13 +30,13 @@ describe('MetadataCacheService', () => {
             return {};
           }
         } as any);
-      getSourceComponentsStub = jest.spyOn(
-        MetadataCacheService.prototype,
-        'getSourceComponents'
-      );
-      setApiVersionOnStub = jest
-        .spyOn(sdrUtils, 'setApiVersionOn')
+      getSourceComponentsStub = jest
+        .spyOn(MetadataCacheService.prototype, 'getSourceComponents');
+
+      setApiVersionStub = jest
+        .spyOn(componentSetUtils, 'setApiVersion')
         .mockImplementation(jest.fn());
+
       retrieveStub = jest
         .spyOn(dummyComponentSet, 'retrieve')
         .mockResolvedValue({} as any);
@@ -50,7 +50,7 @@ describe('MetadataCacheService', () => {
 
       expect(workspaceContextStub).toHaveBeenCalled();
       expect(getSourceComponentsStub).toHaveBeenCalled();
-      expect(setApiVersionOnStub).toHaveBeenCalledWith(dummyComponentSet);
+      expect(setApiVersionStub).toHaveBeenCalledWith(dummyComponentSet);
       const dummyRetrieveOptionsWithSuppressEvents = { suppressEvents: true };
       expect(retrieveStub).toHaveBeenCalledWith(
         expect.objectContaining(dummyRetrieveOptionsWithSuppressEvents)
