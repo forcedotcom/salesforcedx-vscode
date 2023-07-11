@@ -145,4 +145,54 @@ describe('SfdxCommandlet', () => {
     // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
+
+  it('Should suppress message if user preference is set to true', async () => {
+    sandbox
+      .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterEachCommand')
+      .returns(false);
+    const clearStub = sandbox.stub(channelService, 'clear');
+    const commandlet = new SfdxCommandlet(
+      new (class {
+        public check(): boolean {
+          return true;
+        }
+      })(),
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      })(),
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {}
+      })()
+    );
+    await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
+    expect(clearStub.called).to.be.false;
+  });
+
+  it('Should suppress message if user preference is set to false', async () => {
+    sandbox
+      .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterEachCommand')
+      .returns(false);
+    const clearStub = sandbox.stub(channelService, 'clear');
+    const commandlet = new SfdxCommandlet(
+      new (class {
+        public check(): boolean {
+          return true;
+        }
+      })(),
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      })(),
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {}
+      })()
+    );
+    await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
+    expect(clearStub.called).to.be.false;
+  });
 });

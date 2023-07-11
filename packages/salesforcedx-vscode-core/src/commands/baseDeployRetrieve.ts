@@ -13,6 +13,7 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
+import { SfdxSettingsService } from '@salesforce/salesforcedx-utils-vscode/src/settings';
 import {
   ComponentSet,
   DeployResult,
@@ -37,7 +38,6 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import { OrgAuthInfo } from '../util';
 import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
-import { SfdxSettingsService } from '@salesforce/salesforcedx-utils-vscode/src/settings';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -147,7 +147,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         BaseDeployExecutor.errorCollection.clear();
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-        if (!SfdxSettingsService.getSuppressOutputAfterEachCommand()) {
+        if (!SfdxSettingsService.getEnableSuppressOutputAfterEachCommand()) {
           const output = this.createOutput(result, relativePackageDirs);
           channelService.appendLine(output);
         }
@@ -239,7 +239,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     if (result) {
       DeployRetrieveExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-      if (!SfdxSettingsService.getSuppressOutputAfterEachCommand()) {
+      if (!SfdxSettingsService.getEnableSuppressOutputAfterEachCommand()) {
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
       }
