@@ -1,3 +1,29 @@
+# 58.6.2 - July 13, 2023
+
+## Added
+
+#### salesforcedx-vscode-lightning
+
+- Bump lightning-language-server version ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+
+#### salesforcedx-vscode-lwc
+
+- Bump lightning-language-server version ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Fixed a typo for the no_line_breakpoint_information_for_current_project message ([PR #4948](https://github.com/forcedotcom/salesforcedx-vscode/pull/4948))
+
+#### salesforcedx-vscode-core
+
+- Fix for problems tab not clearing errors ([PR #4962](https://github.com/forcedotcom/salesforcedx-vscode/pull/4962))
+
+#### salesforcedx-vscode-lwc
+
+- Add Snippets for LWCsIssue 4857 ([PR #4946](https://github.com/forcedotcom/salesforcedx-vscode/pull/4946))
+
 # 58.4.1 - June 29, 2023
 
 ## Fixed
