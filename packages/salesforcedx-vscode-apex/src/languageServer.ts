@@ -71,8 +71,7 @@ async function createServer(
     if (DEBUG) {
       args.push(
         '-Dtrace.protocol=false',
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
@@ -171,9 +170,7 @@ export function buildClientOptions(): LanguageClientOptions {
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
-        vscode.workspace.createFileSystemWatcher('**/*.cls'), // Apex classes
-        vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
-        vscode.workspace.createFileSystemWatcher('**/*.apex'), // Apex anonymous scripts
+        vscode.workspace.createFileSystemWatcher('**/*.{cls,trigger,apex}'), // Apex classes
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
     },
