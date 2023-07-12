@@ -31,7 +31,7 @@
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "env": {
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env.SUSPEND_LANGUAGE_SERVER_STARTUP}",
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
         "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
       },
       "sourceMapPathOverrides": {
@@ -54,7 +54,7 @@
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "env": {
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env.SUSPEND_LANGUAGE_SERVER_STARTUP}",
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
         "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
       },
       "sourceMapPathOverrides": {
