@@ -108,55 +108,72 @@ const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
-  const startTime = process.hrtime();
+  console.log('~~~~~~~~~~~ inside forceLightningLwcPreview');
+  const preview = getPreview();
+  preview(sourceUri);
+}
 
-  if (!sourceUri) {
-    if (vscode.window.activeTextEditor) {
-      sourceUri = vscode.window.activeTextEditor.document.uri;
-    } else {
-      const message = nls.localize(
-        'force_lightning_lwc_preview_file_undefined',
-        sourceUri
-      );
-      showError(new Error(message), logName, commandName);
-      return;
-    }
+function getPreview() {
+  if (process.env.CONTAINER_MODE) {
+    return lwcPreviewContainerMode;
+  } else {
+    return lwcPreview;
   }
+}
 
-  const resourcePath = sourceUri.fsPath;
-  if (!resourcePath) {
-    const message = nls.localize(
-      'force_lightning_lwc_preview_file_undefined',
-      resourcePath
-    );
-    showError(new Error(message), logName, commandName);
-    return;
-  }
+function lwcPreviewContainerMode() {
+  const message =
+    '!! This command is only available in Salesforce Extensions for desktop because it requires local installs.';
+  vscode.window.showErrorMessage(message);
+  return;
+}
 
-  if (!fs.existsSync(resourcePath)) {
-    const message = nls.localize(
-      'force_lightning_lwc_preview_file_nonexist',
-      resourcePath
-    );
-    showError(new Error(message), logName, commandName);
-    return;
-  }
-
-  const isSFDX = true; // TODO support non SFDX projects
-  const isDirectory = fs.lstatSync(resourcePath).isDirectory();
-  const componentName = isDirectory
-    ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
-    : componentUtil.moduleFromFile(resourcePath, isSFDX);
-  if (!componentName) {
-    const message = nls.localize(
-      'force_lightning_lwc_preview_unsupported',
-      resourcePath
-    );
-    showError(new Error(message), logName, commandName);
-    return;
-  }
-
-  await executePreview(startTime, componentName, resourcePath);
+export async function lwcPreview(sourceUri: vscode.Uri) {
+  console.log('~~~~~~~~~~~ inside lwcPreview');
+  // const startTime = process.hrtime();
+  // if (!sourceUri) {
+  //   if (vscode.window.activeTextEditor) {
+  //     sourceUri = vscode.window.activeTextEditor.document.uri;
+  //   } else {
+  //     const message = nls.localize(
+  //       'force_lightning_lwc_preview_file_undefined',
+  //       sourceUri
+  //     );
+  //     showError(new Error(message), logName, commandName);
+  //     return;
+  //   }
+  // }
+  // const resourcePath = sourceUri.fsPath;
+  // if (!resourcePath) {
+  //   const message = nls.localize(
+  //     'force_lightning_lwc_preview_file_undefined',
+  //     resourcePath
+  //   );
+  //   showError(new Error(message), logName, commandName);
+  //   return;
+  // }
+  // if (!fs.existsSync(resourcePath)) {
+  //   const message = nls.localize(
+  //     'force_lightning_lwc_preview_file_nonexist',
+  //     resourcePath
+  //   );
+  //   showError(new Error(message), logName, commandName);
+  //   return;
+  // }
+  // const isSFDX = true; // TODO support non SFDX projects
+  // const isDirectory = fs.lstatSync(resourcePath).isDirectory();
+  // const componentName = isDirectory
+  //   ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
+  //   : componentUtil.moduleFromFile(resourcePath, isSFDX);
+  // if (!componentName) {
+  //   const message = nls.localize(
+  //     'force_lightning_lwc_preview_unsupported',
+  //     resourcePath
+  //   );
+  //   showError(new Error(message), logName, commandName);
+  //   return;
+  // }
+  // await executePreview(startTime, componentName, resourcePath);
 }
 
 /**
