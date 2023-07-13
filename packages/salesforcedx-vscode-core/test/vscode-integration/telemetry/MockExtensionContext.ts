@@ -61,7 +61,7 @@ class MockMemento implements Memento {
 
 class MockEnvironmentVariableCollection
   implements EnvironmentVariableCollection {
-  description: string | undefined = undefined;
+  public description: string | undefined = undefined;
   public [Symbol.iterator](): Iterator<[variable: string, mutator: EnvironmentVariableMutator], any, undefined> {
     throw new Error('Method not implemented.');
   }
