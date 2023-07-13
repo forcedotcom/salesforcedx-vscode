@@ -113,7 +113,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   preview(sourceUri);
 }
 
-function getPreview() {
+export function getPreview() {
   if (process.env.CONTAINER_MODE) {
     return lwcPreviewContainerMode;
   } else {
@@ -128,7 +128,7 @@ function lwcPreviewContainerMode() {
   return;
 }
 
-export async function lwcPreview(sourceUri: vscode.Uri) {
+async function lwcPreview(sourceUri: vscode.Uri) {
   console.log('~~~~~~~~~~~ inside lwcPreview');
   // const startTime = process.hrtime();
   // if (!sourceUri) {

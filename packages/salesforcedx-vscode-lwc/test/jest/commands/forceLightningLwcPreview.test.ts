@@ -5,70 +5,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
-const lwcPath = vscode.Uri.parse('/force-app/main/default/lwc');
-const lwcComponent = 'component';
-const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-
-// ------ import functions + mock ------
-
 import {
-  forceLightningLwcPreview,
-  lwcPreview
+  getPreview,
 } from '../../../src/commands/forceLightningLwcPreview';
 
-jest.mock(
-  '../../../src/commands/forceLightningLwcPreview',
-  () => {
-    const original = jest.requireActual(
-      '../../../src/commands/forceLightningLwcPreview'
-    );
-
-    return {
-      ...original,
-      lwcPreview: jest.fn(() => true)
-    };
-  },
-  { virtual: true }
-);
 
 describe('forceLightningLwcPreview', () => {
   describe('not in container mode', () => {
     it('uses default preview', async () => {
-      console.log(forceLightningLwcPreview);
-      console.log(lwcPreview);
-
-      forceLightningLwcPreview(sourceUri);
-      expect(lwcPreview).toHaveBeenCalled();
+      const preview = getPreview();
+      expect(preview.name).toBe('lwcPreview');
     });
   });
+  describe('not in container mode', () => {
+    let initialContainerMode: string | undefined = undefined;
+    beforeAll(() => {
+      initialContainerMode = process.env.CONTAINER_MODE;
+      process.env.CONTAINER_MODE = 'true';
+    });
+    afterAll(() => {
+      process.env.CONTAINER_MODE = initialContainerMode;
+    });
+    it('uses container mode preview', async () => {
+      const preview = getPreview();
+      expect(preview.name).toBe('lwcPreviewContainerMode');
+    });
+  });
+
 });
-
-// ------ import as module + spy ------
-
-// import * as forceLightningLwcPreview from '../../../src/commands/forceLightningLwcPreview';
-
-// describe('forceLightningLwcPreview', () => {
-//   const lwcPreviewSpy = jest
-//     .spyOn(forceLightningLwcPreview, 'lwcPreview')
-//     .mockResolvedValue(undefined);
-
-//   const forceSpy = jest.spyOn(
-//     forceLightningLwcPreview,
-//     'forceLightningLwcPreview'
-//   );
-
-//   describe('not in container mode', () => {
-//     it('uses default preview', async () => {
-//       console.log(forceLightningLwcPreview);
-//       console.log(lwcPreviewSpy);
-
-//       await forceLightningLwcPreview.forceLightningLwcPreview(sourceUri);
-
-//       console.log(forceSpy.mock);
-
-//       expect(forceLightningLwcPreview.lwcPreview).toEqual(lwcPreviewSpy);
-//       expect(forceLightningLwcPreview.lwcPreview).toHaveBeenCalled();
-//     });
-//   });
-// });
