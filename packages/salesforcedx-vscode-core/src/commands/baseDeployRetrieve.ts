@@ -48,7 +48,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
-  protected static errorCollection = vscode.languages.createDiagnosticCollection(
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
   protected cancellable: boolean = true;
@@ -163,6 +163,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           );
         } else {
           DeployRetrieveExecutor.errorCollection.clear();
+          SfdxCommandletExecutor.errorCollection.clear();
         }
       }
     } finally {

@@ -25,6 +25,7 @@ import { FORCE_SOURCE_PUSH_LOG_NAME } from '../constants';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { DeployRetrieveExecutor } from './baseDeployRetrieve';
 import {
   CommandParams,
   EmptyParametersGatherer,
@@ -130,6 +131,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       let success = false;
       try {
         SfdxCommandletExecutor.errorCollection.clear();
+        DeployRetrieveExecutor.errorCollection.clear();
         if (stdOut) {
           const pushParser = new ForcePushResultParser(stdOut);
           const errors = pushParser.getErrors();
@@ -148,6 +150,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         }
       } catch (e) {
         SfdxCommandletExecutor.errorCollection.clear();
+        DeployRetrieveExecutor.errorCollection.clear();
         if (e.name !== 'PushParserFail') {
           e.message =
             'Error while creating diagnostics for vscode problem view.';
