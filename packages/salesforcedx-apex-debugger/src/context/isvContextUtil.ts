@@ -6,8 +6,8 @@
  */
 
 import {
-  ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL,
+  ENV_SF_TARGET_ORG,
   ForceConfigGet,
   GlobalCliEnvironment,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
