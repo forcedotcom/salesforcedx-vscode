@@ -13,7 +13,10 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { sfdxCoreSettings } from '../../../src/settings';
+import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
+import { PersistentStorageService } from '../../../src/conflict';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { channelService } from '../../../src/channels';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
@@ -94,7 +97,8 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
       sfdxCoreSettings,
-      'getEnableSourceTrackingForDeployAndRetrieve');
+      'getEnableSourceTrackingForDeployAndRetrieve'
+    );
   });
 
   it('should create Source Tracking and call ensureLocalTracking before deploying', async () => {
@@ -147,5 +151,59 @@ describe('Deploy Executor', () => {
     expect(createSourceTrackingSpy).not.toHaveBeenCalled();
     expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
+  });
+
+  it('should clear errors on success', async () => {
+    const mockDeployResult = {
+      response: { status: 'Succeeded' }
+    };
+    const setPropertiesForFilesDeployMock = jest.fn();
+    const getInstanceSpy = jest
+      .spyOn(PersistentStorageService, 'getInstance')
+      .mockReturnValue({
+        setPropertiesForFilesDeploy: setPropertiesForFilesDeployMock
+      } as any);
+    jest
+      .spyOn(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+      .mockResolvedValue('path/to/foo' as any);
+    jest
+      .spyOn(TestDeployExecutor.prototype as any, 'createOutput')
+      .mockReturnValue('path/to/foo' as any);
+    const appendLineMock = jest
+      .spyOn(channelService, 'appendLine')
+      .mockImplementation(jest.fn());
+    const executor = new TestDeployExecutor(
+      'testDeploy',
+      'force_source_deploy_with_sourcepath_beta'
+    );
+    (executor as any).errorCollection = { clear: jest.fn() };
+
+    // Act
+    await (executor as any).postOperation(mockDeployResult);
+
+    // Assert
+    expect(getInstanceSpy).toHaveBeenCalled();
+    expect(setPropertiesForFilesDeployMock).toHaveBeenCalledWith(
+      mockDeployResult
+    );
+    expect(TestDeployExecutor.errorCollection.clear).toHaveBeenCalled();
+  });
+
+  it('should unlock queue on failure', async () => {
+    // Arrange
+    const mock = jest.fn();
+    const unlock = jest
+      .spyOn(DeployQueue, 'get')
+      .mockReturnValue({ unlock: mock } as any);
+    const executor = new TestDeployExecutor(
+      'testDeploy',
+      'force_source_deploy_with_sourcepath_beta'
+    );
+    // Act
+    await (executor as any).postOperation();
+
+    // Asserts
+    expect(unlock).toHaveBeenCalled();
+    expect(mock).toHaveBeenCalled();
   });
 });

@@ -115,7 +115,6 @@ export class DeployQueue {
               : 0
           }
         );
-        this.locked = false;
       } catch (e) {
         switch (e.name) {
           case 'NamedOrgNotFound':
@@ -129,6 +128,8 @@ export class DeployQueue {
           default:
             displayError(e.message);
         }
+      } finally {
+        this.locked = false;
       }
       this.deployWaitStart = undefined;
     } else if (this.locked && !this.deployWaitStart) {
