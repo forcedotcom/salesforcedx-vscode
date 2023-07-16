@@ -11,16 +11,16 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
+import { channelService } from '../../../src/channels';
 import {
   DeployExecutor,
   DeployRetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
+import { SfdxCommandletExecutor } from '../../../src/commands/util';
+import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
-import { PersistentStorageService } from '../../../src/conflict';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { channelService } from '../../../src/channels';
-import { SfdxCommandletExecutor } from '../../../src/commands/util';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
