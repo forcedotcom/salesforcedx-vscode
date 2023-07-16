@@ -82,7 +82,7 @@ describe('Deploy Executor', () => {
     }
   }
   class MockErrorCollection {
-    static clear(): void {
+    public static clear(): void {
       jest.fn();
     }
   }

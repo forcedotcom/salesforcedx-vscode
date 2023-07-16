@@ -20,7 +20,7 @@ import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve
 describe('ForceSourcePushExecutor', () => {
   describe('exitProcessHandlerPush', () => {
     class MockErrorCollection {
-      static clear(): void {
+      public static clear(): void {
         jest.fn();
       }
     }
