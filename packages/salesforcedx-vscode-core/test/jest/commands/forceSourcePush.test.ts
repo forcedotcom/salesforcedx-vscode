@@ -9,12 +9,21 @@ import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
 import { ForceSourcePushExecutor } from '../../../src/commands';
 import { DeployType } from '../../../src/commands/forceSourcePush';
-import { CommandParams } from '../../../src/commands/util';
+import {
+  CommandParams,
+  SfdxCommandletExecutor
+} from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { dummyPushResult, dummyStdOut } from './data/testData';
+import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 
 describe('ForceSourcePushExecutor', () => {
   describe('exitProcessHandlerPush', () => {
+    class MockErrorCollection {
+      static clear(): void {
+        jest.fn();
+      }
+    }
     beforeEach(() => {
       jest.spyOn(ChannelService, 'getInstance').mockReturnValue({} as any);
       jest.spyOn(nls, 'localize').mockReturnValue('');
@@ -38,7 +47,16 @@ describe('ForceSourcePushExecutor', () => {
       const executor = new ForceSourcePushExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
       const executorAsAny = executor as any;
-      executorAsAny.errorCollection = { clear: jest.fn() };
+      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+      DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
+      const deployRetrieveExecutorClearSpy = jest.spyOn(
+        DeployRetrieveExecutor.errorCollection,
+        'clear'
+      );
+      const sfdxCommandletExecutorClearSpy = jest.spyOn(
+        SfdxCommandletExecutor.errorCollection,
+        'clear'
+      );
       executorAsAny.updateCache = updateCacheMock;
       executorAsAny.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
       executorAsAny.logMetric = jest.fn();
@@ -56,6 +74,8 @@ describe('ForceSourcePushExecutor', () => {
 
       // Assert
       expect(updateCacheMock).toHaveBeenCalled();
+      expect(sfdxCommandletExecutorClearSpy).toHaveBeenCalled();
+      expect(deployRetrieveExecutorClearSpy).toHaveBeenCalled();
     });
   });
 

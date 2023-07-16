@@ -11,12 +11,16 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import { DeployExecutor } from '../../../src/commands/baseDeployRetrieve';
+import {
+  DeployExecutor,
+  DeployRetrieveExecutor
+} from '../../../src/commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
 import { PersistentStorageService } from '../../../src/conflict';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { channelService } from '../../../src/channels';
+import { SfdxCommandletExecutor } from '../../../src/commands/util';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
@@ -75,6 +79,11 @@ describe('Deploy Executor', () => {
       response: ContinueResponse<{}>
     ): Promise<ComponentSet> {
       return new Promise(resolve => resolve(new ComponentSet()));
+    }
+  }
+  class MockErrorCollection {
+    static clear(): void {
+      jest.fn();
     }
   }
 
@@ -155,7 +164,9 @@ describe('Deploy Executor', () => {
 
   it('should clear errors on success', async () => {
     const mockDeployResult = {
-      response: { status: 'Succeeded' }
+      response: {
+        status: 'Succeeded'
+      }
     };
     const setPropertiesForFilesDeployMock = jest.fn();
     const getInstanceSpy = jest
@@ -163,38 +174,53 @@ describe('Deploy Executor', () => {
       .mockReturnValue({
         setPropertiesForFilesDeploy: setPropertiesForFilesDeployMock
       } as any);
-    jest
+    const getPackageDirectoryPathsSpy = jest
       .spyOn(SfdxPackageDirectories, 'getPackageDirectoryPaths')
       .mockResolvedValue('path/to/foo' as any);
-    jest
+    const createOutputSpy = jest
       .spyOn(TestDeployExecutor.prototype as any, 'createOutput')
       .mockReturnValue('path/to/foo' as any);
-    const appendLineMock = jest
+    const appendLineSpy = jest
       .spyOn(channelService, 'appendLine')
       .mockImplementation(jest.fn());
+
+    DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
+    SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+    const deployRetrieveExecutorClearSpy = jest.spyOn(
+      DeployRetrieveExecutor.errorCollection,
+      'clear'
+    );
+    const sfdxCommandletExecutorClearSpy = jest.spyOn(
+      SfdxCommandletExecutor.errorCollection,
+      'clear'
+    );
+
     const executor = new TestDeployExecutor(
       'testDeploy',
       'force_source_deploy_with_sourcepath_beta'
     );
-    (executor as any).errorCollection = { clear: jest.fn() };
 
     // Act
     await (executor as any).postOperation(mockDeployResult);
 
     // Assert
     expect(getInstanceSpy).toHaveBeenCalled();
+    expect(getPackageDirectoryPathsSpy).toHaveBeenCalled();
+    expect(createOutputSpy).toHaveBeenCalled();
+    expect(appendLineSpy).toHaveBeenCalled();
     expect(setPropertiesForFilesDeployMock).toHaveBeenCalledWith(
       mockDeployResult
     );
-    expect(TestDeployExecutor.errorCollection.clear).toHaveBeenCalled();
+    expect(deployRetrieveExecutorClearSpy).toHaveBeenCalled();
+    expect(sfdxCommandletExecutorClearSpy).toHaveBeenCalled();
   });
 
   it('should unlock queue on failure', async () => {
     // Arrange
-    const mock = jest.fn();
-    const unlock = jest
+    const mockUnlock = jest.fn();
+    const unlockSpy = jest
       .spyOn(DeployQueue, 'get')
-      .mockReturnValue({ unlock: mock } as any);
+      .mockReturnValue({ unlock: mockUnlock } as any);
     const executor = new TestDeployExecutor(
       'testDeploy',
       'force_source_deploy_with_sourcepath_beta'
@@ -203,7 +229,7 @@ describe('Deploy Executor', () => {
     await (executor as any).postOperation();
 
     // Asserts
-    expect(unlock).toHaveBeenCalled();
-    expect(mock).toHaveBeenCalled();
+    expect(unlockSpy).toHaveBeenCalled();
+    expect(mockUnlock).toHaveBeenCalled();
   });
 });
