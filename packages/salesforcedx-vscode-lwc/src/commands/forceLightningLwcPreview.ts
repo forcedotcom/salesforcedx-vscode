@@ -122,8 +122,7 @@ export function getPreview() {
 }
 
 function lwcPreviewContainerMode() {
-  const message =
-    'This command is only available in Salesforce Extensions for desktop because it requires local installs.';
+  const message = nls.localize('force_lightning_lwc_preview_container_mode');
   vscode.window.showErrorMessage(message);
   return;
 }
