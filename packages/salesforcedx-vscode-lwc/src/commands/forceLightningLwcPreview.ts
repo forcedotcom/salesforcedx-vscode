@@ -130,6 +130,7 @@ function lwcPreviewContainerMode() {
 
 async function lwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
+
   if (!sourceUri) {
     if (vscode.window.activeTextEditor) {
       sourceUri = vscode.window.activeTextEditor.document.uri;
@@ -142,6 +143,7 @@ async function lwcPreview(sourceUri: vscode.Uri) {
       return;
     }
   }
+
   const resourcePath = sourceUri.fsPath;
   if (!resourcePath) {
     const message = nls.localize(
@@ -151,6 +153,7 @@ async function lwcPreview(sourceUri: vscode.Uri) {
     showError(new Error(message), logName, commandName);
     return;
   }
+
   if (!fs.existsSync(resourcePath)) {
     const message = nls.localize(
       'force_lightning_lwc_preview_file_nonexist',
@@ -159,6 +162,7 @@ async function lwcPreview(sourceUri: vscode.Uri) {
     showError(new Error(message), logName, commandName);
     return;
   }
+
   const isSFDX = true; // TODO support non SFDX projects
   const isDirectory = fs.lstatSync(resourcePath).isDirectory();
   const componentName = isDirectory
@@ -172,6 +176,7 @@ async function lwcPreview(sourceUri: vscode.Uri) {
     showError(new Error(message), logName, commandName);
     return;
   }
+
   await executePreview(startTime, componentName, resourcePath);
 }
 

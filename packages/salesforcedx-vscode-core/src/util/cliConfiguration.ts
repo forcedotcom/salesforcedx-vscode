@@ -38,10 +38,6 @@ export function showCLINotInstalledMessage() {
   window.showWarningMessage(showMessage);
 }
 
-export function isSFDXContainerMode(): boolean {
-  return process.env.SFDX_CONTAINER_MODE ? true : false;
-}
-
 export function disableCLITelemetry() {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_SFDX_DISABLE_TELEMETRY,
