@@ -14,6 +14,7 @@ import {
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   EmptyParametersGatherer,
+  isSFDXContainerMode,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -113,7 +114,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 }
 
 export function getPreview() {
-  if (process.env.CONTAINER_MODE) {
+  if (isSFDXContainerMode()) {
     return lwcPreviewContainerMode;
   } else {
     return lwcPreview;
