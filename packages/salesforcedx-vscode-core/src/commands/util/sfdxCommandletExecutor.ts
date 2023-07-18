@@ -29,6 +29,9 @@ import { CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
+    'push-errors'
+  );
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<

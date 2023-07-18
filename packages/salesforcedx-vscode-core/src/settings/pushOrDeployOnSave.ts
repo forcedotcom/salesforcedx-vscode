@@ -128,6 +128,7 @@ export class DeployQueue {
           default:
             displayError(e.message);
         }
+      } finally {
         this.locked = false;
       }
       this.deployWaitStart = undefined;
