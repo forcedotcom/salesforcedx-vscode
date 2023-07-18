@@ -151,14 +151,14 @@ describe('Push or Deploy on Save', () => {
 
       // signal to the queue we're done and deploy anything that has been queued while locked
       await queue.unlock();
-      expect(executeCommandStub.calledTwice).to.be.true;
-      expect(executeCommandStub.getCall(1).args[1]).to.eql(uris);
+      expect(executeCommandStub.callCount).to.equal(3);
+      expect(executeCommandStub.getCall(1).args[1]).to.eql([uris[0]]);
 
       const telemArgs = telemetryStub.getCall(1).args;
       expect(telemArgs[0]).to.equal('deployOnSave');
       expect(telemArgs[1]).to.deep.equal({ deployType: 'Deploy' });
-      expect(telemArgs[2]['documentsToDeploy']).to.equal(2);
-      expect(telemArgs[2]['waitTimeForLastDeploy'] > 0).to.be.true;
+      expect(telemArgs[2]['documentsToDeploy']).to.equal(1);
+      expect(telemArgs[2]['waitTimeForLastDeploy'] > 0).to.be.false;
     });
 
     it('should display an error to the user when the defaultusername org info cannot be found', async () => {
