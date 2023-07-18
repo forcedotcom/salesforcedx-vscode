@@ -6,8 +6,8 @@
  */
 
 import {
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL,
+  ENV_SF_ORG_INSTANCE_URL,
+  ENV_SF_TARGET_ORG,
   ForceConfigGet,
   GlobalCliEnvironment,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
@@ -32,11 +32,11 @@ export class IsvContextUtil {
       ) {
         // set auth context
         GlobalCliEnvironment.environmentVariables.set(
-          ENV_SFDX_DEFAULTUSERNAME,
+          ENV_SF_TARGET_ORG,
           isvDebuggerSid
         );
         GlobalCliEnvironment.environmentVariables.set(
-          ENV_SFDX_INSTANCE_URL,
+          ENV_SF_ORG_INSTANCE_URL,
           isvDebuggerUrl
         );
         isvDebugProject = true;
@@ -47,10 +47,10 @@ export class IsvContextUtil {
 
   public resetCliEnvironmentVars() {
     // reset any auth
-    GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_DEFAULTUSERNAME);
-    GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_INSTANCE_URL);
+    GlobalCliEnvironment.environmentVariables.delete(ENV_SF_TARGET_ORG);
+    GlobalCliEnvironment.environmentVariables.delete(ENV_SF_ORG_INSTANCE_URL);
     console.log(
-      `Deleted environment variables ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL}`
+      `Deleted environment variables ${ENV_SF_TARGET_ORG} and ${ENV_SF_ORG_INSTANCE_URL}`
     );
   }
 }
