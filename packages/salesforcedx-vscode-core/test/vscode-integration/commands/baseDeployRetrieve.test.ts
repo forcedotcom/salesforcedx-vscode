@@ -46,7 +46,6 @@ import {
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';
-import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
