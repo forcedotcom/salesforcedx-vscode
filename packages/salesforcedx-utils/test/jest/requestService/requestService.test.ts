@@ -4,8 +4,8 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_HTTPS_PROXY,
   ENV_HTTP_PROXY,
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL
+  ENV_SF_TARGET_ORG,
+  ENV_SF_ORG_INSTANCE_URL
 } from '../../../src/constants';
 import {
   BaseCommand,
@@ -60,8 +60,8 @@ describe('RequestService unit tests.', () => {
       const envVars = requestService.getEnvVars();
       expect(envVars[ENV_HTTP_PROXY]).toBeUndefined();
       expect(envVars[ENV_HTTPS_PROXY]).toBeUndefined();
-      expect(envVars[ENV_SFDX_INSTANCE_URL]).toBeUndefined();
-      expect(envVars[ENV_SFDX_DEFAULTUSERNAME]).toBeUndefined();
+      expect(envVars[ENV_SF_ORG_INSTANCE_URL]).toBeUndefined();
+      expect(envVars[ENV_SF_TARGET_ORG]).toBeUndefined();
     });
 
     it('Should include request specific properties if defined.', () => {
@@ -74,8 +74,8 @@ describe('RequestService unit tests.', () => {
 
       expect(envVars[ENV_HTTP_PROXY]).toEqual(testProxyUrl);
       expect(envVars[ENV_HTTPS_PROXY]).toEqual(testProxyUrl);
-      expect(envVars[ENV_SFDX_INSTANCE_URL]).toEqual(testInstanceUrl);
-      expect(envVars[ENV_SFDX_DEFAULTUSERNAME]).toEqual(testAccessToken);
+      expect(envVars[ENV_SF_ORG_INSTANCE_URL]).toEqual(testInstanceUrl);
+      expect(envVars[ENV_SF_TARGET_ORG]).toEqual(testAccessToken);
     });
   });
 

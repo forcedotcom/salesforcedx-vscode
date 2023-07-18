@@ -7,10 +7,10 @@
 
 export const CLIENT_ID = 'sfdx-vscode';
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
-export const ENV_SFDX_DEFAULTUSERNAME = 'SFDX_DEFAULTUSERNAME';
+export const ENV_SF_TARGET_ORG = 'SF_TARGET_ORG';
 export const ENV_HTTP_PROXY = 'HTTP_PROXY';
 export const ENV_HTTPS_PROXY = 'HTTPS_PROXY';
-export const ENV_SFDX_INSTANCE_URL = 'SFDX_INSTANCE_URL';
+export const ENV_SF_ORG_INSTANCE_URL = 'SF_ORG_INSTANCE_URL';
 export const BASE_FILE_NAME = 'i18n';
 export const BASE_FILE_EXTENSION = 'js';
 export const DEFAULT_LOCALE = 'en';
