@@ -1,3 +1,25 @@
+# 58.7.1 - July 21, 2023
+
+## Added
+
+#### salesforcedx-apex-debugger
+
+- Fixes Apex Interactive Debugger ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
+
+#### salesforcedx-utils
+
+- Fixes Apex Interactive Debugger ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
+
+#### salesforcedx-utils-vscode
+
+- Fixes Apex Interactive Debugger ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Push-on-save working as expected, diagnostics cleared after successful push ([PR #4975](https://github.com/forcedotcom/salesforcedx-vscode/pull/4975))
+
 # 58.6.2 - July 13, 2023
 
 ## Added
