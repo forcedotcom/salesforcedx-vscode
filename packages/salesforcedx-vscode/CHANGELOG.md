@@ -6,7 +6,7 @@
 #### salesforcedx-utils
 #### salesforcedx-utils-vscode
 
-- We updated environment variables for the Apex Interactive Debugger to reflect the updated SF CLI style. ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
+- We updated environment variables for the Apex Interactive Debugger to reflect the new SF CLI style. ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
 
 ## Fixed
 
