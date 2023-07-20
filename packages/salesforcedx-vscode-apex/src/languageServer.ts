@@ -85,6 +85,7 @@ async function createServer(
     }
 
     // running with profiling is not a function of debug mode
+    
     args.push(APEX_LANGUAGE_SERVER_MAIN);
 
     return {
@@ -94,6 +95,7 @@ async function createServer(
       },
       command: javaExecutable,
       args
+      
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);
