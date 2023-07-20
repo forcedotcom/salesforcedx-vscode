@@ -20,15 +20,15 @@ import { vscodeStub } from '../commands/mocks';
 // });
 
 describe('Trace Flags', () => {
-  const $$ = new TestContext();
-  const testData = new MockTestOrgData();
-  const USER_ID = 'abcd';
-  let mockConnection: Connection;
-  let sb: SinonSandbox;
-  let queryStub: SinonStub;
-  let toolingCreateStub: SinonStub;
-  let toolingQueryStub: SinonStub;
-  let toolingUpdateStub: SinonStub;
+  // const $$ = new TestContext();
+  // const testData = new MockTestOrgData();
+  // const USER_ID = 'abcd';
+  // let mockConnection: Connection;
+  // let sb: SinonSandbox;
+  // let queryStub: SinonStub;
+  // let toolingCreateStub: SinonStub;
+  // let toolingQueryStub: SinonStub;
+  // let toolingUpdateStub: SinonStub;
 
   // beforeEach(async () => {
   //   sb = createSandbox();
