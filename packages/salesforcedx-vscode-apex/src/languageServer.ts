@@ -71,7 +71,8 @@ async function createServer(
     if (DEBUG) {
       args.push(
         '-Dtrace.protocol=false',
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
+          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
@@ -85,7 +86,7 @@ async function createServer(
     }
 
     // running with profiling is not a function of debug mode
-    
+
     args.push(APEX_LANGUAGE_SERVER_MAIN);
 
     return {
@@ -95,7 +96,6 @@ async function createServer(
       },
       command: javaExecutable,
       args
-      
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);
