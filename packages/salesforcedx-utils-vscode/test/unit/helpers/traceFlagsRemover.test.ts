@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
-// describe('Trace Flags Remover', () => {
+describe('Trace Flags Remover', () => {
 //   const $$ = new TestContext();
 //   const testData = new MockTestOrgData();
 //   let mockConnection: Connection;
@@ -37,7 +37,7 @@ import { TraceFlagsRemover } from '../../../src';
 //     sb.restore();
 //   });
 
-//   it('should validate that a connection must be present when created', () => {
+  it('should validate that a connection must be present when created', () => {
 //     try {
 //       TraceFlagsRemover.resetInstance();
 //       // here we're testing an unreachable state as it won't compile without the cast to any
@@ -54,7 +54,7 @@ import { TraceFlagsRemover } from '../../../src';
 //         fail('Expected an error');
 //       }
 //     }
-//   });
+  });
 
 //   it('should validate that an instance is created when a connection is passed', () => {
 //     TraceFlagsRemover.resetInstance();
@@ -103,4 +103,4 @@ import { TraceFlagsRemover } from '../../../src';
 
 //     expect(toolingDeleteStub.called).to.equal(true);
 //   });
-// });
+});
