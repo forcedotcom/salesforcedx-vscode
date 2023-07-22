@@ -14,7 +14,6 @@ import {
   SourceTrackingType,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SfdxSettingsService } from '@salesforce/salesforcedx-utils-vscode/src/settings';
 import {
   ComponentSet,
   DeployResult,
