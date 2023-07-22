@@ -148,7 +148,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         );
 
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-        if (!SfdxSettingsService.getEnableSuppressOutputAfterEachCommand()) {
+        if (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()) {
           const output = this.createOutput(result, relativePackageDirs);
           channelService.appendLine(output);
         }
