@@ -15,7 +15,6 @@ import { TraceFlagsRemover } from '../../../src';
 describe('Trace Flags Remover', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();
-  $$.stubAuths(testData);
   let mockConnection: Connection;
   let sb: SinonSandbox;
 
