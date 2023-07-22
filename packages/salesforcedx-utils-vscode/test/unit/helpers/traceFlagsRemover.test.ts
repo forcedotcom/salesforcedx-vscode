@@ -13,94 +13,95 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
 describe('Trace Flags Remover', () => {
-//   const $$ = new TestContext();
-//   const testData = new MockTestOrgData();
-//   let mockConnection: Connection;
-//   let sb: SinonSandbox;
+  const $$ = new TestContext();
+  const testData = new MockTestOrgData();
+  let mockConnection: Connection;
+  let sb: SinonSandbox;
 
-//   beforeEach(async () => {
-//     sb = createSandbox();
-//     $$.setConfigStubContents('AuthInfoConfig', {
-//       contents: await testData.getConfig()
-//     });
-//     mockConnection = await Connection.create({
-//       authInfo: await AuthInfo.create({
-//         username: testData.username
-//       })
-//     });
-//     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-//       .withArgs('defaultusername')
-//       .returns(testData.username);
-//   });
-
-//   afterEach(() => {
-//     sb.restore();
-//   });
-
-  it('should validate that a connection must be present when created', () => {
-//     try {
-//       TraceFlagsRemover.resetInstance();
-//       // here we're testing an unreachable state as it won't compile without the cast to any
-//       TraceFlagsRemover.getInstance(undefined as any);
-//       expect.fail(
-//         'TraceFlagsRemover.getInstance() should have thrown an error'
-//       );
-//     } catch (err) {
-//       if (err instanceof Error) {
-//         expect(err.message).to.equal(
-//           'connection passed to TraceFlagsRemover is invalid'
-//         );
-//       } else {
-//         fail('Expected an error');
-//       }
-//     }
+  beforeEach(async () => {
+    sb = $$.SANDBOX;
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
+      .withArgs('defaultusername')
+      .returns(testData.username);
   });
 
-//   it('should validate that an instance is created when a connection is passed', () => {
-//     TraceFlagsRemover.resetInstance();
-//     const instance = TraceFlagsRemover.getInstance(mockConnection);
-//     expect(instance).to.not.equal(undefined);
-//   });
+  afterEach(() => {
+    sb.restore();
+  });
 
-//   it('should validate that connection.tooling.delete is called when a new trace flag is added', async () => {
-//     let toolingDeleteStub: SinonStub;
-//     toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
+  it('should validate that a connection must be present when created', () => {
+    console.log('within first.....')
+    try {
+      TraceFlagsRemover.resetInstance();
+      // here we're testing an unreachable state as it won't compile without the cast to any
+      TraceFlagsRemover.getInstance(undefined as any);
+      expect.fail(
+        'TraceFlagsRemover.getInstance() should have thrown an error'
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        expect(err.message).to.equal(
+          'connection passed to TraceFlagsRemover is invalid'
+        );
+      } else {
+        fail('Expected an error');
+      }
+    }
+  });
 
-//     TraceFlagsRemover.resetInstance();
-//     const instance = TraceFlagsRemover.getInstance(mockConnection);
-//     instance.addNewTraceFlagId('123');
+  it('should validate that an instance is created when a connection is passed', () => {
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+    expect(instance).to.not.equal(undefined);
+  });
 
-//     await instance.removeNewTraceFlags();
+  it('should validate that connection.tooling.delete is called when a new trace flag is added', async () => {
+    let toolingDeleteStub: SinonStub;
+    toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
 
-//     expect(toolingDeleteStub.called).to.equal(true);
-//   });
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+    instance.addNewTraceFlagId('123');
 
-//   it('should validate that connection.tooling.delete is not called when a trace flag already exists', async () => {
-//     let toolingDeleteStub: SinonStub;
-//     toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
+    await instance.removeNewTraceFlags();
 
-//     // Create an instance, but don't add any records.
-//     TraceFlagsRemover.resetInstance();
-//     const instance = TraceFlagsRemover.getInstance(mockConnection);
+    expect(toolingDeleteStub.called).to.equal(true);
+  });
 
-//     await instance.removeNewTraceFlags();
+  it('should validate that connection.tooling.delete is not called when a trace flag already exists', async () => {
+    let toolingDeleteStub: SinonStub;
+    toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
 
-//     // Now validate that since no records were added, that connection.tooling.delete was not called.
-//     expect(toolingDeleteStub.called).to.equal(false);
-//   });
+    // Create an instance, but don't add any records.
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
 
-//   it('should delete multiple trace flags', async () => {
-//     let toolingDeleteStub: SinonStub;
-//     toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
+    await instance.removeNewTraceFlags();
 
-//     TraceFlagsRemover.resetInstance();
-//     const instance = TraceFlagsRemover.getInstance(mockConnection);
-//     instance.addNewTraceFlagId('123');
-//     instance.addNewTraceFlagId('456');
-//     instance.addNewTraceFlagId('789');
+    // Now validate that since no records were added, that connection.tooling.delete was not called.
+    expect(toolingDeleteStub.called).to.equal(false);
+  });
 
-//     await instance.removeNewTraceFlags();
+  it('should delete multiple trace flags', async () => {
+    let toolingDeleteStub: SinonStub;
+    toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
 
-//     expect(toolingDeleteStub.called).to.equal(true);
-//   });
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+    instance.addNewTraceFlagId('123');
+    instance.addNewTraceFlagId('456');
+    instance.addNewTraceFlagId('789');
+
+    await instance.removeNewTraceFlags();
+
+    expect(toolingDeleteStub.called).to.equal(true);
+  });
 });
