@@ -96,7 +96,7 @@ export class SfdxCoreSettings {
   }
 
   public getEnableSuppressOutputAfterEachCommand(): boolean {
-    return this.getConfigValue(SETTING_SUPRESS_OUTPUT_TAB, false);
+    return this.getConfigValue(SETTING_SUPPRESS_OUTPUT_TAB, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
