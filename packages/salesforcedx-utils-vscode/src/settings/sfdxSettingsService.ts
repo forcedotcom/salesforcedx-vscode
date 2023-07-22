@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {
   SETTING_CLEAR_OUTPUT_TAB,
-  SETTING_SUPRESS_OUTPUT_TAB,
+  SETTING_SUPPRESS_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME
 } from '../constants';
 
