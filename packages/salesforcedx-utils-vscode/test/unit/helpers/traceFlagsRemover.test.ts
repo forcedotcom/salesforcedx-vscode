@@ -15,6 +15,7 @@ import { TraceFlagsRemover } from '../../../src';
 describe('Trace Flags Remover', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();
+  $$.stubAuths(testData);
   let mockConnection: Connection;
   let sb: SinonSandbox;
 
@@ -38,7 +39,7 @@ describe('Trace Flags Remover', () => {
   });
 
   it('should validate that a connection must be present when created', () => {
-    console.log('within first.....')
+    console.log('within first.....');
     try {
       TraceFlagsRemover.resetInstance();
       // here we're testing an unreachable state as it won't compile without the cast to any
