@@ -24,7 +24,7 @@ export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
-  SETTING_SUPRESS_OUTPUT_TAB,
+  SETTING_SUPPRESS_OUTPUT_TAB,
   SFDX_CORE_EXTENSION_NAME
 } from './constants';
 export {
