@@ -148,7 +148,7 @@ describe('SfdxCommandlet', () => {
 
   it('Should suppress message if user preference is set to true', async () => {
     sandbox
-      .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterEachCommand')
+      .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
       .returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
     const commandlet = new SfdxCommandlet(
