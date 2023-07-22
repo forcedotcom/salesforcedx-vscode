@@ -95,7 +95,7 @@ export class SfdxCoreSettings {
     return this.getConfigValue(SETTING_CLEAR_OUTPUT_TAB, false);
   }
 
-  public getEnableSuppressOutputAfterEachCommand(): boolean {
+  public getEnableSuppressOutputAfterSuccessfulOperation(): boolean {
     return this.getConfigValue(SETTING_SUPPRESS_OUTPUT_TAB, false);
   }
 
