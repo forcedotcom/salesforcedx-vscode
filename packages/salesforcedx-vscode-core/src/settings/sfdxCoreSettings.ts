@@ -7,7 +7,7 @@
 
 import {
   SETTING_CLEAR_OUTPUT_TAB,
-  SETTING_SUPRESS_OUTPUT_TAB,
+  SETTING_SUPPRESS_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
