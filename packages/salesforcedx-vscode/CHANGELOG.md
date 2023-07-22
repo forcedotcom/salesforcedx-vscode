@@ -1,3 +1,45 @@
+# 58.7.1 - July 21, 2023
+
+## Added
+
+#### salesforcedx-apex-debugger
+#### salesforcedx-utils
+#### salesforcedx-utils-vscode
+
+- We updated environment variables for the Apex Interactive Debugger to reflect the new SF CLI style. ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with `Push-on-save` so that the command now works as expected. As a part of this fix, the `Problems` tab is now cleared after a successful push. ([PR #4975](https://github.com/forcedotcom/salesforcedx-vscode/pull/4975))
+
+# 58.6.2 - July 13, 2023
+
+## Added
+
+#### salesforcedx-vscode-lightning
+
+- We made an update to the lightning language server version. ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+
+#### salesforcedx-vscode-lwc
+
+- We made an update to the lightning language server version. ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #4948](https://github.com/forcedotcom/salesforcedx-vscode/pull/4948))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the problems tab not clearing errors. ([PR #4962](https://github.com/forcedotcom/salesforcedx-vscode/pull/4962))
+
+#### salesforcedx-vscode-lwc
+
+- We added new snippets for LWC HTML. Thank you [Mark Vogelgesang](https://github.com/mvogelgesang) for creating the issue. ([PR #4946](https://github.com/forcedotcom/salesforcedx-vscode/pull/4946), [ISSUE #4857](https://github.com/forcedotcom/salesforcedx-vscode/issues/4857))
+
 # 58.4.1 - June 29, 2023
 
 ## Fixed

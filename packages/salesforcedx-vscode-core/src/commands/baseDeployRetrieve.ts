@@ -36,7 +36,11 @@ import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { createComponentCount, formatException } from './util';
+import {
+  createComponentCount,
+  formatException,
+  SfdxCommandletExecutor
+} from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -44,7 +48,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
-  protected static errorCollection = vscode.languages.createDiagnosticCollection(
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
   protected cancellable: boolean = true;
@@ -161,6 +165,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           );
         } else {
           DeployRetrieveExecutor.errorCollection.clear();
+          SfdxCommandletExecutor.errorCollection.clear();
         }
       }
     } finally {
@@ -279,6 +284,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     if (result) {
       DeployRetrieveExecutor.errorCollection.clear();
+      SfdxCommandletExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       if (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()) {
         const output = this.createOutput(result, relativePackageDirs);
