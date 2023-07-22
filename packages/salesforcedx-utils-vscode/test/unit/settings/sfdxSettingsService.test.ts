@@ -20,7 +20,7 @@ describe('SfdxSettingsService', () => {
         SfdxSettingsService.getEnableClearOutputBeforeEachCommand()
       ).equals(true);
       expect(
-        SfdxSettingsService.getEnableSuppressOutputAfterEachCommand()
+        SfdxSettingsService.getEnableSuppressOutputAfterSuccessfulOperation()
       ).equals(true);
     });
     it('should return false if underlying configuration is false', () => {
