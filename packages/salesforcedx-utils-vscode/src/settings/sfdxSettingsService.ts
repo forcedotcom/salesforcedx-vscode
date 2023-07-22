@@ -12,7 +12,7 @@ export class SfdxSettingsService {
       .get<boolean>(SETTING_CLEAR_OUTPUT_TAB, false);
   }
 
-  public static getEnableSuppressOutputAfterEachCommand(): boolean {
+  public static getEnableSuppressOutputAfterSuccessfulOperation(): boolean {
     return vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(SETTING_SUPPRESS_OUTPUT_TAB, false);
