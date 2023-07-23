@@ -150,14 +150,16 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
           result
         );
-
+        const success = result.response.status === RequestStatus.Succeeded;
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-        if (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()) {
+        if (
+          !sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation() ||
+          !success
+        ) {
           const output = this.createOutput(result, relativePackageDirs);
           channelService.appendLine(output);
         }
 
-        const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
           this.unsuccessfulOperationHandler(
             result,

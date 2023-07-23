@@ -9,6 +9,9 @@ import {
   ContinueResponse,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
+
+import { createSandbox, SinonStub } from 'sinon';
+
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { channelService } from '../../../src/channels';
@@ -21,6 +24,7 @@ import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import * as diagnostics from '../../../src/diagnostics';
 import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
@@ -199,7 +203,14 @@ describe('Deploy Executor', () => {
     let getPackageDirectoryPathsSpy: any;
     let createOutputSpy: any;
     let appendLineSpy: any;
+    let suppressOutputStub: SinonStub;
+    const sandbox = createSandbox();
+
     beforeEach(() => {
+      suppressOutputStub = sandbox.stub(
+        SfdxCoreSettings.prototype,
+        'getEnableSuppressOutputAfterSuccessfulOperation'
+      );
       setPropertiesForFilesDeployMock = jest.fn();
       getInstanceSpy = jest
         .spyOn(PersistentStorageService, 'getInstance')
@@ -220,6 +231,10 @@ describe('Deploy Executor', () => {
         .spyOn(DeployQueue, 'get')
         .mockReturnValue({ unlock: mockUnlock } as any);
       DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     it('should clear errors on success', async () => {
@@ -296,6 +311,112 @@ describe('Deploy Executor', () => {
       );
       expect(unlockSpy).toHaveBeenCalled();
       expect(mockUnlock).toHaveBeenCalled();
+    });
+
+    it('should not create output on success when suppressOutputTab is true', async () => {
+      suppressOutputStub.returns(true);
+      const mockDeployResult = {
+        response: {
+          status: 'Succeeded'
+        }
+      };
+      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
+      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+
+      const executor = new TestDeployExecutor(
+        'testDeploy',
+        'force_source_deploy_with_sourcepath_beta'
+      );
+
+      expect(
+        sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()
+      ).toBe(true);
+
+      // Act
+      await (executor as any).postOperation(mockDeployResult);
+
+      expect(createOutputSpy).not.toHaveBeenCalled();
+    });
+
+    it('should create output on success when suppressOutputTab is false', async () => {
+      suppressOutputStub.returns(false);
+      const mockDeployResult = {
+        response: {
+          status: 'Succeeded'
+        }
+      };
+      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
+      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+
+      const executor = new TestDeployExecutor(
+        'testDeploy',
+        'force_source_deploy_with_sourcepath_beta'
+      );
+
+      expect(
+        sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()
+      ).toBe(false);
+
+      // Act
+      await (executor as any).postOperation(mockDeployResult);
+
+      expect(createOutputSpy).toHaveBeenCalled();
+    });
+
+    it('should create output on failure when suppressOutputTab is true', async () => {
+      // Arrange
+      suppressOutputStub.returns(true);
+      const mockDeployResult = {
+        response: {
+          status: 'Failed'
+        }
+      };
+      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
+      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+
+      const executor = new TestDeployExecutor(
+        'testDeploy',
+        'force_source_deploy_with_sourcepath_beta'
+      );
+
+      expect(
+        sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()
+      ).toBe(true);
+
+      // Act
+      await (executor as any).postOperation(mockDeployResult);
+
+      expect(createOutputSpy).toHaveBeenCalled();
+    });
+
+    it('should create output on failure when suppressOutputTab is false', async () => {
+      // Arrange
+      suppressOutputStub.returns(false);
+      const mockDeployResult = {
+        response: {
+          status: 'Failed'
+        }
+      };
+      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
+      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+
+      const executor = new TestDeployExecutor(
+        'testDeploy',
+        'force_source_deploy_with_sourcepath_beta'
+      );
+
+      expect(
+        sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()
+      ).toBe(false);
+
+      // Act
+      await (executor as any).postOperation(mockDeployResult);
+
+      expect(createOutputSpy).toHaveBeenCalled();
     });
   });
 });
