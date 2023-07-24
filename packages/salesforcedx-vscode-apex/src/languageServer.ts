@@ -24,7 +24,8 @@ const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP =
   process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
-
+const LANGUAGE_SERVER_LOG_LEVEL =
+  process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
@@ -71,6 +72,7 @@ async function createServer(
     if (DEBUG) {
       args.push(
         '-Dtrace.protocol=false',
+        `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
           SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=${JDWP_DEBUG_PORT},quiet=y`

@@ -31,6 +31,7 @@
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "env": {
+        "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
         "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
       },
@@ -54,6 +55,7 @@
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "env": {
+        "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
         "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
       },
