@@ -14,10 +14,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   Executable,
-  LanguageClient,
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
+import { ApexLanguageClient } from './ApexErrorHandler';
 import { LSP_ERR, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageServerUtils } from './helpers/languageServerUtils';
@@ -131,9 +131,9 @@ function protocol2CodeConverter(value: string) {
 
 export async function createLanguageServer(
   extensionContext: vscode.ExtensionContext
-): Promise<LanguageClient> {
+): Promise<ApexLanguageClient> {
   const server = await createServer(extensionContext);
-  const client = new LanguageClient(
+  const client = new ApexLanguageClient(
     'apex',
     nls.localize('client_name'),
     server,
