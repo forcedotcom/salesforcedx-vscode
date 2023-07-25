@@ -33,9 +33,9 @@ describe('Trace Flags Remover', () => {
       .returns(testData.username);
   });
 
-  afterEach(() => {
-    sb.restore();
-  });
+  // afterEach(() => {
+  //   sb.restore();
+  // });
 
   it('should validate that a connection must be present when created', () => {
     console.log('within first.....');
