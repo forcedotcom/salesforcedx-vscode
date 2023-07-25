@@ -31,7 +31,7 @@ describe('Trace Flags', () => {
   let toolingUpdateStub: SinonStub;
 
   beforeEach(async () => {
-    sb = createSandbox();
+    sb = $$.SANDBOX;
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
