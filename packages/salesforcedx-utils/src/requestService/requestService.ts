@@ -11,8 +11,8 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_HTTPS_PROXY,
   ENV_HTTP_PROXY,
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL
+  ENV_SF_TARGET_ORG,
+  ENV_SF_ORG_INSTANCE_URL
 } from '../constants';
 import { BaseCommand } from './baseCommand';
 
@@ -43,11 +43,11 @@ export class RequestService {
     }
     const instanceUrl = this.instanceUrl;
     if (instanceUrl) {
-      envVars[ENV_SFDX_INSTANCE_URL] = instanceUrl;
+      envVars[ENV_SF_ORG_INSTANCE_URL] = instanceUrl;
     }
     const sid = this.accessToken;
     if (sid) {
-      envVars[ENV_SFDX_DEFAULTUSERNAME] = sid;
+      envVars[ENV_SF_TARGET_ORG] = sid;
     }
     return envVars;
   }
