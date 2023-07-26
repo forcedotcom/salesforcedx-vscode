@@ -19,18 +19,27 @@ describe('Trace Flags Remover', () => {
   let sb: SinonSandbox;
 
   beforeEach(async () => {
+    console.log('.....within beforeEach.....');
     sb = $$.SANDBOX;
+    console.log('....after sb.....');
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
+    console.log('......after setConfigStub.....');
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
       })
     });
+    console.log('......after mockConnection.....');
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
       .withArgs('defaultusername')
       .returns(testData.username);
+    console.log('......last of before Each.....');
+  });
+
+  afterEach(() => {
+    sb.restore();
   });
 
   it('should validate that a connection must be present when created', () => {
