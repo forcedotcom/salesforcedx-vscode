@@ -27,6 +27,7 @@ import {
   ConfigSource,
   ContinueResponse,
   isNullOrUndefined,
+  isSFDXContainerMode,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import { homedir } from 'os';
@@ -38,7 +39,6 @@ import {
 } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
-import { isSFDXContainerMode } from '../../util';
 import { OrgAuthInfo } from '../../util/index';
 import {
   ForceAuthDemoModeExecutor,
@@ -141,8 +141,8 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
   }
 }
 
-export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
-
+export class AuthDevHubParamsGatherer
+  implements ParametersGatherer<AuthDevHubParams> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AuthDevHubParams>
   > {

@@ -13,14 +13,17 @@ import {
   OrgOpenSuccessResult,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  isSFDXContainerMode
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { isSFDXContainerMode, workspaceUtils } from '../util';
+import { workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,

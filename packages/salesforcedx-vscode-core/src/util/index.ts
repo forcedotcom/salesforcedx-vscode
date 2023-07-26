@@ -10,7 +10,6 @@ export {
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
-  isSFDXContainerMode,
   showCLINotInstalledMessage
 } from './cliConfiguration';
 export { workspaceUtils } from './rootWorkspace';

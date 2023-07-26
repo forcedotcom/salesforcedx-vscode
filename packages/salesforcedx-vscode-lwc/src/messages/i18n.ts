@@ -42,6 +42,8 @@ export const messages = {
     "Can't find the Lightning Web Components module in %s. Check that the module exists.",
   force_lightning_lwc_preview_unsupported:
     "Something's not right with the filepath. The local development server doesn't recognize the Lightning Web Components module '%s.'",
+  force_lightning_lwc_preview_container_mode:
+    'This command is only available in Salesforce Extensions for desktop because it requires local installs.',
   force_lightning_lwc_open_text:
     'SFDX: Open Local Development Server in Browser',
   prompt_option_open_browser: 'Open Browser',
