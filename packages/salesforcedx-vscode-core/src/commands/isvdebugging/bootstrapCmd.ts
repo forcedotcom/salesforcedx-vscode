@@ -170,8 +170,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
       )
-      .withArg('force:package:installed:list')
-      .withFlag('--targetusername', data.sessionId)
+      .withArg('package installed list')
+      .withFlag('--target-org', data.sessionId)
       .withJson()
       .withLogName('isv_debug_bootstrap_list_installed_packages')
       .build();
