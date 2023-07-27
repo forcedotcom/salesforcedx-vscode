@@ -236,7 +236,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
-        `sfdx project retrieve start target-metadata-dir ${builder.relativeMetdataTempPath} --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
+        `sfdx project retrieve start --target-metadata-dir ${builder.relativeMetdataTempPath} --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
@@ -297,7 +297,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageNames
       );
       expect(command.toCommand()).to.equal(
-        `sfdx project retrieve start target-metadata-dir ${builder.relativeMetdataTempPath} --package-name mypackage_abc,mpackage_def --target-org ${SESSION_ID}`
+        `sfdx project retrieve start --target-metadata-dir ${builder.relativeMetdataTempPath} --package-name mypackage_abc,mpackage_def --target-org ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
