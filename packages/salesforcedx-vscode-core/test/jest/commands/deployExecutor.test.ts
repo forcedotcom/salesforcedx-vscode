@@ -320,14 +320,13 @@ describe('Deploy Executor', () => {
           status: 'Succeeded'
         }
       };
-      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
-      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
-      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
 
       const executor = new TestDeployExecutor(
         'testDeploy',
         'force_source_deploy_with_sourcepath_beta'
       );
+
+      const channelServiceSpy = jest.spyOn(channelService, 'appendLine');
 
       expect(
         sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()
@@ -336,6 +335,7 @@ describe('Deploy Executor', () => {
       // Act
       await (executor as any).postOperation(mockDeployResult);
 
+      expect(channelServiceSpy).not.toHaveBeenCalled();
       expect(createOutputSpy).not.toHaveBeenCalled();
     });
 
@@ -346,9 +346,7 @@ describe('Deploy Executor', () => {
           status: 'Succeeded'
         }
       };
-      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
-      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
-      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+      const channelServiceSpy = jest.spyOn(channelService, 'appendLine');
 
       const executor = new TestDeployExecutor(
         'testDeploy',
@@ -362,6 +360,7 @@ describe('Deploy Executor', () => {
       // Act
       await (executor as any).postOperation(mockDeployResult);
 
+      expect(channelServiceSpy).toHaveBeenCalled();
       expect(createOutputSpy).toHaveBeenCalled();
     });
 
@@ -373,9 +372,7 @@ describe('Deploy Executor', () => {
           status: 'Failed'
         }
       };
-      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
-      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
-      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+      const channelServiceSpy = jest.spyOn(channelService, 'appendLine');
 
       const executor = new TestDeployExecutor(
         'testDeploy',
@@ -389,6 +386,7 @@ describe('Deploy Executor', () => {
       // Act
       await (executor as any).postOperation(mockDeployResult);
 
+      expect(channelServiceSpy).toHaveBeenCalled();
       expect(createOutputSpy).toHaveBeenCalled();
     });
 
@@ -400,9 +398,8 @@ describe('Deploy Executor', () => {
           status: 'Failed'
         }
       };
-      jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
-      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
-      jest.spyOn(SfdxCommandletExecutor.errorCollection, 'clear');
+
+      const channelServiceSpy = jest.spyOn(channelService, 'appendLine');
 
       const executor = new TestDeployExecutor(
         'testDeploy',
@@ -416,6 +413,7 @@ describe('Deploy Executor', () => {
       // Act
       await (executor as any).postOperation(mockDeployResult);
 
+      expect(channelServiceSpy).toHaveBeenCalled();
       expect(createOutputSpy).toHaveBeenCalled();
     });
   });

@@ -175,7 +175,7 @@ describe('SfdxCommandlet', () => {
     sandbox
       .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
       .returns(false);
-    const clearStub = sandbox.stub(channelService, 'clear');
+    const appendLineStub = sandbox.stub(channelService, 'appendLine');
     const commandlet = new SfdxCommandlet(
       new (class {
         public check(): boolean {
@@ -193,6 +193,6 @@ describe('SfdxCommandlet', () => {
     );
     await commandlet.run();
     // tslint:disable-next-line:no-unused-expression
-    expect(clearStub.called).to.be.false;
+    expect(appendLineStub.called).to.be.false;
   });
 });
