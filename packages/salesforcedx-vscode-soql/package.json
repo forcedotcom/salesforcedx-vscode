@@ -38,7 +38,7 @@
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
-    "jsforce": "2.0.0-beta.20"
+    "jsforce": "^2.0.0-beta.27"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-sobjects-faux-generator": "58.8.0",
