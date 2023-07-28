@@ -126,6 +126,9 @@ export class SObjectTransformer {
       },
       getCustom: () => output.custom,
 
+      hasCustom: () => output.custom.length > 0,
+      hasStandard: () => output.standard.length > 0,
+
       setError: (message, stack) => {
         this.result.error = { message, stack };
       },

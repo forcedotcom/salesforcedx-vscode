@@ -654,6 +654,7 @@ export const messages = {
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
+  sobject_refresh_project: 'Project SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
   force_sobjects_no_refresh_if_already_active_error_text:

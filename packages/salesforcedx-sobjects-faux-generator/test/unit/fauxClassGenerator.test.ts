@@ -13,9 +13,7 @@ import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
-import {
-  FauxClassGenerator
-} from '../../src/generator/fauxClassGenerator';
+import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
 import { minimalCustomSObject } from './sObjectMockData';
@@ -399,7 +397,9 @@ describe('SObject faux class generator', () => {
         addCustom: () => {},
         getStandard: () => [],
         getCustom: () => [],
-        setError: (m, s) => {}
+        setError: (m, s) => {},
+        hasCustom: () => false,
+        hasStandard: () => false
       };
 
       gen.generate(output);
@@ -420,7 +420,9 @@ describe('SObject faux class generator', () => {
         addCustom: () => {},
         getStandard: () => [],
         getCustom: () => [],
-        setError: (m, s) => {}
+        setError: (m, s) => {},
+        hasCustom: () => false,
+        hasStandard: () => false
       };
 
       gen.generate(output);

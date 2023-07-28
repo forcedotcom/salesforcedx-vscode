@@ -36,7 +36,8 @@ export class FauxClassGenerator implements SObjectGenerator {
 
     if (
       selector !== SObjectCategory.STANDARD &&
-      selector !== SObjectCategory.CUSTOM
+      selector !== SObjectCategory.CUSTOM &&
+      selector !== SObjectCategory.PROJECT
     ) {
       throw nls.localize('unsupported_sobject_category', String(selector));
     }

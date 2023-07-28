@@ -10,7 +10,8 @@ import { SObject } from './describe';
 export enum SObjectCategory {
   ALL = 'ALL',
   STANDARD = 'STANDARD',
-  CUSTOM = 'CUSTOM'
+  CUSTOM = 'CUSTOM',
+  PROJECT = 'PROJECT'
 }
 
 export enum SObjectRefreshSource {
@@ -46,6 +47,8 @@ export interface SObjectRefreshOutput {
   getStandard: () => SObject[];
   addCustom: (standard: SObject[]) => void;
   getCustom: () => SObject[];
+  hasCustom: () => boolean;
+  hasStandard: () => boolean;
   setError: (message: string, stack?: string) => void;
 }
 

@@ -53,6 +53,7 @@ export class SObjectRefreshGatherer
     if (!this.source || this.source === SObjectRefreshSource.Manual) {
       const options = [
         nls.localize('sobject_refresh_all'),
+        nls.localize('sobject_refresh_project'),
         nls.localize('sobject_refresh_custom'),
         nls.localize('sobject_refresh_standard')
       ];
@@ -62,9 +63,12 @@ export class SObjectRefreshGatherer
           category = SObjectCategory.ALL;
           break;
         case options[1]:
-          category = SObjectCategory.CUSTOM;
+          category = SObjectCategory.PROJECT;
           break;
         case options[2]:
+          category = SObjectCategory.CUSTOM;
+          break;
+        case options[3]:
           category = SObjectCategory.STANDARD;
           break;
         default:

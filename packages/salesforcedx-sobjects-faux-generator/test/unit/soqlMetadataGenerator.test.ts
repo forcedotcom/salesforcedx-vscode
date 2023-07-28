@@ -99,7 +99,12 @@ class TestSObjectRefreshOutput implements SObjectRefreshOutput {
   public error: { message?: string; stack?: string } = {};
 
   public constructor(public sfdxPath: string) {}
-
+  public hasCustom(): boolean {
+    return this.custom.length > 0;
+  }
+  public hasStandard(): boolean {
+    return this.standard.length > 0;
+  }
   public addTypeNames(sobjShort: SObjectShortDescription[]): void {
     this.typeNames.push(...sobjShort);
   }

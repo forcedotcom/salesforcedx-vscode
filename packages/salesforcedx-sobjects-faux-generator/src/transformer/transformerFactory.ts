@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { workspace } from 'vscode';
+import * as path from 'path';
 import { AuthInfo, Connection, SfProject } from '@salesforce/core';
 import {
   ConfigUtil,
@@ -26,6 +28,7 @@ import {
   SObjectRefreshSource
 } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
+import { file } from 'assert';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -59,12 +62,13 @@ export class SObjectTransformerFactory {
         new OrgObjectRetriever(connection),
         new OrgObjectDetailRetriever(
           connection,
-          new GeneralSObjectSelector(category, source)
+          await SObjectSelectorFactory.create(category, source)
         )
       );
 
       if (
         category === SObjectCategory.STANDARD ||
+        category === SObjectCategory.PROJECT ||
         category === SObjectCategory.ALL
       ) {
         generators.push(standardGenerator);
@@ -72,6 +76,7 @@ export class SObjectTransformerFactory {
 
       if (
         category === SObjectCategory.CUSTOM ||
+        category === SObjectCategory.PROJECT ||
         category === SObjectCategory.ALL
       ) {
         generators.push(customGenerator);
@@ -153,8 +158,84 @@ export class GeneralSObjectSelector implements SObjectSelector {
     return false;
   }
 
-  private isRequiredSObject(sobject: string): boolean {
+  protected isRequiredSObject(sobject: string): boolean {
     // Ignore all sobjects that end with Share or History or Feed or Event
     return !/Share$|History$|Feed$|.+Event$/.test(sobject);
+  }
+}
+export class ProjectSObjectSelector extends GeneralSObjectSelector {
+  private projectSObjects: Set<string>;
+
+  public constructor(category: SObjectCategory, source: SObjectRefreshSource) {
+    super(category, source);
+    this.projectSObjects = new Set<string>();
+  }
+
+  public select(sobject: SObjectShortDescription): boolean {
+    return (
+      this.projectSObjects.has(sobject.name) &&
+      this.isRequiredSObject(sobject.name)
+    );
+  }
+
+  /**
+   * Scans the project for sobjects and adds them to the list of sobjects to retrieve
+   */
+  public async scanForProjectSObjects(): Promise<void> {
+    const dirs: string[] = await this.getPackageDirs();
+    // look for objects in the project
+    const files = (await this.findObjectsInProject(dirs)).map(file => {
+      // get the index of the objects directory's end including the separator
+      const objectsEndIndex = file.indexOf('objects') + 8;
+      const objectsDir = file.substring(objectsEndIndex);
+      // get the index of the next separator
+      const nextSeparatorIndex = objectsDir.indexOf(path.sep);
+      // get the object name
+      return objectsDir.substring(0, nextSeparatorIndex);
+    });
+
+    this.projectSObjects = new Set<string>(files);
+  }
+
+  private async getPackageDirs(): Promise<string[]> {
+    const sfProject = await SfProject.resolve();
+    return sfProject.getUniquePackageDirectories().map(p => p.fullPath);
+  }
+
+  /**
+   * Find all the objects in the project that are sobjects and return the path relative to
+   * the directory inwhich they were found.
+   * @param dirs
+   * @returns
+   */
+  private async findObjectsInProject(dirs: string[]) {
+    const pattern = path.join('**', 'objects', '**');
+    return (
+      await Promise.all(
+        dirs.map(async dir => {
+          const files = await workspace.findFiles(
+            path.join(path.relative(process.cwd(), dir), pattern)
+          );
+          return files.map(file => {
+            const relativePath = path.relative(dir, file.fsPath);
+            return relativePath;
+          });
+        })
+      )
+    ).flat();
+  }
+}
+
+export class SObjectSelectorFactory {
+  public static async create(
+    category: SObjectCategory,
+    source: SObjectRefreshSource
+  ): Promise<SObjectSelector> {
+    if (category === SObjectCategory.PROJECT) {
+      const selector = new ProjectSObjectSelector(category, source);
+      await selector.scanForProjectSObjects();
+      return selector;
+    }
+    return new GeneralSObjectSelector(category, source);
   }
 }

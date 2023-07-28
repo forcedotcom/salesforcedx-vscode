@@ -86,13 +86,21 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 
     if (
-      [SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) &&
+      [
+        SObjectCategory.ALL,
+        SObjectCategory.STANDARD,
+        SObjectCategory.PROJECT
+      ].includes(category) &&
       fs.existsSync(standardsFolder)
     ) {
       rm('-rf', standardsFolder);
     }
     if (
-      [SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) &&
+      [
+        SObjectCategory.ALL,
+        SObjectCategory.CUSTOM,
+        SObjectCategory.PROJECT
+      ].includes(category) &&
       fs.existsSync(customsFolder)
     ) {
       rm('-rf', customsFolder);
