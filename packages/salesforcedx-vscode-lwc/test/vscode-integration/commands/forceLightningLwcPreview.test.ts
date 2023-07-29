@@ -149,6 +149,7 @@ describe('forceLightningLwcPreview', () => {
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
   let showErrorMessageStub: sinon.SinonStub;
+  let isSFDXContainerModeStub: sinon.SinonStub;
   const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(
     root,
@@ -317,6 +318,7 @@ describe('forceLightningLwcPreview', () => {
       'streamCommandOutput'
     );
     appendLineSpy = sinon.spy(ChannelService.prototype, 'appendLine');
+    isSFDXContainerModeStub.returns(false);
   });
 
   afterEach(() => {
