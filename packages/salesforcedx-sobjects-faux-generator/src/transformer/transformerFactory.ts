@@ -4,31 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { workspace } from 'vscode';
-import * as path from 'path';
-import { AuthInfo, Connection, SfProject } from '@salesforce/core';
-import {
-  ConfigUtil,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+
 import { EventEmitter } from 'events';
+import * as path from 'path';
+import { workspace } from 'vscode';
+
+import { AuthInfo, Connection, SfProject } from '@salesforce/core';
+import { ConfigUtil, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
+import { MinObjectRetriever, OrgObjectDetailRetriever, OrgObjectRetriever } from '../retriever';
 import {
-  MinObjectRetriever,
-  OrgObjectDetailRetriever,
-  OrgObjectRetriever
-} from '../retriever';
-import {
-  SObjectCategory,
-  SObjectDefinitionRetriever,
-  SObjectGenerator,
-  SObjectRefreshSource
+    SObjectCategory, SObjectDefinitionRetriever, SObjectGenerator, SObjectRefreshSource
 } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
-import { file } from 'assert';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;

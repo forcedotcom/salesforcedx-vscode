@@ -6,10 +6,10 @@
  */
 
 import { expect } from 'chai';
+import * as path from 'path';
+import * as sinon from 'sinon';
 import { ProjectSObjectSelector } from '../../src/transformer/transformerFactory';
 import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
-import * as sinon from 'sinon';
-import * as path from 'path';
 
 const SOBJECTS_DESCRIBE_SAMPLE = {
   sobjects: [
