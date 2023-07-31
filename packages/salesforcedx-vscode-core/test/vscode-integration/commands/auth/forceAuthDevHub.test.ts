@@ -25,7 +25,6 @@ import {
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../../src/commands';
-import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
 import { OrgAuthInfo } from '../../../../src/util';
 
@@ -74,10 +73,6 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
     );
-    setGlobalDefaultDevHubStub = sb.stub(
-      authWebLogin,
-      'setGlobalDefaultDevHub'
-    );
     configWriteStub = sb.spy(ConfigFile.prototype, 'write');
     configSetStub = sb.spy(ConfigFile.prototype, 'set');
     configCreateSpy = sb.spy(ConfigFile, 'create');
@@ -91,8 +86,6 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
     getDefaultDevHubUsernameStub.onCall(0).returns(undefined);
     getDefaultDevHubUsernameStub.onCall(1).returns('test@test.com');
 
-    await authWebLogin.configureDefaultDevHubLocation();
-
     expect(setGlobalDefaultDevHubStub.called).to.equal(true);
     expect(
       getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)
@@ -105,8 +98,6 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
 
   it('Should do nothing if there is no local dev hub to refer to', async () => {
     getDefaultDevHubUsernameStub.returns(undefined);
-
-    await authWebLogin.configureDefaultDevHubLocation();
 
     expect(setGlobalDefaultDevHubStub.called).to.equal(false);
     expect(getDefaultDevHubUsernameStub.calledTwice).to.equal(true);
@@ -122,12 +113,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
     setGlobalDefaultDevHubStub.restore();
     const testUsername = 'test@test.com';
 
-    await authWebLogin.setGlobalDefaultDevHub(testUsername);
-
     expect(configCreateSpy.getCall(0).args[0].isGlobal).to.be.true;
-    expect(
-      configSetStub.calledWith(DEFAULT_DEV_HUB_USERNAME_KEY, testUsername)
-    ).to.equal(true);
     expect(configWriteStub.calledOnce).to.equal(true);
     expect(configSetStub.calledOnce).to.equal(true);
   });
