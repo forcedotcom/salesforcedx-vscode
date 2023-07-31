@@ -79,11 +79,6 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
   }
 
   private selectedTypes(types: SObjectShortDescription[]): string[] {
-    return types.reduce((acc: string[], sobject) => {
-      if (this.selector.select(sobject)) {
-        acc.push(sobject.name);
-      }
-      return acc;
-    }, []);
+    return types.filter(t => this.selector.select(t)).map(t => t.name);
   }
 }
