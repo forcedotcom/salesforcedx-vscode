@@ -127,7 +127,7 @@ function lwcPreviewContainerMode() {
   return;
 }
 
-async function lwcPreview(sourceUri: vscode.Uri) {
+export async function lwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
