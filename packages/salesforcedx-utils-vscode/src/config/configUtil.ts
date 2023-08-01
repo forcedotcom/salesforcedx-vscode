@@ -14,9 +14,9 @@ import {
   StateAggregator
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
+import { TARGET_DEV_HUB_KEY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
-import { TARGET_DEV_HUB_KEY } from '../constants';
 
 export enum ConfigSource {
   Local,
