@@ -16,6 +16,7 @@ import {
 import { workspaceUtils } from '..';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
+import { TARGET_DEV_HUB_KEY } from '../constants';
 
 export enum ConfigSource {
   Local,
@@ -105,7 +106,7 @@ export class ConfigUtil {
   > {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultDevHubUserName = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_DEV_HUB
+      TARGET_DEV_HUB_KEY
     );
     return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
   }
@@ -115,7 +116,7 @@ export class ConfigUtil {
   > {
     const globalConfig = await Config.create({ isGlobal: true });
     const defaultGlobalDevHubUserName = globalConfig.get(
-      OrgConfigProperties.TARGET_DEV_HUB
+      TARGET_DEV_HUB_KEY
     );
 
     return defaultGlobalDevHubUserName
