@@ -6,13 +6,13 @@
  */
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
-const $$ = testSetup();
+const $$ = new TestContext();
 
 describe('Trace Flags Remover', () => {
   const testData = new MockTestOrgData();
@@ -20,18 +20,23 @@ describe('Trace Flags Remover', () => {
   let sb: SinonSandbox;
 
   beforeEach(async () => {
-    sb = createSandbox();
+    console.log('.....within beforeEach.....');
+    sb = $$.SANDBOX;
+    console.log('....after sb.....');
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
+    console.log('......after setConfigStub.....');
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
       })
     });
+    console.log('......after mockConnection.....');
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
       .withArgs('defaultusername')
       .returns(testData.username);
+    console.log('......last of before Each.....');
   });
 
   afterEach(() => {
@@ -39,6 +44,7 @@ describe('Trace Flags Remover', () => {
   });
 
   it('should validate that a connection must be present when created', () => {
+    console.log('within first.....');
     try {
       TraceFlagsRemover.resetInstance();
       // here we're testing an unreachable state as it won't compile without the cast to any
