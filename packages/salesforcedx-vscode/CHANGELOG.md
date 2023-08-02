@@ -6,7 +6,7 @@
 
 - We made some changes under the hood. ([PR #4993](https://github.com/forcedotcom/salesforcedx-vscode/pull/4993))
 
-- We disabled LWC preview in container code. An error message that explains why the command is disabled is displayed when the command is run. ([PR #4983](https://github.com/forcedotcom/salesforcedx-vscode/pull/4983))
+- We disabled LWC preview in container code. An error message that explains why the command is disabled is displayed when the command is run in a container. ([PR #4983](https://github.com/forcedotcom/salesforcedx-vscode/pull/4983))
 
 ## Fixed
 
