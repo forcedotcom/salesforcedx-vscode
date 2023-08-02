@@ -4,19 +4,19 @@
 
 #### salesforcedx-vscode-core
 
-- Replace sfdx to sf style flag name ([PR #4993](https://github.com/forcedotcom/salesforcedx-vscode/pull/4993))
+- We made some changes under the hood. ([PR #4993](https://github.com/forcedotcom/salesforcedx-vscode/pull/4993))
 
-- In container mode, disable LWC preview with error ([PR #4983](https://github.com/forcedotcom/salesforcedx-vscode/pull/4983))
+- We disabled LWC preview in container code. An error message that explains why the command is disabled is displayed when the command is run. ([PR #4983](https://github.com/forcedotcom/salesforcedx-vscode/pull/4983))
 
 ## Fixed
 
 #### salesforcedx-utils-vscode
 
-- Change location of target-dev-hub constant declaration to salesforcedx-utils-vscode folder ([PR #5011](https://github.com/forcedotcom/salesforcedx-vscode/pull/5011))
+- We made some changes under the hood. ([PR #5011](https://github.com/forcedotcom/salesforcedx-vscode/pull/5011))
 
 #### salesforcedx-vscode-core
 
-- Remove sfdx variable defaultdevhubusername ([PR #5005](https://github.com/forcedotcom/salesforcedx-vscode/pull/5005))
+- We made some changes under the hood. ([PR #5005](https://github.com/forcedotcom/salesforcedx-vscode/pull/5005))
 
 # 58.7.1 - July 21, 2023
 
