@@ -17,7 +17,6 @@ import { forceLaunchApexReplayDebuggerWithCurrentFile } from '../../../src/comma
 import { nls } from '../../../src/messages';
 import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider';
 
-
 describe('Force Launch Replay Debugger', () => {
   const $$ = new TestContext();
   const sb = createSandbox();

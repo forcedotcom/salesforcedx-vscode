@@ -27,7 +27,6 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-
 // tslint:disable:no-unused-expression
 describe('Force Apex Execute', () => {
   const $$ = new TestContext();
