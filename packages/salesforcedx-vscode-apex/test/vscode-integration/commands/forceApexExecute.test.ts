@@ -27,10 +27,10 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-const $$ = new TestContext();
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Execute', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sb: SinonSandbox;

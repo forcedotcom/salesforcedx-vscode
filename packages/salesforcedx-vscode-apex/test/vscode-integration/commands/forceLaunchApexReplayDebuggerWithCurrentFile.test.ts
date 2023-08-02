@@ -17,9 +17,9 @@ import { forceLaunchApexReplayDebuggerWithCurrentFile } from '../../../src/comma
 import { nls } from '../../../src/messages';
 import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider';
 
-const $$ = new TestContext();
 
 describe('Force Launch Replay Debugger', () => {
+  const $$ = new TestContext();
   const sb = createSandbox();
   let flushFilePathStub: SinonStub;
   beforeEach(async () => {
