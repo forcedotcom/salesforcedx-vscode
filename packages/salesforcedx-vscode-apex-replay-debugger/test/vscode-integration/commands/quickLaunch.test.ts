@@ -29,10 +29,9 @@ import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-const $$ = new TestContext();
-
 // tslint:disable:no-unused-expression
 describe('Quick launch apex tests', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let testDebuggerExec: TestDebuggerExecutor;
   const APEX_LOG_ID = 'abcd';
