@@ -19,8 +19,8 @@ import { vscodeStub } from '../commands/mocks';
 //   vscode: vscodeStub
 // });
 
-const $$ = new TestContext();
 describe('Trace Flags', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   const USER_ID = 'abcd';
   let mockConnection: Connection;
@@ -35,6 +35,7 @@ describe('Trace Flags', () => {
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
+    await $$.stubAliases({ myAlias: testData.username });
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
