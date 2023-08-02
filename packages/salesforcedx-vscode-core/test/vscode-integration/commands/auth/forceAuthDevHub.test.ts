@@ -25,7 +25,6 @@ import {
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../../src/commands';
-import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
 import { OrgAuthInfo } from '../../../../src/util';
 
@@ -55,83 +54,6 @@ describe('Force Auth Web Login for Dev Hub', () => {
 
 // Setup the test environment.
 const $$ = instantiateContext();
-
-describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
-  let getDefaultDevHubUsernameStub: SinonStub;
-  let setGlobalDefaultDevHubStub: SinonStub;
-  let configWriteStub: SinonSpy;
-  let configSetStub: SinonSpy;
-  let configCreateSpy: SinonSpy;
-
-  const authWebLogin = ForceAuthDevHubExecutor.prototype;
-  let sb: SinonSandbox;
-
-  beforeEach(() => {
-    stubContext($$);
-    $$.SANDBOXES.CONFIG.restore();
-    sb = $$.SANDBOX;
-    getDefaultDevHubUsernameStub = sb.stub(
-      OrgAuthInfo,
-      'getDefaultDevHubUsernameOrAlias'
-    );
-    setGlobalDefaultDevHubStub = sb.stub(
-      authWebLogin,
-      'setGlobalDefaultDevHub'
-    );
-    configWriteStub = sb.spy(ConfigFile.prototype, 'write');
-    configSetStub = sb.spy(ConfigFile.prototype, 'set');
-    configCreateSpy = sb.spy(ConfigFile, 'create');
-  });
-
-  afterEach(() => {
-    restoreContext($$);
-  });
-
-  it('Should set global dev hub if there is no global already, but a local has been defined', async () => {
-    getDefaultDevHubUsernameStub.onCall(0).returns(undefined);
-    getDefaultDevHubUsernameStub.onCall(1).returns('test@test.com');
-
-    await authWebLogin.configureDefaultDevHubLocation();
-
-    expect(setGlobalDefaultDevHubStub.called).to.equal(true);
-    expect(
-      getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)
-    ).to.equal(true);
-    expect(
-      getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Local)
-    ).to.equal(true);
-    expect(getDefaultDevHubUsernameStub.calledTwice).to.be.true;
-  });
-
-  it('Should do nothing if there is no local dev hub to refer to', async () => {
-    getDefaultDevHubUsernameStub.returns(undefined);
-
-    await authWebLogin.configureDefaultDevHubLocation();
-
-    expect(setGlobalDefaultDevHubStub.called).to.equal(false);
-    expect(getDefaultDevHubUsernameStub.calledTwice).to.equal(true);
-    expect(
-      getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)
-    ).to.equal(true);
-    expect(
-      getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Local)
-    ).to.equal(true);
-  });
-
-  it('Should call set and write on the config file', async () => {
-    setGlobalDefaultDevHubStub.restore();
-    const testUsername = 'test@test.com';
-
-    await authWebLogin.setGlobalDefaultDevHub(testUsername);
-
-    expect(configCreateSpy.getCall(0).args[0].isGlobal).to.be.true;
-    expect(
-      configSetStub.calledWith(DEFAULT_DEV_HUB_USERNAME_KEY, testUsername)
-    ).to.equal(true);
-    expect(configWriteStub.calledOnce).to.equal(true);
-    expect(configSetStub.calledOnce).to.equal(true);
-  });
-});
 
 describe('Force Auth Web Login For Dev Hub in Demo  Mode', () => {
   it('Should build the auth web login command', async () => {
