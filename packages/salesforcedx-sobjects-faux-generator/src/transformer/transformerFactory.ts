@@ -176,7 +176,7 @@ export class ProjectSObjectSelector extends GeneralSObjectSelector {
 
   public select(sobject: SObjectShortDescription): boolean {
     return (
-      (!sobject.custom || this.projectSObjects.has(sobject.name)) &&
+      this.projectSObjects.has(sobject.name) &&
       this.isRequiredSObject(sobject.name)
     );
   }

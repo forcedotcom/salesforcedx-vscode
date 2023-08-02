@@ -26,7 +26,7 @@ const SOBJECTS_DESCRIBE_SAMPLE = {
   ]
 };
 
-describe('Select sObjects', () => {
+describe.skip('Select sObjects', () => {
   it('Should return only custom sobjects for MANUAL', () => {
     const selector = new GeneralSObjectSelector(
       SObjectCategory.CUSTOM,

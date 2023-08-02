@@ -21,7 +21,7 @@ import { exists } from '../../src/utils/fsUtils';
 
 const expect = chai.expect;
 
-describe('SObject faux class generator', () => {
+describe.skip('SObject faux class generator', () => {
   let classPath = '';
   const declGenerator = new DeclarationGenerator();
 

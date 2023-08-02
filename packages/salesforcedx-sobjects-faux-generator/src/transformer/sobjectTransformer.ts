@@ -93,7 +93,7 @@ export class SObjectTransformer {
       }
 
       try {
-        gen.generate(output);
+        await gen.generate(output);
       } catch (err) {
         return this.errorExit(err.message);
       }

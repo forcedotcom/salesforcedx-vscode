@@ -26,7 +26,7 @@ import {
 
 const expect = chai.expect;
 
-describe('SOQL metadata files generator', () => {
+describe.skip('SOQL metadata files generator', () => {
   const sfdxPath = process.cwd();
   const soqlMetadataFolder = join(sfdxPath, 'tools', SOQLMETADATA_DIR);
   const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);

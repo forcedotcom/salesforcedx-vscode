@@ -71,19 +71,21 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    await Promise.all((this.sobjectSelector === SObjectCategory.STANDARD
-      ? output.getStandard()
-      : output.getCustom()
-    )
-      .filter(sobj => sobj.name)
-      .map(sobj => {
-        return new Promise(() => {
-          const sobjDefinition = this.declGenerator.generateSObjectDefinition(
-            sobj
-          );
-          this.generateFauxClass(outputFolderPath, sobjDefinition);
-        });
-      }));
+    await Promise.all(
+      (this.sobjectSelector === SObjectCategory.STANDARD
+        ? output.getStandard()
+        : output.getCustom()
+      )
+        .filter(sobj => sobj.name)
+        .map(sobj => {
+          return new Promise(() => {
+            const sobjDefinition = this.declGenerator.generateSObjectDefinition(
+              sobj
+            );
+            this.generateFauxClass(outputFolderPath, sobjDefinition);
+          });
+        })
+    );
   }
 
   // VisibleForTesting
@@ -131,7 +133,7 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   private async resetOutputFolder(pathToClean: string): Promise<boolean> {
     if (await exists(pathToClean)) {
-      fs.rm(pathToClean, { recursive: true, force: true });
+      await fs.rm(pathToClean, { recursive: true, force: true });
     }
     if (!(await exists(pathToClean))) {
       await fs.mkdir(pathToClean, { recursive: true });
