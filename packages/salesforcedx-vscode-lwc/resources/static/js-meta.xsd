@@ -159,7 +159,7 @@
             </xs:enumeration>
             <xs:enumeration value="analytics__Dashboard">
               <xs:annotation>
-                <xs:documentation>Enables a component for use in Tableau CRM dashboards.</xs:documentation>
+                <xs:documentation>Enables a component for use in CRM Analytics dashboards.</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
             <xs:enumeration value="lightning__PropertyEditor">
