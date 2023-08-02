@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
 import {
@@ -21,13 +21,14 @@ import {
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
+import { exists } from '../utils/fsUtils';
 
 const BASE_FOLDER = [TOOLS, SOQLMETADATA_DIR];
 
 export class SOQLMetadataGenerator implements SObjectGenerator {
   public constructor(private category: SObjectCategory) {}
 
-  public generate(output: SObjectRefreshOutput): void {
+  public async generate(output: SObjectRefreshOutput): Promise<void> {
     const outputFolderPath = path.join(output.sfdxPath, ...BASE_FOLDER);
     if (!this.resetOutputFolder(outputFolderPath, this.category)) {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
@@ -35,37 +36,37 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
 
     this.generateTypesNames(outputFolderPath, output.getTypeNames());
 
-    const sobjects = [...output.getStandard(), ...output.getCustom()];
-
-    for (const sobj of sobjects) {
-      if (sobj.name) {
-        this.generateMetadataForSObject(outputFolderPath, sobj);
-      }
-    }
+    await Promise.all(
+      [...output.getStandard(), ...output.getCustom()]
+        .filter(sobject => sobject.name)
+        .map(sobject => {
+          return new Promise(() =>
+            this.generateMetadataForSObject(outputFolderPath, sobject)
+          );
+        })
+    );
   }
 
-  private generateTypesNames(
+  private async generateTypesNames(
     folderPath: string,
     typeNames: SObjectShortDescription[]
-  ): void {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath, { recursive: true });
-    }
+  ): Promise<void> {
+    await fs.mkdir(folderPath, { recursive: true });
     const typeNameFile = path.join(folderPath, 'typeNames.json');
-    if (fs.existsSync(typeNameFile)) {
-      fs.unlinkSync(typeNameFile);
+    if (!(await exists(typeNameFile))) {
+      await fs.unlink(typeNameFile);
     }
-    fs.writeFileSync(typeNameFile, JSON.stringify(typeNames, null, 2), {
+    await fs.writeFile(typeNameFile, JSON.stringify(typeNames, null, 2), {
       mode: 0o444
     });
   }
 
-  private generateMetadataForSObject(
+  private async generateMetadataForSObject(
     folderPath: string,
     sobject: SObject
-  ): void {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
+  ): Promise<void> {
+    if (!(await exists(folderPath))) {
+      fs.mkdir(folderPath, { recursive: true });
     }
     const targetPath = path.join(
       folderPath,
@@ -73,7 +74,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
       `${sobject.name}.json`
     );
 
-    fs.writeFileSync(targetPath, JSON.stringify(sobject, null, 2), {
+    await fs.writeFile(targetPath, JSON.stringify(sobject, null, 2), {
       mode: 0o444
     });
   }
@@ -90,28 +91,22 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
         SObjectCategory.ALL,
         SObjectCategory.STANDARD,
         SObjectCategory.PROJECT
-      ].includes(category) &&
-      fs.existsSync(standardsFolder)
+      ].includes(category)
     ) {
-      rm('-rf', standardsFolder);
+      await fs.rm(standardsFolder, { recursive: true, force: true });
     }
     if (
       [
         SObjectCategory.ALL,
         SObjectCategory.CUSTOM,
         SObjectCategory.PROJECT
-      ].includes(category) &&
-      fs.existsSync(customsFolder)
+      ].includes(category)
     ) {
-      rm('-rf', customsFolder);
+      await fs.rm(customsFolder, { recursive: true, force: true });
     }
 
-    if (!fs.existsSync(customsFolder)) {
-      mkdir('-p', customsFolder);
-    }
-    if (!fs.existsSync(standardsFolder)) {
-      mkdir('-p', standardsFolder);
-    }
+    await fs.mkdir(customsFolder, { recursive: true });
+    await fs.mkdir(standardsFolder, { recursive: true });
     return true;
   }
 }

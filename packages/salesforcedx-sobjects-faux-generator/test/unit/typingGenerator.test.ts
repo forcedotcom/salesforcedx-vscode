@@ -6,9 +6,10 @@
  */
 
 import * as chai from 'chai';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import { TypingGenerator } from '../../src/generator/typingGenerator';
+import { exists } from '../../src/utils/fsUtils';
 
 const expect = chai.expect;
 
@@ -16,10 +17,10 @@ describe('SObject Javacript type declaration generator', () => {
   let typePath = '';
   const declGenerator = new DeclarationGenerator();
 
-  afterEach(() => {
+  afterEach(async () => {
     if (typePath) {
       try {
-        fs.unlinkSync(typePath);
+        await fs.unlink(typePath);
       } catch (e) {
         console.log(e);
       }
@@ -38,9 +39,9 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const stat = fs.lstatSync(typePath);
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const stat = await fs.lstat(typePath);
     const expectedMode = parseInt('100444', 8);
     expect(stat.mode).to.equal(expectedMode);
   });
@@ -75,9 +76,9 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__c.StringField');
     expect(typeText).to.include('const StringField:string;');
     expect(typeText).to.include('export default StringField;');
@@ -161,9 +162,9 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include('const BaseField:any;');
     expect(typeText).to.include('const AddressField:any;');
     expect(typeText).to.include('const IntField:number;');
@@ -188,9 +189,9 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__c.StringField');
     expect(typeText).to.include('const StringField:string;');
     expect(typeText).to.include('export default StringField;');
@@ -216,9 +217,9 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__c.ExtRef__c"');
     expect(typeText).to.include('const ExtRef__c:string;');
     expect(typeText).to.include('export default ExtRef__c;');
@@ -237,9 +238,9 @@ describe('SObject Javacript type declaration generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__mdt.MDRef__c"');
     expect(typeText).to.include('const MDRef__c:string;');
     expect(typeText).to.include('export default MDRef__c;');
@@ -258,9 +259,9 @@ describe('SObject Javacript type declaration generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__mdt.MDRef__r');
     expect(typeText).to.include('const MDRef__r:any;');
     expect(typeText).to.include('export default MDRef__r;');
@@ -283,9 +284,9 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateType(sobjectFolder, objDef);
-    expect(fs.existsSync(typePath));
-    const typeText = fs.readFileSync(typePath, 'utf8');
+    typePath = await gen.generateType(sobjectFolder, objDef);
+    expect(await exists(typePath));
+    const typeText = await fs.readFile(typePath, 'utf8');
     expect(typeText).to.include(
       'declare module "@salesforce/schema/PE1__e.StringField" '
     );

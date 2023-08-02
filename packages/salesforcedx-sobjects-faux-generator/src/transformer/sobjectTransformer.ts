@@ -6,7 +6,6 @@
  */
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
-import * as fs from 'fs';
 import {
   ERROR_EVENT,
   EXIT_EVENT,
@@ -24,6 +23,7 @@ import {
   SObjectRefreshOutput as SObjectRefreshData,
   SObjectRefreshResult
 } from '../types';
+import { exists } from '../utils/fsUtils';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -59,7 +59,7 @@ export class SObjectTransformer {
   public async transform(): Promise<SObjectRefreshResult> {
     const pathToStateFolder = projectPaths.stateFolder();
 
-    if (!fs.existsSync(pathToStateFolder)) {
+    if (!(await exists(pathToStateFolder))) {
       return this.errorExit(
         nls.localize('no_generate_if_not_in_project', pathToStateFolder)
       );

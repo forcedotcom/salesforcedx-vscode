@@ -10,15 +10,25 @@ import * as path from 'path';
 import { workspace } from 'vscode';
 
 import { AuthInfo, Connection, SfProject } from '@salesforce/core';
-import { ConfigUtil, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
-import { MinObjectRetriever, OrgObjectDetailRetriever, OrgObjectRetriever } from '../retriever';
 import {
-    SObjectCategory, SObjectDefinitionRetriever, SObjectGenerator, SObjectRefreshSource
+  MinObjectRetriever,
+  OrgObjectDetailRetriever,
+  OrgObjectRetriever
+} from '../retriever';
+import {
+  SObjectCategory,
+  SObjectDefinitionRetriever,
+  SObjectGenerator,
+  SObjectRefreshSource
 } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 
@@ -151,8 +161,9 @@ export class GeneralSObjectSelector implements SObjectSelector {
   }
 
   protected isRequiredSObject(sobject: string): boolean {
-    // Ignore all sobjects that end with Share or History or Feed or Event
-    return !/Share$|History$|Feed$|.+Event$/.test(sobject);
+    // Ignore all sobjects that end with Share or History or Feed or Event from bug W-7905048
+    // return !/Share$|History$|Feed$|.+Event$/.test(sobject);
+    return true;
   }
 }
 export class ProjectSObjectSelector extends GeneralSObjectSelector {
@@ -165,7 +176,7 @@ export class ProjectSObjectSelector extends GeneralSObjectSelector {
 
   public select(sobject: SObjectShortDescription): boolean {
     return (
-      this.projectSObjects.has(sobject.name) &&
+      (!sobject.custom || this.projectSObjects.has(sobject.name)) &&
       this.isRequiredSObject(sobject.name)
     );
   }

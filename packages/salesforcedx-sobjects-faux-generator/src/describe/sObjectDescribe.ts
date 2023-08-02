@@ -42,40 +42,31 @@ export class SObjectDescribe {
   }
 
   public buildSObjectDescribeURL(sObjectName: string): string {
-    const urlElements = [
-      this.getVersion(),
-      this.sobjectsPart,
-      sObjectName,
-      'describe'
-    ];
-    return urlElements.join('/');
+    return [this.getVersion(), this.sobjectsPart, sObjectName, 'describe'].join(
+      '/'
+    );
   }
 
   public buildBatchRequestURL(): string {
-    const batchUrlElements = [
+    return [
       this.connection.instanceUrl,
       this.servicesPath,
       this.getVersion(),
       this.batchPart
-    ];
-    return batchUrlElements.join('/');
+    ].join('/');
   }
 
   public buildBatchRequestBody(types: string[]): BatchRequest {
-    const batchRequest: BatchRequest = { batchRequests: [] };
-
-    for (const objType of types) {
-      batchRequest.batchRequests.push({
+    return {
+      batchRequests: types.map(objType => ({
         method: 'GET',
         url: this.buildSObjectDescribeURL(objType)
-      });
-    }
-
-    return batchRequest;
+      }))
+    };
   }
 
   public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
-    return (this.connection.request({
+    return this.connection.request<BatchResponse>({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -83,7 +74,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    }) as unknown) as BatchResponse;
+    });
   }
 
   public async describeSObjectBatchRequest(
@@ -97,7 +88,7 @@ export class SObjectDescribe {
       if (batchResponse && batchResponse.results === undefined) {
         return Promise.resolve(fetchedObjects);
       }
-
+      
       batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
           if (sr.result[0].errorCode && sr.result[0].message) {
@@ -175,7 +166,7 @@ function toMinimalSObjectField(describeField: Field): SObjectField {
 }
 
 function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
-  const ret: any = {};
+  const ret = {} as Pick<T, K>;
   keys.forEach(key => {
     ret[key] = obj[key];
   });

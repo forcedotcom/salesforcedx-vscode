@@ -6,7 +6,7 @@
  */
 
 import * as chai from 'chai';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { EOL } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
@@ -17,6 +17,7 @@ import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
 import { minimalCustomSObject } from './sObjectMockData';
+import { exists } from '../../src/utils/fsUtils';
 
 const expect = chai.expect;
 
@@ -28,10 +29,10 @@ describe('SObject faux class generator', () => {
     return new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
   }
 
-  afterEach(() => {
+  afterEach(async () => {
     if (classPath) {
       try {
-        fs.unlinkSync(classPath);
+        await fs.unlink(classPath);
       } catch (e) {
         console.log(e);
       }
@@ -47,9 +48,12 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include(
       nls.localize('class_header_generated_comment')
     );
@@ -81,9 +85,12 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
-    expect(fs.existsSync(classPath));
-    const stat = fs.lstatSync(classPath);
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(await exists(classPath));
+    const stat = await fs.lstat(classPath);
     const expectedMode = parseInt('100444', 8);
     expect(stat.mode).to.equal(expectedMode);
   });
@@ -118,9 +125,9 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('String StringField;');
     expect(classText).to.include('Double DoubleField;');
     expect(classText).to.include('Boolean BooleanField;');
@@ -158,9 +165,9 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('Blob BaseField;');
     expect(classText).to.include('Address AddressField;');
     expect(classText).to.include('Integer IntField;');
@@ -185,9 +192,9 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('String StringField;');
     expect(classText).to.include('Account Account__r');
     expect(classText).to.include('Id Account__c');
@@ -209,9 +216,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('List<Case> Case__r');
   });
 
@@ -227,9 +234,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('List<Case> RelatedCase;');
   });
 
@@ -252,9 +259,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('List<Case> Reference;');
     expect(classText).to.not.include('Account Reference');
   });
@@ -272,9 +279,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.not.include('null');
     expect(classText).to.include('Account AccountField');
     expect(classText).to.include('List<Account> Reference');
@@ -291,9 +298,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('String ExtRef__c');
   });
 
@@ -317,9 +324,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('String MDRef__c');
   });
 
@@ -336,9 +343,9 @@ describe('SObject faux class generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('XX_mdt MDRef__r');
   });
 
@@ -359,9 +366,9 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, objDef);
-    expect(fs.existsSync(classPath));
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(sobjectFolder, objDef);
+    expect(await exists(classPath));
+    const classText = await fs.readFile(classPath, 'utf8');
     expect(classText).to.include('String StringField;');
     expect(classText).to.include('Double DoubleField;');
   });
@@ -372,19 +379,19 @@ describe('SObject faux class generator', () => {
     const standardFolder = join(sobjectsFolder, STANDARDOBJECTS_DIR);
     const customFolder = join(sobjectsFolder, CUSTOMOBJECTS_DIR);
 
-    beforeEach(() => {
-      fs.mkdirSync(sobjectsFolder);
-      fs.mkdirSync(standardFolder);
-      fs.mkdirSync(customFolder);
+    beforeEach(async () => {
+      await fs.mkdir(sobjectsFolder);
+      await fs.mkdir(standardFolder);
+      await fs.mkdir(customFolder);
     });
 
-    afterEach(() => {
-      if (fs.existsSync(sobjectsFolder)) {
-        rm('-rf', sobjectsFolder);
+    afterEach(async () => {
+      if (await exists(sobjectsFolder)) {
+        await fs.rm(sobjectsFolder, { recursive: true });
       }
     });
 
-    it('Should remove standardObjects folder when category is STANDARD', () => {
+    it('Should remove standardObjects folder when category is STANDARD', async () => {
       const gen = new FauxClassGenerator(
         SObjectCategory.STANDARD,
         STANDARDOBJECTS_DIR
@@ -403,11 +410,11 @@ describe('SObject faux class generator', () => {
       };
 
       gen.generate(output);
-      expect(fs.existsSync(customFolder));
-      expect(!fs.existsSync(standardFolder));
+      expect(await exists(customFolder));
+      expect(!(await exists(standardFolder)));
     });
 
-    it('Should remove customObjects folder when category is CUSTOM', () => {
+    it('Should remove customObjects folder when category is CUSTOM', async () => {
       const gen = new FauxClassGenerator(
         SObjectCategory.CUSTOM,
         CUSTOMOBJECTS_DIR
@@ -426,8 +433,8 @@ describe('SObject faux class generator', () => {
       };
 
       gen.generate(output);
-      expect(!fs.existsSync(customFolder));
-      expect(fs.existsSync(standardFolder));
+      expect(!(await exists(customFolder)));
+      expect(exists(standardFolder));
     });
   });
 });

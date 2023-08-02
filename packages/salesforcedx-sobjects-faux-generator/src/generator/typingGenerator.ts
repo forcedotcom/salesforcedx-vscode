@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { EOL } from 'os';
 import * as path from 'path';
 import {
@@ -15,6 +15,7 @@ import {
   SObjectRefreshOutput
 } from '../types';
 import { DeclarationGenerator } from './declarationGenerator';
+import { exists } from '../utils/fsUtils';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
@@ -26,42 +27,48 @@ export class TypingGenerator implements SObjectGenerator {
     this.declGenerator = new DeclarationGenerator();
   }
 
-  public generate(output: SObjectRefreshOutput): void {
+  public generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
     this.generateTypes(
       [...output.getStandard(), ...output.getCustom()],
       typingsFolderPath
     );
+    return Promise.resolve();
   }
 
-  public generateTypes(sobjects: SObject[], targetFolder: string): void {
-    if (!fs.existsSync(targetFolder)) {
-      fs.mkdirSync(targetFolder, { recursive: true });
+  public async generateTypes(
+    sobjects: SObject[],
+    targetFolder: string
+  ): Promise<void> {
+    if (!(await exists(targetFolder))) {
+      fs.mkdir(targetFolder, { recursive: true });
     }
 
-    for (const sobj of sobjects) {
-      if (sobj.name) {
-        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
-          sobj
-        );
-        this.generateType(targetFolder, sobjDefinition);
-      }
-    }
+    await Promise.all(
+      sobjects
+        .filter(sobj => sobj.name)
+        .map(sobj => {
+          const sobjDefinition = this.declGenerator.generateSObjectDefinition(
+            sobj
+          );
+          return this.generateType(targetFolder, sobjDefinition);
+        })
+    );
   }
 
-  public generateType(
+  public async generateType(
     folderPath: string,
     definition: SObjectDefinition
-  ): string {
+  ): Promise<string> {
     const typingPath = path.join(
       folderPath,
       `${definition.name}${TYPESCRIPT_TYPE_EXT}`
     );
-    if (fs.existsSync(typingPath)) {
-      fs.unlinkSync(typingPath);
+    if (await exists(typingPath)) {
+      await fs.unlink(typingPath);
     }
 
-    fs.writeFileSync(typingPath, this.convertDeclarations(definition), {
+    await fs.writeFile(typingPath, this.convertDeclarations(definition), {
       mode: 0o444
     });
 

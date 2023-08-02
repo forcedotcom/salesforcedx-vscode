@@ -256,7 +256,7 @@ describe('Metadata Cache', () => {
       if (cache?.cachePropPath) {
         const propObj = JSON.parse(
           fs.readFileSync(cache?.cachePropPath, {
-            encoding: 'UTF-8'
+            encoding: 'utf-8'
           })
         );
 

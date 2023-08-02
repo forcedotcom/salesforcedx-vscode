@@ -47,61 +47,45 @@ export class DeclarationGenerator {
   ]);
 
   public generateSObjectDefinitions(sobjects: SObject[]): SObjectDefinition[] {
-    const definitions: SObjectDefinition[] = [];
-    for (const sobject of sobjects) {
+    const definitions: SObjectDefinition[] = sobjects.map(sobject => {
       const declarations = this.generateSObjectDefinition(sobject);
-      definitions.push({
+      return {
         name: sobject.name,
         fields: declarations.fields
-      });
-    }
+      };
+    });
+
     return definitions;
   }
 
   public generateSObjectDefinition(sobject: SObject): SObjectDefinition {
-    const declarations: FieldDeclaration[] = [];
+    const fields = (sobject.fields || [])
+      .map(field => this.generateField(field) ?? [])
+      .flat();
 
-    if (sobject.fields) {
-      for (const field of sobject.fields) {
-        const decls: FieldDeclaration[] = this.generateField(field);
-        if (decls && decls.length > 0) {
-          for (const decl of decls) {
-            declarations.push(decl);
-          }
+    const childRelationShips = (sobject.childRelationships || [])
+      .sort((l, r) => {
+        // both have relationshipName, sort by that using localeCompare
+        if (l.relationshipName && r.relationshipName) {
+          return l.relationshipName.localeCompare(r.relationshipName);
         }
-      }
-    }
-
-    if (sobject.childRelationships) {
-      for (const rel of sobject.childRelationships) {
-        if (rel.relationshipName) {
-          const decl = this.generateChildRelationship(rel);
-          if (decl) {
-            declarations.push(decl);
-          }
+        // only one has relationshipName, sort that one first
+        if (l.relationshipName) {
+          return -1;
         }
-      }
-
-      for (const rel of sobject.childRelationships) {
-        // handle the odd childRelationships last (without relationshipName)
-        if (!rel.relationshipName) {
-          const decl = this.generateChildRelationship(rel);
-          if (decl) {
-            declarations.push(decl);
-          }
+        if (r.relationshipName) {
+          return 1;
         }
-      }
-    }
+        return 0;
+      })
+      .map(rel => this.generateChildRelationship(rel))
+      .flat();
 
-    return { name: sobject.name, fields: declarations };
+    return { name: sobject.name, fields: [...fields, ...childRelationShips] };
   }
 
   private stripId(name: string): string {
-    if (name.endsWith('Id')) {
-      return name.slice(0, name.length - 2);
-    } else {
-      return name;
-    }
+    return name.replaceAll('Id$', '');
   }
 
   private capitalize(input: string): string {
@@ -134,15 +118,14 @@ export class DeclarationGenerator {
   private generateField(field: SObjectField): FieldDeclaration[] {
     const decls: FieldDeclaration[] = [];
     const comment = field.inlineHelpText;
-    let genType = '';
-    if (!field.referenceTo || field.referenceTo.length === 0) {
+
+    if (field.referenceTo?.length === 0) {
       // should be a normal field EXCEPT for external lookup & metadata relationship
       // which is a reference, but no referenceTo targets
-      if (field.extraTypeInfo === 'externallookup') {
-        genType = 'String';
-      } else {
-        genType = this.getTargetType(field.type);
-      }
+      let genType =
+        field.extraTypeInfo === 'externallookup'
+          ? 'String'
+          : this.getTargetType(field.type);
 
       decls.push(
         Object.assign(

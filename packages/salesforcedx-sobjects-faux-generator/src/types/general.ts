@@ -36,7 +36,7 @@ export interface SObjectDefinitionRetriever {
 }
 
 export interface SObjectGenerator {
-  generate: (output: SObjectRefreshOutput) => void;
+  generate: (output: SObjectRefreshOutput) => Promise<void>;
 }
 
 export interface SObjectRefreshOutput {
