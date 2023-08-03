@@ -6,7 +6,7 @@
   "license": "BSD-3-Clause",
   "main": "./out/src",
   "engines": {
-    "vscode": "^1.63.0"
+    "vscode": "^1.71.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "58.9.1",
