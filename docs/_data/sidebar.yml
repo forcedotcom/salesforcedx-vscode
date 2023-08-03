@@ -69,19 +69,18 @@
         en: Package Development Model
         ja: 開発モデル
       url: /sf-dev-models/pkgdev
-- - title:
+- title:
     en: Salesforce Development Environment
     ja: Salesforce 開発環境
-    baseurl: /sf-dev-env/
-    children:
+  baseUrl: /sf-dev-env/
+  children:
     - title:
-      en: Development Environment Overview
-      ja: 概要
-      url: /sf-dev-env/model-overview
+        en: Development Environment Overview
+        ja: 概要
+      url: /sf-dev-env/env-overview
     - title:
         en: Command Palette
         ja: コマンドリファレンス
-      url: /sf-dev-env/vscode-commands
 - title:
     en: User Guide
     ja: ユーザガイド
