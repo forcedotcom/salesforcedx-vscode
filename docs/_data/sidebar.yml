@@ -81,6 +81,7 @@
     - title:
         en: Command Palette
         ja: コマンドリファレンス
+      url: /sf-dev-env/vscode-commands.md
 - title:
     en: User Guide
     ja: ユーザガイド
