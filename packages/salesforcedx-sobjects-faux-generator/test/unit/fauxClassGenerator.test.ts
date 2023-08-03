@@ -7,9 +7,9 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import { EOL } from 'os';
 import { join } from 'path';
-import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
@@ -21,7 +21,12 @@ import { exists } from '../../src/utils/fsUtils';
 
 const expect = chai.expect;
 
-describe.skip('SObject faux class generator', () => {
+const getSobjectsFolder = () => {
+  const tmpFolder = os.tmpdir();
+  return join(tmpFolder, SOBJECTS_DIR);
+};
+
+describe('SObject faux class generator', () => {
   let classPath = '';
   const declGenerator = new DeclarationGenerator();
 
@@ -46,7 +51,7 @@ describe.skip('SObject faux class generator', () => {
 
     const sobject1 = `${fieldsHeader}${closeHeader}`;
 
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -83,7 +88,7 @@ describe.skip('SObject faux class generator', () => {
 
     const sobject1 = `${fieldsHeader}${closeHeader}`;
 
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -123,7 +128,7 @@ describe.skip('SObject faux class generator', () => {
       JSON.parse(sobject1)
     );
 
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -163,7 +168,7 @@ describe.skip('SObject faux class generator', () => {
       JSON.parse(sobject1)
     );
 
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -190,7 +195,7 @@ describe.skip('SObject faux class generator', () => {
       JSON.parse(sobject1)
     );
 
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -214,7 +219,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -232,7 +237,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -257,7 +262,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -277,7 +282,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -296,7 +301,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -322,7 +327,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -341,7 +346,7 @@ describe.skip('SObject faux class generator', () => {
     const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));
@@ -364,7 +369,7 @@ describe.skip('SObject faux class generator', () => {
       JSON.parse(sobject1)
     );
 
-    const sobjectFolder = process.cwd();
+    const sobjectFolder = getSobjectsFolder();
     const gen = getGenerator();
     classPath = await gen.generateFauxClass(sobjectFolder, objDef);
     expect(await exists(classPath));

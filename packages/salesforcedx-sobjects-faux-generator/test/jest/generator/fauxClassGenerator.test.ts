@@ -125,7 +125,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       }
     });
 
-    it.only('Should process standard sobjects.', async () => {
+    it('Should process standard sobjects.', async () => {
       const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getStandardMock.mockReturnValue([fakeSObject]);
@@ -133,7 +133,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
         .generateSObjectDefinition as any).mockReturnValue(
         fakeSobjectDef as any
       );
-      generateFauxClassMock.mockReturnValue(Promise.resolve('hooray'));
+      generateFauxClassMock.mockResolvedValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator(
         SObjectCategory.STANDARD,
@@ -160,7 +160,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
         .generateSObjectDefinition as any).mockReturnValue(
         fakeSobjectDef as any
       );
-      generateFauxClassMock.mockReturnValue('hooray');
+      generateFauxClassMock.mockResolvedValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator(
         SObjectCategory.CUSTOM,

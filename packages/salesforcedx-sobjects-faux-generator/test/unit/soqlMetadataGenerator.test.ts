@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as chai from 'chai';
-import * as fs from 'fs';
+import { expect } from 'chai';
+import * as fs from 'fs/promises';
+import * as os from 'os';
 import { userInfo } from 'os';
 import { join } from 'path';
-import { rm } from 'shelljs';
 import {
   CUSTOMOBJECTS_DIR,
   SOQLMETADATA_DIR,
@@ -23,35 +23,30 @@ import {
   SObjectCategory,
   SObjectRefreshOutput
 } from '../../src/types';
+import { exists } from '../../src/utils/fsUtils';
 
-const expect = chai.expect;
-
-describe.skip('SOQL metadata files generator', () => {
-  const sfdxPath = process.cwd();
+describe('SOQL metadata files generator', () => {
+  const sfdxPath = os.tmpdir();
   const soqlMetadataFolder = join(sfdxPath, 'tools', SOQLMETADATA_DIR);
   const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
-  function cleanupMetadata() {
-    if (fs.existsSync(soqlMetadataFolder)) {
-      rm('-rf', soqlMetadataFolder);
+  async function cleanupMetadata() {
+    if (await exists(soqlMetadataFolder)) {
+      await fs.rm(soqlMetadataFolder, { recursive: true, force: true });
     }
   }
 
   const username = userInfo().username;
-  const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
-  const standardFolderExists = fs.existsSync(standardFolder);
-  const customFolderExists = fs.existsSync(standardFolder);
 
-  beforeEach(() => {
-    cleanupMetadata();
-    fs.mkdirSync(soqlMetadataFolder, { recursive: true });
-    fs.mkdirSync(standardFolder);
-    fs.mkdirSync(customFolder);
+  beforeEach(async () => {
+    await cleanupMetadata();
+    await fs.mkdir(standardFolder, { recursive: true });
+    await fs.mkdir(customFolder, { recursive: true });
   });
 
-  afterAll(() => {
-    cleanupMetadata();
+  afterAll(async () => {
+    await cleanupMetadata();
   });
 
   it('Should generate metadata files from "minimal" object set', async () => {
@@ -62,33 +57,33 @@ describe.skip('SOQL metadata files generator', () => {
     expect(output.getTypeNames().length).to.equal(MINS_SOBJECTS_COUNT);
 
     const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
-    gen.generate(output);
+    await gen.generate(output);
 
-    const accountFile = fs.readFileSync(join(standardFolder, 'Account.json'));
+    const accountFile = await fs.readFile(join(standardFolder, 'Account.json'));
     const accountSObject = JSON.parse(accountFile.toString());
 
     expect(accountSObject.name).to.equal('Account');
     expect(accountSObject.label).to.equal('Account');
     expect(accountSObject.fields[0].name).to.equal('Id');
     expect(accountSObject.fields[0].label).to.equal('Account ID');
-    const standardFiles = fs.readdirSync(standardFolder);
+    const standardFiles = await fs.readdir(standardFolder);
     expect(standardFiles.length).to.equal(MINS_SOBJECTS_COUNT);
   });
 
-  it('Should remove standardObjects folder when category is STANDARD', () => {
+  it('Should remove standardObjects folder when category is STANDARD', async () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
     const output = new TestSObjectRefreshOutput(sfdxPath);
-    gen.generate(output);
-    expect(fs.existsSync(customFolder));
-    expect(!fs.existsSync(standardFolder));
+    await gen.generate(output);
+    expect(await exists(customFolder));
+    expect(!(await exists(standardFolder)));
   });
 
-  it('Should remove customObjects folder when category is CUSTOM', () => {
+  it('Should remove customObjects folder when category is CUSTOM', async () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.CUSTOM);
     const output = new TestSObjectRefreshOutput(sfdxPath);
-    gen.generate(output);
-    expect(!fs.existsSync(customFolder));
-    expect(fs.existsSync(standardFolder));
+    await gen.generate(output);
+    expect(!(await exists(customFolder)));
+    expect(await exists(standardFolder));
   });
 });
 

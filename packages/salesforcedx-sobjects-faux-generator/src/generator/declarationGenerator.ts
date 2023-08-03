@@ -85,7 +85,7 @@ export class DeclarationGenerator {
   }
 
   private stripId(name: string): string {
-    return name.replaceAll('Id$', '');
+    return name.replaceAll(/Id$/g, '');
   }
 
   private capitalize(input: string): string {

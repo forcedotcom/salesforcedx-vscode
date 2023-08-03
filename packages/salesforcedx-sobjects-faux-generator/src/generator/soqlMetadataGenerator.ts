@@ -34,16 +34,14 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    this.generateTypesNames(outputFolderPath, output.getTypeNames());
+    await this.generateTypesNames(outputFolderPath, output.getTypeNames());
 
     await Promise.all(
       [...output.getStandard(), ...output.getCustom()]
         .filter(sobject => sobject.name)
-        .map(sobject => {
-          return new Promise(() =>
-            this.generateMetadataForSObject(outputFolderPath, sobject)
-          );
-        })
+        .map(sobject =>
+          this.generateMetadataForSObject(outputFolderPath, sobject)
+        )
     );
   }
 
@@ -53,7 +51,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
   ): Promise<void> {
     await fs.mkdir(folderPath, { recursive: true });
     const typeNameFile = path.join(folderPath, 'typeNames.json');
-    if (!(await exists(typeNameFile))) {
+    if (await exists(typeNameFile)) {
       await fs.unlink(typeNameFile);
     }
     await fs.writeFile(typeNameFile, JSON.stringify(typeNames, null, 2), {

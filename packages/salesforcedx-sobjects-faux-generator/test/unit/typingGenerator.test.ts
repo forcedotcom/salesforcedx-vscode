@@ -13,7 +13,7 @@ import { exists } from '../../src/utils/fsUtils';
 
 const expect = chai.expect;
 
-describe.skip('SObject Javacript type declaration generator', () => {
+describe('SObject Javacript type declaration generator', () => {
   let typePath = '';
   const declGenerator = new DeclarationGenerator();
 

@@ -57,7 +57,7 @@ const setupSelector = async (
   return selector;
 };
 
-describe.skip('Select sObjects', () => {
+describe('Select sObjects', () => {
   let sandbox: sinon.SinonSandbox;
   beforeEach(() => {
     sandbox = sinon.createSandbox();

@@ -71,21 +71,19 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    await Promise.all(
-      (this.sobjectSelector === SObjectCategory.STANDARD
-        ? output.getStandard()
-        : output.getCustom()
-      )
-        .filter(sobj => sobj.name)
-        .map(sobj => {
-          return new Promise(() => {
-            const sobjDefinition = this.declGenerator.generateSObjectDefinition(
-              sobj
-            );
-            this.generateFauxClass(outputFolderPath, sobjDefinition);
-          });
-        })
-    );
+    const promises = (this.sobjectSelector === SObjectCategory.STANDARD
+      ? output.getStandard()
+      : output.getCustom()
+    )
+      .filter(sobj => sobj.name)
+      .map(sobj => {
+        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
+          sobj
+        );
+        return this.generateFauxClass(outputFolderPath, sobjDefinition);
+      });
+    await Promise.all(promises);
+    return;
   }
 
   // VisibleForTesting
@@ -98,7 +96,8 @@ export class FauxClassGenerator implements SObjectGenerator {
       folderPath,
       `${definition.name}${APEX_CLASS_EXTENSION}`
     );
-    await fs.writeFile(fauxClassPath, this.generateFauxClassText(definition), {
+    const content = this.generateFauxClassText(definition);
+    await fs.writeFile(fauxClassPath, content, {
       mode: 0o444
     });
     return fauxClassPath;
