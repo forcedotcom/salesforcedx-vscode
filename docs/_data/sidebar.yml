@@ -71,7 +71,7 @@
       url: /sf-dev-models/pkgdev
 - title:
     en: Development Environment
-    ja:開発環境
+    ja: 開発環境
     baseurl: /sf-dev-env/
     children:
     - title:
