@@ -42,8 +42,16 @@
       url: /codebuilder/cb-setup
     - title:
         en: Get Started with Code Builder
-        ja: コードビルダーを使い始める
+        ja: コードビルダーを使ってみる
+      url: /codebuilder/cb-getstarted.md
+    - title:
+        en: Quick Start Code Builder
+        ja: クイックスタートコードビルダー
       url: /codebuilder/cb-start
+    - title:
+        en: Uninstall Code Builder
+        ja: コードビルダーをアンインストールする
+      url: /codebuilder/cb-uninstall.md
 - title:
     en: Salesforce Development Models
     ja: Salesforce 開発モデル
