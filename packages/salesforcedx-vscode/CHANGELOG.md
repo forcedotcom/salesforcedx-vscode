@@ -1,3 +1,23 @@
+# 58.9.1 - August 4, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #4993](https://github.com/forcedotcom/salesforcedx-vscode/pull/4993))
+
+- We disabled LWC preview in container code. An error message that explains why the command is disabled, is displayed when the command is run in a container. ([PR #4983](https://github.com/forcedotcom/salesforcedx-vscode/pull/4983))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We made some changes under the hood. ([PR #5011](https://github.com/forcedotcom/salesforcedx-vscode/pull/5011))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5005](https://github.com/forcedotcom/salesforcedx-vscode/pull/5005))
+
 # 58.7.1 - July 21, 2023
 
 ## Added
