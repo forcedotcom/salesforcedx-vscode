@@ -159,7 +159,7 @@
             </xs:enumeration>
             <xs:enumeration value="analytics__Dashboard">
               <xs:annotation>
-                <xs:documentation>Enables a component for use in Tableau CRM dashboards. This feature is currently in pilot in Spring and Summer '21 releases. If you're interested in participating in the pilot program, ask your Salesforce Account Executive.</xs:documentation>
+                <xs:documentation>Enables a component for use in CRM Analytics dashboards.</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
             <xs:enumeration value="lightning__PropertyEditor">
