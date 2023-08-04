@@ -20,7 +20,7 @@ import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
-import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
+import { ENV_SF_DISABLE_TELEMETRY, TARGET_ORG_KEY } from '../../../src/constants';
 import { WorkspaceContext } from '../../../src/context';
 import {
   disableCLITelemetry,
@@ -131,7 +131,7 @@ describe('SFDX CLI Configuration utility', () => {
       );
       disableCLITelemetry();
       expect(cliEnvSpy.firstCall.args).to.eql([
-        ENV_SFDX_DISABLE_TELEMETRY,
+        ENV_SF_DISABLE_TELEMETRY,
         'true'
       ]);
     });
@@ -223,7 +223,7 @@ describe('SFDX CLI Configuration utility', () => {
 
       // Create a local config file and set the local project default username
       const config = await Config.create(Config.getDefaultOptions());
-      config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
+      config.set(TARGET_ORG_KEY, dummyLocalDefaultUsername);
       await config.write();
 
       return resultPromise;

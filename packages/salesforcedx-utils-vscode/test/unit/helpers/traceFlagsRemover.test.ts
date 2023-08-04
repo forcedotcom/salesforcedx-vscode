@@ -30,7 +30,7 @@ describe('Trace Flags Remover', () => {
       })
     });
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
+      .withArgs('target-org')
       .returns(testData.username);
   });
 

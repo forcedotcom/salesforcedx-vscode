@@ -71,7 +71,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should execute sobject refresh if no sobjects folder is present', async () => {
       existsSyncStub.returns(false);
-      getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
+      getUsernameStub.returns(new Map([['target-org', 'Sample']]));
 
       await verifyUsernameAndInitSObjectDefinitions(projectPath);
 
