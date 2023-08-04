@@ -11,14 +11,6 @@ Complete this Quick Start to become familiar with the Code Builder interface and
 
 Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Save your work before you close the Code Builder tab on your browser so you don’t lose it.
 
-## Let’s Get Started
-
-To get started you’ll do the following:
-
-1. Create a Code Builder environment.
-2. Connect to your org by logging in.
-   Now you’re ready to use Code Builder.
-
 ## Create Your Code Builder Environment
 
 1. From the App Launcher, find and open **Code Builder Dashboard**.
@@ -33,7 +25,7 @@ To get started you’ll do the following:
 
 Next, connect an org to your Code Builder environment.During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Development Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
 
-To connec to an org:
+To connect to an org:
 
 1. Click the org picker in the status bar, to bring up the Command Palette.
 2. Run **SFDX: Authorize an Org**.
@@ -94,7 +86,7 @@ You’re prompted to save your changes if you close the untitled file.
 6. Let’s rerun the saved query – Right click the file and select **Open With…** then select SOQL Builder.
    The file opens in SOQL Builder and you can rerun or edit the query as you wish.
 
-**More Information**: For more information on building complex queries see the [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder) in the Salesforce Extensions for Visual Studio Code documentation.
+For more information on building complex queries see the [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder) in the Salesforce Extensions for Visual Studio Code documentation.
 
 ## Create, Retrieve, and Deploy a Custom Field
 

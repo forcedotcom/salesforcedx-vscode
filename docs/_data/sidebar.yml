@@ -82,55 +82,62 @@
         en: Command Palette
         ja: コマンドリファレンス
       url: /sf-dev-env/vscode-commands
-- title:
-    en: User Guide
-    ja: ユーザガイド
-  baseUrl: /user-guide/
-  children:
     - title:
-        en: Metadata Operations
-        ja: メタデータ操作
-      url: /user-guide/metadata-operations
+        en: Project Explorer
+        ja: プロジェクトエクスプローラー
+      url: /sf-dev-envproject-explorer
     - title:
-        en: Detect Conflicts
-        ja: 競合の検知
-      url: /user-guide/detect-conflicts
-    - title:
-        en: Deploy on Save
-        ja: 保存時のデプロイ
-      url: /user-guide/deploy-on-save
+        en: Change Default Org
+        ja: デフォルト組織の変更
+      url: /sf-dev-env/default-org
     - title:
         en: Org Browser
         ja: 組織ブラウザ
-      url: /user-guide/org-browser
-    - title:
-        en: Prettier Code Formatter
-        ja: Prettier コードフォーマッタ
-      url: /user-guide/prettier
-    - title:
-        en: Source Format
-        ja: ソース形式
-      url: /user-guide/source-format
-    - title:
-        en: Default Org
-        ja: デフォルトの組織
-      url: /user-guide/default-org
-    - title:
-        en: Remote Development
-        ja: リモートコンテナ
-      url: /user-guide/remote-development
-    - title:
-        en: Custom Templates
-        ja: カスタムテンプレート
-      url: /user-guide/byotemplate
+      url: /sf-dev-env/org-browser
+- title:
+    en: Code with Confidence
+    ja: 自信を持ってコードを書く
+  baseUrl: /user-guide/
+  children:
     - title:
         en: Manifest Builder
         ja: マニフェスト ビルダー
       url: /user-guide/manifestbuilder
     - title:
-        en: Demo Mode
-        ja: デモモード
-      url: /user-guide/demo-mode
+        en: Custom Templates
+        ja: カスタムテンプレート
+      url: /user-guide/byotemplate
+    - title:
+        en: Prettier Code Formatter
+        ja: Prettier コードフォーマッタ
+      url: /user-guide/prettier
+- title:
+    en: Deploy Your Changes
+    ja: 自信を持ってコードを書く
+  baseUrl: /deploy-changes/
+  children:
+    - title:
+        en: Deploy on Save
+        ja: 保存時のデプロイ
+      url: /deploy-changes/deploy-on-save
+    - title:
+        en: Detect Conflicts
+        ja: 競合の検知
+      url: /deploy-changes/detect-conflicts
+    - title:
+        en: Metadata Operations
+        ja: メタデータ操作
+      url: /deploy-changes/metadata-operations
+- title:
+    en: Use Source Control
+    ja: 自信を持ってコードを書く
+  baseUrl: /source-control/
+  children:
+    - title:
+        en: Source Format
+        ja: ソース形式
+      url: /source-control/source-format
+
 - title:
     en: Apex
     ja: Apex
@@ -271,6 +278,14 @@
         en: Telemetry
         ja: テレメトリ
       url: /faq/telemetry
+- title:
+    en: Remote Development (Beta)
+    ja: リモートコンテナ
+  url: /remote-development
+- title:
+    en: Demo Mode
+    ja: デモモード
+  url: /demo-mode
 - title:
     en: Troubleshooting
     ja: トラブルシューティング
