@@ -53,8 +53,8 @@
         ja: コードビルダーをアンインストールする
       url: /codebuilder/cb-uninstall
 - title:
-    en: Salesforce Development Models
-    ja: Salesforce 開発モデル
+    en: Development Models
+    ja: 開発モデル
   baseUrl: /sf-dev-models/
   children:
     - title:
@@ -95,8 +95,8 @@
         ja: 組織ブラウザ
       url: /sf-dev-env/org-browser
 - title:
-    en: Code with Confidence
-    ja: 自信を持ってコードを書く
+    en: Tools for Coding
+    ja: コーディング用ツール
   baseUrl: /user-guide/
   children:
     - title:
