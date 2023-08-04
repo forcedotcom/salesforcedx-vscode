@@ -13,7 +13,7 @@ import {
   StateAggregator
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
-import { SFDX_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
+import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
 
@@ -95,7 +95,7 @@ export class ConfigUtil {
   public static async isTelemetryDisabled(): Promise<boolean> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(
-      SFDX_CONFIG_DISABLE_TELEMETRY
+      SF_CONFIG_DISABLE_TELEMETRY
     );
     return isTelemetryDisabled === 'true';
   }
