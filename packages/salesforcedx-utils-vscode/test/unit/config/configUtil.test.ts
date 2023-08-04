@@ -16,6 +16,7 @@ import {
   ConfigSource,
   ConfigUtil
 } from '../../../src';
+import { TARGET_ORG_KEY } from '../../../src/constants';
 
 describe('ConfigUtil unit tests', () => {
   const sandbox = createSandbox();
@@ -85,7 +86,7 @@ describe('ConfigUtil unit tests', () => {
       expect(username).to.equal(testUsername);
       expect(getPropertyValueStub.callCount).to.equal(1);
       expect(getPropertyValueStub.getCall(0).args[0]).to.equal(
-        OrgConfigProperties.TARGET_ORG
+        TARGET_ORG_KEY
       );
       expect(getUserNameStub.callCount).to.equal(1);
       expect(getUserNameStub.getCall(0).args[0]).to.equal(testAlias);

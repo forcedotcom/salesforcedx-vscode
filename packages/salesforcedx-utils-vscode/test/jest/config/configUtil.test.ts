@@ -6,6 +6,7 @@ import {
 } from '@salesforce/core';
 import { ConfigUtil, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
+import { TARGET_ORG_KEY } from '../../../src/constants';
 
 describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlias', () => {
   const fakeOriginalDirectory = 'test/directory';
@@ -51,7 +52,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(
-      OrgConfigProperties.TARGET_ORG,
+      TARGET_ORG_KEY,
       username
     );
     expect(writeMock).toHaveBeenCalled();
@@ -71,7 +72,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).not.toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(
-      OrgConfigProperties.TARGET_ORG,
+      TARGET_ORG_KEY,
       username
     );
     expect(writeMock).toHaveBeenCalled();

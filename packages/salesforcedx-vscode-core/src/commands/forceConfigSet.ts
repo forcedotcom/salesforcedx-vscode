@@ -9,7 +9,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
   CONFIG_SET_NAME,
-  DEFAULT_USERNAME_KEY,
+  TARGET_ORG_KEY,
   TABLE_NAME_COL,
   TABLE_SUCCESS_COL,
   TABLE_VAL_COL
@@ -45,7 +45,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
         : message = String(error);
       result = false;
     }
-    this.outputTableRow = { name: DEFAULT_USERNAME_KEY, val: this.usernameOrAlias, success: String(result) };
+    this.outputTableRow = { name: TARGET_ORG_KEY, val: this.usernameOrAlias, success: String(result) };
     const outputTable = this.formatOutput(this.outputTableRow);
     channelService.appendLine(outputTable);
     if (message) {
