@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
@@ -19,9 +19,8 @@ import { vscodeStub } from '../commands/mocks';
 //   vscode: vscodeStub
 // });
 
-const $$ = testSetup();
-
 describe('Trace Flags', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   const USER_ID = 'abcd';
   let mockConnection: Connection;
@@ -32,10 +31,11 @@ describe('Trace Flags', () => {
   let toolingUpdateStub: SinonStub;
 
   beforeEach(async () => {
-    sb = createSandbox();
+    sb = $$.SANDBOX;
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
+    await $$.stubAliases({ myAlias: testData.username });
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
