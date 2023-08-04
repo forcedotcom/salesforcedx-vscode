@@ -14,9 +14,9 @@ import { createSandbox, SinonStub, stub } from 'sinon';
 import {
   ConfigAggregatorProvider,
   ConfigSource,
-  ConfigUtil
+  ConfigUtil,
+  TARGET_ORG_KEY
 } from '../../../src';
-import { TARGET_ORG_KEY } from '../../../src/constants';
 
 describe('ConfigUtil unit tests', () => {
   const sandbox = createSandbox();

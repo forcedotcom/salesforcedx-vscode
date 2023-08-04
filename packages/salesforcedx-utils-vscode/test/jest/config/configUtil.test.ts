@@ -1,11 +1,9 @@
 import {
   Config,
   Org,
-  OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { ConfigUtil, workspaceUtils } from '../../../src';
-import { TARGET_ORG_KEY } from '../../../src/constants';
+import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
 describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlias', () => {
