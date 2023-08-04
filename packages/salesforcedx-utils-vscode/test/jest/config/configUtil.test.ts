@@ -5,8 +5,8 @@ import {
   StateAggregator
 } from '@salesforce/core';
 import { ConfigUtil, workspaceUtils } from '../../../src';
-import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 import { TARGET_ORG_KEY } from '../../../src/constants';
+import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
 describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlias', () => {
   const fakeOriginalDirectory = 'test/directory';

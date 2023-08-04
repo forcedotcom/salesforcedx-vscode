@@ -9,10 +9,10 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
   CONFIG_SET_NAME,
-  TARGET_ORG_KEY,
   TABLE_NAME_COL,
   TABLE_SUCCESS_COL,
-  TABLE_VAL_COL
+  TABLE_VAL_COL,
+  TARGET_ORG_KEY
 } from '../constants';
 import { nls } from '../messages';
 import {

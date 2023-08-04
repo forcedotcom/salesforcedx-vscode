@@ -13,7 +13,7 @@ import {
   StateAggregator
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
-import { TARGET_DEV_HUB_KEY, TARGET_ORG_KEY, SFDX_CONFIG_DISABLE_TELEMETRY } from '../constants';
+import { SFDX_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
 
