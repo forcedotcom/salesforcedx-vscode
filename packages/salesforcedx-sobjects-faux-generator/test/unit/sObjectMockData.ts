@@ -871,6 +871,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     }
   ],
   hasSubtypes: false,
+  idEnabled: false,
   isInterface: false,
   isSubtype: false,
   keyPrefix: 'a07',
