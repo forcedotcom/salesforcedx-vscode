@@ -66,7 +66,7 @@ describe('Quick launch apex tests', () => {
       })
     });
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
+      .withArgs('target-org')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);

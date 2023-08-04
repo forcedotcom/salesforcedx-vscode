@@ -55,7 +55,7 @@ describe('Force Apex Execute', () => {
       })
     });
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
+      .withArgs('target-org')
       .returns(testData.username);
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
