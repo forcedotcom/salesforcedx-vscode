@@ -43,7 +43,7 @@
     - title:
         en: Get Started with Code Builder
         ja: コードビルダーを使ってみる
-      url: /codebuilder/cb-getstarted.md
+      url: /codebuilder/cb-getstarted
     - title:
         en: Quick Start Code Builder
         ja: クイックスタートコードビルダー
@@ -51,7 +51,7 @@
     - title:
         en: Uninstall Code Builder
         ja: コードビルダーをアンインストールする
-      url: /codebuilder/cb-uninstall.md
+      url: /codebuilder/cb-uninstall
 - title:
     en: Salesforce Development Models
     ja: Salesforce 開発モデル
@@ -81,7 +81,7 @@
     - title:
         en: Command Palette
         ja: コマンドリファレンス
-      url: /sf-dev-env/vscode-commands.md
+      url: /sf-dev-env/vscode-commands
 - title:
     en: User Guide
     ja: ユーザガイド
