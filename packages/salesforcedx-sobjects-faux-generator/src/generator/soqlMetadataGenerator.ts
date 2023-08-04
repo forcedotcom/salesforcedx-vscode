@@ -64,7 +64,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     sobject: SObject
   ): Promise<void> {
     if (!(await exists(folderPath))) {
-      fs.mkdir(folderPath, { recursive: true });
+      await fs.mkdir(folderPath, { recursive: true });
     }
     const targetPath = path.join(
       folderPath,

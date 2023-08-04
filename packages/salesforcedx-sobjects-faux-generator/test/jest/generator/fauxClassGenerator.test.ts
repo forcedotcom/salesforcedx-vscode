@@ -9,7 +9,6 @@ import {
 import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
-import { cat } from 'shelljs';
 jest.mock('../../../src/generator/declarationGenerator');
 
 const declarationGeneratorMocked = jest.mocked(DeclarationGenerator);
@@ -152,7 +151,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       );
     });
 
-    it('Should process custom sobjects.', () => {
+    it('Should process custom sobjects.', async () => {
       const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getCustomMock.mockReturnValue([fakeSObject]);
@@ -166,7 +165,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
         SObjectCategory.CUSTOM,
         fakePath
       );
-      fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
+      await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
 
       expect(fakeOutput.getStandard).not.toHaveBeenCalled();
       expect(fakeOutput.getCustom).toHaveBeenCalled();

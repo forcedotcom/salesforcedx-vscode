@@ -8,7 +8,6 @@ import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs/promises';
 import { EOL } from 'os';
 import * as path from 'path';
-import { mkdir, rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import {
@@ -18,8 +17,8 @@ import {
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
-import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 import { exists } from '../utils/fsUtils';
+import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';

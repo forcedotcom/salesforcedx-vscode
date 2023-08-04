@@ -16,8 +16,8 @@ import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
-import { minimalCustomSObject } from './sObjectMockData';
 import { exists } from '../../src/utils/fsUtils';
+import { minimalCustomSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -414,7 +414,7 @@ describe('SObject faux class generator', () => {
         hasStandard: () => false
       };
 
-      gen.generate(output);
+      await gen.generate(output);
       expect(await exists(customFolder));
       expect(!(await exists(standardFolder)));
     });
@@ -437,7 +437,7 @@ describe('SObject faux class generator', () => {
         hasStandard: () => false
       };
 
-      gen.generate(output);
+      await gen.generate(output);
       expect(!(await exists(customFolder)));
       expect(exists(standardFolder));
     });

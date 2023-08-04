@@ -14,8 +14,8 @@ import {
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
-import { DeclarationGenerator } from './declarationGenerator';
 import { exists } from '../utils/fsUtils';
+import { DeclarationGenerator } from './declarationGenerator';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
@@ -29,11 +29,10 @@ export class TypingGenerator implements SObjectGenerator {
 
   public generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    this.generateTypes(
+    return this.generateTypes(
       [...output.getStandard(), ...output.getCustom()],
       typingsFolderPath
     );
-    return Promise.resolve();
   }
 
   public async generateTypes(
@@ -41,7 +40,7 @@ export class TypingGenerator implements SObjectGenerator {
     targetFolder: string
   ): Promise<void> {
     if (!(await exists(targetFolder))) {
-      fs.mkdir(targetFolder, { recursive: true });
+      await fs.mkdir(targetFolder, { recursive: true });
     }
 
     await Promise.all(

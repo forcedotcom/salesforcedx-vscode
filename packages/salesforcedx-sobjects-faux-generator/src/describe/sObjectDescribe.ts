@@ -88,7 +88,7 @@ export class SObjectDescribe {
       if (batchResponse && batchResponse.results === undefined) {
         return Promise.resolve(fetchedObjects);
       }
-      
+
       batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
           if (sr.result[0].errorCode && sr.result[0].message) {

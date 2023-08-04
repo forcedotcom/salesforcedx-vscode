@@ -122,7 +122,7 @@ export class DeclarationGenerator {
     if (field.referenceTo?.length === 0) {
       // should be a normal field EXCEPT for external lookup & metadata relationship
       // which is a reference, but no referenceTo targets
-      let genType =
+      const genType =
         field.extraTypeInfo === 'externallookup'
           ? 'String'
           : this.getTargetType(field.type);
