@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { channelService } from '../../../src/channels';
 import { forceConfigSet, ForceConfigSetExecutor } from '../../../src/commands';
-import { CONFIG_SET_NAME, DEFAULT_USERNAME_KEY } from '../../../src/constants';
+import { CONFIG_SET_NAME, TARGET_ORG_KEY } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
 const sandbox = sinon.createSandbox();
@@ -55,11 +55,11 @@ describe('Force Config Set', () => {
   });
 
   it('should display correct output to user', async () => {
-    const outputTableRow = { name: DEFAULT_USERNAME_KEY, val: usernameOrAlias, success: String(true) };
+    const outputTableRow = { name: TARGET_ORG_KEY, val: usernameOrAlias, success: String(true) };
     const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
     const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
     expect(tableSpy.callCount).to.equal(1);
-    expect(formatOutput).to.contain(nls.localize(CONFIG_SET_NAME), DEFAULT_USERNAME_KEY);
+    expect(formatOutput).to.contain(nls.localize(CONFIG_SET_NAME), TARGET_ORG_KEY);
     expect(formatOutput).to.contain(usernameOrAlias, String(true));
   });
 
