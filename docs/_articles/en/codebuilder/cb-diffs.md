@@ -17,10 +17,6 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 
 ## Known Gaps and Issues
 
-Code Builder is currently in beta, and we're actively collecting feedback from you, our customers, as we continue to work on improving our project. See [Known Gaps and Issues](https://github.com/forcedotcom/try-code-builder-feedback/wiki/Known-Gaps-and-Issues) for a list of issues we're aware of.
+See [Known Gaps and Issues](https://github.com/forcedotcom/try-code-builder-feedback/wiki/Known-Gaps-and-Issues) for a list of issues we're aware of.
 
 If you notice any issues that haven't made our list, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to you.
-
-## Important Considerations for Code Builder Beta
-
-We've capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab to stop the usage clock when you aren’t using Code Builder.

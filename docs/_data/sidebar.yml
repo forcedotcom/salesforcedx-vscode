@@ -24,7 +24,7 @@
         ja: ヒントとコツ
       url: /vscode-desktop/tips-and-tricks
 - title:
-    en: Code Builder (Beta)
+    en: Code Builder
     ja: コードビルダー（ベータ版）
   baseUrl: /codebuilder/
   children:
@@ -33,7 +33,7 @@
         ja: コードビルダーの概要
       url: /codebuilder/about
     - title:
-        en: What's Different
+        en: How is Code Builder Different
         ja: 何が違うの
       url: /codebuilder/cb-diffs
     - title:
@@ -41,11 +41,11 @@
         ja: コードビルダーを設定する
       url: /codebuilder/cb-setup
     - title:
-        en: Get Started with Code Builder
+        en: Get Started
         ja: コードビルダーを使ってみる
       url: /codebuilder/cb-getstarted
     - title:
-        en: Quick Start Code Builder
+        en: Code Builder Quick Start
         ja: クイックスタートコードビルダー
       url: /codebuilder/cb-start
     - title:
@@ -137,7 +137,6 @@
         en: Source Format
         ja: ソース形式
       url: /source-control/source-format
-
 - title:
     en: Apex
     ja: Apex
@@ -223,23 +222,6 @@
         ja: リンティング
       url: /lwc/linting
 - title:
-    en: Local Development
-    ja: ローカル開発
-  baseUrl: /localdev/
-  children:
-    - title:
-        en: Overview
-        ja: 概要
-      url: /localdev/lwclocaldev
-    - title:
-        en: Set Up LWC Local Development
-        ja: LWC ローカル開発の設定
-      url: /localdev/set-up-lwc-local-dev
-    - title:
-        en: Supported and Unsupported Modules, Components, and Features
-        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
-      url: /localdev/lwc-localdev-supported-modules
-- title:
     en: Visualforce
     ja: Visualforce
   baseUrl: /visualforce/
@@ -278,6 +260,23 @@
         en: Telemetry
         ja: テレメトリ
       url: /faq/telemetry
+- title:
+    en: Local Development (Beta)
+    ja: ローカル開発
+  baseUrl: /localdev/
+  children:
+    - title:
+        en: Overview
+        ja: 概要
+      url: /localdev/lwclocaldev
+    - title:
+        en: Set Up LWC Local Development
+        ja: LWC ローカル開発の設定
+      url: /localdev/set-up-lwc-local-dev
+    - title:
+        en: Supported and Unsupported Modules, Components, and Features
+        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
+      url: /localdev/lwc-localdev-supported-modules
 - title:
     en: Remote Development (Beta)
     ja: リモートコンテナ
