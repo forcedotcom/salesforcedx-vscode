@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "58.10.0",
     "@salesforce/salesforcedx-utils-vscode": "58.10.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "^9.1.0",
+    "@salesforce/source-deploy-retrieve": "9.7.0",
     "@salesforce/templates": "^58.0.1",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
@@ -93,7 +93,7 @@
         "@salesforce/core": "^4.0.1",
         "@salesforce/source-tracking": "4.1.3",
         "@salesforce/templates": "^58.0.1",
-        "@salesforce/source-deploy-retrieve": "^9.1.0",
+        "@salesforce/source-deploy-retrieve": "9.7.0",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
