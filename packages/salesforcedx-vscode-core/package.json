@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
-    "@salesforce/core": "^4.0.1",
+    "@salesforce/core": "4.3.11",
     "@salesforce/salesforcedx-sobjects-faux-generator": "58.10.0",
     "@salesforce/salesforcedx-utils-vscode": "58.10.0",
     "@salesforce/schemas": "^1",
@@ -90,7 +90,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "^4.0.1",
+        "@salesforce/core": "4.3.11",
         "@salesforce/source-tracking": "4.1.3",
         "@salesforce/templates": "^58.0.1",
         "@salesforce/source-deploy-retrieve": "9.7.0",
