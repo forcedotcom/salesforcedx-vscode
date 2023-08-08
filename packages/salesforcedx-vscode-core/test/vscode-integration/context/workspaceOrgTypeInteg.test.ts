@@ -75,14 +75,14 @@ describe('workspaceOrgType', () => {
     beforeEach(() => {
       workspaceContextGetInstanceStub.returns(mockWorkspaceContext);
     });
-    it('returns undefined when no defaultusername is set', async () => {
+    it('returns undefined when no target-org is set', async () => {
       getDefaultUsernameOrAliasStub.resolves(undefined);
       expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
         undefined
       );
     });
 
-    it('returns the defaultusername when the username is set', async () => {
+    it('returns the target-org when the username is set', async () => {
       const username = 'test@org.com';
       getDefaultUsernameOrAliasStub.resolves(username);
       expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
