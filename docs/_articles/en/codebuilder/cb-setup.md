@@ -7,7 +7,7 @@ lang: en
 
 Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a Salesforce supported org.
 
-CHECK THIS: **To install Code Builder in a Professional Edition org, the org must have API access, which enables Code Builder to access data from the source control system. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. Contact your Account Executive to request the API add-on.**
+PLEASE CHECK THIS: **To install Code Builder in a Professional Edition org, the org must have API access, which enables Code Builder to access data from the source control system. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. Contact your Account Executive to request the API add-on.**
 
 1. From Setup, enter Code Builder in the Quick Find box, then select Code Builder. If you don’t see Code Builder as an option under Setup, your Developer Edition org was likely created before Code Builder was introduced and doesn’t have the correct permissions. To continue, create another Developer Edition org.
 
