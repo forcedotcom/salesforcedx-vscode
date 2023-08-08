@@ -17,11 +17,11 @@ describe('forceLightningLwcPreview', () => {
 
   describe('in container mode', () => {
     beforeAll(() => {
-      process.env.SFDX_CONTAINER_MODE = 'true';
+      process.env.SF_CONTAINER_MODE = 'true';
     });
 
     afterAll(() => {
-      delete process.env.SFDX_CONTAINER_MODE;
+      delete process.env.SF_CONTAINER_MODE;
     });
 
     it('uses container mode preview', async () => {

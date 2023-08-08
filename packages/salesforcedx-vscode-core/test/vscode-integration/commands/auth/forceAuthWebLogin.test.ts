@@ -236,7 +236,7 @@ describe('Force Auth Web Login is based on environment variables', () => {
 
   describe('in container mode', () => {
     afterEach(() => {
-      delete process.env.SFDX_CONTAINER_MODE;
+      delete process.env.SF_CONTAINER_MODE;
     });
 
     it('Should use ForceAuthWebLoginExecutor when container mode is not defined', () => {
@@ -245,13 +245,13 @@ describe('Force Auth Web Login is based on environment variables', () => {
     });
 
     it('Should use ForceAuthWebLoginExecutor when container mode is empty', () => {
-      process.env.SFDX_CONTAINER_MODE = '';
+      process.env.SF_CONTAINER_MODE = '';
       expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
         .to.be.true;
     });
 
     it('Should use ForceAuthWebLoginContainerExecutor when container mode is defined', () => {
-      process.env.SFDX_CONTAINER_MODE = 'true';
+      process.env.SF_CONTAINER_MODE = 'true';
       expect(
         createAuthWebLoginExecutor() instanceof
           ForceAuthWebLoginContainerExecutor

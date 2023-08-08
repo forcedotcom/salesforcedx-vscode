@@ -15,7 +15,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
-  isSFDXContainerMode
+  isSFContainerMode
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -115,7 +115,7 @@ export class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 export function getExecutor(): SfdxCommandletExecutor<{}> {
-  return isSFDXContainerMode()
+  return isSFContainerMode()
     ? new ForceOrgOpenContainerExecutor()
     : new ForceOrgOpenExecutor();
 }

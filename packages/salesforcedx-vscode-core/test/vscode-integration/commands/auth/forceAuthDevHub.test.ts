@@ -75,9 +75,7 @@ describe('Auth Params Gatherer', () => {
 
   let gatherer: AuthDevHubParamsGatherer;
 
-  const setGathererBehavior = (
-    orgAlias: string | undefined
-  ) => {
+  const setGathererBehavior = (orgAlias: string | undefined) => {
     inputBoxSpy.onCall(0).returns(orgAlias);
   };
 
@@ -153,7 +151,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
 
   describe('in container mode', () => {
     afterEach(() => {
-      delete process.env.SFDX_CONTAINER_MODE;
+      delete process.env.SF_CONTAINER_MODE;
     });
     it('Should not expose the output channel when not in container mode', () => {
       const notContainerMode = new TestForceAuthDevHubExecutor();
@@ -162,30 +160,38 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
 
     it('Should use ForceAuthDevHubExecutor when container mode is not defined', () => {
       const authWebLogin = new ForceAuthDevHubExecutor();
-      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to.be.true;
-      const authWebLoginCommand = authWebLogin.build(({} as unknown) as AuthDevHubParams);
+      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+        .be.true;
+      const authWebLoginCommand = authWebLogin.build(
+        ({} as unknown) as AuthDevHubParams
+      );
       expect(authWebLoginCommand.toCommand()).to.equal(
         'sfdx force:auth:web:login --setalias  --setdefaultdevhubusername'
       );
     });
 
     it('Should use ForceAuthDevHubExecutor when container mode is empty', () => {
-      process.env.SFDX_CONTAINER_MODE = '';
+      process.env.SF_CONTAINER_MODE = '';
       const authWebLogin = new ForceAuthDevHubExecutor();
-      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to.be.true;
-      const authWebLoginCommand = authWebLogin.build(({} as unknown) as AuthDevHubParams);
+      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+        .be.true;
+      const authWebLoginCommand = authWebLogin.build(
+        ({} as unknown) as AuthDevHubParams
+      );
       expect(authWebLoginCommand.toCommand()).to.equal(
         'sfdx force:auth:web:login --setalias  --setdefaultdevhubusername'
       );
     });
 
     it('Should use ForceAuthDevHubContainerExecutor when container mode is defined', () => {
-      process.env.SFDX_CONTAINER_MODE = 'true';
+      process.env.SF_CONTAINER_MODE = 'true';
       const authDevhubLogin = new ForceAuthDevHubContainerExecutor();
       expect(
         createAuthDevHubExecutor() instanceof ForceAuthDevHubContainerExecutor
       ).to.be.true;
-      const authDevhubLoginCommand = authDevhubLogin.build(({} as unknown) as AuthDevHubParams);
+      const authDevhubLoginCommand = authDevhubLogin.build(
+        ({} as unknown) as AuthDevHubParams
+      );
       expect(authDevhubLoginCommand.toCommand()).to.equal(
         'sfdx force:auth:device:login --setalias  --setdefaultdevhubusername --json --loglevel fatal'
       );

@@ -27,15 +27,12 @@ import {
   ConfigSource,
   ContinueResponse,
   isNullOrUndefined,
-  isSFDXContainerMode,
+  isSFContainerMode,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
-import {
-  CLI,
-  SFDX_CONFIG_FILE
-} from '../../constants';
+import { CLI, SFDX_CONFIG_FILE } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
 import { OrgAuthInfo } from '../../util/index';
@@ -126,7 +123,7 @@ const parameterGatherer = new AuthDevHubParamsGatherer();
 
 export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
   switch (true) {
-    case isSFDXContainerMode():
+    case isSFContainerMode():
       return new ForceAuthDevHubContainerExecutor();
     case isDemoMode():
       return new ForceAuthDevHubDemoModeExecutor();

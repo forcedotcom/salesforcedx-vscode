@@ -13,7 +13,7 @@ import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
-  isSFDXContainerMode
+  isSFContainerMode
 } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
@@ -239,7 +239,7 @@ const parameterGatherer = new AuthParamsGatherer();
 
 export function createAuthWebLoginExecutor(): SfdxCommandletExecutor<{}> {
   switch (true) {
-    case isSFDXContainerMode():
+    case isSFContainerMode():
       return new ForceAuthWebLoginContainerExecutor();
     case isDemoMode():
       return new ForceAuthWebLoginDemoModeExecutor();

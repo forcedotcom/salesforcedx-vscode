@@ -149,7 +149,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
   let showErrorMessageStub: sinon.SinonStub;
-  let isSFDXContainerModeStub: sinon.SinonStub;
+  let isSFContainerModeStub: sinon.SinonStub;
   const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(
     root,
