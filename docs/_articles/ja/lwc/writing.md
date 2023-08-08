@@ -16,6 +16,16 @@ Lightning Web コンポーネント拡張機能では、エディタに内蔵さ
 
 Lightning Web コンポーネント拡張機能は、VS Code の [HTML](https://code.visualstudio.com/docs/languages/html) と [JavaScript](https://code.visualstudio.com/docs/languages/javascript) の言語機能をベースに、シンタックスハイライト、ブラケットマッチング、IntelliSense による言語固有のコード補完などを実現しています。この拡張機能は、以下の Lightning Web コンポーネントリソースのコード補完を提供します。
 
+## Code Snippets
+
+Code snippets are available for scaffolding class and interface definitions, and a variety of statements such as loops and conditional statements, and so on. When you’re working in an LWC HTML file, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions by typing the component name (e.g., `accordion`).
+
+Out of the box snippets for Salesforce development are available in these repositories:
+
+- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
+- [HTML Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-html.json)
+- [JavaScript Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-js.json)
+
 ### `@salesforce` スコープのモジュール
 
 Lightning コンポーネントでは scoped modules を通して Salesforce の値にアクセスします。Lightning Web コンポーネント拡張機能は、以下の scoped modules に対するコード補完を提供します。
