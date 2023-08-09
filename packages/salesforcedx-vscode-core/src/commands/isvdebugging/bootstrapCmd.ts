@@ -142,6 +142,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--target-metadata-dir', this.relativeMetdataTempPath)
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
       .withFlag('--target-org', data.sessionId)
+      .withArg('--unzip')
       .withLogName('isv_debug_bootstrap_retrieve_org_source')
       .build();
   }
