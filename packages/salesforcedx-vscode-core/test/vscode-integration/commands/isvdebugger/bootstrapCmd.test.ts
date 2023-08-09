@@ -254,10 +254,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
-        `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetdataTempPath,
-          'unpackaged'
-        )} --output-dir force-app`
+        `sfdx project:convert:mdapi --root-dir builder.relativeMetdataTempPath --output-dir force-app`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step4_convert_org_source')
