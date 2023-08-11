@@ -107,7 +107,7 @@ describe('Task Service Unit Tests', () => {
         'mockCommand',
         []
       );
-      return new Promise(async resolve => {
+      return new Promise<void>(async resolve => {
         sfdxTask.onDidStart(startedTask => {
           expect(startedTask).to.equal(sfdxTask);
           resolve();
@@ -135,7 +135,7 @@ describe('Task Service Unit Tests', () => {
         'mockCommand',
         []
       );
-      return new Promise(async resolve => {
+      return new Promise<void>(async resolve => {
         sfdxTask.onDidEnd(endedTask => {
           expect(endedTask).to.equal(sfdxTask);
           resolve();
@@ -164,7 +164,7 @@ describe('Task Service Unit Tests', () => {
         []
       );
       const disposeStub = stub(sfdxTask, 'dispose');
-      return new Promise(async resolve => {
+      return new Promise<void>(async resolve => {
         sfdxTask.onDidEnd(endedTask => {
           expect(endedTask).to.equal(sfdxTask);
           process.nextTick(() => {

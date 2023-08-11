@@ -42,6 +42,7 @@ import {
   testCaseSuccessResult,
   testFileResult
 } from '../mocks/testResultsMocks';
+import { timeout } from 'rxjs/operators/timeout';
 
 describe('LWC Test Outline Provider', () => {
   describe('Should load exiting test files into test explorer view Unit Tests', () => {
@@ -110,7 +111,7 @@ describe('LWC Test Outline Provider', () => {
     let actualFileNodes: SfdxTestGroupNode[];
     let actualFileNode: SfdxTestGroupNode;
     let actualTestCaseNodes: SfdxTestNode[];
-    before(async () => {
+    beforeAll(async () => {
       lwcTests = await vscode.workspace.findFiles(
         new vscode.RelativePattern(
           vscode.workspace.workspaceFolders![0],
@@ -217,7 +218,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -249,7 +250,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -308,7 +309,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseSuccessResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -340,7 +341,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseFailureResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -371,7 +372,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should refresh test explorer', async function(testDone) {
-      this.timeout(10000);
+      timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
       actualFileNodes = await outlineProvder.getChildren();

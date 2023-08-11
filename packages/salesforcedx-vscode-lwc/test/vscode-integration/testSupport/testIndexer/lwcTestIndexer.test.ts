@@ -18,13 +18,14 @@ import {
   TestResultStatus,
   TestType
 } from '../../../../src/testSupport/types';
+import { timeout } from 'rxjs/operators';
 
 describe('LWC Test Indexer', function() {
-  this.timeout(30000);
+  timeout(30000);
   let lwcTests: URI[];
   let existingTestFileCount: number;
 
-  before(async () => {
+  beforeAll(async () => {
     lwcTests = await vscode.workspace.findFiles(
       new vscode.RelativePattern(
         vscode.workspace.workspaceFolders![0],
@@ -122,7 +123,7 @@ describe('LWC Test Indexer', function() {
         ? 'C:\\Users\\tester\\mockNewFile.test.js'
         : '/Users/tester/mockNewFile.test.js';
       const mockFileUri = URI.file(mockFilePath);
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
             allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
@@ -164,7 +165,7 @@ describe('LWC Test Indexer', function() {
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
       expect(allTestFileInfo.length).to.equal(existingTestFileCount);
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
             allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
@@ -195,7 +196,7 @@ describe('LWC Test Indexer', function() {
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
       expect(allTestFileInfo.length).to.equal(existingTestFileCount);
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
             allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
@@ -242,7 +243,7 @@ describe('LWC Test Indexer', function() {
         }
       ];
 
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         // Set up test file change handler
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
@@ -298,7 +299,7 @@ describe('LWC Test Indexer', function() {
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
       expect(allTestFileInfo.length).to.equal(existingTestFileCount);
       const testFileUriToDelete = lwcTests[0];
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
             allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();

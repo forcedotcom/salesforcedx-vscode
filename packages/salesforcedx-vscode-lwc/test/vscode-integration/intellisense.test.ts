@@ -7,6 +7,7 @@
 
 import { assert, expect } from 'chai';
 import * as path from 'path';
+import { timeout } from 'rxjs/operators/timeout';
 import {
   commands,
   CompletionItem,
@@ -27,7 +28,7 @@ describe('LWC Intellisense Integration Tests', () => {
 
   let lwcExtension: Extension<any>;
 
-  before(async () => {
+  beforeAll(async () => {
     lwcExtension = extensions.getExtension(
       'salesforce.salesforcedx-vscode-lwc'
     ) as Extension<any>;
@@ -42,7 +43,7 @@ describe('LWC Intellisense Integration Tests', () => {
 
     // Time taken to execute the command to fetch actualcompletion list, varies with different environment and system.
     // tslint:disable-next-line:no-invalid-this
-    this.timeout(10000);
+    timeout(10000);
     let doc: TextDocument;
     let editor: TextEditor;
     let text: string;
