@@ -16,6 +16,16 @@ Take advantage of the following Lightning Web Components Extension for VS Code f
 
 The Lightning Web Components Extension builds on VS Code's language features for [HTML](https://code.visualstudio.com/docs/languages/html) and [JavaScript](https://code.visualstudio.com/docs/languages/javascript), including syntax highlighting, bracket matching, and language-specific code completions with IntelliSense. The extension provides code completion for the following Lightning Web Components resources.
 
+## Code Snippets
+
+Code snippets are available for scaffolding class and interface definitions, and a variety of statements such as loops and conditional statements, and so on. When you’re working in an LWC HTML file, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions by typing the component name (e.g., `accordion`).
+
+Out of the box snippets for Salesforce development are available in these repositories:
+
+- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
+- [HTML Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-html.json)
+- [JavaScript Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-js.json)
+
 ### `@salesforce` Scoped Modules
 
 Lightning components access Salesforce values via scoped modules. The Lightning Web Components Extension provides code completion for the following scoped modules:

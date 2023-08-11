@@ -14,6 +14,7 @@ import {
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   EmptyParametersGatherer,
+  isSFContainerMode,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -108,6 +109,25 @@ const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
+  const preview = getPreview();
+  preview(sourceUri);
+}
+
+export function getPreview() {
+  if (isSFContainerMode()) {
+    return lwcPreviewContainerMode;
+  } else {
+    return lwcPreview;
+  }
+}
+
+function lwcPreviewContainerMode() {
+  const message = nls.localize('force_lightning_lwc_preview_container_mode');
+  vscode.window.showErrorMessage(message);
+  return;
+}
+
+export async function lwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
 
   if (!sourceUri) {

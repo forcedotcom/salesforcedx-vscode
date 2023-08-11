@@ -39,18 +39,18 @@ describe('Force Org Open', () => {
 
   describe('Executor is chosen based on environment', () => {
     afterEach(() => {
-      delete process.env.SFDX_CONTAINER_MODE;
+      delete process.env.SF_CONTAINER_MODE;
     });
     it('should use ForceOrgOpenExecutor if container mode is not defined', () => {
       expect(getExecutor()).to.be.instanceOf(ForceOrgOpenExecutor);
     });
     it('should use ForceOrgOpenExecutor if container mode is empty', () => {
-      process.env.SFDX_CONTAINER_MODE = '';
+      process.env.SF_CONTAINER_MODE = '';
       expect(getExecutor()).to.be.instanceOf(ForceOrgOpenExecutor);
     });
 
     it('should use ForceOrgOpenContainerExecutor if container mode is defined', () => {
-      process.env.SFDX_CONTAINER_MODE = 'true';
+      process.env.SF_CONTAINER_MODE = 'true';
       expect(getExecutor()).to.be.instanceOf(ForceOrgOpenContainerExecutor);
     });
   });

@@ -1,3 +1,94 @@
+# 58.9.1 - August 4, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #4993](https://github.com/forcedotcom/salesforcedx-vscode/pull/4993))
+
+- We disabled LWC preview in container code. An error message that explains why the command is disabled, is displayed when the command is run in a container. ([PR #4983](https://github.com/forcedotcom/salesforcedx-vscode/pull/4983))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We made some changes under the hood. ([PR #5011](https://github.com/forcedotcom/salesforcedx-vscode/pull/5011))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5005](https://github.com/forcedotcom/salesforcedx-vscode/pull/5005))
+
+# 58.7.1 - July 21, 2023
+
+## Added
+
+#### salesforcedx-apex-debugger
+#### salesforcedx-utils
+#### salesforcedx-utils-vscode
+
+- We updated environment variables for the Apex Interactive Debugger to reflect the new SF CLI style. ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with `Push-on-save` so that the command now works as expected. As a part of this fix, the `Problems` tab is now cleared after a successful push. ([PR #4975](https://github.com/forcedotcom/salesforcedx-vscode/pull/4975))
+
+# 58.6.2 - July 13, 2023
+
+## Added
+
+#### salesforcedx-vscode-lightning
+
+- We made an update to the lightning language server version. ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+
+#### salesforcedx-vscode-lwc
+
+- We made an update to the lightning language server version. ([PR #4964](https://github.com/forcedotcom/salesforcedx-vscode/pull/4964))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #4948](https://github.com/forcedotcom/salesforcedx-vscode/pull/4948))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the problems tab not clearing errors. ([PR #4962](https://github.com/forcedotcom/salesforcedx-vscode/pull/4962))
+
+#### salesforcedx-vscode-lwc
+
+- We added new snippets for LWC HTML. Thank you [Mark Vogelgesang](https://github.com/mvogelgesang) for creating the issue. ([PR #4946](https://github.com/forcedotcom/salesforcedx-vscode/pull/4946), [ISSUE #4857](https://github.com/forcedotcom/salesforcedx-vscode/issues/4857))
+
+# 58.4.1 - June 29, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made updated dependencies in the Apex LSP and made some changes under the hood to enhance the debugging experience. ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
+
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #4941](https://github.com/forcedotcom/salesforcedx-vscode/pull/4941))
+
+# 58.3.1 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Backed out a change from the v58.3.0 release to fix https://github.com/forcedotcom/salesforcedx-vscode/issues/4938.
+
+# 58.3.0 - June 21, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We updated telemetry data to include Org Id. ([PR #4917](https://github.com/forcedotcom/salesforcedx-vscode/pull/4917))
+
 # 58.2.0 - June 13, 2023
 
 ## Added

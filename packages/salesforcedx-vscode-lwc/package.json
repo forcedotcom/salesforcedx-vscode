@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "58.2.0",
+  "version": "58.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,11 +25,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "^3.34.8",
+    "@salesforce/core": "4.3.11",
     "@salesforce/eslint-config-lwc": "3.3.3",
-    "@salesforce/lightning-lsp-common": "4.6.1",
-    "@salesforce/lwc-language-server": "4.6.1",
-    "@salesforce/salesforcedx-utils-vscode": "58.2.0",
+    "@salesforce/lightning-lsp-common": "4.7.0",
+    "@salesforce/lwc-language-server": "4.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.10.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
     "eslint": "7.7.0",
@@ -42,7 +42,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "58.2.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.10.0",
     "@types/chai": "4.3.3",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
@@ -99,10 +99,10 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "^3.34.8",
-        "@salesforce/source-tracking": "3.1.1",
-        "@salesforce/lightning-lsp-common": "4.6.1",
-        "@salesforce/lwc-language-server": "4.6.1"
+        "@salesforce/core": "4.3.11",
+        "@salesforce/source-tracking": "4.1.3",
+        "@salesforce/lightning-lsp-common": "4.7.0",
+        "@salesforce/lwc-language-server": "4.7.0"
       },
       "devDependencies": {}
     }
@@ -118,7 +118,11 @@
     "snippets": [
       {
         "language": "javascript",
-        "path": "./snippets/lwc.json"
+        "path": "./snippets/lwc-js.json"
+      },
+      {
+        "language": "html",
+        "path": "./snippets/lwc-html.json"
       }
     ],
     "views": {

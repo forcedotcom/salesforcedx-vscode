@@ -11,7 +11,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  isSFContainerMode
+} from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -26,7 +29,7 @@ import {
 } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
-import { isSFDXContainerMode, workspaceUtils } from '../../util';
+import { workspaceUtils } from '../../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -236,7 +239,7 @@ const parameterGatherer = new AuthParamsGatherer();
 
 export function createAuthWebLoginExecutor(): SfdxCommandletExecutor<{}> {
   switch (true) {
-    case isSFDXContainerMode():
+    case isSFContainerMode():
       return new ForceAuthWebLoginContainerExecutor();
     case isDemoMode():
       return new ForceAuthWebLoginDemoModeExecutor();

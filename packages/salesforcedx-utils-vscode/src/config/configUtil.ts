@@ -10,11 +10,12 @@ import {
   ConfigAggregator,
   Org,
   OrgConfigProperties,
-  SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
+import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
+import { TelemetryService } from '../telemetry/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -54,16 +55,31 @@ export class ConfigUtil {
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_ORG
-    );
-    return defaultUsernameOrAlias ? String(defaultUsernameOrAlias) : undefined;
+    try {
+      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+        TARGET_ORG_KEY
+      );
+      if (!defaultUsernameOrAlias) {
+        return undefined;
+      }
+
+      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        TelemetryService.getInstance().sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
+      throw(err);
+    }
   }
 
   public static async isGlobalDefaultUsername(): Promise<boolean> {
     const configSource: ConfigSource = await ConfigUtil.getConfigSource(
-      OrgConfigProperties.TARGET_ORG
+      TARGET_ORG_KEY
     );
     return configSource === ConfigSource.Global;
   }
@@ -79,7 +95,7 @@ export class ConfigUtil {
   public static async isTelemetryDisabled(): Promise<boolean> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(
-      SfConfigProperties.DISABLE_TELEMETRY
+      SF_CONFIG_DISABLE_TELEMETRY
     );
     return isTelemetryDisabled === 'true';
   }
@@ -89,7 +105,7 @@ export class ConfigUtil {
   > {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultDevHubUserName = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_DEV_HUB
+      TARGET_DEV_HUB_KEY
     );
     return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
   }
@@ -99,7 +115,7 @@ export class ConfigUtil {
   > {
     const globalConfig = await Config.create({ isGlobal: true });
     const defaultGlobalDevHubUserName = globalConfig.get(
-      OrgConfigProperties.TARGET_DEV_HUB
+      TARGET_DEV_HUB_KEY
     );
 
     return defaultGlobalDevHubUserName
@@ -127,7 +143,7 @@ export class ConfigUtil {
       return;
     }
 
-    const username = await getUsernameFor(defaultUsernameOrAlias);
+    const username = await this.getUsernameFor(defaultUsernameOrAlias);
     return username ? String(username) : undefined;
   }
 
@@ -143,8 +159,19 @@ export class ConfigUtil {
       return;
     }
 
-    const username = await getUsernameFor(defaultDevHubUsernameOrAlias);
+    const username = await this.getUsernameFor(defaultDevHubUsernameOrAlias);
     return username ? String(username) : undefined;
+  }
+
+  /**
+   * Get the username of the currently auth'd user for the project
+   * given a username or alias.
+   *
+   * @returns The username for the configured Org if it exists.
+   */
+  public static async getUsernameFor(usernameOrAlias: string) {
+    const info = await StateAggregator.getInstance();
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 
   public static async setDefaultUsernameOrAlias(
@@ -168,7 +195,7 @@ export class ConfigUtil {
 
   private static async setUsernameOrAlias(usernameOrAlias: string) {
     const config = await Config.create(Config.getDefaultOptions());
-    config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
+    config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
     // Force the ConfigAggregatorProvider to reload its stored
     // ConfigAggregators so that this config file change is accounted
@@ -179,12 +206,4 @@ export class ConfigUtil {
     // authorization info.
     StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
-}
-
-async function getUsernameFor(usernameOrAlias: string) {
-  const info = await StateAggregator.getInstance();
-  const username = usernameOrAlias
-    ? info.aliases.getUsername(String(usernameOrAlias))
-    : undefined;
-  return username ? String(username) : undefined;
 }

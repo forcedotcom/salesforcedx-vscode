@@ -79,9 +79,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('isv_debug_bootstrap_step1_create_project'))
-      .withArg('force:project:create')
-      .withFlag('--projectname', data.projectName)
-      .withFlag('--outputdir', data.projectUri)
+      .withArg('project:generate')
+      .withFlag('--name', data.projectName)
+      .withFlag('--output-dir', data.projectUri)
       .withFlag('--template', 'standard')
       .withLogName('isv_debug_bootstrap_create_project')
       .build();
@@ -92,10 +92,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step2_configure_project')
       )
-      .withArg('force:config:set')
-      .withArg(`isvDebuggerSid=${data.sessionId}`)
-      .withArg(`isvDebuggerUrl=${data.loginUrl}`)
-      .withArg(`instanceUrl=${data.loginUrl}`)
+      .withArg('config:set')
+      .withArg(`org-isv-debugger-sid=${data.sessionId}`)
+      .withArg(`org-isv-debugger-url=${data.loginUrl}`)
+      .withArg(`org-instance-url=${data.loginUrl}`)
       .withLogName('isv_debug_bootstrap_configure_project')
       .build();
   }
@@ -109,9 +109,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
           'isv_debug_bootstrap_step2_configure_project_retrieve_namespace'
         )
       )
-      .withArg('force:data:soql:query')
+      .withArg('data:query')
       .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
-      .withFlag('--targetusername', data.sessionId)
+      .withFlag('--target-org', data.sessionId)
       .withJson()
       .withLogName('isv_debug_bootstrap_configure_project_retrieve_namespace')
       .build();
@@ -138,10 +138,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
       )
-      .withArg('force:mdapi:retrieve')
-      .withFlag('--retrievetargetdir', this.relativeMetdataTempPath)
-      .withFlag('--unpackaged', this.relativeApexPackageXmlPath)
-      .withFlag('--targetusername', data.sessionId)
+      .withArg('project:retrieve:start')
+      .withFlag('--target-metadata-dir', this.relativeMetdataTempPath)
+      .withFlag('--manifest', this.relativeApexPackageXmlPath)
+      .withFlag('--target-org', data.sessionId)
       .withLogName('isv_debug_bootstrap_retrieve_org_source')
       .build();
   }
@@ -153,12 +153,12 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step4_convert_org_source')
       )
-      .withArg('force:mdapi:convert')
+      .withArg('project:convert:mdapi')
       .withFlag(
-        '--rootdir',
+        '--root-dir',
         path.join(this.relativeMetdataTempPath, 'unpackaged')
       )
-      .withFlag('--outputdir', 'force-app')
+      .withFlag('--output-dir', 'force-app')
       .withLogName('isv_debug_bootstrap_convert_org_source')
       .build();
   }
@@ -170,8 +170,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
       )
-      .withArg('force:package:installed:list')
-      .withFlag('--targetusername', data.sessionId)
+      .withArg('package:installed:list')
+      .withFlag('--target-org', data.sessionId)
       .withJson()
       .withLogName('isv_debug_bootstrap_list_installed_packages')
       .build();
@@ -185,10 +185,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
       )
-      .withArg('force:mdapi:retrieve')
-      .withFlag('--retrievetargetdir', this.relativeMetdataTempPath)
-      .withFlag('--packagenames', packageNames.join(','))
-      .withFlag('--targetusername', data.sessionId)
+      .withArg('project:retrieve:start')
+      .withFlag('--target-metadata-dir', this.relativeMetdataTempPath)
+      .withFlag('--package-name', packageNames.join(','))
+      .withFlag('--target-org', data.sessionId)
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
       .build();
   }
@@ -203,13 +203,13 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
           packageName
         )
       )
-      .withArg('force:mdapi:convert')
+      .withArg('project:convert:mdapi')
       .withFlag(
-        '--rootdir',
+        '--root-dir',
         path.join(this.relativeMetdataTempPath, 'packages', packageName)
       )
       .withFlag(
-        '--outputdir',
+        '--output-dir',
         path.join(this.relativeInstalledPackagesPath, packageName)
       )
       .withLogName('isv_debug_bootstrap_convert_package_source')

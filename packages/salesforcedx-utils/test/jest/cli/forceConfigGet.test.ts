@@ -13,7 +13,7 @@ describe('ForceOrgGet unit tests.', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const configMap: any = [
     { key: 'config1', value: 'true' },
-    { key: 'defaultdevhubusername', value: 'test@test.com' },
+    { key: 'target-dev-hub', value: 'test@test.com' },
     { key: 'telemetryEnabled', value: 'false' }
   ];
 
