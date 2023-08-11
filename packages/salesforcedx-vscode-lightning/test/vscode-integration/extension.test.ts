@@ -53,7 +53,7 @@ describe('Test commands', () => {
   let coreExtension: vscode.Extension<any>;
   let auraExtension: vscode.Extension<any>;
 
-  before(async () => {
+  beforeEach(async () => {
     if (
       vscode.workspace &&
       vscode.workspace.workspaceFolders &&
