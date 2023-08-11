@@ -144,7 +144,7 @@ export async function createLanguageServer(
     .getConfiguration()
     .update(
       'files.watcherExclude',
-      { '.apex/tools/**/StandardApexLibrary/*.*': true },
+      { '.sfdx/tools/**/StandardApexLibrary/*.*': true },
       vscode.ConfigurationTarget.Workspace
     );
   const client = new LanguageClient(
