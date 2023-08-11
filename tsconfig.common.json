@@ -11,13 +11,14 @@
     "target": "ES2020",
     // We are building using node 18 so use that value for the lib.
     "lib": [
-      "ES2022",
+      "es2022",
       "dom"
     ],
     "moduleResolution": "node",
     "esModuleInterop": false,
     "resolveJsonModule": true,
     "sourceMap": true,
+    "types": ["jest", "node"],
     "declaration": true,
     "declarationMap": true,
     "preserveConstEnums": true,
