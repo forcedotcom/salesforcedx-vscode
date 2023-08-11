@@ -18,7 +18,7 @@ import {
   JAVA_HOME_KEY,
   resolveRequirements
 } from '../../src/requirements';
-import pathExists = require('path-exists');
+import * as pathExists from 'path-exists';
 import * as cp from 'child_process';
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
