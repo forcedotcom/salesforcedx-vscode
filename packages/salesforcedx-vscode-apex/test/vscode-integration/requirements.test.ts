@@ -9,6 +9,8 @@
 
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as cp from 'child_process';
+import * as pathExists from 'path-exists';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../src/constants';
@@ -18,8 +20,6 @@ import {
   JAVA_HOME_KEY,
   resolveRequirements
 } from '../../src/requirements';
-import * as pathExists from 'path-exists';
-import * as cp from 'child_process';
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = `~/java_home/real/jdk/${jdk}`;

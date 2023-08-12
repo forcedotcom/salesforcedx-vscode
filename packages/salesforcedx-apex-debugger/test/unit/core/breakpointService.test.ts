@@ -10,13 +10,13 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import * as sinon from 'sinon';
 import {
   ApexBreakpointLocation,
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
-import * as childProcess from 'child_process';
 
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;

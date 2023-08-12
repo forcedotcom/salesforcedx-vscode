@@ -22,6 +22,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
+import * as sinon from 'sinon';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
@@ -30,7 +31,6 @@ import {
 } from '../../../src/conflict/metadataCacheService';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
-import * as sinon from 'sinon';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {

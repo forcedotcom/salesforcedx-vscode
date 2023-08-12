@@ -10,9 +10,9 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
-import * as childProcess from 'child_process';
 
 describe('Debugger session service', () => {
   let service: SessionService;
