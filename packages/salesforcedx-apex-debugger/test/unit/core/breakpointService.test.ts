@@ -16,7 +16,7 @@ import {
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
-import childProcess = require('child_process');
+import * as childProcess from 'child_process';
 
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;

@@ -78,7 +78,7 @@ import {
   DummyContainer,
   newStringValue
 } from './apexDebugVariablesHandling.test';
-import os = require('os');
+import * as os from 'os';
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;

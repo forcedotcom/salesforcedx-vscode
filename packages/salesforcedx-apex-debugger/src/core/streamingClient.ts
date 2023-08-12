@@ -6,7 +6,7 @@
  */
 
 import { Client } from 'faye';
-import os = require('os');
+import * as os from 'os';
 import { RequestService } from '@salesforce/salesforcedx-utils';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';

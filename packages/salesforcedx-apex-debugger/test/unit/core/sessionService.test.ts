@@ -12,7 +12,7 @@ import {
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
-import childProcess = require('child_process');
+import * as childProcess from 'child_process';
 
 describe('Debugger session service', () => {
   let service: SessionService;

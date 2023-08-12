@@ -82,7 +82,7 @@ import {
   WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
-import os = require('os');
+import * as os from 'os';
 
 // Below import has to be required for bundling
 /* tslint:disable */
