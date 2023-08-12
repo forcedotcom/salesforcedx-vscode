@@ -29,6 +29,7 @@ import {
   showCLINotInstalledMessage,
   workspaceUtils
 } from '../../../src/util';
+import { timeout } from 'rxjs/operators/timeout';
 
 describe('SFDX CLI Configuration utility', () => {
   let sandboxStub: SinonSandbox;
@@ -188,7 +189,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
     it('Should return the locally configured default username when it exists', async function() {
-      this.timeout(60000);
+      timeout(60000);
 
       let res: (value: string) => void;
       let rej: (reason?: any) => void;

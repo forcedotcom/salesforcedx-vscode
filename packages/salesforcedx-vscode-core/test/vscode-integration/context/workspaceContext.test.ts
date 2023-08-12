@@ -11,6 +11,7 @@ import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { decorators } from '../../../src/decorators';
 import { workspaceUtils } from '../../../src/util';
+import { timeout } from 'rxjs/operators/timeout';
 
 const env = createSandbox();
 
@@ -181,7 +182,7 @@ describe('WorkspaceContext', () => {
       .fire('delete');
 
     // Test runs in CI build in approx: 45000ms
-    this.timeout(60000);
+    timeout(60000);
     await Promise.all([
       fileChangedPromise,
       fileCreatedPromise,

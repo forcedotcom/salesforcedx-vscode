@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { timeout } from 'rxjs/operators';
 import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
@@ -71,14 +72,14 @@ describe('Test commands', () => {
 
   it('coreExtension activation', async function() {
     // tslint:disable-next-line:no-invalid-this
-    this.timeout(10000);
+    timeout(10000);
     await coreExtension.activate();
     expect(coreExtension.isActive);
   });
 
   it('aura activation', async function() {
     // tslint:disable-next-line:no-invalid-this
-    this.timeout(10000);
+    timeout(10000);
     await auraExtension.activate();
     expect(auraExtension.isActive);
   });
