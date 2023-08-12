@@ -20,7 +20,7 @@ import {
 } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import childProcess = require('child_process');
+import * as childProcess from 'child_process';
 
 describe('Debugger stop command', () => {
   const mockSpawn = require('mock-spawn');

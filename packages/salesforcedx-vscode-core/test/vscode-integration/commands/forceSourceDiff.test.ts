@@ -26,7 +26,7 @@ import {
 } from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import Sinon = require('sinon');
+import * as sinon from 'sinon';
 import {
   FilePathGatherer,
   SfdxWorkspaceChecker

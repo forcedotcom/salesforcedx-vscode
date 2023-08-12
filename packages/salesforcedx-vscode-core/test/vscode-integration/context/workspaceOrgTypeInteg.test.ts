@@ -16,7 +16,7 @@ import {
   workspaceContextUtils
 } from '../../../src/context';
 import { OrgAuthInfo } from '../../../src/util';
-import Sinon = require('sinon');
+import * as Sinon from 'sinon';
 import * as workspaceUtil from '../../../src/context/workspaceOrgType';
 
 const sandbox = createSandbox();

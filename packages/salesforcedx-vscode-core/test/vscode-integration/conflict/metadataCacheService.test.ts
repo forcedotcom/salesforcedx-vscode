@@ -30,7 +30,7 @@ import {
 } from '../../../src/conflict/metadataCacheService';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
-import sinon = require('sinon');
+import * as sinon from 'sinon';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {

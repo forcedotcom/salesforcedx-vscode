@@ -14,7 +14,7 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../../../src/core';
-import childProcess = require('child_process');
+import * as childProcess from 'child_process';
 
 describe('Debugger streaming service', () => {
   const mockSpawn = require('mock-spawn');
