@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "58.9.1",
+  "version": "58.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -33,17 +33,17 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core": "^3.34.8",
+    "@salesforce/core": "4.3.11",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
-    "jsforce": "2.0.0-beta.20"
+    "jsforce": "2.0.0-beta.27"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "58.9.1",
-    "@salesforce/salesforcedx-test-utils-vscode": "58.9.1",
-    "@salesforce/salesforcedx-utils-vscode": "58.9.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "58.11.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.11.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "1.5.13",
@@ -121,8 +121,8 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
-        "@salesforce/core": "^3.34.8",
-        "@salesforce/source-tracking": "3.1.1",
+        "@salesforce/core": "4.3.11",
+        "@salesforce/source-tracking": "4.1.3",
         "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "0.2.0",
         "@salesforce/soql-data-view": "0.1.0",

@@ -9,7 +9,7 @@ import { GlobalCliEnvironment } from '../../../src/cli';
 import { ConfigUtil } from '../../../src/config/configUtil';
 import {
   disableCLITelemetry,
-  ENV_SFDX_DISABLE_TELEMETRY,
+  ENV_SF_DISABLE_TELEMETRY,
   isCLITelemetryAllowed
 } from '../../../src/telemetry/cliConfiguration';
 
@@ -29,7 +29,7 @@ describe('CliConfiguration Unit Tests.', () => {
 
     it('Should set env value.', async () => {
       disableCLITelemetry();
-      expect(setSpy).toHaveBeenCalledWith(ENV_SFDX_DISABLE_TELEMETRY, 'true');
+      expect(setSpy).toHaveBeenCalledWith(ENV_SF_DISABLE_TELEMETRY, 'true');
     });
   });
 
