@@ -17,6 +17,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
+import { timeout } from 'rxjs/operators/timeout';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
@@ -29,7 +30,6 @@ import {
   showCLINotInstalledMessage,
   workspaceUtils
 } from '../../../src/util';
-import { timeout } from 'rxjs/operators/timeout';
 
 describe('SFDX CLI Configuration utility', () => {
   let sandboxStub: SinonSandbox;
@@ -188,7 +188,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 4. The VS Code orgChange event was fired with the correct values
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
-    it('Should return the locally configured default username when it exists', async function() {
+    it('Should return the locally configured default username when it exists', async () => {
       timeout(60000);
 
       let res: (value: string) => void;

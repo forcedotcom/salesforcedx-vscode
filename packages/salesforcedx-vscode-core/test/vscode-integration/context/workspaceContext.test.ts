@@ -4,6 +4,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
+import { timeout } from 'rxjs/operators/timeout';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
@@ -11,7 +12,6 @@ import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { decorators } from '../../../src/decorators';
 import { workspaceUtils } from '../../../src/util';
-import { timeout } from 'rxjs/operators/timeout';
 
 const env = createSandbox();
 
