@@ -4,21 +4,21 @@
 
 #### salesforcedx-vscode-core
 
-- Upgrade core v3 to v4 ([PR #5001](https://github.com/forcedotcom/salesforcedx-vscode/pull/5001))
+- We made a major upgrade to the version of the `@salesforce/core` library. ([PR #5001](https://github.com/forcedotcom/salesforcedx-vscode/pull/5001))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Update to sf style env var ([PR #5020](https://github.com/forcedotcom/salesforcedx-vscode/pull/5020))
+- We updated the `SFDX_CONTAINER_MODE` variable to `SF_CONTAINER_MODE` to resolve an issue with running the `SFDX: Authorize an Org` command. ([PR #5020](https://github.com/forcedotcom/salesforcedx-vscode/pull/5020))
 
-- Colon instead of spacing for isv commands ([PR #5021](https://github.com/forcedotcom/salesforcedx-vscode/pull/5021))
+- We fixed issues under the hood. ([PR #5021](https://github.com/forcedotcom/salesforcedx-vscode/pull/5021))
 
-- Remove output warnings by changing variables to target-org and disable-telemetry ([PR #5015](https://github.com/forcedotcom/salesforcedx-vscode/pull/5015))
+- We fixed an issue with the `SFDX: Set a Default Org` command not displaying the updated default org name in the Output tab after the command is run. ([PR #5015](https://github.com/forcedotcom/salesforcedx-vscode/pull/5015))
 
 #### salesforcedx-vscode-lwc
 
-- Update description for analytics dashboard lwcs ([PR #5007](https://github.com/forcedotcom/salesforcedx-vscode/pull/5007))
+- We made an update to a dashboard name to reflect a product name change. ([PR #5007](https://github.com/forcedotcom/salesforcedx-vscode/pull/5007))
 
 # 58.9.1 - August 4, 2023
 
