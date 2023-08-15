@@ -48,7 +48,7 @@ You can run Apex tests from the class file open in the editor window. Click **Ru
 
 ### Highlight Apex Test Code Coverage
 
-You can retrieve code coverage results for your Apex classes and Apex triggers every time you run one or more tests. To do this, [edit your workspace settings](https://code.visualstudio.com/docs/getstarted/settings) and check `retrive-test-code-coverage` and then run your Apex tests. You can now see the code coverage in the Output panel, which shows the coverage percentage per Apex class and Apex trigger and lines that were not covered by the test run results.
+You can retrieve code coverage results for your Apex classes and Apex triggers every time you run one or more tests. To do this, [edit your workspace settings](https://code.visualstudio.com/docs/getstarted/settings) and check `retrieve-test-code-coverage` and then run your Apex tests. You can now see the code coverage in the Output panel, which shows the coverage percentage per Apex class and Apex trigger and lines that were not covered by the test run results.
 
 ![Apex test results with code coverage](./images/code_coverage_output.png)
 
