@@ -1,3 +1,25 @@
+# 58.11.0 - August 17, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Upgrade core v3 to v4 ([PR #5001](https://github.com/forcedotcom/salesforcedx-vscode/pull/5001))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Update to sf style env var ([PR #5020](https://github.com/forcedotcom/salesforcedx-vscode/pull/5020))
+
+- Colon instead of spacing for isv commands ([PR #5021](https://github.com/forcedotcom/salesforcedx-vscode/pull/5021))
+
+- Remove output warnings by changing variables to target-org and disable-telemetry ([PR #5015](https://github.com/forcedotcom/salesforcedx-vscode/pull/5015))
+
+#### salesforcedx-vscode-lwc
+
+- Update description for analytics dashboard lwcs ([PR #5007](https://github.com/forcedotcom/salesforcedx-vscode/pull/5007))
+
 # 58.9.1 - August 4, 2023
 
 ## Added
