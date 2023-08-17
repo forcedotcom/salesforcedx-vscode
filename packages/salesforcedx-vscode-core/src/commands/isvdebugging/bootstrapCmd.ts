@@ -139,10 +139,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
       )
       .withArg('project:retrieve:start')
-      .withFlag('--target-metadata-dir', this.relativeMetdataTempPath)
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
+      .withFlag('--output-dir', 'force-app')
       .withFlag('--target-org', data.sessionId)
-      .withArg('--unzip')
       .withLogName('isv_debug_bootstrap_retrieve_org_source')
       .build();
   }
@@ -359,12 +358,12 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // }
 
     // 4b: convert org source
-    await this.executeCommand(
-      this.buildMetadataApiConvertOrgSourceCommand(response.data),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
+    // await this.executeCommand(
+    //   this.buildMetadataApiConvertOrgSourceCommand(response.data),
+    //   { cwd: projectPath },
+    //   cancellationTokenSource,
+    //   cancellationToken
+    // );
 
     // 5: get list of installed packages
     const packagesJson = await this.executeCommand(
