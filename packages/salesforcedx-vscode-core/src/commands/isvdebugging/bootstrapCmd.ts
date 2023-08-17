@@ -155,7 +155,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step4_convert_org_source')
       )
       .withArg('project:convert:mdapi')
-      .withFlag('--root-dir', this.relativeMetdataTempPath)
+      .withFlag(
+        '--root-dir',
+        path.join(this.relativeMetdataTempPath, 'unpackaged')
+      )
       .withFlag('--output-dir', 'force-app')
       .withLogName('isv_debug_bootstrap_convert_org_source')
       .build();
