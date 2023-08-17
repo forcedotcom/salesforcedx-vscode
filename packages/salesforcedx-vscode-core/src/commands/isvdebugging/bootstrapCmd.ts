@@ -339,21 +339,21 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     // 4a: unzip retrieved source
-    try {
-      const zip = new AdmZip(
-        path.join(projectMetadataTempPath, 'unpackaged.zip')
-      );
-      zip.extractAllTo(projectMetadataTempPath, true);
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(
-        nls.localize('error_extracting_org_source', error.toString())
-      );
-      notificationService.showErrorMessage(
-        nls.localize('error_extracting_org_source', error.toString())
-      );
-      return;
-    }
+    // try {
+    //   const zip = new AdmZip(
+    //     path.join(projectMetadataTempPath, 'unpackaged.zip')
+    //   );
+    //   zip.extractAllTo(projectMetadataTempPath, true);
+    // } catch (error) {
+    //   console.error(error);
+    //   channelService.appendLine(
+    //     nls.localize('error_extracting_org_source', error.toString())
+    //   );
+    //   notificationService.showErrorMessage(
+    //     nls.localize('error_extracting_org_source', error.toString())
+    //   );
+    //   return;
+    // }
 
     // 4b: convert org source
     await this.executeCommand(
