@@ -1,3 +1,25 @@
+# 58.11.0 - August 17, 2023
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made a major upgrade to the version of the `@salesforce/core` library. ([PR #5001](https://github.com/forcedotcom/salesforcedx-vscode/pull/5001))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We updated the `SFDX_CONTAINER_MODE` variable to `SF_CONTAINER_MODE` to resolve an issue with running the `SFDX: Authorize an Org` command in a container. ([PR #5020](https://github.com/forcedotcom/salesforcedx-vscode/pull/5020))
+
+- We fixed issues under the hood so that the `SFDX: Create and Set Up project for ISV Debugging` command can now be run without displaying CLI warning messages. ([PR #5021](https://github.com/forcedotcom/salesforcedx-vscode/pull/5021))
+
+- We fixed an issue under the hood so that the `SFDX: Set a Default Org` command can now be run without displaying CLI warning messages. ([PR #5015](https://github.com/forcedotcom/salesforcedx-vscode/pull/5015))
+
+#### salesforcedx-vscode-lwc
+
+- We made an update to a dashboard name to reflect a product name change. ([PR #5007](https://github.com/forcedotcom/salesforcedx-vscode/pull/5007))
+
 # 58.9.1 - August 4, 2023
 
 ## Added
