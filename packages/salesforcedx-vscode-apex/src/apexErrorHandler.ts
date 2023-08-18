@@ -31,7 +31,7 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   public closed() {
     if (this.hasStarted) {
       this.emit(
-        'restarting',
+        'error',
         nls.localize('apex_language_server_quit_after_starting_successfully')
       );
       this.hasStarted = false;
