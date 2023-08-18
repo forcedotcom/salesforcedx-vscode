@@ -6,7 +6,8 @@ import {
   LanguageClient,
   LanguageClientOptions,
   Message,
-  ServerOptions
+  ServerOptions,
+  State
 } from 'vscode-languageclient';
 import { nls } from './messages';
 
@@ -57,24 +58,5 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   }
   public serviceHasStartedSuccessfully() {
     this.hasStarted = true;
-  }
-}
-
-export class ApexLanguageClient extends LanguageClient {
-  private _errorHandler: ApexErrorHandler | undefined;
-  public constructor(
-    id: string,
-    name: string,
-    serverOptions: ServerOptions,
-    clientOptions: LanguageClientOptions,
-    forceDebug?: boolean
-  ) {
-    clientOptions.errorHandler = new ApexErrorHandler();
-    super(id, name, serverOptions, clientOptions, forceDebug);
-    this._errorHandler = clientOptions.errorHandler as ApexErrorHandler;
-  }
-
-  public get errorHandler(): ApexErrorHandler | undefined {
-    return this._errorHandler;
   }
 }

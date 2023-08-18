@@ -8,7 +8,7 @@
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ApexLanguageClient } from './ApexErrorHandler';
+import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
@@ -42,6 +42,7 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
+import { State } from 'vscode-languageclient';
 
 let languageClient: ApexLanguageClient | undefined;
 const languageServerStatusBarItem = new ApexLSPStatusBarItem();
@@ -296,29 +297,33 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
       extensionContext
     );
 
-    languageClient.errorHandler?.addListener('error', message => {
-      languageServerStatusBarItem.error(message);
-    });
-    languageClient.errorHandler?.addListener('restarting', count => {
-      languageServerStatusBarItem.error(
-        nls
-          .localize('apex_language_server_quit_and_restarting')
-          .replace('$N', count)
-      );
-      addOnReadyHandlerToLanguageClient(langClientHRStart);
-    });
-    languageClient.errorHandler?.addListener('startFailed', count => {
-      languageServerStatusBarItem.error(
-        nls.localize('apex_language_server_failed_activate')
-      );
-    });
+    if (languageClient) {
+      languageClient.errorHandler?.addListener('error', message => {
+        languageServerStatusBarItem.error(message);
+      });
+      languageClient.errorHandler?.addListener('restarting', count => {
+        languageServerStatusBarItem.error(
+          nls
+            .localize('apex_language_server_quit_and_restarting')
+            .replace('$N', count)
+        );
+      });
+      languageClient.errorHandler?.addListener('startFailed', count => {
+        languageServerStatusBarItem.error(
+          nls.localize('apex_language_server_failed_activate')
+        );
+      });
+      languageClient.onDidChangeState(({ newState }) => {
+        if (newState === State.Running) {
+          addOnReadyHandlerToLanguageClient(langClientHRStart);
+        }
+      });
+    }
 
     languageClientUtils.setClientInstance(languageClient);
-    const handle = languageClient.start();
+    const handle = languageClient!.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
     extensionContext.subscriptions.push(handle);
-
-    addOnReadyHandlerToLanguageClient(langClientHRStart);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
     languageServerStatusBarItem.error(
@@ -334,6 +339,7 @@ function addOnReadyHandlerToLanguageClient(
     languageClient
       .onReady()
       .then(async () => {
+        languageClient
         if (languageClient) {
           languageClient.onNotification('indexer/done', async () => {
             await getTestOutlineProvider().refresh();
@@ -356,8 +362,7 @@ function addOnReadyHandlerToLanguageClient(
           nls.localize('apex_language_server_failed_activate')
         );
         languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${
-            err.message
+          `${nls.localize('apex_language_server_failed_activate')} - ${err.message
           }`
         );
       });

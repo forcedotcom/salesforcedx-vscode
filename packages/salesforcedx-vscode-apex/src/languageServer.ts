@@ -17,7 +17,7 @@ import {
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
-import { ApexLanguageClient } from './ApexErrorHandler';
+import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageServerUtils } from './helpers/languageServerUtils';
