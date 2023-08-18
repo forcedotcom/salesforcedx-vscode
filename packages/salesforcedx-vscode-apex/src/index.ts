@@ -8,6 +8,7 @@
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { State } from 'vscode-languageclient';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
@@ -42,7 +43,6 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
-import { State } from 'vscode-languageclient';
 
 let languageClient: ApexLanguageClient | undefined;
 const languageServerStatusBarItem = new ApexLSPStatusBarItem();
@@ -339,7 +339,6 @@ function addOnReadyHandlerToLanguageClient(
     languageClient
       .onReady()
       .then(async () => {
-        languageClient
         if (languageClient) {
           languageClient.onNotification('indexer/done', async () => {
             await getTestOutlineProvider().refresh();
@@ -362,7 +361,8 @@ function addOnReadyHandlerToLanguageClient(
           nls.localize('apex_language_server_failed_activate')
         );
         languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${err.message
+          `${nls.localize('apex_language_server_failed_activate')} - ${
+            err.message
           }`
         );
       });
