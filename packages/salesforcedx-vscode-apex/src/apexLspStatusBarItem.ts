@@ -27,6 +27,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
     this.languageStatusItem.text = nls.localize('apex_language_server_loaded');
     this.languageStatusItem.severity =
       vscode.LanguageStatusSeverity.Information;
+    // clear any errors that were there
+    this.diagnostics.set(vscode.Uri.file('/ApexLSP'), []);
   }
 
   public error(msg: string) {
