@@ -140,7 +140,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('project:retrieve:start')
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
-      .withFlag('--output-dir', 'force-app')
       .withFlag('--target-org', data.sessionId)
       .withLogName('isv_debug_bootstrap_retrieve_org_source')
       .build();
