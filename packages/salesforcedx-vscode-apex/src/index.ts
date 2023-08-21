@@ -314,8 +314,9 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
         );
       });
       languageClient.onDidChangeState(({ newState }) => {
-        if (newState === State.Running) {
+        if (newState === State.Starting) {
           addOnReadyHandlerToLanguageClient(langClientHRStart);
+          languageServerStatusBarItem.indexing();
         }
       });
     }

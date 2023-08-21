@@ -23,7 +23,7 @@ import { telemetryService } from './telemetry';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
-const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
+const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncherx';
 
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();

@@ -17,10 +17,14 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
       'ApexLSPLanguageStatusItem',
       { language: 'apex', scheme: 'file' }
     );
+    this.diagnostics = vscode.languages.createDiagnosticCollection('apex');
+    this.indexing();
+  }
+
+  public indexing() {
     this.languageStatusItem.text = nls.localize('apex_language_server_loading');
     this.languageStatusItem.severity =
       vscode.LanguageStatusSeverity.Information;
-    this.diagnostics = vscode.languages.createDiagnosticCollection('apex');
   }
 
   public ready() {
