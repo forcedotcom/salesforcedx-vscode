@@ -9,12 +9,14 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   Executable,
-  LanguageClient,
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
+import { ApexErrorHandler } from './apexErrorHandler';
+import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
+import { languageServerUtils } from './helpers/languageServerUtils';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -33,6 +35,7 @@ async function createServer(
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
+    languageServerUtils.setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
@@ -87,8 +90,6 @@ async function createServer(
       }
     }
 
-    // running with profiling is not a function of debug mode
-
     args.push(APEX_LANGUAGE_SERVER_MAIN);
 
     return {
@@ -137,17 +138,9 @@ function protocol2CodeConverter(value: string) {
 
 export async function createLanguageServer(
   extensionContext: vscode.ExtensionContext
-): Promise<LanguageClient> {
+): Promise<ApexLanguageClient> {
   const server = await createServer(extensionContext);
-  // we no longer want to watch the StandardApexLibrary folder
-  vscode.workspace
-    .getConfiguration()
-    .update(
-      'files.watcherExclude',
-      { '.sfdx/tools/**/StandardApexLibrary/*.*': true },
-      vscode.ConfigurationTarget.Workspace
-    );
-  const client = new LanguageClient(
+  const client = new ApexLanguageClient(
     'apex',
     nls.localize('client_name'),
     server,
@@ -186,7 +179,8 @@ export function buildClientOptions(): LanguageClientOptions {
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled
     },
-    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {})
+    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
+    errorHandler: new ApexErrorHandler()
   };
 }
 
