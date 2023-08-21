@@ -3,11 +3,7 @@ import {
   CloseAction,
   ErrorAction,
   ErrorHandler,
-  LanguageClient,
-  LanguageClientOptions,
-  Message,
-  ServerOptions,
-  State
+  Message
 } from 'vscode-languageclient';
 import { nls } from './messages';
 

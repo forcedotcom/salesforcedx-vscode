@@ -14,7 +14,6 @@ export class ApexLanguageClient extends LanguageClient {
     clientOptions: LanguageClientOptions,
     forceDebug?: boolean
   ) {
-    clientOptions.errorHandler = new ApexErrorHandler();
     super(id, name, serverOptions, clientOptions, forceDebug);
     this._errorHandler = clientOptions.errorHandler as ApexErrorHandler;
   }

@@ -361,8 +361,7 @@ function addOnReadyHandlerToLanguageClient(
           nls.localize('apex_language_server_failed_activate')
         );
         languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${
-            err.message
+          `${nls.localize('apex_language_server_failed_activate')} - ${err.message
           }`
         );
       });
