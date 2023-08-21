@@ -26,10 +26,8 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   // Closed is called when the server processes closes/quits
   public closed() {
     if (this.hasStarted) {
-      this.emit(
-        'error',
-        nls.localize('apex_language_server_quit_after_starting_successfully')
-      );
+      this.restarts = [Date.now()];
+      this.emit('restarting', 1);
       this.hasStarted = false;
       return CloseAction.Restart;
     }
