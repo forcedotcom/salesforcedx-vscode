@@ -5,20 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  extensionUris,
-  projectPaths
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   Executable,
-  LanguageClient,
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
-import { LSP_ERR, VSCODE_APEX_EXTENSION_NAME } from './constants';
+import { ApexErrorHandler } from './apexErrorHandler';
+import { ApexLanguageClient } from './apexLanguageClient';
+import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageServerUtils } from './helpers/languageServerUtils';
 import { nls } from './messages';
@@ -27,7 +23,7 @@ import { telemetryService } from './telemetry';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
-const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
+const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncherx';
 
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
@@ -131,9 +127,9 @@ function protocol2CodeConverter(value: string) {
 
 export async function createLanguageServer(
   extensionContext: vscode.ExtensionContext
-): Promise<LanguageClient> {
+): Promise<ApexLanguageClient> {
   const server = await createServer(extensionContext);
-  const client = new LanguageClient(
+  const client = new ApexLanguageClient(
     'apex',
     nls.localize('client_name'),
     server,
@@ -174,7 +170,8 @@ export function buildClientOptions(): LanguageClientOptions {
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled
     },
-    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {})
+    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
+    errorHandler: new ApexErrorHandler()
   };
 }
 
