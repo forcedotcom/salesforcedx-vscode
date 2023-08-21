@@ -20,8 +20,13 @@ export const messages = {
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
   apex_execute_unexpected_error: 'Unexpected error',
+  apex_language_server_loading:
+    'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
+  apex_language_server_loaded: 'Indexing complete $(check)',
   apex_language_server_failed_activate:
     'Unable to activate the Apex Language Server',
+  apex_language_server_quit_and_restarting:
+    'Apex Language Server has stopped. Restarting… $N of 5',
   apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
@@ -76,5 +81,6 @@ export const messages = {
   force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
-  launch_apex_replay_debugger_unsupported_file: 'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.'
+  launch_apex_replay_debugger_unsupported_file:
+    'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.'
 };
