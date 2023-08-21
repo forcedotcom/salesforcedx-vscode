@@ -374,7 +374,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
     // 6a: create directory where packages are to be retrieved
-    shell.mkdir('-p', projectInstalledPackagesPath); //.sfdx/tools/installed-packages
+    shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
 
     // 6: fetch packages
     await this.executeCommand(
@@ -421,7 +421,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
       // generate installed-package.json file
       try {
-        console.log("......generating installed-package.json file......")
+        console.log('......generating installed-package.json file......');
         fs.writeFileSync(
           path.join(
             projectInstalledPackagesPath,
