@@ -16,7 +16,6 @@ import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
-import { languageServerUtils } from './helpers/languageServerUtils';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -24,7 +23,10 @@ import { telemetryService } from './telemetry';
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
-
+const SUSPEND_LANGUAGE_SERVER_STARTUP =
+  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
+const LANGUAGE_SERVER_LOG_LEVEL =
+  process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
@@ -32,7 +34,6 @@ async function createServer(
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    languageServerUtils.setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
@@ -72,9 +73,16 @@ async function createServer(
     if (DEBUG) {
       args.push(
         '-Dtrace.protocol=false',
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`
+        `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        },address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
+        if (SUSPEND_LANGUAGE_SERVER_STARTUP) {
+          throw new Error(
+            'Cannot suspend language server startup with profiler agent enabled.'
+          );
+        }
         args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
       }
     }
@@ -156,9 +164,7 @@ export function buildClientOptions(): LanguageClientOptions {
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
-        vscode.workspace.createFileSystemWatcher('**/*.cls'), // Apex classes
-        vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
-        vscode.workspace.createFileSystemWatcher('**/*.apex'), // Apex anonymous scripts
+        vscode.workspace.createFileSystemWatcher('**/*.{cls,trigger,apex}'), // Apex classes
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
     },
