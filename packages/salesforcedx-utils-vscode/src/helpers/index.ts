@@ -29,4 +29,4 @@ export {
   isIntegerInRange,
   isRecordIdFormat
 } from './validations';
-export { isSFDXContainerMode } from './env';
+export { isSFContainerMode } from './env';
