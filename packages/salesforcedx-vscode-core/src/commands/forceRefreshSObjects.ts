@@ -20,6 +20,7 @@ import {
   ParametersGatherer,
   ProgressNotification,
   projectPaths,
+  isSFContainerMode,
   SfdxCommandBuilder,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -108,7 +109,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
     channelService.streamCommandOutput(execution);
 
-    if (this.showChannelOutput) {
+    if (this.showChannelOutput && !isSFContainerMode()) {
       channelService.showChannelOutput();
     }
 
