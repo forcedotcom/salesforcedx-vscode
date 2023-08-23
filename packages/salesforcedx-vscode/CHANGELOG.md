@@ -1,3 +1,19 @@
+# 58.13.1 - August 25, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We added a brand spanking new icon to the status bar that displays the status of the Apex Language Server. Now you always know where you stand with the Apex LSP. :star2: :white_check_mark: 🎉. ([PR #4991](https://github.com/forcedotcom/salesforcedx-vscode/pull/4991))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+#### salesforcedx-vscode-apex
+
+- We made performance improvements to the Apex Language Server, so you should see faster startup times after the initial activation. The Language Server now only indexes changed files in your workspace. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956))
+- We fixed an issue where `Go To Definition` was throwing an error for built-in Apex classes. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956), [ISSUE #4762](https://github.com/forcedotcom/salesforcedx-vscode/issues/4762)) 
+
 # 58.11.0 - August 17, 2023
 
 ## Added
