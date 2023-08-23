@@ -1,3 +1,25 @@
+# 58.13.1 - August 25, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add apex LSP to status bar in extension @W-13718459 ([PR #4991](https://github.com/forcedotcom/salesforcedx-vscode/pull/4991))
+
+## Fixed
+
+#### docs
+
+- Typo in 'retrieve' ([PR #4924](https://github.com/forcedotcom/salesforcedx-vscode/pull/4924))
+
+#### salesforcedx-utils-vscode
+
+- Remove copying of apex.db to workspace on LS startup ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956))
+
+#### salesforcedx-vscode-apex
+
+- Remove copying of apex.db to workspace on LS startup ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956))
+
 # 58.11.0 - August 17, 2023
 
 ## Added
