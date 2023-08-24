@@ -231,6 +231,10 @@ export class TelemetryService {
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 
+  public hrTimeToMilliseconds(hrtime: [number, number]): number {
+    return hrtime[0] * 1000 + hrtime[1] / 1000000;
+  }
+
   /**
    * Helper to run a callback if telemetry has been initialized and is
    * enabled.

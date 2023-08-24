@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "type": "node",
       "request": "attach",
@@ -29,6 +30,11 @@
       "sourceMaps": true,
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "env": {
+        "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
+        "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
+      },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
@@ -48,6 +54,11 @@
       "sourceMaps": true,
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "env": {
+        "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
+        "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
+      },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
@@ -161,7 +172,7 @@
         "setup-and-run",
         "-s",
         "~/.vscode-test-resources",
-        "-o",
+        "-o", 
         "${workspaceFolder}/packages/salesforcedx-vscode-soql/test/ui-test/resources/settings.json",
         "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/ui-test/*.js"
       ],
@@ -438,7 +449,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Tests - SObjects Faux Generator - Unit Tests",
+      "name": "Launch Tests - SObject Faux Generator - Unit Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator",
@@ -464,7 +475,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Tests - SObjects Faux Generator - Integration Tests",
+      "name": "Launch Tests - SObject Faux Generator - Integration Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator",
@@ -490,7 +501,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Tests - Apex Replay Debugger - Unit Tests",
+      "name": "Launch Tests - Replay Debugger - Unit Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger",
@@ -520,7 +531,7 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Tests - Apex Replay Debugger - Integration Tests",
+      "name": "Launch Tests - Replay Debugger - Integration Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger",
@@ -550,7 +561,7 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Tests - Apex Replay Debugger - VSCode Integration Tests",
+      "name": "Launch Tests - Replay Debugger - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -573,86 +584,20 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Tests - Utils VSCode - Unit Tests",
-      "program": "${workspaceFolder}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "--recursive",
-        "${workspaceFolder}/packages/salesforcedx-utils-vscode/out/test/unit"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
-      "sourceMapPathOverrides": {
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
-    },
+        "name": "Debug Faux Jest Unit Tests",
+        "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
+        "type": "node",
+        "request": "launch",
+        "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+    }, 
     {
-      "name": "Launch Tests - VSCode Core - VSCode Integration Tests",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages",
-        "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration"
-      ],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
-      "sourceMapPathOverrides": {
-        "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration/*",
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": "Debug Tests - Apex Debugger - Unit Tests",
+      "name": "Debug Apex Debug Jest Unit Tests",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Debug Tests - SObjects Faux Generator - Unit Tests",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-      "type": "node",
-      "request": "launch",
-      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Debug Tests - Utils VSCode - Unit Tests",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-utils-vscode",
-      "type": "node",
-      "request": "launch",
-      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Debug Tests - VSCode Core - Unit Tests",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-core",
-      "type": "node",
-      "request": "launch",
-      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-vscode-core/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }
