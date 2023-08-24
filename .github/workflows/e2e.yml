@@ -7,15 +7,75 @@ on:
         required: false
         default: 'develop'
         type: string
-      anInitialSuite:
+      All Tests:
         required: false
         default: false
         type: boolean
-      apexLsp:
+      All Working Tests:
         required: false
         default: false
         type: boolean
-      apexReplayDebugger:
+      anInitialSuite.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      apexLsp.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      apexReplayDebugger.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      auraLsp.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      authentication.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      debugApexTests.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      deployAndRetrieve.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      lwcLsp.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      manifestBuilder.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      orgBrowser.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      pushAndPull.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      runApexTests.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      sObjectsDefinitions.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      templates.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      trailApexReplayDebugger.e2e.ts:
+        required: false
+        default: false
+        type: boolean
+      visualforceLsp.e2e.ts:
         required: false
         default: false
         type: boolean
