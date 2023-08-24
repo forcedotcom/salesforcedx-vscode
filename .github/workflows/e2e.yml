@@ -8,6 +8,7 @@ on:
         default: 'develop'
         type: string
       All Tests:
+        description: 'Perform All Tests'
         required: false
         default: false
         type: boolean
