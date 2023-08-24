@@ -7,6 +7,19 @@ on:
         required: false
         default: 'develop'
         type: string
+      anInitialSuite:
+        required: false
+        default: false
+        type: boolean
+      apexLsp:
+        required: false
+        default: false
+        type: boolean
+      apexReplayDebugger:
+        required: false
+        default: false
+        type: boolean
+        
       specFiles:
         description: 'Run a specific spec file. Runs all by default.'
         required: false
