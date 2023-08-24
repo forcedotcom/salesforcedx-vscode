@@ -159,6 +159,10 @@
         en: Example Apex Tasks
         ja: Example Apex Tasks
       url: /apex/apex-tasks
+    - title:
+        en: Apex Language Server
+        ja: Apex Language Server
+      url: /apex/language-server
 - title:
     en: Aura
     ja: Aura
