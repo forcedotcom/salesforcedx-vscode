@@ -19,7 +19,7 @@ See the [languageServer.ts](https://github.com/forcedotcom/salesforcedx-vscode/b
 
 ## Apex Language Server Status
 
-Hover over `{}` in the status bar to view the current status of the Apex Language Server. To always have visibility into the status, pin the status message, and restart VS Code. The Apex Language Server status is now persistantly visible in the status bar until it is unpinned.
+Hover over `{}` in the status bar to view the current status of the Apex Language Server. To always have visibility into the status, pin the status message. The Apex Language Server status is now persistantly visible in the status bar until it is unpinned.
 
 ![Apex Language Server Status](../../../images/apexlspstatus.png)
 
