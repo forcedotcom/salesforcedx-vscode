@@ -7,86 +7,22 @@ on:
         required: false
         default: 'develop'
         type: string
-      All Tests:
+      allTests:
         description: 'Perform All Tests'
         required: false
         default: false
         type: boolean
-      All Working Tests:
+      designatedWorkingTests:
+        description: 'Perform Designated Working Tests'
         required: false
         default: false
         type: boolean
-      anInitialSuite.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      apexLsp.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      apexReplayDebugger.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      auraLsp.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      authentication.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      debugApexTests.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      deployAndRetrieve.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      lwcLsp.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      manifestBuilder.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      orgBrowser.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      pushAndPull.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      runApexTests.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      sObjectsDefinitions.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      templates.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      trailApexReplayDebugger.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-      visualforceLsp.e2e.ts:
-        required: false
-        default: false
-        type: boolean
-        
       specFiles:
-        description: 'Run a specific spec file. Runs all by default.'
+        description: 'Run a specific spec file.'
         required: false
         type: choice
         options:
-          - '*.e2e.ts'
+          - ' '
           - 'anInitialSuite.e2e.ts'
           - 'apexLsp.e2e.ts'
           - 'apexReplayDebugger.e2e.ts'
