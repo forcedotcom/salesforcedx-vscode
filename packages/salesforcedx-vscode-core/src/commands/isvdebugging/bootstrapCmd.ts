@@ -185,7 +185,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
       )
       .withArg('project:retrieve:start')
-      .withFlag('--target-metadata-dir', this.relativeMetdataTempPath)
       .withFlag('--package-name', packageNames.join(','))
       .withFlag('--target-org', data.sessionId)
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
@@ -375,7 +374,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
     // 6a: create directory where packages are to be retrieved
-    // shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
+    shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
 
     // 6: fetch packages
     await this.executeCommand(
@@ -389,36 +388,38 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     // 7a: unzip downloaded packages into temp location
-    try {
-      const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
-      shell.mkdir('-p', packagesTempPath); // .sfdx/tools/isvdebuggermdapitmp/packages
-      shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
-      const zip = new AdmZip(
-        path.join(projectMetadataTempPath, 'unpackaged.zip')
-      );
-      zip.extractAllTo(packagesTempPath, true);
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(
-        nls.localize('error_extracting_packages', error.toString())
-      );
-      notificationService.showErrorMessage(
-        nls.localize('error_extracting_packages', error.toString())
-      );
-      return;
-    }
+    // try {
+    //   const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
+    //   shell.mkdir('-p', packagesTempPath); // .sfdx/tools/isvdebuggermdapitmp/packages
+    //   shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
+    //   const zip = new AdmZip(
+    //     path.join(projectMetadataTempPath, 'unpackaged.zip')
+    //   );
+    //   zip.extractAllTo(packagesTempPath, true);
+    // } catch (error) {
+    //   console.error(error);
+    //   channelService.appendLine(
+    //     nls.localize('error_extracting_packages', error.toString())
+    //   );
+    //   notificationService.showErrorMessage(
+    //     nls.localize('error_extracting_packages', error.toString())
+    //   );
+    //   return;
+    // }
 
     // 7b: convert packages into final location
+    const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
+    shell.cp('-r', packagesTempPath, projectInstalledPackagesPath);
     for (const packageInfo of packageInfos) {
       channelService.appendLine(
         nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name)
       );
-      await this.executeCommand(
-        this.buildMetadataApiConvertPackageSourceCommand(packageInfo.name),
-        { cwd: projectPath },
-        cancellationTokenSource,
-        cancellationToken
-      );
+      // await this.executeCommand(
+      //   this.buildMetadataApiConvertPackageSourceCommand(packageInfo.name),
+      //   { cwd: projectPath },
+      //   cancellationTokenSource,
+      //   cancellationToken
+      // );
 
       // generate installed-package.json file
       try {
@@ -446,6 +447,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 7c: cleanup temp files
     try {
+      console.log(`within 7c cleaning up - ${projectMetadataTempPath}`);
       shell.rm('-rf', projectMetadataTempPath);
     } catch (error) {
       console.error(error);
