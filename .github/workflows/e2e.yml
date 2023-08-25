@@ -56,7 +56,6 @@ jobs:
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
       - name: Setup java
-        uses: actions/checkout@v3
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
