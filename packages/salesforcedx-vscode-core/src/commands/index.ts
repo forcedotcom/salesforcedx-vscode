@@ -171,6 +171,7 @@ export {
 export {
   checkSObjectsAndRefresh,
   forceRefreshSObjects,
-  initSObjectDefinitions
+  initSObjectDefinitions,
+  ForceRefreshSObjectsExecutor
 } from './forceRefreshSObjects';
 export { forceRenameLightningComponent } from './forceRenameLightningComponent';
