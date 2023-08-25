@@ -19,7 +19,7 @@ See the [languageServer.ts](https://github.com/forcedotcom/salesforcedx-vscode/b
 
 ## Apex Language Server Status
 
-You can check the status of the Apex language server from the status bar. Click `{}` in the status bar and pin `Indexing complete ✓` and restart VS Code. Next time you open an Apex file, the status of the Apex Language Server is visible in the status bar.
+You can check the status of the Apex Language Server from the status bar. Click `{}` in the status bar and pin `Indexing complete ✓` and restart VS Code. Next time you open an Apex file, the status of the Apex Language Server is visible in the status bar.
 
 ![Apex Language Server Status](../../../images/apexlspstatus.png)
 
