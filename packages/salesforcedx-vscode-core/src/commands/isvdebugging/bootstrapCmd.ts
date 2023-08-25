@@ -391,8 +391,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 7a: unzip downloaded packages into temp location
     try {
       const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
-      shell.mkdir('-p', packagesTempPath); //.sfdx/tools/isvdebuggermdapitmp/packages
-      shell.mkdir('-p', projectInstalledPackagesPath); //.sfdx/tools/installed-packages
+      shell.mkdir('-p', packagesTempPath); // .sfdx/tools/isvdebuggermdapitmp/packages
+      shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
       const zip = new AdmZip(
         path.join(projectMetadataTempPath, 'unpackaged.zip')
       );
