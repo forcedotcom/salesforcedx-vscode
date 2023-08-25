@@ -19,13 +19,13 @@ See the [languageServer.ts](https://github.com/forcedotcom/salesforcedx-vscode/b
 
 ## Apex Language Server Status
 
-You can check the status of the Apex Language Server from the status bar. Click `{}` in the status bar and pin `Indexing complete ✓` and restart VS Code. Next time you open an Apex file, the status of the Apex Language Server is visible in the status bar.
+Hover over `{}` in the status bar to view the current status of the Apex Language Server. To always have visibility into the status, pin the status message, and restart VS Code. The Apex Language Server status is now persistantly visible in the status bar until it is unpinned.
 
 ![Apex Language Server Status](../../../images/apexlspstatus.png)
 
-## Clear the Cache
+## Reset Apex Indexing
 
-To clear the Apex Language Server's cache, delete the `PROJECT_DIR/.sfdx/tools/apex.db` file and restart VS Code.
+To clear the Apex Language Server's indexing, delete the `PROJECT_DIR/.sfdx/tools/<Salesforce Release>` directory and restart VS Code.
 ## See Also
 
 - [Language Server Protocol Specification](https://github.com/Microsoft/language-server-protocol)
