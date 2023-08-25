@@ -408,8 +408,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // }
 
     // 7b: convert packages into final location
-    const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
-    shell.cp('-r', packagesTempPath, projectInstalledPackagesPath);
+    // const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
+    // shell.cp('-r', packagesTempPath, projectInstalledPackagesPath);
     for (const packageInfo of packageInfos) {
       channelService.appendLine(
         nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name)
@@ -423,6 +423,11 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
       // generate installed-package.json file
       try {
+        shell.cp('-r', path.join(
+          projectPath,
+          packageInfo.name
+        ), projectInstalledPackagesPath); // fn to copy directory as it is within destination folder
+
         console.log('......generating installed-package.json file......');
         fs.writeFileSync(
           path.join(
