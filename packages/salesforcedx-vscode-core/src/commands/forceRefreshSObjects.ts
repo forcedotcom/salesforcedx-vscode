@@ -15,6 +15,7 @@ import {
   CancelResponse,
   Command,
   ContinueResponse,
+  isSFContainerMode,
   LocalCommandExecution,
   notificationService,
   ParametersGatherer,
@@ -108,7 +109,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
     channelService.streamCommandOutput(execution);
 
-    if (this.showChannelOutput) {
+    if (this.showChannelOutput && !isSFContainerMode()) {
       channelService.showChannelOutput();
     }
 
