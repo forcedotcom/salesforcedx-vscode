@@ -75,7 +75,7 @@ async function createServer(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
-        },address=*:${JDWP_DEBUG_PORT},quiet=y`
+        },address=${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
         if (SUSPEND_LANGUAGE_SERVER_STARTUP) {
