@@ -7,22 +7,13 @@ on:
         required: false
         default: 'develop'
         type: string
-      allTests:
-        description: 'Perform All Tests'
-        required: false
-        default: false
-        type: boolean
-      designatedWorkingTests:
-        description: 'Perform Designated Working Tests'
-        required: false
-        default: false
-        type: boolean
       specFiles:
-        description: 'Run a specific spec file.'
+        description: 'Run a specific spec file. Defaults to running all tests.'
         required: false
         type: choice
         options:
-          - ' '
+          - 'Perform All Tests'
+          - 'Perform Designated Working Tests'
           - 'anInitialSuite.e2e.ts'
           - 'apexLsp.e2e.ts'
           - 'apexReplayDebugger.e2e.ts'
