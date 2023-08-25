@@ -454,6 +454,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     try {
       console.log(`within 7c cleaning up - ${projectMetadataTempPath}`);
       shell.rm('-rf', projectMetadataTempPath);
+      for (const packageInfo of packageInfos) {
+        shell.rm('-rf', path.join(projectPath, packageInfo.name));
+      }
+
     } catch (error) {
       console.error(error);
       channelService.appendLine(
