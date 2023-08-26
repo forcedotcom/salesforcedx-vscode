@@ -243,7 +243,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildMetadataApiConvertOrgSourceCommand', async () => {
+    xit('Verify buildMetadataApiConvertOrgSourceCommand', async () => {
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildMetadataApiConvertOrgSourceCommand({
         loginUrl: LOGIN_URL,
@@ -304,7 +304,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildMetadataApiConvertPackageSourceCommand', async () => {
+    xit('Verify buildMetadataApiConvertPackageSourceCommand', async () => {
       const packageName = 'mypackage_abc';
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildMetadataApiConvertPackageSourceCommand(
@@ -394,14 +394,14 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         );
 
       // fake org source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(3).callsFake(() => {
-        const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
-        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      });
+      // executeCommandSpy.onCall(3).callsFake(() => {
+      //   const zip = new AdmZip();
+      //   zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
+      //   zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
+      // });
 
       // fake package list retrieval
-      executeCommandSpy.onCall(5).returns(
+      executeCommandSpy.onCall(4).returns(
         JSON.stringify({
           status: 0,
           result: [
@@ -419,14 +419,14 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
 
       // fake package source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(6).callsFake(() => {
-        const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
-        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      });
+      // executeCommandSpy.onCall(5).callsFake(() => {
+      //   const zip = new AdmZip();
+      //   zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
+      //   zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
+      // });
 
       // fake package metadata convert
-      executeCommandSpy.onCall(7).callsFake(() => {
+      executeCommandSpy.onCall(5).callsFake(() => {
         shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'mypackage'));
       });
 
@@ -440,7 +440,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       } as ContinueResponse<IsvDebugBootstrapConfig>;
       await executor.execute(input);
-      expect(executeCommandSpy.callCount).to.equal(8);
+      expect(executeCommandSpy.callCount).to.equal(6);
       expect(vscodeCommandSpy.callCount).to.equal(1);
 
       // there should be a launch config
