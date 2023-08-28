@@ -1,4 +1,4 @@
-name: End to End Tests
+name: Miscellaneous End to End Tests
 on:
   workflow_dispatch:
     inputs:
@@ -7,18 +7,43 @@ on:
         required: false
         default: 'develop'
         type: string
-      lspE2ETests:
-        description: 'LSP e2e Tests'
+      anInitialSuite:
+        description: 'anInitialSuite.e2e.ts'
         required: false
         default: false
         type: boolean
-      apexDebuggerE2ETests:
-        description: 'Apex Debugger e2e Tests'
+      authentication:
+        description: 'authentication.e2e.ts'
         required: false
         default: false
         type: boolean
-      miscellaneousE2ETests:
-        description: 'Miscellaneous e2e Tests'
+      deployAndRetrieve:
+        description: 'deployAndRetrieve.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      manifestBuilder:
+        description: 'manifestBuilder.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      orgBrowser:
+        description: 'orgBrowser.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      pushAndPull:
+        description: 'pushAndPull.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      sObjectsDefinitions:
+        description: 'sObjectsDefinitions.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      templates:
+        description: 'templates.e2e.ts'
         required: false
         default: false
         type: boolean

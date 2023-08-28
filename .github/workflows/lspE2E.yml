@@ -1,4 +1,4 @@
-name: End to End Tests
+name: LSP End to End Tests
 on:
   workflow_dispatch:
     inputs:
@@ -7,18 +7,23 @@ on:
         required: false
         default: 'develop'
         type: string
-      lspE2ETests:
-        description: 'LSP e2e Tests'
+      apexLsp:
+        description: 'apexLsp.e2e.ts'
         required: false
         default: false
         type: boolean
-      apexDebuggerE2ETests:
-        description: 'Apex Debugger e2e Tests'
+      auraLsp:
+        description: 'auraLsp.e2e.ts'
         required: false
         default: false
         type: boolean
-      miscellaneousE2ETests:
-        description: 'Miscellaneous e2e Tests'
+      lwcLsp:
+        description: 'lwcLsp.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      visualforceLsp:
+        description: 'visualforce.e2e.ts'
         required: false
         default: false
         type: boolean
