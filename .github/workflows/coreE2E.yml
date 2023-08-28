@@ -1,4 +1,4 @@
-name: Miscellaneous End to End Tests
+name: Core End to End Tests
 on:
   workflow_dispatch:
     inputs:
