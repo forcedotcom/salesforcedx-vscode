@@ -8,7 +8,7 @@ on:
         default: 'develop'
         type: string
       apexLsp:
-        description: 'apexLsp.e2e.ts'
+        description: 'apexLsp.e2e.ts ** keep here or move to Apex section?'
         required: false
         default: false
         type: boolean
