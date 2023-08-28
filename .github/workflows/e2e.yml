@@ -22,6 +22,28 @@ on:
         required: false
         default: false
         type: boolean
+      specFiles:
+        description: 'Run a specific spec file. Runs all by default.'
+        required: false
+        type: choice
+        options:
+          - '*.e2e.ts'
+          - 'anInitialSuite.e2e.ts'
+          - 'apexLsp.e2e.ts'
+          - 'apexReplayDebugger.e2e.ts'
+          - 'auraLsp.e2e.ts'
+          - 'authentication.e2e.ts'
+          - 'debugApexTests.e2e.ts'
+          - 'deployAndRetrieve.e2e.ts'
+          - 'lwcLsp.e2e.ts'
+          - 'manifestBuilder.e2e.ts'
+          - 'orgBrowser.e2e.ts'
+          - 'pushAndPull.e2e.ts'
+          - 'runApexTests.e2e.ts'
+          - 'sObjectsDefinitions.e2e.ts'
+          - 'templates.e2e.ts'
+          - 'trailApexReplayDebugger.e2e.ts'
+          - 'visualforceLsp.e2e.ts'
 
 jobs:
   build:
