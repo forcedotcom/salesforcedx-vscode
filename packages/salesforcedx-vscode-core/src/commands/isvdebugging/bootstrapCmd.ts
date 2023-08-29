@@ -192,7 +192,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--target-org', data.sessionId)
       .withFlag('--target-metadata-dir', this.relativeInstalledPackagesPath)
       .withArg('--unzip')
-      .withFlag('--zip-file-name', packageName)
+      .withFlag('--zip-file-name', packageName.replace('.', '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
       .build();
   }
@@ -382,7 +382,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         fs.writeFileSync(
           path.join(
             projectInstalledPackagesPath,
-            packageInfo.name,
+            packageInfo.name.replace('.', '-'),
             'installed-package.json'
           ),
           JSON.stringify(packageInfo, null, 2),
