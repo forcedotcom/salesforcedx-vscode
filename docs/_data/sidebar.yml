@@ -47,27 +47,27 @@
     - title:
         en: Troubleshooting
         ja: Troubleshooting
-      url: /einstein/troubleshooting
+      url: /einstein/einstein-troubleshooting
     - title:
         en: Feedback and Support
         ja: Feedback and Support
-      url: /einstein/feedback
+      url: /einstein/einstein-feedback
     - title:
         en: FAQ
         ja: FAQ
-      url: /einstein/faq
+      url: /einstein/einstein-faq
     - title:
         en: Glossary
         ja: Glossary
-      url: /einstein/glossary
+      url: /einstein/einstein-glossary
     - title:
         en: Telemetry and Data Collection
         ja: Telemetry and Data Collection
-      url: /einstein/telemetry
+      url: /einstein/einstein-telemetry
     - title:
         en: Terms of Use
         ja: Terms of Use
-      url: /einstein/termsofuse
+      url: /einstein/einstein-termsofuse
 - title:
     en: Code Builder (Beta)
     ja: コードビルダー（ベータ版）
