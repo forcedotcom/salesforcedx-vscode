@@ -396,7 +396,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         notificationService.showErrorMessage(
           nls.localize('error_writing_installed_package_info', error.toString())
         );
-        continue;
+        return;
       }
     }
 
