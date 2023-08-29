@@ -243,27 +243,6 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    xit('Verify buildMetadataApiConvertOrgSourceCommand', async () => {
-      const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildMetadataApiConvertOrgSourceCommand({
-        loginUrl: LOGIN_URL,
-        sessionId: SESSION_ID,
-        orgName: PROJECT_NAME,
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.standard
-      });
-      expect(command.toCommand()).to.equal(
-        `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetadataTempPath,
-          'unpackaged'
-        )} --output-dir force-app`
-      );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step4_convert_org_source')
-      );
-    });
-
     it('Verify buildPackageInstalledListAsJsonCommand', async () => {
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildPackageInstalledListAsJsonCommand({
@@ -301,30 +280,6 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
-      );
-    });
-
-    xit('Verify buildMetadataApiConvertPackageSourceCommand', async () => {
-      const packageName = 'mypackage_abc';
-      const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildMetadataApiConvertPackageSourceCommand(
-        packageName
-      );
-      expect(command.toCommand()).to.equal(
-        `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetadataTempPath,
-          'packages',
-          packageName
-        )} --output-dir ${path.join(
-          builder.relativeInstalledPackagesPath,
-          packageName
-        )}`
-      );
-      expect(command.description).to.equal(
-        nls.localize(
-          'isv_debug_bootstrap_step7_convert_package_source',
-          packageName
-        )
       );
     });
 
@@ -393,13 +348,6 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           '{"status":0,"result":{"totalSize":1,"done":true,"records":[{"attributes":{"type":"Organization","url":"/services/data/v42.0/sobjects/Organization/00D1F0000008gTUUAY"},"NamespacePrefix":null}]}}'
         );
 
-      // fake org source retrieval into unpackaged.zip
-      // executeCommandSpy.onCall(3).callsFake(() => {
-      //   const zip = new AdmZip();
-      //   zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
-      //   zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      // });
-
       // fake package list retrieval
       executeCommandSpy.onCall(4).returns(
         JSON.stringify({
@@ -417,13 +365,6 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           ]
         })
       );
-
-      // fake package source retrieval into unpackaged.zip
-      // executeCommandSpy.onCall(5).callsFake(() => {
-      //   const zip = new AdmZip();
-      //   zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
-      //   zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      // });
 
       // fake package metadata convert
       executeCommandSpy.onCall(5).callsFake(() => {
@@ -455,7 +396,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         'installed packages folder should be present'
       ).to.equal(true);
 
-      // there should be only one package in the installed-packages folder but what if more than 1 package is there?
+      // there should be only one package in the installed-packages folder
       const dirInfo = fs.readdirSync(projectInstalledPackagesPath);
       expect(
         dirInfo.length,

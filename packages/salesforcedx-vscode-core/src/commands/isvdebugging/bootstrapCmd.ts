@@ -145,23 +145,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public buildMetadataApiConvertOrgSourceCommand(
-    data: IsvDebugBootstrapConfig
-  ): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_convert_org_source')
-      )
-      .withArg('project:convert:mdapi')
-      .withFlag(
-        '--root-dir',
-        path.join(this.relativeMetadataTempPath, 'unpackaged')
-      )
-      .withFlag('--output-dir', 'force-app')
-      .withLogName('isv_debug_bootstrap_convert_org_source')
-      .build();
-  }
-
   public buildPackageInstalledListAsJsonCommand(
     data: IsvDebugBootstrapConfig
   ): Command {
@@ -194,30 +177,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('--unzip')
       .withFlag('--zip-file-name', packageName.replace('.', '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
-      .build();
-  }
-
-  public buildMetadataApiConvertPackageSourceCommand(
-    packageName: string
-  ): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_step7_convert_package_source',
-          packageName
-        )
-      )
-      .withArg('project:convert:mdapi')
-      .withFlag(
-        '--root-dir',
-        path.join(this.relativeMetadataTempPath, 'packages', packageName)
-      )
-      .withFlag(
-        '--output-dir',
-        path.join(this.relativeInstalledPackagesPath, packageName)
-      )
-      .withArg('--dev-debug')
-      .withLogName('isv_debug_bootstrap_convert_package_source')
       .build();
   }
 

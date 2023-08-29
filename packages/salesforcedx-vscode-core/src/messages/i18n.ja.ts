@@ -185,14 +185,10 @@ export const messages = {
     'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています: 名前空間を取得しています',
   isv_debug_bootstrap_retrieve_org_source:
     'SFDX: ISV デバッガ 設定 ステップ 3/7: パッケージ化されていない Apex コードを取得しています',
-  isv_debug_bootstrap_step4_convert_org_source:
-    'SFDX: ISV デバッガ 設定 ステップ 4/7: パッケージ化されていない Apex コードを変換しています',
   isv_debug_bootstrap_list_installed_packages:
     'SFDX: ISV デバッガ 設定 ステップ 5/7: インストール済みパッケージをクエリしています',
   isv_debug_bootstrap_retrieve_package_source:
     'SFDX: ISV デバッガ 設定 ステップ 6/7: パッケージを取得しています',
-  isv_debug_bootstrap_step7_convert_package_source:
-    'SFDX: ISV デバッガ 設定 ステップ 7/7: パッケージを変換しています: %s',
   isv_debug_bootstrap_processing_package: 'パッケージを処理しています: %s',
   isv_debug_bootstrap_generate_launchjson: '起動構成ファイルを作成しています',
   isv_debug_bootstrap_open_project:

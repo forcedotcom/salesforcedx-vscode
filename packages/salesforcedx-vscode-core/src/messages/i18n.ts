@@ -221,14 +221,10 @@ export const messages = {
     'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project: Retrieving namespace',
   isv_debug_bootstrap_retrieve_org_source:
     'SFDX: ISV Debugger Setup, Step 3 of 5: Retrieving unpackaged Apex code',
-  isv_debug_bootstrap_step4_convert_org_source:
-    'SFDX: ISV Debugger Setup, Step 4 of 7: Converting unpackaged Apex code',
   isv_debug_bootstrap_list_installed_packages:
     'SFDX: ISV Debugger Setup, Step 4 of 5: Querying for installed packages',
   isv_debug_bootstrap_retrieve_package_source:
     'SFDX: ISV Debugger Setup, Step 5 of 5: Retrieving package: %s',
-  isv_debug_bootstrap_step7_convert_package_source:
-    'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project: 'Opening project in Visual Studio Code',
