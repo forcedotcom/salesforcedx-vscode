@@ -151,6 +151,10 @@
         ja: 始めましょう
       url: /apex/apex-get-started
     - title:
+        en: Apex Language Server
+        ja: Apex Language Server
+      url: /apex/language-server
+    - title:
         en: Tools for Writing Apex Code
         ja: 作成
       url: /apex/writing
