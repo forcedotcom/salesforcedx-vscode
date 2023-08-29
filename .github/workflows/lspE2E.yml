@@ -8,7 +8,7 @@ on:
         default: 'develop'
         type: string
       apexLsp:
-        description: 'apexLsp.e2e.ts ** keep here or move to Apex section?'
+        description: 'apexLsp.e2e.ts'
         required: false
         default: false
         type: boolean
@@ -23,13 +23,16 @@ on:
         default: false
         type: boolean
       visualforceLsp:
-        description: 'visualforce.e2e.ts'
+        description: 'visualforceLsp.e2e.ts'
         required: false
         default: false
         type: boolean
 
 jobs:
   build:
+    variables:
+    - name: testsToRun
+      value: ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -82,6 +85,16 @@ jobs:
             echo "The sfdx-cli installation could not be verified"
             exit 1
           fi
+      - name: Figure out which tests to run
+        script: |
+          if ${{ inputs.apexLsp }}
+            - $testsToRun = $testsToRun + 'apexLsp.e2e.ts, '
+          if ${{ inputs.auraLsp }}
+            - $testsToRun = $testsToRun + 'auraLsp.e2e.ts, '
+          if ${{ inputs.lwcLsp }}
+            - $testsToRun = $testsToRun + 'lwcLsp.e2e.ts, '
+          if ${{ inputs.visualforceLsp }}
+            - $testsToRun = $testsToRun + 'visualforceLsp.e2e.ts, '
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
@@ -91,7 +104,7 @@ jobs:
           working-directory: salesforcedx-vscode-automation-tests
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: ${{ inputs.specFiles || '*.e2e.ts' }}
+          SPEC_FILES: $testsToRun
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
       - uses: actions/upload-artifact@v3
