@@ -30,9 +30,8 @@ on:
 
 jobs:
   build:
-    variables:
-    - name: testsToRun
-      value: ''
+    env:
+      testsToRun: ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -86,7 +85,7 @@ jobs:
             exit 1
           fi
       - name: Figure out which tests to run
-        script: |
+        run: |
           if ${{ inputs.apexLsp }}
             - $testsToRun = $testsToRun + 'apexLsp.e2e.ts, '
           if ${{ inputs.auraLsp }}
