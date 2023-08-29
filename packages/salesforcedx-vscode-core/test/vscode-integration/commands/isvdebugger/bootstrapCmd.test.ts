@@ -282,10 +282,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildRetrievePackagesSourceCommand', async () => {
+    it('Verify buildRetrievePackageSourceCommand', async () => {
       const packageName = 'mypackage_abc_mpackage_def';
       const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildRetrievePackagesSourceCommand(
+      const command = builder.buildRetrievePackageSourceCommand(
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,

@@ -176,7 +176,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public buildRetrievePackagesSourceCommand(
+  public buildRetrievePackageSourceCommand(
     data: IsvDebugBootstrapConfig,
     packageName: string
   ): Command {
@@ -362,7 +362,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // TODO: what if packageNames.length is 0?
     for (let i = 0; i < (packageNames.length); i++) {
       await this.executeCommand(
-        this.buildRetrievePackagesSourceCommand(
+        this.buildRetrievePackageSourceCommand(
           response.data,
           packageNames[i]
         ),
