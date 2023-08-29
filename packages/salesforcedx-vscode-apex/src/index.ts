@@ -8,7 +8,7 @@
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { State } from 'vscode-languageclient';
+import { LanguageClient, State } from 'vscode-languageclient';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
@@ -298,6 +298,11 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     );
 
     if (languageClient) {
+      languageClient.outputChannel.show(true);
+      languageClient.outputChannel.appendLine(`JAVA_HOME: ${process.env.JAVA_HOME ?? 'unset'} JDK_HOME: ${process.env.JDK_HOME ?? 'unset'}`);
+      const serverOptions = languageClient.serverOptions as { options: { env: any, stdio: string }, command: string, args: string[] };
+      languageClient.outputChannel.appendLine(`Server executable: ${serverOptions.command}`);
+      languageClient.outputChannel.appendLine(`Server arguments: ${serverOptions.args.join(' ')}`);
       languageClient.errorHandler?.addListener('error', message => {
         languageServerStatusBarItem.error(message);
       });
@@ -361,8 +366,7 @@ function addOnReadyHandlerToLanguageClient(
           nls.localize('apex_language_server_failed_activate')
         );
         languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${
-            err.message
+          `${nls.localize('apex_language_server_failed_activate')} - ${err.message
           }`
         );
       });
