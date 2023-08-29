@@ -7,11 +7,6 @@ on:
         required: false
         default: 'develop'
         type: string
-      apexLsp:
-        description: 'apexLsp.e2e.ts'
-        required: false
-        default: false
-        type: boolean
       auraLsp:
         description: 'auraLsp.e2e.ts'
         required: false
@@ -86,9 +81,6 @@ jobs:
           fi
       - name: Figure out which tests to run
         run: |
-          if (${{ inputs.apexLsp }})
-            $testsToRun = $testsToRun + 'apexLsp.e2e.ts, '
-            echo 'apexLsp is selected'
           if (${{ inputs.auraLsp }})
             $testsToRun = $testsToRun + 'auraLsp.e2e.ts, '
             echo 'auraLsp is selected'

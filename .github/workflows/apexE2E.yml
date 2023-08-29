@@ -1,4 +1,4 @@
-name: Apex Debugger End to End Tests
+name: Apex End to End Tests
 on:
   workflow_dispatch:
     inputs:
@@ -7,6 +7,11 @@ on:
         required: false
         default: 'develop'
         type: string
+      apexLsp:
+        description: 'apexLsp.e2e.ts'
+        required: false
+        default: false
+        type: boolean
       apexReplayDebugger:
         description: 'apexReplayDebugger.e2e.ts'
         required: false
