@@ -60,16 +60,6 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-      - name: PNH testing 1
-        shell: bash
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          echo "PATH=$PATH"
-          WHICH_RESULT=`which java`
-          LS_RESULT=`ls -l ${WHICH_RESULT}`
-          echo "WHICH_RESULT=$WHICH_RESULT"
-          echo "LS_RESULT=$LS_RESULT"
-  
       - name: Clone automation tests
         uses: actions/checkout@v3
         with:
@@ -100,19 +90,6 @@ jobs:
             echo "The sfdx-cli installation could not be verified"
             exit 1
           fi
-      - name: Set JAVA_HOME in github env
-        shell: bash
-        run: |
-          echo "JAVA_HOME=/Users/runner/hostedtoolcache/Java_Zulu_jdk/11.0.20-8/x64" >> $GITHUB_ENV
-      - name: PNH testing 2
-        shell: bash
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          echo "PATH=$PATH"
-          WHICH_RESULT=`which java`
-          LS_RESULT=`ls -l ${WHICH_RESULT}`
-          echo "WHICH_RESULT=$WHICH_RESULT"
-          echo "LS_RESULT=$LS_RESULT"
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
@@ -125,10 +102,10 @@ jobs:
           SPEC_FILES: ${{ inputs.specFiles || '*.e2e.ts' }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: screenshots
           path: ./salesforcedx-vscode-automation-tests/screenshots
 
-          
