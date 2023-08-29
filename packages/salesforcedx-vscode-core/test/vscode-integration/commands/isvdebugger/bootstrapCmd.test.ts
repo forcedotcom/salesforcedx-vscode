@@ -278,7 +278,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         `sfdx package:installed:list --target-org ${SESSION_ID} --json --loglevel fatal`
       );
       expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
+        nls.localize('isv_debug_bootstrap_step4_list_installed_packages')
       );
     });
 
@@ -300,7 +300,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         `sfdx project:retrieve:start --package-name mypackage_abc_mpackage_def --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageNames}`
       );
       expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
+        nls.localize('isv_debug_bootstrap_step5_retrieve_packages_source')
       );
     });
 
@@ -455,7 +455,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         'installed packages folder should be present'
       ).to.equal(true);
 
-      // there should be only one package in the installed-packages folder
+      // there should be only one package in the installed-packages folder but what if more than 1 package is there?
       const dirInfo = fs.readdirSync(projectInstalledPackagesPath);
       expect(
         dirInfo.length,
