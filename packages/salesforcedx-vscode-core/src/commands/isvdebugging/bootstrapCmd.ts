@@ -59,12 +59,12 @@ export const INSTALLED_PACKAGES = 'installed-packages';
 export const PACKAGE_XML = 'package.xml';
 
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
-  public readonly relativeMetdataTempPath = path.join(
+  public readonly relativeMetadataTempPath = path.join(
     projectPaths.relativeToolsFolder(),
     ISVDEBUGGER
   );
   public readonly relativeApexPackageXmlPath = path.join(
-    this.relativeMetdataTempPath,
+    this.relativeMetadataTempPath,
     PACKAGE_XML
   );
   public readonly relativeInstalledPackagesPath = path.join(
@@ -155,7 +155,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('project:convert:mdapi')
       .withFlag(
         '--root-dir',
-        path.join(this.relativeMetdataTempPath, 'unpackaged')
+        path.join(this.relativeMetadataTempPath, 'unpackaged')
       )
       .withFlag('--output-dir', 'force-app')
       .withLogName('isv_debug_bootstrap_convert_org_source')
@@ -210,7 +210,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('project:convert:mdapi')
       .withFlag(
         '--root-dir',
-        path.join(this.relativeMetdataTempPath, 'packages', packageName)
+        path.join(this.relativeMetadataTempPath, 'packages', packageName)
       )
       .withFlag(
         '--output-dir',
@@ -247,7 +247,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const projectPath = path.join(projectParentPath, response.data.projectName);
     const projectMetadataTempPath = path.join(
       projectPath,
-      this.relativeMetdataTempPath
+      this.relativeMetadataTempPath
     );
     const apexRetrievePackageXmlPath = path.join(
       projectPath,

@@ -255,7 +255,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       });
       expect(command.toCommand()).to.equal(
         `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetdataTempPath,
+          builder.relativeMetadataTempPath,
           'unpackaged'
         )} --output-dir force-app`
       );
@@ -312,7 +312,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
       expect(command.toCommand()).to.equal(
         `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetdataTempPath,
+          builder.relativeMetadataTempPath,
           'packages',
           packageName
         )} --output-dir ${path.join(
@@ -367,7 +367,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const projectPath = path.join(PROJECT_DIR[0].fsPath, PROJECT_NAME);
       const projectMetadataTempPath = path.join(
         projectPath,
-        executor.relativeMetdataTempPath
+        executor.relativeMetadataTempPath
       );
       const projectInstalledPackagesPath = path.join(
         projectPath,
