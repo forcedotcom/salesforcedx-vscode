@@ -283,7 +283,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     });
 
     it('Verify buildRetrievePackagesSourceCommand', async () => {
-      const packageNames = ['mypackage_abc', 'mpackage_def'];
+      const packageNames = 'mypackage_abc_mpackage_def';
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildRetrievePackagesSourceCommand(
         {
@@ -297,7 +297,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageNames
       );
       expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --package-name mypackage_abc,mpackage_def --target-org ${SESSION_ID}`
+        `sfdx project:retrieve:start --package-name mypackage_abc_mpackage_def --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageNames}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')

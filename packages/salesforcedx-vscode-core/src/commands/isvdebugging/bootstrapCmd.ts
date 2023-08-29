@@ -178,15 +178,18 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildRetrievePackagesSourceCommand(
     data: IsvDebugBootstrapConfig,
-    packageNames: string[]
+    packageName: string
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
       )
       .withArg('project:retrieve:start')
-      .withFlag('--package-name', packageNames.join(','))
+      .withFlag('--package-name', packageName)
       .withFlag('--target-org', data.sessionId)
+      .withFlag('--target-metadata-dir', this.relativeInstalledPackagesPath)
+      .withArg('--unzip')
+      .withFlag('--zip-file-name', packageName)
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
       .build();
   }
@@ -375,17 +378,20 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 6a: create directory where packages are to be retrieved
     shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
+    const packageNames = packageInfos.map(entry => entry.name);
 
     // 6: fetch packages
-    await this.executeCommand(
-      this.buildRetrievePackagesSourceCommand(
-        response.data,
-        packageInfos.map(entry => entry.name)
-      ),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
+    for (let i = 0; i < (packageNames.length); i++) {
+      await this.executeCommand(
+        this.buildRetrievePackagesSourceCommand(
+          response.data,
+          packageNames[i]
+        ),
+        { cwd: projectPath },
+        cancellationTokenSource,
+        cancellationToken
+      );
+    }
 
     // 7a: unzip downloaded packages into temp location
     // try {
@@ -423,12 +429,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
       // generate installed-package.json file
       try {
-        shell.cp('-r', path.join(
-          projectPath,
-          packageInfo.name
-        ), projectInstalledPackagesPath); // fn to copy directory as it is within destination folder
-
-        console.log('......generating installed-package.json file......');
         fs.writeFileSync(
           path.join(
             projectInstalledPackagesPath,
@@ -446,18 +446,13 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         notificationService.showErrorMessage(
           nls.localize('error_writing_installed_package_info', error.toString())
         );
-        return;
+        continue;
       }
     }
 
     // 7c: cleanup temp files
     try {
-      console.log(`within 7c cleaning up - ${projectMetadataTempPath}`);
       shell.rm('-rf', projectMetadataTempPath);
-      for (const packageInfo of packageInfos) {
-        shell.rm('-rf', path.join(projectPath, packageInfo.name));
-      }
-
     } catch (error) {
       console.error(error);
       channelService.appendLine(
