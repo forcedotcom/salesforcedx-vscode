@@ -78,7 +78,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_step1_create_project'))
+      .withDescription(nls.localize('isv_debug_bootstrap_create_project'))
       .withArg('project:generate')
       .withFlag('--name', data.projectName)
       .withFlag('--output-dir', data.projectUri)
@@ -90,7 +90,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('isv_debug_bootstrap_step2_configure_project')
+        nls.localize('isv_debug_bootstrap_configure_project')
       )
       .withArg('config:set')
       .withArg(`org-isv-debugger-sid=${data.sessionId}`)
@@ -106,7 +106,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withDescription(
         nls.localize(
-          'isv_debug_bootstrap_step2_configure_project_retrieve_namespace'
+          'isv_debug_bootstrap_configure_project_retrieve_namespace'
         )
       )
       .withArg('data:query')
@@ -136,7 +136,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public buildRetrieveOrgSourceCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
+        nls.localize('isv_debug_bootstrap_retrieve_org_source')
       )
       .withArg('project:retrieve:start')
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
@@ -150,7 +150,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('isv_debug_bootstrap_step4_convert_org_source')
+        nls.localize('isv_debug_bootstrap_convert_org_source')
       )
       .withArg('project:convert:mdapi')
       .withFlag(
@@ -167,7 +167,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('isv_debug_bootstrap_step4_list_installed_packages')
+        nls.localize('isv_debug_bootstrap_list_installed_packages')
       )
       .withArg('package:installed:list')
       .withFlag('--target-org', data.sessionId)
@@ -183,7 +183,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withDescription(
         nls.localize(
-          'isv_debug_bootstrap_step5_retrieve_packages_source',
+          'isv_debug_bootstrap_retrieve_package_source',
           packageName
         )
       )

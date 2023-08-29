@@ -213,19 +213,19 @@ export const messages = {
     'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   force_stop_apex_debug_logging:
     'SFDX: Turn Off Apex Debug Log for Replay Debugger',
-  isv_debug_bootstrap_step1_create_project:
+  isv_debug_bootstrap_create_project:
     'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
-  isv_debug_bootstrap_step2_configure_project:
+  isv_debug_bootstrap_configure_project:
     'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project',
-  isv_debug_bootstrap_step2_configure_project_retrieve_namespace:
+  isv_debug_bootstrap_configure_project_retrieve_namespace:
     'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project: Retrieving namespace',
-  isv_debug_bootstrap_step3_retrieve_org_source:
+  isv_debug_bootstrap_retrieve_org_source:
     'SFDX: ISV Debugger Setup, Step 3 of 5: Retrieving unpackaged Apex code',
   isv_debug_bootstrap_step4_convert_org_source:
     'SFDX: ISV Debugger Setup, Step 4 of 7: Converting unpackaged Apex code',
-  isv_debug_bootstrap_step4_list_installed_packages:
+  isv_debug_bootstrap_list_installed_packages:
     'SFDX: ISV Debugger Setup, Step 4 of 5: Querying for installed packages',
-  isv_debug_bootstrap_step5_retrieve_packages_source:
+  isv_debug_bootstrap_retrieve_package_source:
     'SFDX: ISV Debugger Setup, Step 5 of 5: Retrieving package: %s',
   isv_debug_bootstrap_step7_convert_package_source:
     'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',

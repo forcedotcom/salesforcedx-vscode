@@ -177,19 +177,19 @@ export const messages = {
     'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
   force_stop_apex_debug_logging:
     'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
-  isv_debug_bootstrap_step1_create_project:
+  isv_debug_bootstrap_create_project:
     'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
-  isv_debug_bootstrap_step2_configure_project:
+  isv_debug_bootstrap_configure_project:
     'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',
-  isv_debug_bootstrap_step2_configure_project_retrieve_namespace:
+  isv_debug_bootstrap_configure_project_retrieve_namespace:
     'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています: 名前空間を取得しています',
-  isv_debug_bootstrap_step3_retrieve_org_source:
+  isv_debug_bootstrap_retrieve_org_source:
     'SFDX: ISV デバッガ 設定 ステップ 3/7: パッケージ化されていない Apex コードを取得しています',
   isv_debug_bootstrap_step4_convert_org_source:
     'SFDX: ISV デバッガ 設定 ステップ 4/7: パッケージ化されていない Apex コードを変換しています',
-  isv_debug_bootstrap_step5_list_installed_packages:
+  isv_debug_bootstrap_list_installed_packages:
     'SFDX: ISV デバッガ 設定 ステップ 5/7: インストール済みパッケージをクエリしています',
-  isv_debug_bootstrap_step6_retrieve_packages_source:
+  isv_debug_bootstrap_retrieve_package_source:
     'SFDX: ISV デバッガ 設定 ステップ 6/7: パッケージを取得しています',
   isv_debug_bootstrap_step7_convert_package_source:
     'SFDX: ISV デバッガ 設定 ステップ 7/7: パッケージを変換しています: %s',
