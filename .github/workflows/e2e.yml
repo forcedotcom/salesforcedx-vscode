@@ -102,10 +102,8 @@ jobs:
           SPEC_FILES: ${{ inputs.specFiles || '*.e2e.ts' }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
-          JAVA_HOME: ${{ env.JAVA_HOME }}
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: screenshots
           path: ./salesforcedx-vscode-automation-tests/screenshots
-
