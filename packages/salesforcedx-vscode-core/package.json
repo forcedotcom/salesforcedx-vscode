@@ -369,7 +369,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.open",
+          "command": "sfdx.org.open",
           "when": "sfdx:project_opened"
         },
         {
@@ -656,8 +656,8 @@
         "title": "%force_org_create_default_scratch_org_text%"
       },
       {
-        "command": "sfdx.force.org.open",
-        "title": "%force_org_open_default_scratch_org_text%"
+        "command": "sfdx.org.open",
+        "title": "%org_open_default_scratch_org_text%"
       },
       {
         "command": "sfdx.force.source.pull",

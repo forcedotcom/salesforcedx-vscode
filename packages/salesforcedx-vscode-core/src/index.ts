@@ -50,7 +50,7 @@ import {
   forceOrgDelete,
   forceOrgDisplay,
   forceOrgList,
-  forceOrgOpen,
+  orgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -162,10 +162,7 @@ function registerCommands(
     'sfdx.force.org.create',
     forceOrgCreate
   );
-  const forceOrgOpenCmd = vscode.commands.registerCommand(
-    ORG_OPEN_COMMAND,
-    forceOrgOpen
-  );
+  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const forceSourceDeleteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.delete',
     forceSourceDelete
@@ -425,7 +422,7 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
-    forceOrgOpenCmd,
+    orgOpenCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,

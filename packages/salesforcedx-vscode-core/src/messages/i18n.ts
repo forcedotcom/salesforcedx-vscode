@@ -97,10 +97,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
 
-  force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: Open Default Org',
+  org_open_default_scratch_org_container_error:
     'There was an unexpected error when processing the org open response.',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
   force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_org_text:

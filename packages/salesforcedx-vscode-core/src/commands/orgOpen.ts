@@ -31,20 +31,20 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
-      .withArg('force:org:open')
+      .withDescription(nls.localize('org_open_default_scratch_org_text'))
+      .withArg('org:open')
       .withLogName('force_org_open_default_scratch_org')
-      .withArg('--urlonly')
+      .withArg('--url-only')
       .withJson()
       .build();
   }
 
   public buildUserMessageWith(orgData: OrgOpenSuccessResult): string {
     return nls.localize(
-      'force_org_open_container_mode_message_text',
+      'org_open_container_mode_message_text',
       orgData.result.orgId,
       orgData.result.username,
       orgData.result.url
@@ -57,7 +57,7 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
@@ -85,7 +85,7 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
         }
       } catch (error) {
         channelService.appendLine(
-          nls.localize('force_org_open_default_scratch_org_container_error')
+          nls.localize('org_open_default_scratch_org_container_error')
         );
         telemetryService.sendException(
           'force_org_open_container',
@@ -103,12 +103,12 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
-      .withArg('force:org:open')
+      .withDescription(nls.localize('org_open_default_scratch_org_text'))
+      .withArg('org:open')
       .withLogName('force_org_open_default_scratch_org')
       .build();
   }
@@ -116,14 +116,14 @@ export class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
 
 export function getExecutor(): SfdxCommandletExecutor<{}> {
   return isSFContainerMode()
-    ? new ForceOrgOpenContainerExecutor()
-    : new ForceOrgOpenExecutor();
+    ? new OrgOpenContainerExecutor()
+    : new OrgOpenExecutor();
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceOrgOpen() {
+export async function orgOpen() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
