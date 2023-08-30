@@ -1,5 +1,5 @@
 ---
-title: Apex Code Generation with Einstein for Developers
+title: Apex Code Generation
 lang: en
 ---
 
