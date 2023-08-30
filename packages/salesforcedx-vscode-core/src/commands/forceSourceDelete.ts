@@ -39,10 +39,10 @@ export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   public build(data: { filePath: string }): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_delete_text'))
-      .withArg('force:source:delete')
+      .withArg('project:delete:source')
       .withLogName('force_source_delete')
-      .withFlag('--sourcepath', data.filePath)
-      .withArg('--noprompt');
+      .withFlag('--source-dir', data.filePath)
+      .withArg('--no-prompt');
     if (this.isSourceTracked) {
       commandBuilder.args.push('--tracksource');
     }

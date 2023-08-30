@@ -17,7 +17,7 @@ describe('Force Source Delete', () => {
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
     expect(sourceDeleteCommand.toCommand()).toEqual(
-      `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt --tracksource`
+      `sfdx project:delete:source --source-dir ${sourcePath} --no-prompt --tracksource`
     );
   });
 
@@ -26,7 +26,7 @@ describe('Force Source Delete', () => {
     const executor = new ForceSourceDeleteExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
     expect(sourceDeleteCommand.toCommand()).toEqual(
-      `sfdx force:source:delete --sourcepath ${sourcePath} --noprompt`
+      `sfdx project:delete:source --source-dir ${sourcePath} --no-prompt`
     );
   });
 });
