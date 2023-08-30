@@ -24,7 +24,7 @@ describe('Force Auth Logout All', () => {
     const authLogoutAll = new ForceAuthLogoutAll();
     const authLogoutAllCommand = authLogoutAll.build({});
     expect(authLogoutAllCommand.toCommand()).to.equal(
-      'sfdx force:auth:logout --all --noprompt'
+      'sfdx org:logout --all --no-prompt'
     );
     expect(authLogoutAllCommand.description).to.equal(
       nls.localize('force_auth_logout_all_text')

@@ -38,9 +38,9 @@ export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_logout_all_text'))
-      .withArg('force:auth:logout')
+      .withArg('org:logout')
       .withArg('--all')
-      .withArg('--noprompt')
+      .withArg('--no-prompt')
       .withLogName('force_auth_logout')
       .build();
   }
