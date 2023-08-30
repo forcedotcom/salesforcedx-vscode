@@ -44,7 +44,7 @@ describe('Force Auth Web Login for Dev Hub', () => {
       alias: TEST_ALIAS
     });
     expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --setdefaultdevhubusername`
+      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
@@ -62,7 +62,7 @@ describe('Force Auth Web Login For Dev Hub in Demo  Mode', () => {
       alias: TEST_ALIAS
     });
     expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --setdefaultdevhubusername --noprompt --json --loglevel fatal`
+      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json`
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
@@ -166,7 +166,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
         ({} as unknown) as AuthDevHubParams
       );
       expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setalias  --setdefaultdevhubusername'
+        'sfdx org:login:web --alias  --set-default-dev-hub'
       );
     });
 
@@ -179,7 +179,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
         ({} as unknown) as AuthDevHubParams
       );
       expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setalias  --setdefaultdevhubusername'
+        'sfdx org:login:web --alias  --set-default-dev-hub'
       );
     });
 

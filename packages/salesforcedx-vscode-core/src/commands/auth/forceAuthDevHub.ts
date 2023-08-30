@@ -67,10 +67,10 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     command
-      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withArg(CLI.ORG_LOGIN_WEB)
       .withLogName('force_auth_dev_hub')
-      .withFlag('--setalias', data.alias)
-      .withArg('--setdefaultdevhubusername');
+      .withFlag('--alias', data.alias)
+      .withArg('--set-default-dev-hub');
     return command.build();
   }
 }
@@ -81,10 +81,10 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
       .withDescription(
         nls.localize('force_auth_web_login_authorize_dev_hub_text')
       )
-      .withArg(CLI.AUTH_WEB_LOGIN)
-      .withFlag('--setalias', data.alias)
-      .withArg('--setdefaultdevhubusername')
-      .withArg('--noprompt')
+      .withArg(CLI.ORG_LOGIN_WEB)
+      .withFlag('--alias', data.alias)
+      .withArg('--set-default-dev-hub')
+      .withArg('--no-prompt')
       .withJson()
       .withLogName('force_auth_dev_hub_demo_mode')
       .build();
