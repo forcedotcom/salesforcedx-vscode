@@ -74,10 +74,10 @@ function deleteTraceFlag(): Command {
   const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
   return new SfdxCommandBuilder()
     .withDescription(nls.localize('force_stop_apex_debug_logging'))
-    .withArg('force:data:record:delete')
-    .withFlag('--sobjecttype', 'TraceFlag')
-    .withFlag('--sobjectid', nonNullTraceFlag)
-    .withArg('--usetoolingapi')
+    .withArg('data:delete:record')
+    .withFlag('--sobject', 'TraceFlag')
+    .withFlag('--record-id', nonNullTraceFlag)
+    .withArg('--use-tooling-api')
     .withLogName('force_stop_apex_debug_logging')
     .build();
 }

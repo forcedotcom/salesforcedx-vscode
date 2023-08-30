@@ -121,9 +121,9 @@ export async function createPermissionSet(
 ): Promise<string> {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:data:record:create')
-      .withFlag('--sobjecttype', 'PermissionSet')
-      .withFlag('--targetusername', username)
+      .withArg('data:create:record')
+      .withFlag('--sobject', 'PermissionSet')
+      .withFlag('--target-org', username)
       .withFlag(
         '--values',
         'Name=' + permissionSetName + ' Label="Give FLS Read"'
@@ -146,9 +146,9 @@ export async function createFieldPermissions(
 ): Promise<void> {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:data:record:create')
-      .withFlag('--sobjecttype', 'FieldPermissions')
-      .withFlag('--targetusername', username)
+      .withArg('data:create:record')
+      .withFlag('--sobject', 'FieldPermissions')
+      .withFlag('--target-org', username)
       .withFlag(
         '--values',
         util.format(

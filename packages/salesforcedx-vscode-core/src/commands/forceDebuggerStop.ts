@@ -61,12 +61,12 @@ export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
 > {
   public build(data: IdSelection): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:data:record:update')
+      .withArg('data:update:record')
       .withDescription(nls.localize('force_debugger_stop_text'))
-      .withFlag('--sobjecttype', 'ApexDebuggerSession')
-      .withFlag('--sobjectid', data ? data.id : '')
+      .withFlag('--sobject', 'ApexDebuggerSession')
+      .withFlag('--record-id', data ? data.id : '')
       .withFlag('--values', 'Status="Detach"')
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withLogName('force_debugger_stop')
       .build();
   }
@@ -75,13 +75,13 @@ export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
 export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:data:soql:query')
+      .withArg('data:query')
       .withDescription(nls.localize('force_debugger_query_session_text'))
       .withFlag(
         '--query',
         "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"
       )
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withJson()
       .withLogName('force_debugger_query_session')
       .build();

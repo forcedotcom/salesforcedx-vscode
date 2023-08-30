@@ -67,7 +67,7 @@ describe('Debugger stop command', () => {
       const command = executor.build({});
 
       expect(command.toCommand()).to.equal(
-        "sfdx force:data:soql:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --usetoolingapi --json --loglevel fatal"
+        "sfdx data:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --use-tooling-api --json"
       );
       expect(command.description).to.equal(
         nls.localize('force_debugger_query_session_text')
@@ -154,7 +154,7 @@ describe('Debugger stop command', () => {
       const command = executor.build({ id: '07aFAKE' } as IdSelection);
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:data:record:update --sobjecttype ApexDebuggerSession --sobjectid 07aFAKE --values Status="Detach" --usetoolingapi'
+        'sfdx data:update:record --sobject ApexDebuggerSession --record-id 07aFAKE --values Status="Detach" --use-tooling-api'
       );
       expect(command.description).to.equal(
         nls.localize('force_debugger_stop_text')

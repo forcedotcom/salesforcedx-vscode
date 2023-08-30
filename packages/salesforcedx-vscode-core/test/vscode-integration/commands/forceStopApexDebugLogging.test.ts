@@ -32,7 +32,7 @@ describe('Force Source Status', () => {
     const forceStopLogging = new ForceStopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
     expect(forceStopLoggingCmd.toCommand()).to.equal(
-      `sfdx force:data:record:delete --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --usetoolingapi`
+      `sfdx data:delete:record --sobject TraceFlag --record-id ${fakeTraceFlagId} --use-tooling-api`
     );
     expect(forceStopLoggingCmd.description).to.equal(
       nls.localize('force_stop_apex_debug_logging')
