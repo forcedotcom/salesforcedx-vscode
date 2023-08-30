@@ -35,9 +35,6 @@ async function createServer(
 ): Promise<Executable> {
   try {
     const requirementsData = await requirements.resolveRequirements();
-    if (requirementsData.java_home) {
-      throw new Error(JSON.stringify(requirementsData));
-    }
     const uberJar = path.resolve(
       extensionContext.extensionPath,
       extensionContext.extension.packageJSON.languageServerDir,
@@ -46,7 +43,7 @@ async function createServer(
     const javaExecutable = path.resolve(
       `${requirementsData.java_home}/bin/java`
     );
-    const jvmMaxHeap = requirementsData!.java_memory;
+    const jvmMaxHeap = requirementsData.java_memory;
     const enableSemanticErrors: boolean = vscode.workspace
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
