@@ -158,7 +158,7 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
     );
 
     command
-      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withArg(CLI.ORG_LOGIN_WEB)
       .withLogName('force_auth_web_login')
       .withFlag('--alias', data.alias)
       .withFlag('--instance-url', data.loginUrl)
@@ -215,7 +215,7 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
   public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
-      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withArg(CLI.ORG_LOGIN_WEB)
       .withFlag('--alias', data.alias)
       .withFlag('--instance-url', data.loginUrl)
       .withArg('--set-default')
