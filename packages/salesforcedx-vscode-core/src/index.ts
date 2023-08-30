@@ -20,10 +20,8 @@ import {
   forceApexClassCreate,
   forceApexTriggerCreate,
   forceAuthAccessToken,
-  forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthLogoutDefault,
-  forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
@@ -66,15 +64,15 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgLoginWeb,
+  orgLoginWebDevHub,
   registerFunctionInvokeCodeLensProvider,
-  SourceStatusFlags,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
@@ -123,12 +121,6 @@ import { OrgAuthInfo } from './util/authInfo';
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
-const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Local
-};
-const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Remote
-};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -138,13 +130,13 @@ function registerCommands(
     'sfdx.force.auth.accessToken',
     forceAuthAccessToken
   );
-  const forceAuthWebLoginCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.web.login',
-    forceAuthWebLogin
+  const orgLoginWebCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.web',
+    orgLoginWeb
   );
-  const forceAuthDevHubCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.dev.hub',
-    forceAuthDevHub
+  const orgLoginWebDevHubCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.web.dev.hub',
+    orgLoginWebDevHub
   );
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
@@ -411,8 +403,8 @@ function registerCommands(
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
-    forceAuthWebLoginCmd,
-    forceAuthDevHubCmd,
+    orgLoginWebCmd,
+    orgLoginWebDevHubCmd,
     forceAuthLogoutAllCmd,
     forceAuthLogoutDefaultCmd,
     forceDataSoqlQueryInputCmd,
