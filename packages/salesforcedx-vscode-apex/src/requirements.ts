@@ -9,7 +9,8 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import * as cp from 'child_process';
-import { window, workspace } from 'vscode';
+import * as fs from 'fs';
+import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 import path = require('path');
@@ -45,25 +46,28 @@ export async function resolveRequirements(): Promise<RequirementsData> {
 }
 
 function checkJavaRuntime(): Promise<string> {
+  const theHuntForJava: { [key: string]: string } = {};
   return new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
 
     if (javaHome) {
+      theHuntForJava['sourceFrom'] = 'CONFIG';
       source = nls.localize('source_java_home_setting_text');
     } else {
-      // javaHome = process.env['JDK_HOME'];
+      javaHome = process.env['JDK_HOME'];
 
       if (javaHome) {
+        theHuntForJava['sourceFrom'] = 'JDK_HOME';
         source = nls.localize('source_jdk_home_env_var_text');
       } else {
+        theHuntForJava['sourceFrom'] = 'JAVA_HOME';
         javaHome = process.env['JAVA_HOME'];
         source = nls.localize('source_java_home_env_var_text');
       }
     }
 
-    console.log(`java source: ${source ?? 'unknown'}`);
-    console.log(`java home: ${javaHome ?? 'unknown'}`);
+    theHuntForJava['source'] = source;
 
     if (javaHome) {
       javaHome = expandHomeDir(javaHome) as string;
@@ -78,9 +82,11 @@ function checkJavaRuntime(): Promise<string> {
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
         );
       }
+      theHuntForJava['javaHome'] = javaHome;
+      fs.writeFileSync(path.join(process.cwd(), 'theHuntForJava.json'), JSON.stringify(theHuntForJava, null, 2));
       return resolve(javaHome);
     }
-
+    theHuntForJava['sourceFrom'] = 'AUTO';
     // Last resort, try to automatically detect
     findJavaHome((err: Error, home: string) => {
       if (err) {
@@ -89,6 +95,8 @@ function checkJavaRuntime(): Promise<string> {
         );
       } else {
         console.log(`java home (auto): ${home}`);
+        theHuntForJava['javaHome'] = home;
+        fs.writeFileSync(path.join(process.cwd(), 'theHuntForJava.json'), JSON.stringify(theHuntForJava, null, 2));
         return resolve(home);
       }
     });
