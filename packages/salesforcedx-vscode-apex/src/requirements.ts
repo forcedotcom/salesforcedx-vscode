@@ -9,7 +9,7 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import * as cp from 'child_process';
-import { window, workspace } from 'vscode';
+import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 import path = require('path');
@@ -52,7 +52,7 @@ function checkJavaRuntime(): Promise<string> {
     if (javaHome) {
       source = nls.localize('source_java_home_setting_text');
     } else {
-      // javaHome = process.env['JDK_HOME'];
+      javaHome = process.env['JDK_HOME'];
 
       if (javaHome) {
         source = nls.localize('source_jdk_home_env_var_text');
@@ -61,9 +61,6 @@ function checkJavaRuntime(): Promise<string> {
         source = nls.localize('source_java_home_env_var_text');
       }
     }
-
-    console.log(`java source: ${source ?? 'unknown'}`);
-    console.log(`java home: ${javaHome ?? 'unknown'}`);
 
     if (javaHome) {
       javaHome = expandHomeDir(javaHome) as string;
@@ -88,7 +85,6 @@ function checkJavaRuntime(): Promise<string> {
           nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK)
         );
       } else {
-        console.log(`java home (auto): ${home}`);
         return resolve(home);
       }
     });
