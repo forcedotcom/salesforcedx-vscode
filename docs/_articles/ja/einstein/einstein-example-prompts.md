@@ -7,7 +7,7 @@ lang: en
 
 Prompt writing is key to quality code generation. Here’s some tips for improved prompt writing and a selection of sample prompts to start you on your generative AI code assistance journey.
 
-| <b>Original Prompt                                      | Improved Prompt</b>                                                            |
+| <b>Original Prompt </b>                                 | <b>Improved Prompt</b>                                                         |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Write Apex code that sorts the list of contacts.        | Write Apex code that sorts the list of contacts alphabetically by last name.   |
 | Write a method that adds two numbers.                   | Write a method that adds two numbers and returns the result.                   |
@@ -90,35 +90,7 @@ trigger gptcontacttrigger on Account (after insert, after update) {
 
 A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. For example, the prompt, "_Write code to provide the ability to update the FirstName for a list of users_" generates the following response:
 
-<pre>
-public with sharing class AccountService {
-  public Account createAccount( String accountName, String accountNumber, String tickerSymbol ) {
-    Account newAcct = new Account(
-      Name = accountName,
-      AccountNumber = accountNumber,
-      TickerSymbol = accountNumber
-    );
-    return newAcct;
-  }    
-
-<b>
-// Function to update the FirstName for a list of users
-public static List<User> updateFirstName(List<User> users, String newFirstName) {
-        for (User u : users) {
-            if (String.isNotBlank(u.FirstName)) {
-                u.FirstName = newFirstName;
-            }
-        }
-        return users;
- }
-<b>
-</pre>
-
-This response is good, but you can make an edit to generate reusable code by creating a method.
-
-Click **Retry** and edit the prompt for a more specific output. Update the prompt to say, "_Write code to provide the ability to update the FirstName for a list of users as a method_". The new response is –
-
-<pre>
+```
 public with sharing class AccountService {
   public Account createAccount( String accountName, String accountNumber, String tickerSymbol ) {
     Account newAcct = new Account(
@@ -128,9 +100,38 @@ public with sharing class AccountService {
     );
     return newAcct;
   }
+```
 
-<b>
-    //This is a method that allows updating the FirstName for a list of users
+```
+// Function to update the FirstName for a list of users
+public static List<User> updateFirstName(List<User> users, String newFirstName) {
+        for (User u : users) {
+            if (String.isNotBlank(u.FirstName)) {
+                u.FirstName = newFirstName;
+            }
+        }
+        return users;
+ }
+```
+
+This response is good, but you can make an edit to generate reusable code by creating a method.
+
+Click **Retry** and edit the prompt for a more specific output. Update the prompt to say, "_Write code to provide the ability to update the FirstName for a list of users as a method_". The new response is –
+
+```
+public with sharing class AccountService {
+  public Account createAccount( String accountName, String accountNumber, String tickerSymbol ) {
+    Account newAcct = new Account(
+      Name = accountName,
+      AccountNumber = accountNumber,
+      TickerSymbol = accountNumber
+    );
+    return newAcct;
+  }
+```
+
+```
+ //This is a method that allows updating the FirstName for a list of users
     public static void updateFirstName(List<User> users) {
         for (User usr : users) {
             if (usr.FirstName != null) {
@@ -138,8 +139,7 @@ public with sharing class AccountService {
             }
         }
     }
-<b>
-</pre>
+```
 
 Click **Accept** if you like this output or **Retry** again to update your prompt and regenerate a new output.
 
