@@ -15,11 +15,11 @@ import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('Force Org Open', () => {
-  it('should build the org open command', () => {
+  it('should build the org:open command', () => {
     const forceOrgOpenContainer = new ForceOrgOpenExecutor();
     const orgOpenCommand = forceOrgOpenContainer.build({});
 
-    expect(orgOpenCommand.toCommand()).to.equal('sfdx force:org:open');
+    expect(orgOpenCommand.toCommand()).to.equal('sfdx org:open');
     expect(orgOpenCommand.description).to.equal(
       nls.localize('force_org_open_default_scratch_org_text')
     );
