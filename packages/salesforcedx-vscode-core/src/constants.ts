@@ -48,7 +48,7 @@ export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const CLI = {
   AUTH_DEVICE_LOGIN: 'force:auth:device:login',
-  AUTH_WEB_LOGIN: 'force:auth:web:login'
+  ORG_LOGIN_WEB: 'org:login:web'
 };
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';

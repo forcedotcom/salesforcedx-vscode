@@ -160,9 +160,9 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
     command
       .withArg(CLI.AUTH_WEB_LOGIN)
       .withLogName('force_auth_web_login')
-      .withFlag('--setalias', data.alias)
-      .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername');
+      .withFlag('--alias', data.alias)
+      .withFlag('--instance-url', data.loginUrl)
+      .withArg('--set-default');
 
     return command.build();
   }
@@ -216,10 +216,10 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg(CLI.AUTH_WEB_LOGIN)
-      .withFlag('--setalias', data.alias)
-      .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername')
-      .withArg('--noprompt')
+      .withFlag('--alias', data.alias)
+      .withFlag('--instance-url', data.loginUrl)
+      .withArg('--set-default')
+      .withArg('--no-prompt')
       .withJson()
       .withLogName('force_auth_web_login_demo_mode')
       .build();

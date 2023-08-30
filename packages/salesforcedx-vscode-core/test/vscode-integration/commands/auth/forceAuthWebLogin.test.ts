@@ -34,7 +34,7 @@ describe('Force Auth Web Login', () => {
       loginUrl: TEST_URL
     });
     expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername`
+      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_org_text')
@@ -50,7 +50,7 @@ describe('Force Auth Web Login in Demo Mode', () => {
       loginUrl: TEST_URL
     });
     expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername --noprompt --json --loglevel fatal`
+      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json --loglevel fatal`
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_org_text')
