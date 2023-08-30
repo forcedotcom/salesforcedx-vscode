@@ -83,10 +83,7 @@ function checkJavaRuntime(): Promise<string> {
         );
       }
       theHuntForJava['javaHome'] = javaHome;
-      fs.writeFileSync(
-        path.join(process.cwd(), 'theHuntForJava.json'),
-        JSON.stringify(theHuntForJava, null, 2)
-      );
+      fs.writeFileSync(path.join(process.cwd(), 'theHuntForJava.json'), JSON.stringify(theHuntForJava, null, 2));
       return resolve(javaHome);
     }
     theHuntForJava['sourceFrom'] = 'AUTO';
@@ -99,10 +96,7 @@ function checkJavaRuntime(): Promise<string> {
       } else {
         console.log(`java home (auto): ${home}`);
         theHuntForJava['javaHome'] = home;
-        fs.writeFileSync(
-          path.join(process.cwd(), 'theHuntForJava.json'),
-          JSON.stringify(theHuntForJava, null, 2)
-        );
+        fs.writeFileSync(path.join(process.cwd(), 'theHuntForJava.json'), JSON.stringify(theHuntForJava, null, 2));
         return resolve(home);
       }
     });
@@ -137,18 +131,4 @@ export function checkJavaVersion(javaHome: string): Promise<boolean> {
       }
     );
   });
-}
-
-function writeHuntForJava(data: Record<string, string>) {
-  let fullPath = process.cwd();
-  const index = fullPath.indexOf('salesforcedx-vscode-automation-tests');
-  if (index !== -1) {
-    const testHome = fullPath.substring(0, index + 'salesforcedx-vscode-automation-tests'.length);
-    fullPath = path.join(testHome, 'screenshots');
-    fs.mkdirSync(fullPath, { recursive: true });
-  }
-  fs.writeFileSync(
-    path.join(fullPath, 'theHuntForJava.json'),
-    JSON.stringify(data, null, 2)
-  );
 }
