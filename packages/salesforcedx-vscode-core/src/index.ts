@@ -50,7 +50,6 @@ import {
   forceOrgDelete,
   forceOrgDisplay,
   forceOrgList,
-  orgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -66,15 +65,14 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgOpen,
   registerFunctionInvokeCodeLensProvider,
-  SourceStatusFlags,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
@@ -122,12 +120,6 @@ import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
-};
-const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Local
-};
-const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Remote
 };
 
 function registerCommands(
