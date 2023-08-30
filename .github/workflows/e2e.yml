@@ -105,6 +105,7 @@ jobs:
           run: |
             npm run setup
             npm run automation-tests
+            echo 'specFiles = ' + ${{ inputs.specFiles }}
           working-directory: salesforcedx-vscode-automation-tests
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
