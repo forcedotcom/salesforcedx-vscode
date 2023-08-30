@@ -30,7 +30,7 @@ describe('CommandBuilder tests', () => {
       const actual = new CommandBuilder('sfdx').withJson().build();
 
       expect(actual.command).to.equal('sfdx');
-      expect(actual.args).to.eql(['--json', '--loglevel', 'fatal']);
+      expect(actual.args).to.eql(['--json']);
     });
 
     it('Should store the command arg', () => {

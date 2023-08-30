@@ -23,7 +23,7 @@ describe('Force List Metadata', () => {
     );
     const forceListMetadataCmd = forceListMetadataExec.build({});
     expect(forceListMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal`
+      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json`
     );
   });
 
@@ -38,7 +38,7 @@ describe('Force List Metadata', () => {
     );
     const forceDescribeMetadataCmd = forceListMetadataExec.build({});
     expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal --folder ${folder}`
+      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --folder ${folder}`
     );
   });
 

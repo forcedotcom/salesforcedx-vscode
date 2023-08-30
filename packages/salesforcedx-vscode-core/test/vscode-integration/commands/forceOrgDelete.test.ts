@@ -13,7 +13,7 @@ describe('Force Org Delete', () => {
     const forceOrgDelete = new ForceOrgDeleteExecutor();
     const deleteCommand = forceOrgDelete.build({});
     expect(deleteCommand.toCommand()).to.equal(
-      'sfdx force:org:delete --noprompt'
+      'sfdx force:org:delete --no-prompt'
     );
     expect(deleteCommand.description).to.equal(
       nls.localize('force_org_delete_default_text')
@@ -21,10 +21,10 @@ describe('Force Org Delete', () => {
   });
 
   it('Should build the delete command with targetusername flag', async () => {
-    const forceOrgDelete = new ForceOrgDeleteExecutor('--targetusername');
+    const forceOrgDelete = new ForceOrgDeleteExecutor('--target-org');
     const deleteCommand = forceOrgDelete.build({ username: 'test' });
     expect(deleteCommand.toCommand()).to.equal(
-      'sfdx force:org:delete --noprompt --targetusername test'
+      'sfdx force:org:delete --no-prompt --target-org test'
     );
     expect(deleteCommand.description).to.equal(
       nls.localize('force_org_delete_username_text')

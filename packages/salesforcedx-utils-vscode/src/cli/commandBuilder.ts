@@ -60,7 +60,6 @@ export class CommandBuilder {
 
   public withJson(): CommandBuilder {
     this.args.push('--json');
-    this.args.push('--loglevel', 'fatal');
     return this;
   }
 

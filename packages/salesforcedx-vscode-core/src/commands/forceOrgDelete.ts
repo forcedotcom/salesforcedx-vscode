@@ -32,10 +32,10 @@ export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_delete_default_text'))
       .withArg('force:org:delete')
-      .withArg('--noprompt')
+      .withArg('--no-prompt')
       .withLogName('force_org_delete_default');
 
-    if (this.flag === '--targetusername' && data.username) {
+    if (this.flag === '--target-org' && data.username) {
       builder
         .withDescription(nls.localize('force_org_delete_username_text'))
         .withLogName('force_org_delete_username')

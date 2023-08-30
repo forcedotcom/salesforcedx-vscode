@@ -19,7 +19,7 @@ describe('Force Describe Metadata', () => {
     const forceDescribeMetadataExec = new ForceDescribeMetadataExecutor();
     const forceDescribeMetadataCmd = forceDescribeMetadataExec.build({});
     expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:describemetadata --json --loglevel fatal`
+      `sfdx force:mdapi:describemetadata --json`
     );
   });
 

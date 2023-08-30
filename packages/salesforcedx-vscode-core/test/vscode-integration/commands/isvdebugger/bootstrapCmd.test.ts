@@ -202,7 +202,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       );
       expect(command.toCommand()).to.equal(
-        `sfdx data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json --loglevel fatal`
+        `sfdx data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize(
@@ -275,7 +275,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
-        `sfdx package:installed:list --target-org ${SESSION_ID} --json --loglevel fatal`
+        `sfdx package:installed:list --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step5_list_installed_packages')

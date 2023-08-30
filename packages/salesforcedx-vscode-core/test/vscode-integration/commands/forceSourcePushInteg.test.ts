@@ -10,7 +10,7 @@ import { ForceSourcePushExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Force Source Push', () => {
-  const commonParams = '--json --loglevel fatal';
+  const commonParams = '--json';
   it('Should build the source push command with no flag', async () => {
     const sourcePushNoFlag = new ForceSourcePushExecutor();
     const pushCommand = sourcePushNoFlag.build({});

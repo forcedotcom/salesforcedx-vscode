@@ -78,9 +78,9 @@ describe('force:source:diff parser', () => {
     };
 
     const parser = new DiffResultParser(
-      `sfdx force:source:diff --json --loglevel fatal ${EOL} ${JSON.stringify(
+      `sfdx force:source:diff --json ${EOL} ${JSON.stringify(
         successResult
-      )} ${EOL} sfdx force:source:diff --json --loglevel fatal ended with exit code 0`
+      )} ${EOL} sfdx force:source:diff --json ended with exit code 0`
     );
 
     expect(parser.isSuccessful()).to.be.true;
@@ -96,7 +96,7 @@ describe('force:source:diff parser', () => {
   it('Should throw an error if provided with a message that does not have result info', () => {
     try {
       new DiffResultParser(
-        `sfdx force:source:diff --json --loglevel fatal ${EOL} sfdx force:source:diff --json --loglevel fatal ended with exit code 0`
+        `sfdx force:source:diff --json ${EOL} sfdx force:source:diff --json ended with exit code 0`
       );
       fail('DiffResultParser should have failed');
     } catch (err) {

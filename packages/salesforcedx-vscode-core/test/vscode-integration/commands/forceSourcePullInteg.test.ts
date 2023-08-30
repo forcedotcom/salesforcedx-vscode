@@ -13,9 +13,7 @@ describe('Force Source Pull', () => {
   it('Should build the source pull command with the --json flag', async () => {
     const sourcePullNoFlag = new ForceSourcePullExecutor();
     const pullCommand = sourcePullNoFlag.build({});
-    expect(pullCommand.toCommand()).to.equal(
-      'sfdx force:source:pull --json --loglevel fatal'
-    );
+    expect(pullCommand.toCommand()).to.equal('sfdx force:source:pull --json');
     expect(pullCommand.description).to.equal(
       nls.localize('force_source_pull_default_org_text')
     );
@@ -25,7 +23,7 @@ describe('Force Source Pull', () => {
     const sourcePullOverwrite = new ForceSourcePullExecutor('--forceoverwrite');
     const pullCommand = sourcePullOverwrite.build({});
     expect(pullCommand.toCommand()).to.equal(
-      'sfdx force:source:pull --json --loglevel fatal --forceoverwrite'
+      'sfdx force:source:pull --json --forceoverwrite'
     );
     expect(pullCommand.description).to.equal(
       nls.localize('force_source_pull_force_default_org_text')

@@ -52,11 +52,11 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       .withDescription(
         nls.localize('force_org_create_default_scratch_org_text')
       )
-      .withArg('force:org:create')
+      .withArg('org:create:scratch')
       .withFlag('-f', `${selectionPath}`)
-      .withFlag('--setalias', data.alias)
-      .withFlag('--durationdays', data.expirationDays)
-      .withArg('--setdefaultusername')
+      .withFlag('--alias', data.alias)
+      .withFlag('--duration-days', data.expirationDays)
+      .withArg('--set-default')
       .withLogName('force_org_create_default_scratch_org')
       .withJson()
       .build();
@@ -68,7 +68,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
