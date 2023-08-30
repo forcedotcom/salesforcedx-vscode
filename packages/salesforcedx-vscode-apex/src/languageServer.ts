@@ -35,6 +35,9 @@ async function createServer(
 ): Promise<Executable> {
   try {
     const requirementsData = await requirements.resolveRequirements();
+    if (requirementsData.java_home) {
+      throw new Error(JSON.stringify(requirementsData));
+    }
     const uberJar = path.resolve(
       extensionContext.extensionPath,
       extensionContext.extension.packageJSON.languageServerDir,
