@@ -7,9 +7,9 @@
 
 import { expect } from 'chai';
 import {
+  getExecutor,
   OrgOpenContainerExecutor,
-  OrgOpenExecutor,
-  getExecutor
+  OrgOpenExecutor
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
