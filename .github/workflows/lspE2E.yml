@@ -27,6 +27,7 @@ jobs:
   build:
     env:
       testsToRun: ''
+      # try putting the big block of if statements here?
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -80,7 +81,8 @@ jobs:
             exit 1
           fi
       - name: Figure out which tests to run
-        run: |
+        uses: actions/checkout@v3
+        with:
           if (${{ inputs.auraLsp }})
             $testsToRun = $testsToRun + 'auraLsp.e2e.ts, '
             echo 'auraLsp is selected'
