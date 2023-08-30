@@ -175,7 +175,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--target-org', data.sessionId)
       .withFlag('--target-metadata-dir', this.relativeInstalledPackagesPath)
       .withArg('--unzip')
-      .withFlag('--zip-file-name', packageName.replace('.', '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
+      .withFlag('--zip-file-name', packageName.replace(/[^a-zA-Z0-9]/g, '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
       .build();
   }
