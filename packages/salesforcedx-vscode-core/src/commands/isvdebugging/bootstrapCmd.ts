@@ -175,7 +175,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--target-org', data.sessionId)
       .withFlag('--target-metadata-dir', this.relativeInstalledPackagesPath)
       .withArg('--unzip')
-      .withFlag('--zip-file-name', packageName.replace(/[^a-zA-Z0-9]/g, '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
+      .withFlag('--zip-file-name', packageName.replaceAll('.', '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
       .withLogName('isv_debug_bootstrap_retrieve_packages_source')
       .build();
   }
@@ -319,11 +319,11 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 5b: retrieve packages
     // TODO: what if packageNames.length is 0?
-    for (let i = 0; i < (packageNames.length); i++) {
+    for (const packageName of packageNames) {
       await this.executeCommand(
         this.buildRetrievePackageSourceCommand(
           response.data,
-          packageNames[i]
+          packageName
         ),
         { cwd: projectPath },
         cancellationTokenSource,
@@ -341,7 +341,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         fs.writeFileSync(
           path.join(
             projectInstalledPackagesPath,
-            packageInfo.name.replace(/[^a-zA-Z0-9]/g, '-'),
+            packageInfo.name.replaceAll('.', '-'),
             'installed-package.json'
           ),
           JSON.stringify(packageInfo, null, 2),
