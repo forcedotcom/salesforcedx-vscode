@@ -21,9 +21,9 @@ export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: { choice?: string }): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_list_clean_text'))
-      .withArg('force:org:list')
+      .withArg('org:list')
       .withArg('--clean')
-      .withArg('--noprompt')
+      .withArg('--no-prompt')
       .withLogName('force_org_list_clean')
       .build();
   }

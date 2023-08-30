@@ -328,7 +328,7 @@ describe('orgList Tests', () => {
         expect(response.type).to.equal('CANCEL');
       });
 
-      it('should return Continue and call force:auth:web:login command if SFDX: Authorize an Org is selected', async () => {
+      it('should return Continue and call org login web command if SFDX: Authorize an Org is selected', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
           '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
@@ -340,7 +340,7 @@ describe('orgList Tests', () => {
         ).to.equal(true);
       });
 
-      it('should return Continue and call force:org:create command if SFDX: Create a Default Scratch Org is selected', async () => {
+      it('should return Continue and call org create scratch command if SFDX: Create a Default Scratch Org is selected', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
           '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
@@ -378,7 +378,7 @@ describe('orgList Tests', () => {
         ).to.equal(true);
       });
 
-      it('should return Continue and call force:org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
+      it('should return Continue and call org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
           '$(plus) ' + nls.localize('force_org_list_clean_text')

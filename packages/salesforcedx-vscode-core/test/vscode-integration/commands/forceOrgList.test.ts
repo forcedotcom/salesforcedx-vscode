@@ -14,7 +14,7 @@ describe('Force Org List', () => {
     const forceOrgList = new ForceOrgListExecutor();
     const listCommand = forceOrgList.build({});
     expect(listCommand.toCommand()).to.equal(
-      'sfdx force:org:list --clean --noprompt'
+      'sfdx org:list --clean --no-prompt'
     );
     expect(listCommand.description).to.equal(
       nls.localize('force_org_list_clean_text')
