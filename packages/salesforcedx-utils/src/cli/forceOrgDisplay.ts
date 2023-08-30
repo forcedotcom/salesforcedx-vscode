@@ -14,7 +14,7 @@ export class ForceOrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
-        .withArg('force:org:display')
+        .withArg('org:display')
         .withJson()
         .build(),
       { cwd: projectPath }

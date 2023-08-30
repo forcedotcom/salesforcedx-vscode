@@ -9,7 +9,7 @@ import { SfdxCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
-export const FORCE_ORG_DISPLAY_COMMAND = 'force:org:display';
+export const FORCE_ORG_DISPLAY_COMMAND = 'org:display';
 export interface OrgInfo {
   username: string;
   devHubId: string;
