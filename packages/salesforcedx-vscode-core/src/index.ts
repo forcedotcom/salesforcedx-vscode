@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   checkSObjectsAndRefresh,
+  deleteSource,
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
@@ -71,7 +72,6 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
-  projectDeleteSource,
   registerFunctionInvokeCodeLensProvider,
   turnOffLogging,
   viewAllChanges,
@@ -158,13 +158,13 @@ function registerCommands(
     ORG_OPEN_COMMAND,
     forceOrgOpen
   );
-  const projectDeleteSourceCmd = vscode.commands.registerCommand(
-    'sfdx.project.delete.source',
-    projectDeleteSource
+  const deleteSourceCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source',
+    deleteSource
   );
-  const projectDeleteSourceCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.project.delete.source.current.file',
-    projectDeleteSource
+  const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source.current.file',
+    deleteSource
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
@@ -422,8 +422,8 @@ function registerCommands(
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
     forceRefreshSObjectsCmd,
-    projectDeleteSourceCmd,
-    projectDeleteSourceCurrentFileCmd,
+    deleteSourceCmd,
+    deleteSourceCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,

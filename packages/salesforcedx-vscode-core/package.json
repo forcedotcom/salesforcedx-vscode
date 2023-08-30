@@ -221,7 +221,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.project.delete.source.current.file",
+          "command": "sfdx.delete.source.current.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -319,7 +319,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.project.delete.source",
+          "command": "sfdx.delete.source",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -513,7 +513,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.project.delete.source",
+          "command": "sfdx.delete.source",
           "when": "false"
         },
         {
@@ -529,7 +529,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.project.delete.source.current.file",
+          "command": "sfdx.delete.source.current.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
@@ -828,12 +828,12 @@
         "title": "%force_source_deploy_in_manifest_text%"
       },
       {
-        "command": "sfdx.project.delete.source",
-        "title": "%project_delete_source_text%"
+        "command": "sfdx.delete.source",
+        "title": "%delete_source_text%"
       },
       {
-        "command": "sfdx.project.delete.source.current.file",
-        "title": "%project_delete_source_this_source_text%"
+        "command": "sfdx.delete.source.current.file",
+        "title": "%delete_source_this_source_text%"
       },
       {
         "command": "sfdx.force.set.default.org",

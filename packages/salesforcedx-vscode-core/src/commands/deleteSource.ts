@@ -27,7 +27,7 @@ import { workspaceUtils } from '../util';
 import { SfdxCommandlet } from './util/sfdxCommandlet';
 import { SfdxCommandletExecutor } from './util/sfdxCommandletExecutor';
 
-export class ProjectDeleteSourceExecutor extends SfdxCommandletExecutor<{
+export class DeleteSourceExecutor extends SfdxCommandletExecutor<{
   filePath: string;
 }> {
   private isSourceTracked: boolean;
@@ -38,7 +38,7 @@ export class ProjectDeleteSourceExecutor extends SfdxCommandletExecutor<{
   }
   public build(data: { filePath: string }): Command {
     const commandBuilder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('project_delete_source_text'))
+      .withDescription(nls.localize('delete_source_text'))
       .withArg('project:delete:source')
       .withLogName('force_source_delete')
       .withFlag('--source-dir', data.filePath)
@@ -64,7 +64,7 @@ export class ManifestChecker implements PreconditionChecker {
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {
         notificationService.showErrorMessage(
-          nls.localize('project_delete_source_manifest_unsupported_message')
+          nls.localize('delete_source_manifest_unsupported_message')
         );
         return false;
       }
@@ -87,7 +87,7 @@ export class ConfirmationAndSourcePathGatherer
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ filePath: string }>
   > {
-    const prompt = nls.localize('project_delete_source_confirmation_message');
+    const prompt = nls.localize('delete_source_confirmation_message');
     const response = await vscode.window.showInformationMessage(
       prompt,
       this.PROCEED,
@@ -100,7 +100,7 @@ export class ConfirmationAndSourcePathGatherer
   }
 }
 
-export async function projectDeleteSource(sourceUri: vscode.Uri) {
+export async function deleteSource(sourceUri: vscode.Uri) {
   let isSourceTracked: boolean = false;
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   if (orgType === OrgType.SourceTracked) {
@@ -112,7 +112,7 @@ export async function projectDeleteSource(sourceUri: vscode.Uri) {
       sourceUri = editor.document.uri;
     } else {
       const errorMessage = nls.localize(
-        'project_delete_source_select_file_or_directory'
+        'delete_source_select_file_or_directory'
       );
       telemetryService.sendException('force_source_delete', errorMessage);
       notificationService.showErrorMessage(errorMessage);
@@ -125,7 +125,7 @@ export async function projectDeleteSource(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     manifestChecker,
     new ConfirmationAndSourcePathGatherer(sourceUri),
-    new ProjectDeleteSourceExecutor(isSourceTracked)
+    new DeleteSourceExecutor(isSourceTracked)
   );
   await commandlet.run();
 }

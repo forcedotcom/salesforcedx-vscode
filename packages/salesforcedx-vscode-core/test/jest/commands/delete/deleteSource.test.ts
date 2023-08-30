@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import { ProjectDeleteSourceExecutor } from '../../../../src/commands';
+import { DeleteSourceExecutor } from '../../../../src/commands';
 
 describe('Project Delete Source', () => {
   let isSourceTracked: boolean;
@@ -14,7 +14,7 @@ describe('Project Delete Source', () => {
 
   it('Should build the delete source command with --track-source flag when connected to a source-tracked org', () => {
     isSourceTracked = true;
-    const executor = new ProjectDeleteSourceExecutor(isSourceTracked);
+    const executor = new DeleteSourceExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
     expect(sourceDeleteCommand.toCommand()).toEqual(
       `sfdx project:delete:source --source-dir ${sourcePath} --no-prompt --track-source`
@@ -23,7 +23,7 @@ describe('Project Delete Source', () => {
 
   it('Should build the delete source command without --track-source flag when connected to a non-source-tracked org', () => {
     isSourceTracked = false;
-    const executor = new ProjectDeleteSourceExecutor(isSourceTracked);
+    const executor = new DeleteSourceExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
     expect(sourceDeleteCommand.toCommand()).toEqual(
       `sfdx project:delete:source --source-dir ${sourcePath} --no-prompt`
