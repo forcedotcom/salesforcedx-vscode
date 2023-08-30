@@ -341,7 +341,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         fs.writeFileSync(
           path.join(
             projectInstalledPackagesPath,
-            packageInfo.name.replace('.', '-'),
+            packageInfo.name.replace(/[^a-zA-Z0-9]/g, '-'),
             'installed-package.json'
           ),
           JSON.stringify(packageInfo, null, 2),
