@@ -89,7 +89,7 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     let output = '';

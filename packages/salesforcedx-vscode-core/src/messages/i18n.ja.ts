@@ -103,12 +103,12 @@ export const messages = {
     'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
   force_source_retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
-  force_source_delete_text: 'SFDX: プロジェクトおよび組織から削除',
-  force_source_delete_manifest_unsupported_message:
+  project_delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
+  project_delete_source_manifest_unsupported_message:
     'SFDX: 組織およびプロジェクトから削除 はマニフェストファイルでサポートされていません。削除するソースファイルやディレクトリを選択してください。',
-  force_source_delete_select_file_or_directory:
+  project_delete_source_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: プロジェクトおよび組織から削除 を実行できます。',
-  force_source_delete_confirmation_message:
+  project_delete_source_confirmation_message:
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',

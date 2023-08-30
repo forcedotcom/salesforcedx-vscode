@@ -56,7 +56,6 @@ import {
   forceRefreshSObjects,
   forceRenameLightningComponent,
   forceSfdxProjectCreate,
-  forceSourceDelete,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -66,15 +65,14 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  projectDeleteSource,
   registerFunctionInvokeCodeLensProvider,
-  SourceStatusFlags,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
@@ -123,12 +121,6 @@ import { OrgAuthInfo } from './util/authInfo';
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
-const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Local
-};
-const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Remote
-};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -166,13 +158,13 @@ function registerCommands(
     ORG_OPEN_COMMAND,
     forceOrgOpen
   );
-  const forceSourceDeleteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete',
-    forceSourceDelete
+  const projectDeleteSourceCmd = vscode.commands.registerCommand(
+    'sfdx.project.delete.source',
+    projectDeleteSource
   );
-  const forceSourceDeleteCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete.current.file',
-    forceSourceDelete
+  const projectDeleteSourceCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.project.delete.source.current.file',
+    projectDeleteSource
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
@@ -430,8 +422,8 @@ function registerCommands(
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
     forceRefreshSObjectsCmd,
-    forceSourceDeleteCmd,
-    forceSourceDeleteCurrentFileCmd,
+    projectDeleteSourceCmd,
+    projectDeleteSourceCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,

@@ -46,11 +46,11 @@ export {
   getExecutor
 } from './forceOrgOpen';
 export {
-  forceSourceDelete,
+  projectDeleteSource,
   ConfirmationAndSourcePathGatherer,
-  ForceSourceDeleteExecutor,
+  ProjectDeleteSourceExecutor,
   ManifestChecker
-} from './forceSourceDelete';
+} from './projectDeleteSource';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   forceSourceDeploySourcePaths,
