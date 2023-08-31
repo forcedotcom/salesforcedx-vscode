@@ -106,7 +106,7 @@ jobs:
             # echo $TESTS_TO_RUN
           fi
           echo 'after if statement block'
-          echo TESTS_TO_RUN
+          echo $TESTS_TO_RUN
 
       # - name: Check if auraLsp is selected
       #   run: |
