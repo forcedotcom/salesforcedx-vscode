@@ -26,7 +26,8 @@ on:
 jobs:
   build:
     env:
-      testsToRun: 'auraLsp.e2e.ts;visualforceLsp.e2e.ts'
+      # testsToRun: 'auraLsp.e2e.ts;visualforceLsp.e2e.ts'
+      TESTS_TO_RUN: ''
       # try putting the big block of if statements here?
     runs-on: ${{ matrix.os }}
     strategy:
@@ -80,6 +81,27 @@ jobs:
             echo "The sfdx-cli installation could not be verified"
             exit 1
           fi
+
+      - name: Check which e2e tests are selected
+        run: |
+          echo 'inside check which e2e tests are selected'
+          echo ${{ inputs.auraLsp }}
+          if (${{ inputs.auraLsp }} == true);
+          then
+            echo TESTS_TO_RUN = "auraLsp.e2e.ts;"
+            echo 'auraLsp is selected'
+          fi
+          if (${{ inputs.lwcLsp }} == true);
+          then
+            echo TESTS_TO_RUN = "$TESTS_TO_RUNlwcLsp.e2e.ts;"
+            echo 'lwcLsp is selected'
+          fi
+          if (${{ inputs.visualforceLsp }} == true);
+          then
+            echo TESTS_TO_RUN = "$TESTS_TO_RUNvisualforceLsp.e2e.ts;"
+            echo 'visualforceLsp is selected'
+          fi
+
       - name: Check if auraLsp is selected
         run: |
           echo 'inside auraLsp step 2'
@@ -110,7 +132,7 @@ jobs:
           run: |
             npm run setup
             npm run automation-tests
-            echo 'testsToRun = ' + ${{ env.testsToRun }}
+            echo 'testsToRun = ' + ${{ env.TESTS_TO_RUN }}
             echo 'auraLsp = ' + ${{ inputs.auraLsp }}
             echo 'lwcLsp = ' + ${{ inputs.lwcLsp }}
             echo 'visualforceLwp = ' + ${{ inputs.visualforceLsp }}
