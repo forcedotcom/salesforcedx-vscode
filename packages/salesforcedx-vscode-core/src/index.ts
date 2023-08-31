@@ -510,10 +510,10 @@ function registerInternalDevCommands(
   );
 }
 
-function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
+function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
-    () => orgList.setDefaultOrg()
+    () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
@@ -713,8 +713,8 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Register org picker commands
-  const orgList = new OrgList();
-  extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
+  const newOrgList = new OrgList();
+  extensionContext.subscriptions.push(registerOrgPickerCommands(newOrgList));
 
   await setupOrgBrowser(extensionContext);
   await setupConflictView(extensionContext);
@@ -725,7 +725,7 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await registerPushOrDeployOnSave();
   await decorators.showOrg();
 
-  await setUpOrgExpirationWatcher(orgList);
+  await setUpOrgExpirationWatcher(newOrgList);
 
   // Demo mode decorator
   if (isDemoMode()) {
