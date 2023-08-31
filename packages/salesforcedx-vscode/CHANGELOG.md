@@ -1,4 +1,4 @@
-# 58.14.1 - September 2, 2023
+# 58.14.1 - September 1, 2023
 
 ## Fixed
 
@@ -8,7 +8,8 @@
 
 #### salesforcedx-vscode-core
 
-- Suppress Output Channel with sObject Refresh in a Container Env ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
+- Suppress Output Panel with sObject Refresh in a Container Env ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
+- `SFDX: Create and Set Up Project for ISV Debugging` ([PR #5038](https://github.com/forcedotcom/salesforcedx-vscode/pull/5038), [ISSUE #5032](https://github.com/forcedotcom/salesforcedx-vscode/issues/5032))
 
 # 58.13.1 - August 25, 2023
 
