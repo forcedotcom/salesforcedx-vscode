@@ -1,3 +1,15 @@
+# 58.14.1 - September 2, 2023
+
+## Fixed
+
+#### docs
+
+- Apex lsp update ([PR #5044](https://github.com/forcedotcom/salesforcedx-vscode/pull/5044))
+
+#### salesforcedx-vscode-core
+
+- Suppress Output Channel with sObject Refresh in a Container Env ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
+
 # 58.13.1 - August 25, 2023
 
 ## Added
