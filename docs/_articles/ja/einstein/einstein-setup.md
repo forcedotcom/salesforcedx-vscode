@@ -41,13 +41,16 @@ VS Code releases a new version each month with new features and important bug fi
 ## Install Einstein for Developers Extensions
 
 First install Salesforce Extensions and Salesforce CLI on your desktop to use Einstein for Developers(beta) locally.
+
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
+
 Then install Einstein for Developers(beta)from the VS Code marketplace.
 
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt">Install Einstein for Developers(beta)</a>
+
 Open a Salesforce DX project in VS Code. A sidebar panel opens and the Einstein logo on the activity bar confirms that the extension is installed.
 
-![vsix command location](../../../images/einstein-sidebar.png)
+![einstein installed](../../../images/einstein-sidebar.png)
 
 ## Connect to an Org
 
