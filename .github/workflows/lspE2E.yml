@@ -90,19 +90,19 @@ jobs:
           then
             TESTS_TO_RUN = "auraLsp.e2e.ts;"
             echo 'auraLsp is selected'
-            echo TESTS_TO_RUN
+            echo $TESTS_TO_RUN
           fi
           if (${{ inputs.lwcLsp }} == true);
           then
-            TESTS_TO_RUN = "$TESTS_TO_RUNlwcLsp.e2e.ts;"
+            TESTS_TO_RUN = "${{env.TESTS_TO_RUN}}lwcLsp.e2e.ts;"
             echo 'lwcLsp is selected'
-            echo TESTS_TO_RUN
+            echo $TESTS_TO_RUN
           fi
           if (${{ inputs.visualforceLsp }} == true);
           then
-            TESTS_TO_RUN = "$TESTS_TO_RUNvisualforceLsp.e2e.ts;"
+            TESTS_TO_RUN = "${{env.TESTS_TO_RUN}}visualforceLsp.e2e.ts;"
             echo 'visualforceLsp is selected'
-            echo TESTS_TO_RUN
+            echo $TESTS_TO_RUN
           fi
 
       - name: Check if auraLsp is selected
