@@ -52,7 +52,7 @@ Then install Einstein for Developers(beta)from the VS Code marketplace.
 
 Open a Salesforce DX project in VS Code. A sidebar panel opens and the Einstein logo on the activity bar confirms that the extension is installed.
 
-![einstein installed](../../../images/einstein-sidebar.png)
+![einstein installed](../../../images/einstein-installed.png)
 
 ## Connect to an Org
 
