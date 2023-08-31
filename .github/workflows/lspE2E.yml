@@ -89,7 +89,7 @@ jobs:
           echo 'before if statement block'
           if (${{ inputs.auraLsp }} == true);
           then
-            TESTS_TO_RUN = "auraLsp.e2e.ts;"
+            TESTS_TO_RUN=auraLsp.e2e.ts;
             echo 'auraLsp is selected'
             # echo $TESTS_TO_RUN
           fi
