@@ -13,8 +13,6 @@ Prompt writing is key to quality code generation. Here’s some tips for improve
 | Write a method that adds two numbers.                   | Write a method that adds two numbers and returns the result.                   |
 | Write an apex method that returns fields for an object. | Write an apex method that accepts an SObject and returns a list of its fields. |
 
-<br>
-
 **Prompt:** Write an apex method that accepts a List of sObjects and a field name and returns a Set of non null field values.
 
 **Response:**
@@ -88,7 +86,9 @@ trigger gptcontacttrigger on Account (after insert, after update) {
 
 ## Edit a Prompt and Regenerate Output
 
-A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. For example, the prompt, "_Write code to provide the ability to update the FirstName for a list of users_" generates the following response:
+A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. Use **Retry** and **Accept** option that's available when you use `Einstein: Generate Code`command from the command palette.
+
+For example, the prompt, "_Write code to provide the ability to update the FirstName for a list of users_" generates the following response:
 
 ```
 public with sharing class AccountService {
@@ -128,6 +128,7 @@ public with sharing class AccountService {
     );
     return newAcct;
   }
+}
 ```
 
 ```

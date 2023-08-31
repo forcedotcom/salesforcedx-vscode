@@ -3,25 +3,23 @@ title: Einstein for Developers Overview
 lang: en
 ---
 
-Einstein for Developers is an AI-powered developer tool that is available as an easy-to-install VS Code extension built using CodeGen, Salesforce’s secure, custom AI model. Use the tool to enhance developer productivity by quickly generating code using natural language instructions.
+Einstein for Developers is an AI-powered developer tool that is available as an easy-to-install VS Code extension built using CodeGen, Salesforce’s secure, custom AI model. Use the tool to enhance developer productivity by quickly generating code suggestions using natural language instructions. The extension is available in the [VS Code](https://marketplace.visualstudio.com/vscode) and [Open VSX](https://open-vsx.org/) marketplaces.
 
-Einstein for Developers assists you throughout the Salesforce development process with expertise learned from anonymized code patterns. The long-term goals of our suite of AI-powered developer tools are to increase productivity and provide helpful assistance for complex coding tasks. We aim to enforce development best practices with our code generation and just-in-time code completion features eventually. AI-assisted tooling will also make it easier for new developers to onboard to the Salesforce Platform.
+Einstein for Developers assists you throughout the Salesforce development process with expertise learned from anonymized code patterns. The goal of our suite of AI-powered developer tools are to increase productivity and provide helpful assistance for complex coding tasks. We enforce development best practices with our code generation and just-in-time code completion features. AI-assisted tooling also makes it easier for new developers to onboard to the Salesforce Platform.
 
 ## Current Capabilities
 
-The beta focuses on natural language to Apex code generation. This feature, used along with IntelliSense, makes Apex development tooling in Visual Studio Code even richer. Familiarity with Visual Studio Code is assumed.
+This Einstein for Developers(beta) focuses on natural language to Apex code generation. This feature, used along with IntelliSense, makes Apex development tooling in Visual Studio Code even richer. Familiarity with Visual Studio Code is assumed.
 
-Currently, the Einstein for Devs extension can:
+Currently, you can use the extension to:
 
+- Generate code from natural language instructions, in a side bar. You can then copy the generated code and paste it in a file in the editor as appropriate.
 - Generate code from natural language instructions within an existing Apex class, trigger, or anonymous Apex file. A new command in the VS Code Command Palette, `Einstein: Generate Code`, lets you enter in a prompt describing what you'd like to build and then generate Apex code within your editor.
-- Sidebar stuff here.
 
-At this time, the tool does not:
+At this time, you cannot use the extension to:
 
 - Create _new_ Apex class files through natural language prompts. Apex files must already be created to trigger the command.
 - Take into account any metadata (or context) from your local project or Salesforce org. Generated code is determined by your prompt only.
-
-We plan to follow up with inline code completion and LWC code generation in the coming months.
 
 ## About Trusted Generative AI at Salesforce
 

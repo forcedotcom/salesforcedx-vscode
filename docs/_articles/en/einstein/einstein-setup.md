@@ -1,11 +1,14 @@
 ---
-title: Einstein for Developers(beta) Setup
+title: Einstein for Developers Setup
 lang: en
 ---
 
 ## Set Up Overview
 
-A Salesforce admin or user with the appropriate permissions can install Einstein for Developers.
+A Salesforce admin or user with the appropriate permissions can install Einstein for Developers in a supported Salesforce org. A developer with access to the org can then:
+
+1.  Install the extension in VS Code.
+2.  Connect to the org to use the extension.
 
 ### Required Salesforce Editions and User Permissions
 
@@ -17,13 +20,16 @@ A Salesforce admin or user with the appropriate permissions can install Einstein
 
 **Configure Einstein for Developers(beta)**: `CustomizeApplication` and `ModifyAllData`
 
-## Enable Einstein for Developers(beta)
+## Enable Einstein for Developers
 
-An Admin can enable (Einstein for Developers(beta) in a supported Salesforce org.
+An Admin can enable Einstein for Developers in a supported Salesforce org by following the given steps.
 
 1. From Setup, enter Einstein for Developers in the Quick Find box, then select Einstein for Developers. If you don’t see Einstein for Developers as an option under Setup in your Developer Edition org, it was likely created before Einstein for Developers was introduced and doesn’t have the correct permissions. To continue, create another Developer Edition org.
 2. Enable Einstein for Developers, and then review and accept the license agreement.
-   Einstein for Developers(beta) is activated in the org and all the users in the org have access to the feature.
+
+Einstein for Developers(beta) is activated in the org and all the users in the org have access to the feature.
+
+### Add Users to the Org
 
 An admin can add additional users to the org as needed:
 
@@ -38,21 +44,19 @@ An admin can add additional users to the org as needed:
 
 VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.76 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
 
+## Get Started with Einstein for Developers
+
+A developer with access to an org enabled for Einstein for Developers can install the Einstein for Developers extensions in VS Code, connect to org and start using the extension.
+
 ## Install Einstein for Developers Extensions
 
-First install Salesforce Extensions and Salesforce CLI on your desktop to use Einstein for Developers(beta) locally.
+To use Einstein for Developerslocally, first install Salesforce Extensions and Salesforce CLI on your desktop.
 
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
-
 
 Then install Einstein for Developers(beta)from the VS Code marketplace.
 
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt">Install Einstein for Developers(beta)</a>
-
-
-Open a Salesforce DX project in VS Code. A sidebar panel opens and the Einstein logo on the activity bar confirms that the extension is installed.
-
-![einstein installed](../../../images/einstein-installed.png)
 
 ## Connect to an Org
 
@@ -62,6 +66,10 @@ The Einstein for Developers(beta) tool is run in the context of a Salesforce org
 
 2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers(beta) enabled.
 
+A sidebar panel opens and the Einstein logo on the activity bar confirms that the extension is installed.
+
+![einstein installed](../../../images/einstein-installed.png)
+
 ### Use Einstein for Developers(beta) in a Scratch Org
 
 Einstein for Developers(beta)is only available in scratch org editions that can author Apex:
@@ -69,7 +77,7 @@ Einstein for Developers(beta)is only available in scratch org editions that can 
 - Developer Edition
 - Enterprise Edition
 
-Activate Einstein for Developers(beta) by turning on an add-on scratch org feature.
+Activate Einstein for Developers by turning on an add-on scratch org feature.
 
 Edit and save the `config/project-scratch-def.json` file in your DX project to add the “`EinsteinGPTForDevelopers`” feature to your existing feature list.
 
@@ -88,4 +96,3 @@ For example:
 Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
 
 ![feedback panel](../../../images/einstein-feedback.png)
-
