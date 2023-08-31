@@ -18,15 +18,15 @@ describe('isvdebugging unit test', () => {
     expect(isvDebugBootstrapExecutorInst).toBeDefined();
   });
 
-  it('should test readonly relativeMetdataTempPath property', () => {
+  it('should test readonly relativeMetadataTempPath property', () => {
     isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeMetdataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
+    expect(isvDebugBootstrapExecutorInst.relativeMetadataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
     expect(relativeToolsFolderStub).toBeCalled();
   });
 
   it('should test readonly relativeApexPackageXmlPath property', () => {
     isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(path.join(isvDebugBootstrapExecutorInst.relativeMetdataTempPath, PACKAGE_XML));
+    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(path.join(isvDebugBootstrapExecutorInst.relativeMetadataTempPath, PACKAGE_XML));
   });
 
   it('should test readonly relativeInstalledPackagesPath property', () => {

@@ -165,7 +165,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         `sfdx project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
       );
       expect(createCommand.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step1_create_project')
+        nls.localize('isv_debug_bootstrap_create_project')
       );
     });
 
@@ -185,7 +185,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         `sfdx config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
       expect(configureCommand.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step2_configure_project')
+        nls.localize('isv_debug_bootstrap_configure_project')
       );
     });
 
@@ -206,7 +206,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
       expect(command.description).to.equal(
         nls.localize(
-          'isv_debug_bootstrap_step2_configure_project_retrieve_namespace'
+          'isv_debug_bootstrap_configure_project_retrieve_namespace'
         )
       );
     });
@@ -236,31 +236,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --target-metadata-dir ${builder.relativeMetdataTempPath} --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
+        `sfdx project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
       );
       expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
-      );
-    });
-
-    it('Verify buildMetadataApiConvertOrgSourceCommand', async () => {
-      const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildMetadataApiConvertOrgSourceCommand({
-        loginUrl: LOGIN_URL,
-        sessionId: SESSION_ID,
-        orgName: PROJECT_NAME,
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.standard
-      });
-      expect(command.toCommand()).to.equal(
-        `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetdataTempPath,
-          'unpackaged'
-        )} --output-dir force-app`
-      );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step4_convert_org_source')
+        nls.localize('isv_debug_bootstrap_retrieve_org_source')
       );
     });
 
@@ -278,14 +257,14 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         `sfdx package:installed:list --target-org ${SESSION_ID} --json --loglevel fatal`
       );
       expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
+        nls.localize('isv_debug_bootstrap_list_installed_packages')
       );
     });
 
-    it('Verify buildRetrievePackagesSourceCommand', async () => {
-      const packageNames = ['mypackage_abc', 'mpackage_def'];
+    it('Verify buildRetrievePackageSourceCommand', async () => {
+      const packageName = 'mypackage_abc_mpackage_def';
       const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildRetrievePackagesSourceCommand(
+      const command = builder.buildRetrievePackageSourceCommand(
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
@@ -294,37 +273,13 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
         },
-        packageNames
-      );
-      expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --target-metadata-dir ${builder.relativeMetdataTempPath} --package-name mypackage_abc,mpackage_def --target-org ${SESSION_ID}`
-      );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
-      );
-    });
-
-    it('Verify buildMetadataApiConvertPackageSourceCommand', async () => {
-      const packageName = 'mypackage_abc';
-      const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildMetadataApiConvertPackageSourceCommand(
         packageName
       );
       expect(command.toCommand()).to.equal(
-        `sfdx project:convert:mdapi --root-dir ${path.join(
-          builder.relativeMetdataTempPath,
-          'packages',
-          packageName
-        )} --output-dir ${path.join(
-          builder.relativeInstalledPackagesPath,
-          packageName
-        )}`
+        `sfdx project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
       );
       expect(command.description).to.equal(
-        nls.localize(
-          'isv_debug_bootstrap_step7_convert_package_source',
-          packageName
-        )
+        nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
       );
     });
 
@@ -367,7 +322,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const projectPath = path.join(PROJECT_DIR[0].fsPath, PROJECT_NAME);
       const projectMetadataTempPath = path.join(
         projectPath,
-        executor.relativeMetdataTempPath
+        executor.relativeMetadataTempPath
       );
       const projectInstalledPackagesPath = path.join(
         projectPath,
@@ -393,15 +348,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           '{"status":0,"result":{"totalSize":1,"done":true,"records":[{"attributes":{"type":"Organization","url":"/services/data/v42.0/sobjects/Organization/00D1F0000008gTUUAY"},"NamespacePrefix":null}]}}'
         );
 
-      // fake org source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(3).callsFake(() => {
-        const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
-        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      });
-
       // fake package list retrieval
-      executeCommandSpy.onCall(5).returns(
+      executeCommandSpy.onCall(4).returns(
         JSON.stringify({
           status: 0,
           result: [
@@ -418,15 +366,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         })
       );
 
-      // fake package source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(6).callsFake(() => {
-        const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
-        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      });
-
       // fake package metadata convert
-      executeCommandSpy.onCall(7).callsFake(() => {
+      executeCommandSpy.onCall(5).callsFake(() => {
         shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'mypackage'));
       });
 
@@ -440,7 +381,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       } as ContinueResponse<IsvDebugBootstrapConfig>;
       await executor.execute(input);
-      expect(executeCommandSpy.callCount).to.equal(8);
+      expect(executeCommandSpy.callCount).to.equal(6);
       expect(vscodeCommandSpy.callCount).to.equal(1);
 
       // there should be a launch config
