@@ -84,7 +84,7 @@ jobs:
         run: |
           echo 'inside auraLsp step 2'
           echo ${{ inputs.auraLsp }}
-          if ${{ inputs.auraLsp }} == true;
+          if (${{ inputs.auraLsp }} == true);
           then
             echo 'auraLsp is selected'
           fi
@@ -92,7 +92,7 @@ jobs:
         run: |
           echo 'inside lwcLsp step 2'
           echo ${{ inputs.lwcLsp }}
-          if ${{ inputs.lwcLsp }} == true;
+          if (${{ inputs.lwcLsp }} == true);
           then
             echo 'lwcLsp is selected'
           fi
@@ -100,7 +100,7 @@ jobs:
         run: |
           echo 'inside visualforceLsp step 2'
           echo ${{ inputs.visualforceLsp }}
-          if ${{ inputs.visualforceLsp }} == true;
+          if (${{ inputs.visualforceLsp }} == true);
           then
             echo 'visualforceLsp is selected'
           fi
