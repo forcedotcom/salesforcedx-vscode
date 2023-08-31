@@ -5,7 +5,7 @@
 #### salesforcedx-vscode-core
 
 - We made improvements to the `SFDX: Create and Set Up Project for ISV Debugging` command by greatly reducing the number of steps involved in the retrieval of metadata and packages. We recommend that you use `sfdx-cli v7.192.2` or above to run this command successfully. We hope you find this update helpful. Thank you [Jelle van Geuns](https://github.com/jvg123) for opening the issue. Happy debugging! ([PR #5038](https://github.com/forcedotcom/salesforcedx-vscode/pull/5038), [ISSUE #5032](https://github.com/forcedotcom/salesforcedx-vscode/issues/5032))
-- We made some changes that prevent the output panel from opening when the `SFDX: Refresh SObject Definitions` command is run in a container environment. ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
+- We made some changes that prevent the output panel from opening when the `SFDX: Refresh SObject Definitions` command is run in a container. ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
 
 #### docs
 
