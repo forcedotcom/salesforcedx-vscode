@@ -26,7 +26,7 @@ on:
 jobs:
   build:
     env:
-      testsToRun: ''
+      testsToRun: 'auraLsp.e2e.ts;visualforceLsp.e2e.ts'
       # try putting the big block of if statements here?
     runs-on: ${{ matrix.os }}
     strategy:
