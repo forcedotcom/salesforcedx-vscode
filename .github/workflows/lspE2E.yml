@@ -101,7 +101,7 @@ jobs:
           fi
           if (${{ inputs.visualforceLsp }} == true);
           then
-            TESTS_TO_RUN=$TESTS_TO_RUNvisualforceLsp.e2e.ts;
+            TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts;
             echo 'visualforceLsp is selected'
             # echo $TESTS_TO_RUN
           fi
