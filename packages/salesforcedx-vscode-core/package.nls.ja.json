@@ -31,7 +31,7 @@
   "force_org_delete_username_text": "SFDX: 組織を削除...",
   "force_org_display_default_text": "SFDX: デフォルトの組織の詳細を表示",
   "force_org_display_username_text": "SFDX: 組織の詳細を表示...",
-  "force_org_list_clean_text": "SFDX: 削除済みまたは期限切れの組織を一覧から削除",
+  "org_list_clean_text": "SFDX: 削除済みまたは期限切れの組織を一覧から削除",
   "force_data_soql_query_input_text": "SFDX: SOQL クエリを実行...",
   "force_data_soql_query_selection_text": "SFDX: 現在選択されているテキストを使用して SOQL クエリを実行",
   "force_package_install_text": "SFDX: パッケージをインストール",

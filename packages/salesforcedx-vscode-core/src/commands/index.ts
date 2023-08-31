@@ -158,7 +158,7 @@ export {
   handleCacheResults
 } from './forceSourceDiff';
 export { forceCreateManifest } from './forceCreateManifest';
-export { forceOrgList } from './forceOrgList';
+export { orgList } from './orgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {

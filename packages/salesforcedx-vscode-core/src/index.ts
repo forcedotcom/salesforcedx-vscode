@@ -49,7 +49,6 @@ import {
   forceOrgCreate,
   forceOrgDelete,
   forceOrgDisplay,
-  forceOrgList,
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
@@ -73,6 +72,7 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgList,
   registerFunctionInvokeCodeLensProvider,
   SourceStatusFlags,
   turnOffLogging,
@@ -313,9 +313,9 @@ function registerCommands(
     forceOrgDisplay,
     { flag: '--targetusername' }
   );
-  const forceOrgListCleanCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.list.clean',
-    forceOrgList
+  const orgListCleanCmd = vscode.commands.registerCommand(
+    'sfdx.org.list.clean',
+    orgList
   );
   const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query.input',
@@ -428,7 +428,7 @@ function registerCommands(
     forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
-    forceOrgListCleanCmd,
+    orgListCleanCmd,
     forceRefreshSObjectsCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,

@@ -525,7 +525,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.list.clean",
+          "command": "sfdx.org.list.clean",
           "when": "sfdx:project_opened"
         },
         {
@@ -768,8 +768,8 @@
         "title": "%force_org_display_username_text%"
       },
       {
-        "command": "sfdx.force.org.list.clean",
-        "title": "%force_org_list_clean_text%"
+        "command": "sfdx.org.list.clean",
+        "title": "%org_list_clean_text%"
       },
       {
         "command": "sfdx.force.data.soql.query.input",
