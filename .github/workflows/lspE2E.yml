@@ -84,12 +84,12 @@ jobs:
 
       - name: Check which e2e tests are selected
         run: |
-          TESTS_TO_RUN=testvalue
+          TESTS_TO_RUN=dummyvalue
           echo 'inside check which e2e tests are selected'
           echo 'before if statement block'
           if (${{ inputs.auraLsp }} == true);
           then
-            TESTS_TO_RUN=auraLsp.e2e.ts;
+            TESTS_TO_RUN=$TESTS_TO_RUN+auraLsp.e2e.ts;
             echo 'auraLsp is selected'
             # echo $TESTS_TO_RUN
           fi
