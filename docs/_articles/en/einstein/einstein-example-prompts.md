@@ -86,7 +86,7 @@ trigger gptcontacttrigger on Account (after insert, after update) {
 
 ## Edit a Prompt and Regenerate Output
 
-A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. Use **Retry** and **Accept** option that's available when you use `Einstein: Generate Code`command from the command palette.
+A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. Use **Retry** and **Accept** option that's available when you use `Einstein: Generate Code`command from the command palette, or in the sidebar, edit the prompt and **Ask**. 
 
 For example, the prompt, "_Write code to provide the ability to update the FirstName for a list of users_" generates the following response:
 
