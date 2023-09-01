@@ -58,11 +58,11 @@ To use Einstein for Developers locally, you must have the Salesforce Extensions 
 
 ## Connect to an Org
 
-The Einstein for Developers(beta) tool is run in the context of a Salesforce org, in Salesforce DX project. To use this tool:
+The Einstein for Developers tool is run in the context of a Salesforce org, in Salesforce DX project. To use this tool:
 
 1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create a new one.
 
-2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers(beta) enabled.
+2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled.
 
 The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the side bar.
 
@@ -70,7 +70,7 @@ The Einstein logo on the activity bar and in the status bar confirms that the ex
 
 ### Use Einstein for Developers in a Scratch Org
 
-Einstein for Developers(beta)is only available in scratch org editions that can author Apex:
+Einstein for Developers is only available in scratch org editions that can author Apex:
 
 - Developer Edition
 - Enterprise Edition
