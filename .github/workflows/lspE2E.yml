@@ -95,13 +95,13 @@ jobs:
           fi
           if (${{ inputs.lwcLsp }} == true);
           then
-            TESTS_TO_RUN=$TESTS_TO_RUN+lwcLsp.e2e.ts;"
+            TESTS_TO_RUN=$TESTS_TO_RUN+lwcLsp.e2e.ts
             echo 'lwcLsp is selected'
             # echo $TESTS_TO_RUN
           fi
           if (${{ inputs.visualforceLsp }} == true);
           then
-            TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts;
+            TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts
             echo 'visualforceLsp is selected'
             # echo $TESTS_TO_RUN
           fi
