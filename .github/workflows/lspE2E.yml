@@ -83,6 +83,7 @@ jobs:
       #     fi
 
       - name: Check which e2e tests are selected
+        shell: bash
         run: |
           TESTS_TO_RUN=dummyvalue
           echo 'inside check which e2e tests are selected'
