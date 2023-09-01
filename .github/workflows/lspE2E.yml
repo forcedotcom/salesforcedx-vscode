@@ -25,10 +25,8 @@ on:
 
 jobs:
   build:
-    # env:
-      # testsToRun: 'auraLsp.e2e.ts;visualforceLsp.e2e.ts'
-      # TESTS_TO_RUN: ''
-      # try putting the big block of if statements here?
+    env:
+      ENV_TESTS_TO_RUN: ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -92,61 +90,36 @@ jobs:
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+auraLsp.e2e.ts
             echo 'auraLsp is selected'
-            # echo $TESTS_TO_RUN
           fi
           if (${{ inputs.lwcLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+lwcLsp.e2e.ts
             echo 'lwcLsp is selected'
-            # echo $TESTS_TO_RUN
           fi
           if (${{ inputs.visualforceLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts
             echo 'visualforceLsp is selected'
-            # echo $TESTS_TO_RUN
           fi
           echo 'after if statement block'
           echo $TESTS_TO_RUN
+          ${{ env.ENV_TESTS_TO_RUN }} = $TESTS_TO_RUN
+          echo ${{ env.ENV_TESTS_TO_RUN }}
 
-      # - name: Check if auraLsp is selected
-      #   run: |
-      #     echo 'inside auraLsp step 2'
-      #     echo ${{ inputs.auraLsp }}
-      #     if (${{ inputs.auraLsp }} == true);
-      #     then
-      #       echo 'auraLsp is selected'
-      #     fi
-      # - name: Check if lwcLsp is selected
-      #   run: |
-      #     echo 'inside lwcLsp step 2'
-      #     echo ${{ inputs.lwcLsp }}
-      #     if (${{ inputs.lwcLsp }} == true);
-      #     then
-      #       echo 'lwcLsp is selected'
-      #     fi
-      # - name: Check if visualforceLsp is selected
-      #   run: |
-      #     echo 'inside visualforceLsp step 2'
-      #     echo ${{ inputs.visualforceLsp }}
-      #     if (${{ inputs.visualforceLsp }} == true);
-      #     then
-      #       echo 'visualforceLsp is selected'
-      #     fi
       # - name: Run headless test
       #   uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
       #   with:
       #     run: |
       #       npm run setup
       #       npm run automation-tests
-      #       echo 'testsToRun = ' + ${{ env.TESTS_TO_RUN }}
+      #       echo 'testsToRun = ' + ${{ env.ENV_TESTS_TO_RUN }}
       #       echo 'auraLsp = ' + ${{ inputs.auraLsp }}
       #       echo 'lwcLsp = ' + ${{ inputs.lwcLsp }}
       #       echo 'visualforceLwp = ' + ${{ inputs.visualforceLsp }}
       #     working-directory: salesforcedx-vscode-automation-tests
       #   env:
       #     VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-      #     SPEC_FILES: ${{ env.testsToRun }}
+      #     SPEC_FILES: ${{ env.ENV_TESTS_TO_RUN }}
       #     SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       #     ORG_ID: ${{ secrets.ORG_ID_E2E }}
       # - uses: actions/upload-artifact@v3
