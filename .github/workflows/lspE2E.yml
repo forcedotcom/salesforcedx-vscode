@@ -25,8 +25,6 @@ on:
 
 jobs:
   build:
-    # env:
-      # ENV_TESTS_TO_RUN: ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -105,7 +103,8 @@ jobs:
           echo $TESTS_TO_RUN
           # env.ENV_TESTS_TO_RUN = $TESTS_TO_RUN
           echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> $GITHUB_ENV
-          echo ${{ env.ENV_TESTS_TO_RUN }}
+          # echo ${{ env.ENV_TESTS_TO_RUN }}
+          echo $ENV_TESTS_TO_RUN
 
       # - name: Run headless test
       #   uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
