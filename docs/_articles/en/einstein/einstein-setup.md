@@ -52,11 +52,9 @@ VS Code releases a new version each month with new features and important bug fi
 
 To use Einstein for Developers locally, you must have the Salesforce Extensions pack installed in your VS Code for desktop application.
 
-1. Install the Salesforce extension pack if needed.
-   <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install Salesforce Extensions Pack</a>
+1. Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode), if needed.
+2. Install [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt).
 
-2. Install Einstein for Developers.
-   <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt">Install Einstein for Developers(beta)</a>
 
 ## Connect to an Org
 
