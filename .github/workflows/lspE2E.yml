@@ -103,7 +103,7 @@ jobs:
           fi
           echo 'after if statement block'
           echo $TESTS_TO_RUN
-          Write-Host "##vso[task.setvariable variable=env.ENV_TESTS_TO_RUN;]$TESTS_TO_RUN"
+          Write-Host "##vso[task.setvariable variable=ENV_TESTS_TO_RUN;]$TESTS_TO_RUN"
           # env.ENV_TESTS_TO_RUN = $TESTS_TO_RUN
           echo ${{ env.ENV_TESTS_TO_RUN }}
 
