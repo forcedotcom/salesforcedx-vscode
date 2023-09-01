@@ -49,7 +49,7 @@ function getLastOpenedLogFolder(
 }
 
 function folderExists(path: string): boolean {
-  return pathExists.sync(path);
+  return pathExists.pathExistsSync(path);
 }
 
 function getUriFor(path: string): vscode.Uri {
