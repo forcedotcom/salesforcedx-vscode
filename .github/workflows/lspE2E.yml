@@ -101,15 +101,12 @@ jobs:
             TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts
             echo 'visualforceLsp is selected'
           fi
-          echo 'after if statement block 1'
+          echo 'after if statement block 2'
           echo $TESTS_TO_RUN
           echo "ENV_TESTS_TO_RUN=abcdefg" >> "$GITHUB_ENV"
-          # echo "##vso[task.setvariable variable=ENV_TESTS_TO_RUN;]$TESTS_TO_RUN"
-          # export TESTS_TO_RUN=${{ env.ENV_TESTS_TO_RUN }}
-          # export ${{ env.ENV_TESTS_TO_RUN }}=TESTS_TO_RUN
-          # echo "::set-env name=ENV_TESTS_TO_RUN::$TESTS_TO_RUN"
-          echo ${{ env.ENV_TESTS_TO_RUN }}
-          echo $ENV_TESTS_TO_RUN
+      - name: Print env.ENV_TESTS_TO_RUN
+        shell: bash
+        run: echo ${{ env.ENV_TESTS_TO_RUN }}
 
       # - name: Run headless test
       #   uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
