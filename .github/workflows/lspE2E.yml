@@ -103,10 +103,10 @@ jobs:
           fi
           echo 'after if statement block 1'
           echo $TESTS_TO_RUN
-          # echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> $GITHUB_ENV
+          echo "ENV_TESTS_TO_RUN=abcdefg" >> $GITHUB_ENV
           # echo "##vso[task.setvariable variable=ENV_TESTS_TO_RUN;]$TESTS_TO_RUN"
           # export TESTS_TO_RUN=${{ env.ENV_TESTS_TO_RUN }}
-          export ${{ env.ENV_TESTS_TO_RUN }}=TESTS_TO_RUN
+          # export ${{ env.ENV_TESTS_TO_RUN }}=TESTS_TO_RUN
           echo ${{ env.ENV_TESTS_TO_RUN }}
           echo $ENV_TESTS_TO_RUN
 
