@@ -87,19 +87,19 @@ jobs:
           TESTS_TO_RUN=dummyvalue
           echo 'inside check which e2e tests are selected'
           echo 'before if statement block'
-          if (${{ inputs.auraLsp }} == true);
+          if (${{ inputs.auraLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+auraLsp.e2e.ts
             echo 'auraLsp is selected'
             # echo $TESTS_TO_RUN
           fi
-          if (${{ inputs.lwcLsp }} == true);
+          if (${{ inputs.lwcLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+lwcLsp.e2e.ts
             echo 'lwcLsp is selected'
             # echo $TESTS_TO_RUN
           fi
-          if (${{ inputs.visualforceLsp }} == true);
+          if (${{ inputs.visualforceLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts
             echo 'visualforceLsp is selected'
