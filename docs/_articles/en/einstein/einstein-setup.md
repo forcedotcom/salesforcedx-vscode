@@ -24,10 +24,13 @@ A Salesforce admin or user with the appropriate permissions can install Einstein
 
 An Admin can enable Einstein for Developers in a supported Salesforce org by following the given steps.
 
-1. From Setup, enter Einstein for Developers in the Quick Find box, then select Einstein for Developers. If you don’t see Einstein for Developers as an option under Setup in your Developer Edition org, it was likely created before Einstein for Developers was introduced and doesn’t have the correct permissions. To continue, create another Developer Edition org.
-2. Enable Einstein for Developers, and then review and accept the license agreement.
+1. From Setup, enter Einstein for Developers in the Quick Find box, then select Einstein for Developers.
+   - If you don’t see Einstein for Developers as an option under Setup in your Developer Edition org, it was likely created before Einstein for Developers was introduced and doesn’t have the correct permissions. To continue, create another Developer Edition org.
+2. Toggle Enable Einstein for Developers.
 
-Einstein for Developers(beta) is activated in the org and all the users in the org have access to the feature.
+**Important**: We encourage you to thoroughly review the license agreement and review all terms and conditions. Then accept to enable Einstein for Developers.
+
+Einstein for Developers is activated in the org. All the users in the org have access to the feature.
 
 ### Add Users to the Org
 
@@ -44,17 +47,15 @@ An admin can add additional users to the org as needed:
 
 VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.76 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
 
-## Get Started with Einstein for Developers
+## Install Salesforce Extension Pack and Einstein for Developers Extensions
 
-A developer with access to an org enabled for Einstein for Developers can install the Einstein for Developers extensions in VS Code, connect to org and start using the extension.
+To use Einstein for Developers locally, you must have the Salesforce Extensions pack installed in your VS Code for desktop application.
 
-## Install Einstein for Developers Extensions
+1. Install the Salesforce extension pack if needed.
 
-To use Einstein for Developerslocally, first install Salesforce Extensions and Salesforce CLI on your desktop.
+<a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install Salesforce Extensions Pack</a>
 
-<a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
-
-Then install Einstein for Developers(beta)from the VS Code marketplace.
+1. Install Einstein for Developers.
 
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt">Install Einstein for Developers(beta)</a>
 
@@ -66,7 +67,7 @@ The Einstein for Developers(beta) tool is run in the context of a Salesforce org
 
 2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers(beta) enabled.
 
-A sidebar panel opens and the Einstein logo on the activity bar confirms that the extension is installed.
+The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the side bar.
 
 ![einstein installed](../../../images/einstein-installed.png)
 
@@ -77,9 +78,9 @@ Einstein for Developers(beta)is only available in scratch org editions that can 
 - Developer Edition
 - Enterprise Edition
 
-Activate Einstein for Developers by turning on an add-on scratch org feature.
+Activate Einstein for Developers by turning on the `EinsteinGPTForDevelopers` scratch org feature:
 
-Edit and save the `config/project-scratch-def.json` file in your DX project to add the “`EinsteinGPTForDevelopers`” feature to your existing feature list.
+1. Edit the `config/project-scratch-def.json` file in your DX project and add the “`EinsteinGPTForDevelopers`” feature to your existing feature list.
 
 For example:
 
@@ -90,6 +91,8 @@ For example:
 "features":[“Communities”, “ServiceCloud, "EinsteinGPTForDevelopers"]
 }
 ```
+
+2. Save your changes to activate the feature.
 
 ## Show Einstein Feedback Console View
 
