@@ -25,8 +25,6 @@ on:
 
 jobs:
   build:
-    env:
-      ENV_TESTS_TO_RUN: 'abc'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -101,7 +99,7 @@ jobs:
             TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts
             echo 'visualforceLsp is selected'
           fi
-          echo 'after if statement block 2'
+          echo 'after if statement block 3'
           echo $TESTS_TO_RUN
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
           echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> "$GITHUB_ENV"
