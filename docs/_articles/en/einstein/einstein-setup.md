@@ -8,7 +8,8 @@ lang: en
 A Salesforce admin or user with the appropriate permissions can install Einstein for Developers in a supported Salesforce org. A developer with access to the org can then:
 
 1.  Install the extension in VS Code.
-2.  Connect to the org to use the extension.
+2.  Connect to an org with Einstein for Developers enabled.
+3.  Use the extension to generate Apex code from natural language instructions.
 
 ### Required Salesforce Editions and User Permissions
 
@@ -71,7 +72,7 @@ The Einstein logo on the activity bar and in the status bar confirms that the ex
 
 ![einstein installed](../../../images/einstein-installed.png)
 
-### Use Einstein for Developers(beta) in a Scratch Org
+### Use Einstein for Developers in a Scratch Org
 
 Einstein for Developers(beta)is only available in scratch org editions that can author Apex:
 
