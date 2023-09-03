@@ -12,13 +12,16 @@ import {
   CommandExecution,
   CommandOutput,
   CompositeCliCommandExecutor,
+  ContinueResponse,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { developerLogTraceFlag } from '.';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
+import { workspaceContextUtils } from '../context';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
@@ -26,9 +29,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import { workspaceContextUtils } from '../context';
-import { telemetryService } from '../telemetry';
-import { developerLogTraceFlag } from '.';
 
 export class StartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();

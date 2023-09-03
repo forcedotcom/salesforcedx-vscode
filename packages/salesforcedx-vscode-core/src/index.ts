@@ -79,9 +79,9 @@ import {
   viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
-import { getUserId } from './commands/startApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
+import { getUserId } from './commands/startApexDebugLogging';
 import {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
