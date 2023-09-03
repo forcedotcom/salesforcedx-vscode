@@ -146,12 +146,12 @@ export const messages = {
   force_alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   force_org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
   force_org_display_username_text: 'SFDX: 組織の詳細を表示...',
-  force_debugger_query_session_text: 'Apex デバッガセッションをクエリ',
-  force_debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
-  force_debugger_stop_none_found_text:
+  debugger_query_session_text: 'Apex デバッガセッションをクエリ',
+  debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
+  debugger_stop_none_found_text:
     'Apex デバッガセッションが見つかりませんでした。',
-  force_data_soql_query_input_text: 'SFDX: SOQL クエリを実行...',
-  force_data_soql_query_selection_text:
+  data_query_input_text: 'SFDX: SOQL クエリを実行...',
+  data_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
   force_anon_apex_execute_document_text:
@@ -169,13 +169,13 @@ export const messages = {
   force_project_create_analytics_template:
     'Analytics のプロジェクトテンプレート',
   force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
-  force_start_apex_debug_logging:
+  start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
-  force_apex_debug_log_status_bar_text:
+  apex_debug_log_status_bar_text:
     '$(file-text) 詳細なログを記録しています。%s まで。',
-  force_apex_debug_log_status_bar_hover_text:
+  apex_debug_log_status_bar_hover_text:
     'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
-  force_stop_apex_debug_logging:
+  stop_apex_debug_logging:
     'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
   isv_debug_bootstrap_create_project:
     'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
@@ -219,7 +219,7 @@ export const messages = {
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
-    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
+    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
   auth_project_label: 'プロジェクトのデフォルト',
   auth_project_detail: 'sfdx-project.json で定義されたログインURL を使用',
   auth_prod_label: '本番環境',

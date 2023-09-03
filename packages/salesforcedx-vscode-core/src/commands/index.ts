@@ -32,7 +32,7 @@ export {
   ForceAuthDevHubExecutor,
   ForceAuthDevHubContainerExecutor
 } from './auth/forceAuthDevHub';
-export { forceDataSoqlQuery } from './forceDataSoqlQuery';
+export { dataQuery } from './dataQuery';
 export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
   forceOrgCreate,
@@ -94,12 +94,12 @@ export {
   forceVisualforcePageCreate
 } from './templates';
 export {
-  forceDebuggerStop,
+  debuggerStop,
   DebuggerSessionDetachExecutor,
   IdGatherer,
   IdSelection,
   StopActiveDebuggerSessionExecutor
-} from './forceDebuggerStop';
+} from './debuggerStop';
 export { forceConfigList, ForceConfigList } from './forceConfigList';
 export { forceAliasList, ForceAliasList } from './forceAliasList';
 export { forceOrgDisplay, ForceOrgDisplay } from './forceOrgDisplay';
@@ -121,20 +121,20 @@ export {
   SelectProjectTemplate
 } from './forceProjectCreate';
 export {
-  forceStartApexDebugLogging,
+  startApexDebugLogging,
   CreateDebugLevel,
   CreateTraceFlag,
-  ForceQueryTraceFlag,
-  ForceQueryUser,
-  ForceStartApexDebugLoggingExecutor,
+  QueryTraceFlag,
+  QueryUser,
+  StartApexDebugLoggingExecutor,
   UpdateDebugLevelsExecutor,
   UpdateTraceFlagsExecutor
-} from './forceStartApexDebugLogging';
+} from './startApexDebugLogging';
 export {
-  forceStopApexDebugLogging,
+  stopApexDebugLogging,
   turnOffLogging,
-  ForceStopApexDebugLoggingExecutor
-} from './forceStopApexDebugLogging';
+  StopApexDebugLoggingExecutor
+} from './stopApexDebugLogging';
 export {
   forceAuthLogoutAll,
   ForceAuthLogoutAll,

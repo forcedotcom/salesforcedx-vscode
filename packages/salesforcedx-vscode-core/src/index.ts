@@ -15,6 +15,8 @@ import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   checkSObjectsAndRefresh,
+  dataQuery,
+  debuggerStop,
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
@@ -27,8 +29,6 @@ import {
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
-  forceDataSoqlQuery,
-  forceDebuggerStop,
   forceFunctionContainerlessStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
@@ -66,22 +66,20 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceSourceStatus,
-  forceStartApexDebugLogging,
-  forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
-  SourceStatusFlags,
+  startApexDebugLogging,
+  stopApexDebugLogging,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
-import { getUserId } from './commands/forceStartApexDebugLogging';
+import { getUserId } from './commands/startApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
@@ -122,12 +120,6 @@ import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
-};
-const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Local
-};
-const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Remote
 };
 
 function registerCommands(
@@ -283,9 +275,9 @@ function registerCommands(
     forceLightningLwcTestCreate
   );
 
-  const forceDebuggerStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.debugger.stop',
-    forceDebuggerStop
+  const debuggerStopCmd = vscode.commands.registerCommand(
+    'sfdx.debugger.stop',
+    debuggerStop
   );
   const forceConfigListCmd = vscode.commands.registerCommand(
     'sfdx.force.config.list',
@@ -317,13 +309,13 @@ function registerCommands(
     'sfdx.force.org.list.clean',
     forceOrgList
   );
-  const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query.input',
-    forceDataSoqlQuery
+  const dataQueryInputCmd = vscode.commands.registerCommand(
+    'sfdx.data.query.input',
+    dataQuery
   );
-  const forceDataSoqlQuerySelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query.selection',
-    forceDataSoqlQuery
+  const dataQuerySelectionCmd = vscode.commands.registerCommand(
+    'sfdx.data.query.selection',
+    dataQuery
   );
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
@@ -344,14 +336,14 @@ function registerCommands(
     forceApexTriggerCreate
   );
 
-  const forceStartApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.force.start.apex.debug.logging',
-    forceStartApexDebugLogging
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.start.apex.debug.logging',
+    startApexDebugLogging
   );
 
-  const forceStopApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.force.stop.apex.debug.logging',
-    forceStopApexDebugLogging
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.stop.apex.debug.logging',
+    stopApexDebugLogging
   );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand(
@@ -415,8 +407,8 @@ function registerCommands(
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
     forceAuthLogoutDefaultCmd,
-    forceDataSoqlQueryInputCmd,
-    forceDataSoqlQuerySelectionCmd,
+    dataQueryInputCmd,
+    dataQuerySelectionCmd,
     forceDiffFile,
     forceFunctionCreateCmd,
     forceFunctionInvokeCmd,
@@ -457,7 +449,7 @@ function registerCommands(
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
-    forceDebuggerStopCmd,
+    debuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
     forceOrgDisplayDefaultCmd,
@@ -466,8 +458,8 @@ function registerCommands(
     forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
-    forceStartApexDebugLoggingCmd,
-    forceStopApexDebugLoggingCmd,
+    startApexDebugLoggingCmd,
+    stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceConfigSetCmd
   );

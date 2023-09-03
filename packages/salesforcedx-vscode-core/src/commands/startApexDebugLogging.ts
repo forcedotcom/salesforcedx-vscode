@@ -26,19 +26,17 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-
-import { isNullOrUndefined } from 'util';
 import { workspaceContextUtils } from '../context';
 import { telemetryService } from '../telemetry';
-import { developerLogTraceFlag } from './';
+import { developerLogTraceFlag } from '.';
 
-export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
+export class StartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
   public build(): Command {
-    return new CommandBuilder(nls.localize('force_start_apex_debug_logging'))
-      .withLogName('force_start_apex_debug_logging')
+    return new CommandBuilder(nls.localize('start_apex_debug_logging'))
+      .withLogName('start_apex_debug_logging')
       .build();
   }
 
@@ -66,7 +64,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       const userId = await getUserId(workspaceUtils.getRootWorkspacePath());
 
       let resultJson = await this.subExecute(
-        new ForceQueryTraceFlag().build(userId)
+        new QueryTraceFlag().build(userId)
       );
       if (resultJson && resultJson.result && resultJson.result.totalSize >= 1) {
         const traceflag = resultJson.result.records[0];
@@ -133,12 +131,9 @@ export async function getUserId(projectPath: string): Promise<string> {
     throw new Error(err);
   }
 
-  const execution = new CliCommandExecutor(
-    new ForceQueryUser(username).build(),
-    {
-      cwd: projectPath
-    }
-  ).execute();
+  const execution = new CliCommandExecutor(new QueryUser(username).build(), {
+    cwd: projectPath
+  }).execute();
   telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
@@ -150,7 +145,7 @@ export async function getUserId(projectPath: string): Promise<string> {
   }
 }
 
-export class ForceQueryUser extends SfdxCommandletExecutor<{}> {
+export class QueryUser extends SfdxCommandletExecutor<{}> {
   private username: string;
   public constructor(username: string) {
     super();
@@ -158,7 +153,7 @@ export class ForceQueryUser extends SfdxCommandletExecutor<{}> {
   }
   public build(): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:data:soql:query')
+      .withArg('data:query')
       .withFlag(
         '--query',
         `SELECT id FROM User WHERE username='${this.username}'`
@@ -173,13 +168,13 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
   public readonly developerName = `ReplayDebuggerLevels${Date.now()}`;
   public build(): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:data:record:create')
-      .withFlag('--sobjecttype', 'DebugLevel')
+      .withArg('data:create:record')
+      .withFlag('--sobject', 'DebugLevel')
       .withFlag(
         '--values',
         `developername=${this.developerName} MasterLabel=${this.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withJson()
       .withLogName('force_create_debug_level')
       .build();
@@ -196,8 +191,8 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
 
   public build(): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:data:record:create')
-      .withFlag('--sobjecttype', 'TraceFlag')
+      .withArg('data:create:record')
+      .withFlag('--sobject', 'TraceFlag')
       .withFlag(
         '--values',
         `tracedentityid='${
@@ -206,7 +201,7 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
           .getExpirationDate()
           .toUTCString()}`
       )
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withJson()
       .withLogName('force_create_trace_flag')
       .build();
@@ -217,14 +212,14 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
     const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
     return new SfdxCommandBuilder()
-      .withArg('force:data:record:update')
-      .withFlag('--sobjecttype', 'DebugLevel')
-      .withFlag('--sobjectid', nonNullDebugLevel)
+      .withArg('data:update:record')
+      .withFlag('--sobject', 'DebugLevel')
+      .withFlag('--record-id', nonNullDebugLevel)
       .withFlag(
         '--values',
         `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withJson()
       .withLogName('force_update_debug_level')
       .build();
@@ -235,16 +230,16 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
     const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
     return new SfdxCommandBuilder()
-      .withArg('force:data:record:update')
-      .withFlag('--sobjecttype', 'TraceFlag')
-      .withFlag('--sobjectid', nonNullTraceFlag)
+      .withArg('data:update:record')
+      .withFlag('--sobject', 'TraceFlag')
+      .withFlag('--record-id', nonNullTraceFlag)
       .withFlag(
         '--values',
         `StartDate='' ExpirationDate='${developerLogTraceFlag
           .getExpirationDate()
           .toUTCString()}'`
       )
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withJson()
       .withLogName('force_update_trace_flag')
       .build();
@@ -254,24 +249,24 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export class ForceQueryTraceFlag extends SfdxCommandletExecutor<{}> {
+export class QueryTraceFlag extends SfdxCommandletExecutor<{}> {
   public build(userId: string): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_start_apex_debug_logging'))
-      .withArg('force:data:soql:query')
+      .withDescription(nls.localize('start_apex_debug_logging'))
+      .withArg('data:query')
       .withFlag(
         '--query',
         `SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'`
       )
-      .withArg('--usetoolingapi')
+      .withArg('--use-tooling-api')
       .withJson()
       .withLogName('force_query_trace_flag')
       .build();
   }
 }
 
-export async function forceStartApexDebugLogging() {
-  const executor = new ForceStartApexDebugLoggingExecutor();
+export async function startApexDebugLogging() {
+  const executor = new StartApexDebugLoggingExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
