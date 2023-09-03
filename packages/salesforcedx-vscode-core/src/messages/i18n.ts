@@ -242,8 +242,8 @@ export const messages = {
     'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
-  force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
-  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  org_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_input_dupe_error:
     'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder:
@@ -268,10 +268,10 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
-  auth_logout_scratch_prompt:
+  org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
-  auth_logout_scratch_logout: 'Logout',
-  auth_logout_no_default_org: 'No default org to logout from',
+  org_logout_scratch_logout: 'Logout',
+  org_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
