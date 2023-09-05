@@ -25,4 +25,4 @@ For information about installing Salesforce CLI, see the _[Salesforce DX Setup G
 
 ## Java Platform, Standard Edition Development Kit
 
-Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8, 11 or 17 of the JDK installed. See [Java Setup](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/java-setup) for details.
+Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 11 or 17 or later of the JDK installed. See [Java Setup](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/java-setup) for details.
