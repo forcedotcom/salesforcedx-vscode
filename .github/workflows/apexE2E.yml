@@ -111,6 +111,10 @@ jobs:
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+trailApexReplayDebugger.e2e.ts
           fi
+          if [ $TESTS_TO_RUN = "dummyvalue" ];
+          then
+            TESTS_TO_RUN=$TESTS_TO_RUN+apexLsp.e2e.ts+apexReplayDebugger.e2e.ts+debugApexTests.e2e.ts+runApexTests.e2e.ts+trailApexReplayDebugger.e2e.ts
+          fi
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
           echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> "$GITHUB_ENV"
       - name: Run headless test

@@ -138,6 +138,10 @@ jobs:
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+templates.e2e.ts
           fi
+          if [ $TESTS_TO_RUN = "dummyvalue" ];
+          then
+            TESTS_TO_RUN=$TESTS_TO_RUN+anInitialSuite.e2e.ts+authentication.e2e.ts+deployAndRetrieve.e2e.ts+manifestBuilder.e2e.ts+orgBrowser.e2e.ts+pushAndPull.e2e.ts+sObjectsDefinitions.e2e.ts+templates.e2e.ts
+          fi
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
           echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> "$GITHUB_ENV"
       - name: Run headless test
