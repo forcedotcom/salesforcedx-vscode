@@ -58,7 +58,7 @@ To use Einstein for Developers locally, you must have the Salesforce Extensions 
 
 ## Connect to an Org
 
-The Einstein for Developers tool is run in the context of a Salesforce org, in Salesforce DX project. To use this tool:
+The Einstein for Developers tool is run in the context of a Salesforce org, in a Salesforce DX project. To use this tool:
 
 1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create one.
 
