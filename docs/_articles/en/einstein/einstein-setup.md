@@ -15,7 +15,7 @@ A Salesforce admin or user with the appropriate permissions can install Einstein
 
 **Available in**: Developer, Enterprise, Partner Developer, Performance and Unlimited Editions.
 
-**Inoperable in**: Group, Professional and Essentials Editions
+**Inoperable in**: Group, Professional, and Essentials Editions
 
 ### User Permissions Needed
 
@@ -60,7 +60,7 @@ To use Einstein for Developers locally, you must have the Salesforce Extensions 
 
 The Einstein for Developers tool is run in the context of a Salesforce org, in Salesforce DX project. To use this tool:
 
-1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create a new one.
+1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create one.
 
 2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled.
 
@@ -93,6 +93,6 @@ For example:
 
 ## Show Einstein Feedback Console View
 
-Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
+Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us with feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
 
 ![feedback panel](../../../images/einstein-feedback.png)
