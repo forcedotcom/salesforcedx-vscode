@@ -102,7 +102,7 @@ jobs:
           echo 'after if statement block 4'
           echo $TESTS_TO_RUN
 
-          if ($TESTS_TO_RUN = "dummyvalue")
+          if [ $TESTS_TO_RUN = "dummyvalue" ];
           then
             echo 'no tests are selected to be run'
             TESTS_TO_RUN=$TESTS_TO_RUN+auraLsp.e2e.ts+lwcLsp.e2e.ts+visualforceLsp.e2e.ts
