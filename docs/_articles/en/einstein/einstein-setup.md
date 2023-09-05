@@ -29,6 +29,8 @@ An Admin can enable Einstein for Developers in a supported Salesforce org by fol
    - If you don’t see Einstein for Developers as an option under Setup in your Developer Edition org, it was likely created before Einstein for Developers was introduced and doesn’t have the correct permissions. To continue, create another Developer Edition org.
 2. Toggle Enable Einstein for Developers.
 
+![Einstein Terms and Toggle](../../../images/einstein-terms.png)
+
 **Important**: We encourage you to thoroughly review the license agreement and review all terms and conditions. Then accept to enable Einstein for Developers.
 
 Einstein for Developers is activated in the org. All the users in the org have access to the feature.

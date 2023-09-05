@@ -38,4 +38,18 @@ Learn more at [Salesforce AI Research: Trusted AI](https://www.salesforceairesea
 
 ## About the CodeGen Model
 
-CodeGen is a powerful language model capable of generating text and code. The release of CodeGen 1.0 as an open-source project in 2022 could generate code in six different programming languages. Since then, the CodeGen model, integrated into Einstein for Developers and Einstein Flow, has been retrained and fine-tuned to address specific Salesforce use cases, including Apex and LWC. This refinement significantly enhances the model’s ability to customize and tailor Salesforce solutions.
+**Important**: Einstein for Developers uses a customized LLM that is based on Salesforce's open-source CodeGen model. This model that powers Einstein for Developers is the exclusive property of Salesforce.
+
+### About our Open source CodeGen 2.5
+
+> The family of Salesforce CodeGen models is growing with `CodeGen2.5`. `CodeGen 2.5` bucks the trend of large language models (LLM) to show that a small model, if trained well, can obtain surprisingly good performance.
+
+Key aspects of the `CodeGen 2.5` model version are:
+
+- It was released with state-of-the-art on `HumanEval` for 7B parameters.
+- At only 7B parameters, its performance is on par with code-generation models (`CodeGen1-16B`, `CodeGen2-16B`, `StarCoder-15B`) with more than 15B parameters.
+- It features robust infill sampling, that is, the model can “read” text on both the left and right side of the current cursor position.
+- It is optimized for fast sampling under `Flash` attention for serving completions. It is also optimized for local deployment to personal machines.
+- `CodeGen2.5` is permissively licensed in `Apache 2.0`.
+
+For information read our blog — https://blog.salesforceairesearch.com/codegen25/
