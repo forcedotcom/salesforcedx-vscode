@@ -57,48 +57,48 @@ jobs:
         vscodeVersion:
           - stable
     steps:
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-      #   with:
-      #     path: ./salesforcedx-vscode
-      #     ref: ${{ github.event.ref }}
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: ${{ matrix.nodeVersion }}
-      #     cache: npm
-      #     cache-dependency-path: |
-      #       salesforcedx-vscode/package-lock.json
-      #       salesforcedx-vscode-automation-tests/package-lock.json
-      # - name: Clone automation tests
-      #   uses: actions/checkout@v3
-      #   with:
-      #     repository: forcedotcom/salesforcedx-vscode-automation-tests
-      #     path: salesforcedx-vscode-automation-tests
-      #     ref: ${{ inputs.automationBranch }}
-      # - name: Install Extension Dependencies
-      #   run: |
-      #     npm install
-      #     npm run compile
-      #   working-directory: salesforcedx-vscode
-      # - name: Install Test Dependencies
-      #   run: |
-      #     npm install
-      #   working-directory: salesforcedx-vscode-automation-tests
-      # - name: Install the SFDX CLI
-      #   run: npm install -g sfdx-cli
-      # - name: Verify CLI
-      #   shell: bash
-      #   run: |
-      #     set -e
-      #     sfdx version
-      #     SFDX_CLI_VERSION=$(sfdx version)
-      #     if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
-      #     then
-      #       echo "sfdx-cli installed -" $SFDX_CLI_VERSION
-      #     else
-      #       echo "The sfdx-cli installation could not be verified"
-      #       exit 1
-      #     fi
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ./salesforcedx-vscode
+          ref: ${{ github.event.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.nodeVersion }}
+          cache: npm
+          cache-dependency-path: |
+            salesforcedx-vscode/package-lock.json
+            salesforcedx-vscode-automation-tests/package-lock.json
+      - name: Clone automation tests
+        uses: actions/checkout@v3
+        with:
+          repository: forcedotcom/salesforcedx-vscode-automation-tests
+          path: salesforcedx-vscode-automation-tests
+          ref: ${{ inputs.automationBranch }}
+      - name: Install Extension Dependencies
+        run: |
+          npm install
+          npm run compile
+        working-directory: salesforcedx-vscode
+      - name: Install Test Dependencies
+        run: |
+          npm install
+        working-directory: salesforcedx-vscode-automation-tests
+      - name: Install the SFDX CLI
+        run: npm install -g sfdx-cli
+      - name: Verify CLI
+        shell: bash
+        run: |
+          set -e
+          sfdx version
+          SFDX_CLI_VERSION=$(sfdx version)
+          if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
+          then
+            echo "sfdx-cli installed -" $SFDX_CLI_VERSION
+          else
+            echo "The sfdx-cli installation could not be verified"
+            exit 1
+          fi
       - name: Run LSP E2E tests if selected
         if: ${{ inputs.lspE2ETests }}
         uses: ./.github/workflows/lspE2E.yml
