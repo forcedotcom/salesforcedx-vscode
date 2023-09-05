@@ -15,7 +15,7 @@ A Salesforce admin or user with the appropriate permissions can install Einstein
 
 **Available in**: Developer, Enterprise, Partner Developer, Performance and Unlimited Editions.
 
-**Inoperable in**: Group, Professional and Essentials Editions
+**Inoperable in**: Group, Professional, and Essentials Editions
 
 ### User Permissions Needed
 
@@ -54,19 +54,17 @@ VS Code releases a new version each month with new features and important bug fi
 
 To use Einstein for Developers locally, you must have the Salesforce Extensions pack installed in your VS Code for desktop application.
 
-1. Install the Salesforce extension pack if needed.
-   <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install Salesforce Extensions Pack</a>
+1. Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode), if needed.
+2. Install [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt).
 
-2. Install Einstein for Developers.
-   <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforcedx-einstein-gpt">Install Einstein for Developers(beta)</a>
 
 ## Connect to an Org
 
-The Einstein for Developers(beta) tool is run in the context of a Salesforce org, in Salesforce DX project. To use this tool:
+The Einstein for Developers tool is run in the context of a Salesforce org, in a Salesforce DX project. To use this tool:
 
-1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create a new one.
+1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create one.
 
-2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers(beta) enabled.
+2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled.
 
 The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the side bar.
 
@@ -74,7 +72,7 @@ The Einstein logo on the activity bar and in the status bar confirms that the ex
 
 ### Use Einstein for Developers in a Scratch Org
 
-Einstein for Developers(beta)is only available in scratch org editions that can author Apex:
+Einstein for Developers is only available in scratch org editions that can author Apex:
 
 - Developer Edition
 - Enterprise Edition
@@ -97,6 +95,6 @@ For example:
 
 ## Show Einstein Feedback Console View
 
-Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
+Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us with feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
 
 ![feedback panel](../../../images/einstein-feedback.png)
