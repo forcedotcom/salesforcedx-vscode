@@ -1,0 +1,86 @@
+name: Run E2E Test
+on:
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      testToRun:
+        description: 'Run this E2E test'
+        required: false
+        default: 'placeholder text'
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        nodeVersion:
+          - 16.15.1
+        vscodeVersion:
+          - stable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ./salesforcedx-vscode
+          ref: ${{ github.event.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.nodeVersion }}
+          cache: npm
+          cache-dependency-path: |
+            salesforcedx-vscode/package-lock.json
+            salesforcedx-vscode-automation-tests/package-lock.json
+      - name: Clone automation tests
+        uses: actions/checkout@v3
+        with:
+          repository: forcedotcom/salesforcedx-vscode-automation-tests
+          path: salesforcedx-vscode-automation-tests
+          ref: ${{ inputs.automationBranch }}
+      - name: Install Extension Dependencies
+        run: |
+          npm install
+          npm run compile
+        working-directory: salesforcedx-vscode
+      - name: Install Test Dependencies
+        run: |
+          npm install
+        working-directory: salesforcedx-vscode-automation-tests
+      - name: Install the SFDX CLI
+        run: npm install -g sfdx-cli
+      - name: Verify CLI
+        shell: bash
+        run: |
+          set -e
+          sfdx version
+          SFDX_CLI_VERSION=$(sfdx version)
+          if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
+          then
+            echo "sfdx-cli installed -" $SFDX_CLI_VERSION
+          else
+            echo "The sfdx-cli installation could not be verified"
+            exit 1
+          fi
+      - name: Run headless test
+        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
+        with:
+          run: |
+            npm run setup
+            npm run automation-tests
+          working-directory: salesforcedx-vscode-automation-tests
+        env:
+          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
+          SPEC_FILES: ${{ inputs.testToRun }}
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+          ORG_ID: ${{ secrets.ORG_ID_E2E }}
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: screenshots
+          path: ./salesforcedx-vscode-automation-tests/screenshots
