@@ -58,7 +58,7 @@ jobs:
   #         - stable
 
   Run_LSP_E2E_tests_if_selected:
-    if: ${{ always() }}
+    if: ${{ inputs.lspE2ETests }}
     uses: ./.github/workflows/lspE2E.yml
 
     # steps:
