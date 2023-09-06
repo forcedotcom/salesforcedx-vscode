@@ -68,7 +68,7 @@ The Einstein for Developers tool is run in the context of a Salesforce org, in a
 
 2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled.
 
-The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the side bar.
+The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the sidebar.
 
 ![einstein installed](../../../images/einstein-installed.png)
 
