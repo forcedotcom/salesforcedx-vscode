@@ -53,7 +53,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: ${{ inputs.auraLsp }}
+      testToRun: 'auraLsp.e2e.ts'
 
   run_lwc_LSP_if_selected:
     if: ${{ inputs.lwcLsp }}
@@ -61,7 +61,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: ${{ inputs.lwcLsp }}
+      testToRun: 'lwcLsp.e2e.ts'
 
   run_visualforce_LSP_if_selected:
     if: ${{ inputs.visualforceLsp }}
@@ -69,4 +69,4 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: ${{ inputs.visualforceLsp }}
+      testToRun: 'visualforceLsp.e2e.ts'
