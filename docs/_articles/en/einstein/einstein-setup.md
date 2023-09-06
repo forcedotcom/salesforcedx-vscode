@@ -50,7 +50,7 @@ An admin can add additional users to the org as needed:
 
 VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.76 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
 
-## Install Salesforce Extension Pack and Einstein for Developers Extensions
+## Install Einstein for Developers Extensions
 
 Install Einstein for Developers:
 
