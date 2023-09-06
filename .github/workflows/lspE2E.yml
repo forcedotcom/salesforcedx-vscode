@@ -22,6 +22,28 @@ on:
         required: false
         default: false
         type: boolean
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      auraLsp:
+        description: 'auraLsp.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      lwcLsp:
+        description: 'lwcLsp.e2e.ts'
+        required: false
+        default: false
+        type: boolean
+      visualforceLsp:
+        description: 'visualforceLsp.e2e.ts'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
