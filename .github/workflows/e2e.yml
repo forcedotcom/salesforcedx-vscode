@@ -46,16 +46,16 @@ on:
           - 'visualforceLsp.e2e.ts'
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        nodeVersion:
-          - 16.15.1
-        vscodeVersion:
-          - stable
+  # build:
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [macos-latest, windows-latest, ubuntu-latest]
+  #       nodeVersion:
+  #         - 16.15.1
+  #       vscodeVersion:
+  #         - stable
 
   Run_LSP_E2E_tests_if_selected:
     if: ${{ always() }}
