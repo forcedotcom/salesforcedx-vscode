@@ -32,17 +32,17 @@ on:
       auraLsp:
         description: 'auraLsp.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       lwcLsp:
         description: 'lwcLsp.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       visualforceLsp:
         description: 'visualforceLsp.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
 
 jobs:

@@ -46,22 +46,27 @@ on:
           - 'visualforceLsp.e2e.ts'
 
 jobs:
-  # build:
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [macos-latest, windows-latest, ubuntu-latest]
-  #       nodeVersion:
-  #         - 16.15.1
-  #       vscodeVersion:
-  #         - stable
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #       with:
-  #         path: ./salesforcedx-vscode
-  #         ref: ${{ github.event.ref }}
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        nodeVersion:
+          - 16.15.1
+        vscodeVersion:
+          - stable
+
+  Run_LSP_E2E_tests_if_selected:
+    if: ${{ always() }}
+    uses: ./.github/workflows/lspE2E.yml
+
+    # steps:
+    #   - name: Checkout
+    #     uses: actions/checkout@v3
+    #     with:
+    #       path: ./salesforcedx-vscode
+    #       ref: ${{ github.event.ref }}
   #     - uses: actions/setup-node@v3
   #       with:
   #         node-version: ${{ matrix.nodeVersion }}
@@ -100,11 +105,11 @@ jobs:
   #           exit 1
   #         fi
 
-  Run_LSP_E2E_tests_if_selected:
-    if: ${{ always() }}
-    uses: ./.github/workflows/lspE2E.yml
-    with:
-      workflow: 'e2e.yml'
+  # Run_LSP_E2E_tests_if_selected:
+  #   if: ${{ always() }}
+  #   uses: ./.github/workflows/lspE2E.yml
+  #   with:
+  #     workflow: 'e2e.yml'
       # run: echo 'lspE2E box selected'
 
       # - name: Run headless test
