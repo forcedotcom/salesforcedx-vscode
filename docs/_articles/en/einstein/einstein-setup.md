@@ -81,17 +81,15 @@ Einstein for Developers is only available in scratch org editions that can autho
 
 Activate Einstein for Developers by turning on the `EinsteinGPTForDevelopers` scratch org feature:
 
-1. Edit the `config/project-scratch-def.json` file in your DX project and add the “`EinsteinGPTForDevelopers`” feature to your existing feature list.
+1. Edit the `config/project-scratch-def.json` file in your DX project and add the “`EinsteinGPTForDevelopers`” feature to your existing feature list. For example:
 
-         For example:
-         
-         ```
-         {
-         "orgName": "Acme Company",
-         "edition": "Developer",
-         "features":[“Communities”, “ServiceCloud, "EinsteinGPTForDevelopers"]
-         }
-         ```
+```
+   {
+   "orgName": "Acme Company",
+   "edition": "Developer",
+   "features":[“Communities”, “ServiceCloud, "EinsteinGPTForDevelopers"]
+   }
+```
 
 2. Save your changes to activate the feature.
 3. Use the `SFDX: Authorize a Dev Hub` command to log into a Dev Hub.
