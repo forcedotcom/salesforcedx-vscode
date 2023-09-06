@@ -29,13 +29,19 @@ jobs:
     if: ${{ inputs.lspE2ETests }}
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
 
   run_Apex_E2E_tests_if_selected:
     if: ${{ inputs.apexE2ETests }}
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
 
   run_Core_E2E_tests_if_selected:
     if: ${{ inputs.coreE2ETests }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
