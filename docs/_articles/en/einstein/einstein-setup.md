@@ -54,7 +54,7 @@ VS Code releases a new version each month with new features and important bug fi
 
 Install Einstein for Developers:
 
-- If you’re using VS Code on your desktop, install [Einstein for Developers](https://marketplace.visualstudio.com/) from the Visual Studio Code marketplace.
+- If you’re using VS Code on your desktop, install [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) from the Visual Studio Code marketplace.
 
 - If you are using Code Builder, click the Extensions icon in the Activity Bar in Code Builder, search for “Einstein for Developers” and click **Install**.
 
