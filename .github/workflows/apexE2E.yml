@@ -32,6 +32,38 @@ on:
         required: false
         default: false
         type: boolean
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      apexLsp:
+        description: 'apexLsp.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      apexReplayDebugger:
+        description: 'apexReplayDebugger.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      debugApexTests:
+        description: 'debugApexTests.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      runApexTests:
+        description: 'runApexTests.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      trailApexReplayDebugger:
+        description: 'trailApexReplayDebugger.e2e.ts'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   build:

@@ -47,6 +47,53 @@ on:
         required: false
         default: false
         type: boolean
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      anInitialSuite:
+        description: 'anInitialSuite.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      authentication:
+        description: 'authentication.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieve:
+        description: 'deployAndRetrieve.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      manifestBuilder:
+        description: 'manifestBuilder.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      orgBrowser:
+        description: 'orgBrowser.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: 'pushAndPull.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      sObjectsDefinitions:
+        description: 'sObjectsDefinitions.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: 'templates.e2e.ts'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   build:
