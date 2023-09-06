@@ -1,5 +1,7 @@
 name: Core End to End Tests
+
 on:
+
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -47,6 +49,7 @@ on:
         required: false
         default: true
         type: boolean
+
   workflow_call:
     inputs:
       automationBranch:
@@ -96,115 +99,67 @@ on:
         type: boolean
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        nodeVersion:
-          - 16.15.1
-        vscodeVersion:
-          - stable
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: ./salesforcedx-vscode
-          ref: ${{ github.event.ref }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.nodeVersion }}
-          cache: npm
-          cache-dependency-path: |
-            salesforcedx-vscode/package-lock.json
-            salesforcedx-vscode-automation-tests/package-lock.json
-      - name: Clone automation tests
-        uses: actions/checkout@v3
-        with:
-          repository: forcedotcom/salesforcedx-vscode-automation-tests
-          path: salesforcedx-vscode-automation-tests
-          ref: ${{ inputs.automationBranch }}
-      - name: Install Extension Dependencies
-        run: |
-          npm install
-          npm run compile
-        working-directory: salesforcedx-vscode
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: salesforcedx-vscode-automation-tests
-      - name: Install the SFDX CLI
-        run: npm install -g sfdx-cli
-      - name: Verify CLI
-        shell: bash
-        run: |
-          set -e
-          sfdx version
-          SFDX_CLI_VERSION=$(sfdx version)
-          if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
-          then
-            echo "sfdx-cli installed -" $SFDX_CLI_VERSION
-          else
-            echo "The sfdx-cli installation could not be verified"
-            exit 1
-          fi
 
-      - name: Check which e2e tests are selected
-        shell: bash
-        run: |
-          TESTS_TO_RUN=dummyvalue
+  run_anInitialSuite_if_selected:
+    if: ${{ inputs.anInitialSuite }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'anInitialSuite.e2e.ts'
 
-          if (${{ inputs.anInitialSuite }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+anInitialSuite.e2e.ts
-          fi
-          if (${{ inputs.authentication }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+authentication.e2e.ts
-          fi
-          if (${{ inputs.deployAndRetrieve }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+deployAndRetrieve.e2e.ts
-          fi
-          if (${{ inputs.manifestBuilder }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+manifestBuilder.e2e.ts
-          fi
-          if (${{ inputs.orgBrowser }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+orgBrowser.e2e.ts
-          fi
-          if (${{ inputs.pushAndPull }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+pushAndPull.e2e.ts
-          fi
-          if (${{ inputs.sObjectsDefinitions }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+sObjectsDefinitions.e2e.ts
-          fi
-          if (${{ inputs.templates }} == true)
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+templates.e2e.ts
-          fi
+  run_authentication_if_selected:
+    if: ${{ inputs.authentication }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'authentication.e2e.ts'
 
-          # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
-          echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> "$GITHUB_ENV"
+  run_deployAndRetrieve_if_selected:
+    if: ${{ inputs.deployAndRetrieve }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'deployAndRetrieve.e2e.ts'
 
-      - name: Run headless test
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
-        with:
-          run: |
-            npm run setup
-            npm run automation-tests
-          working-directory: salesforcedx-vscode-automation-tests
-        env:
-          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: ${{ env.ENV_TESTS_TO_RUN }}
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-          ORG_ID: ${{ secrets.ORG_ID_E2E }}
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: screenshots
-          path: ./salesforcedx-vscode-automation-tests/screenshots
+  run_manifestBuilder_if_selected:
+    if: ${{ inputs.manifestBuilder }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'manifestBuilder.e2e.ts'
+
+  run_orgBrowser_if_selected:
+    if: ${{ inputs.orgBrowser }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'orgBrowser.e2e.ts'
+
+  run_pushAndPull_if_selected:
+    if: ${{ inputs.pushAndPull }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'pushAndPull.e2e.ts'
+
+  run_sObjectsDefinitions_if_selected:
+    if: ${{ inputs.sObjectsDefinitions }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'sObjectsDefinitions.e2e.ts'
+
+  run_templates_if_selected:
+    if: ${{ inputs.templates }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'templates.e2e.ts'
