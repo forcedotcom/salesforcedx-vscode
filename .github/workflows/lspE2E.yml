@@ -1,5 +1,7 @@
 name: LSP End to End Tests
+
 on:
+
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -22,6 +24,7 @@ on:
         required: false
         default: true
         type: boolean
+
   workflow_call:
     inputs:
       automationBranch:
@@ -47,7 +50,7 @@ on:
 
 jobs:
 
-  run_aura_LSP_if_selected:
+  run_auraLSP_if_selected:
     if: ${{ inputs.auraLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -55,7 +58,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'auraLsp.e2e.ts'
 
-  run_lwc_LSP_if_selected:
+  run_lwcLSP_if_selected:
     if: ${{ inputs.lwcLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -63,7 +66,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'lwcLsp.e2e.ts'
 
-  run_visualforce_LSP_if_selected:
+  run_visualforceLSP_if_selected:
     if: ${{ inputs.visualforceLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
