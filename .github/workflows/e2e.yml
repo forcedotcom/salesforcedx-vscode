@@ -61,6 +61,16 @@ jobs:
     if: ${{ inputs.lspE2ETests }}
     uses: ./.github/workflows/lspE2E.yml
 
+  Run_Apex_E2E_tests_if_selected:
+    if: ${{ inputs.apexE2ETests }}
+    needs: Run_LSP_E2E_tests_if_selected
+    uses: ./.github/workflows/apexE2E.yml
+
+  Run_Core_E2E_tests_if_selected:
+    if: ${{ inputs.coreE2ETests }}
+    needs: Run_Apex_E2E_tests_if_selected
+    uses: ./.github/workflows/coreE2E.yml
+
     # steps:
     #   - name: Checkout
     #     uses: actions/checkout@v3
