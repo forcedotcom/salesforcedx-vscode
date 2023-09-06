@@ -38,6 +38,7 @@ import {
   getLineBreakpointInfo,
   languageClientUtils
 } from './languageClientUtils';
+import { findAndCheckOrphanedProcesses, showOrphanedProcessesDialog } from './languageClientUtils/languageServerUtils';
 import * as languageServer from './languageServer';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
@@ -321,6 +322,12 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     }
 
     languageClientUtils.setClientInstance(languageClient);
+
+    const orphanedProcesses = findAndCheckOrphanedProcesses();
+    if (orphanedProcesses.length > 0) {
+      await showOrphanedProcessesDialog(orphanedProcesses);
+    }
+
     const handle = languageClient!.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
     extensionContext.subscriptions.push(handle);
@@ -361,8 +368,7 @@ function addOnReadyHandlerToLanguageClient(
           nls.localize('apex_language_server_failed_activate')
         );
         languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${
-            err.message
+          `${nls.localize('apex_language_server_failed_activate')} - ${err.message
           }`
         );
       });

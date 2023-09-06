@@ -82,5 +82,9 @@ export const messages = {
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
-    'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.'
+    'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
+  terminate_orphaned_language_server_instances:
+    'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them before proceeding?',
+  terminate_processes: 'Terminate Processes',
+  terminate_skip: 'Skip'
 };

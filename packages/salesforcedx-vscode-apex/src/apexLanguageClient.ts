@@ -1,4 +1,6 @@
+import * as vscode from 'vscode';
 import {
+  Disposable,
   LanguageClient,
   LanguageClientOptions,
   ServerOptions
@@ -10,7 +12,7 @@ export class ApexLanguageClient extends LanguageClient {
   public constructor(
     id: string,
     name: string,
-    serverOptions: ServerOptions,
+    private serverOptions: ServerOptions,
     clientOptions: LanguageClientOptions,
     forceDebug?: boolean
   ) {
@@ -21,4 +23,9 @@ export class ApexLanguageClient extends LanguageClient {
   public get errorHandler(): ApexErrorHandler | undefined {
     return this._errorHandler;
   }
+
+  public async stop(): Promise<void> {
+    await super.stop();
+  }
+
 }

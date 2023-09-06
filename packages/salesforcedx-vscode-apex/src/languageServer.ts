@@ -20,7 +20,7 @@ import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
 
-const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
+export const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP =
