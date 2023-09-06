@@ -149,10 +149,12 @@ jobs:
             echo "The sfdx-cli installation could not be verified"
             exit 1
           fi
+
       - name: Check which e2e tests are selected
         shell: bash
         run: |
           TESTS_TO_RUN=dummyvalue
+
           if (${{ inputs.anInitialSuite }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+anInitialSuite.e2e.ts
@@ -185,12 +187,16 @@ jobs:
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+templates.e2e.ts
           fi
+
+          # if no tests are selected then run all of them
           if [ $TESTS_TO_RUN = "dummyvalue" ];
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+anInitialSuite.e2e.ts+authentication.e2e.ts+deployAndRetrieve.e2e.ts+manifestBuilder.e2e.ts+orgBrowser.e2e.ts+pushAndPull.e2e.ts+sObjectsDefinitions.e2e.ts+templates.e2e.ts
           fi
+
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
           echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> "$GITHUB_ENV"
+
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:

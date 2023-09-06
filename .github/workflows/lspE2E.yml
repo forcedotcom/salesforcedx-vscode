@@ -104,37 +104,28 @@ jobs:
         shell: bash
         run: |
           TESTS_TO_RUN=dummyvalue
-          echo 'inside check which e2e tests are selected'
-          echo 'before if statement block'
+
           if (${{ inputs.auraLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+auraLsp.e2e.ts
-            echo 'auraLsp is selected'
           fi
           if (${{ inputs.lwcLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+lwcLsp.e2e.ts
-            echo 'lwcLsp is selected'
           fi
           if (${{ inputs.visualforceLsp }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+visualforceLsp.e2e.ts
-            echo 'visualforceLsp is selected'
           fi
-          echo 'after if statement block 4'
-          echo $TESTS_TO_RUN
 
+          # if no tests are selected then run all of them
           if [ $TESTS_TO_RUN = "dummyvalue" ];
           then
-            echo 'no tests are selected to be run'
             TESTS_TO_RUN=$TESTS_TO_RUN+auraLsp.e2e.ts+lwcLsp.e2e.ts+visualforceLsp.e2e.ts
           fi
 
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
           echo "ENV_TESTS_TO_RUN=$TESTS_TO_RUN" >> "$GITHUB_ENV"
-      # - name: Print env.ENV_TESTS_TO_RUN
-      #   shell: bash
-      #   run: echo ${{ env.ENV_TESTS_TO_RUN }}
 
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
@@ -142,10 +133,6 @@ jobs:
           run: |
             npm run setup
             npm run automation-tests
-            echo 'testsToRun = ' + ${{ env.ENV_TESTS_TO_RUN }}
-            echo 'auraLsp = ' + ${{ inputs.auraLsp }}
-            echo 'lwcLsp = ' + ${{ inputs.lwcLsp }}
-            echo 'visualforceLwp = ' + ${{ inputs.visualforceLsp }}
           working-directory: salesforcedx-vscode-automation-tests
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
