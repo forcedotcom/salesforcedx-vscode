@@ -60,16 +60,19 @@ jobs:
   Run_LSP_E2E_tests_if_selected:
     if: ${{ inputs.lspE2ETests }}
     uses: ./.github/workflows/lspE2E.yml
+    secrets: inherit
 
   Run_Apex_E2E_tests_if_selected:
     if: ${{ inputs.apexE2ETests }}
     needs: Run_LSP_E2E_tests_if_selected
     uses: ./.github/workflows/apexE2E.yml
+    secrets: inherit
 
   Run_Core_E2E_tests_if_selected:
     if: ${{ inputs.coreE2ETests }}
     needs: Run_Apex_E2E_tests_if_selected
     uses: ./.github/workflows/coreE2E.yml
+    secrets: inherit
 
     # steps:
     #   - name: Checkout
