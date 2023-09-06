@@ -104,7 +104,7 @@ jobs:
     if: ${{ always() }}
     uses: ./.github/workflows/lspE2E.yml
     with:
-      workflow: 'lspE2E.yml'
+      workflow: 'e2e.yml'
       # run: echo 'lspE2E box selected'
 
       # - name: Run headless test
