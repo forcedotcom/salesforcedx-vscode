@@ -10,27 +10,27 @@ on:
       apexLsp:
         description: 'apexLsp.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       apexReplayDebugger:
         description: 'apexReplayDebugger.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       debugApexTests:
         description: 'debugApexTests.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       runApexTests:
         description: 'runApexTests.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       trailApexReplayDebugger:
         description: 'trailApexReplayDebugger.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
   workflow_call:
     inputs:
@@ -144,12 +144,6 @@ jobs:
           if (${{ inputs.trailApexReplayDebugger }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+trailApexReplayDebugger.e2e.ts
-          fi
-
-          # if no tests are selected then run all of them
-          if [ $TESTS_TO_RUN = "dummyvalue" ];
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+apexLsp.e2e.ts+apexReplayDebugger.e2e.ts+debugApexTests.e2e.ts+runApexTests.e2e.ts+trailApexReplayDebugger.e2e.ts
           fi
 
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files

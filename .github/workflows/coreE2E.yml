@@ -10,42 +10,42 @@ on:
       anInitialSuite:
         description: 'anInitialSuite.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       authentication:
         description: 'authentication.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       deployAndRetrieve:
         description: 'deployAndRetrieve.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       manifestBuilder:
         description: 'manifestBuilder.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       orgBrowser:
         description: 'orgBrowser.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       pushAndPull:
         description: 'pushAndPull.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       sObjectsDefinitions:
         description: 'sObjectsDefinitions.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
       templates:
         description: 'templates.e2e.ts'
         required: false
-        default: false
+        default: true
         type: boolean
   workflow_call:
     inputs:
@@ -186,12 +186,6 @@ jobs:
           if (${{ inputs.templates }} == true)
           then
             TESTS_TO_RUN=$TESTS_TO_RUN+templates.e2e.ts
-          fi
-
-          # if no tests are selected then run all of them
-          if [ $TESTS_TO_RUN = "dummyvalue" ];
-          then
-            TESTS_TO_RUN=$TESTS_TO_RUN+anInitialSuite.e2e.ts+authentication.e2e.ts+deployAndRetrieve.e2e.ts+manifestBuilder.e2e.ts+orgBrowser.e2e.ts+pushAndPull.e2e.ts+sObjectsDefinitions.e2e.ts+templates.e2e.ts
           fi
 
           # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files

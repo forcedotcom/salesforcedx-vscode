@@ -10,17 +10,17 @@ on:
       lspE2ETests:
         description: 'LSP e2e Tests'
         required: false
-        default: false
+        default: true
         type: boolean
       apexE2ETests:
         description: 'Apex e2e Tests'
         required: false
-        default: false
+        default: true
         type: boolean
       coreE2ETests:
         description: 'Core e2e Tests'
         required: false
-        default: false
+        default: true
         type: boolean
 
 jobs:
