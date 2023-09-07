@@ -10,7 +10,7 @@ This glossary defines generative AI terms that appear throughout the Einstein do
 **Grounding:** The process through which domain-specific knowledge and customer information is injected into the prompt.
 Human In the Loop (HITL): a model that requires human interaction.
 
-**Intent:** A user’s goal for interacting with the AI-Assistant.
+**intent:** A user’s goal for interacting with the AI assistant.
 
 **Large Language Model (LLM):** A language model consisting of a neural network with many parameters trained on large quantities of text.
 
