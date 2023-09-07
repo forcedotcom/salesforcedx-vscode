@@ -42,7 +42,7 @@ Einstein for Developers is activated in the org.
 
 An admin can add additional users to the org as needed:
 
-1. From Setup, enter Users in the Quick Find box, then select **Users**.
+1. From Setup, in the Quick Find box, enter `Users`, and then select **Users**.
 2. Click **New User** or **Add Multiple Users**.
 3. Select the appropriate license type and profile based on the user’s role.
 4. Select the **Generate passwords and notify user via email** checkbox.
