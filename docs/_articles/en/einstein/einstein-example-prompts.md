@@ -150,4 +150,4 @@ public with sharing class AccountService {
     }
 ```
 
-Click **Accept** if you like this output or **Retry** again to update your prompt and regenerate a new output.
+If you like this output, click **Accept**. To update your prompt and regenerate new output, click **Retry**. 
