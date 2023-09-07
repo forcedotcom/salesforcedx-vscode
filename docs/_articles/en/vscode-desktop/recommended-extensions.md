@@ -11,7 +11,7 @@ In addition to the extension pack shipped by Salesforce, the following extension
 
 ## Salesforce Code Analyzer(Beta)
 
-Salesforce Code Analyzer extension allows you to identify and fix issues in your code. Read [Salesforce Code Analyzer documentation](https://forcedotcom.github.io/sfdx-scanner/en/v3.x/code-analyzer-vs-code-extension) for more information on using the Code Analyzer extension.
+Use Salesforce Code Analyzer extension to identify and fix issues in your code. See the [Salesforce Code Analyzer documentation](https://forcedotcom.github.io/sfdx-scanner/en/v3.x/code-analyzer-vs-code-extension).
 
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode">Install Code Analyzer</a>
 
