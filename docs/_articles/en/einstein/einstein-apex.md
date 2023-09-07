@@ -25,7 +25,6 @@ Use our example prompts to learn how to get the most out of the generative AI to
 
 **Tip**: To access the **Einstein: Generate Code** command through hotkeys, press Cmd+r (macOS) or Ctrl+r (Windows or Linux). You can customize these shortcuts. See [Keyboard Shortcuts editor](https://code.visualstudio.com/docs/getstarted/keybindings#_keyboard-shortcuts-editor).
 
-- macOS - **Cmd+R**
 - Windows & Linux - **Ctrl+R**
 
 You can customize these shortcuts. See [Keyboard Shortcuts editor](https://code.visualstudio.com/docs/getstarted/keybindings#_keyboard-shortcuts-editor).
