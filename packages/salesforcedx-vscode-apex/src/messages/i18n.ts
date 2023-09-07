@@ -86,5 +86,6 @@ export const messages = {
   terminate_orphaned_language_server_instances:
     'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them before proceeding?',
   terminate_processes: 'Terminate Processes',
-  terminate_skip: 'Skip'
+  terminate_skip: 'Skip',
+  terminate_failed: 'Failed to terminate process Apex Language Server PID: %d: %s'
 };

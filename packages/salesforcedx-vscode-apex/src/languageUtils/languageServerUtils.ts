@@ -17,10 +17,12 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   const isWindows = platform === 'win32';
 
   const cmd = isWindows
-    ? `Get-CimInstance -ClassName Win32_Process | Where-Object { $_.CommandLine -like "*${UBER_JAR_NAME}*" } | Select-Object -Property ProcessId, ParentProcessId, CommandLine`
+    ? `Get-CimInstance -ClassName Win32_Process | Where-Object { $_.CommandLine -like '*${UBER_JAR_NAME}*' } | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders`
     : `ps -e -o pid,ppid,command | grep "${UBER_JAR_NAME}"`;
 
-  const stdout = execSync(isWindows ? `powershell.exe -command "${cmd}"` : cmd).toString();
+  const stdout = execSync(
+    isWindows ? `powershell.exe -command "${cmd}"` : cmd
+  ).toString();
   const lines = stdout.trim().split('\n');
   const processes: ProcessDetail[] = lines.map(line => {
     const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
@@ -35,27 +37,31 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   }
 
   // Filter orphaned processes
-  const orphanedProcesses: ProcessDetail[] = processes.map(processInfo => {
-    const checkOrphanedCmd = isWindows ?
-      `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${process.pid}'"` :
-      `ps -p ${process.pid}`;
-    // a parent pid of 1 on posix means jorje was adopted by system process 1, which is always running.
-    if (!isWindows && processInfo.ppid === 1) {
-      processInfo.orphaned = true;
+  const orphanedProcesses: ProcessDetail[] = processes
+    .map(processInfo => {
+      const checkOrphanedCmd = isWindows
+        ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${process.pid}'"`
+        : `ps -p ${process.pid}`;
+      // a parent pid of 1 on posix means jorje was adopted by system process 1, which is always running.
+      if (!isWindows && processInfo.ppid === 1) {
+        processInfo.orphaned = true;
+        return processInfo;
+      }
+      try {
+        execSync(checkOrphanedCmd);
+      } catch (err) {
+        processInfo.orphaned = true;
+      }
       return processInfo;
-    }
-    try {
-      execSync(checkOrphanedCmd);
-    } catch (err) {
-      processInfo.orphaned = true;
-    }
-    return processInfo;
-  }).filter(processInfo => processInfo.orphaned);
+    })
+    .filter(processInfo => processInfo.orphaned);
 
   return orphanedProcesses;
 }
 
-export async function showOrphanedProcessesDialog(orphanedProcesses: ProcessDetail[]) {
+export async function showOrphanedProcessesDialog(
+  orphanedProcesses: ProcessDetail[]
+) {
   const orphanedCount = orphanedProcesses.length;
 
   if (orphanedCount === 0) {
@@ -63,7 +69,11 @@ export async function showOrphanedProcessesDialog(orphanedProcesses: ProcessDeta
   }
 
   setTimeout(async () => {
-    const choice = await vscode.window.showWarningMessage(nls.localize('terminate_orphaned_language_server_instances', orphanedCount),
+    const choice = await vscode.window.showWarningMessage(
+      nls.localize(
+        'terminate_orphaned_language_server_instances',
+        orphanedCount
+      ),
       nls.localize('terminate_processes'),
       nls.localize('terminate_skip')
     );
@@ -72,7 +82,9 @@ export async function showOrphanedProcessesDialog(orphanedProcesses: ProcessDeta
       for (const processInfo of orphanedProcesses) {
         await terminateProcess(processInfo.pid);
       }
-      vscode.window.showInformationMessage(`Terminated ${orphanedCount} orphaned processes.`);
+      vscode.window.showInformationMessage(
+        `Terminated ${orphanedCount} orphaned processes.`
+      );
     }
   }, 10_000);
 }
@@ -83,6 +95,8 @@ export async function terminateProcess(pid: number) {
   try {
     process.kill(pid, SIGKILL);
   } catch (err) {
-    vscode.window.showErrorMessage(`Failed to terminate process ${pid}: ${err.message}`);
+    vscode.window.showErrorMessage(
+      `Failed to terminate process ${pid}: ${err.message}`
+    );
   }
 }

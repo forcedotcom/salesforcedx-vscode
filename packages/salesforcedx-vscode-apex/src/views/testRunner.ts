@@ -18,7 +18,7 @@ import { ApexLibraryTestRunExecutor } from '../commands';
 import {
   LanguageClientStatus,
   languageClientUtils
-} from '../languageClientUtils';
+} from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { forceApexTestRunCacheService } from '../testRunCache';

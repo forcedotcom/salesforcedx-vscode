@@ -30,6 +30,7 @@ import {
 } from './commands';
 import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
 import { workspaceContext } from './context';
+import * as languageServer from './languageServer';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -37,9 +38,8 @@ import {
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   languageClientUtils
-} from './languageClientUtils';
-import { findAndCheckOrphanedProcesses, showOrphanedProcessesDialog } from './languageClientUtils/languageServerUtils';
-import * as languageServer from './languageServer';
+} from './languageUtils';
+import { ProcessDetail, findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils/languageServerUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
@@ -373,4 +373,34 @@ function addOnReadyHandlerToLanguageClient(
         );
       });
   }
+}
+
+async function showOrphanedProcessesDialog(
+  orphanedProcesses: ProcessDetail[]
+) {
+  const orphanedCount = orphanedProcesses.length;
+
+  if (orphanedCount === 0) {
+    return;
+  }
+
+  setTimeout(async () => {
+    const choice = await vscode.window.showWarningMessage(
+      nls.localize(
+        'terminate_orphaned_language_server_instances',
+        orphanedCount
+      ),
+      nls.localize('terminate_processes'),
+      nls.localize('terminate_skip')
+    );
+
+    if (choice === nls.localize('terminate_processes')) {
+      for (const processInfo of orphanedProcesses) {
+        await terminateProcess(processInfo.pid);
+      }
+      vscode.window.showInformationMessage(
+        `Terminated ${orphanedCount} orphaned processes.`
+      );
+    }
+  }, 10_000);
 }
