@@ -70,7 +70,7 @@ on:
 
 jobs:
 
-  run_apexLSP_if_selected:
+  apexLSP:
     if: ${{ inputs.apexLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -78,7 +78,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'apexLsp.e2e.ts'
 
-  run_apexReplayDebugger_if_selected:
+  apexReplayDebugger:
     if: ${{ inputs.apexReplayDebugger }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -86,7 +86,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'apexReplayDebugger.e2e.ts'
 
-  run_debugApexTests_if_selected:
+  debugApexTests:
     if: ${{ inputs.debugApexTests }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -94,7 +94,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'debugApexTests.e2e.ts'
 
-  run_runApexTests_if_selected:
+  runApexTests:
     if: ${{ inputs.runApexTests }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -102,7 +102,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'runApexTests.e2e.ts'
 
-  run_trailApexReplayDebugger_if_selected:
+  trailApexReplayDebugger:
     if: ${{ inputs.trailApexReplayDebugger }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit

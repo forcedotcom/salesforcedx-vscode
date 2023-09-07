@@ -100,7 +100,7 @@ on:
 
 jobs:
 
-  run_anInitialSuite_if_selected:
+  anInitialSuite:
     if: ${{ inputs.anInitialSuite }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -108,7 +108,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'anInitialSuite.e2e.ts'
 
-  run_authentication_if_selected:
+  authentication:
     if: ${{ inputs.authentication }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -116,7 +116,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'authentication.e2e.ts'
 
-  run_deployAndRetrieve_if_selected:
+  deployAndRetrieve:
     if: ${{ inputs.deployAndRetrieve }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -124,7 +124,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'deployAndRetrieve.e2e.ts'
 
-  run_manifestBuilder_if_selected:
+  manifestBuilder:
     if: ${{ inputs.manifestBuilder }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -132,7 +132,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'manifestBuilder.e2e.ts'
 
-  run_orgBrowser_if_selected:
+  orgBrowser:
     if: ${{ inputs.orgBrowser }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -140,7 +140,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'orgBrowser.e2e.ts'
 
-  run_pushAndPull_if_selected:
+  pushAndPull:
     if: ${{ inputs.pushAndPull }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -148,7 +148,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'pushAndPull.e2e.ts'
 
-  run_sObjectsDefinitions_if_selected:
+  sObjectsDefinitions:
     if: ${{ inputs.sObjectsDefinitions }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
@@ -156,7 +156,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'sObjectsDefinitions.e2e.ts'
 
-  run_templates_if_selected:
+  templates:
     if: ${{ inputs.templates }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
