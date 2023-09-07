@@ -9,7 +9,7 @@ Einstein for Developers is an AI-assisted tooling that is available as an easy-t
 
 **What data has Einstein for Developers been trained on?**
 
-Einstein for Developers uses Salesforce’s trusted generative AI, CodeGen, to assist you through Salesforce development. CodeGen uses expertise that’s learned from anonymized code patterns.
+Einstein for Developers uses our trusted generative AI, CodeGen, to assist you through Salesforce development. CodeGen uses expertise that’s learned from anonymized code patterns.
 
 **Where can I learn more about Einstein for Developers Privacy and Data Protection?**
 
