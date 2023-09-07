@@ -17,7 +17,7 @@ A Salesforce admin or user with the appropriate permissions can enable Einstein 
 
 **Inoperable in**: Group, Professional, and Essentials Editions
 
-### User Permissions Needed
+### Required User Permissions
 
 **Configure Einstein for Developers(beta)**: `CustomizeApplication` and `ModifyAllData`
 
