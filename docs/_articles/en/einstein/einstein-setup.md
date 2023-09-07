@@ -11,7 +11,7 @@ A Salesforce admin or user with the appropriate permissions can enable Einstein 
 2.  Connect to an org with Einstein for Developers enabled.
 3.  Use the extension to generate Apex code from natural language instructions.
 
-### Required Salesforce Editions and User Permissions
+### Required Editions 
 
 **Available in**: Developer, Enterprise, Partner Developer, Performance and Unlimited Editions.
 
