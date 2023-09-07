@@ -3,7 +3,7 @@ title: Einstein for Developers Glossary
 lang: en
 ---
 
-Here’s a list of some commonly used generative AI terms in context of our tooling.
+This glossary defines generative AI terms that appear throughout the Einstein documentation.
 
 **Generative Pre-Trained Transformer (GPT):** A family of language models developed by OpenAI generally trained on a large corpus of text data such that they can generate human-like text.
 
