@@ -38,11 +38,11 @@
       url: /einstein/einstein-setup
     - title:
         en: Use Einstein for Apex Programming
-        ja: Set Up Einstein for Developers
+        ja: Use Einstein for Apex Programming
       url: /einstein/einstein-apex
     - title:
         en: Example Prompts and Responses
-        ja: Set Up Einstein for Developers
+        ja: Example Prompts and Responses
       url: /einstein/einstein-example-prompts
     - title:
         en: Troubleshooting
