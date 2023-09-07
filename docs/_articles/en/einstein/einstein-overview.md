@@ -54,4 +54,4 @@ Key aspects of the `CodeGen 2.5` model version are:
 - It is optimized for fast sampling under `Flash` attention for serving completions. It is also optimized for local deployment to personal machines.
 - `CodeGen2.5` is permissively licensed in `Apache 2.0`.
 
-For information read our blog — https://blog.salesforceairesearch.com/codegen25/
+See the blog post [CodeGen2.5: Small, but Mighty](https://blog.salesforceairesearch.com/codegen25/).
