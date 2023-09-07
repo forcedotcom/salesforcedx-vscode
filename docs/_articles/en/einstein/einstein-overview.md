@@ -1,5 +1,5 @@
 ---
-title: Einstein For Developers (Beta)
+title: Einstein for Developers (Beta)
 lang: en
 ---
 
