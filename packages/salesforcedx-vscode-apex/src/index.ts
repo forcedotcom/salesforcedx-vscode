@@ -323,10 +323,10 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     languageClientUtils.setClientInstance(languageClient);
 
-    const orphanedProcesses = findAndCheckOrphanedProcesses();
-    if (orphanedProcesses.length > 0) {
-      await showOrphanedProcessesDialog(orphanedProcesses);
-    }
+    // const orphanedProcesses = findAndCheckOrphanedProcesses();
+    // if (orphanedProcesses.length > 0) {
+    //   await showOrphanedProcessesDialog(orphanedProcesses);
+    // }
 
     const handle = languageClient!.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
