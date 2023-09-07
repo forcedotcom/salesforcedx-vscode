@@ -44,7 +44,7 @@ Learn more at [Salesforce AI Research: Trusted AI](https://www.salesforceairesea
 
 ### About our Open source CodeGen 2.5
 
-> The family of Salesforce CodeGen models is growing with `CodeGen2.5`. `CodeGen 2.5` bucks the trend of large language models (LLM) to show that a small model, if trained well, can obtain surprisingly good performance.
+A new member of the growing family of Salesforce CodeGen models, `CodeGen 2.5` shows that a small model, if trained well, can achieve surprisingly good performance.
 
 Key aspects of the `CodeGen 2.5` model version are:
 
