@@ -5,7 +5,7 @@ lang: en
 
 ## Set Up Overview
 
-A Salesforce admin or user with the appropriate permissions can install Einstein for Developers in a supported Salesforce org. A developer with access to the org can then:
+A Salesforce admin or user with the appropriate permissions can enable Einstein for Developers in a supported Salesforce org. A developer with access to the org can then:
 
 1.  Install the extension in VS Code.
 2.  Connect to an org with Einstein for Developers enabled.
@@ -20,6 +20,9 @@ A Salesforce admin or user with the appropriate permissions can install Einstein
 ### User Permissions Needed
 
 **Configure Einstein for Developers(beta)**: `CustomizeApplication` and `ModifyAllData`
+
+### Enhanced Domain Enabled
+Your Einstein for Developers org must have Enhanced Domain enabled. See [Enable Enhanced Domains](https://help.salesforce.com/s/articleView?id=sf.domain_name_enhanced_enable.htm&type=5) for more information.
 
 ## Enable Einstein for Developers
 
