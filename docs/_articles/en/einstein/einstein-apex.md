@@ -11,7 +11,7 @@ Use the Einstein for Developers side bar to write a question or an instruction t
 
 ## Use the Command Palette to Generate Apex Code
 
-To quickly access Einstein for Developers from inside an Apex file in the VS Code Editor:
+You can quickly access Einstein for Developers from inside an Apex file in the VS Code editor.
 
 1. Open an existing Apex (`.cls`) file, or create one from the command palette by running the **SFDX: Create Apex Class** command. You can also use the Org Browser to retrieve an Apex class from your org.
 2. Place your cursor on the line in the file where you want the generated code to be placed.
