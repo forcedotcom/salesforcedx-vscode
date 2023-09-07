@@ -30,7 +30,7 @@ When you enable Einstein for Developers in a supported Salesforce org, all users
 
 1. From Setup, enter Einstein for Developers in the Quick Find box, then select Einstein for Developers.
 **Tip: **If you don’t see Einstein for Developers as an option under Setup in your Developer Edition org, the org was probably created before Einstein for Developers was introduced, so it doesn’t have the correct permissions. Create another Developer Edition org and then retry this step.
-2. Toggle Enable Einstein for Developers.
+2. Turn on Einstein for Developers.
 
 ![Einstein Terms and Toggle](../../../images/einstein-terms.png)
 
