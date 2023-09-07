@@ -11,7 +11,7 @@ We strongly encourage you to let us know when you see examples of less optimal c
 
 ## Prompt Writing Tips
 
-Prompt writing is key to quality code generation. Here’s some tips for improved prompt writing and a selection of sample prompts to start you on your generative AI code assistance journey.
+Prompt writing is key to quality code generation. Here are some tips for improved prompt writing and a selection of sample prompts to start you on your generative AI code-assistance journey.
 
 | Original Prompt                                         | Improved Prompt                                                                |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
