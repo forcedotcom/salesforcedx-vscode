@@ -108,9 +108,6 @@ public with sharing class AccountService {
     );
     return newAcct;
   }
-```
-
-```
 // Function to update the FirstName for a list of users
 public static List<User> updateFirstName(List<User> users, String newFirstName) {
         for (User u : users) {
@@ -137,9 +134,7 @@ public with sharing class AccountService {
     return newAcct;
   }
 }
-```
 
-```
  //This is a method that allows updating the FirstName for a list of users
     public static void updateFirstName(List<User> users) {
         for (User usr : users) {
