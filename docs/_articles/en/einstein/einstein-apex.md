@@ -21,7 +21,7 @@ You can quickly access Einstein for Developers from inside an Apex file in the V
 For example, “`Write a method that takes an account as a parameter and returns all contacts associated with that account.`”
 5. Review the code that Einstein generates, and then click **Accept**, **Try Again**, or **Clear**. 
 
-Use our example prompts to exercise your code generation muscle and learn how to get the most out of the generative AI tool.
+Use our example prompts to learn how to get the most out of the generative AI tool.
 
 **Note**: You can also access the **Einstein: Generate Code** command through hotkeys. Keyboard shortcuts are the following across environments:
 
