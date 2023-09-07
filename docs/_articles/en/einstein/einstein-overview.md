@@ -3,6 +3,7 @@ title: Einstein for Developers (Beta)
 lang: en
 ---
 
+## Overview
 
 Quickly generate code suggestions using natural language instructions with Einstein for Developers to enhance developer productivity. Einstein for Developers is an AI-powered developer tool that's available as an easy-to-install Visual Studio Code extension built using CodeGen, the secure, custom AI model from Salesforce. The extension is available in the [VS Code](https://marketplace.visualstudio.com/vscode) and [Open VSX](https://open-vsx.org/) marketplaces.
 
