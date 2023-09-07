@@ -21,4 +21,4 @@ No. Salesforce treats your code as confidential information under your Main Serv
 
 **I still have some security concerns, what if my code contains proprietary info?**
 
-Before using any code to label or build models, the research team scrubs all personally identifiable information (PII) and secrets info from the code. This information includes names, company names, phone numbers, address, and hard-coded API tokens. The data is encrypted at rest using customer-managed encryption keys. For more information see [Customer-managed encryption keys (CMEK)](https://cloud.google.com/kms/docs/cmek). We also ensure that only Salesforce employees handle your code, and not contractors.
+Before using any code to label or build models, the research team scrubs all personally identifiable information (PII) and secrets info from the code. This information includes names, company names, phone numbers, address, and hard-coded API tokens. The data is encrypted at rest using customer-managed encryption keys. See [Customer-managed encryption keys (CMEK)](https://cloud.google.com/kms/docs/cmek). We also ensure that only Salesforce employees handle your code, not contractors.
