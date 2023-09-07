@@ -18,7 +18,7 @@ human in the loop (HITL): A model that requires human interaction.
 
 **Prompt Management:** The suite of tools used to build, manage, package, and share prompts, including the prompt templates and the prompt template store.
 
-**Prompt Template:** A string with placeholders/tags that can be replaced with custom values to generate a final prompt. The template includes the hyperparameters associated with that prompt, and model/vendor choice if not using default values.
+**prompt template:** A string with placeholders/tags that can be replaced with custom values to generate a final prompt. The template includes the hyperparameters associated with that prompt and your choice of model/vendor if you're not using default values.
 
 **Prompt Chaining:** The method to select the right prompt engineering, which is a break-up of complex tasks into several intermediate steps, and then tie it back together in the hope that the AI generates a more concrete, customized, and thus better result. To get the best prompt, use the “Retry” option to regenerate code.
 
