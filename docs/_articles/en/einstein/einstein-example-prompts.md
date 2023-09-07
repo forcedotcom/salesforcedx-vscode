@@ -21,7 +21,7 @@ Prompt writing is key to quality code generation. Here are some tips for improve
 
 ## Example Prompts and Responses
 
-**Prompt:** Write an apex method that accepts a List of sObjects and a field name and returns a Set of non null field values.
+**Prompt:** Write an apex method that accepts a list of sobjects and a field name and returns a set of non null field values.
 
 **Response:**
 
