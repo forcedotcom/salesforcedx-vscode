@@ -17,11 +17,11 @@ Prompt writing is key to quality code generation. Here are some tips for improve
 | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Write Apex code that sorts the list of contacts.        | Write Apex code that sorts the list of contacts alphabetically by last name.   |
 | Write a method that adds two numbers.                   | Write a method that adds two numbers and returns the result.                   |
-| Write an apex method that returns fields for an object. | Write an apex method that accepts an SObject and returns a list of its fields. |
+| Write an Apex method that returns fields for an object. | Write an Apex method that accepts an SObject and returns a list of its fields. |
 
 ## Example Prompts and Responses
 
-**Prompt:** Write an apex method that accepts a list of sobjects and a field name and returns a set of non null field values.
+**Prompt:** Write an Apex method that accepts a list of sobjects and a field name and returns a set of non null field values.
 
 **Response:**
 
@@ -64,7 +64,7 @@ public Set<String> getFieldValues(List<sObject> records, String fieldName) {
 
 ```
 
-**Prompt:** Write an apex method that accepts product name as input and retrieves orderitems filtered on product name.
+**Prompt:** Write an Apex method that accepts product name as input and retrieves orderitems filtered on product name.
 
 **Response**:
 
