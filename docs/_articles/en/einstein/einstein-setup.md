@@ -66,7 +66,7 @@ The Einstein for Developers tool is run in the context of a Salesforce org, in a
 
 1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create one.
 
-2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled.
+2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled. Pick default options to connect to your org.
 
 The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the sidebar.
 
