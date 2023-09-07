@@ -22,4 +22,4 @@ Human In the Loop (HITL): a model that requires human interaction.
 
 **Prompt Chaining:** The method to select the right prompt engineering, which is a break-up of complex tasks into several intermediate steps, and then tie it back together in the hope that the AI generates a more concrete, customized, and thus better result. To get the best prompt, use the “Retry” option to regenerate code.
 
-**Semantic Retrieval:** A scenario that allows a large language model to utilize all the knowledge that exists in a customer's CRM data. Each CRM user has access to a personalized generative AI.
+**semantic retrieval:** A scenario where a large language model uses all the knowledge that exists in a customer's CRM data. Each CRM user has access to a personalized generative AI.
