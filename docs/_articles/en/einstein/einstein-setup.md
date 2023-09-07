@@ -36,7 +36,7 @@ When you enable Einstein for Developers in a supported Salesforce org, all users
 
 **Important**: We encourage you to thoroughly review the license agreement and review all terms and conditions. Then accept to enable Einstein for Developers.
 
-Einstein for Developers is activated in the org. All the users in the org have access to the feature.
+Einstein for Developers is activated in the org. 
 
 ### Add Users to the Org
 
