@@ -19,7 +19,7 @@ A Salesforce admin or user with the appropriate permissions can enable Einstein 
 
 ### Required User Permissions
 
-**Configure Einstein for Developers(beta)**: `CustomizeApplication` and `ModifyAllData`
+To configure Einstein for Developers (beta): Customize Application AND Modify All Data
 
 ### Enhanced Domain Enabled
 Your Einstein for Developers org must have Enhanced Domain enabled. See [Enable Enhanced Domains](https://help.salesforce.com/s/articleView?id=sf.domain_name_enhanced_enable.htm&type=5) for more information.
