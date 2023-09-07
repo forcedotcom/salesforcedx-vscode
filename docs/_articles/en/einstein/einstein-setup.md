@@ -88,7 +88,7 @@ To use Einstein for Developers in a scratch org:
 2. Use the `SFDX: Authorize a Dev Hub` command to log into the Dev Hub.
 3. Activate Einstein for Developers by turning on the `EinsteinGPTForDevelopers` scratch org feature:
 
-Edit the `config/project-scratch-def.json` file in your DX project and add the “`EinsteinGPTForDevelopers`” feature to your existing feature list. For example:
+Edit the `config/project-scratch-def.json` file in your DX project and add the “`EinsteinGPTForDevelopers`” feature to your existing feature list and save your changes. For example:
 
 ```
    {
@@ -98,8 +98,7 @@ Edit the `config/project-scratch-def.json` file in your DX project and add the �
    }
 ```
 
-4. Save your changes to activate the feature.
-5. Create a scratch org using the `SFDX: Create a Default Scratch Org...` command referencing the scratch org definition that you previously updated.
+Create a scratch org using the `SFDX: Create a Default Scratch Org...` command referencing the scratch org definition that you previously updated.
 
 ## Show Einstein Feedback Console View
 
