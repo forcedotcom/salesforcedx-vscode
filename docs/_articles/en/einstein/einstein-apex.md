@@ -28,4 +28,4 @@ Use our example prompts to learn how to get the most out of the generative AI to
 - macOS - **Cmd+R**
 - Windows & Linux - **Ctrl+R**
 
-You may also customize these shortcuts. See [Keyboard Shortcuts editor](https://code.visualstudio.com/docs/getstarted/keybindings#_keyboard-shortcuts-editor) for more info.
+You can customize these shortcuts. See [Keyboard Shortcuts editor](https://code.visualstudio.com/docs/getstarted/keybindings#_keyboard-shortcuts-editor).
