@@ -5,7 +5,7 @@ lang: en
 
 **What is Einstein for Developers?**
 
-Einstein for Developers is an AI-assisted tooling that is available as an easy-to-install VS Code extension built using Einstein, Salesforce’s secure, custom AI model.
+Einstein for Developers is an AI-assisted tooling that is available as an easy-to-install VS Code extension built using Einstein, the secure, custom AI model from Salesforce.
 
 **What data has Einstein for Developers been trained on?**
 
