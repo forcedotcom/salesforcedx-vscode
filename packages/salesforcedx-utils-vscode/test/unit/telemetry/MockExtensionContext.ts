@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import { EnvironmentVariableCollection, EnvironmentVariableScope } from 'vscode';
 
 class MockMemento {
   private telemetryGS: boolean;
@@ -50,6 +51,10 @@ class MockEnvironmentVariableCollection {
   }
   public clear(): void {
     throw new Error('Method not implemented.');
+  }
+  public getScoped(scope: EnvironmentVariableScope): EnvironmentVariableCollection {
+    const envVar: any = null;
+    return envVar;
   }
 }
 
