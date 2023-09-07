@@ -14,7 +14,7 @@ Human In the Loop (HITL): a model that requires human interaction.
 
 **Large Language Model (LLM):** A language model consisting of a neural network with many parameters trained on large quantities of text.
 
-**Prompt:** A natural language description of the task to be accomplished. An input to the LLM.
+**prompt:** A natural language description of the task to be done. An input to the LLM.
 
 **Prompt Management:** The suite of tools used to build, manage, package, and share prompts, including the prompt templates and the prompt template store.
 
