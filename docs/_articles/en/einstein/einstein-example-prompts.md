@@ -3,15 +3,23 @@ title: Example Prompts and Responses
 lang: en
 ---
 
-## Example Prompts and Responses
+## About Generated Code Quality
+
+As with all LLM-based products, the technology behind this product is still new. The generated output will often require editing to be customized for your individual project and responses may not be optimal. We'd love to hear feedback from you on the generated output through the History & Feedback Panel in the IDE - your feedback will be critical to the continuous training of our large language model (LLM) during the beta program.
+
+We strongly encourage you to let us know when you see examples of less optimal code, so that we can continue to improve generated responses. Please use tools such as [Apex PMD](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd) (already in your Salesforce Extension Pack) and [Salesforce Code Analyzer](https://forcedotcom.github.io/sfdx-scanner/) to ensure the quality of your generated code.
+
+## Prompt Writing Tips
 
 Prompt writing is key to quality code generation. Here’s some tips for improved prompt writing and a selection of sample prompts to start you on your generative AI code assistance journey.
 
-| <b>Original Prompt </b>                                 | <b>Improved Prompt</b>                                                         |
+| Original Prompt                                         | Improved Prompt                                                                |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Write Apex code that sorts the list of contacts.        | Write Apex code that sorts the list of contacts alphabetically by last name.   |
 | Write a method that adds two numbers.                   | Write a method that adds two numbers and returns the result.                   |
 | Write an apex method that returns fields for an object. | Write an apex method that accepts an SObject and returns a list of its fields. |
+
+## Example Prompts and Responses
 
 **Prompt:** Write an apex method that accepts a List of sObjects and a field name and returns a Set of non null field values.
 
@@ -86,7 +94,7 @@ trigger gptcontacttrigger on Account (after insert, after update) {
 
 ## Edit a Prompt and Regenerate Output
 
-A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. Use **Retry** and **Accept** option that's available when you use `Einstein: Generate Code`command from the command palette, or in the sidebar, edit the prompt and **Ask**. 
+A well designed prompt is key to getting a good response from Einstein. We encourage you to modify your prompts until you get Apex code that helps you complete your task at hand. Use **Retry** and **Accept** option that's available when you use `Einstein: Generate Code`command from the command palette, or in the sidebar, edit the prompt and **Ask**.
 
 For example, the prompt, "_Write code to provide the ability to update the FirstName for a list of users_" generates the following response:
 
@@ -143,9 +151,3 @@ public with sharing class AccountService {
 ```
 
 Click **Accept** if you like this output or **Retry** again to update your prompt and regenerate a new output.
-
-## Generated Code Quality Feedback
-
-As with all LLM-based products, the technology behind this product is still new. The generated output will often require editing to be customized for your individual project and responses may not be optimal. We'd love to hear feedback from you on the generated output through the History & Feedback Panel in the IDE - your feedback will be critical to the continuous training of our large language model (LLM) during the beta program.
-
-We strongly encourage you to let us know when you see examples of less optimal code, so that we can continue to improve generated responses. Please use tools such as [Apex PMD](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd) (already in your Salesforce Extension Pack) and [Salesforce Code Analyzer](https://forcedotcom.github.io/sfdx-scanner/) to ensure the quality of your generated code.
