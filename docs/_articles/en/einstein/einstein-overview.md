@@ -38,7 +38,7 @@ Einstein solutions are designed, developed, and delivered to be compliant with o
 
 Learn more at [Salesforce AI Research: Trusted AI](https://www.salesforceairesearch.com/trusted-ai).
 
-## About the CodeGen Model
+## The CodeGen Model
 
 **Important**: Einstein for Developers uses a customized LLM that is based on Salesforce's open-source CodeGen model. This model that powers Einstein for Developers is the exclusive property of Salesforce.
 
