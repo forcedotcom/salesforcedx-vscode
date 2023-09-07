@@ -7,7 +7,7 @@ lang: en
 
 As with all LLM-based products, the technology behind Einstein for Developers is still new. The generated output often requires editing to be customized for your individual project. Some responses aren't optimal. We'd love to hear feedback from you on the generated output through the History & Feedback Panel in the IDE. Your feedback is critical to the continuous training of our large language model (LLM) during the beta program.
 
-We strongly encourage you to let us know when you see examples of less optimal code, so that we can continue to improve generated responses. Please use tools such as [Apex PMD](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd) (already in your Salesforce Extension Pack) and [Salesforce Code Analyzer](https://forcedotcom.github.io/sfdx-scanner/) to ensure the quality of your generated code.
+We strongly encourage you to let us know when you see examples of less optimal code, so that we can continue to improve generated responses. We recommend tools such as [Apex PMD](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd) (already in your Salesforce Extension Pack) and [Salesforce Code Analyzer](https://forcedotcom.github.io/sfdx-scanner/) to ensure the quality of your generated code.
 
 ## Prompt Writing Tips
 
