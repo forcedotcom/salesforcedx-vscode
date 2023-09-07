@@ -16,7 +16,9 @@ You can quickly access Einstein for Developers from inside an Apex file in the V
 1. Open an existing Apex (`.cls`) file, or create one from the command palette by running the **SFDX: Create Apex Class** command. You can also use the Org Browser to retrieve an Apex class from your org.
 2. Put your cursor on the line in the file where you want the generated code to be placed.
 3. From the Command Palette, run **Einstein: Generate Code**.
-4. For your query, enter text that describes the code that you want to generate. For example, “_Write a method that takes an account as a parameter and returns all contacts associated with that account_.”
+4. For your query, enter a description of the code that you want to generate. 
+
+For example, “`Write a method that takes an account as a parameter and returns all contacts associated with that account.`”
 5. Review the code that Einstein generates, and then click **Accept**, **Try Again**, or **Clear**. 
 
 Use our example prompts to exercise your code generation muscle and learn how to get the most out of the generative AI tool.
