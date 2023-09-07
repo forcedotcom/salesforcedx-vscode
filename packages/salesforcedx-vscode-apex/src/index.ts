@@ -304,9 +304,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
       });
       languageClient.errorHandler?.addListener('restarting', count => {
         languageServerStatusBarItem.error(
-          nls
-            .localize('apex_language_server_quit_and_restarting')
-            .replace('$N', count)
+          nls.localize('apex_language_server_quit_and_restarting', count)
         );
       });
       languageClient.errorHandler?.addListener('startFailed', count => {
@@ -333,9 +331,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     extensionContext.subscriptions.push(handle);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
-    languageServerStatusBarItem.error(
-      `${nls.localize('apex_language_server_failed_activate')} - ${e.message}`
-    );
+    languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate', e.message));
   }
 }
 
@@ -398,9 +394,7 @@ async function showOrphanedProcessesDialog(
       for (const processInfo of orphanedProcesses) {
         await terminateProcess(processInfo.pid);
       }
-      vscode.window.showInformationMessage(
-        `Terminated ${orphanedCount} orphaned processes.`
-      );
+      vscode.window.showInformationMessage(nls.localize('terminated_orphaned_processes', orphanedCount));
     }
   }, 10_000);
 }

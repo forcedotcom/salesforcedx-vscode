@@ -44,8 +44,8 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   const orphanedProcesses: ProcessDetail[] = processes
     .map(processInfo => {
       const checkOrphanedCmd = isWindows
-        ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${process.pid}'"`
-        : `ps -p ${process.pid}`;
+        ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${processInfo.ppid}'"`
+        : `ps -p ${processInfo.ppid}`;
       // a parent pid of 1 on posix means jorje was adopted by system process 1, which is always running.
       if (!isWindows && processInfo.ppid === 1) {
         processInfo.orphaned = true;

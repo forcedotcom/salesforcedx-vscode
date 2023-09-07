@@ -24,9 +24,9 @@ export const messages = {
     'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
   apex_language_server_loaded: 'Indexing complete $(check)',
   apex_language_server_failed_activate:
-    'Unable to activate the Apex Language Server',
+    'Unable to activate the Apex Language Server - %s',
   apex_language_server_quit_and_restarting:
-    'Apex Language Server has stopped. Restarting… $N of 5',
+    'Apex Language Server has stopped. Restarting… %d of 5',
   apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
@@ -87,5 +87,7 @@ export const messages = {
     'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them before proceeding?',
   terminate_processes: 'Terminate Processes',
   terminate_skip: 'Skip',
-  terminate_failed: 'Failed to terminate process Apex Language Server PID: %d: %s'
+  terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
+  terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
+  terminated_orphaned_processes: 'Terminated %d orphaned processes.'
 };

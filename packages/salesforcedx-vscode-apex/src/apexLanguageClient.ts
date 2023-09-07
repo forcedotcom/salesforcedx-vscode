@@ -59,13 +59,9 @@ export class ApexLanguageClient extends LanguageClient {
         for (const processInfo of orphanedProcesses) {
           try {
             await terminateProcess(processInfo.pid);
-            vscode.window.showInformationMessage(
-              `Terminated ${processInfo.pid} orphaned process.`
-            );
+            vscode.window.showInformationMessage(nls.localize('terminated_orphaned_process', processInfo.pid));
           } catch (err) {
-            vscode.window.showErrorMessage(
-              `Failed to terminate process ${processInfo.pid}: ${err.message}`
-            );
+            vscode.window.showErrorMessage(nls.localize('terminate_failed', processInfo.pid, err.message));
           }
         }
       }
