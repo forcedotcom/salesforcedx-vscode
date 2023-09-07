@@ -13,7 +13,7 @@ Einstein for Developers uses Salesforce’s trusted generative AI, CodeGen, to a
 
 **Where can I learn more about Einstein for Developers Privacy and Data Protection?**
 
-See [Salesforce’s Trusted AI](https://www.salesforceairesearch.com/trusted-ai).
+See [Trusted AI from Salesforce](https://www.salesforceairesearch.com/trusted-ai).
 
 **Will my code ever be shared outside of my development environment?**
 
