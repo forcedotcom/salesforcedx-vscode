@@ -3,7 +3,7 @@ title: Example Prompts and Responses
 lang: en
 ---
 
-## About Generated Code Quality
+## Generated Code Quality
 
 As with all LLM-based products, the technology behind Einstein for Developers is still new. The generated output often requires editing to be customized for your individual project. Some responses aren't optimal. We'd love to hear feedback from you on the generated output through the History & Feedback Panel in the IDE. Your feedback is critical to the continuous training of our large language model (LLM) during the beta program.
 
