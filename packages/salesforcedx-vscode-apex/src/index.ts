@@ -39,7 +39,7 @@ import {
   getLineBreakpointInfo,
   languageClientUtils
 } from './languageUtils';
-import { ProcessDetail, findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils/languageServerUtils';
+import { findAndCheckOrphanedProcesses, ProcessDetail, terminateProcess } from './languageUtils/languageServerUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
@@ -323,12 +323,12 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     languageClientUtils.setClientInstance(languageClient);
 
-    // const orphanedProcesses = findAndCheckOrphanedProcesses();
-    // if (orphanedProcesses.length > 0) {
-    //   await showOrphanedProcessesDialog(orphanedProcesses);
-    // }
+    const orphanedProcesses = findAndCheckOrphanedProcesses();
+    if (orphanedProcesses.length > 0) {
+      languageClient.showOrphanedProcessesDialog(orphanedProcesses);
+    }
 
-    const handle = languageClient!.start();
+    const handle = languageClient.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
     extensionContext.subscriptions.push(handle);
   } catch (e) {
