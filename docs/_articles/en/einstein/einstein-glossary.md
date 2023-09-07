@@ -12,7 +12,7 @@ Human In the Loop (HITL): a model that requires human interaction.
 
 **intent:** A user’s goal for interacting with the AI assistant.
 
-**Large Language Model (LLM):** A language model consisting of a neural network with many parameters trained on large quantities of text.
+**large language model (LLM):** A language model consisting of a neural network with many parameters trained on large quantities of text.
 
 **prompt:** A natural language description of the task to be done. An input to the LLM.
 
