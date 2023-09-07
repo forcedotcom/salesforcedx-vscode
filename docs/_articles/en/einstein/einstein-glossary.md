@@ -8,7 +8,7 @@ This glossary defines generative AI terms that appear throughout the Einstein do
 **generative pre-trained transformer (GPT):** A family of language models developed by OpenAI that are generally trained on a large corpus of text data so they can generate human-like text.
 
 **grounding:** The process used to inject domain-specific knowledge and customer information into the prompt.
-Human In the Loop (HITL): a model that requires human interaction.
+human in the loop (HITL): A model that requires human interaction.
 
 **intent:** A user’s goal for interacting with the AI assistant.
 
