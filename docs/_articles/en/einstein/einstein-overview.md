@@ -24,7 +24,7 @@ Use the extension in this release to generate boilerplate code from natural lang
 
 ## About Trusted Generative AI at Salesforce
 
-Salesforce’s Einstein solutions are designed, developed, and delivered based on five principles for trusted generative AI.
+Einstein solutions are designed, developed, and delivered to be compliant with our five principles for trusted generative AI.
 
 **Accuracy**: We prioritize accuracy, precision, and recall in our models, and we back our model outputs up with explanations and sources whenever possible. We recommend that a human check model output before sharing with end users.
 
