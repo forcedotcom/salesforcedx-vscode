@@ -124,7 +124,7 @@ public static List<User> updateFirstName(List<User> users, String newFirstName) 
 
 This response is good, but you can edit the prompt to generate reusable code by creating a method.
 
-Click **Retry** and edit the prompt for a more specific output. Update the prompt to say, "_Write code to provide the ability to update the FirstName for a list of users as a method_". The new response is –
+Click **Retry** and edit the prompt for more specific output. Update the prompt to say, "Write code to provide the ability to update the FirstName for a list of users as a method". This is the new response.
 
 ```
 public with sharing class AccountService {
