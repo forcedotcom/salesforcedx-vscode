@@ -1,3 +1,11 @@
+# 58.14.2 - September 10, 2023
+
+## Fixed
+
+#### docs
+
+- Einstein for developers ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
+
 # 58.14.1 - September 1, 2023
 
 ## Fixed
