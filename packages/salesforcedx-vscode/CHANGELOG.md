@@ -1,10 +1,11 @@
 # 58.14.2 - September 10, 2023
 
+- We released a brand new [Einstein GPT for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor. 
+
 ## Fixed
 
 #### docs
-
-- Einstein for developers ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
+- We added documentation for Einstein for Developers (Beta) ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
 
 # 58.14.1 - September 1, 2023
 
