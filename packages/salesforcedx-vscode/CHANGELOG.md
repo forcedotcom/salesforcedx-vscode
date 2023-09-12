@@ -1,3 +1,25 @@
+# 58.14.2 - September 8, 2023
+
+## Added
+
+- We released a brand new [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension 🎉 🎉! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor. 
+
+#### docs
+- We added documentation for Einstein for Developers (Beta) ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
+
+# 58.14.1 - September 1, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made improvements to the `SFDX: Create and Set Up Project for ISV Debugging` command by greatly reducing the number of steps involved in the retrieval of metadata and packages. We recommend that you use `sfdx-cli v7.192.2` or above to run this command successfully. We hope you find this update helpful. Thank you [Jelle van Geuns](https://github.com/jvg123) for opening the issue. Happy debugging! ([PR #5038](https://github.com/forcedotcom/salesforcedx-vscode/pull/5038), [ISSUE #5032](https://github.com/forcedotcom/salesforcedx-vscode/issues/5032))
+- We made some changes that prevent the output panel from opening when the `SFDX: Refresh SObject Definitions` command is run in container mode. ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
+
+#### docs
+
+- We added a new Apex Language Server topic to documentation. The topic highlights the new Apex LSP status bar feature. ([PR #5044](https://github.com/forcedotcom/salesforcedx-vscode/pull/5044))
+
 # 58.13.1 - August 25, 2023
 
 ## Added
