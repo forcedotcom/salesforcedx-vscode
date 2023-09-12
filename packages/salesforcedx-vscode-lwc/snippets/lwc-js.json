@@ -1,14 +1,47 @@
 {
+  "lwc-alert": {
+    "prefix": "lwc-alert",
+    "body": [
+      "async ${1:handleAlertClick}() {",
+      "  await LightningAlert.open({",
+      "    message: \"${2:this is the alert message}\",",
+      "    variant: \"${3|header,headerless|}\", // if headerless, theme not applicable",
+      "    theme: \"${4|default,alt-inverse,error,info,inverse,offline,shade,success,warning|}\", ",
+      "    label: \"${5:Error}\", // this is the header text",
+      "  });",
+      "  //Alert has been closed",
+      "  ${0}",
+      "}"
+    ],
+    "description": "Create an alert modal within your component that communicates a state that affects the entire system, not just a feature or page."
+  },
+  "lwc-confirm": {
+    "prefix": "lwc-confirm",
+    "body": [
+      "async ${1:handleConfirmClick}() {",
+      "  const result = await LightningConfirm.open({",
+      "    message: \"${2:this is the prompt message}\",",
+      "    variant: \"${3|header,headerless|}\", // if headerless, theme not applicable",
+      "    theme: \"${4|default,alt-inverse,error,info,inverse,offline,shade,success,warning|}\", ",
+      "    label: \"${5:this is the aria-label value}\",",
+      "  });",
+      "  //Confirm has been closed",
+      "  //result is true if OK was clicked",
+      "  //and false if cancel was clicked",
+      "}"
+    ],
+    "description": "Create a confirm modal within your component that asks the user to respond before they continue."
+  },
   "lwc-event": {
     "prefix": "lwc-event",
     "description": "Creates an event without custom details",
-    "body": ["this.dispatchEvent(new CustomEvent('${2:event-name}'));"]
+    "body": ["this.dispatchEvent(new CustomEvent(\"${2:event-name}\"));"]
   },
   "lwc-event-data": {
     "prefix": "lwc-event-details",
     "description": "Creates a standard event for custom details",
     "body": [
-      "const ${1:event} = new CustomEvent('${2:event-name}', {",
+      "const ${1:event} = new CustomEvent(\"${2:event-name}\", {",
       "    detail: { $0 }",
       "});",
       "this.dispatchEvent(${1:event});"
@@ -18,7 +51,247 @@
     "prefix": "lwc-event-listener",
     "description": "Creates an event listener",
     "body": [
-      "this.template.addEventListener('${1:event-name}', this.${2:local-method-name}.bind(this));"
+      "this.template.addEventListener(\"${1:event-name}\", this.${2:local-method-name}.bind(this));"
+    ]
+  },
+  "lwc-graphql-query": {
+    "prefix": "lwc-graphql-query",
+    "description": "Creates a gql function that can be passed to the query parameter in a wire call.",
+    "body": [
+      "gql`",
+      "  query ${1:queryName} {",
+      "    uiapi {",
+      "      query {",
+      "        ${2:sObjectName} {",
+      "          edges {",
+      "            node {",
+      "              Name {",
+      "                value",
+      "              }",
+      "              ${0}",
+      "            }",
+      "          }",
+      "        }",
+      "      }",
+      "    }",
+      "  }",
+      "}`"
+    ]
+  },
+  "lwc-graphql-wire-aggregation": {
+    "prefix": "lwc-graphql-aggregation",
+    "body": [
+      "@wire(graphql, {",
+      "  query: gql`",
+      "    query ${1:queryName} {",
+      "      uiapi {",
+      "        aggregate {",
+      "          ${2:sObjectName}(groupBy: { ${3:groupingFieldName}: {group: true} } ) {",
+      "            edges {",
+      "              node {",
+      "                aggregate {",
+      "                  ${4:aggregatedFieldName} {",
+      "                    avg {",
+      "                      displayValue",
+      "                    }",
+      "                    sum {",
+      "                      displayValue",
+      "                    }",
+      "                  ${0}",
+      "                  }",
+      "                }",
+      "              }",
+      "            }",
+      "            totalCount",
+      "          }",
+      "        }",
+      "      }",
+      "    }",
+      "  `,",
+      "})",
+      "${5:propertyOrFunction};"
+    ],
+    "description": "Creates a GraphQL wire adapter containing aggregated fields."
+  },
+  "lwc-graphql-wire-function": {
+    "prefix": "lwc-graphql-function",
+    "description": "Creates a GraphQL wire adapter and a function to process results.",
+    "body": [
+      "results;",
+      "errors;",
+      "",
+      "@wire(graphql, {",
+      "  query: gql`",
+      "    query ${1:queryName} {",
+      "      uiapi {",
+      "        query {",
+      "          ${2:sObjectName} {",
+      "            edges {",
+      "              node {",
+      "                Name {",
+      "                  value",
+      "                }",
+      "                ${0}",
+      "              }",
+      "            }",
+      "          }",
+      "        }",
+      "      }",
+      "    }",
+      "  }`,",
+      "})",
+      "graphqlQueryResult({ data, errors }) {",
+      "  if (data) {",
+      "    this.results = data.uiapi.query.${2}.edges.map((edge) => edge.node);",
+      "  }",
+      "  this.errors = errors;",
+      "}"
+    ]
+  },
+  "lwc-graphql-wire-multi-object": {
+    "prefix": "lwc-graphql-multi-object",
+    "body": [
+      "@wire(graphql, {",
+      "  query: gql`",
+      "    query ${1:queryName} {",
+      "      uiapi {",
+      "        query {",
+      "          ${2:sObjectName}(first: 5) {",
+      "            edges {",
+      "              node {",
+      "                Id",
+      "                Name {",
+      "                  value",
+      "                }",
+      "              }",
+      "            }",
+      "          }",
+      "          ${3:sObjectName}(first: 5) {",
+      "            edges {",
+      "              node {",
+      "                Id",
+      "                ${0}",
+      "              }",
+      "            }",
+      "          }",
+      "        }",
+      "      }",
+      "    }",
+      "  `",
+      "})",
+      "${4:propertyOrFunction};"
+    ],
+    "description": "Creates a GraphQL wire adapter that queries multiple objects."
+  },
+  "lwc-graphql-wire-pagination": {
+    "prefix": "lwc-graphql-pagination",
+    "description": "GraphQL wire adapter implementation with pagination built in.",
+    "body": [
+      "after;",
+      "pageNumber = 1;",
+      "pageSize = 5",
+      "",
+      "@wire(graphql, {",
+      "  query: gql`",
+      "   query ${1:queryName}(\\$after: String, \\$pageSize: Int!) {",
+      "     uiapi {",
+      "       query {",
+      "         ${2:sObjectName} (first: \\$pageSize, after: \\$after) {",
+      "           edges {",
+      "             node {",
+      "               Id",
+      "               ${0}",
+      "             }",
+      "           }",
+      "           totalCount",
+      "           pageInfo {",
+      "             endCursor",
+      "             hasNextPage",
+      "             hasPreviousPage",
+      "           }",
+      "         }",
+      "       }",
+      "     }",
+      "   }`,",
+      "  variables: \"\\$variables\",",
+      "})",
+      "${3:propertyOrFunction};",
+      "",
+      "get variables() {",
+      "  return {",
+      "    after: this.after || null,",
+      "    pageSize,",
+      "  };",
+      "}"
+    ]
+  },
+  "lwc-graphql-wire-property": {
+    "prefix": "lwc-graphql-property",
+    "description": "Creates a GraphQL wire adapter and stores results in a property.",
+    "body": [
+      "@wire(graphql, {",
+      "  query: gql`",
+      "    query ${1:queryName {",
+      "      uiapi {",
+      "        query {",
+      "          ${2:sObjectName} {",
+      "            edges {",
+      "              node {",
+      "                Name {",
+      "                  value",
+      "                }",
+      "                ${0}",
+      "              }",
+      "            }",
+      "          }",
+      "        }",
+      "      }",
+      "    }",
+      "  }`,",
+      "})",
+      "${3:propertyOrFunction};"
+    ]
+  },
+  "lwc-graphql-wire-reactive": {
+    "prefix": "lwc-graphql-wire-reactive",
+    "description": "Creates a GraphQL wire adapter and associated function to supply dynamic variables to the query.",
+    "body": [
+      "recordId;",
+      "",
+      "@wire(graphql, {",
+      "  query: gql`",
+      "    query ${1:queryName}($recordId: Id) {",
+      "      uiapi {",
+      "        query {",
+      "          ${2:sObjectName}(where: { Id: { eq: $recordId } }) {",
+      "            edges {",
+      "              node {",
+      "                Id",
+      "                Name {",
+      "                  value",
+      "                }",
+      "                ${0}",
+      "              }",
+      "            }",
+      "          }",
+      "        }",
+      "      }",
+      "    }",
+      "  `,",
+      "  variables: \"$variables\", // Use a getter function to make the variables reactive",
+      "})",
+      "graphqlQueryResult({ data, errors }) {",
+      "  if (data) {",
+      "    this.records = data.uiapi.query.${2}.edges.map((edge) => edge.node);",
+      "  }",
+      "  this.errors = errors;",
+      "}",
+      "",
+      "get variables() {",
+      "  return {",
+      "    recordId: this.recordId,",
+      "  };",
+      "}"
     ]
   },
   "lwc-imperative-apex": {
@@ -34,12 +307,46 @@
       "    });"
     ]
   },
+  "lwc-media-utils": {
+    "prefix": "lwc-media-utils",
+    "body": [
+      "async ${1:handleFilesSelected}(event) {",
+      "  try {",
+      "      // Using the below options we resize images to a maximum of 2048x2048 pixels",
+      "      // while containing their aspect ratio. By setting 'resizeStrategy' to 'reduce'",
+      "      // we ensure that only images that have either width or height larger than",
+      "      // 2048 pixels will be resized. Moreover, we've chosen not to preserve transparency",
+      "      // in the input images and instead convert transparent pixels to white. Lastly,",
+      "      // the images will be compressed with a 75% compression quality to reduce their byte size.",
+      "      let options = {",
+      "          resizeMode: \"${2|fill,contain,none|}\",",
+      "          resizeStrategy: \"${3|always,enlarge,reduce|}\",",
+      "          targetWidth: ${4:2048},",
+      "          targetHeight: ${5:2048},",
+      "          compressionQuality: ${6:0.75},",
+      "          imageSmoothingEnabled: ${7|true,false|},",
+      "          preserveTransparency: ${8|true,false|},",
+      "          backgroundColor: \"${9:white}\"",
+      "      };",
+      "",
+      "      for (const file of event.target.files) {",
+      "          let blob = await processImage(file, options);",
+      "          // here we can upload the data contained in the blob that is returned by processImage",
+      "      }",
+      "  } ",
+      "  catch (error) {",
+      "      console.error(\"ERROR: \", error)",
+      "  }",
+      "}"
+    ],
+    "description": "The mediaUtils library contains utility functions that can be used by an LWC developer to process media files."
+  },
   "lwc-nav-item-page": {
     "prefix": "lwc-nav-item-page",
     "description": "Navigation to a CustomTab",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__navItemPage',",
+      "    type: \"standard__navItemPage\",",
       "    attributes: {",
       "        apiName: \"${1:The unique name of the CustomTab.}\"",
       "    }",
@@ -51,7 +358,7 @@
     "description": "Navigation to a Knowledge Article",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__knowledgeArticlePage',",
+      "    type: \"standard__knowledgeArticlePage\",",
       "    attributes: {",
       "        articleType: \"${1:The articleType API name of the Knowledge Article record.}\",",
       "        urlName: \"${2:The value of the urlName field on the target KnowledgeArticleVersion record. The urlName is the article's URL.}\"",
@@ -64,7 +371,7 @@
     "description": "Navigation to a custom Lightning component",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__component',",
+      "    type: \"standard__component\",",
       "    attributes: {",
       "        componentName: \"c__${1:component name}\"",
       "    }",
@@ -76,10 +383,33 @@
     "description": "Navigation to an object page",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__objectPage',",
+      "  type: \"standard__objectPage\",",
+      "  attributes: {",
+      "    actionName: \"${1|edit,home,list,new,view|}\",",
+      "    objectApiName: \"${2:The API name of the standard or custom object. }\"",
+      "  }",
+      "});"
+    ]
+  },
+  "lwc-nav-object-page-defaults": {
+    "prefix": "lwc-nav-object-page-defaults",
+    "description": "Navigation to a new object page with default values supplied",
+    "body": [
+      "const defaultValues = encodeDefaultFieldValues({",
+      "  FirstName: \"Fluffy\",",
+      "  LastName: \"McKittens\",",
+      "  LeadSource: \"Other\"",
+      "  ${0}",
+      "});",
+      "",
+      "this[NavigationMixin.Navigate]({",
+      "    type: \"standard__objectPage\",",
       "    attributes: {",
-      "        actionName: \"${1:home, list, or new}\",",
-      "        objectApiName: \"${2:The API name of the standard or custom object. }\"",
+      "        actionName: \"new\",",
+      "        objectApiName: \"${1:The API name of the standard or custom object. }\"",
+      "    }",
+      "    state: {",
+      "      defaultFieldValues: defaultValues",
       "    }",
       "});"
     ]
@@ -89,9 +419,9 @@
     "description": "Navigation to a named page",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__namedPage',",
+      "    type: \"standard__namedPage\",",
       "    attributes: {",
-      "        pageName: \"${1:home, chatter, today, dataAssessment, or filePreview}\"",
+      "        pageName: \"${1|home,chatter,today,dataAssessment,filePreview|}\"",
       "    }",
       "});"
     ]
@@ -101,9 +431,9 @@
     "description": "Navigation to a record page",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__recordPage',",
+      "    type: \"standard__recordPage\",",
       "    attributes: {",
-      "        actionName: \"${1:clone, edit, or view}\",",
+      "        actionName: \"${1|clone,edit,view|}\",",
       "        recordId: \"${2:recordId}\",",
       "        objectApiName: \"${3:The API name of the record’s object. Optional for lookups.}\"",
       "    }",
@@ -115,7 +445,7 @@
     "description": "Navigation to a record relationship page",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__recordRelationshipPage',",
+      "    type: \"standard__recordRelationshipPage\",",
       "    attributes: {",
       "        actionName: \"view\",",
       "        recordId: \"${1:recordId}\",",
@@ -130,22 +460,38 @@
     "description": "Navigation to an external URL",
     "body": [
       "this[NavigationMixin.Navigate]({",
-      "    type: 'standard__webPage',",
+      "    type: \"standard__webPage\",",
       "    attributes: {",
       "       url: \"${1:The URL of the page you are navigating to.}\"",
       "    }",
       "});"
     ]
   },
-
+  "lwc-prompt": {
+    "prefix": "lwc-prompt",
+    "body": [
+      "LightningPrompt.open({",
+      "  message: \"${1:this is the prompt message}\",",
+      "  label: \"${2:Please Respond}\", // this is the header text",
+      "  defaultValue: \"${3:initial input value}\", ",
+      "  theme: \"${4|default,shade,inverse,alt-inverse,success,info,warning,error,offline|}\"",
+      "  variant: \"${5|header,headerless|}\"",
+      "}).then((result) => {",
+      "  //Prompt has been closed",
+      "  //result is input text if OK clicked",
+      "  //and null if cancel was clicked",
+      "});"
+    ],
+    "description": "Create a prompt modal within your component that asks the user to provide information before they continue."
+  },
   "lwc-toast": {
     "prefix": "lwc-toast",
     "description": "Creates toast success function",
     "body": [
       "this.dispatchEvent(new ShowToastEvent({",
-      "    title: '${1:title}',",
-      "    message: '${2:message}',",
-      "    variant: 'success'",
+      "    title: \"${1:title}\",",
+      "    message: \"${2:message}\",",
+      "    variant: \"success\"",
       "}));"
     ]
   },
@@ -154,9 +500,9 @@
     "description": "Creates toast error function",
     "body": [
       "this.dispatchEvent(new ShowToastEvent({",
-      "    title: '${1:title}',",
-      "    message: '${2:message}',",
-      "    variant: 'error'",
+      "    title: \"${1:title}\",",
+      "    message: \"${2:message}\",",
+      "    variant: \"error\"",
       "}));"
     ]
   },
@@ -165,9 +511,9 @@
     "description": "Creates toast warning function",
     "body": [
       "this.dispatchEvent(new ShowToastEvent({",
-      "    title: '${1:title}',",
-      "    message: '${2:message}',",
-      "    variant: 'warning'",
+      "    title: \"${1:title}\",",
+      "    message: \"${2:message}\",",
+      "    variant: \"warning\"",
       "}));"
     ]
   },
@@ -197,7 +543,7 @@
     "body": [
       "@api recordId;",
       "",
-      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
+      "@wire(getRecord, { recordId: \"\\$recordId\", fields: [ $0 ] } )",
       "${2:record-function-name} ({error, data}) {",
       "    if (error) {",
       "        // TODO: Error handling",
@@ -213,7 +559,7 @@
     "body": [
       "@api recordId;",
       "",
-      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
+      "@wire(getRecord, { recordId: \"\\$recordId\", fields: [ $0 ] } )",
       "${2:record-property-name}"
     ]
   },
