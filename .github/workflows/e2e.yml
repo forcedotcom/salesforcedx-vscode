@@ -7,11 +7,6 @@ on:
         required: false
         default: 'develop'
         type: string
-      lspE2ETests:
-        description: 'LSP e2e Tests'
-        required: false
-        default: true
-        type: boolean
       apexE2ETests:
         description: 'Apex e2e Tests'
         required: false
@@ -19,6 +14,11 @@ on:
         type: boolean
       coreE2ETests:
         description: 'Core e2e Tests'
+        required: false
+        default: true
+        type: boolean
+      lspE2ETests:
+        description: 'LSP e2e Tests'
         required: false
         default: true
         type: boolean
