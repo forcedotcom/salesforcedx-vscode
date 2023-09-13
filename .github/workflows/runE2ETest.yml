@@ -10,7 +10,6 @@ on:
       testToRun:
         description: 'Run this E2E test'
         required: false
-        default: 'placeholder text'
         type: string
 
 jobs:
