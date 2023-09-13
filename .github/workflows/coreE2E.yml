@@ -29,11 +29,6 @@ on:
         required: false
         default: true
         type: boolean
-      orgBrowser:
-        description: 'orgBrowser.e2e.ts'
-        required: false
-        default: true
-        type: boolean
       pushAndPull:
         description: 'pushAndPull.e2e.ts'
         required: false
@@ -74,11 +69,6 @@ on:
         type: boolean
       manifestBuilder:
         description: 'manifestBuilder.e2e.ts'
-        required: false
-        default: true
-        type: boolean
-      orgBrowser:
-        description: 'orgBrowser.e2e.ts'
         required: false
         default: true
         type: boolean
@@ -131,14 +121,6 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'manifestBuilder.e2e.ts'
-
-  orgBrowser:
-    if: ${{ inputs.orgBrowser }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'orgBrowser.e2e.ts'
 
   pushAndPull:
     if: ${{ inputs.pushAndPull }}
