@@ -89,8 +89,8 @@ export async function activate(extensionContext: ExtensionContext) {
   await TelemetryService.getInstance().initializeService(
     extensionContext,
     name,
-    aiKey,
-    version
+    version,
+    aiKey
   );
 
   // Start the Aura Language Server

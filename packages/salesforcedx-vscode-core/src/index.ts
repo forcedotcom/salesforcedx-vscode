@@ -568,12 +568,12 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
+  const { name, version, aiKey } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     name,
-    aiKey,
-    version
+    version,
+    aiKey
   );
   showTelemetryMessage(extensionContext);
 

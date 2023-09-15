@@ -58,7 +58,6 @@ describe('Telemetry dev mode', () => {
     await telemetryService.initializeService(
       mockExtensionContext as any,
       extensionName,
-      'fakeAPIKey',
       'fakeVersion'
     );
 
@@ -74,7 +73,6 @@ describe('Telemetry dev mode', () => {
     await telemetryService.initializeService(
       mockExtensionContext as any,
       extensionName,
-      'fakeApiKey',
       'fakeVersion'
     );
 

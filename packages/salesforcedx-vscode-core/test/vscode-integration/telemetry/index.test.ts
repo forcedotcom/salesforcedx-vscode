@@ -50,8 +50,8 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
-        'v0.0.1'
+        'v0.0.1',
+        'testKey007'
       );
 
       const telemetryReporter = telemetryService.getReporter();
@@ -67,8 +67,8 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
-        'v0.0.1'
+        'v0.0.1',
+        'testKey007'
       );
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
@@ -86,8 +86,8 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
-        'v0.0.1'
+        'v0.0.1',
+        'testKey007'
       );
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
@@ -105,8 +105,8 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
-        'v0.0.1'
+        'v0.0.1',
+        'testKey007'
       );
 
       expect(teleStub.firstCall.args).to.eql([false]);
@@ -145,8 +145,8 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
-        'v0.0.1'
+        'v0.0.1',
+        'testKey007'
       );
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
@@ -164,8 +164,8 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
-        'v0.0.1'
+        'v0.0.1',
+        'testKey007'
       );
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();

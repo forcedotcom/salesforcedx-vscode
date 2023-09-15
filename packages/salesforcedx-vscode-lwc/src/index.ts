@@ -63,8 +63,8 @@ export async function activate(extensionContext: ExtensionContext) {
   await telemetryService.initializeService(
     extensionContext,
     LWC_EXTENSION_NAME,
-    aiKey,
-    version
+    version,
+    aiKey
   );
 
   // if we have no workspace folders, exit
