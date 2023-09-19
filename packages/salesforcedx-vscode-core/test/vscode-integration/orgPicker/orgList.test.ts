@@ -377,16 +377,14 @@ describe('orgList Tests', () => {
         ).to.equal(true);
       });
 
-      it('should return Continue and call force:org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
+      it('should return Continue and call org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns(
-          '$(plus) ' + nls.localize('force_org_list_clean_text')
-        );
+        quickPickStub.returns('$(plus) ' + nls.localize('org_list_clean_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(
-          executeCommandStub.calledWith('sfdx.force.org.list.clean')
-        ).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.org.list.clean')).to.equal(
+          true
+        );
       });
 
       it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
