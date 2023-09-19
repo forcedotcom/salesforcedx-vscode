@@ -38,8 +38,8 @@ export const messages = {
   status_bar_text: `$(x) %s`,
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
-  force_auth_web_login_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
-  force_auth_web_login_authorize_org_text: 'SFDX: 組織を認証',
+  org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
+  org_login_web_authorize_org_text: 'SFDX: 組織を認証',
   force_auth_access_token_authorize_org_text:
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:
@@ -75,10 +75,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
-  force_org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
+  org_open_default_scratch_org_container_error:
     '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
   force_source_pull_default_org_text:

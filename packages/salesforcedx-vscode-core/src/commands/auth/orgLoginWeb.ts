@@ -46,7 +46,7 @@ export interface DeviceCodeResponse {
   verification_uri: string;
 }
 
-export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
+export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
   protected showChannelOutput = false;
@@ -55,15 +55,15 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
 
   public build(data: AuthParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
-      nls.localize('force_auth_web_login_authorize_org_text')
+      nls.localize('org_login_web_authorize_org_text')
     );
 
     command
-      .withArg(CLI.AUTH_DEVICE_LOGIN)
+      .withArg(CLI.ORG_LOGIN_DEVICE)
       .withLogName('force_auth_device_login')
-      .withFlag('--setalias', data.alias)
-      .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername')
+      .withFlag('--alias', data.alias)
+      .withFlag('--instance-url', data.loginUrl)
+      .withArg('--set-default')
       .withJson();
 
     return command.build();
@@ -75,7 +75,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
@@ -126,7 +126,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
       }
     } catch (error) {
       channelService.appendLine(
-        nls.localize('force_auth_web_login_device_code_parse_error')
+        nls.localize('org_login_device_code_parse_error')
       );
       telemetryService.sendException(
         'force_auth_web_container',
@@ -141,28 +141,26 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
     channelService.appendLine(`${EOL}`);
     channelService.appendLine(nls.localize('action_required'));
     channelService.appendLine(
-      nls.localize('force_auth_device_login_enter_code', code, url)
+      nls.localize('org_login_device_enter_code', code, url)
     );
     channelService.appendLine(`${EOL}`);
   }
 }
 
-export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
-  AuthParams
-> {
+export class OrgLoginWebExecutor extends SfdxCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
-      nls.localize('force_auth_web_login_authorize_org_text')
+      nls.localize('org_login_web_authorize_org_text')
     );
 
     command
-      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withArg(CLI.ORG_LOGIN_WEB)
       .withLogName('force_auth_web_login')
-      .withFlag('--setalias', data.alias)
-      .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername');
+      .withFlag('--alias', data.alias)
+      .withFlag('--instance-url', data.loginUrl)
+      .withArg('--set-default');
 
     return command.build();
   }
@@ -209,17 +207,17 @@ export abstract class ForceAuthDemoModeExecutor<
   }
 }
 
-export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor<
+export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<
   AuthParams
 > {
   public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
-      .withArg(CLI.AUTH_WEB_LOGIN)
-      .withFlag('--setalias', data.alias)
-      .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername')
-      .withArg('--noprompt')
+      .withDescription(nls.localize('org_login_web_authorize_org_text'))
+      .withArg(CLI.ORG_LOGIN_WEB)
+      .withFlag('--alias', data.alias)
+      .withFlag('--instance-url', data.loginUrl)
+      .withArg('--set-default')
+      .withArg('--no-prompt')
       .withJson()
       .withLogName('force_auth_web_login_demo_mode')
       .build();
@@ -237,22 +235,22 @@ export async function promptLogOutForProdOrg() {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createAuthWebLoginExecutor(): SfdxCommandletExecutor<{}> {
+export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<{}> {
   switch (true) {
     case isSFContainerMode():
-      return new ForceAuthWebLoginContainerExecutor();
+      return new OrgLoginWebContainerExecutor();
     case isDemoMode():
-      return new ForceAuthWebLoginDemoModeExecutor();
+      return new OrgLoginWebDemoModeExecutor();
     default:
-      return new ForceAuthWebLoginExecutor();
+      return new OrgLoginWebExecutor();
   }
 }
 
-export async function forceAuthWebLogin() {
+export async function orgLoginWeb() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    createAuthWebLoginExecutor()
+    createOrgLoginWebExecutor()
   );
   await commandlet.run();
 }

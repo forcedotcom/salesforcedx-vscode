@@ -40,16 +40,15 @@ export const messages = {
   status_bar_open_org_tooltip: 'Open Org',
   status_bar_org_picker_tooltip: 'Change Default Org',
 
-  force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
-  force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
+  org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
+  org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
   force_auth_access_token_authorize_org_text:
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
-  force_auth_web_login_device_code_parse_error:
+  org_login_device_code_parse_error:
     'There was an unexpected error authorizing to your org in a container environment.',
-  force_auth_device_login_enter_code:
-    'Enter %s user code in the verification URL %s',
+  org_login_device_enter_code: 'Enter %s user code in the verification URL %s',
   action_required: '=== Action Required!',
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
@@ -97,10 +96,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
 
-  force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: Open Default Org',
+  org_open_default_scratch_org_container_error:
     'There was an unexpected error when processing the org open response.',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
   force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_org_text:
@@ -183,7 +182,7 @@ export const messages = {
   force_org_delete_username_text: 'SFDX: Delete Org...',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
-  force_org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
+  org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
