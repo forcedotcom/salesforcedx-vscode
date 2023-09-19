@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   checkSObjectsAndRefresh,
+  deleteSource,
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
@@ -52,7 +53,6 @@ import {
   forceRefreshSObjects,
   forceRenameLightningComponent,
   forceSfdxProjectCreate,
-  forceSourceDelete,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -155,13 +155,13 @@ function registerCommands(
     forceOrgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
-  const forceSourceDeleteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete',
-    forceSourceDelete
+  const deleteSourceCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source',
+    deleteSource
   );
-  const forceSourceDeleteCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete.current.file',
-    forceSourceDelete
+  const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source.current.file',
+    deleteSource
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
@@ -415,8 +415,8 @@ function registerCommands(
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,
-    forceSourceDeleteCmd,
-    forceSourceDeleteCurrentFileCmd,
+    deleteSourceCmd,
+    deleteSourceCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,
