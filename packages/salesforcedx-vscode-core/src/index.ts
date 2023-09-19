@@ -154,11 +154,11 @@ function registerCommands(
     'sfdx.force.org.create',
     forceOrgCreate
   );
+  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
     'sfdx.delete.source',
     deleteSource
   );
-  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.delete.source.current.file',
     deleteSource
