@@ -84,7 +84,7 @@ export class OrgAuthInfo {
           [showButtonText]
         );
         if (selection && selection === showButtonText) {
-          vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+          vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
         }
         return undefined;
       }
