@@ -75,10 +75,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
-  force_org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
+  org_open_default_scratch_org_container_error:
     '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
   force_source_pull_default_org_text:
