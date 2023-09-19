@@ -62,19 +62,19 @@ describe('Java Requirements Test', () => {
 
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-    execFileStub.yields('', '', 'build 1.8');
+    execFileStub.yields('', '', 'build 11.0.0');
     const requirements = await resolveRequirements();
     expect(requirements.java_home).contains(jdk);
   });
 
-  it('Should support Java 8', async () => {
+  it('Should not support Java 8', async () => {
     execFileStub.yields('', '', 'build 1.8.0');
     try {
-      const result = await checkJavaVersion('~/java_home');
-      expect(result).to.equal(true);
+      await checkJavaVersion('~/java_home');
+      fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      fail(
-        `Should not have thrown when the Java version is 17.  The error was: ${err}`
+      expect(err).to.equal(
+        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
       );
     }
   });

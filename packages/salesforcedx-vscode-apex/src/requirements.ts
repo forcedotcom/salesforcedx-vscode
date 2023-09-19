@@ -108,7 +108,6 @@ export function checkJavaVersion(javaHome: string): Promise<boolean> {
       {},
       (error, stdout, stderr) => {
         if (
-          stderr.indexOf('build 1.8') < 0 &&
           stderr.indexOf('build 11.') < 0 &&
           stderr.indexOf('build 17.') < 0
         ) {
