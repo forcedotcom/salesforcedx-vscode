@@ -10,12 +10,12 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   AuthParamsGatherer,
-  createAuthWebLoginExecutor,
+  createOrgLoginWebExecutor,
   DEFAULT_ALIAS,
   DeviceCodeResponse,
-  ForceAuthWebLoginContainerExecutor,
-  ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor,
+  OrgLoginWebContainerExecutor,
+  OrgLoginWebDemoModeExecutor,
+  OrgLoginWebExecutor,
   OrgTypeItem,
   PRODUCTION_URL,
   SANDBOX_URL
@@ -26,34 +26,34 @@ const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
 
 // tslint:disable:no-unused-expression
-describe('Force Auth Web Login', () => {
-  it('Should build the auth web login command', async () => {
-    const authWebLogin = new ForceAuthWebLoginExecutor();
-    const authWebLoginCommand = authWebLogin.build({
+describe('Org Login Web', () => {
+  it('Should build the org login web login command', async () => {
+    const orgLoginWeb = new OrgLoginWebExecutor();
+    const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS,
       loginUrl: TEST_URL
     });
-    expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername`
+    expect(orgLoginWebCommand.toCommand()).to.equal(
+      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
     );
-    expect(authWebLoginCommand.description).to.equal(
-      nls.localize('force_auth_web_login_authorize_org_text')
+    expect(orgLoginWebCommand.description).to.equal(
+      nls.localize('org_login_web_authorize_org_text')
     );
   });
 });
 
-describe('Force Auth Web Login in Demo Mode', () => {
-  it('Should build the auth web login command', async () => {
-    const authWebLogin = new ForceAuthWebLoginDemoModeExecutor();
-    const authWebLoginCommand = authWebLogin.build({
+describe('Org Login Web in Demo Mode', () => {
+  it('Should build the org login web login command', async () => {
+    const orgLoginWeb = new OrgLoginWebDemoModeExecutor();
+    const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS,
       loginUrl: TEST_URL
     });
-    expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername --noprompt --json --loglevel fatal`
+    expect(orgLoginWebCommand.toCommand()).to.equal(
+      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json --loglevel fatal`
     );
-    expect(authWebLoginCommand.description).to.equal(
-      nls.localize('force_auth_web_login_authorize_org_text')
+    expect(orgLoginWebCommand.description).to.equal(
+      nls.localize('org_login_web_authorize_org_text')
     );
   });
 });
@@ -207,7 +207,7 @@ describe('Auth Params Gatherer', () => {
   });
 });
 
-describe('Force Auth Web Login is based on environment variables', () => {
+describe('Org Login Web is based on environment variables', () => {
   describe('in demo mode', () => {
     let originalValue: any;
 
@@ -219,18 +219,16 @@ describe('Force Auth Web Login is based on environment variables', () => {
       process.env.SFDX_ENV = originalValue;
     });
 
-    it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
+    it('Should use OrgLoginWebDevHubDemoModeExecutor if demo mode is true', () => {
       process.env.SFDX_ENV = 'DEMO';
-      expect(
-        createAuthWebLoginExecutor() instanceof
-          ForceAuthWebLoginDemoModeExecutor
-      ).to.be.true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebDemoModeExecutor)
+        .to.be.true;
     });
 
-    it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
+    it('Should use OrgLoginWebDevHubExecutor if demo mode is false', () => {
       process.env.SFDX_ENV = '';
-      expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
-        .to.be.true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be
+        .true;
     });
   });
 
@@ -239,43 +237,42 @@ describe('Force Auth Web Login is based on environment variables', () => {
       delete process.env.SF_CONTAINER_MODE;
     });
 
-    it('Should use ForceAuthWebLoginExecutor when container mode is not defined', () => {
-      expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
-        .to.be.true;
+    it('Should use OrgLoginWebExecutor when container mode is not defined', () => {
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be
+        .true;
     });
 
-    it('Should use ForceAuthWebLoginExecutor when container mode is empty', () => {
+    it('Should use OrgLoginWebExecutor when container mode is empty', () => {
       process.env.SF_CONTAINER_MODE = '';
-      expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
-        .to.be.true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be
+        .true;
     });
 
-    it('Should use ForceAuthWebLoginContainerExecutor when container mode is defined', () => {
+    it('Should use OrgLoginWebContainerExecutor when container mode is defined', () => {
       process.env.SF_CONTAINER_MODE = 'true';
       expect(
-        createAuthWebLoginExecutor() instanceof
-          ForceAuthWebLoginContainerExecutor
+        createOrgLoginWebExecutor() instanceof OrgLoginWebContainerExecutor
       ).to.be.true;
     });
 
-    it('should build the force:auth:device:login command', () => {
-      const authWebLogin = new ForceAuthWebLoginContainerExecutor();
-      const authWebLoginCommand = authWebLogin.build({
+    it('should build the org:login:device command', () => {
+      const orgLoginWeb = new OrgLoginWebContainerExecutor();
+      const orgLoginWebCommand = orgLoginWeb.build({
         alias: TEST_ALIAS,
         loginUrl: TEST_URL
       });
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        `sfdx force:auth:device:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername --json --loglevel fatal`
+      expect(orgLoginWebCommand.toCommand()).to.equal(
+        `sfdx org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json --loglevel fatal`
       );
-      expect(authWebLoginCommand.description).to.equal(
-        nls.localize('force_auth_web_login_authorize_org_text')
+      expect(orgLoginWebCommand.description).to.equal(
+        nls.localize('org_login_web_authorize_org_text')
       );
     });
   });
 });
 
 describe('Force Auth Device Login', () => {
-  class TestForceAuthDeviceLogin extends ForceAuthWebLoginContainerExecutor {
+  class TestForceAuthDeviceLogin extends OrgLoginWebContainerExecutor {
     public deviceCodeReceived = false;
     public stdOut = '';
 
