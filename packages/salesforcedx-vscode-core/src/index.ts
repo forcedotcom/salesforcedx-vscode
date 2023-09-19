@@ -48,7 +48,6 @@ import {
   forceOrgDelete,
   forceOrgDisplay,
   forceOrgList,
-  forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -72,6 +71,7 @@ import {
   initSObjectDefinitions,
   orgLoginWeb,
   orgLoginWebDevHub,
+  orgOpen,
   registerFunctionInvokeCodeLensProvider,
   turnOffLogging,
   viewAllChanges,
@@ -154,10 +154,7 @@ function registerCommands(
     'sfdx.force.org.create',
     forceOrgCreate
   );
-  const forceOrgOpenCmd = vscode.commands.registerCommand(
-    ORG_OPEN_COMMAND,
-    forceOrgOpen
-  );
+  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const forceSourceDeleteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.delete',
     forceSourceDelete
@@ -403,8 +400,6 @@ function registerCommands(
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
-    orgLoginWebCmd,
-    orgLoginWebDevHubCmd,
     forceAuthLogoutAllCmd,
     forceAuthLogoutDefaultCmd,
     forceDataSoqlQueryInputCmd,
@@ -417,7 +412,6 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
-    forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
@@ -461,7 +455,10 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceConfigSetCmd
+    forceConfigSetCmd,
+    orgLoginWebCmd,
+    orgLoginWebDevHubCmd,
+    orgOpenCmd
   );
 }
 

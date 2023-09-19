@@ -40,11 +40,11 @@ export {
   ForceOrgCreateExecutor
 } from './forceOrgCreate';
 export {
-  forceOrgOpen,
-  ForceOrgOpenContainerExecutor,
-  ForceOrgOpenExecutor,
+  orgOpen,
+  OrgOpenContainerExecutor,
+  OrgOpenExecutor,
   getExecutor
-} from './forceOrgOpen';
+} from './orgOpen';
 export {
   forceSourceDelete,
   ConfirmationAndSourcePathGatherer,
