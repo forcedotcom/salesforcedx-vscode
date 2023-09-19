@@ -38,8 +38,8 @@ export const messages = {
   status_bar_text: `$(x) %s`,
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
-  force_auth_web_login_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
-  force_auth_web_login_authorize_org_text: 'SFDX: 組織を認証',
+  org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
+  org_login_web_authorize_org_text: 'SFDX: 組織を認証',
   force_auth_access_token_authorize_org_text:
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:
@@ -75,10 +75,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
-  force_org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
+  org_open_default_scratch_org_container_error:
     '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
   force_source_pull_default_org_text:
@@ -103,12 +103,12 @@ export const messages = {
     'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
   force_source_retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
-  force_source_delete_text: 'SFDX: プロジェクトおよび組織から削除',
-  force_source_delete_manifest_unsupported_message:
+  delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
+  delete_source_manifest_unsupported_message:
     'SFDX: 組織およびプロジェクトから削除 はマニフェストファイルでサポートされていません。削除するソースファイルやディレクトリを選択してください。',
-  force_source_delete_select_file_or_directory:
+  delete_source_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: プロジェクトおよび組織から削除 を実行できます。',
-  force_source_delete_confirmation_message:
+  delete_source_confirmation_message:
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',

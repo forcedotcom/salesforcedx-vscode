@@ -16,22 +16,22 @@ export {
 } from './auth/authParamsGatherer';
 export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
 export {
-  forceAuthWebLogin,
-  createAuthWebLoginExecutor,
-  ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor,
-  ForceAuthWebLoginContainerExecutor,
+  orgLoginWeb,
+  createOrgLoginWebExecutor,
+  OrgLoginWebDemoModeExecutor,
+  OrgLoginWebExecutor,
+  OrgLoginWebContainerExecutor,
   DeviceCodeResponse
-} from './auth/forceAuthWebLogin';
+} from './auth/orgLoginWeb';
 export {
   AuthDevHubParams,
   AuthDevHubParamsGatherer,
-  forceAuthDevHub,
+  orgLoginWebDevHub,
   createAuthDevHubExecutor,
-  ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor,
-  ForceAuthDevHubContainerExecutor
-} from './auth/forceAuthDevHub';
+  OrgLoginWebDevHubDemoModeExecutor,
+  OrgLoginWebDevHubExecutor,
+  OrgLoginWebDevHubContainerExecutor
+} from './auth/orgLoginWebDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
@@ -40,17 +40,17 @@ export {
   ForceOrgCreateExecutor
 } from './forceOrgCreate';
 export {
-  forceOrgOpen,
-  ForceOrgOpenContainerExecutor,
-  ForceOrgOpenExecutor,
+  orgOpen,
+  OrgOpenContainerExecutor,
+  OrgOpenExecutor,
   getExecutor
-} from './forceOrgOpen';
+} from './orgOpen';
 export {
-  forceSourceDelete,
+  deleteSource,
   ConfirmationAndSourcePathGatherer,
-  ForceSourceDeleteExecutor,
+  DeleteSourceExecutor,
   ManifestChecker
-} from './forceSourceDelete';
+} from './deleteSource';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   forceSourceDeploySourcePaths,
@@ -154,7 +154,7 @@ export {
   handleCacheResults
 } from './forceSourceDiff';
 export { forceCreateManifest } from './forceCreateManifest';
-export { forceOrgList } from './forceOrgList';
+export { orgList } from './orgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {

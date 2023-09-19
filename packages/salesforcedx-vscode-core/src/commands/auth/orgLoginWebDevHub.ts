@@ -6,7 +6,6 @@
  */
 
 import {
-  CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -19,38 +18,31 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 
-import { workspaceUtils } from '../../util';
-
-import { ConfigFile } from '@salesforce/core';
 import {
   CancelResponse,
-  ConfigSource,
   ContinueResponse,
-  isNullOrUndefined,
   isSFContainerMode,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { homedir } from 'os';
 import * as vscode from 'vscode';
-import { CLI, SFDX_CONFIG_FILE } from '../../constants';
+import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
-import { OrgAuthInfo } from '../../util/index';
 import {
   ForceAuthDemoModeExecutor,
-  ForceAuthWebLoginContainerExecutor
-} from './forceAuthWebLogin';
+  OrgLoginWebContainerExecutor
+} from './orgLoginWeb';
 
-export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
+export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExecutor {
   public build(data: AuthDevHubParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
-      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+      nls.localize('org_login_web_authorize_dev_hub_text')
     );
 
     command
-      .withArg(CLI.AUTH_DEVICE_LOGIN)
-      .withFlag('--setalias', data.alias)
-      .withArg('--setdefaultdevhubusername')
+      .withArg(CLI.ORG_LOGIN_DEVICE)
+      .withFlag('--alias', data.alias)
+      .withArg('--set-default-dev-hub')
       .withLogName('force_auth_device_dev_hub')
       .withJson();
 
@@ -58,33 +50,31 @@ export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainer
   }
 }
 
-export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
-      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+      nls.localize('org_login_web_authorize_dev_hub_text')
     );
 
     command
-      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withArg(CLI.ORG_LOGIN_WEB)
       .withLogName('force_auth_dev_hub')
-      .withFlag('--setalias', data.alias)
-      .withArg('--setdefaultdevhubusername');
+      .withFlag('--alias', data.alias)
+      .withArg('--set-default-dev-hub');
     return command.build();
   }
 }
 
-export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
+export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
   public build(data: AuthDevHubParams): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_auth_web_login_authorize_dev_hub_text')
-      )
-      .withArg(CLI.AUTH_WEB_LOGIN)
-      .withFlag('--setalias', data.alias)
-      .withArg('--setdefaultdevhubusername')
-      .withArg('--noprompt')
+      .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
+      .withArg(CLI.ORG_LOGIN_WEB)
+      .withFlag('--alias', data.alias)
+      .withArg('--set-default-dev-hub')
+      .withArg('--no-prompt')
       .withJson()
       .withLogName('force_auth_dev_hub_demo_mode')
       .build();
@@ -124,15 +114,15 @@ const parameterGatherer = new AuthDevHubParamsGatherer();
 export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
   switch (true) {
     case isSFContainerMode():
-      return new ForceAuthDevHubContainerExecutor();
+      return new OrgLoginWebDevHubContainerExecutor();
     case isDemoMode():
-      return new ForceAuthDevHubDemoModeExecutor();
+      return new OrgLoginWebDevHubDemoModeExecutor();
     default:
-      return new ForceAuthDevHubExecutor();
+      return new OrgLoginWebDevHubExecutor();
   }
 }
 
-export async function forceAuthDevHub() {
+export async function orgLoginWebDevHub() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
