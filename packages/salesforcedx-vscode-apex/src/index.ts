@@ -370,31 +370,3 @@ function addOnReadyHandlerToLanguageClient(
       });
   }
 }
-
-async function showOrphanedProcessesDialog(
-  orphanedProcesses: ProcessDetail[]
-) {
-  const orphanedCount = orphanedProcesses.length;
-
-  if (orphanedCount === 0) {
-    return;
-  }
-
-  setTimeout(async () => {
-    const choice = await vscode.window.showWarningMessage(
-      nls.localize(
-        'terminate_orphaned_language_server_instances',
-        orphanedCount
-      ),
-      nls.localize('terminate_processes'),
-      nls.localize('terminate_skip')
-    );
-
-    if (choice === nls.localize('terminate_processes')) {
-      for (const processInfo of orphanedProcesses) {
-        await terminateProcess(processInfo.pid);
-      }
-      vscode.window.showInformationMessage(nls.localize('terminated_orphaned_processes', orphanedCount));
-    }
-  }, 10_000);
-}

@@ -77,7 +77,9 @@ export const messages = {
   source_missing_text:
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
-    'An unsupported Java version was detected. Download and install [Java 8](https://java.com/en/download/), [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html), or [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) to run the extensions. For more information, see [Set Your Java Version](%s).',
+    'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html), or [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) to run the extensions. For more information, see [Set Your Java Version](%s).',
+  wrong_java_version_short:
+    'Unsupported Java version',
   force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
@@ -89,5 +91,6 @@ export const messages = {
   terminate_skip: 'Skip',
   terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
   terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
-  terminated_orphaned_processes: 'Terminated %d orphaned processes.'
+  terminated_orphaned_processes: 'Terminated %d orphaned processes.',
+  unknown_error: 'Unknown error'
 };
