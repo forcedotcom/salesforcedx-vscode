@@ -38,8 +38,8 @@ export const messages = {
   status_bar_text: `$(x) %s`,
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
-  force_auth_web_login_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
-  force_auth_web_login_authorize_org_text: 'SFDX: 組織を認証',
+  org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
+  org_login_web_authorize_org_text: 'SFDX: 組織を認証',
   force_auth_access_token_authorize_org_text:
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:

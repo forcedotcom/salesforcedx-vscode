@@ -341,7 +341,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.dev.hub",
+          "command": "sfdx.org.login.web.dev.hub",
           "when": "sfdx:project_opened"
         },
         {
@@ -349,7 +349,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.web.login",
+          "command": "sfdx.org.login.web",
           "when": "sfdx:project_opened"
         },
         {
@@ -628,12 +628,12 @@
         "title": "%force_package_install_text%"
       },
       {
-        "command": "sfdx.force.auth.dev.hub",
-        "title": "%force_auth_web_login_authorize_dev_hub_text%"
+        "command": "sfdx.org.login.web.dev.hub",
+        "title": "%org_login_web_authorize_dev_hub_text%"
       },
       {
-        "command": "sfdx.force.auth.web.login",
-        "title": "%force_auth_web_login_authorize_org_text%"
+        "command": "sfdx.org.login.web",
+        "title": "%org_login_web_authorize_org_text%"
       },
       {
         "command": "sfdx.force.auth.accessToken",

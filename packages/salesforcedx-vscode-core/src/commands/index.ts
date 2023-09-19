@@ -16,22 +16,22 @@ export {
 } from './auth/authParamsGatherer';
 export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
 export {
-  forceAuthWebLogin,
-  createAuthWebLoginExecutor,
-  ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor,
-  ForceAuthWebLoginContainerExecutor,
+  orgLoginWeb,
+  createOrgLoginWebExecutor,
+  OrgLoginWebDemoModeExecutor,
+  OrgLoginWebExecutor,
+  OrgLoginWebContainerExecutor,
   DeviceCodeResponse
-} from './auth/forceAuthWebLogin';
+} from './auth/orgLoginWeb';
 export {
   AuthDevHubParams,
   AuthDevHubParamsGatherer,
-  forceAuthDevHub,
+  orgLoginWebDevHub,
   createAuthDevHubExecutor,
-  ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor,
-  ForceAuthDevHubContainerExecutor
-} from './auth/forceAuthDevHub';
+  OrgLoginWebDevHubDemoModeExecutor,
+  OrgLoginWebDevHubExecutor,
+  OrgLoginWebDevHubContainerExecutor
+} from './auth/orgLoginWebDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
