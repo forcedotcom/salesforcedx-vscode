@@ -17,13 +17,13 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgListExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: { choice?: string }): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_org_list_clean_text'))
-      .withArg('force:org:list')
+      .withDescription(nls.localize('org_list_clean_text'))
+      .withArg('org:list')
       .withArg('--clean')
-      .withArg('--noprompt')
+      .withArg('--no-prompt')
       .withLogName('force_org_list_clean')
       .build();
   }
@@ -31,11 +31,11 @@ export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceOrgList() {
+export async function orgList() {
   const parameterGatherer = new PromptConfirmGatherer(
     nls.localize('parameter_gatherer_placeholder_org_list_clean')
   );
-  const executor = new ForceOrgListExecutor();
+  const executor = new OrgListExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
