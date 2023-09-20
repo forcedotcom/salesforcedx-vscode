@@ -371,7 +371,7 @@ describe('LWC Test Outline Provider', () => {
       });
     });
 
-    it('Should refresh test explorer', async function(testDone) {
+    it('Should refresh test explorer', async function() {
       timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
@@ -399,7 +399,6 @@ describe('LWC Test Outline Provider', () => {
       expect(actualTestCaseNodes[1].testExecutionInfo!.testResult).to.equal(
         undefined
       );
-      testDone();
     });
   });
 });
