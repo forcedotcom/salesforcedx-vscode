@@ -88,7 +88,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     it('Should return no scopes for unknown frame', async () => {
       hasHeapDumpForTopFrameStub = sinon
         .stub(LogContext.prototype, 'hasHeapDumpForTopFrame')
-        .returns(false);
+        .returns(undefined);
 
       await adapter.scopesRequest(response, args);
 
@@ -103,7 +103,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     it('Should return local, static, and global scopes', async () => {
       hasHeapDumpForTopFrameStub = sinon
         .stub(LogContext.prototype, 'hasHeapDumpForTopFrame')
-        .returns(false);
+        .returns(false as any);
       const id = frameHandler.create(new ApexDebugStackFrameInfo(0, 'foo'));
       args.frameId = id;
 
@@ -122,7 +122,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     it('Should replace with heapdump variables', async () => {
       hasHeapDumpForTopFrameStub = sinon
         .stub(LogContext.prototype, 'hasHeapDumpForTopFrame')
-        .returns(true);
+        .returns(true as any);
       copyStateForHeapDumpStub = sinon.stub(
         LogContext.prototype,
         'copyStateForHeapDump'

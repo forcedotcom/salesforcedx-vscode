@@ -38,10 +38,10 @@ describe('Notifications', () => {
       Promise.resolve(null)
     );
     mShowErrorMessage = stub(vscode.window, 'showErrorMessage').returns(
-      Promise.resolve(null)
+      Promise.resolve(null) as any
     );
     mStatusBar = stub(vscode.window, 'setStatusBarMessage').returns(
-      Promise.resolve(null)
+      Promise.resolve(null) as any
     );
     settings = stub(vscode.workspace, 'getConfiguration');
     settings.returns({
@@ -49,7 +49,7 @@ describe('Notifications', () => {
       update: () => {}
     });
     mChannel = new MockChannel();
-    channelService = new ChannelService(mChannel as OutputChannel);
+    channelService = new ChannelService(mChannel as unknown as OutputChannel);
   });
 
   afterEach(() => {
@@ -91,7 +91,7 @@ describe('Notifications', () => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
     mShowInformation = stub(vscode.window, 'showInformationMessage').returns(
-      Promise.resolve(SHOW_BUTTON_TEXT)
+      Promise.resolve(SHOW_BUTTON_TEXT) as any
     );
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
@@ -149,7 +149,7 @@ describe('Notifications', () => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
     mShowInformation = stub(vscode.window, 'showInformationMessage').returns(
-      Promise.resolve(SHOW_ONLY_STATUS_BAR_BUTTON_TEXT)
+      Promise.resolve(SHOW_ONLY_STATUS_BAR_BUTTON_TEXT) as any
     );
 
     const updateSetting = stub();

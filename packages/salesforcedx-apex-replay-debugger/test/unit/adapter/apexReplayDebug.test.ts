@@ -261,7 +261,7 @@ describe('Replay debugger adapter - unit', () => {
         .returns(false);
       fetchOverlayResultsForApexHeapDumpsStub = sinon
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
-        .returns(true);
+        .resolves(true);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
@@ -285,7 +285,7 @@ describe('Replay debugger adapter - unit', () => {
         .returns(true);
       fetchOverlayResultsForApexHeapDumpsStub = sinon
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
-        .returns(true);
+        .resolves(true);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
@@ -308,7 +308,7 @@ describe('Replay debugger adapter - unit', () => {
         .returns(true);
       fetchOverlayResultsForApexHeapDumpsStub = sinon
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
-        .returns(false);
+        .resolves(false);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
