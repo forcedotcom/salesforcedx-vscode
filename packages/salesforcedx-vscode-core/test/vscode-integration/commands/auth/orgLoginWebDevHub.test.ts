@@ -21,33 +21,33 @@ import {
   AuthDevHubParamsGatherer,
   createAuthDevHubExecutor,
   DEFAULT_ALIAS,
-  ForceAuthDevHubContainerExecutor,
-  ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor
+  OrgLoginWebDevHubContainerExecutor,
+  OrgLoginWebDevHubDemoModeExecutor,
+  OrgLoginWebDevHubExecutor
 } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
 import { OrgAuthInfo } from '../../../../src/util';
 
 const TEST_ALIAS = 'testAlias';
 
-class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
+class TestOrgLoginWebDevHubExecutor extends OrgLoginWebDevHubExecutor {
   public getShowChannelOutput() {
     return this.showChannelOutput;
   }
 }
 
 // tslint:disable:no-unused-expression
-describe('Force Auth Web Login for Dev Hub', () => {
-  it('Should build the auth web login command', async () => {
-    const authWebLogin = new ForceAuthDevHubExecutor();
-    const authWebLoginCommand = authWebLogin.build({
+describe('Org Login Web for Dev Hub', () => {
+  it('Should build the org login web login command', async () => {
+    const orgLoginWeb = new OrgLoginWebDevHubExecutor();
+    const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS
     });
-    expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --setdefaultdevhubusername`
+    expect(orgLoginWebCommand.toCommand()).to.equal(
+      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
     );
-    expect(authWebLoginCommand.description).to.equal(
-      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    expect(orgLoginWebCommand.description).to.equal(
+      nls.localize('org_login_web_authorize_dev_hub_text')
     );
   });
 });
@@ -55,17 +55,17 @@ describe('Force Auth Web Login for Dev Hub', () => {
 // Setup the test environment.
 const $$ = instantiateContext();
 
-describe('Force Auth Web Login For Dev Hub in Demo  Mode', () => {
-  it('Should build the auth web login command', async () => {
-    const authWebLogin = new ForceAuthDevHubDemoModeExecutor();
-    const authWebLoginCommand = authWebLogin.build({
+describe('Org Login Web For Dev Hub in Demo  Mode', () => {
+  it('Should build the org login web login command', async () => {
+    const orgLoginWeb = new OrgLoginWebDevHubDemoModeExecutor();
+    const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS
     });
-    expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --setdefaultdevhubusername --noprompt --json --loglevel fatal`
+    expect(orgLoginWebCommand.toCommand()).to.equal(
+      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json --loglevel fatal`
     );
-    expect(authWebLoginCommand.description).to.equal(
-      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    expect(orgLoginWebCommand.description).to.equal(
+      nls.localize('org_login_web_authorize_dev_hub_text')
     );
   });
 });
@@ -135,16 +135,16 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
       process.env.SFDX_ENV = originalValue;
     });
 
-    it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
+    it('Should use OrgLoginWebDevHubDemoModeExecutor if demo mode is true', () => {
       process.env.SFDX_ENV = 'DEMO';
       expect(
-        createAuthDevHubExecutor() instanceof ForceAuthDevHubDemoModeExecutor
+        createAuthDevHubExecutor() instanceof OrgLoginWebDevHubDemoModeExecutor
       ).to.be.true;
     });
 
-    it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
+    it('Should use OrgLoginWebDevHubExecutor if demo mode is false', () => {
       process.env.SFDX_ENV = '';
-      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
         .be.true;
     });
   });
@@ -154,49 +154,49 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
       delete process.env.SF_CONTAINER_MODE;
     });
     it('Should not expose the output channel when not in container mode', () => {
-      const notContainerMode = new TestForceAuthDevHubExecutor();
+      const notContainerMode = new TestOrgLoginWebDevHubExecutor();
       expect(notContainerMode.getShowChannelOutput()).to.be.false;
     });
 
-    it('Should use ForceAuthDevHubExecutor when container mode is not defined', () => {
-      const authWebLogin = new ForceAuthDevHubExecutor();
-      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+    it('Should use OrgLoginWebDevHubExecutor when container mode is not defined', () => {
+      const orgLoginWeb = new OrgLoginWebDevHubExecutor();
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
         .be.true;
-      const authWebLoginCommand = authWebLogin.build(
+      const orgLoginWebCommand = orgLoginWeb.build(
         ({} as unknown) as AuthDevHubParams
       );
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setalias  --setdefaultdevhubusername'
+      expect(orgLoginWebCommand.toCommand()).to.equal(
+        'sfdx org:login:web --alias  --set-default-dev-hub'
       );
     });
 
-    it('Should use ForceAuthDevHubExecutor when container mode is empty', () => {
+    it('Should use OrgLoginWebDevHubExecutor when container mode is empty', () => {
       process.env.SF_CONTAINER_MODE = '';
-      const authWebLogin = new ForceAuthDevHubExecutor();
-      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+      const orgLoginWeb = new OrgLoginWebDevHubExecutor();
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
         .be.true;
-      const authWebLoginCommand = authWebLogin.build(
+      const orgLoginWebCommand = orgLoginWeb.build(
         ({} as unknown) as AuthDevHubParams
       );
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setalias  --setdefaultdevhubusername'
+      expect(orgLoginWebCommand.toCommand()).to.equal(
+        'sfdx org:login:web --alias  --set-default-dev-hub'
       );
     });
 
-    it('Should use ForceAuthDevHubContainerExecutor when container mode is defined', () => {
+    it('Should use OrgLoginWebDevHubContainerExecutor when container mode is defined', () => {
       process.env.SF_CONTAINER_MODE = 'true';
-      const authDevhubLogin = new ForceAuthDevHubContainerExecutor();
+      const authDevhubLogin = new OrgLoginWebDevHubContainerExecutor();
       expect(
-        createAuthDevHubExecutor() instanceof ForceAuthDevHubContainerExecutor
+        createAuthDevHubExecutor() instanceof OrgLoginWebDevHubContainerExecutor
       ).to.be.true;
       const authDevhubLoginCommand = authDevhubLogin.build(
         ({} as unknown) as AuthDevHubParams
       );
       expect(authDevhubLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:device:login --setalias  --setdefaultdevhubusername --json --loglevel fatal'
+        'sfdx org:login:device --alias  --set-default-dev-hub --json --loglevel fatal'
       );
       expect(authDevhubLoginCommand.description).to.equal(
-        nls.localize('force_auth_web_login_authorize_dev_hub_text')
+        nls.localize('org_login_web_authorize_dev_hub_text')
       );
     });
   });

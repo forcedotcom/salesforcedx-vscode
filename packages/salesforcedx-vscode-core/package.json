@@ -221,7 +221,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.delete.current.file",
+          "command": "sfdx.delete.source.current.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -319,7 +319,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.delete",
+          "command": "sfdx.delete.source",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -341,7 +341,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.dev.hub",
+          "command": "sfdx.org.login.web.dev.hub",
           "when": "sfdx:project_opened"
         },
         {
@@ -349,15 +349,15 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.web.login",
+          "command": "sfdx.org.login.web",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.logout.all",
+          "command": "sfdx.org.logout.all",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.logout.default",
+          "command": "sfdx.org.logout.default",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -369,7 +369,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.open",
+          "command": "sfdx.org.open",
           "when": "sfdx:project_opened"
         },
         {
@@ -513,7 +513,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.delete",
+          "command": "sfdx.delete.source",
           "when": "false"
         },
         {
@@ -525,11 +525,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.list.clean",
+          "command": "sfdx.org.list.clean",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.delete.current.file",
+          "command": "sfdx.delete.source.current.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
@@ -628,24 +628,24 @@
         "title": "%force_package_install_text%"
       },
       {
-        "command": "sfdx.force.auth.dev.hub",
-        "title": "%force_auth_web_login_authorize_dev_hub_text%"
+        "command": "sfdx.org.login.web.dev.hub",
+        "title": "%org_login_web_authorize_dev_hub_text%"
       },
       {
-        "command": "sfdx.force.auth.web.login",
-        "title": "%force_auth_web_login_authorize_org_text%"
+        "command": "sfdx.org.login.web",
+        "title": "%org_login_web_authorize_org_text%"
       },
       {
         "command": "sfdx.force.auth.accessToken",
         "title": "%force_auth_access_token_authorize_org_text%"
       },
       {
-        "command": "sfdx.force.auth.logout.all",
-        "title": "%force_auth_logout_all_text%"
+        "command": "sfdx.org.logout.all",
+        "title": "%org_logout_all_text%"
       },
       {
-        "command": "sfdx.force.auth.logout.default",
-        "title": "%force_auth_logout_default_text%"
+        "command": "sfdx.org.logout.default",
+        "title": "%org_logout_default_text%"
       },
       {
         "command": "sfdx.force.open.documentation",
@@ -656,8 +656,8 @@
         "title": "%force_org_create_default_scratch_org_text%"
       },
       {
-        "command": "sfdx.force.org.open",
-        "title": "%force_org_open_default_scratch_org_text%"
+        "command": "sfdx.org.open",
+        "title": "%org_open_default_scratch_org_text%"
       },
       {
         "command": "sfdx.force.source.pull",
@@ -768,8 +768,8 @@
         "title": "%force_org_display_username_text%"
       },
       {
-        "command": "sfdx.force.org.list.clean",
-        "title": "%force_org_list_clean_text%"
+        "command": "sfdx.org.list.clean",
+        "title": "%org_list_clean_text%"
       },
       {
         "command": "sfdx.force.data.soql.query.input",
@@ -828,12 +828,12 @@
         "title": "%force_source_deploy_in_manifest_text%"
       },
       {
-        "command": "sfdx.force.source.delete",
-        "title": "%force_source_delete_text%"
+        "command": "sfdx.delete.source",
+        "title": "%delete_source_text%"
       },
       {
-        "command": "sfdx.force.source.delete.current.file",
-        "title": "%force_source_delete_this_source_text%"
+        "command": "sfdx.delete.source.current.file",
+        "title": "%delete_source_this_source_text%"
       },
       {
         "command": "sfdx.force.set.default.org",
