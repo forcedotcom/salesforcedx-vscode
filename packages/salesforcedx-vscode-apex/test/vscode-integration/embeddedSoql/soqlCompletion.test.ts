@@ -103,7 +103,7 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
 
       const executeCommandSpy = sandbox
         .stub(commands, 'executeCommand')
-        .returns([FAKE_SOQL_COMPLETION_ITEM]);
+        .resolves([FAKE_SOQL_COMPLETION_ITEM]);
 
       const { doc, position } = await prepareFile(apexCode);
       tempDoc = doc.uri;

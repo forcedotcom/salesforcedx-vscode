@@ -44,7 +44,7 @@ describe('Debugger stop command', () => {
         .returns(true);
       idGathererStub = sinon
         .stub(IdGatherer.prototype, 'gather')
-        .returns({ type: 'CONTINUE' });
+        .resolves({ type: 'CONTINUE' });
       detachExecutorSpy = sinon.spy(
         DebuggerSessionDetachExecutor.prototype,
         'execute'

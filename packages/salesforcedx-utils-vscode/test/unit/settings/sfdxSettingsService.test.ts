@@ -15,7 +15,7 @@ describe('SfdxSettingsService', () => {
     it('should return true when underlying workspace configuration for preference', () => {
       sb.stub(vscode.workspace, 'getConfiguration').returns({
         get: () => true
-      });
+      } as any);
       expect(
         SfdxSettingsService.getEnableClearOutputBeforeEachCommand()
       ).equals(true);
@@ -23,7 +23,7 @@ describe('SfdxSettingsService', () => {
     it('should return false if underlying configuration is false', () => {
       sb.stub(vscode.workspace, 'getConfiguration').returns({
         get: () => false
-      });
+      } as any);
       expect(
         SfdxSettingsService.getEnableClearOutputBeforeEachCommand()
       ).equals(false);

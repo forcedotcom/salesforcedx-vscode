@@ -77,7 +77,7 @@ describe('Force Launch Replay Debugger', () => {
       'showErrorMessage'
     );
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').resolves(undefined);
 
     sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
       undefined
@@ -121,7 +121,7 @@ describe('Force Launch Replay Debugger', () => {
       }
     }));
 
-    const runStub = sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
+    const runStub = sb.stub(SfdxCommandlet.prototype, 'run').resolves(undefined);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -135,13 +135,13 @@ describe('Force Launch Replay Debugger', () => {
       }
     }));
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').resolves(undefined);
 
     sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
       'foo.cls'
     );
 
-    sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
+    sb.stub(SfdxCommandlet.prototype, 'run').resolves(undefined);
 
     flushFilePathStub.returns('foo.cls');
 

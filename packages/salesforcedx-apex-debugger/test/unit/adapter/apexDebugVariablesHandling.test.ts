@@ -806,7 +806,7 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.locals[0] = variableValue;
       resolveApexIdToVariableReferenceSpy = sinon
         .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
-        .returns(1001);
+        .resolves(1001);
       const expectedVariableObj = new ApexVariable(
         variableValue,
         ApexVariableKind.Local,
@@ -834,7 +834,7 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.statics[0] = variableValue;
       resolveApexIdToVariableReferenceSpy = sinon
         .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
-        .returns(1001);
+        .resolves(1001);
       const expectedVariableObj = new ApexVariable(
         variableValue,
         ApexVariableKind.Static,
@@ -862,7 +862,7 @@ describe('Debugger adapter variable handling - unit', () => {
       frameInfo.globals[0] = variableValue;
       resolveApexIdToVariableReferenceSpy = sinon
         .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
-        .returns(1001);
+        .resolves(1001);
       const expectedVariableObj = new ApexVariable(
         variableValue,
         ApexVariableKind.Global,

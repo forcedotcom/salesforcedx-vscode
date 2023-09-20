@@ -155,7 +155,7 @@ describe('Debugger breakpoint service', () => {
       service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
       cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
@@ -163,7 +163,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
       cmdWithJsonSpy.restore();
@@ -268,7 +268,7 @@ describe('Debugger breakpoint service', () => {
       service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
       cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
@@ -276,7 +276,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
       cmdWithJsonSpy.restore();
@@ -324,7 +324,7 @@ describe('Debugger breakpoint service', () => {
       service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
       cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
@@ -332,7 +332,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
       cmdWithJsonSpy.restore();
@@ -543,7 +543,7 @@ describe('Debugger breakpoint service', () => {
     it('Should create new exception breakpoint', async () => {
       addExceptionBreakpointSpy = sinon
         .stub(BreakpointService.prototype, 'createExceptionBreakpoint')
-        .returns('07bFAKE8');
+        .resolves('07bFAKE8');
 
       await service.reconcileExceptionBreakpoints(
         'someProjectPath',
@@ -569,7 +569,7 @@ describe('Debugger breakpoint service', () => {
     it('Should not create existing exception breakpoint', async () => {
       addExceptionBreakpointSpy = sinon
         .stub(BreakpointService.prototype, 'createExceptionBreakpoint')
-        .returns('07bFAKE7');
+        .resolves('07bFAKE7');
 
       await service.reconcileExceptionBreakpoints(
         'someProjectPath',

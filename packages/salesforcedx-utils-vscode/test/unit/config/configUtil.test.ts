@@ -34,7 +34,7 @@ describe('ConfigUtil unit tests', () => {
         getConfigAggregator: sandbox.stub().resolves({
           getLocation: getLocationStub
         })
-      });
+      } as any);
     });
 
     it('should return ConfigSource.Local if the key/value is in the local config', async () => {
@@ -67,14 +67,14 @@ describe('ConfigUtil unit tests', () => {
         aliases: {
           getUsername: getUserNameStub
         }
-      });
+      } as any);
 
       getPropertyValueStub = sandbox.stub();
       sandbox
         .stub(ConfigAggregatorProvider.prototype, 'getConfigAggregator')
         .resolves({
           getPropertyValue: getPropertyValueStub
-        });
+        } as any);
     });
 
     it('Should return the currently auth username.', async () => {

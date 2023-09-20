@@ -42,7 +42,7 @@ describe('Frame entry event', () => {
       .returns(uriFromSignature);
     getStaticMapStub = sinon
       .stub(LogContext.prototype, 'getStaticVariablesClassMap')
-      .returns(map);
+      .returns(map as any);
   });
 
   afterEach(() => {

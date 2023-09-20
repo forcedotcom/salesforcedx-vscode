@@ -56,7 +56,7 @@ describe('Quick launch apex tests', () => {
       .withArgs(SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
-      });
+      } as any);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -69,10 +69,10 @@ describe('Quick launch apex tests', () => {
       .withArgs('target-org')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
-    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')
-      .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] });
+      .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as any);
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
     createCheckpointStub = sb.stub(CheckpointService, 'sfdxCreateCheckpoints');
@@ -97,7 +97,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -161,7 +161,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -225,7 +225,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -255,7 +255,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -321,7 +321,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     testServiceStub.resolves({} as TestResult);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
@@ -384,7 +384,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     testServiceStub.resolves({ tests: [] });
 
     const response: ContinueResponse<string[]> = {
@@ -438,7 +438,7 @@ describe('Quick launch apex tests', () => {
     });
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
     testServiceStub.resolves({ tests: [{}] });
 
     const response: ContinueResponse<string[]> = {

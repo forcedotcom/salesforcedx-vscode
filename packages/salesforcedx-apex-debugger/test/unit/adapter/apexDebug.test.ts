@@ -175,10 +175,10 @@ describe('Interactive debugger adapter - unit', () => {
       );
       orgInfoSpy = sinon
         .stub(ForceOrgDisplay.prototype, 'getOrgInfo')
-        .returns({} as OrgInfo);
+        .resolves({} as OrgInfo);
       configGetSpy = sinon
         .stub(ForceConfigGet.prototype, 'getConfig')
-        .returns({} as Map<string, string>);
+        .resolves({} as Map<string, string>);
       args = {
         sfdxProject: 'project',
         userIdFilter: ['005FAKE1', '005FAKE2', '005FAKE1'],
@@ -382,7 +382,7 @@ describe('Interactive debugger adapter - unit', () => {
       const sessionId = '07aFAKE';
       sessionPrintToDebugSpy = sinon
         .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .returns(Promise.resolve());
+        .resolves(Promise.resolve());
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(Promise.resolve(sessionId));
@@ -412,7 +412,7 @@ describe('Interactive debugger adapter - unit', () => {
       const sessionId = '07aFAKE';
       sessionPrintToDebugSpy = sinon
         .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .returns(Promise.resolve());
+        .resolves(Promise.resolve());
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(Promise.resolve(sessionId));
@@ -441,7 +441,7 @@ describe('Interactive debugger adapter - unit', () => {
       const sessionId = '07aFAKE';
       sessionPrintToDebugSpy = sinon
         .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .returns(Promise.resolve());
+        .resolves(Promise.resolve());
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(Promise.resolve(sessionId));
@@ -473,7 +473,7 @@ describe('Interactive debugger adapter - unit', () => {
       const sessionId = '07aFAKE';
       sessionPrintToDebugSpy = sinon
         .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
-        .returns(Promise.resolve());
+        .resolves(Promise.resolve());
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(Promise.resolve(sessionId));
@@ -529,7 +529,7 @@ describe('Interactive debugger adapter - unit', () => {
     beforeEach(() => {
       requestService = new RequestService();
       adapter = new ApexDebugForTest(requestService);
-      orgInfoSpy = sinon.stub(ForceOrgDisplay.prototype, 'getOrgInfo').returns({
+      orgInfoSpy = sinon.stub(ForceOrgDisplay.prototype, 'getOrgInfo').resolves({
         instanceUrl: 'https://na15.salesforce.com',
         accessToken: '00DxxFaK3T0ken'
       } as OrgInfo);
@@ -615,7 +615,7 @@ describe('Interactive debugger adapter - unit', () => {
         initializedResponse,
         {} as DebugProtocol.InitializeRequestArguments
       );
-      orgInfoSpy = sinon.stub(ForceOrgDisplay.prototype, 'getOrgInfo').returns({
+      orgInfoSpy = sinon.stub(ForceOrgDisplay.prototype, 'getOrgInfo').resolves({
         instanceUrl: 'https://na15.salesforce.com',
         accessToken: '00DxxFaK3T0ken'
       } as OrgInfo);

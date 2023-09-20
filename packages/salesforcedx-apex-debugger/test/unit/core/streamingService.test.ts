@@ -47,7 +47,7 @@ describe('Debugger streaming service', () => {
       service = new StreamingService();
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       mySpawn.setDefault(
         mySpawn.simple(
           0,
@@ -60,7 +60,7 @@ describe('Debugger streaming service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       clientIsConnectedSpy.restore();
       clientSubscribeSpy.restore();
     });

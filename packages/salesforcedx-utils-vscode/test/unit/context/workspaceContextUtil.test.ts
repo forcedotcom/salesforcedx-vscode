@@ -83,9 +83,9 @@ describe('WorkspaceContext', () => {
 
     env
       .stub(vscode.workspace, 'createFileSystemWatcher')
-      .returns(mockFileWatcher);
+      .returns(mockFileWatcher as any);
 
-    const context = {
+    const context: any = {
       subscriptions: []
     };
 
@@ -93,11 +93,11 @@ describe('WorkspaceContext', () => {
 
     getUsernameOrAliasStub = env
       .stub(ConfigUtil, 'getDefaultUsernameOrAlias')
-      .returns(testAlias);
+      .resolves(testAlias);
     getUsernameStub = env
       .stub(ConfigUtil, 'getUsernameFor')
       .withArgs(testAlias)
-      .returns(testUser);
+      .resolves(testUser);
 
     await workspaceContextUtil.initialize(context);
   });
@@ -150,11 +150,11 @@ describe('WorkspaceContext', () => {
       env
         .stub(AuthInfo, 'create')
         .withArgs({ username: testUser })
-        .resolves(mockAuthInfo);
+        .resolves(mockAuthInfo as any);
       createConnectionStub = env
         .stub(Connection, 'create')
-        .withArgs({ authInfo: mockAuthInfo })
-        .returns(mockConnection);
+        .withArgs({ authInfo : mockAuthInfo } as any)
+        .returns(mockConnection as any);
     });
 
     it('should return connection for the default org', async () => {

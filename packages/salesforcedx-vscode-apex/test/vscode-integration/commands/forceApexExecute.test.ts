@@ -45,7 +45,7 @@ describe('Force Apex Execute', () => {
       .withArgs(SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
-      });
+      } as any);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -57,11 +57,11 @@ describe('Force Apex Execute', () => {
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
       .withArgs('target-org')
       .returns(testData.username);
-    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
 
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+      .resolves(true);
 
     sb.stub(vscode.window, 'activeTextEditor').get(() => ({
       document: {
@@ -69,12 +69,12 @@ describe('Force Apex Execute', () => {
       }
     }));
 
-    writeFileStub = sb.stub(fs, 'writeFileSync').returns(true);
+    writeFileStub = sb.stub(fs, 'writeFileSync').resolves(true);
 
     executeCommandStub = sb
       .stub(vscode.commands, 'executeCommand')
       .withArgs('sfdx.launch.replay.debugger.logfile.path')
-      .returns(true);
+      .resolves(true);
   });
 
   afterEach(() => {

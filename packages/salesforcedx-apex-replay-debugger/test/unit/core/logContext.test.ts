@@ -168,7 +168,7 @@ describe('LogContext', () => {
   it('Should handle undefined log event', () => {
     parseLogEventStub = sinon
       .stub(LogContext.prototype, 'parseLogEvent')
-      .returns(undefined);
+      .returns(undefined as any);
 
     context.updateFrames();
 

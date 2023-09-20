@@ -33,13 +33,13 @@ describe('Test Suite Selector', async () => {
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns({
       label: 'SuiteOne',
       type: TestType.Suite
-    });
+    } as any);
 
     retrieveSuitesStub = sb
       .stub(TestService.prototype, 'retrieveAllSuites')
       .resolves([
-        { TestSuiteName: 'SuiteOne', Id: 'xxxxxxxxxxx27343' },
-        { TestSuiteName: 'SuiteTwo', Id: 'xxxxxxxxxxx27343' }
+        { TestSuiteName: 'SuiteOne', id: 'xxxxxxxxxxx27343' },
+        { TestSuiteName: 'SuiteTwo', id: 'xxxxxxxxxxx27343' }
       ]);
   });
 
@@ -84,13 +84,13 @@ describe('Test Suite Builder', async () => {
         label: 'SuiteOne',
         type: TestType.Suite
       }
-    ]);
+    ] as any);
 
     retrieveSuitesStub = sb
       .stub(TestService.prototype, 'retrieveAllSuites')
       .resolves([
-        { TestSuiteName: 'SuiteOne', Id: 'xxxxxxxxxxx27343' },
-        { TestSuiteName: 'SuiteTwo', Id: 'xxxxxxxxxxx27343' }
+        { TestSuiteName: 'SuiteOne', id: 'xxxxxxxxxxx27343' },
+        { TestSuiteName: 'SuiteTwo', id: 'xxxxxxxxxxx27343' }
       ]);
   });
 
@@ -134,7 +134,7 @@ describe('Test Suite Creator', async () => {
         label: 'NewClass',
         type: TestType.Class
       }
-    ]);
+    ] as any);
     sb.stub(vscode.window, 'showInputBox').resolves('NewSuite');
   });
 

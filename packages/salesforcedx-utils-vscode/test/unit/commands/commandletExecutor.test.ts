@@ -13,6 +13,7 @@ import {
   ChannelService,
   LibraryCommandletExecutor,
   NotificationService,
+  TelemetryReporter,
   TelemetryService
 } from '../../../src';
 import { nls } from '../../../src/messages';
@@ -73,7 +74,7 @@ describe('LibraryCommandletExecutor', () => {
     sb.stub(TelemetryService, 'getInstance').returns({
       sendCommandEvent: jest.fn(),
       sendException: jest.fn()
-    });
+    } as any);
     (vscode.window.withProgress as jest.Mock).mockResolvedValue(true);
   });
 
@@ -84,7 +85,7 @@ describe('LibraryCommandletExecutor', () => {
   it('should show successful execution notification if run returns true', async () => {
     const showInfoStub = sb
       .stub(vscode.window, 'showInformationMessage')
-      .resolves(nls.localize('notification_show_in_status_bar_button_text'));
+      .resolves(nls.localize('notification_show_in_status_bar_button_text') as any);
 
     await executor.execute({ data: { success: true }, type: 'CONTINUE' });
     expect(showInfoStub.called).to.be.true;
@@ -93,7 +94,7 @@ describe('LibraryCommandletExecutor', () => {
   it('should clear channel output if preference set', async () => {
     sb.stub(vscode.workspace, 'getConfiguration').returns({
       get: () => true
-    });
+    } as any);
     const clearStub = sb.stub(MockChannel.prototype, 'clear');
     await executor.execute({ data: { success: false }, type: 'CONTINUE' });
     expect(clearStub.called).to.be.true;
@@ -102,7 +103,7 @@ describe('LibraryCommandletExecutor', () => {
   it('should NOT clear channel output if preference NOT set', async () => {
     sb.stub(vscode.workspace, 'getConfiguration').returns({
       get: () => false
-    });
+    } as any);
     const clearStub = sb.stub(MockChannel.prototype, 'clear');
     await executor.execute({ data: { success: false }, type: 'CONTINUE' });
     expect(clearStub.called).not.to.be.true;
@@ -117,10 +118,10 @@ describe('LibraryCommandletExecutor', () => {
   it('should not show successful or failed notifications if run was cancelled', async () => {
     const showErrStub = sb
       .stub(vscode.window, 'showErrorMessage')
-      .resolves(nls.localize('notification_unsuccessful_execution_text'));
+      .resolves(nls.localize('notification_unsuccessful_execution_text') as any);
     const showInfoStub = sb
       .stub(vscode.window, 'showInformationMessage')
-      .resolves(nls.localize('notification_show_in_status_bar_button_text'));
+      .resolves(nls.localize('notification_show_in_status_bar_button_text') as any);
     const cancelledExecutor = new TestExecutor(new MockChannel());
     // set private property for testing
     // @ts-ignore
@@ -144,10 +145,11 @@ describe('LibraryCommandletExecutor', () => {
     }> = {
       report: reportStub
     };
-    const withProgressStub = sb.stub(vscode.window, 'withProgress');
-    withProgressStub.callsFake((options, task) => {
+    const fakeProgress: any = (options: any, task: any) => {
       task(progress, tokenSource.token);
-    });
+    };
+    const withProgressStub = sb.stub(vscode.window, 'withProgress');
+    withProgressStub.callsFake(fakeProgress);
 
     const cancelledExecutor = new TestExecutor(new MockChannel());
     // @ts-ignore

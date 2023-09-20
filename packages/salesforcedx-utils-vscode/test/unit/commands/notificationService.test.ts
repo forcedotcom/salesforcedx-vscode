@@ -32,10 +32,10 @@ describe('Notifications', () => {
   beforeEach(() => {
     mShow = stub(ChannelService.prototype, 'showChannelOutput');
     mShowInformation = stub(vscode.window, 'showInformationMessage').returns(
-      Promise.resolve(null)
+      Promise.resolve(undefined)
     );
     mShowWarningMessage = stub(vscode.window, 'showWarningMessage').returns(
-      Promise.resolve(null)
+      Promise.resolve(undefined)
     );
     mShowErrorMessage = stub(vscode.window, 'showErrorMessage').returns(
       Promise.resolve(null) as any
