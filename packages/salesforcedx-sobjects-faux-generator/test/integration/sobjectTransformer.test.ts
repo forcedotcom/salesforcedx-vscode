@@ -147,7 +147,7 @@ describe('Transform sobject definitions', () => {
 
   it('Should be cancellable', async () => {
     env.stub(fs, 'existsSync').returns(true);
-    env.stub(MinObjectRetriever.prototype, 'retrieve').returns([]);
+    env.stub(MinObjectRetriever.prototype, 'retrieve').returns([] as any);
 
     const transformer = new SObjectTransformer(
       emitter,

@@ -71,7 +71,7 @@ describe('Apex Language Server Client', () => {
       sandbox
         .stub(vscode.extensions, 'getExtension')
         .withArgs('salesforce.salesforcedx-vscode-soql')
-        .returns({});
+        .returns({} as any);
 
       const clientOptions = buildClientOptions();
 
@@ -106,7 +106,7 @@ describe('Apex Language Server Client', () => {
       sandbox
         .stub(vscode.extensions, 'getExtension')
         .withArgs('salesforce.salesforcedx-vscode-soql')
-        .returns({});
+        .returns({} as any);
 
       const clientOptions = buildClientOptions();
 

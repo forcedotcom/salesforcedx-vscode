@@ -20,7 +20,7 @@ describe('Settings', () => {
     sandbox
       .stub(vscode.workspace, 'getConfiguration')
       .withArgs(SFDX_CORE_CONFIGURATION_NAME)
-      .returns({
+      .resolves({
         get: settingStub
       });
   });

@@ -38,7 +38,7 @@ describe('Java Requirements Test', () => {
     sandbox
       .stub(vscode.workspace, 'getConfiguration')
       .withArgs()
-      .returns({
+      .resolves({
         get: settingStub
       });
     pathExistsStub = sandbox.stub(pathExists, 'sync').resolves(true);

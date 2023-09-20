@@ -352,7 +352,7 @@ describe('Force Apex Execute', () => {
       );
       executeStub = sb
         .stub(ExecuteService.prototype, 'executeAnonymous')
-        .resolves(defaultResponse);
+        .resolves(defaultResponse as any);
     });
 
     it('should clear diagnostics before setting new ones', async () => {

@@ -66,14 +66,14 @@ describe('Force Apex Log Get Logging', () => {
       .onFirstCall()
       .resolves([])
       .onSecondCall()
-      .resolves(logInfos.slice(0, 1))
+      .resolves(logInfos.slice(0, 1) as any)
       .onThirdCall()
-      .resolves(logInfos.slice(0, 1))
-      .resolves(logInfos);
+      .resolves(logInfos.slice(0, 1) as any)
+      .resolves(logInfos as any);
 
     showQuickPickStub = sb
       .stub(vscode.window, 'showQuickPick')
-      .returns(logInfos[0]);
+      .returns(logInfos[0] as any);
   });
 
   afterEach(() => {
