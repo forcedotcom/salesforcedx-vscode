@@ -107,46 +107,39 @@
         ja: 開発モデル
       url: /sf-dev-models/pkgdev
 - title:
+    en: Salesforce Development Environment
+    ja: ユーザガイド
+  baseUrl: /sf-dev-env/
+  children:
+    - title:
+        en: Overview 
+        ja: コマンドリファレンス
+      url: /sf-dev-env/env-overview
+    - title:
+        en: Default Org
+        ja: デフォルトの組織
+      url: /sf-dev-env/default-org
+    - title:
+        en: Command Palette
+        ja: コマンドリファレンス
+      url: /sf-dev-env/vscode-commands
+    - title:
+        en: Project Explorer
+        ja: コマンドリファレンス
+      url: /sf-dev-env/project-explorer
+    - title:
+        en: Org Browser
+        ja: デフォルトの組織
+      url: /sf-dev-env/org-browser
+- title:
     en: User Guide
     ja: ユーザガイド
   baseUrl: /user-guide/
   children:
     - title:
-        en: Metadata Operations
-        ja: メタデータ操作
-      url: /user-guide/metadata-operations
-    - title:
-        en: Detect Conflicts
-        ja: 競合の検知
-      url: /user-guide/detect-conflicts
-    - title:
-        en: Deploy on Save
-        ja: 保存時のデプロイ
-      url: /user-guide/deploy-on-save
-    - title:
-        en: Org Browser
-        ja: 組織ブラウザ
-      url: /user-guide/org-browser
-    - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
       url: /user-guide/prettier
-    - title:
-        en: Command Palette
-        ja: コマンドリファレンス
-      url: /user-guide/vscode-commands
-    - title:
-        en: Source Format
-        ja: ソース形式
-      url: /user-guide/source-format
-    - title:
-        en: Default Org
-        ja: デフォルトの組織
-      url: /user-guide/default-org
-    - title:
-        en: Remote Development
-        ja: リモートコンテナ
-      url: /user-guide/remote-development
     - title:
         en: Custom Templates
         ja: カスタムテンプレート
@@ -290,6 +283,36 @@
         en: Example SOQL Tasks
         ja: Example SOQL Tasks
       url: /soql/soql-tasks/
+- title:
+    en: Source Control
+    ja: ユーザガイド
+  baseUrl: /source-control/
+  children:
+    - title:
+        en: Source Format
+        ja: ソース形式
+      url: /source-control/source-format
+- title:
+    en: Deploy Changes
+    ja: ユーザガイド
+  baseUrl: /deploy-changes/
+  children:
+    - title:
+        en: Metadata Operations
+        ja: メタデータ操作
+      url: /deploy-changes/metadata-operations
+    - title:
+        en: Detect Conflicts
+        ja: 競合の検知
+      url: /deploy-changes/detect-conflicts
+    - title:
+        en: Deploy on Save
+        ja: 保存時のデプロイ
+      url: /deploy-changes/deploy-on-save
+- title:
+        en: Remote Development
+        ja: リモートコンテナ
+  url: /remote-development
 - title:
     en: FAQ
     ja: FAQ
