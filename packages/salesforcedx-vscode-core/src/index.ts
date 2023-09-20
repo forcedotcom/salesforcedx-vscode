@@ -21,8 +21,6 @@ import {
   forceApexClassCreate,
   forceApexTriggerCreate,
   forceAuthAccessToken,
-  forceAuthLogoutAll,
-  forceAuthLogoutDefault,
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
@@ -71,6 +69,8 @@ import {
   orgList,
   orgLoginWeb,
   orgLoginWebDevHub,
+  orgLogoutAll,
+  orgLogoutDefault,
   orgOpen,
   registerFunctionInvokeCodeLensProvider,
   turnOffLogging,
@@ -138,13 +138,13 @@ function registerCommands(
     'sfdx.org.login.web.dev.hub',
     orgLoginWebDevHub
   );
-  const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.logout.all',
-    forceAuthLogoutAll
+  const orgLogoutAllCmd = vscode.commands.registerCommand(
+    'sfdx.org.logout.all',
+    orgLogoutAll
   );
-  const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.logout.default',
-    forceAuthLogoutDefault
+  const orgLogoutDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.logout.default',
+    orgLogoutDefault
   );
   const forceOpenDocumentationCmd = vscode.commands.registerCommand(
     'sfdx.force.open.documentation',
@@ -400,8 +400,6 @@ function registerCommands(
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
-    forceAuthLogoutAllCmd,
-    forceAuthLogoutDefaultCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceDiffFile,
