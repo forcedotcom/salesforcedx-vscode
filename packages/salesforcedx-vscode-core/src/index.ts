@@ -14,9 +14,9 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
+  aliasList,
   checkSObjectsAndRefresh,
   deleteSource,
-  forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
@@ -281,8 +281,8 @@ function registerCommands(
     forceConfigList
   );
   const forceAliasListCmd = vscode.commands.registerCommand(
-    'sfdx.force.alias.list',
-    forceAliasList
+    'sfdx.alias.list',
+    aliasList
   );
   const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
     'sfdx.force.org.delete.default',

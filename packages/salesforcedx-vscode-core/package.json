@@ -429,7 +429,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.alias.list",
+          "command": "sfdx.alias.list",
           "when": "sfdx:project_opened"
         },
         {
@@ -748,8 +748,8 @@
         "title": "%force_config_list_text%"
       },
       {
-        "command": "sfdx.force.alias.list",
-        "title": "%force_alias_list_text%"
+        "command": "sfdx.alias.list",
+        "title": "%alias_list_text%"
       },
       {
         "command": "sfdx.force.org.delete.default",

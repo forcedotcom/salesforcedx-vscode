@@ -143,7 +143,7 @@ export const messages = {
   warning_prompt_other_not_shown:
     '...表示されていない残り %s つのコンポーネント\n',
   force_config_list_text: 'SFDX: すべての設定変数を一覧表示',
-  force_alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
+  alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   force_org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
   force_org_display_username_text: 'SFDX: 組織の詳細を表示...',
   force_debugger_query_session_text: 'Apex デバッガセッションをクエリ',
