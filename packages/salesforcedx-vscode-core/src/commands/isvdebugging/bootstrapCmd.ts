@@ -39,7 +39,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from '../util';
-import sanitizeFilename = require('sanitize-filename');
+import sanitizeFilename from 'sanitize-filename';
 // below uses require due to bundling restrictions
 /* tslint:disable */
 const AdmZip = require('adm-zip');
