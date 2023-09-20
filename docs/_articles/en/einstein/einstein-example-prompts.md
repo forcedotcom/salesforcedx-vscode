@@ -79,15 +79,19 @@ return orderItems;
 **Prompt:** Write an Apex trigger to add the number of contacts associated with an account.
 
 ```
-trigger gptcontacttrigger on Account (after insert, after update) {
-    List<Contact> listContacts = new List<Contact>();
+// Write an Apex trigger to add the number of contacts associated with an account
 
-    for (Account acc : Trigger.new) {
-        List<Contact> listaccContacts = [SELECT Id, Name, AccountId FROM Contact WHERE AccountId = :acc.Id];
-        if (acc.Contacts.size() < listaccContacts.size()) {
-            acc.addError('Not enough contacts');
+trigger AccountTrigger on Account (before insert, before update, before delete, after insert, after update, after delete, after undelete) {
+    
+    if (Trigger.isBefore) {
+        
+    } else if (Trigger.isAfter) {
+        if (Trigger.isUpdate) {
+            List<Account> accountsWithChangedContacts = [SELECT Id, NumberOfContacts FROM Account WHERE Id IN :Trigger.newMap.keySet()];
+            for (Account a : accountsWithChangedContacts) {
+                a.NumberOfContacts = Trigger.newMap.get(a.Id).NumberOfContacts;
+            }
         }
-
     }
 }
 ```
