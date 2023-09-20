@@ -7,97 +7,41 @@ on:
         required: false
         default: 'develop'
         type: string
-      specFiles:
-        description: 'Run a specific spec file. Runs all by default.'
+      apexE2ETests:
+        description: 'Apex E2E Tests'
         required: false
-        type: choice
-        options:
-          - '*.e2e.ts'
-          - 'anInitialSuite.e2e.ts'
-          - 'apexLsp.e2e.ts'
-          - 'apexReplayDebugger.e2e.ts'
-          - 'auraLsp.e2e.ts'
-          - 'authentication.e2e.ts'
-          - 'debugApexTests.e2e.ts'
-          - 'deployAndRetrieve.e2e.ts'
-          - 'lwcLsp.e2e.ts'
-          - 'manifestBuilder.e2e.ts'
-          - 'orgBrowser.e2e.ts'
-          - 'pushAndPull.e2e.ts'
-          - 'runApexTests.e2e.ts'
-          - 'sObjectsDefinitions.e2e.ts'
-          - 'templates.e2e.ts'
-          - 'trailApexReplayDebugger.e2e.ts'
-          - 'visualforceLsp.e2e.ts'
+        default: true
+        type: boolean
+      coreE2ETests:
+        description: 'Core E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      lspE2ETests:
+        description: 'LSP E2E Tests'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        nodeVersion:
-          - 16.15.1
-        vscodeVersion:
-          - stable
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: ./salesforcedx-vscode
-          ref: ${{ github.event.ref }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.nodeVersion }}
-          cache: npm
-          cache-dependency-path: |
-            salesforcedx-vscode/package-lock.json
-            salesforcedx-vscode-automation-tests/package-lock.json
-      - name: Clone automation tests
-        uses: actions/checkout@v3
-        with:
-          repository: forcedotcom/salesforcedx-vscode-automation-tests
-          path: salesforcedx-vscode-automation-tests
-          ref: ${{ inputs.automationBranch }}
-      - name: Install Extension Dependencies
-        run: |
-          npm install
-          npm run compile
-        working-directory: salesforcedx-vscode
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: salesforcedx-vscode-automation-tests
-      - name: Install the SFDX CLI
-        run: npm install -g sfdx-cli
-      - name: Verify CLI
-        shell: bash
-        run: |
-          set -e
-          sfdx version
-          SFDX_CLI_VERSION=$(sfdx version)
-          if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
-          then
-            echo "sfdx-cli installed -" $SFDX_CLI_VERSION
-          else
-            echo "The sfdx-cli installation could not be verified"
-            exit 1
-          fi
-      - name: Run headless test
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
-        with:
-          run: |
-            npm run setup
-            npm run automation-tests
-          working-directory: salesforcedx-vscode-automation-tests
-        env:
-          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: ${{ inputs.specFiles || '*.e2e.ts' }}
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-          ORG_ID: ${{ secrets.ORG_ID_E2E }}
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: screenshots
-          path: ./salesforcedx-vscode-automation-tests/screenshots
+
+  Apex_E2E_tests:
+    if: ${{ inputs.apexE2ETests }}
+    uses: ./.github/workflows/apexE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+
+  Core_E2E_tests:
+    if: ${{ inputs.coreE2ETests }}
+    uses: ./.github/workflows/coreE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+
+  LSP_E2E_tests:
+    if: ${{ inputs.lspE2ETests }}
+    uses: ./.github/workflows/lspE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}

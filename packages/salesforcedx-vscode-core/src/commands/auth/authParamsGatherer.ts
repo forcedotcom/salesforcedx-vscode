@@ -202,10 +202,10 @@ export class ScratchOrgLogoutParamsGatherer
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
     const prompt = nls.localize(
-      'auth_logout_scratch_prompt',
+      'org_logout_scratch_prompt',
       this.alias || this.username
     );
-    const logoutResponse = nls.localize('auth_logout_scratch_logout');
+    const logoutResponse = nls.localize('org_logout_scratch_logout');
 
     const confirm = await vscode.window.showInformationMessage(
       prompt,

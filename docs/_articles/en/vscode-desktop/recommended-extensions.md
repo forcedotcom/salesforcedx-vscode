@@ -7,7 +7,13 @@ lang: en
 
 In addition to the extension pack shipped by Salesforce, the following extensions are useful for Salesforce developers. We also package the Extension pack with some of the most-used community extensions in the [expanded extension pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded).
 
-> **_NOTE:_** Code Builder comes with pre-installed extensions, this list is not of relevance if Code Builder is your development environment of choice.
+
+
+## Salesforce Code Analyzer(Beta)
+
+Use Salesforce Code Analyzer extension to identify and fix issues in your code. See the [Salesforce Code Analyzer documentation](https://forcedotcom.github.io/sfdx-scanner/en/v3.x/code-analyzer-vs-code-extension).
+
+<a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode">Install Code Analyzer</a>
 
 ## Apex PMD
 
