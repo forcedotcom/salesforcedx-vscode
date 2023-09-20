@@ -10,10 +10,7 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  ForceAuthLogoutAll,
-  forceAuthLogoutDefault
-} from '../../../../src/commands';
+import { OrgLogoutAll, orgLogoutDefault } from '../../../../src/commands';
 import { SfdxCommandlet } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
@@ -21,13 +18,13 @@ import { OrgAuthInfo } from '../../../../src/util';
 
 describe('Force Auth Logout All', () => {
   it('Should build the auth logout all command', async () => {
-    const authLogoutAll = new ForceAuthLogoutAll();
+    const authLogoutAll = new OrgLogoutAll();
     const authLogoutAllCommand = authLogoutAll.build({});
     expect(authLogoutAllCommand.toCommand()).to.equal(
-      'sfdx force:auth:logout --all --noprompt'
+      'sfdx org:logout --all --no-prompt'
     );
     expect(authLogoutAllCommand.description).to.equal(
-      nls.localize('force_auth_logout_all_text')
+      nls.localize('org_logout_all_text')
     );
   });
 });
@@ -64,7 +61,7 @@ describe('Force Auth Logout Default', () => {
     scratchOrgStub.resolves(false);
     notificationStub.resolves();
 
-    await forceAuthLogoutDefault();
+    await orgLogoutDefault();
 
     expect(
       getUsernameStub.called,
@@ -86,7 +83,7 @@ describe('Force Auth Logout Default', () => {
     scratchOrgStub.resolves(false);
     notificationStub.resolves();
 
-    await forceAuthLogoutDefault();
+    await orgLogoutDefault();
 
     expect(
       getUsernameStub.called,
@@ -104,7 +101,7 @@ describe('Force Auth Logout Default', () => {
     scratchOrgStub.resolves(false);
     notificationStub.resolves();
 
-    await forceAuthLogoutDefault();
+    await orgLogoutDefault();
 
     expect(
       getUsernameStub.called,
@@ -122,7 +119,7 @@ describe('Force Auth Logout Default', () => {
     scratchOrgStub.resolves(true);
     notificationStub.resolves();
 
-    await forceAuthLogoutDefault();
+    await orgLogoutDefault();
 
     expect(
       getUsernameStub.called,
@@ -146,7 +143,7 @@ describe('Force Auth Logout Default', () => {
     inputMessageStub.returns(undefined);
     commandletStub.restore();
 
-    await forceAuthLogoutDefault();
+    await orgLogoutDefault();
 
     expect(
       sendExceptionStub.called,
@@ -161,15 +158,15 @@ describe('Force Auth Logout Default', () => {
     );
     const messageArgs = inputMessageStub.getCall(0).args;
     expect(messageArgs).to.deep.equal([
-      nls.localize('auth_logout_scratch_prompt', username),
+      nls.localize('org_logout_scratch_prompt', username),
       { modal: true },
-      nls.localize('auth_logout_scratch_logout')
+      nls.localize('org_logout_scratch_logout')
     ]);
   });
 
   it('Should allow logout for a scratch org', async () => {
     let removedUsername;
-    const logoutResponse = nls.localize('auth_logout_scratch_logout');
+    const logoutResponse = nls.localize('org_logout_scratch_logout');
 
     getUsernameStub.resolves(username);
     scratchOrgStub.resolves(true);
@@ -182,7 +179,7 @@ describe('Force Auth Logout Default', () => {
       }
     });
 
-    await forceAuthLogoutDefault();
+    await orgLogoutDefault();
 
     expect(
       sendExceptionStub.called,
@@ -203,7 +200,7 @@ describe('Force Auth Logout Default', () => {
     );
     const messageArgs = inputMessageStub.getCall(0).args;
     expect(messageArgs).to.deep.equal([
-      nls.localize('auth_logout_scratch_prompt', username),
+      nls.localize('org_logout_scratch_prompt', username),
       { modal: true },
       logoutResponse
     ]);

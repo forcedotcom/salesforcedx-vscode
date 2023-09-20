@@ -353,11 +353,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.logout.all",
+          "command": "sfdx.org.logout.all",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.logout.default",
+          "command": "sfdx.org.logout.default",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -640,12 +640,12 @@
         "title": "%force_auth_access_token_authorize_org_text%"
       },
       {
-        "command": "sfdx.force.auth.logout.all",
-        "title": "%force_auth_logout_all_text%"
+        "command": "sfdx.org.logout.all",
+        "title": "%org_logout_all_text%"
       },
       {
-        "command": "sfdx.force.auth.logout.default",
-        "title": "%force_auth_logout_default_text%"
+        "command": "sfdx.org.logout.default",
+        "title": "%org_logout_default_text%"
       },
       {
         "command": "sfdx.force.open.documentation",
