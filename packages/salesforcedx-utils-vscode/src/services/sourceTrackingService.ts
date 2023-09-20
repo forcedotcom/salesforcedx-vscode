@@ -5,45 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection, Org, SfProject } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import { RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import {
-  SourceTracking,
-  SourceTrackingOptions,
-  StatusOutputRow
-} from '@salesforce/source-tracking';
+import { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Row, Table } from '../output';
+import { SourceTrackingProvider } from '../providers';
 import { getRootWorkspacePath } from '../workspaces';
 
 export type SourceTrackingType = SourceTracking;
 
 export class SourceTrackingService {
   /**
-   * Creates an instance of SourceTracking with options
-   * configured to work in VSCE.
-   * Since SourceTracking is initialized with an SfProject, which
-   * contains the project path, and PR #4643 made it so that VSCE is
-   * running with process.cwd set as the project root, there
-   * is no need to call process.chdir here as has been done in VSCE
-   * with other core types like Config and ConfigAggregator.
+   * Gets the Source Tracking instance for this project
+   * from the Source Tracking Provider.
    */
   public static async createSourceTracking(
     projectPath: string,
     connection: Connection
   ): Promise<SourceTracking> {
-    const project = await SfProject.resolve(projectPath);
-    const org = await Org.create({ connection });
-    const options: SourceTrackingOptions = {
-      org,
-      project,
-      ignoreLocalCache: true,
-      subscribeSDREvents: true,
-      ignoreConflicts: true
-    };
-    const sourceTracking = await SourceTracking.create(options);
-    return sourceTracking;
+    const provider = SourceTrackingProvider.getInstance();
+    const tracker = provider.getSourceTracker(projectPath, connection);
+    return tracker;
   }
 
   public static async updateSourceTrackingAfterRetrieve(
@@ -73,7 +57,8 @@ async function getSourceTrackingForCurrentProject(): Promise<SourceTracking> {
   const rootWorkspacePath = getRootWorkspacePath();
   const workspaceContext = WorkspaceContextUtil.getInstance();
   const connection = await workspaceContext.getConnection();
-  const sourceTracking = await SourceTrackingService.createSourceTracking(
+  const sourceTrackingProvider = SourceTrackingProvider.getInstance();
+  const sourceTracking = await sourceTrackingProvider.getSourceTracker(
     rootWorkspacePath,
     connection
   );
