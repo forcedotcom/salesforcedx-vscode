@@ -38,7 +38,7 @@ describe('Debugger stop command', () => {
     beforeEach(() => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       workspaceCheckerStub = sinon
         .stub(SfdxWorkspaceChecker.prototype, 'check')
         .returns(true);
@@ -55,7 +55,7 @@ describe('Debugger stop command', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       workspaceCheckerStub.restore();
       idGathererStub.restore();
       detachExecutorSpy.restore();
