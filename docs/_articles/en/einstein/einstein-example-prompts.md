@@ -76,23 +76,24 @@ return orderItems;
 
 ```
 
-**Prompt:** Write an Apex trigger to add the number of contacts associated with an account.
+**Prompt:** Write an Apex trigger to add the number of contacts associated with an account. In the SOQL query ensure it is secure by adding WITH USER_MODE.
 
 ```
-// Write an Apex trigger to add the number of contacts associated with an account
-
-trigger AccountTrigger on Account (before insert, before update, before delete, after insert, after update, after delete, after undelete) {
+trigger AccountTrigger on Account (after update) {
+    List<Account> accountsWithContacts = [
+        SELECT Id, (SELECT Id FROM Contacts)
+        FROM Account
+        WITH USER_MODE
+    ];
     
-    if (Trigger.isBefore) {
+    for (Account account : accountsWithContacts) {
+        Integer numberOfContacts = account.Contacts.size();
         
-    } else if (Trigger.isAfter) {
-        if (Trigger.isUpdate) {
-            List<Account> accountsWithChangedContacts = [SELECT Id, NumberOfContacts FROM Account WHERE Id IN :Trigger.newMap.keySet()];
-            for (Account a : accountsWithChangedContacts) {
-                a.NumberOfContacts = Trigger.newMap.get(a.Id).NumberOfContacts;
-            }
-        }
+        // Update the Account's "Number_of_Contacts__c" field
+        account.Number_of_Contacts__c = numberOfContacts;
     }
+    
+    update accountsWithContacts;
 }
 ```
 
