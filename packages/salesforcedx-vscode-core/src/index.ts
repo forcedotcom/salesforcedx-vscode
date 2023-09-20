@@ -17,15 +17,12 @@ import {
   checkSObjectsAndRefresh,
   dataQuery,
   debuggerStop,
+  deleteSource,
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
   forceAuthAccessToken,
-  forceAuthDevHub,
-  forceAuthLogoutAll,
-  forceAuthLogoutDefault,
-  forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
@@ -49,14 +46,11 @@ import {
   forceOrgCreate,
   forceOrgDelete,
   forceOrgDisplay,
-  forceOrgList,
-  forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
   forceRenameLightningComponent,
   forceSfdxProjectCreate,
-  forceSourceDelete,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -70,6 +64,12 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgList,
+  orgLoginWeb,
+  orgLoginWebDevHub,
+  orgLogoutAll,
+  orgLogoutDefault,
+  orgOpen,
   registerFunctionInvokeCodeLensProvider,
   startApexDebugLogging,
   stopApexDebugLogging,
@@ -130,21 +130,21 @@ function registerCommands(
     'sfdx.force.auth.accessToken',
     forceAuthAccessToken
   );
-  const forceAuthWebLoginCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.web.login',
-    forceAuthWebLogin
+  const orgLoginWebCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.web',
+    orgLoginWeb
   );
-  const forceAuthDevHubCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.dev.hub',
-    forceAuthDevHub
+  const orgLoginWebDevHubCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.web.dev.hub',
+    orgLoginWebDevHub
   );
-  const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.logout.all',
-    forceAuthLogoutAll
+  const orgLogoutAllCmd = vscode.commands.registerCommand(
+    'sfdx.org.logout.all',
+    orgLogoutAll
   );
-  const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.logout.default',
-    forceAuthLogoutDefault
+  const orgLogoutDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.logout.default',
+    orgLogoutDefault
   );
   const forceOpenDocumentationCmd = vscode.commands.registerCommand(
     'sfdx.force.open.documentation',
@@ -154,17 +154,14 @@ function registerCommands(
     'sfdx.force.org.create',
     forceOrgCreate
   );
-  const forceOrgOpenCmd = vscode.commands.registerCommand(
-    ORG_OPEN_COMMAND,
-    forceOrgOpen
+  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
+  const deleteSourceCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source',
+    deleteSource
   );
-  const forceSourceDeleteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete',
-    forceSourceDelete
-  );
-  const forceSourceDeleteCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete.current.file',
-    forceSourceDelete
+  const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source.current.file',
+    deleteSource
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
@@ -305,9 +302,9 @@ function registerCommands(
     forceOrgDisplay,
     { flag: '--targetusername' }
   );
-  const forceOrgListCleanCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.list.clean',
-    forceOrgList
+  const orgListCleanCmd = vscode.commands.registerCommand(
+    'sfdx.org.list.clean',
+    orgList
   );
   const dataQueryInputCmd = vscode.commands.registerCommand(
     'sfdx.data.query.input',
@@ -403,10 +400,6 @@ function registerCommands(
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
-    forceAuthWebLoginCmd,
-    forceAuthDevHubCmd,
-    forceAuthLogoutAllCmd,
-    forceAuthLogoutDefaultCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
@@ -417,13 +410,11 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
-    forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
-    forceOrgListCleanCmd,
     forceRefreshSObjectsCmd,
-    forceSourceDeleteCmd,
-    forceSourceDeleteCurrentFileCmd,
+    deleteSourceCmd,
+    deleteSourceCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,
@@ -461,7 +452,11 @@ function registerCommands(
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceConfigSetCmd
+    forceConfigSetCmd,
+    orgListCleanCmd,
+    orgLoginWebCmd,
+    orgLoginWebDevHubCmd,
+    orgOpenCmd
   );
 }
 
@@ -502,10 +497,10 @@ function registerInternalDevCommands(
   );
 }
 
-function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
+function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
-    () => orgList.setDefaultOrg()
+    () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
@@ -705,8 +700,8 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Register org picker commands
-  const orgList = new OrgList();
-  extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
+  const newOrgList = new OrgList();
+  extensionContext.subscriptions.push(registerOrgPickerCommands(newOrgList));
 
   await setupOrgBrowser(extensionContext);
   await setupConflictView(extensionContext);
@@ -717,7 +712,7 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await registerPushOrDeployOnSave();
   await decorators.showOrg();
 
-  await setUpOrgExpirationWatcher(orgList);
+  await setUpOrgExpirationWatcher(newOrgList);
 
   // Demo mode decorator
   if (isDemoMode()) {

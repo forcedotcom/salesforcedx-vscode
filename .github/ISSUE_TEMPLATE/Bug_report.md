@@ -41,3 +41,5 @@ _Feel free to attach a screenshot_.
 **SFDX CLI Version**:
 
 **OS and version**:
+
+**VS Code version**:
