@@ -34,7 +34,7 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
     const ppid = parseInt(ppidStr, 10);
     const command = commandParts.join(' ');
     return { pid, ppid, command, orphaned: false };
-  });
+  }).filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)));
 
   if (processes.length === 0) {
     return [];
