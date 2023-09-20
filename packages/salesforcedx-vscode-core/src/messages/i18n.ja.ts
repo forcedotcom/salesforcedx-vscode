@@ -75,10 +75,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
-  force_org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
+  org_open_default_scratch_org_container_error:
     '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
   force_source_pull_default_org_text:
@@ -103,12 +103,12 @@ export const messages = {
     'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
   force_source_retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
-  force_source_delete_text: 'SFDX: プロジェクトおよび組織から削除',
-  force_source_delete_manifest_unsupported_message:
+  delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
+  delete_source_manifest_unsupported_message:
     'SFDX: 組織およびプロジェクトから削除 はマニフェストファイルでサポートされていません。削除するソースファイルやディレクトリを選択してください。',
-  force_source_delete_select_file_or_directory:
+  delete_source_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: プロジェクトおよび組織から削除 を実行できます。',
-  force_source_delete_confirmation_message:
+  delete_source_confirmation_message:
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
@@ -208,8 +208,8 @@ export const messages = {
     'VS Code のSalesforce 拡張機能をデモモードで実行しています。本番環境に接続するときに確認を求められます。',
   demo_mode_prompt:
     'デモモードまたは共有マシンで、ビジネスまたは本番組織を認証することは推奨されません。認証を続ける場合、組織を使用した後、必ず "SFDX: すべての認証済み組織からログアウト" を実行してください。',
-  force_auth_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
-  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  org_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
+  org_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_editor_title_message: 'マニフェストエディタ',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
@@ -229,10 +229,10 @@ export const messages = {
   auth_custom_label: 'カスタム',
   auth_custom_detail: 'カスタムログイン URL を入力',
   auth_invalid_url: 'URL は http:// か https:// で始める必要があります。',
-  auth_logout_scratch_prompt:
+  org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
-  auth_logout_scratch_logout: 'Logout',
-  auth_logout_no_default_org: 'No default org to logout from',
+  org_logout_scratch_logout: 'Logout',
+  org_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_no_package_directories_found_on_setup_text:

@@ -28,19 +28,19 @@ import {
 } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
-export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
-  public static withoutShowingChannel(): ForceAuthLogoutAll {
-    const instance = new ForceAuthLogoutAll();
+export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
+  public static withoutShowingChannel(): OrgLogoutAll {
+    const instance = new OrgLogoutAll();
     instance.showChannelOutput = false;
     return instance;
   }
 
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_auth_logout_all_text'))
-      .withArg('force:auth:logout')
+      .withDescription(nls.localize('org_logout_all_text'))
+      .withArg('org:logout')
       .withArg('--all')
-      .withArg('--noprompt')
+      .withArg('--no-prompt')
       .withLogName('force_auth_logout')
       .build();
   }
@@ -48,21 +48,21 @@ export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceAuthLogoutAll();
+const executor = new OrgLogoutAll();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor
 );
 
-export async function forceAuthLogoutAll() {
+export async function orgLogoutAll() {
   await commandlet.run();
 }
 
-export class AuthLogoutDefault extends LibraryCommandletExecutor<string> {
+export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
     super(
-      nls.localize('force_auth_logout_default_text'),
+      nls.localize('org_logout_default_text'),
       'force_auth_logout_default',
       OUTPUT_CHANNEL
     );
@@ -86,7 +86,7 @@ export class AuthLogoutDefault extends LibraryCommandletExecutor<string> {
   }
 }
 
-export async function forceAuthLogoutDefault() {
+export async function orgLogoutDefault() {
   const { username, isScratch, alias, error } = await resolveDefaultUsername();
   if (error) {
     telemetryService.sendException(error.name, error.message);
@@ -99,12 +99,12 @@ export async function forceAuthLogoutDefault() {
       isScratch
         ? new ScratchOrgLogoutParamsGatherer(username, alias)
         : new SimpleGatherer<string>(username),
-      new AuthLogoutDefault()
+      new OrgLogoutDefault()
     );
     await logoutCommandlet.run();
   } else {
     notificationService.showInformationMessage(
-      nls.localize('auth_logout_no_default_org')
+      nls.localize('org_logout_no_default_org')
     );
   }
 }

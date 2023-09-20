@@ -37,7 +37,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
-import { ForceAuthLogoutAll } from './forceAuthLogout';
+import { OrgLogoutAll } from './orgLogout';
 
 export interface DeviceCodeResponse {
   user_code: string;
@@ -228,7 +228,7 @@ export async function promptLogOutForProdOrg() {
   await new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new DemoModePromptGatherer(),
-    ForceAuthLogoutAll.withoutShowingChannel()
+    OrgLogoutAll.withoutShowingChannel()
   ).run();
 }
 

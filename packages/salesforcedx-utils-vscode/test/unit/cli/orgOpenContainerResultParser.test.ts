@@ -15,7 +15,7 @@ import {
 } from '../../../src/cli';
 
 // tslint:disable:no-unused-expression
-describe('force:org:open container parser', () => {
+describe('org:open container parser', () => {
   const orgOpenSuccessResult: OrgOpenSuccessResult = {
     status: 0,
     result: {
@@ -73,10 +73,10 @@ describe('force:org:open container parser', () => {
 
   it('Should parse success info successfully when provided along other info', () => {
     const parser = new OrgOpenContainerResultParser(
-      `Warning: sfdx-cli update available from 7.7.0 to 7.14.0.${EOL} sfdx force:org:open --json --loglevel fatal ${EOL}
+      `Warning: sfdx-cli update available from 7.7.0 to 7.14.0.${EOL} sfdx org:open --json --loglevel fatal ${EOL}
       ${JSON.stringify(
         orgOpenSuccessResult
-      )} ${EOL} sfdx force:org:open --json --loglevel fatal ended with exit code 0`
+      )} ${EOL} sfdx org:open --json --loglevel fatal ended with exit code 0`
     );
 
     expect(parser.openIsSuccessful()).to.be.true;
@@ -94,7 +94,7 @@ describe('force:org:open container parser', () => {
   it('should throw an error when cli does not respond with json result info', () => {
     try {
       new OrgOpenContainerResultParser(
-        'sfdx force:org:open --urlonly --json --loglevel fatal ended with exit code 0'
+        'sfdx org:open --url-only --json --loglevel fatal ended with exit code 0'
       );
     } catch (err) {
       if (err instanceof Error) {
