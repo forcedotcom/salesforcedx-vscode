@@ -4,21 +4,13 @@
 
 #### salesforcedx-vscode-apex
 
-- Remove unneeded comma in messages ([PR #5118](https://github.com/forcedotcom/salesforcedx-vscode/pull/5118))
+- We updated errors messages related to the use of Java 8. ([PR #5118](https://github.com/forcedotcom/salesforcedx-vscode/pull/5118))
 
-- Remove support for java 8 ([PR #5078](https://github.com/forcedotcom/salesforcedx-vscode/pull/5078))
+- We've formally withdrawn support for Java 8. ([PR #5078](https://github.com/forcedotcom/salesforcedx-vscode/pull/5078))
 
 #### salesforcedx-vscode-core
 
-- Change org logout commands and flags to sf style ([PR #5071](https://github.com/forcedotcom/salesforcedx-vscode/pull/5071))
-
-- Change delete source commands and flags to sf style ([PR #5060](https://github.com/forcedotcom/salesforcedx-vscode/pull/5060))
-
-- Change org list commands and flags to sf style ([PR #5061](https://github.com/forcedotcom/salesforcedx-vscode/pull/5061))
-
-- Change org open commands and flags to sf style ([PR #5059](https://github.com/forcedotcom/salesforcedx-vscode/pull/5059))
-
-- Change org login web commands and flags to sf style ([PR #5058](https://github.com/forcedotcom/salesforcedx-vscode/pull/5058))
+- We migrated some commands that used `sfdx-style` to the new `sf-style`. ([PR #5071](https://github.com/forcedotcom/salesforcedx-vscode/pull/5071), [PR #5060](https://github.com/forcedotcom/salesforcedx-vscode/pull/5060),  [PR #5061](https://github.com/forcedotcom/salesforcedx-vscode/pull/5061), [PR #5059](https://github.com/forcedotcom/salesforcedx-vscode/pull/5059), [PR #5058](https://github.com/forcedotcom/salesforcedx-vscode/pull/5058))
 
 # 58.14.2 - September 8, 2023
 
