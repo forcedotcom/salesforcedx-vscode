@@ -243,7 +243,7 @@ function stubSOQLExtensionConfiguration(
 ) {
   const mockConfiguration = stubInterface<WorkspaceConfiguration>(sandbox, {
     get: (key: string) => configValues[key]
-  });
+  }) as any;
 
   expect(
     Object.keys(extension.packageJSON.contributes.configuration.properties)

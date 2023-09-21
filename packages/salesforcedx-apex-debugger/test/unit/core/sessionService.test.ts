@@ -45,7 +45,7 @@ describe('Debugger session service', () => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       sandboxStub = createSandbox();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sandboxStub.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sandboxStub.spy(
         SfdxCommandBuilder.prototype,
@@ -59,7 +59,7 @@ describe('Debugger session service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       sandboxStub.restore();
     });
 
@@ -167,7 +167,7 @@ describe('Debugger session service', () => {
       sandboxStub = createSandbox();
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sandboxStub.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sandboxStub.spy(
         SfdxCommandBuilder.prototype,
@@ -181,7 +181,7 @@ describe('Debugger session service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       sandboxStub.restore();
     });
 
