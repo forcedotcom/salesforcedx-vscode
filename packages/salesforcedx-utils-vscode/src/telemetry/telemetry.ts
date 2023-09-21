@@ -7,7 +7,7 @@
 
 import * as util from 'util';
 import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
+import { DEFAULT_AIKEY, SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -56,7 +56,7 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
-  private aiKey: string = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
+  private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   /**
    * Cached promise to check if CLI telemetry config is enabled
