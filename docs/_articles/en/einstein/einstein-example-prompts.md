@@ -83,6 +83,7 @@ trigger AccountTrigger on Account (after update) {
     List<Account> accountsWithContacts = [
         SELECT Id, (SELECT Id FROM Contacts)
         FROM Account
+        WHERE Id IN :Trigger.newMap.keySet()
         WITH USER_MODE
     ];
     
