@@ -59,11 +59,11 @@ export async function activate(extensionContext: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  const { aiKey, version } = extensionContext.extension.packageJSON;
+  const { version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     LWC_EXTENSION_NAME,
-    aiKey,
+    undefined,
     version
   );
 

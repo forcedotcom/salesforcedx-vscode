@@ -3,7 +3,6 @@
   "displayName": "Node Utilities for VS Code",
   "version": "58.14.2",
   "description": "Provides node specific utilities for the Salesforce VSCode extensions",
-  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",

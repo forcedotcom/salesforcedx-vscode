@@ -14,17 +14,16 @@ export async function startTelemetry(
   extensionContext: vscode.ExtensionContext,
   hrtime: [number, number]
 ): Promise<void> {
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
+  const { name, version } = extensionContext.extension.packageJSON;
   const extensionPackage = {
     name,
-    aiKey,
     version
   };
 
   await telemetryService.initializeService(
     extensionContext,
     extensionPackage.name,
-    extensionPackage.aiKey,
+    undefined,
     extensionPackage.version
   );
   telemetryService.sendExtensionActivationEvent(hrtime);
