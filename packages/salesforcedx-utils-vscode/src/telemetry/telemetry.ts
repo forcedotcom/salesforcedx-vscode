@@ -56,7 +56,7 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
-  private aiKey: string = '';
+  private aiKey: string = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
   private version: string = '';
   /**
    * Cached promise to check if CLI telemetry config is enabled
@@ -79,7 +79,7 @@ export class TelemetryService {
   public async initializeService(
     extensionContext: ExtensionContext,
     extensionName: string,
-    aiKey: string = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e',
+    aiKey: string = this.aiKey,
     version: string
   ): Promise<void> {
     this.extensionContext = extensionContext;
