@@ -4,8 +4,6 @@
 
 #### salesforcedx-vscode-apex
 
-- We updated errors messages related to the use of Java 8. ([PR #5118](https://github.com/forcedotcom/salesforcedx-vscode/pull/5118))
-
 - We've formally withdrawn support for Java 8. ([PR #5078](https://github.com/forcedotcom/salesforcedx-vscode/pull/5078))
 
 #### salesforcedx-vscode-core
