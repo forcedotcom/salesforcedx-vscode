@@ -47,7 +47,7 @@ describe('Transform sobject definitions', () => {
     cancellationTokenSource = new CancellationTokenSource();
     env.stub(AuthInfo, 'create').returns({
       getConnectionOptions: () => CONNECTION_DATA
-    });
+    } as any);
   });
 
   afterEach(() => env.restore());

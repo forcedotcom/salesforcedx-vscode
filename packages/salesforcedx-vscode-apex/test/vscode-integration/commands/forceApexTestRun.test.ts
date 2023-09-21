@@ -246,7 +246,7 @@ describe('Apex Library Test Run Executor', async () => {
           'force_apex_test_run_all_tests_description_text'
         ),
         type: TestType.All
-      });
+      } as any);
     });
 
     it('Should have test suite and class', async () => {

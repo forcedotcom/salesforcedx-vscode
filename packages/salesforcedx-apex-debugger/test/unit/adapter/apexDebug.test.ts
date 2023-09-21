@@ -399,7 +399,7 @@ describe('Interactive debugger adapter - unit', () => {
       // given
       args.trace = true;
       await adapter.launchRequest(initializedResponse, args);
-      sessionPrintToDebugSpy.reset();
+      sessionPrintToDebugSpy.resetHistory();
 
       // when
       adapter.log('variables', 'message');
@@ -428,7 +428,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       // given
       await adapter.launchRequest(initializedResponse, args);
-      sessionPrintToDebugSpy.reset();
+      sessionPrintToDebugSpy.resetHistory();
 
       // when
       adapter.log('variables', 'message');
@@ -458,7 +458,7 @@ describe('Interactive debugger adapter - unit', () => {
       // given
       args.trace = 'variables, launch, protocol';
       await adapter.launchRequest(initializedResponse, args);
-      sessionPrintToDebugSpy.reset();
+      sessionPrintToDebugSpy.resetHistory();
 
       // when
       adapter.log('variables', 'message');
@@ -490,7 +490,7 @@ describe('Interactive debugger adapter - unit', () => {
       // given
       args.trace = 'all';
       await adapter.launchRequest(initializedResponse, args);
-      sessionPrintToDebugSpy.reset();
+      sessionPrintToDebugSpy.resetHistory();
 
       // when
       adapter.log('variables', 'message');
@@ -940,9 +940,10 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should create breakpoint', async () => {
       const bpLines = [1, 2];
+      const fakeSet: any = new Set().add(1);
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
-        .returns(Promise.resolve(new Set().add(1)));
+        .returns(Promise.resolve(fakeSet));
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
@@ -994,7 +995,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not create breakpoint without source argument', async () => {
-      const bpLines = [1, 2];
+      const bpLines = [1, 2] as any;
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(bpLines));
@@ -1022,7 +1023,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not create breakpoint without lines argument', async () => {
-      const bpLines = [1, 2];
+      const bpLines = [1, 2] as any;
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(bpLines));
@@ -1657,7 +1658,7 @@ describe('Interactive debugger adapter - unit', () => {
     beforeEach(() => {
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
-        .returns(Promise.resolve());
+        .returns(Promise.resolve(false));
     });
 
     afterEach(() => {

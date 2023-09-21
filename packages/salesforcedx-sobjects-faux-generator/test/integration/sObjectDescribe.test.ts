@@ -45,7 +45,7 @@ describe('Fetch sObjects', () => {
     env.stub(AuthInfo, 'create').resolves({
       getConnectionOptions: () => CONNECTION_DATA,
       getUsername: () => USERNAME
-    });
+    } as any);
     connection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: USERNAME

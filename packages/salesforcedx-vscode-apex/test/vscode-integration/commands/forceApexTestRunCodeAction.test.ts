@@ -256,7 +256,7 @@ describe('Force Apex Test Run - Code Action', () => {
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
         }
-      });
+      } as any);
       sb.stub(ComponentSet, 'fromSource').returns({
         getSourceComponents: () => {
           return {
@@ -265,7 +265,7 @@ describe('Force Apex Test Run - Code Action', () => {
             }
           };
         }
-      });
+      } as any);
       sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
 
       reportStub = sb.stub();
@@ -527,7 +527,7 @@ describe('Force Apex Test Run - Code Action', () => {
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
         }
-      });
+      } as any);
       componentPathStub = sb.stub(ComponentSet, 'fromSource').returns({
         getSourceComponents: () => {
           return {
@@ -536,7 +536,7 @@ describe('Force Apex Test Run - Code Action', () => {
             }
           };
         }
-      });
+      } as any);
       setDiagnosticStub = sb.stub(
         ApexLibraryTestRunExecutor.diagnostics,
         'set'
