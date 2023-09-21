@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Lifecycle } from '@salesforce/core';
 import {
   ContinueResponse,
   getRelativeProjectPath,
@@ -120,6 +121,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
+    Lifecycle.getInstance().removeAllListeners('scopedPostDeploy');
+    Lifecycle.getInstance().removeAllListeners('scopedPreDeploy');
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;

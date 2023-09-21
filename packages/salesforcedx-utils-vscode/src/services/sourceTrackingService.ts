@@ -9,7 +9,6 @@ import { Connection, Org, SfProject } from '@salesforce/core';
 import { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import {
   SourceTracking,
-  SourceTrackingOptions,
   StatusOutputRow
 } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
@@ -35,14 +34,13 @@ export class SourceTrackingService {
   ): Promise<SourceTracking> {
     const project = await SfProject.resolve(projectPath);
     const org = await Org.create({ connection });
-    const options: SourceTrackingOptions = {
+
+    const sourceTracking = await SourceTracking.create({
       org,
       project,
-      ignoreLocalCache: true,
       subscribeSDREvents: true,
       ignoreConflicts: true
-    };
-    const sourceTracking = await SourceTracking.create(options);
+    });
     return sourceTracking;
   }
 
