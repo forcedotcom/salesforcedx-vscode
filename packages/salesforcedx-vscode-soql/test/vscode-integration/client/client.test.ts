@@ -241,9 +241,10 @@ function stubSOQLExtensionConfiguration(
   configValues: { [key: string]: any },
   extension: any
 ) {
-  const mockConfiguration = stubInterface<WorkspaceConfiguration>(sandbox, {
-    get: (key: string) => configValues[key]
-  });
+  // const mockConfiguration = stubInterface<WorkspaceConfiguration>(sandbox, {
+  //   get: (key: string) => configValues[key]
+  // });
+  const mockConfiguration = undefined;
 
   expect(
     Object.keys(extension.packageJSON.contributes.configuration.properties)
