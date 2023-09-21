@@ -85,7 +85,7 @@ describe('Auth Params Gatherer', () => {
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
     getProjectUrlStub = sinon
       .stub(gatherer, 'getProjectLoginUrl')
-      .returns(TEST_URL);
+      .resolves(TEST_URL);
   });
 
   afterEach(() => {

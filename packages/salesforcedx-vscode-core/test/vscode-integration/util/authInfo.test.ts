@@ -133,7 +133,7 @@ describe('OrgAuthInfo', () => {
         ConfigUtil,
         'getDefaultUsernameOrAlias'
       );
-      configUtilStub.returns(defaultUsername);
+      configUtilStub.resolves(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
       expect(connection).to.equal(fakeConnection);

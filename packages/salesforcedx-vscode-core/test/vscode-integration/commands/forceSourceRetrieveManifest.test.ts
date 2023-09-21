@@ -75,11 +75,11 @@ describe('Force Source Retrieve with Manifest Option', () => {
           resolveSourcePaths: packageDirFullPaths,
           forceAddWildcards: true
         })
-        .returns(mockComponents);
+        .resolves(mockComponents);
       pollStatusStub = env.stub();
       retrieveStub = env.stub(mockComponents, 'retrieve').returns({
         pollStatus: pollStatusStub
-      });
+      } as any);
     });
 
     it('should retrieve components in a manifest', async () => {

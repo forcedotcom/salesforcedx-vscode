@@ -76,7 +76,7 @@ describe('SFDX CLI Configuration utility', () => {
       sandboxStub = createSandbox();
       mShowWarning = sandboxStub
         .stub(window, 'showWarningMessage')
-        .returns(Promise.resolve(null));
+        .returns(Promise.resolve(undefined));
     });
 
     afterEach(() => {

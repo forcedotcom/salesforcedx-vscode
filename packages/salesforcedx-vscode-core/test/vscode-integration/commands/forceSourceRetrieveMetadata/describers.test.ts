@@ -31,7 +31,7 @@ describe('Retrieve Metadata Describers', () => {
     env = createSandbox();
     packageStub = env
       .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
-      .returns(['p1', 'p2']);
+      .resolves(['p1', 'p2']);
     refreshStub = env.stub(orgBrowser, 'refreshAndExpand').callsFake(() => '');
   });
 

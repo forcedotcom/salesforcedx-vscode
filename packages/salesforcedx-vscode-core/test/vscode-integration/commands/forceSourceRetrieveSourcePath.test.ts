@@ -102,7 +102,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .returns(toRetrieve);
       retrieveStub = sb
         .stub(toRetrieve, 'retrieve')
-        .returns({ pollStatus: pollStatusStub });
+        .returns({ pollStatus: pollStatusStub } as any);
 
       await executor.run({
         type: 'CONTINUE',
@@ -136,7 +136,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       });
       const sourcePathCheckerCheckStub = sb
         .stub(SourcePathChecker.prototype, 'check')
-        .returns({
+        .resolves({
           type: 'CONTINUE',
           data: filePaths
         });
@@ -172,7 +172,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       });
       const sourcePathCheckerCheckStub = sb
         .stub(SourcePathChecker.prototype, 'check')
-        .returns({
+        .resolves({
           type: 'CONTINUE',
           data: filePaths
         });
@@ -204,7 +204,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       });
       const sourcePathCheckerCheckStub = sb
         .stub(SourcePathChecker.prototype, 'check')
-        .returns({
+        .resolves({
           type: 'CONTINUE',
           data: filePaths
         });
@@ -241,13 +241,13 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const filePaths = [filePath1];
       const sourcePathCheckerCheckStub = sb
         .stub(SourcePathChecker.prototype, 'check')
-        .returns({
+        .resolves({
           type: 'CONTINUE',
           data: filePaths
         });
       const getUriFromActiveEditorStub = sb
         .stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor')
-        .returns(filePath1);
+        .resolves(filePath1);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
@@ -284,7 +284,7 @@ describe('SourcePathChecker', () => {
   it('Should continue when source path is in a package directory', async () => {
     const isInPackageDirectoryStub = sb
       .stub(SfdxPackageDirectories, 'isInPackageDirectory')
-      .returns(true);
+      .resolves(true);
     const pathChecker = new SourcePathChecker();
     const sourcePath = path.join(workspacePath, 'package');
     const continueResponse = (await pathChecker.check({
@@ -302,7 +302,7 @@ describe('SourcePathChecker', () => {
   it('Should notify user and cancel when source path is not inside of a package directory', async () => {
     const isInPackageDirectoryStub = sb
       .stub(SfdxPackageDirectories, 'isInPackageDirectory')
-      .returns(false);
+      .resolves(false);
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',

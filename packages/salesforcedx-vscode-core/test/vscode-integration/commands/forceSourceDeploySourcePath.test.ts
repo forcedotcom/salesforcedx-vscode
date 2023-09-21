@@ -259,16 +259,16 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const filePaths = [filePath1];
       const timestampConflictCheckerCheckStub = sb
         .stub(TimestampConflictChecker.prototype, 'check')
-        .returns({
+        .resolves({
           type: 'CONTINUE',
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
-        .returns(true);
+        .resolves(true);
       const getUriFromActiveEditorStub = sb
         .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
-        .returns(filePath1);
+        .resolves(filePath1);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
@@ -299,13 +299,13 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       });
       const timestampConflictCheckerCheckStub = sb
         .stub(TimestampConflictChecker.prototype, 'check')
-        .returns({
+        .resolves({
           type: 'CONTINUE',
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
-        .returns(true);
+        .resolves(true);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);

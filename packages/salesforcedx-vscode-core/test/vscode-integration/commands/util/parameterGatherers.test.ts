@@ -300,9 +300,9 @@ describe('Parameter Gatherers', () => {
       );
       const showMenuStub = sinon.stub(selector, 'showMenu');
       const choice = customOptions[5];
-      getPackageDirPathsStub.returns(packageDirs);
-      showMenuStub.onFirstCall().returns(SelectOutputDir.customDirOption);
-      showMenuStub.onSecondCall().returns(choice);
+      getPackageDirPathsStub.resolves(packageDirs);
+      showMenuStub.onFirstCall().resolves(SelectOutputDir.customDirOption);
+      showMenuStub.onSecondCall().resolves(choice);
 
       const response = await selector.gather();
 
@@ -344,11 +344,11 @@ describe('Parameter Gatherers', () => {
         )
         .returns(mockComponents);
       const showMenuStub = sinon.stub(selector, 'showMenu');
-      getPackageDirPathsStub.returns(packageDirs);
+      getPackageDirPathsStub.resolves(packageDirs);
       const dirChoice = packageDirs[0];
       const componentChoice = component.fullName;
-      showMenuStub.onFirstCall().returns(dirChoice);
-      showMenuStub.onSecondCall().returns(componentChoice);
+      showMenuStub.onFirstCall().resolves(dirChoice);
+      showMenuStub.onSecondCall().resolves(componentChoice);
 
       const response = await selector.gather();
       try {
@@ -388,10 +388,10 @@ describe('Parameter Gatherers', () => {
         )
         .returns(mockComponents);
       const showMenuStub = sinon.stub(selector, 'showMenu');
-      getPackageDirPathsStub.returns(packageDirs);
+      getPackageDirPathsStub.resolves(packageDirs);
       const dirChoice = packageDirs[0];
-      showMenuStub.onFirstCall().returns(dirChoice);
-      showMenuStub.onSecondCall().returns('');
+      showMenuStub.onFirstCall().resolves(dirChoice);
+      showMenuStub.onSecondCall().resolves('');
 
       const response = await selector.gather();
       try {
@@ -422,7 +422,7 @@ describe('Parameter Gatherers', () => {
       const promptConfirm = new PromptConfirmGatherer('question');
       const showMenuStub = sinon.stub(promptConfirm, 'showMenu');
       const choice = nls.localize('parameter_gatherer_prompt_confirm_option');
-      showMenuStub.onFirstCall().returns(choice);
+      showMenuStub.onFirstCall().resolves(choice);
       const response = await promptConfirm.gather();
       expect(response).to.eql({
         type: 'CONTINUE',
@@ -436,7 +436,7 @@ describe('Parameter Gatherers', () => {
       const promptConfirm = new PromptConfirmGatherer('question');
       const showMenuStub = sinon.stub(promptConfirm, 'showMenu');
       const choice = nls.localize('parameter_gatherer_prompt_cancel_option');
-      showMenuStub.onFirstCall().returns(choice);
+      showMenuStub.onFirstCall().resolves(choice);
       const response = await promptConfirm.gather();
       expect(response).to.eql({
         type: 'CANCEL'
