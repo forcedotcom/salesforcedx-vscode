@@ -67,15 +67,18 @@ describe('Source Tracking Service', () => {
     } as any;
 
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let sourceTrackingMock: jest.SpyInstance;
+    let getSourceTrackingForCurrentProjectMock: jest.SpyInstance;
 
     beforeEach(() => {
       workspaceContextUtilGetInstanceSpy = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 
-      sourceTrackingMock = jest
-        .spyOn(SourceTracking, 'create')
+      getSourceTrackingForCurrentProjectMock = jest
+        .spyOn(
+          SourceTrackingService as any,
+          'getSourceTrackingForCurrentProject'
+        )
         .mockResolvedValue({
           getStatus: getStatusMock
         } as any);
@@ -91,8 +94,8 @@ describe('Source Tracking Service', () => {
       );
 
       // Assert
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(sourceTrackingMock).toHaveBeenCalled();
+      expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
+      expect(getStatusMock).toHaveBeenCalled();
       expect(formattedOutput).toMatchSnapshot();
     });
 
@@ -103,8 +106,8 @@ describe('Source Tracking Service', () => {
         {}
       );
 
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(sourceTrackingMock).toHaveBeenCalled();
+      expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
+      expect(getStatusMock).toHaveBeenCalled();
       expect(formattedOutput).toMatchSnapshot();
     });
   });

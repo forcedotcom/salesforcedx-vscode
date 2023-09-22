@@ -41,7 +41,7 @@ export class SourceTrackingService {
     local = true,
     remote = true
   }): Promise<string> {
-    const sourceTracking = await getSourceTrackingForCurrentProject();
+    const sourceTracking = await this.getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local,
       remote
@@ -51,18 +51,20 @@ export class SourceTrackingService {
     );
     return sourceStatusSummary.format();
   }
-}
 
-async function getSourceTrackingForCurrentProject(): Promise<SourceTracking> {
-  const rootWorkspacePath = getRootWorkspacePath();
-  const workspaceContext = WorkspaceContextUtil.getInstance();
-  const connection = await workspaceContext.getConnection();
-  const sourceTrackingProvider = SourceTrackingProvider.getInstance();
-  const sourceTracking = await sourceTrackingProvider.getSourceTracker(
-    rootWorkspacePath,
-    connection
-  );
-  return sourceTracking;
+  private static async getSourceTrackingForCurrentProject(): Promise<
+    SourceTracking
+  > {
+    const rootWorkspacePath = getRootWorkspacePath();
+    const workspaceContext = WorkspaceContextUtil.getInstance();
+    const connection = await workspaceContext.getConnection();
+    const sourceTrackingProvider = SourceTrackingProvider.getInstance();
+    const sourceTracking = await sourceTrackingProvider.getSourceTracker(
+      rootWorkspacePath,
+      connection
+    );
+    return sourceTracking;
+  }
 }
 
 type StatusActualState = 'Deleted' | 'Add' | 'Changed' | 'Unchanged';
