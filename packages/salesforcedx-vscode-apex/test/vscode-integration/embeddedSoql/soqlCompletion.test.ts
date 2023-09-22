@@ -28,7 +28,7 @@ import {
   CancellationToken,
   ProvideCompletionItemsSignature
 } from 'vscode-languageclient';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
@@ -138,6 +138,7 @@ async function invokeSoqlMiddleware(
 ): Promise<CompletionItem[]> {
   const context = {
     triggerKind: CompletionTriggerKind.Invoke,
+    // @ts-ignore
     triggerCharacter: undefined
   };
   const token = {} as CancellationToken;

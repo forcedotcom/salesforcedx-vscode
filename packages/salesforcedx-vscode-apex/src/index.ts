@@ -356,7 +356,7 @@ function addOnReadyHandlerToLanguageClient(
           activationTime: startTime
         });
       })
-      .catch(err => {
+      .catch((err: Error) => {
         // Handled by clients
         telemetryService.sendException(LSP_ERR, err.message);
         languageClientUtils.setStatus(

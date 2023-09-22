@@ -7,10 +7,9 @@
 
 import * as vscode from 'vscode';
 import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions
+  LanguageClientOptions
 } from 'vscode-languageclient';
+import { LanguageClient, ServerOptions } from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ProcessDetail, terminateProcess } from './languageUtils/languageServerUtils';
 import { nls } from './messages';

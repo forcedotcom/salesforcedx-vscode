@@ -24,7 +24,7 @@ export const messages = {
     'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
   apex_language_server_loaded: 'Indexing complete $(check)',
   apex_language_server_failed_activate:
-    'Unable to activate the Apex Language Server - %s',
+    'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting:
     'Apex Language Server has stopped. Restarting… %d of 5',
   apex_test_run_text: 'Run Apex Tests',

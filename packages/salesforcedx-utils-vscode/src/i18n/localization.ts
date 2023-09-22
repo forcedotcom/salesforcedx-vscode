@@ -61,7 +61,7 @@ export class Message implements LocalizationProvider {
     }
 
     if (args.length >= 1) {
-      const expectedNumArgs = possibleLabel.split('%s').length - 1;
+      const expectedNumArgs = possibleLabel.split(/%[sdifjoO]/).length - 1;
       if (args.length !== expectedNumArgs) {
         // just log it, we might want to hide some in some languges on purpose
         console.log(
