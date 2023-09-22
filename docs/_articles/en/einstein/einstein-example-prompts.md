@@ -76,19 +76,25 @@ return orderItems;
 
 ```
 
-**Prompt:** Write an Apex trigger to add the number of contacts associated with an account.
+**Prompt:** Write an Apex trigger to add the number of contacts associated with an account. In the SOQL query ensure it is secure by adding WITH USER_MODE.
 
 ```
-trigger gptcontacttrigger on Account (after insert, after update) {
-    List<Contact> listContacts = new List<Contact>();
-
-    for (Account acc : Trigger.new) {
-        List<Contact> listaccContacts = [SELECT Id, Name, AccountId FROM Contact WHERE AccountId = :acc.Id];
-        if (acc.Contacts.size() < listaccContacts.size()) {
-            acc.addError('Not enough contacts');
-        }
-
+trigger AccountTrigger on Account (after update) {
+    List<Account> accountsWithContacts = [
+        SELECT Id, (SELECT Id FROM Contacts)
+        FROM Account
+        WHERE Id IN :Trigger.newMap.keySet()
+        WITH USER_MODE
+    ];
+    
+    for (Account account : accountsWithContacts) {
+        Integer numberOfContacts = account.Contacts.size();
+        
+        // Update the Account's "Number_of_Contacts__c" field
+        account.Number_of_Contacts__c = numberOfContacts;
     }
+    
+    update accountsWithContacts;
 }
 ```
 
