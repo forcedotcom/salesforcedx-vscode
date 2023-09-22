@@ -16,7 +16,7 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 describe('Source Tracking Service', () => {
-  describe('createSourceTracking', () => {
+  describe('getSourceTracking', () => {
     let sourceTrackingCreateSpy: jest.SpyInstance;
     let ensureLocalTrackingSpy: jest.SpyInstance;
 
@@ -30,7 +30,7 @@ describe('Source Tracking Service', () => {
     });
 
     it('Should create an instance of SourceTracking', async () => {
-      await SourceTrackingService.createSourceTracking('', {} as any);
+      await SourceTrackingService.getSourceTracking('', {} as any);
 
       expect(sourceTrackingCreateSpy).toHaveBeenCalled();
     });

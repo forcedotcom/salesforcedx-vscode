@@ -21,7 +21,7 @@ export class SourceTrackingService {
    * Gets the Source Tracking instance for this project
    * from the Source Tracking Provider.
    */
-  public static async createSourceTracking(
+  public static async getSourceTracking(
     projectPath: string,
     connection: Connection
   ): Promise<SourceTracking> {

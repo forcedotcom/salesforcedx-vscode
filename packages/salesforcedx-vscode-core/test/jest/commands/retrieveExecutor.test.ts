@@ -38,7 +38,7 @@ describe('Retrieve Executor', () => {
   } as any;
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
-  let createSourceTrackingSpy: jest.SpyInstance;
+  let getSourceTrackingSpy: jest.SpyInstance;
   let retrieveSpy: jest.SpyInstance;
   let pollStatusMock: jest.SpyInstance;
   let updateTrackingAfterRetrieveMock: jest.SpyInstance;
@@ -62,8 +62,8 @@ describe('Retrieve Executor', () => {
     workspaceContextGetInstanceSpy = jest
       .spyOn(WorkspaceContext, 'getInstance')
       .mockReturnValue(mockWorkspaceContext);
-    createSourceTrackingSpy = jest
-      .spyOn(SourceTrackingService, 'createSourceTracking')
+    getSourceTrackingSpy = jest
+      .spyOn(SourceTrackingService, 'getSourceTracking')
       .mockResolvedValue(dummySourceTracking);
     retrieveSpy = jest
       .spyOn(dummyComponentSet, 'retrieve')
@@ -100,12 +100,12 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
-    const createSourceTrackingCallOrder =
-      createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const getSourceTrackingCallOrder =
+      getSourceTrackingSpy.mock.invocationCallOrder[0];
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
-    expect(createSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
+    expect(getSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).toHaveBeenCalledWith(
       dummySourceTracking,
@@ -129,12 +129,12 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
-    const createSourceTrackingCallOrder =
-      createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const getSourceTrackingCallOrder =
+      getSourceTrackingSpy.mock.invocationCallOrder[0];
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
-    expect(createSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
+    expect(getSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
@@ -154,7 +154,7 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(createSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
@@ -176,7 +176,7 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(createSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(pollStatusMock).toHaveBeenCalled();
