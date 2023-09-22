@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SourceTracking } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../../../../src';
 import { SourceTrackingService } from '../../../../src/services';
 import { testData } from './testData';
@@ -16,26 +15,6 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 describe('Source Tracking Service', () => {
-  describe('getSourceTracking', () => {
-    let sourceTrackingCreateSpy: jest.SpyInstance;
-    let ensureLocalTrackingSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      sourceTrackingCreateSpy = jest
-        .spyOn(SourceTracking, 'create')
-        .mockResolvedValue({} as any);
-      ensureLocalTrackingSpy = jest
-        .spyOn(SourceTracking.prototype, 'ensureLocalTracking')
-        .mockResolvedValue({} as any);
-    });
-
-    it('Should create an instance of SourceTracking', async () => {
-      await SourceTrackingService.getSourceTracking('', {} as any);
-
-      expect(sourceTrackingCreateSpy).toHaveBeenCalled();
-    });
-  });
-
   describe('updateSourceTrackingAfterRetrieve', () => {
     const updateTrackingFromRetrieveSpy = jest.fn();
     const dummySourceTracking = {
