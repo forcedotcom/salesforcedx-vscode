@@ -1,7 +1,11 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { SourceTracking } from '@salesforce/source-tracking';
 import { SourceTrackingProvider, workspaceUtils } from '../../../src';
-import { SourceTrackingService } from '../../../src/services';
-import { Org, SfProject } from '@salesforce/core';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -17,18 +21,16 @@ jest.mock('@salesforce/source-tracking', () => ({
 describe('SourceTrackingProvider', () => {
   const dummyPath = 'a/dummy/path';
   const dummyConnection = {} as any;
+  const dummySourceTracking = {} as any;
   let instance: any;
 
   describe('getSourceTracker', () => {
-    const dummySourceTracking = {} as any;
     let getRootWorkspacePathStub: jest.SpyInstance;
-    // let createSourceTrackingMock: jest.SpyInstance;
 
     beforeEach(() => {
       getRootWorkspacePathStub = jest
         .spyOn(workspaceUtils, 'getRootWorkspacePath')
         .mockReturnValue(dummyPath);
-      // createSourceTrackingMock = jest.spyOn(instance, 'createSourceTracking');
     });
 
     it('should return the STL instance for this project if it already exists', async () => {
@@ -44,9 +46,8 @@ describe('SourceTrackingProvider', () => {
     });
 
     it('should create a new instance of STL if one doesnt already exist and add it to the map', async () => {
-      // createSourceTrackingMock.mockResolvedValue(dummySourceTracking);
       instance = SourceTrackingProvider.getInstance();
-      const cSpy = jest
+      jest
         .spyOn(SourceTracking, 'create')
         .mockResolvedValue(dummySourceTracking);
 
@@ -55,11 +56,8 @@ describe('SourceTrackingProvider', () => {
         dummyConnection
       );
 
-      // expect(createSourceTrackingMock).toHaveBeenCalled();
-      // expect(SfProject.resolve).toHaveBeenCalledWith(dummyPath);
-      // expect(Org.create).toHaveBeenCalledWith({ connection: dummyConnection });
-      expect(cSpy).toHaveBeenCalled();
       expect(result).toBe(dummySourceTracking);
+      expect(instance.sourceTrackers.get(dummyPath)).toBe(dummySourceTracking);
     });
   });
 });
