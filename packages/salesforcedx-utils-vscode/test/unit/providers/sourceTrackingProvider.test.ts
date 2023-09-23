@@ -1,6 +1,7 @@
 import { SourceTracking } from '@salesforce/source-tracking';
 import { SourceTrackingProvider, workspaceUtils } from '../../../src';
 import { SourceTrackingService } from '../../../src/services';
+import { Org, SfProject } from '@salesforce/core';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -8,45 +9,57 @@ jest.mock('@salesforce/core', () => ({
   SfProject: { resolve: jest.fn() }
 }));
 
-describe('SourceTrackingProvider', () => {
-  const instance: any = SourceTrackingProvider.getInstance();
-  let getRootWorkspacePathStub: jest.SpyInstance;
+jest.mock('@salesforce/source-tracking', () => ({
+  ...jest.requireActual('@salesforce/source-tracking'),
+  SourceTracking: { create: jest.fn() }
+}));
 
-  beforeEach(() => {
-    getRootWorkspacePathStub = jest
-      .spyOn(workspaceUtils, 'getRootWorkspacePath')
-      .mockReturnValue('aPath');
-  });
+describe('SourceTrackingProvider', () => {
+  const dummyPath = 'a/dummy/path';
+  const dummyConnection = {} as any;
+  let instance: any;
 
   describe('getSourceTracker', () => {
-    it('should return the STL instance for this project if it already exists', () => {
-      instance.sourceTrackers.set('aPath', {} as any);
-
-      const result = instance.getSourceTracker('aPath', {} as any);
-
-      expect(result).not.toBe(undefined);
-    });
-
-    it('should create a new instance of STL if one doesnt already exist', () => {});
-  });
-
-  describe('createSourceTracking', () => {
-    let sourceTrackingCreateSpy: jest.SpyInstance;
-    let ensureLocalTrackingSpy: jest.SpyInstance;
+    const dummySourceTracking = {} as any;
+    let getRootWorkspacePathStub: jest.SpyInstance;
+    // let createSourceTrackingMock: jest.SpyInstance;
 
     beforeEach(() => {
-      sourceTrackingCreateSpy = jest
-        .spyOn(SourceTracking, 'create')
-        .mockResolvedValue({} as any);
-      ensureLocalTrackingSpy = jest
-        .spyOn(SourceTracking.prototype, 'ensureLocalTracking')
-        .mockResolvedValue({} as any);
+      getRootWorkspacePathStub = jest
+        .spyOn(workspaceUtils, 'getRootWorkspacePath')
+        .mockReturnValue(dummyPath);
+      // createSourceTrackingMock = jest.spyOn(instance, 'createSourceTracking');
     });
 
-    it('Should create an instance of SourceTracking', async () => {
-      await SourceTrackingService.getSourceTracking('', {} as any);
+    it('should return the STL instance for this project if it already exists', async () => {
+      instance = SourceTrackingProvider.getInstance();
+      instance.sourceTrackers.set(dummyPath, dummySourceTracking);
 
-      expect(sourceTrackingCreateSpy).not.toHaveBeenCalled();
+      const result = await instance.getSourceTracker(
+        dummyPath,
+        dummyConnection
+      );
+
+      expect(result).toBe(dummySourceTracking);
+    });
+
+    it('should create a new instance of STL if one doesnt already exist and add it to the map', async () => {
+      // createSourceTrackingMock.mockResolvedValue(dummySourceTracking);
+      instance = SourceTrackingProvider.getInstance();
+      const cSpy = jest
+        .spyOn(SourceTracking, 'create')
+        .mockResolvedValue(dummySourceTracking);
+
+      const result = await instance.getSourceTracker(
+        dummyPath,
+        dummyConnection
+      );
+
+      // expect(createSourceTrackingMock).toHaveBeenCalled();
+      // expect(SfProject.resolve).toHaveBeenCalledWith(dummyPath);
+      // expect(Org.create).toHaveBeenCalledWith({ connection: dummyConnection });
+      expect(cSpy).toHaveBeenCalled();
+      expect(result).toBe(dummySourceTracking);
     });
   });
 });
