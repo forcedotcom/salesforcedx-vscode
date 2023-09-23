@@ -36,11 +36,10 @@ export class SourceTrackingProvider {
     projectPath: string,
     connection: Connection
   ): Promise<SourceTracking> {
-    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-    let sourceTracker = this.sourceTrackers.get(rootWorkspacePath);
+    const key = projectPath + connection.getUsername();
+    let sourceTracker = this.sourceTrackers.get(key);
     if (!sourceTracker) {
       sourceTracker = await this.createSourceTracking(projectPath, connection);
-      const key = rootWorkspacePath + connection.getUsername();
       this.sourceTrackers.set(key, sourceTracker);
     }
     return sourceTracker;
