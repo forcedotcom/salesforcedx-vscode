@@ -40,7 +40,8 @@ export class SourceTrackingProvider {
     let sourceTracker = this.sourceTrackers.get(rootWorkspacePath);
     if (!sourceTracker) {
       sourceTracker = await this.createSourceTracking(projectPath, connection);
-      this.sourceTrackers.set(rootWorkspacePath, sourceTracker);
+      const key = rootWorkspacePath + connection.getUsername();
+      this.sourceTrackers.set(key, sourceTracker);
     }
     return sourceTracker;
   }
