@@ -19,8 +19,6 @@ import { workspaceUtils } from '../workspaces';
  */
 export class SourceTrackingProvider {
   protected sourceTrackers: Map<string, SourceTracking>;
-  public static readonly defaultBaseProcessDirectoryInVSCE = '/';
-
   private static instance?: SourceTrackingProvider;
 
   public static getInstance() {
