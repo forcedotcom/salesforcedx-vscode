@@ -20,22 +20,28 @@ jest.mock('@salesforce/source-tracking', () => ({
 
 describe('SourceTrackingProvider', () => {
   const dummyPath = 'a/dummy/path';
-  const dummyConnection = {} as any;
+  const getUsernameMock = jest.fn();
+  const dummyConnection = { getUsername: getUsernameMock } as any;
   const dummySourceTracking = {} as any;
   let instance: any;
 
   describe('getSourceTracker', () => {
+    const dummyUsername = 'aUsername';
     let getRootWorkspacePathStub: jest.SpyInstance;
 
     beforeEach(() => {
+      instance = SourceTrackingProvider.getInstance();
       getRootWorkspacePathStub = jest
         .spyOn(workspaceUtils, 'getRootWorkspacePath')
         .mockReturnValue(dummyPath);
     });
 
     it('should return the STL instance for this project if it already exists', async () => {
-      instance = SourceTrackingProvider.getInstance();
-      instance.sourceTrackers.set(dummyPath, dummySourceTracking);
+      getUsernameMock.mockReturnValue(dummyUsername);
+      instance.sourceTrackers.set(
+        dummyPath + dummyUsername,
+        dummySourceTracking
+      );
 
       const result = await instance.getSourceTracker(
         dummyPath,
@@ -46,7 +52,6 @@ describe('SourceTrackingProvider', () => {
     });
 
     it('should create a new instance of STL if one doesnt already exist and add it to the map', async () => {
-      instance = SourceTrackingProvider.getInstance();
       jest
         .spyOn(SourceTracking, 'create')
         .mockResolvedValue(dummySourceTracking);
@@ -57,7 +62,9 @@ describe('SourceTrackingProvider', () => {
       );
 
       expect(result).toBe(dummySourceTracking);
-      expect(instance.sourceTrackers.get(dummyPath)).toBe(dummySourceTracking);
+      expect(instance.sourceTrackers.get(dummyPath + dummyUsername)).toBe(
+        dummySourceTracking
+      );
     });
   });
 });
