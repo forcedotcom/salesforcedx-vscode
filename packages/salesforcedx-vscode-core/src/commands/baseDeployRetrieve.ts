@@ -152,13 +152,9 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         );
         const success = result.response.status === RequestStatus.Succeeded;
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-        if (
-          !sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation() ||
-          !success
-        ) {
-          const output = this.createOutput(result, relativePackageDirs);
-          channelService.appendLine(output);
-        }
+
+        const output = this.createOutput(result, relativePackageDirs);
+        channelService.appendLine(output);
 
         if (!success) {
           this.unsuccessfulOperationHandler(
@@ -288,10 +284,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       DeployRetrieveExecutor.errorCollection.clear();
       SfdxCommandletExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-      if (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()) {
-        const output = this.createOutput(result, relativePackageDirs);
-        channelService.appendLine(output);
-      }
+      const output = this.createOutput(result, relativePackageDirs);
+      channelService.appendLine(output);
       PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
         result.response.fileProperties
       );

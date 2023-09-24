@@ -150,7 +150,10 @@ describe('SfdxCommandlet', () => {
     sandbox
       .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
       .returns(true);
-    const clearStub = sandbox.stub(channelService, 'clear');
+    const showChannelOutputStub = sandbox.stub(
+      channelService,
+      'showChannelOutput'
+    );
     const commandlet = new SfdxCommandlet(
       new (class {
         public check(): boolean {
@@ -168,14 +171,17 @@ describe('SfdxCommandlet', () => {
     );
     await commandlet.run();
     // tslint:disable-next-line:no-unused-expression
-    expect(clearStub.called).to.be.false;
+    expect(showChannelOutputStub.called).to.be.false;
   });
 
-  it('Should suppress message if user preference is set to false', async () => {
+  it('Should not suppress message if user preference is set to false', async () => {
     sandbox
       .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
       .returns(false);
-    const appendLineStub = sandbox.stub(channelService, 'appendLine');
+    const showChannelOutputStub = sandbox.stub(
+      channelService,
+      'showChannelOutput'
+    );
     const commandlet = new SfdxCommandlet(
       new (class {
         public check(): boolean {
@@ -193,6 +199,6 @@ describe('SfdxCommandlet', () => {
     );
     await commandlet.run();
     // tslint:disable-next-line:no-unused-expression
-    expect(appendLineStub.called).to.be.false;
+    expect(showChannelOutputStub.called).to.be.true;
   });
 });

@@ -196,7 +196,11 @@ export abstract class LibraryCommandletExecutor<T>
         `${nls.localize('channel_end')} ${this.executionName}`
       );
 
-      if (this.showChannelOutput) {
+      if (
+        this.showChannelOutput &&
+        (!SfdxSettingsService.getEnableSuppressOutputAfterSuccessfulOperation() ||
+          !success)
+      ) {
         channelService.showChannelOutput();
       }
 
