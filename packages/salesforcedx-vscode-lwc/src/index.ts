@@ -63,7 +63,6 @@ export async function activate(extensionContext: ExtensionContext) {
   await telemetryService.initializeService(
     extensionContext,
     LWC_EXTENSION_NAME,
-    undefined,
     version
   );
 

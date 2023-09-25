@@ -48,7 +48,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
         'v0.0.1'
       );
 
@@ -65,7 +64,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
         'v0.0.1'
       );
 
@@ -84,7 +82,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
         'v0.0.1'
       );
 
@@ -103,7 +100,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
         'v0.0.1'
       );
 
@@ -149,7 +145,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
         'v0.0.1'
       );
 
@@ -171,7 +166,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        'testKey007',
         'v0.0.1'
       );
 
@@ -183,7 +177,7 @@ describe('Telemetry', () => {
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
-    it('Should initialize telemetry reporter and allow undefined aiKey', async () => {
+    it('Should initialize telemetry reporter', async () => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext(
         true,
@@ -193,7 +187,6 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(
         mockExtensionContext,
         'ext_name',
-        undefined,
         'v0.0.1'
       );
 

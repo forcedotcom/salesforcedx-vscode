@@ -58,8 +58,8 @@ describe('Telemetry dev mode', () => {
     await telemetryService.initializeService(
       mockExtensionContext as any,
       extensionName,
-      'fakeAPIKey',
-      'fakeVersion'
+      'fakeVersion',
+      'fakeAPIKey'
     );
 
     const telemetryReporter = telemetryService.getReporter();
@@ -74,8 +74,8 @@ describe('Telemetry dev mode', () => {
     await telemetryService.initializeService(
       mockExtensionContext as any,
       extensionName,
-      'fakeApiKey',
-      'fakeVersion'
+      'fakeVersion',
+      'fakeApiKey'
     );
 
     expect(teleStub.firstCall.args).to.eql([false]);

@@ -80,7 +80,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await telemetryService.initializeService(
     extensionContext,
     APEX_EXTENSION_NAME,
-    undefined,
     extensionPackage.version
   );
 

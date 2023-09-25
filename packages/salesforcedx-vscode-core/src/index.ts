@@ -556,12 +556,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   const { name, version } = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    name,
-    undefined,
-    version
-  );
+  await telemetryService.initializeService(extensionContext, name, version);
   showTelemetryMessage(extensionContext);
 
   // Task View

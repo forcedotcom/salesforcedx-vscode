@@ -23,7 +23,6 @@ export async function startTelemetry(
   await telemetryService.initializeService(
     extensionContext,
     extensionPackage.name,
-    undefined,
     extensionPackage.version
   );
   telemetryService.sendExtensionActivationEvent(hrtime);

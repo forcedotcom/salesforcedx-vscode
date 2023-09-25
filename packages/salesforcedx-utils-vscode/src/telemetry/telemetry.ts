@@ -79,8 +79,8 @@ export class TelemetryService {
   public async initializeService(
     extensionContext: ExtensionContext,
     extensionName: string,
-    aiKey: string | undefined,
-    version: string
+    version: string,
+    aiKey?: string
   ): Promise<void> {
     this.extensionContext = extensionContext;
     this.extensionName = extensionName;

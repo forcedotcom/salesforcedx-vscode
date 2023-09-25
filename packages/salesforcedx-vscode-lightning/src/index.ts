@@ -89,7 +89,6 @@ export async function activate(extensionContext: ExtensionContext) {
   await TelemetryService.getInstance().initializeService(
     extensionContext,
     name,
-    undefined,
     version
   );
 
