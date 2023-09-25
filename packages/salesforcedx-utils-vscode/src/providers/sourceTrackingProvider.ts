@@ -10,7 +10,7 @@ import {
   SourceTracking,
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
-import { workspaceUtils } from '../workspaces';
+import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 
 /*
  * The SourceTrackingProvider class is used to instantiate
@@ -18,8 +18,8 @@ import { workspaceUtils } from '../workspaces';
  * for each project.
  */
 export class SourceTrackingProvider {
-  protected sourceTrackers: Map<string, SourceTracking>;
   private static instance?: SourceTrackingProvider;
+  protected sourceTrackers: Map<string, SourceTracking>;
 
   public static getInstance() {
     if (SourceTrackingProvider.instance === undefined) {
@@ -36,7 +36,8 @@ export class SourceTrackingProvider {
     projectPath: string,
     connection: Connection
   ): Promise<SourceTracking> {
-    const key = projectPath + connection.getUsername();
+    const username = connection.getUsername();
+    const key = projectPath + username;
     let sourceTracker = this.sourceTrackers.get(key);
     if (!sourceTracker) {
       sourceTracker = await this.createSourceTracking(projectPath, connection);
