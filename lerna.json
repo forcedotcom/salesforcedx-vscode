@@ -13,5 +13,5 @@
     }
   },
   "useNx": true,
-  "useWorkspaces": true
+  "useWorkspaces": false
 }
