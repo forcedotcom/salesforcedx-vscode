@@ -28,7 +28,7 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { APEX_EXTENSION_NAME, LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
+import { LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import {
   ClientStatus,
@@ -77,11 +77,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   // Telemetry
   const extensionPackage = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    APEX_EXTENSION_NAME,
-    extensionPackage.version
-  );
+  await telemetryService.initializeService(extensionContext);
 
   // start the language server and client
   await createLanguageClient(extensionContext);

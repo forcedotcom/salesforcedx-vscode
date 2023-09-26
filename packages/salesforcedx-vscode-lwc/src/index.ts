@@ -59,12 +59,7 @@ export async function activate(extensionContext: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  const { version } = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    LWC_EXTENSION_NAME,
-    version
-  );
+  await telemetryService.initializeService(extensionContext);
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {

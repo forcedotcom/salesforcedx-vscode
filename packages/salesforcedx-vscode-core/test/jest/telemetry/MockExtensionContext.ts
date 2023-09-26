@@ -120,7 +120,6 @@ export class MockExtensionContext implements ExtensionContext {
     };
     this.extension = {
       packageJSON: {
-        aiKey: 'aabbccdd',
         name: 'salesforcedx-vscode-core',
         version: 'v55.5.5'
       }

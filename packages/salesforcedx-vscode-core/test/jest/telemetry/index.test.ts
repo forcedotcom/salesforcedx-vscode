@@ -11,7 +11,6 @@ import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
 describe('Telemetry', () => {
-  const machineId = '45678903';
   let mShowInformation: jest.SpyInstance;
   let settings: jest.SpyInstance;
   let mockExtensionContext: MockExtensionContext;
@@ -45,11 +44,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext(true);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporter = telemetryService.getReporter();
 
@@ -61,11 +56,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext in which telemetry msg has never been previously shown
       mockExtensionContext = new MockExtensionContext(false);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
@@ -79,11 +70,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext in which telemetry msg has been previously shown
       mockExtensionContext = new MockExtensionContext(true);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
@@ -97,11 +84,7 @@ describe('Telemetry', () => {
       mockExtensionContext = new MockExtensionContext(true);
 
       cliSpy.mockResolvedValue(false);
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       expect(teleSpy.mock.calls[0]).toEqual([false]);
     });
@@ -142,11 +125,7 @@ describe('Telemetry', () => {
         ExtensionMode.Production
       );
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
@@ -163,11 +142,7 @@ describe('Telemetry', () => {
         ExtensionMode.Production
       );
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
@@ -184,11 +159,7 @@ describe('Telemetry', () => {
         ExtensionMode.Production
       );
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporter = telemetryService.getReporter() as TelemetryReporter;
 

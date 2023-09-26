@@ -77,15 +77,19 @@ export class TelemetryService {
    * @param extensionName extension name
    */
   public async initializeService(
-    extensionContext: ExtensionContext,
-    extensionName: string,
-    version: string,
-    aiKey?: string
+    extensionContext: ExtensionContext
   ): Promise<void> {
+    const { name, version, aiKey } = extensionContext.extension.packageJSON;
+    if (!name) {
+      console.log('Extension name is not defined in package.json');
+    }
+    if (!version) {
+      console.log('Extension version is not defined in package.json');
+    }
     this.extensionContext = extensionContext;
-    this.extensionName = extensionName;
-    this.aiKey = aiKey || this.aiKey;
+    this.extensionName = name;
     this.version = version;
+    this.aiKey = aiKey || this.aiKey;
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
