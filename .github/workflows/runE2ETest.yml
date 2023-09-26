@@ -53,7 +53,7 @@ jobs:
         run: |
           mkdir ./extensions
           gh release download -D ./extensions -p '*.vsix'
-          find ./extensions -type f -name "*.vsix" -exec code --install-extension {} \;
+          find ./extensions -type f -name '*.vsix' -exec code --install-extension {} \;
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - name: Setup java
