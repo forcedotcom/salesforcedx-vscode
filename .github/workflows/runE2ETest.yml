@@ -29,6 +29,11 @@ jobs:
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
+      - name: Install extension vsixes
+        run: |
+          gh release download --dir ~/Downloads/latestVSCode -p '*.vsix'
+          find ~/Downloads/latestVSCode -type f -name "*.vsix" -exec code --install-extension {} \;
+        working-directory: salesforcedx-vscode
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -48,11 +53,6 @@ jobs:
           repository: forcedotcom/salesforcedx-vscode-automation-tests
           path: salesforcedx-vscode-automation-tests
           ref: ${{ inputs.automationBranch }}
-      - name: Install Extension Dependencies
-        run: |
-          npm install
-          npm run compile
-        working-directory: salesforcedx-vscode
       - name: Install Test Dependencies
         run: |
           npm install
