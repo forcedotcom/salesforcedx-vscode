@@ -54,7 +54,7 @@ jobs:
       - name: Get VSCode path
         id: getVSCodePath
         run: |
-          echo "vscodePath="$(which node)"" >> $GITHUB_OUTPUT
+          echo "vscodePath="$(which code)"" >> $GITHUB_OUTPUT
       - name: Add VSCode to PATH
         run: |
           export PATH=${{ steps.getVSCodePath.outputs.vscodePath }}:$PATH
@@ -66,7 +66,7 @@ jobs:
         run: ls -R ./extensions
       - name: Install extensions
         run: |
-          find .extensions -type f -name "*.vsix" -exec code --install-extension {} \;
+          find ./extensions -type f -name "*.vsix" -exec code --install-extension {} \;
       - name: Setup java
         uses: actions/setup-java@v3
         with:
