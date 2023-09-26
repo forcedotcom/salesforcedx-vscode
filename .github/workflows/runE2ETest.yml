@@ -23,19 +23,15 @@ jobs:
           - 16.15.1
         vscodeVersion:
           - stable
+    env:
+      GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
-      - name: Install extension vsixes
-        run: |
-          gh release download --dir ~/Downloads/latestVSCode -p '*.vsix'
-          find ~/Downloads/latestVSCode -type f -name "*.vsix" -exec code --install-extension {} \;
-        working-directory: salesforcedx-vscode
-        env:
-          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -44,6 +40,16 @@ jobs:
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - name: Install extension vsixes
+        run: |
+          mkdir ./extensions
+          gh release download -D ./extensions -p '*.vsix'
+          find ./extensions -type f -name "*.vsix" -exec code --install-extension {} \;
+      - name: Display downloaded vsix files
+        run: ls -R ./extensions
       - name: Setup java
         uses: actions/setup-java@v3
         with:
