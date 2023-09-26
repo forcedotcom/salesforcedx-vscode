@@ -54,7 +54,7 @@ jobs:
           mkdir ./extensions
           gh release download -D ./extensions -p '*.vsix'
           cd extensions
-          code --install-extension '*.vsix'
+          -exec code --install-extension '*.vsix'
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - name: Setup java
