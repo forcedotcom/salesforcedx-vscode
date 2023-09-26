@@ -6,7 +6,7 @@
  */
 
 import {
-  ForceOrgDisplay,
+  OrgDisplay,
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
@@ -270,7 +270,7 @@ export class LogContext {
   ): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new ForceOrgDisplay().getOrgInfo(projectPath);
+      const orgInfo = await new OrgDisplay().getOrgInfo(projectPath);
       const requestService = new RequestService();
       requestService.instanceUrl = orgInfo.instanceUrl;
       requestService.accessToken = orgInfo.accessToken;

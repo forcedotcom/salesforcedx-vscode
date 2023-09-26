@@ -8,7 +8,7 @@
 import {
   extractJsonObject,
   ForceConfigGet,
-  ForceOrgDisplay,
+  OrgDisplay,
   RequestService,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
@@ -682,9 +682,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new ForceOrgDisplay().getOrgInfo(
-          args.sfdxProject
-        );
+        const orgInfo = await new OrgDisplay().getOrgInfo(args.sfdxProject);
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }

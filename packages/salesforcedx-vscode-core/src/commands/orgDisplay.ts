@@ -19,7 +19,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
+export class OrgDisplay extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -29,12 +29,12 @@ export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
 
   public build(data: { username?: string }): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_org_display_default_text'))
-      .withArg('force:org:display')
+      .withDescription(nls.localize('org_display_default_text'))
+      .withArg('org:display')
       .withLogName('force_org_display_default');
-    if (this.flag === '--targetusername' && data.username) {
+    if (this.flag === '--target-org' && data.username) {
       builder
-        .withDescription(nls.localize('force_org_display_username_text'))
+        .withDescription(nls.localize('org_display_username_text'))
         .withFlag(this.flag, data.username);
     }
     return builder.build();
@@ -43,13 +43,13 @@ export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceOrgDisplay(this: FlagParameter<string>) {
+export async function orgDisplay(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const parameterGatherer = flag
     ? new SelectUsername()
     : new EmptyParametersGatherer();
-  const executor = new ForceOrgDisplay(flag);
+  const executor = new OrgDisplay(flag);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
