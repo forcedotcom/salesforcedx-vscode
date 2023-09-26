@@ -25,6 +25,8 @@ jobs:
           - stable
     env:
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+    outputs:
+      VSCODE_PATH: ${{ steps.getVSCodePath.outputs.vscodePath }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -49,12 +51,22 @@ jobs:
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
+      - name: Get VSCode path
+        id: getVSCodePath
+        run: |
+          echo "vscodePath=which node" >> $GITHUB_OUTPUT
+      - name: Add VSCode to PATH
+        run: |
+          export PATH=${{ steps.getVSCodePath.outputs.vscodePath }}:$PATH
       - name: Download extension vsixes
         run: |
           mkdir ./extensions
           gh release download -D ./extensions -p '*.vsix'
       - name: Display downloaded vsix files
         run: ls -R ./extensions
+      - name: Install extensions
+        run: |
+          find .extensions -type f -name "*.vsix" -exec code --install-extension {} \;
       - name: Setup java
         uses: actions/setup-java@v3
         with:
