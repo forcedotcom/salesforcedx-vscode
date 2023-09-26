@@ -54,7 +54,7 @@ jobs:
       - name: Get VSCode path
         id: getVSCodePath
         run: |
-          echo "vscodePath=which node" >> $GITHUB_OUTPUT
+          echo "vscodePath="$(which node)"" >> $GITHUB_OUTPUT
       - name: Add VSCode to PATH
         run: |
           export PATH=${{ steps.getVSCodePath.outputs.vscodePath }}:$PATH
