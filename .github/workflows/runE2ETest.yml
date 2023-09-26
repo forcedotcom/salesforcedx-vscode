@@ -34,6 +34,8 @@ jobs:
           gh release download --dir ~/Downloads/latestVSCode -p '*.vsix'
           find ~/Downloads/latestVSCode -type f -name "*.vsix" -exec code --install-extension {} \;
         working-directory: salesforcedx-vscode
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup node
         uses: actions/setup-node@v3
         with:
