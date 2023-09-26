@@ -432,11 +432,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.display.default",
+          "command": "sfdx.org.display.default",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.display.username",
+          "command": "sfdx.org.display.username",
           "when": "sfdx:project_opened"
         },
         {
@@ -759,12 +759,12 @@
         "title": "%force_org_delete_username_text%"
       },
       {
-        "command": "sfdx.force.org.display.default",
-        "title": "%force_org_display_default_text%"
+        "command": "sfdx.org.display.default",
+        "title": "%org_display_default_text%"
       },
       {
-        "command": "sfdx.force.org.display.username",
-        "title": "%force_org_display_username_text%"
+        "command": "sfdx.org.display.username",
+        "title": "%org_display_username_text%"
       },
       {
         "command": "sfdx.org.list.clean",

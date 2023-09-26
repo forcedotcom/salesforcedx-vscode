@@ -1,35 +1,20 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from './commandBuilder';
-import { CliCommandExecutor } from './commandExecutor';
+import { SfdxCommandBuilder } from './sfdxCommandBuilder';
+import { CliCommandExecutor } from './cliCommandExecutor';
 import { CommandOutput } from './commandOutput';
+import { OrgInfo } from '../types';
 
-export const FORCE_ORG_DISPLAY_COMMAND = 'force:org:display';
-export interface OrgInfo {
-  username: string;
-  devHubId: string;
-  id: string;
-  createdBy: string;
-  createdDate: string;
-  expirationDate: string;
-  status: string;
-  edition: string;
-  orgName: string;
-  accessToken: string;
-  instanceUrl: string;
-  clientId: string;
-}
-
-export class ForceOrgDisplay {
+export class OrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
-        .withArg(FORCE_ORG_DISPLAY_COMMAND)
+        .withArg('org:display')
         .withJson()
         .build(),
       { cwd: projectPath }
