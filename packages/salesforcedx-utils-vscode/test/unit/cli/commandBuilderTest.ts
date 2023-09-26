@@ -34,50 +34,40 @@ describe('CommandBuilder tests', () => {
     });
 
     it('Should store the command arg', () => {
-      const actual = new CommandBuilder('sfdx')
-        .withArg('force:org:display')
-        .build();
+      const actual = new CommandBuilder('sfdx').withArg('org:display').build();
 
       expect(actual.command).to.equal('sfdx');
-      expect(actual.args).to.eql(['force:org:display']);
+      expect(actual.args).to.eql(['org:display']);
     });
 
     it('Should store the command args', () => {
       const actual = new CommandBuilder('sfdx')
-        .withArg('force:org:display')
+        .withArg('org:display')
         .withArg('--help')
         .build();
 
       expect(actual.command).to.equal('sfdx');
-      expect(actual.args).to.eql(['force:org:display', '--help']);
+      expect(actual.args).to.eql(['org:display', '--help']);
     });
 
     it('Should store the command flag', () => {
       const actual = new CommandBuilder('sfdx')
-        .withArg('force:org:display')
-        .withFlag('--targetusername', 'someOrg')
+        .withArg('org:display')
+        .withFlag('--target-org', 'someOrg')
         .build();
 
       expect(actual.command).to.equal('sfdx');
-      expect(actual.args).to.eql([
-        'force:org:display',
-        '--targetusername',
-        'someOrg'
-      ]);
+      expect(actual.args).to.eql(['org:display', '--target-org', 'someOrg']);
     });
 
     describe('SfdxCommandBuilder initialization', () => {
       it('Should have the sfdx command by default', () => {
         const actual = new SfdxCommandBuilder()
-          .withArg('force:org:display')
-          .withFlag('--targetusername', 'someOrg');
+          .withArg('org:display')
+          .withFlag('--target-org', 'someOrg');
 
         expect(actual.command).to.equal('sfdx');
-        expect(actual.args).to.eql([
-          'force:org:display',
-          '--targetusername',
-          'someOrg'
-        ]);
+        expect(actual.args).to.eql(['org:display', '--target-org', 'someOrg']);
       });
     });
   });
