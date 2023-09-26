@@ -49,11 +49,14 @@ jobs:
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
+      - name: Add VSCode to PATH
+        run: |
+          export PATH=/usr/local/bin/:$PATH
       - name: Download and Install extension vsixes
         run: |
           mkdir ./extensions
           gh release download -D ./extensions -p '*.vsix'
-          find ./extensions -type f -name '*.vsix' -exec code --install-extension '*.vsix';
+          find ./extensions -type f -name '*.vsix' -exec code --install-extension {} \;
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - name: Setup java
