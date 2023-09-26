@@ -39,11 +39,11 @@ Learn more at [Salesforce AI Research: Trusted AI](https://www.salesforceairesea
 
 **Important**: Einstein for Developers uses a customized LLM that is based on our open-source CodeGen model. This model that powers Einstein for Developers is the exclusive property of Salesforce.
 
-### CodeGen 2.5
+### CodeGen2.5
 
-A new member of the growing family of Salesforce CodeGen models, `CodeGen 2.5` shows that a small model, if trained well, can achieve surprisingly good performance.
+A new member of the growing family of Salesforce CodeGen models, `CodeGen2.5` shows that a small model, if trained well, can achieve surprisingly good performance.
 
-Key aspects of the `CodeGen 2.5` model version are:
+Key aspects of the `CodeGen2.5` model version are:
 
 - It was released with state-of-the-art on `HumanEval` for 7B parameters.
 - At only 7B parameters, its performance is on par with code-generation models (`CodeGen1-16B`, `CodeGen2-16B`, `StarCoder-15B`) with more than 15B parameters.
