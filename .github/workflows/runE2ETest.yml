@@ -55,6 +55,8 @@ jobs:
         id: getVSCodePath
         run: |
           echo "vscodePath="$(which code)"" >> $GITHUB_OUTPUT
+        env:
+          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
       - name: Add VSCode to PATH
         run: |
           export PATH=${{ steps.getVSCodePath.outputs.vscodePath }}:$PATH
