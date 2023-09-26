@@ -10,7 +10,6 @@ import {
   SourceTracking,
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
-import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 
 /*
  * The SourceTrackingProvider class is used to instantiate
@@ -64,7 +63,6 @@ export class SourceTrackingProvider {
     const options: SourceTrackingOptions = {
       org,
       project,
-      ignoreLocalCache: true,
       subscribeSDREvents: true,
       ignoreConflicts: true
     };
