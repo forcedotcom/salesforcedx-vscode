@@ -40,9 +40,6 @@ jobs:
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
-      - uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
       - name: Install extension vsixes
         run: |
           mkdir ./extensions
