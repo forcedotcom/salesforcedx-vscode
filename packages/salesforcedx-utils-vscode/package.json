@@ -11,9 +11,9 @@
   ],
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core": "4.3.11",
-    "@salesforce/source-deploy-retrieve": "9.7.0",
-    "@salesforce/source-tracking": "4.2.9",
+    "@salesforce/core": "5.2.0",
+    "@salesforce/source-deploy-retrieve": "9.7.18",
+    "@salesforce/source-tracking": "4.2.14",
     "applicationinsights": "1.0.7",
     "cross-spawn": "7.0.3",
     "rxjs": "^5.4.1",

@@ -85,8 +85,8 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "4.3.11",
-        "@salesforce/source-tracking": "4.2.9"
+        "@salesforce/core": "5.2.0",
+        "@salesforce/source-tracking": "4.2.14"
       },
       "devDependencies": {}
     }

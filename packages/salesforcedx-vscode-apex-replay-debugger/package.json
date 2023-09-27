@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "1.6.2",
-    "@salesforce/core": "4.3.11",
+    "@salesforce/core": "5.2.0",
     "@salesforce/salesforcedx-apex-replay-debugger": "58.15.0",
     "@salesforce/salesforcedx-utils": "58.15.0",
     "@salesforce/salesforcedx-utils-vscode": "58.15.0",
@@ -97,8 +97,8 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "4.3.11",
-        "@salesforce/source-tracking": "4.2.9"
+        "@salesforce/core": "5.2.0",
+        "@salesforce/source-tracking": "4.2.14"
       },
       "devDependencies": {}
     }
