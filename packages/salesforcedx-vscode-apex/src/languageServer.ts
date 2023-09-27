@@ -8,7 +8,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-  Executable,
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
@@ -19,6 +18,7 @@ import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
+import { Executable } from 'vscode-languageclient/node';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
@@ -91,8 +91,7 @@ async function createServer(
 
     return {
       options: {
-        env: process.env,
-        stdio: 'pipe'
+        env: process.env
       },
       command: javaExecutable,
       args
