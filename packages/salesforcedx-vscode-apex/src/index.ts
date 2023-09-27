@@ -28,7 +28,7 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
+import { LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
 import {
@@ -78,12 +78,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   // Telemetry
   const extensionPackage = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    APEX_EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
-  );
+  await telemetryService.initializeService(extensionContext);
 
   // start the language server and client
   await createLanguageClient(extensionContext);
@@ -331,7 +326,16 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     extensionContext.subscriptions.push(handle);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
-    languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate', e.message));
+    let eMsg =
+      typeof e === 'string' ? e : e.message ?? nls.localize('unknown_error');
+    if (
+      eMsg.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
+    ) {
+      eMsg = nls.localize('wrong_java_version_short');
+    }
+    languageServerStatusBarItem.error(
+      `${nls.localize('apex_language_server_failed_activate')} - ${eMsg}`
+    );
   }
 }
 
