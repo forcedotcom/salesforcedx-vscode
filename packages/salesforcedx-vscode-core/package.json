@@ -420,7 +420,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.debugger.stop",
+          "command": "sfdx.debugger.stop",
           "when": "sfdx:project_opened"
         },
         {
@@ -440,11 +440,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.data.soql.query.input",
+          "command": "sfdx.data.query.input",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
-          "command": "sfdx.force.data.soql.query.selection",
+          "command": "sfdx.data.query.selection",
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
@@ -468,11 +468,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.start.apex.debug.logging",
+          "command": "sfdx.start.apex.debug.logging",
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         },
         {
-          "command": "sfdx.force.stop.apex.debug.logging",
+          "command": "sfdx.stop.apex.debug.logging",
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         },
         {
@@ -739,8 +739,8 @@
         "title": "%force_lightning_interface_create_text%"
       },
       {
-        "command": "sfdx.force.debugger.stop",
-        "title": "%force_debugger_stop_text%"
+        "command": "sfdx.debugger.stop",
+        "title": "%debugger_stop_text%"
       },
       {
         "command": "sfdx.force.config.list",
@@ -771,12 +771,12 @@
         "title": "%org_list_clean_text%"
       },
       {
-        "command": "sfdx.force.data.soql.query.input",
-        "title": "%force_data_soql_query_input_text%"
+        "command": "sfdx.data.query.input",
+        "title": "%data_query_input_text%"
       },
       {
-        "command": "sfdx.force.data.soql.query.selection",
-        "title": "%force_data_soql_query_selection_text%"
+        "command": "sfdx.data.query.selection",
+        "title": "%data_query_selection_text%"
       },
       {
         "command": "sfdx.force.project.create",
@@ -791,12 +791,12 @@
         "title": "%force_apex_trigger_create_text%"
       },
       {
-        "command": "sfdx.force.start.apex.debug.logging",
-        "title": "%force_start_apex_debug_logging%"
+        "command": "sfdx.start.apex.debug.logging",
+        "title": "%start_apex_debug_logging%"
       },
       {
-        "command": "sfdx.force.stop.apex.debug.logging",
-        "title": "%force_stop_apex_debug_logging%"
+        "command": "sfdx.stop.apex.debug.logging",
+        "title": "%stop_apex_debug_logging%"
       },
       {
         "command": "sfdx.debug.isv.bootstrap",

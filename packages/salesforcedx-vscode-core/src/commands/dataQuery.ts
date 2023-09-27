@@ -22,16 +22,16 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
+class DataQueryExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: QueryAndApiInputs): Command {
     let command = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_data_soql_query_input_text'))
-      .withArg('force:data:soql:query')
+      .withDescription(nls.localize('data_query_input_text'))
+      .withArg('data:query')
       .withFlag('--query', `${data.query}`)
       .withLogName('force_data_soql_query');
     if (data.api === ApiType.Tooling) {
       command = command
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withLogName('force_data_soql_query_tooling');
     }
     return command.build();
@@ -105,12 +105,12 @@ export enum ApiType {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceDataSoqlQuery(explorerDir?: any) {
+export async function dataQuery(explorerDir?: any) {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceDataSoqlQueryExecutor()
+    new DataQueryExecutor()
   );
   await commandlet.run();
 }
