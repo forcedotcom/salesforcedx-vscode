@@ -1647,11 +1647,11 @@
   },
   "lwc-spinner-conditional": {
     "body": [
-      "<template if:true={${1:loaded}}>",
+      "<template lwc:if={${1:loaded}}>",
       "  <!-- place loaded content here -->",
       "  $0",
       "</template>",
-      "<template if:false={${1}}>",
+      "<template lwc:elseif={${1}}>",
       "  <lightning-spinner ",
       "    alternative-text=\"${2:Loading}\" ",
       "    size=\"${3|xx-small,x-small,small,medium,large|}\"",

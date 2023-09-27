@@ -45,7 +45,6 @@ import {
   forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
-  forceOrgDisplay,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -64,6 +63,7 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgDisplay,
   orgList,
   orgLoginWeb,
   orgLoginWebDevHub,
@@ -293,14 +293,14 @@ function registerCommands(
     forceOrgDelete,
     { flag: '--targetusername' }
   );
-  const forceOrgDisplayDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.display.default',
-    forceOrgDisplay
+  const orgDisplayDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.display.default',
+    orgDisplay
   );
-  const forceOrgDisplayUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.display.username',
-    forceOrgDisplay,
-    { flag: '--targetusername' }
+  const orgDisplayUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.org.display.username',
+    orgDisplay,
+    { flag: '--target-org' }
   );
   const orgListCleanCmd = vscode.commands.registerCommand(
     'sfdx.org.list.clean',
@@ -443,8 +443,8 @@ function registerCommands(
     debuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
-    forceOrgDisplayDefaultCmd,
-    forceOrgDisplayUsernameCmd,
+    orgDisplayDefaultCmd,
+    orgDisplayUsernameCmd,
     forceProjectCreateCmd,
     forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
@@ -555,13 +555,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    name,
-    aiKey,
-    version
-  );
+  await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
   // Task View

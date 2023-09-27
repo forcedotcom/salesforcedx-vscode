@@ -6,27 +6,27 @@
  */
 
 import { expect } from 'chai';
-import { ForceOrgDisplay } from '../../../src/commands';
+import { OrgDisplay } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Status', () => {
   it('Should build the source command no flag', async () => {
-    const forceOrgDisplay = new ForceOrgDisplay();
-    const displayCommand = forceOrgDisplay.build({});
-    expect(displayCommand.toCommand()).to.equal('sfdx force:org:display');
+    const orgDisplay = new OrgDisplay();
+    const displayCommand = orgDisplay.build({});
+    expect(displayCommand.toCommand()).to.equal('sfdx org:display');
     expect(displayCommand.description).to.equal(
-      nls.localize('force_org_display_default_text')
+      nls.localize('org_display_default_text')
     );
   });
-  it('Should build the source command with targetusername flag', async () => {
-    const forceOrgDisplay = new ForceOrgDisplay('--targetusername');
-    const displayCommand = forceOrgDisplay.build({ username: 'test' });
+  it('Should build the source command with target-org flag', async () => {
+    const orgDisplay = new OrgDisplay('--target-org');
+    const displayCommand = orgDisplay.build({ username: 'test' });
     expect(displayCommand.toCommand()).to.equal(
-      'sfdx force:org:display --targetusername test'
+      'sfdx org:display --target-org test'
     );
     expect(displayCommand.description).to.equal(
-      nls.localize('force_org_display_username_text')
+      nls.localize('org_display_username_text')
     );
   });
 });

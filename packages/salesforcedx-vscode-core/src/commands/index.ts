@@ -66,7 +66,6 @@ export {
   forceOrgCreate
 } from './forceOrgCreate';
 export { forceOrgDelete } from './forceOrgDelete';
-export { ForceOrgDisplay, forceOrgDisplay } from './forceOrgDisplay';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
@@ -123,6 +122,7 @@ export {
   forceFunctionStop,
   registerFunctionInvokeCodeLensProvider
 } from './functions';
+export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
   OrgOpenContainerExecutor,

@@ -14,8 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "58.14.2",
+  "version": "58.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,8 +26,8 @@
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
     "@salesforce/core": "4.3.11",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "58.14.2",
-    "@salesforce/salesforcedx-utils-vscode": "58.14.2",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "58.15.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.15.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "9.7.0",
     "@salesforce/templates": "^58.0.1",
@@ -42,7 +41,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "58.14.2",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.15.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -433,11 +432,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.display.default",
+          "command": "sfdx.org.display.default",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.display.username",
+          "command": "sfdx.org.display.username",
           "when": "sfdx:project_opened"
         },
         {
@@ -760,12 +759,12 @@
         "title": "%force_org_delete_username_text%"
       },
       {
-        "command": "sfdx.force.org.display.default",
-        "title": "%force_org_display_default_text%"
+        "command": "sfdx.org.display.default",
+        "title": "%org_display_default_text%"
       },
       {
-        "command": "sfdx.force.org.display.username",
-        "title": "%force_org_display_username_text%"
+        "command": "sfdx.org.display.username",
+        "title": "%org_display_username_text%"
       },
       {
         "command": "sfdx.org.list.clean",
