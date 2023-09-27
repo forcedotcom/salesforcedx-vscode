@@ -33,6 +33,14 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { dataQuery } from './dataQuery';
+export {
+  DebuggerSessionDetachExecutor,
+  IdGatherer,
+  IdSelection,
+  StopActiveDebuggerSessionExecutor,
+  debuggerStop
+} from './debuggerStop';
 export {
   ConfirmationAndSourcePathGatherer,
   DeleteSourceExecutor,
@@ -43,14 +51,6 @@ export { ForceAliasList, forceAliasList } from './forceAliasList';
 export { ForceConfigList, forceConfigList } from './forceConfigList';
 export { ForceConfigSetExecutor, forceConfigSet } from './forceConfigSet';
 export { forceCreateManifest } from './forceCreateManifest';
-export { forceDataSoqlQuery } from './forceDataSoqlQuery';
-export {
-  DebuggerSessionDetachExecutor,
-  IdGatherer,
-  IdSelection,
-  StopActiveDebuggerSessionExecutor,
-  forceDebuggerStop
-} from './forceDebuggerStop';
 export {
   ForceDescribeMetadataExecutor,
   forceDescribeMetadata
@@ -114,21 +114,6 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export {
-  CreateDebugLevel,
-  CreateTraceFlag,
-  ForceQueryTraceFlag,
-  ForceQueryUser,
-  ForceStartApexDebugLoggingExecutor,
-  UpdateDebugLevelsExecutor,
-  UpdateTraceFlagsExecutor,
-  forceStartApexDebugLogging
-} from './forceStartApexDebugLogging';
-export {
-  ForceStopApexDebugLoggingExecutor,
-  forceStopApexDebugLogging,
-  turnOffLogging
-} from './forceStopApexDebugLogging';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceFunctionContainerlessStartCommand,
@@ -150,6 +135,21 @@ export {
   viewLocalChanges,
   viewRemoteChanges
 } from './source/viewChanges';
+export {
+  CreateDebugLevel,
+  CreateTraceFlag,
+  QueryTraceFlag,
+  QueryUser,
+  StartApexDebugLoggingExecutor,
+  UpdateDebugLevelsExecutor,
+  UpdateTraceFlagsExecutor,
+  startApexDebugLogging
+} from './startApexDebugLogging';
+export {
+  StopApexDebugLoggingExecutor,
+  stopApexDebugLogging,
+  turnOffLogging
+} from './stopApexDebugLogging';
 export {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,

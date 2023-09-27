@@ -116,13 +116,13 @@ export class BreakpointService {
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
-        .withArg('force:data:record:create')
-        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
+        .withArg('data:create:record')
+        .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag(
           '--values',
           `SessionId='${sessionId}' FileName='${typeref}' Line=${line} IsEnabled='true' Type='Line'`
         )
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
@@ -148,10 +148,10 @@ export class BreakpointService {
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
-        .withArg('force:data:record:delete')
-        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
-        .withFlag('--sobjectid', breakpointId)
-        .withArg('--usetoolingapi')
+        .withArg('data:delete:record')
+        .withFlag('--sobject', 'ApexDebuggerBreakpoint')
+        .withFlag('--record-id', breakpointId)
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
@@ -232,13 +232,13 @@ export class BreakpointService {
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
-        .withArg('force:data:record:create')
-        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
+        .withArg('data:create:record')
+        .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag(
           '--values',
           `SessionId='${sessionId}' FileName='${typeref}' IsEnabled='true' Type='Exception'`
         )
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
