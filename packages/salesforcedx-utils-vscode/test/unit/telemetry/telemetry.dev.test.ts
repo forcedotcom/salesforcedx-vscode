@@ -17,7 +17,6 @@ jest.mock('../../../src/telemetry/telemetryReporter');
 jest.mock('../../../src/telemetry/cliConfiguration');
 
 describe('Telemetry dev mode', () => {
-  const extensionName = 'salesforcedx-test';
   let telemetryService: TelemetryService;
   let mockExtensionContext: MockExtensionContext;
   let teleStub: SinonStub;
@@ -55,12 +54,7 @@ describe('Telemetry dev mode', () => {
     mockExtensionContext = new MockExtensionContext(true);
     jest.spyOn(telemetryService, 'isTelemetryEnabled').mockResolvedValue(false);
 
-    await telemetryService.initializeService(
-      mockExtensionContext as any,
-      extensionName,
-      'fakeAPIKey',
-      'fakeVersion'
-    );
+    await telemetryService.initializeService(mockExtensionContext as any);
 
     const telemetryReporter = telemetryService.getReporter();
     expect(typeof telemetryReporter).to.be.eql('undefined');
@@ -71,12 +65,7 @@ describe('Telemetry dev mode', () => {
     mockExtensionContext = new MockExtensionContext(true);
 
     cliStub.returns(Promise.resolve(false));
-    await telemetryService.initializeService(
-      mockExtensionContext as any,
-      extensionName,
-      'fakeApiKey',
-      'fakeVersion'
-    );
+    await telemetryService.initializeService(mockExtensionContext as any);
 
     expect(teleStub.firstCall.args).to.eql([false]);
   });

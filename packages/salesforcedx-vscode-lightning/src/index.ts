@@ -84,14 +84,7 @@ export async function activate(extensionContext: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
-
-  await TelemetryService.getInstance().initializeService(
-    extensionContext,
-    name,
-    aiKey,
-    version
-  );
+  await TelemetryService.getInstance().initializeService(extensionContext);
 
   // Start the Aura Language Server
 

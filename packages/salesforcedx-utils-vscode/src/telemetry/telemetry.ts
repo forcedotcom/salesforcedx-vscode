@@ -7,7 +7,7 @@
 
 import * as util from 'util';
 import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
+import { DEFAULT_AIKEY, SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -56,7 +56,7 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
-  private aiKey: string = '';
+  private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   /**
    * Cached promise to check if CLI telemetry config is enabled
@@ -77,15 +77,19 @@ export class TelemetryService {
    * @param extensionName extension name
    */
   public async initializeService(
-    extensionContext: ExtensionContext,
-    extensionName: string,
-    aiKey: string,
-    version: string
+    extensionContext: ExtensionContext
   ): Promise<void> {
+    const { name, version, aiKey } = extensionContext.extension.packageJSON;
+    if (!name) {
+      console.log('Extension name is not defined in package.json');
+    }
+    if (!version) {
+      console.log('Extension version is not defined in package.json');
+    }
     this.extensionContext = extensionContext;
-    this.extensionName = extensionName;
-    this.aiKey = aiKey;
+    this.extensionName = name;
     this.version = version;
+    this.aiKey = aiKey || this.aiKey;
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
