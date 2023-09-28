@@ -15,6 +15,8 @@ import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   checkSObjectsAndRefresh,
+  dataQuery,
+  debuggerStop,
   deleteSource,
   forceAliasList,
   forceAnalyticsTemplateCreate,
@@ -24,8 +26,6 @@ import {
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
-  forceDataSoqlQuery,
-  forceDebuggerStop,
   forceFunctionContainerlessStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
@@ -59,8 +59,6 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceStartApexDebugLogging,
-  forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
@@ -73,15 +71,17 @@ import {
   orgLogoutDefault,
   orgOpen,
   registerFunctionInvokeCodeLensProvider,
+  startApexDebugLogging,
+  stopApexDebugLogging,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
-import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
+import { getUserId } from './commands/startApexDebugLogging';
 import {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
@@ -272,9 +272,9 @@ function registerCommands(
     forceLightningLwcTestCreate
   );
 
-  const forceDebuggerStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.debugger.stop',
-    forceDebuggerStop
+  const debuggerStopCmd = vscode.commands.registerCommand(
+    'sfdx.debugger.stop',
+    debuggerStop
   );
   const forceConfigListCmd = vscode.commands.registerCommand(
     'sfdx.force.config.list',
@@ -306,13 +306,13 @@ function registerCommands(
     'sfdx.org.list.clean',
     orgList
   );
-  const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query.input',
-    forceDataSoqlQuery
+  const dataQueryInputCmd = vscode.commands.registerCommand(
+    'sfdx.data.query.input',
+    dataQuery
   );
-  const forceDataSoqlQuerySelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query.selection',
-    forceDataSoqlQuery
+  const dataQuerySelectionCmd = vscode.commands.registerCommand(
+    'sfdx.data.query.selection',
+    dataQuery
   );
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
@@ -333,14 +333,14 @@ function registerCommands(
     forceApexTriggerCreate
   );
 
-  const forceStartApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.force.start.apex.debug.logging',
-    forceStartApexDebugLogging
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.start.apex.debug.logging',
+    startApexDebugLogging
   );
 
-  const forceStopApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.force.stop.apex.debug.logging',
-    forceStopApexDebugLogging
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.stop.apex.debug.logging',
+    stopApexDebugLogging
   );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand(
@@ -400,8 +400,8 @@ function registerCommands(
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
-    forceDataSoqlQueryInputCmd,
-    forceDataSoqlQuerySelectionCmd,
+    dataQueryInputCmd,
+    dataQuerySelectionCmd,
     forceDiffFile,
     forceFunctionCreateCmd,
     forceFunctionInvokeCmd,
@@ -440,7 +440,7 @@ function registerCommands(
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
-    forceDebuggerStopCmd,
+    debuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
     orgDisplayDefaultCmd,
@@ -449,8 +449,8 @@ function registerCommands(
     forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
-    forceStartApexDebugLoggingCmd,
-    forceStopApexDebugLoggingCmd,
+    startApexDebugLoggingCmd,
+    stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceConfigSetCmd,
     orgListCleanCmd,
@@ -555,13 +555,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    name,
-    aiKey,
-    version
-  );
+  await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
   // Task View
