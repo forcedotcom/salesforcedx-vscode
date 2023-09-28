@@ -25,8 +25,6 @@ jobs:
           - stable
     env:
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-    outputs:
-      VSCODE_PATH: ${{ steps.getVSCodePath.outputs.vscodePath }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
