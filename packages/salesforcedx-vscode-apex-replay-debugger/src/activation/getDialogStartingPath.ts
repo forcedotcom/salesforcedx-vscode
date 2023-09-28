@@ -10,7 +10,7 @@ import {
   projectPaths,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as pathExists from 'path-exists';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 
 export function getDialogStartingPath(
@@ -49,7 +49,7 @@ function getLastOpenedLogFolder(
 }
 
 function folderExists(path: string): boolean {
-  return pathExists.sync(path);
+  return fs.existsSync(path);
 }
 
 function getUriFor(path: string): vscode.Uri {

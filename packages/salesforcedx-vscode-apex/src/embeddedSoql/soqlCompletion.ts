@@ -17,7 +17,6 @@ import {
 import { Middleware } from 'vscode-languageclient';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
-
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
 const virtualDocumentContents = new Map<string, string>();

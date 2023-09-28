@@ -1,5 +1,5 @@
 import {
-  LanguageClientOptions,
+  LanguageClientOptions
 } from 'vscode-languageclient';
 
 import {
