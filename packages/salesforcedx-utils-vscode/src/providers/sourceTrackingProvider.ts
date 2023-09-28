@@ -10,7 +10,6 @@ import {
   SourceTracking,
   SourceTrackingOptions
 } from '@salesforce/source-tracking';
-import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 
 /*
  * The SourceTrackingProvider class is used to instantiate
@@ -64,6 +63,9 @@ export class SourceTrackingProvider {
     const options: SourceTrackingOptions = {
       org,
       project,
+      // ignoreLocalCache: true is needed in VSCE to ensure that Source Tracking
+      // reports on newly created files correctly when using the "View Changes"
+      // commands (which use SourceTracking.getChanges()).
       ignoreLocalCache: true,
       subscribeSDREvents: true,
       ignoreConflicts: true
