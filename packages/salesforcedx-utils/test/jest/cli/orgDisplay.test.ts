@@ -1,10 +1,6 @@
-import {
-  CliCommandExecutor,
-  CommandOutput,
-  ForceOrgDisplay
-} from '../../../src';
+import { CliCommandExecutor, CommandOutput, OrgDisplay } from '../../../src';
 
-describe('ForceOrgDisplay unit tests.', () => {
+describe('OrgDisplay unit tests.', () => {
   const fakeExecution = {
     totally: 'fake'
   };
@@ -28,13 +24,13 @@ describe('ForceOrgDisplay unit tests.', () => {
   });
 
   it('Should create instance.', () => {
-    const forceOrgDisplay = new ForceOrgDisplay();
-    expect(forceOrgDisplay).toBeInstanceOf(ForceOrgDisplay);
+    const orgDisplay = new OrgDisplay();
+    expect(orgDisplay).toBeInstanceOf(OrgDisplay);
   });
 
   it('Should be able to successfully get org info.', async () => {
-    const forceOrgDisplay = new ForceOrgDisplay();
-    const result = await forceOrgDisplay.getOrgInfo(fakePath);
+    const orgDisplay = new OrgDisplay();
+    const result = await orgDisplay.getOrgInfo(fakePath);
     expect(result).toEqual(resultObj.result);
     expect(executeSpy).toHaveBeenCalled();
     expect(getCmdResultSpy).toHaveBeenCalledWith(fakeExecution);
@@ -43,8 +39,8 @@ describe('ForceOrgDisplay unit tests.', () => {
   it('Should reject with result when json is not parseable.', async () => {
     const partialJson = fakeResult.substring(2);
     getCmdResultSpy.mockResolvedValue(partialJson);
-    const forceOrgDisplay = new ForceOrgDisplay();
-    expect(forceOrgDisplay.getOrgInfo(fakePath)).rejects.toEqual(partialJson);
+    const orgDisplay = new OrgDisplay();
+    expect(orgDisplay.getOrgInfo(fakePath)).rejects.toEqual(partialJson);
     expect(executeSpy).toHaveBeenCalled();
     expect(getCmdResultSpy).toHaveBeenCalledWith(fakeExecution);
   });

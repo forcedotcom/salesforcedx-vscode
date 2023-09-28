@@ -9,12 +9,12 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
   developerLogTraceFlag,
-  ForceStopApexDebugLoggingExecutor
+  StopApexDebugLoggingExecutor
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Source Status', () => {
+describe('Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
   const fakeTraceFlagId = 'fakeDebugLevelId';
 
@@ -29,13 +29,13 @@ describe('Force Source Status', () => {
   });
 
   it('Should build the source command no flag', async () => {
-    const forceStopLogging = new ForceStopApexDebugLoggingExecutor();
+    const forceStopLogging = new StopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
     expect(forceStopLoggingCmd.toCommand()).to.equal(
-      `sfdx force:data:record:delete --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --usetoolingapi`
+      `sfdx data:delete:record --sobject TraceFlag --record-id ${fakeTraceFlagId} --use-tooling-api`
     );
     expect(forceStopLoggingCmd.description).to.equal(
-      nls.localize('force_stop_apex_debug_logging')
+      nls.localize('stop_apex_debug_logging')
     );
   });
 });
