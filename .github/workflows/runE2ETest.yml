@@ -63,6 +63,7 @@ jobs:
       - name: Download extension vsixes
         run: |
           mkdir ./extensions
+          pwd
           gh release download -D ./extensions -p '*.vsix'
       - name: Display downloaded vsix files
         run: ls -R ./extensions
