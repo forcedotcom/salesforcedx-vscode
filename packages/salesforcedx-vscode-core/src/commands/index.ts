@@ -114,7 +114,6 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceFunctionContainerlessStartCommand,
@@ -123,6 +122,7 @@ export {
   forceFunctionStop,
   registerFunctionInvokeCodeLensProvider
 } from './functions';
+export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
   OrgOpenContainerExecutor,
