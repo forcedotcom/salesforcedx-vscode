@@ -21,12 +21,12 @@ export function showTraceFlagExpiration(expirationDate: Date) {
   }
 
   statusBarItem.text = nls.localize(
-    'force_apex_debug_log_status_bar_text',
+    'apex_debug_log_status_bar_text',
     expirationDate.toLocaleTimeString(undefined, optionHHmm)
   );
 
   statusBarItem.tooltip = nls.localize(
-    'force_apex_debug_log_status_bar_hover_text',
+    'apex_debug_log_status_bar_hover_text',
     APEX_CODE_DEBUG_LEVEL,
     expirationDate.toLocaleTimeString(undefined, optionHHmm),
     expirationDate.toLocaleDateString(undefined, optionMMddYYYY)

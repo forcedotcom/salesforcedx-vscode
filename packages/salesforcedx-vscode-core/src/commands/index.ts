@@ -34,6 +34,14 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { dataQuery } from './dataQuery';
+export {
+  DebuggerSessionDetachExecutor,
+  IdGatherer,
+  IdSelection,
+  StopActiveDebuggerSessionExecutor,
+  debuggerStop
+} from './debuggerStop';
 export {
   ConfirmationAndSourcePathGatherer,
   DeleteSourceExecutor,
@@ -43,14 +51,6 @@ export {
 export { ForceConfigList, forceConfigList } from './forceConfigList';
 export { ForceConfigSetExecutor, forceConfigSet } from './forceConfigSet';
 export { forceCreateManifest } from './forceCreateManifest';
-export { forceDataSoqlQuery } from './forceDataSoqlQuery';
-export {
-  DebuggerSessionDetachExecutor,
-  IdGatherer,
-  IdSelection,
-  StopActiveDebuggerSessionExecutor,
-  forceDebuggerStop
-} from './forceDebuggerStop';
 export {
   ForceDescribeMetadataExecutor,
   forceDescribeMetadata
@@ -66,7 +66,6 @@ export {
   forceOrgCreate
 } from './forceOrgCreate';
 export { forceOrgDelete } from './forceOrgDelete';
-export { ForceOrgDisplay, forceOrgDisplay } from './forceOrgDisplay';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
@@ -115,21 +114,7 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export {
-  CreateDebugLevel,
-  CreateTraceFlag,
-  ForceQueryTraceFlag,
-  ForceQueryUser,
-  ForceStartApexDebugLoggingExecutor,
-  UpdateDebugLevelsExecutor,
-  UpdateTraceFlagsExecutor,
-  forceStartApexDebugLogging
-} from './forceStartApexDebugLogging';
-export {
-  ForceStopApexDebugLoggingExecutor,
-  forceStopApexDebugLogging,
-  turnOffLogging
-} from './forceStopApexDebugLogging';
+export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { forceTaskStop } from './forceTaskStop';
 export {
   forceFunctionContainerlessStartCommand,
@@ -150,6 +135,21 @@ export {
   viewLocalChanges,
   viewRemoteChanges
 } from './source/viewChanges';
+export {
+  CreateDebugLevel,
+  CreateTraceFlag,
+  QueryTraceFlag,
+  QueryUser,
+  StartApexDebugLoggingExecutor,
+  UpdateDebugLevelsExecutor,
+  UpdateTraceFlagsExecutor,
+  startApexDebugLogging
+} from './startApexDebugLogging';
+export {
+  StopApexDebugLoggingExecutor,
+  stopApexDebugLogging,
+  turnOffLogging
+} from './stopApexDebugLogging';
 export {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,

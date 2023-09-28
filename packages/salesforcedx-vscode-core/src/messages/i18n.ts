@@ -180,14 +180,14 @@ export const messages = {
   alias_list_text: 'SFDX: List All Aliases',
   force_org_delete_default_text: 'SFDX: Delete Default Org',
   force_org_delete_username_text: 'SFDX: Delete Org...',
-  force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
-  force_org_display_username_text: 'SFDX: Display Org Details...',
+  org_display_default_text: 'SFDX: Display Org Details for Default Org',
+  org_display_username_text: 'SFDX: Display Org Details...',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
-  force_debugger_query_session_text: 'query for Apex Debugger session',
-  force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
-  force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
-  force_data_soql_query_input_text: 'SFDX: Execute SOQL Query...',
-  force_data_soql_query_selection_text:
+  debugger_query_session_text: 'query for Apex Debugger session',
+  debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
+  debugger_stop_none_found_text: 'No Apex Debugger session found.',
+  data_query_input_text: 'SFDX: Execute SOQL Query...',
+  data_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   force_anon_apex_execute_document_text:
@@ -204,14 +204,12 @@ export const messages = {
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
-  force_start_apex_debug_logging:
-    'SFDX: Turn On Apex Debug Log for Replay Debugger',
-  force_apex_debug_log_status_bar_text:
+  start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
+  apex_debug_log_status_bar_text:
     '$(file-text) Recording detailed logs until %s',
-  force_apex_debug_log_status_bar_hover_text:
+  apex_debug_log_status_bar_hover_text:
     'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
-  force_stop_apex_debug_logging:
-    'SFDX: Turn Off Apex Debug Log for Replay Debugger',
+  stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_create_project:
     'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
   isv_debug_bootstrap_configure_project:
@@ -257,7 +255,7 @@ export const messages = {
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
   invalid_debug_level_id_error:
-    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
+    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
   auth_project_label: 'Project Default',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_prod_label: 'Production',
