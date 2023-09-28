@@ -41,6 +41,10 @@
         ja: コードビルダーを設定する
       url: /codebuilder/cb-setup
     - title:
+        en: Uninstall Code Builder
+        ja: コードビルダーをアンインストールする
+      url: /codebuilder/cb-uninstall
+    - title:
         en: Get Started with Code Builder
         ja: コードビルダーを使い始める
       url: /codebuilder/cb-start
