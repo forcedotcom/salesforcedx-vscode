@@ -31,15 +31,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: 'main'
-          token: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Git Config action
-        uses: ./.github/actions/gitConfig
-        with:
-          email: ${{ secrets.IDEE_GH_EMAIL }}
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
           token: ${{ secrets.IDEE_GH_TOKEN }}
@@ -51,15 +42,6 @@ jobs:
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
-      - name: Get VSCode path
-        id: getVSCodePath
-        run: |
-          echo "vscodePath="$(which code)"" >> $GITHUB_OUTPUT
-        env:
-          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-      - name: Add VSCode to PATH
-        run: |
-          export PATH=${{ steps.getVSCodePath.outputs.vscodePath }}:$PATH
       - name: Download extension vsixes
         run: |
           mkdir ./extensions
