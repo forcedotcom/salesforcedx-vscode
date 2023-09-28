@@ -34,6 +34,16 @@ jobs:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
           token: ${{ secrets.IDEE_GH_TOKEN }}
+      - name: Git Config action
+        uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ./salesforcedx-vscode
+          ref: ${{ github.event.ref }}
+          token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup node
         uses: actions/setup-node@v3
         with:
