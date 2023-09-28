@@ -2,24 +2,26 @@
 title: Set Up Code Builder
 lang: en
 ---
+
 Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a Salesforce supported org.
+
 ### Required Editions
 
-**Available in**: Lightning Experience in Enterprise, Performance, Professional, Unlimited, and Developer Editions.
+**Available in**: Lightning Experience in Enterprise, Performance, Professional and Unlimited Editions.
 
-**Available in**: Government Cloud Plus as interoperable. Turning on Code Builder in Government Cloud Plus orgs can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
+**Available in**: Government Cloud Plus as interoperable. Connecting Code Builder to Government Cloud Plus orgs can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
 
 **Inoperable in**: Government Cloud. Although Code Builder appears in the Setup menu, don’t enable or install it because it won’t operate properly.
 
 **Not available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
+
 ## Enable and Install Code Builder
 
-PLEASE CHECK THIS: **To install Code Builder in a Professional Edition org, the org must have API access, which enables Code Builder to access data from the source control system. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. Contact your Account Executive to request the API add-on.**
+To install Code Builder in a Professional Edition org, the org must have API access. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. Contact your Account Executive to request the API add-on.
 
+1. From Setup, enter Code Builder in the Quick Find box, then select Code Builder.
 
-1. From Setup, enter Code Builder in the Quick Find box, then select Code Builder. If you don’t see Code Builder as an option under Setup, your Developer Edition org was likely created before Code Builder was introduced and doesn’t have the correct permissions. To continue, create another Developer Edition org.
-
-2. Enable Code Builder, and then review and accept the license agreement, which allows you to install the package.You can disable the preference at any time. Disabling the preference means that you can’t install the app or updates. If Code Builder is already installed, disabling the preference prevents access to the Code Builder application.
+2. Enable Code Builder, and then review and accept the license agreement, which allows you to install the package.You can disable the preference at any time. If Code Builder is already installed, disabling the preference prevents access to the Code Builder application.
 
 3. Click **Install Package**.
    After the installer launches, you’re guided through the installation process to install the latest version of the Code Builder managed package. You can come back to this Setup page to reinstall or upgrade the package.
@@ -44,13 +46,10 @@ Add any team members who aren’t already users in the Code Builder org. For eac
 
 The listed license and profile is required to use Code Builder.
 
-| **Role**    | **License** | **Profile** |
-| ----------- | ----------- | ----------- |
-| Team Member | Salesforce  | Standard User            |
-|             |             |             |
-
-
-
+| **Role**    | **License** | **Profile**   |
+| ----------- | ----------- | ------------- |
+| Team Member | Salesforce  | Standard User |
+|             |             |               |
 
 **Note**: This procedure generates an email inviting the new users into the org. But until you’re finished setting up Code Builder, there’s not much for them to do in the org. We recommend that you let your team know that you’re setting up Code Builder and to wait until they hear from you before logging in.
 

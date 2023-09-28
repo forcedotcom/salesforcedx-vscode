@@ -107,7 +107,7 @@
         ja: 開発モデル
       url: /sf-dev-models/pkgdev
 - title:
-    en: Development Environment
+    en: Salesforce Development Environment
     ja: ユーザガイド
   baseUrl: /sf-dev-env/
   children:
@@ -131,10 +131,6 @@
         en: Org Browser
         ja: デフォルトの組織
       url: /sf-dev-env/org-browser
-    - title:
-        en: Manifest Builder
-        ja: マニフェスト ビルダー
-      url: /sf-dev-env/manifestbuilder
     - title:
         en: Custom Templates
         ja: カスタムテンプレート
@@ -301,6 +297,10 @@
         en: Metadata Operations
         ja: メタデータ操作
       url: /deploy-changes/metadata-operations
+    - title:
+        en: Manifest Builder
+        ja: マニフェスト ビルダー
+      url: /deploy-changes/manifestbuilder
     - title:
         en: Detect Conflicts
         ja: 競合の検知
