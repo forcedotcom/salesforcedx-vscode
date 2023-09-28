@@ -38,7 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Display downloaded vsix files
-        run: ls -R ./extensions
+        run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
         uses: actions/setup-node@v3
         with:
