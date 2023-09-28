@@ -34,6 +34,8 @@ jobs:
           mkdir ./extensions
           pwd
           gh release download -D ./extensions -p '*.vsix'
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - name: Setup node
