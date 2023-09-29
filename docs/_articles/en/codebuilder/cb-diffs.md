@@ -11,8 +11,6 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 - Unlike VS Code for the desktop, you can't add any new extensions to your Code Builder development environment.
 - Because Code Builder is inherently lightweight and optimized to run in the cloud, access to certain functionalities is limited:
   - LWC Local Development (beta) is not available in Code Builder. You can't preview LWC components locally, but can deploy them to your org to view them.
-- With Code Builder, you can work from anywhere. Bookmark your development environment to return to it, or access the link from a different machine.
-- Unlike a desktop IDE, Code Builder saves your work for you without you explicitly having to do so.
 - Because your Code Builder instance runs in the cloud, authorizing an org from it follows a different (device) flow than the desktop IDE. See [Connect to Different Org](https://developer.salesforce.com/tools/vscode/en/codebuilder/cb-start/#connect-to-a-different-org) for steps.
 
 ## Known Gaps and Issues

@@ -7,7 +7,7 @@ lang: en
 
 You can uninstall Code Builder, if necessary. If you plan to reinstall Code Builder, don't delete the Code Builder auth providers. However, if you deleted the auth providers, you can recreate them by re-enabling the Code Builder preference in Setup.
 
-**Important** Uninstalling Code Builder also removes all associated data including, but not limited to, projects, and activity history.
+**Important**: Uninstalling Code Builder also removes all associated data including, but not limited to, projects, and activity history.
 
 ### Remove Permission Set Assignments
 
