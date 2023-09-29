@@ -19,7 +19,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 2. Click **Launch** to launch your Code Builder environment. A new environment is created for you the first time to launch. We've also created an empty Salesforce DX project to help you get started.
 
-[Code Builder Dashboard](../../../images/cb_dashboard.png)
+![Code Builder Dashboard](../../../images/cb_dashboard.png)
 
 
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
