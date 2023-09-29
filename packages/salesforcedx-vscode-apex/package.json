@@ -134,6 +134,11 @@
           "command": "sfdx.force.test.view.refresh",
           "when": "view == sfdx.force.test.view",
           "group": "navigation"
+        },
+        {
+          "command": "workbench.files.action.collapseExplorerFolders",
+          "when": "view == sfdx.force.test.view",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
