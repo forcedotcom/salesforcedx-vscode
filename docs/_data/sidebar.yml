@@ -37,17 +37,21 @@
         ja: 何が違うの
       url: /codebuilder/cb-diffs
     - title:
-        en: Set Up Code Builder
+        en: Install Code Builder
         ja: コードビルダーを設定する
       url: /codebuilder/cb-setup
+    - title:
+        en: Get Started with Code Builder
+        ja: コードビルダーを使い始める
+      url: /codebuilder/cb-start
     - title:
         en: Uninstall Code Builder
         ja: コードビルダーをアンインストールする
       url: /codebuilder/cb-uninstall
     - title:
-        en: Get Started with Code Builder
+        en: Useful Tips
         ja: コードビルダーを使い始める
-      url: /codebuilder/cb-start
+      url: /codebuilder/cb-tips
 - title:
     en: Einstein for Developers (Beta)
     ja: Einstein for Developers (Beta)

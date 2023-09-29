@@ -1,5 +1,5 @@
 ---
-title: Code Builder Quick Start
+title: Get Started with Code Builder
 lang: en
 ---
 
@@ -19,24 +19,28 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 2. Click **Launch** to launch your Code Builder environment. A new environment is created for you the first time to launch. We've also created an empty Salesforce DX project to help you get started.
 
+[Code Builder Dashboard](../../../images/cb_dashboard.png)
+
+
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
 ## Connect to a Salesforce Org
 
-Next, connect an org to your Code Builder environment.During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Development Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
+Next, connect an org to your Code Builder environment. During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Development Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
 
-To connect to an org:
+To connect to an org the first time you launch Code Builder:
 
-1. Click the org picker in the status bar, to bring up the Command Palette.
-2. Run **SFDX: Authorize an Org**.
-3. Enter the login URL or select the org you want to log into.
-4. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
-5. A code is displayed in a text box. Click **Connect**.
-6. Log in with the relevant username and password. Click **Allow**.
-7. Click **Continue**. You’re now connected to an org, and its name is visible in the status bar at the bottom in the Code Builder tab.
-8. You can change the org you are connected to by clicking on the name of the current org to bring up the Command Palette and run **SFDX: Authorize an Org**. again.
+1. In your Code Builder environment, click **Connect an Org** to connect to the Salesforce org you want to work in.
+2. Enter the login URL or select the org you want to log into.
+3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
+4. A code is displayed in a text box. Click **Connect**.
+5. Log in with the relevant username and password. Click **Allow**.
+6. Click **Continue**. You’re now connected to an org, and its name is visible in the status bar at the bottom in the Code Builder tab.
 
-After you authorize an org, we take care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.
+
+You can change the org you are connected to by clicking on the name of the current org to bring up the Command Palette and run **SFDX: Authorize an Org**. again.
+
+**Note**: After you authorize an org, we take care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.
 
 ## Let's Take A Quick Tour
 
