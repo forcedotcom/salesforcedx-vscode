@@ -80,7 +80,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         defaultPackage
       );
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
-      sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'getSourceTracking');
       sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
       pollStatusStub = sb.stub();
     });

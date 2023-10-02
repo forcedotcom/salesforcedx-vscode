@@ -67,7 +67,7 @@ describe('Deploy Executor', () => {
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let getUsernameStub: jest.SpyInstance;
-  let createSourceTrackingSpy: jest.SpyInstance;
+  let getSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
   let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
 
@@ -97,8 +97,8 @@ describe('Deploy Executor', () => {
     getUsernameStub = jest
       .spyOn(ConfigUtil, 'getUsername')
       .mockResolvedValue(dummyUsername);
-    createSourceTrackingSpy = jest
-      .spyOn(SourceTrackingService, 'createSourceTracking')
+    getSourceTrackingSpy = jest
+      .spyOn(SourceTrackingService, 'getSourceTracking')
       .mockResolvedValue({
         ensureLocalTracking: ensureLocalTrackingSpy
       } as any);
@@ -127,18 +127,18 @@ describe('Deploy Executor', () => {
     await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
-    expect(createSourceTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).toHaveBeenCalled();
     expect(ensureLocalTrackingSpy).toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
-    const createSourceTrackingCallOrder =
-      createSourceTrackingSpy.mock.invocationCallOrder[0];
+    const getSourceTrackingCallOrder =
+      getSourceTrackingSpy.mock.invocationCallOrder[0];
     const ensureLocalTrackingSpyCallOrder =
       ensureLocalTrackingSpy.mock.invocationCallOrder[0];
     const deployCallOrder = deploySpy.mock.invocationCallOrder[0];
     // In order to be sure that a Source Tracking instance is initialized
-    // and tracking files appropriately, createSourceTracking and ensureLocalTracking
+    // and tracking files appropriately, getSourceTracking and ensureLocalTracking
     // need to be called before the deploy operation is started.
-    expect(createSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
+    expect(getSourceTrackingCallOrder).toBeLessThan(deployCallOrder);
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
   });
 
@@ -158,7 +158,7 @@ describe('Deploy Executor', () => {
     await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
-    expect(createSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
   });

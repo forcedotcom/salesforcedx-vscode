@@ -125,7 +125,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components.projectDirectory = projectPath;
     const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
-      const sourceTracking = await SourceTrackingService.createSourceTracking(
+      const sourceTracking = await SourceTrackingService.getSourceTracking(
         projectPath,
         connection
       );
@@ -239,7 +239,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     if (sourceTrackingEnabled) {
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-        this.sourceTracking = await SourceTrackingService.createSourceTracking(
+        this.sourceTracking = await SourceTrackingService.getSourceTracking(
           projectPath,
           connection
         );
