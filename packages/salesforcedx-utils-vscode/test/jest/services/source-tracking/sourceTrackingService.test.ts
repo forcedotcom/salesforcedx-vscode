@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SourceTracking } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../../../../src';
 import { SourceTrackingService } from '../../../../src/services';
 import { testData } from './testData';
@@ -16,26 +15,6 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 describe('Source Tracking Service', () => {
-  describe('createSourceTracking', () => {
-    let sourceTrackingCreateSpy: jest.SpyInstance;
-    let ensureLocalTrackingSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      sourceTrackingCreateSpy = jest
-        .spyOn(SourceTracking, 'create')
-        .mockResolvedValue({} as any);
-      ensureLocalTrackingSpy = jest
-        .spyOn(SourceTracking.prototype, 'ensureLocalTracking')
-        .mockResolvedValue({} as any);
-    });
-
-    it('Should create an instance of SourceTracking', async () => {
-      await SourceTrackingService.createSourceTracking('', {} as any);
-
-      expect(sourceTrackingCreateSpy).toHaveBeenCalled();
-    });
-  });
-
   describe('updateSourceTrackingAfterRetrieve', () => {
     const updateTrackingFromRetrieveSpy = jest.fn();
     const dummySourceTracking = {
@@ -67,15 +46,18 @@ describe('Source Tracking Service', () => {
     } as any;
 
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let sourceTrackingMock: jest.SpyInstance;
+    let getSourceTrackingForCurrentProjectMock: jest.SpyInstance;
 
     beforeEach(() => {
       workspaceContextUtilGetInstanceSpy = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 
-      sourceTrackingMock = jest
-        .spyOn(SourceTracking, 'create')
+      getSourceTrackingForCurrentProjectMock = jest
+        .spyOn(
+          SourceTrackingService as any,
+          'getSourceTrackingForCurrentProject'
+        )
         .mockResolvedValue({
           getStatus: getStatusMock
         } as any);
@@ -91,8 +73,8 @@ describe('Source Tracking Service', () => {
       );
 
       // Assert
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(sourceTrackingMock).toHaveBeenCalled();
+      expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
+      expect(getStatusMock).toHaveBeenCalled();
       expect(formattedOutput).toMatchSnapshot();
     });
 
@@ -103,8 +85,8 @@ describe('Source Tracking Service', () => {
         {}
       );
 
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(sourceTrackingMock).toHaveBeenCalled();
+      expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
+      expect(getStatusMock).toHaveBeenCalled();
       expect(formattedOutput).toMatchSnapshot();
     });
   });

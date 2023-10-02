@@ -263,7 +263,7 @@ describe('Base Deploy Retrieve Commands', () => {
       setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
-      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+      sb.stub(SourceTrackingService, 'getSourceTracking').resolves({
         ensureLocalTracking: async () => {}
       });
     });
@@ -628,7 +628,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
-      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+      sb.stub(SourceTrackingService, 'getSourceTracking').resolves({
         updateTrackingFromRetrieve: async () => {}
       });
     });

@@ -90,7 +90,7 @@ describe('Force Source Retrieve Component(s)', () => {
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
-      sb.stub(SourceTrackingService, 'createSourceTracking');
+      sb.stub(SourceTrackingService, 'getSourceTracking');
       sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
     });
 
