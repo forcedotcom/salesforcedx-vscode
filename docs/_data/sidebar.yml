@@ -47,7 +47,7 @@
     - title:
         en: Remove Code Builder
         ja: コードビルダーをアンインストールする
-      url: /codebuilder/cb-uninstall
+      url: /codebuilder/cb-remove
     - title:
         en: Useful Tips
         ja: コードビルダーを使い始める
