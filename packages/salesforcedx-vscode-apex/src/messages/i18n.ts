@@ -86,11 +86,19 @@ export const messages = {
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
   terminate_orphaned_language_server_instances:
-    'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them before proceeding?',
+    'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
   terminate_processes: 'Terminate Processes',
-  terminate_skip: 'Skip',
+  terminate_show_processes: 'Show Processes',
   terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
   terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
   terminated_orphaned_processes: 'Terminated %d orphaned processes.',
-  unknown_error: 'Unknown error'
+  unknown_error: 'Unknown error',
+  process_id: 'Process ID',
+  parent_process_id: 'Parent Process ID',
+  process_command: 'Process Command',
+  terminate_processes_confirm: 'Terminate %d Orphaned Processes',
+  yes: 'Yes',
+  no: 'No',
+  terminate_processes_title: 'Terminate Orphaned Processes',
+  orphan_process_advice: 'The list of processes below have been identified as Apex Language Server instance that were not properly shutdown. These processes can be stopped using the warning message that brought you here or you can hand this task yourself. If you choose to terminate the processes yourself, please follow your platform documentation to find the application of command line tools to stop these processes.'
 };
