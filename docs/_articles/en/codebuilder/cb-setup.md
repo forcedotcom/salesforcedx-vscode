@@ -13,7 +13,7 @@ Enable Code Builder to provide the permissions needed to install the Code Builde
 
 **Inoperable in**: Government Cloud. Although Code Builder appears in the Setup menu, don’t enable or install it because it won’t operate properly.
 
-**Not available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
+**Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
 ## Enable and Install Code Builder
 
@@ -30,7 +30,7 @@ To install Code Builder in a Professional Edition org, the org must have API acc
 
 5. Approve third-party access and click **Continue**.
 
-Code Builder Dashboard in now available in App Launcher. Be sure to assign the appropriate Code Builder permission sets to team member.
+Code Builder Dashboard in now available in App Launcher. Be sure to assign the appropriate Code Builder permission sets to team members.
 
 ## Confirm Code Builder Package Installation
 
@@ -46,10 +46,10 @@ Add any team members who aren’t already users in the Code Builder org. For eac
 
 The listed license and profile is required to use Code Builder.
 
-| **Role**    | **License** | **Profile**   |
-| ----------- | ----------- | ------------- |
-| Team Member | Salesforce  | Standard User |
-|             |             |               |
+| **Role**    | **License** | **Profile**    |
+| ----------- | ----------- | -------------- |
+| Team Member | [Free Limited Access License](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/dev_hub_license.htm)  | DX Limited Access |
+|             |             |                |
 
 **Note**: This procedure generates an email inviting the new users into the org. But until you’re finished setting up Code Builder, there’s not much for them to do in the org. We recommend that you let your team know that you’re setting up Code Builder and to wait until they hear from you before logging in.
 

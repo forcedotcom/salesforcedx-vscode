@@ -1,5 +1,5 @@
 ---
-title: Uninstall Code Builder
+title: Remove Code Builder
 lang: en
 ---
 
@@ -42,4 +42,4 @@ When Code Builder was installed, a Salesforce admin first enabled Code Builder. 
 
 From Setup, enter `Code Builder` in the Quick Find box, then select **Code Builder**.
 Disable **Enable Code Builder**.
-You no longer can install or upgrade the Code BuilderCode Builder has not been enabled for your org when they try to use it.
+You no longer can install or upgrade the Code Builder app and users see Code Builder has not been enabled for your org when they try to use it.

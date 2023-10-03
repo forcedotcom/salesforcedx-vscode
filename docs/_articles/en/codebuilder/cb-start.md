@@ -9,7 +9,7 @@ Complete this Quick Start to become familiar with the Code Builder interface and
 
 ### Don’t Forget to Save Your Work
 
-Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Save your work before you close the Code Builder tab on your browser so you don’t lose it.
+Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work somewhere permanent. Work saved in your Code Builder environment will be there when you come back but Code Builder is not suited for permanent-long-term storage. We recommended saving your work before you close the Code Builder tab.
 
 ## Create Your Code Builder Environment
 
@@ -20,7 +20,6 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 2. Click **Launch** to launch your Code Builder environment. A new environment is created for you the first time to launch. We've also created an empty Salesforce DX project to help you get started.
 
 ![Code Builder Dashboard](../../../images/cb_dashboard.png)
-
 
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
@@ -37,14 +36,13 @@ To connect to an org the first time you launch Code Builder:
 5. Log in with the relevant username and password. Click **Allow**.
 6. Click **Continue**. You’re now connected to an org, and its name is visible in the status bar at the bottom in the Code Builder tab.
 
-
-You can change the org you are connected to by clicking on the name of the current org to bring up the Command Palette and run **SFDX: Authorize an Org**. again.
+You can change the org you are connected to by clicking on the name of the current org to bring up the Command Palette and run **SFDX: Authorize an Org** again.
 
 **Note**: After you authorize an org, we take care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.
 
 ## Let's Take A Quick Tour
 
-You’re now in your developer environment in Code Builder. Code Builder has a rich IDE by VS Code, plus it gives you easy access to cool Salesforce development-specific tools through the Salesforce extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
+You’re now in your developer environment in Code Builder. Code Builder has a rich IDE and it gives you access to cool Salesforce-specific development tools through the expanded Salesforce Extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
 
 ![code_builder_ui](../../../images/code_builder_ui.jpg)
 The Code Builder user interface is divided into five main areas.

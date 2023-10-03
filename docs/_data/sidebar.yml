@@ -45,7 +45,7 @@
         ja: コードビルダーを使い始める
       url: /codebuilder/cb-start
     - title:
-        en: Uninstall Code Builder
+        en: Remove Code Builder
         ja: コードビルダーをアンインストールする
       url: /codebuilder/cb-uninstall
     - title:
@@ -245,23 +245,6 @@
         ja: リンティング
       url: /lwc/linting
 - title:
-    en: Local Development
-    ja: ローカル開発
-  baseUrl: /localdev/
-  children:
-    - title:
-        en: Overview
-        ja: 概要
-      url: /localdev/lwclocaldev
-    - title:
-        en: Set Up LWC Local Development
-        ja: LWC ローカル開発の設定
-      url: /localdev/set-up-lwc-local-dev
-    - title:
-        en: Supported and Unsupported Modules, Components, and Features
-        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
-      url: /localdev/lwc-localdev-supported-modules
-- title:
     en: Visualforce
     ja: Visualforce
   baseUrl: /visualforce/
@@ -342,3 +325,20 @@
     en: Bugs and Feedback
     ja: バグとフィードバック
   url: /bugs-and-feedback
+- title:
+    en: Local Development
+    ja: ローカル開発
+  baseUrl: /localdev/
+  children:
+    - title:
+        en: Overview
+        ja: 概要
+      url: /localdev/lwclocaldev
+    - title:
+        en: Set Up LWC Local Development
+        ja: LWC ローカル開発の設定
+      url: /localdev/set-up-lwc-local-dev
+    - title:
+        en: Supported and Unsupported Modules, Components, and Features
+        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
+      url: /localdev/lwc-localdev-supported-modules
