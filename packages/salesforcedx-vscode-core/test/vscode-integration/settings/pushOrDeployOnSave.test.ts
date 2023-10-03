@@ -161,7 +161,7 @@ describe('Push or Deploy on Save', () => {
       expect(telemArgs[2]['waitTimeForLastDeploy'] > 0).to.be.false;
     });
 
-    it('should display an error to the user when the defaultusername org info cannot be found', async () => {
+    it('should display an error to the user when the target-org org info cannot be found', async () => {
       const namedOrgNotFoundError = new Error();
       namedOrgNotFoundError.name = 'NamedOrgNotFound';
       getWorkspaceOrgTypeStub.throws(namedOrgNotFoundError);
@@ -175,7 +175,7 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
     });
 
-    it('should display an error to the user when no defaultusername is set', async () => {
+    it('should display an error to the user when no target-org is set', async () => {
       const noDefaultUsernameSetError = new Error();
       noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
       getWorkspaceOrgTypeStub.throws(noDefaultUsernameSetError);

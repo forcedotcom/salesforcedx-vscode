@@ -182,10 +182,10 @@ describe('Debugger breakpoint service', () => {
 
       expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:create'
+        'data:create:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerBreakpoint'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
@@ -193,7 +193,7 @@ describe('Debugger breakpoint service', () => {
         "SessionId='07aFAKE' FileName='foo$inner' Line=1 IsEnabled='true' Type='Line'"
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
@@ -294,10 +294,10 @@ describe('Debugger breakpoint service', () => {
 
       expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:create'
+        'data:create:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerBreakpoint'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
@@ -305,7 +305,7 @@ describe('Debugger breakpoint service', () => {
         "SessionId='07aFAKE' FileName='fooexception' IsEnabled='true' Type='Exception'"
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
@@ -349,18 +349,18 @@ describe('Debugger breakpoint service', () => {
 
       expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:delete'
+        'data:delete:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerBreakpoint'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-        '--sobjectid',
+        '--record-id',
         '07bFAKE'
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);

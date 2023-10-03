@@ -121,11 +121,11 @@ export class OrgList implements vscode.Disposable {
 
   public async setDefaultOrg(): Promise<CancelResponse | ContinueResponse<{}>> {
     let quickPickList = [
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text'),
+      '$(plus) ' + nls.localize('org_login_web_authorize_org_text'),
+      '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'),
       '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text'),
       '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
-      '$(plus) ' + nls.localize('force_org_list_clean_text')
+      '$(plus) ' + nls.localize('org_list_clean_text')
     ];
 
     const authInfoList = await this.updateOrgList();
@@ -139,14 +139,12 @@ export class OrgList implements vscode.Disposable {
       return { type: 'CANCEL' };
     }
     switch (selection) {
-      case '$(plus) ' +
-        nls.localize('force_auth_web_login_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.auth.web.login');
+      case '$(plus) ' + nls.localize('org_login_web_authorize_org_text'): {
+        vscode.commands.executeCommand('sfdx.org.login.web');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' +
-        nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
-        vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+      case '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'): {
+        vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +
@@ -159,8 +157,8 @@ export class OrgList implements vscode.Disposable {
         vscode.commands.executeCommand('sfdx.force.auth.accessToken');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' + nls.localize('force_org_list_clean_text'): {
-        vscode.commands.executeCommand('sfdx.force.org.list.clean');
+      case '$(plus) ' + nls.localize('org_list_clean_text'): {
+        vscode.commands.executeCommand('sfdx.org.list.clean');
         return { type: 'CONTINUE', data: {} };
       }
       default: {

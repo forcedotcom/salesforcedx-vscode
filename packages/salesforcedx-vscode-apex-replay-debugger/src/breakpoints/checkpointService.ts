@@ -17,7 +17,7 @@ import {
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import {
-  ForceOrgDisplay,
+  OrgDisplay,
   OrgInfo,
   RequestService,
   RestHttpMethodEnum
@@ -101,7 +101,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     ) {
       this.sfdxProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
       try {
-        this.orgInfo = await new ForceOrgDisplay().getOrgInfo(this.sfdxProject);
+        this.orgInfo = await new OrgDisplay().getOrgInfo(this.sfdxProject);
       } catch (error) {
         const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize(

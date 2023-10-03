@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import {
+  EnvironmentVariableCollection,
+  EnvironmentVariableScope,
+  Extension
+} from 'vscode';
 
 class MockMemento {
   private telemetryGS: boolean;
@@ -51,12 +56,25 @@ class MockEnvironmentVariableCollection {
   public clear(): void {
     throw new Error('Method not implemented.');
   }
+  public getScoped(
+    scope: EnvironmentVariableScope
+  ): EnvironmentVariableCollection {
+    const envVar: any = null;
+    return envVar;
+  }
 }
 
 export class MockExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
+    this.extension = {
+      packageJSON: {
+        name: 'salesforcedx-test',
+        version: 'v55.5.5'
+      }
+    } as any;
   }
+  public extension: Extension<any>;
   public extensionUri = 'file://test';
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
   public subscriptions: Array<{ dispose(): any }> = [];

@@ -12,12 +12,10 @@ export const CLIENT_ID = 'sfdx-vscode';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
-export const SFDX_CONFIG_DISABLE_TELEMETRY = 'disableTelemetry';
-export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
+export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
 export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
-export const DEFAULT_USERNAME_KEY = 'defaultusername';
-export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
+export const TARGET_ORG_KEY = 'target-org';
 export const PKG_ID_PREFIX = '04t';
 
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
@@ -47,10 +45,11 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
 export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
   'enableDeployAndRetrieveForSourceTrackedOrgs.enabled';
-export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
+export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE =
+  'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const CLI = {
-  AUTH_DEVICE_LOGIN: 'force:auth:device:login',
-  AUTH_WEB_LOGIN: 'force:auth:web:login'
+  ORG_LOGIN_DEVICE: 'org:login:device',
+  ORG_LOGIN_WEB: 'org:login:web'
 };
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';
@@ -60,7 +59,7 @@ export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
-export const ORG_OPEN_COMMAND = 'sfdx.force.org.open';
+export const ORG_OPEN_COMMAND = 'sfdx.org.open';
 export const FORCE_SOURCE_PULL_LOG_NAME =
   'force_source_pull_default_scratch_org';
 export const FORCE_SOURCE_PUSH_LOG_NAME =
