@@ -7,7 +7,7 @@ lang: en
 
 Code Builder unleashes the power of Salesforce Extensions for VS Code and offers the same rich features as the desktop version. No matter whether you're using VS Code on your desktop or Code Builder from a browser, the Salesforce extensions you access are the same. While the extensions generally function the same way regardless of how they're accessed, there are some nuances to be aware of:
 
-- Code Builder is installed as a managed package, and it comes with everything you need: VS Code, Salesforce extensions, and Salesforce CLI. No installation required.
+- Code Builder is installed as a managed package, and it comes with everything you need: VS Code, Salesforce Extensions, and Salesforce CLI. No installation required.
 - Unlike VS Code for the desktop, you can't add any new extensions to your Code Builder development environment.
 - Because Code Builder is inherently lightweight and optimized to run in the cloud, access to certain functionalities is limited:
   - LWC Local Development (beta) is not available in Code Builder. You can't preview LWC components locally, but can deploy them to your org to view them.
