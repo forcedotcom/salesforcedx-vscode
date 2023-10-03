@@ -79,7 +79,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         });
 
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
-      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+      sb.stub(SourceTrackingService, 'getSourceTracking').resolves({
         ensureLocalTracking: async () => {}
       });
     });

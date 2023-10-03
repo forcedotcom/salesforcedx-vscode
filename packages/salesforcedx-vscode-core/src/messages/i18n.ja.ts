@@ -75,10 +75,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
-  force_org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
+  org_open_default_scratch_org_container_error:
     '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
   force_source_pull_default_org_text:
@@ -103,12 +103,12 @@ export const messages = {
     'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
   force_source_retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
-  force_source_delete_text: 'SFDX: プロジェクトおよび組織から削除',
-  force_source_delete_manifest_unsupported_message:
+  delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
+  delete_source_manifest_unsupported_message:
     'SFDX: 組織およびプロジェクトから削除 はマニフェストファイルでサポートされていません。削除するソースファイルやディレクトリを選択してください。',
-  force_source_delete_select_file_or_directory:
+  delete_source_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: プロジェクトおよび組織から削除 を実行できます。',
-  force_source_delete_confirmation_message:
+  delete_source_confirmation_message:
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
@@ -144,14 +144,14 @@ export const messages = {
     '...表示されていない残り %s つのコンポーネント\n',
   force_config_list_text: 'SFDX: すべての設定変数を一覧表示',
   force_alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
-  force_org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
-  force_org_display_username_text: 'SFDX: 組織の詳細を表示...',
-  force_debugger_query_session_text: 'Apex デバッガセッションをクエリ',
-  force_debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
-  force_debugger_stop_none_found_text:
+  org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
+  org_display_username_text: 'SFDX: 組織の詳細を表示...',
+  debugger_query_session_text: 'Apex デバッガセッションをクエリ',
+  debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
+  debugger_stop_none_found_text:
     'Apex デバッガセッションが見つかりませんでした。',
-  force_data_soql_query_input_text: 'SFDX: SOQL クエリを実行...',
-  force_data_soql_query_selection_text:
+  data_query_input_text: 'SFDX: SOQL クエリを実行...',
+  data_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
   force_anon_apex_execute_document_text:
@@ -169,13 +169,13 @@ export const messages = {
   force_project_create_analytics_template:
     'Analytics のプロジェクトテンプレート',
   force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
-  force_start_apex_debug_logging:
+  start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
-  force_apex_debug_log_status_bar_text:
+  apex_debug_log_status_bar_text:
     '$(file-text) 詳細なログを記録しています。%s まで。',
-  force_apex_debug_log_status_bar_hover_text:
+  apex_debug_log_status_bar_hover_text:
     'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
-  force_stop_apex_debug_logging:
+  stop_apex_debug_logging:
     'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
   isv_debug_bootstrap_create_project:
     'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
@@ -208,8 +208,8 @@ export const messages = {
     'VS Code のSalesforce 拡張機能をデモモードで実行しています。本番環境に接続するときに確認を求められます。',
   demo_mode_prompt:
     'デモモードまたは共有マシンで、ビジネスまたは本番組織を認証することは推奨されません。認証を続ける場合、組織を使用した後、必ず "SFDX: すべての認証済み組織からログアウト" を実行してください。',
-  force_auth_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
-  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  org_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
+  org_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_editor_title_message: 'マニフェストエディタ',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
@@ -219,7 +219,7 @@ export const messages = {
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
-    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
+    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
   auth_project_label: 'プロジェクトのデフォルト',
   auth_project_detail: 'sfdx-project.json で定義されたログインURL を使用',
   auth_prod_label: '本番環境',
@@ -229,10 +229,10 @@ export const messages = {
   auth_custom_label: 'カスタム',
   auth_custom_detail: 'カスタムログイン URL を入力',
   auth_invalid_url: 'URL は http:// か https:// で始める必要があります。',
-  auth_logout_scratch_prompt:
+  org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
-  auth_logout_scratch_logout: 'Logout',
-  auth_logout_no_default_org: 'No default org to logout from',
+  org_logout_scratch_logout: 'Logout',
+  org_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_no_package_directories_found_on_setup_text:

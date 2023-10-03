@@ -1,10 +1,23 @@
+# 58.15.0 - September 22, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We've formally withdrawn support for Java 8. ([PR #5078](https://github.com/forcedotcom/salesforcedx-vscode/pull/5078))
+
+#### salesforcedx-vscode-core
+
+- We migrated some commands that used `sfdx-style` to the new `sf-style`. You should now get some reprieve from those annoying warnings! ([PR #5071](https://github.com/forcedotcom/salesforcedx-vscode/pull/5071), [PR #5060](https://github.com/forcedotcom/salesforcedx-vscode/pull/5060),  [PR #5061](https://github.com/forcedotcom/salesforcedx-vscode/pull/5061), [PR #5059](https://github.com/forcedotcom/salesforcedx-vscode/pull/5059), [PR #5058](https://github.com/forcedotcom/salesforcedx-vscode/pull/5058))
+
 # 58.14.2 - September 8, 2023
 
 ## Added
 
-- We released a brand new [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension 🎉 🎉! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor. 
+- We released a brand new [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension 🎉 🎉! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor.
 
 #### docs
+
 - We added documentation for Einstein for Developers (Beta) ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
 
 # 58.14.1 - September 1, 2023
@@ -31,10 +44,11 @@
 ## Fixed
 
 #### salesforcedx-utils-vscode
+
 #### salesforcedx-vscode-apex
 
 - We made performance improvements to the Apex Language Server, so you should see faster startup times after the initial activation. The Language Server now only indexes changed files in your workspace. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956))
-- We fixed an issue where `Go To Definition` was throwing an error for built-in Apex classes. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956), [ISSUE #4762](https://github.com/forcedotcom/salesforcedx-vscode/issues/4762)) 
+- We fixed an issue where `Go To Definition` was throwing an error for built-in Apex classes. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956), [ISSUE #4762](https://github.com/forcedotcom/salesforcedx-vscode/issues/4762))
 
 # 58.11.0 - August 17, 2023
 
@@ -83,7 +97,9 @@
 ## Added
 
 #### salesforcedx-apex-debugger
+
 #### salesforcedx-utils
+
 #### salesforcedx-utils-vscode
 
 - We updated environment variables for the Apex Interactive Debugger to reflect the new SF CLI style. ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
@@ -127,7 +143,6 @@
 #### salesforcedx-vscode-apex
 
 - We made updated dependencies in the Apex LSP and made some changes under the hood to enhance the debugging experience. ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
-
 
 #### salesforcedx-vscode-core
 

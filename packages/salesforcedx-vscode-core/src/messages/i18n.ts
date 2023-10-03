@@ -96,10 +96,10 @@ export const messages = {
   force_org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
 
-  force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
-  force_org_open_default_scratch_org_container_error:
+  org_open_default_scratch_org_text: 'SFDX: Open Default Org',
+  org_open_default_scratch_org_container_error:
     'There was an unexpected error when processing the org open response.',
-  force_org_open_container_mode_message_text:
+  org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
   force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_org_text:
@@ -120,12 +120,12 @@ export const messages = {
     'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
   force_source_retrieve_select_manifest:
     'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
-  force_source_delete_text: 'SFDX: Delete from Project and Org',
-  force_source_delete_manifest_unsupported_message:
+  delete_source_text: 'SFDX: Delete from Project and Org',
+  delete_source_manifest_unsupported_message:
     'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete.',
-  force_source_delete_select_file_or_directory:
+  delete_source_select_file_or_directory:
     'You can run SFDX: Delete from Project and Org only on a source file or directory.',
-  force_source_delete_confirmation_message:
+  delete_source_confirmation_message:
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
@@ -180,14 +180,14 @@ export const messages = {
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_delete_default_text: 'SFDX: Delete Default Org',
   force_org_delete_username_text: 'SFDX: Delete Org...',
-  force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
-  force_org_display_username_text: 'SFDX: Display Org Details...',
-  force_org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
-  force_debugger_query_session_text: 'query for Apex Debugger session',
-  force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
-  force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
-  force_data_soql_query_input_text: 'SFDX: Execute SOQL Query...',
-  force_data_soql_query_selection_text:
+  org_display_default_text: 'SFDX: Display Org Details for Default Org',
+  org_display_username_text: 'SFDX: Display Org Details...',
+  org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
+  debugger_query_session_text: 'query for Apex Debugger session',
+  debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
+  debugger_stop_none_found_text: 'No Apex Debugger session found.',
+  data_query_input_text: 'SFDX: Execute SOQL Query...',
+  data_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   force_anon_apex_execute_document_text:
@@ -204,14 +204,12 @@ export const messages = {
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
-  force_start_apex_debug_logging:
-    'SFDX: Turn On Apex Debug Log for Replay Debugger',
-  force_apex_debug_log_status_bar_text:
+  start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
+  apex_debug_log_status_bar_text:
     '$(file-text) Recording detailed logs until %s',
-  force_apex_debug_log_status_bar_hover_text:
+  apex_debug_log_status_bar_hover_text:
     'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
-  force_stop_apex_debug_logging:
-    'SFDX: Turn Off Apex Debug Log for Replay Debugger',
+  stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_create_project:
     'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
   isv_debug_bootstrap_configure_project:
@@ -241,8 +239,8 @@ export const messages = {
     'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
-  force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
-  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  org_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_input_dupe_error:
     'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder:
@@ -257,7 +255,7 @@ export const messages = {
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
   invalid_debug_level_id_error:
-    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
+    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
   auth_project_label: 'Project Default',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_prod_label: 'Production',
@@ -267,10 +265,10 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
-  auth_logout_scratch_prompt:
+  org_logout_scratch_prompt:
     'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
-  auth_logout_scratch_logout: 'Logout',
-  auth_logout_no_default_org: 'No default org to logout from',
+  org_logout_scratch_logout: 'Logout',
+  org_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
@@ -683,5 +681,11 @@ export const messages = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message:
     'File name cannot exceed {0} characters',
-  source_status: 'Source Status'
+  source_status: 'Source Status',
+  ProcessFlowMigration: 'ProcessFlowMigration',
+  SkillType: 'SkillType',
+  TimeSheetTemplate: 'TimeSheetTemplate',
+  MessagingChannel: 'MessagingChannel',
+  SchedulingObjective: 'SchedulingObjective',
+  SchedulingRule: 'SchedulingRule'
 };
