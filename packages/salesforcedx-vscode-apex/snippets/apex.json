@@ -146,8 +146,8 @@
     "for map": {
         "prefix": "formap",
         "body": [
-            "for(${1:Object} ${2:key} : ${3:map}.keySet()){ {",
-            "\t${1:Object} ${4:item} = ${3}.get(${1});",
+            "for(${1:Object} ${2:key} : ${3:map}.keySet()) {",
+            "\t${5:Object} ${4:item} = ${3}.get(${2});",
             "\t$0",
             "}"
         ],
@@ -410,5 +410,54 @@
             "}"
         ],
         "description": "Create a mock for an http callout for apex testing"
+    },
+    "Is Blank": {
+        "prefix": "isb",
+        "body": [
+            "String.isBlank(${1:inputString})"
+        ],
+        "description": "String isBlank"
+    },
+    "Is Not Blank": {
+        "prefix": "isnb",
+        "body": [
+            "String.isNotBlank(${1:inputString})"
+        ],
+        "description": "String Not isBlank"
+    },
+    "local variable": {
+        "prefix": "localVariable",
+        "body": [
+            "${1:Object} ${2:name} = ${3:value};"
+        ],
+        "description": "New local variable"
+    },
+    "static variable": {
+        "prefix": "staticVariable",
+        "body": [
+            "${1|private,public,global|} static ${2:Object} ${3:name} = ${4:value};"
+        ],
+        "description": "New static variable"
+    },
+    "variable": {
+        "prefix": "variable",
+        "body": [
+            "${1|private,public,global|} ${2:Object} ${3:name} = ${4:value};"
+        ],
+        "description": "New variable"
+    },
+    "static final variable": {
+        "prefix": "staticFinalVariable",
+        "body": [
+            "${1|private,public,global|} static final ${2:Object} ${3:name} = ${4:value};"
+        ],
+        "description": "New static final variable"
+    },
+    "System Debug 2": {
+      "prefix": "sd",
+      "body": [
+          "System.debug('${0:varName} >>' + ${0:varName});"
+      ],
+      "description": "System.debug with variable name"
     }
 }
