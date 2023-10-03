@@ -77,7 +77,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       deployStub = env.stub(mockComponents, 'deploy').returns({
         pollStatus: pollStatusStub
       });
-      env.stub(SourceTrackingService, 'createSourceTracking').resolves({
+      env.stub(SourceTrackingService, 'getSourceTracking').resolves({
         ensureLocalTracking: async () => {}
       });
     });
