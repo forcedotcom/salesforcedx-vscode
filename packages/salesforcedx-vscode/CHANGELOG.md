@@ -1,4 +1,4 @@
-# 58.16.0 - October 6, 2023
+# 58.16.0 - October 4, 2023
 
 ## Added
 
@@ -13,7 +13,7 @@
 - We migrated breakpoints and debugging commands and flags to the new `sf-style`. We also migrated org display commands and flags to `sf-style`. More reprieve from those annoying warnings!  ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072), [PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
 
 #### forcedotcom/lightning-language-server
-- We fixed the LWC Language Server so that it no longer crashes on startup.  Thank you [divmain](https://github.com/divmain) for your contribution. ([PR #578](https://github.com/forcedotcom/lightning-language-server/pull/578), [ISSUE #4994](https://github.com/forcedotcom/salesforcedx-vscode/issues/4994))
+- We fixed the LWC Language Server so that it no longer crashes on startup. Thank you [divmain](https://github.com/divmain) for your contribution. ([PR #578](https://github.com/forcedotcom/lightning-language-server/pull/578), [ISSUE #4994](https://github.com/forcedotcom/salesforcedx-vscode/issues/4994))
 
 
 # 58.15.0 - September 22, 2023
