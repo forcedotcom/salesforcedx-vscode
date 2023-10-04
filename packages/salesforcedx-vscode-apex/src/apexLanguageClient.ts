@@ -54,7 +54,7 @@ export class ApexLanguageClient extends LanguageClient {
         nls.localize('terminate_show_processes')
       ) ?? 'dismissed';
 
-      if (choice === nls.localize('terminate_processes') && await terminationConfirmed(orphanedCount)) {
+      if (choice === nls.localize('terminate_processes') && await terminationConfirmation(orphanedCount)) {
         for (const processInfo of orphanedProcesses) {
           try {
             await terminateProcess(processInfo.pid);
@@ -79,14 +79,14 @@ export class ApexLanguageClient extends LanguageClient {
   }
 }
 
-async function terminationConfirmed(orphanedCount: number): Promise<boolean> {
+async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
   const choice = await vscode.window.showWarningMessage(
     nls.localize(
       'terminate_processes_confirm',
       orphanedCount
     ),
     nls.localize('yes'),
-    nls.localize('no')
+    nls.localize('cancel')
   );
   return choice === nls.localize('yes');
 }
