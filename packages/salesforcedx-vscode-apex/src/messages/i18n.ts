@@ -100,5 +100,5 @@ export const messages = {
   yes: 'Yes',
   cancel: 'Cancel',
   terminate_processes_title: 'Terminate Orphaned Processes',
-  orphan_process_advice: 'The list of processes below have been identified as Apex Language Server instance that were not properly shutdown. These processes can be stopped using the warning message that brought you here or you can hand this task yourself. If you choose to terminate the processes yourself, please follow your platform documentation to find the application of command line tools to stop these processes.'
+  orphan_process_advice: "The list of processes below are Apex Language Server instances that didn't properly shutdown. These processes can be stopped from the warning message that brought you here, or you can handle this task yourself. If you choose to terminate these processes yourself, refer to relevant documentation to stop these processes."
 };
