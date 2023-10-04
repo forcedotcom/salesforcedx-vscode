@@ -1,3 +1,23 @@
+# 58.16.0 - October 6, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Fixed an Apex snippet and added a few more ([PR #5108](https://github.com/forcedotcom/salesforcedx-vscode/pull/5108))
+
+#### salesforcedx-vscode-core
+
+- Update STL Implementation to Speed Up Deploy/Retrieve Operations ([PR #5115](https://github.com/forcedotcom/salesforcedx-vscode/pull/5115))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Change breakpoints and debugging commands and flags to sf style ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072))
+
+- Change org display commands and flags to sf style ([PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
+
 # 58.15.0 - September 22, 2023
 
 ## Fixed
