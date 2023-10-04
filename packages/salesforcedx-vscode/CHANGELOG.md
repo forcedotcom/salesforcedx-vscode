@@ -4,19 +4,18 @@
 
 #### salesforcedx-vscode-apex
 
-- Fixed an Apex snippet and added a few more ([PR #5108](https://github.com/forcedotcom/salesforcedx-vscode/pull/5108))
+- We fixed an Apex snippet and added some cool new ones. Thank you [Vishal Skywalker](https://github.com/Vishal-skywalker) for your contribution. It is greatly appreciated. ([PR #5108](https://github.com/forcedotcom/salesforcedx-vscode/pull/5108))
 
 #### salesforcedx-vscode-core
 
-- Update STL Implementation to Speed Up Deploy/Retrieve Operations ([PR #5115](https://github.com/forcedotcom/salesforcedx-vscode/pull/5115))
+- We made an update to the STL implementation so that Deploy and Retrieve Operations are now faster. ([PR #5115](https://github.com/forcedotcom/salesforcedx-vscode/pull/5115))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Change breakpoints and debugging commands and flags to sf style ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072))
+- We migrated breakpoints and debugging commands and flags to the new `sf-style`. We also migrated org display commands and flags to `sf-style`. More reprieve from those annoying warnings!  ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072), [PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
 
-- Change org display commands and flags to sf style ([PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
 
 # 58.15.0 - September 22, 2023
 
