@@ -33,9 +33,7 @@ import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
 import {
   ClientStatus,
-  ProcessDetail,
   enableJavaDocSymbols,
-  findAndCheckOrphanedProcesses,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -45,6 +43,7 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
+import { resolveAnyFoundOrphanLanguageServers } from './languageServerOrphanHandler';
 
 let languageClient: ApexLanguageClient | undefined;
 const languageServerStatusBarItem = new ApexLSPStatusBarItem();
@@ -372,11 +371,3 @@ function addOnReadyHandlerToLanguageClient(
       });
   }
 }
-function showOrphanedProcessesDialog(orphanedProcesses: ProcessDetail[]) {
-  throw new Error('Function not implemented.');
-}
-
-function resolveAnyFoundOrphanLanguageServers() {
-  throw new Error('Function not implemented.');
-}
-

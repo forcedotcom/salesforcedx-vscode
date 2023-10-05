@@ -8,6 +8,7 @@
 import { execSync } from 'child_process';
 import { SIGKILL } from 'constants';
 import { UBER_JAR_NAME } from '../constants';
+import { telemetryService } from '../telemetry';
 
 export type ProcessDetail = {
   pid: number;
@@ -59,7 +60,8 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
       return processInfo;
     })
     .filter(processInfo => processInfo.orphaned);
-
+  orphanedProcesses.forEach(processInfo => {
+  });
   return orphanedProcesses;
 }
 
