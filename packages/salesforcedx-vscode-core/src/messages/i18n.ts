@@ -681,5 +681,11 @@ export const messages = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message:
     'File name cannot exceed {0} characters',
-  source_status: 'Source Status'
+  source_status: 'Source Status',
+  ProcessFlowMigration: 'ProcessFlowMigration',
+  SkillType: 'SkillType',
+  TimeSheetTemplate: 'TimeSheetTemplate',
+  MessagingChannel: 'MessagingChannel',
+  SchedulingObjective: 'SchedulingObjective',
+  SchedulingRule: 'SchedulingRule'
 };
