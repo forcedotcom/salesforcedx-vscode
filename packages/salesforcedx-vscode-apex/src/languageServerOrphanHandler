@@ -1,0 +1,94 @@
+
+import * as vscode from 'vscode';
+import { channelService } from './channels';
+import { ProcessDetail, findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils';
+import { nls } from './messages';
+
+const YES = nls.localize('yes');
+const CANCEL = nls.localize('cancel');
+const CONFIRM = nls.localize('terminate_processes_confirm');
+const SHOW_PROCESSES = nls.localize('terminate_show_processes');
+const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes')
+const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
+const DISMISSED_DEFAULT = nls.localize('dismissed');
+const PROCESS_ID = nls.localize('process_id');
+const PROCESS_PARENT_ID = nls.localize('parent_process_id');
+const COMMAND = nls.localize('process_command');
+
+// these messages contain replacable parameters, no cannot localize yet
+const TERMINATE_ORPHANGED_PROCESSES = 'terminate_orphaned_language_server_instances';
+const TERMINATED_PROCESS = 'terminated_orphaned_process';
+const TERMINATE_FAILED = 'terminate_failed';
+
+
+const ADVICE = nls.localize('orphan_process_advice');
+export async function showOrphanedProcessesDialog(orphanedProcesses: ProcessDetail[]) {
+  const orphanedCount = orphanedProcesses.length;
+
+  if (orphanedCount === 0) {
+    return;
+  }
+
+  let choice: string | undefined = nls.localize(SHOW_PROCESSES);
+  do {
+    choice = await vscode.window.showWarningMessage(
+      nls.localize(
+        TERMINATE_ORPHANGED_PROCESSES,
+        orphanedCount
+      ),
+      TERMINATE_PROCESSES_BTN,
+      SHOW_PROCESSES_BTN
+    ) ?? DISMISSED_DEFAULT;
+
+    if (requestsTermination(choice) && await terminationConfirmation(orphanedCount)) {
+      for (const processInfo of orphanedProcesses) {
+        try {
+          await terminateProcess(processInfo.pid);
+          channelService.appendLine(nls.localize(TERMINATED_PROCESS, processInfo.pid));
+        } catch (err) {
+          channelService.appendLine(nls.localize(TERMINATE_FAILED, processInfo.pid, err.message));
+        }
+      }
+    } else if (showProcesses(choice)) {
+      const processId: string = PROCESS_ID;
+      const parentProcessId: string = PROCESS_PARENT_ID;
+      const processCommand: string = COMMAND;
+      const title = `${processId} ${parentProcessId} ${processCommand}`;
+      const titleUnderline = `${'='.repeat(processId.length)} ${'='.repeat(parentProcessId.length)} ${'='.repeat(processCommand.length)}`;
+      const processList = orphanedProcesses.map(processInfo => {
+        return `${processInfo.pid.toString().padStart(processId.length)} ${processInfo.ppid.toString().padStart(parentProcessId.length)} ${processInfo.command}`;
+      });
+      channelService.showChannelOutput();
+      channelService.appendLine([ADVICE, '', title, titleUnderline, ...processList].join('\n'));
+    }
+  } while (!choice || showProcesses(choice));
+}
+
+
+async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
+  const choice = await vscode.window.showWarningMessage(
+    nls.localize(
+      CONFIRM,
+      orphanedCount
+    ),
+    YES,
+    CANCEL
+  );
+  return choice === YES;
+}
+
+function requestsTermination(choice: string | undefined): boolean {
+  return choice === nls.localize(TERMINATE_PROCESSES_BTN);
+}
+
+function showProcesses(choice: string) {
+  return choice === SHOW_PROCESSES_BTN;
+}
+
+export function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
+  const orphanedProcesses = findAndCheckOrphanedProcesses();
+  if (orphanedProcesses.length > 0) {
+    void showOrphanedProcessesDialog(orphanedProcesses);
+  }
+  return Promise.resolve();
+}

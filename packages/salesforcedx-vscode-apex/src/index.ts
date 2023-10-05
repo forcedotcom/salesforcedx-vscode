@@ -33,13 +33,14 @@ import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
 import {
   ClientStatus,
+  ProcessDetail,
   enableJavaDocSymbols,
+  findAndCheckOrphanedProcesses,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   languageClientUtils
 } from './languageUtils';
-import { findAndCheckOrphanedProcesses, ProcessDetail, terminateProcess } from './languageUtils/languageServerUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
@@ -316,10 +317,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     languageClientUtils.setClientInstance(languageClient);
 
-    const orphanedProcesses = findAndCheckOrphanedProcesses();
-    if (orphanedProcesses.length > 0) {
-      void languageClient.showOrphanedProcessesDialog(orphanedProcesses);
-    }
+    void resolveAnyFoundOrphanLanguageServers();
 
     const handle = languageClient.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
@@ -374,3 +372,11 @@ function addOnReadyHandlerToLanguageClient(
       });
   }
 }
+function showOrphanedProcessesDialog(orphanedProcesses: ProcessDetail[]) {
+  throw new Error('Function not implemented.');
+}
+
+function resolveAnyFoundOrphanLanguageServers() {
+  throw new Error('Function not implemented.');
+}
+

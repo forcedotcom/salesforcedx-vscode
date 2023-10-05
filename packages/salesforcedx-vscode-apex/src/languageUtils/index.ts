@@ -16,3 +16,5 @@ export {
 } from './languageClientUtils';
 
 export { enableJavaDocSymbols } from './javaDocSymbols';
+
+export * from './languageServerUtils';

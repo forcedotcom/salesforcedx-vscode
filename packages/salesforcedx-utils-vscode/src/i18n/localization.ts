@@ -46,6 +46,14 @@ export class Message implements LocalizationProvider {
     this.delegate = delegate;
   }
 
+  /**
+   * 
+   * @param label The label to localize. The label can contain format specifiers in the form of "%<type>"
+   * where <type> is one of the following:
+   * %s, %d, %i, %f, %j, %o, %O. See https://nodejs.org/api/util.html#util_util_format_format_args for more details.
+   * 
+   * @returns 
+   */
   public localize(label: string, ...args: any[]): string {
     let possibleLabel = this.getLabel(label);
 
@@ -61,6 +69,7 @@ export class Message implements LocalizationProvider {
     }
 
     if (args.length >= 1) {
+      // split the label by the format specifiers
       const expectedNumArgs = possibleLabel.split(/%[sdifjoO]/).length - 1;
       if (args.length !== expectedNumArgs) {
         // just log it, we might want to hide some in some languges on purpose
