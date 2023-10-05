@@ -31,6 +31,7 @@ import {
 import { LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
+import { resolveAnyFoundOrphanLanguageServers } from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -43,7 +44,6 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
-import { resolveAnyFoundOrphanLanguageServers } from './languageServerOrphanHandler';
 
 let languageClient: ApexLanguageClient | undefined;
 const languageServerStatusBarItem = new ApexLSPStatusBarItem();

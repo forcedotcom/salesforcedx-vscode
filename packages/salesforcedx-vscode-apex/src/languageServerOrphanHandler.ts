@@ -1,7 +1,7 @@
 
 import * as vscode from 'vscode';
 import { channelService } from './channels';
-import { ProcessDetail, findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils';
+import { findAndCheckOrphanedProcesses, ProcessDetail, terminateProcess } from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -9,15 +9,15 @@ const ADVICE = nls.localize('orphan_process_advice');
 const YES = nls.localize('yes');
 const CANCEL = nls.localize('cancel');
 const SHOW_PROCESSES = nls.localize('terminate_show_processes');
-const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes')
+const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
 const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
 const DISMISSED_DEFAULT = nls.localize('dismissed');
 const PROCESS_ID = nls.localize('process_id');
 const PROCESS_PARENT_ID = nls.localize('parent_process_id');
 const COMMAND = nls.localize('process_command');
 
-// these messages contain replacable parameters, no cannot localize yet
-const CONFIRM = 'terminate_processes_confirm'
+// these messages contain replacable parameters, cannot localize yet
+const CONFIRM = 'terminate_processes_confirm';
 const TERMINATE_ORPHANGED_PROCESSES = 'terminate_orphaned_language_server_instances';
 const TERMINATED_PROCESS = 'terminated_orphaned_process';
 const TERMINATE_FAILED = 'terminate_failed';
@@ -36,7 +36,8 @@ export async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
           showTerminationFailed(processInfo, err);
           telemetryService.sendEventData(
             'apexLSPStartup',
-            { terminationErrorMessage: typeof err === 'string' ? err : err?.message ? err.message : 'unknown' }, { terminateSuccessful: 0 });
+            { terminationErrorMessage: typeof err === 'string' ? err : err?.message ? err.message : 'unknown' },
+            { terminateSuccessful: 0 });
         }
       }
     } else {
@@ -85,7 +86,6 @@ export async function getResolutionForOrphanProcesses(orphanedProcesses: Process
   } while (!choice || showProcesses(choice));
   return false;
 }
-
 
 async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
   const choice = await vscode.window.showWarningMessage(

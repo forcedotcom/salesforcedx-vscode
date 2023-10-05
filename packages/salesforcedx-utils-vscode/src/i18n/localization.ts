@@ -47,12 +47,11 @@ export class Message implements LocalizationProvider {
   }
 
   /**
-   * 
+   * Localizes the given string.
    * @param label The label to localize. The label can contain format specifiers in the form of "%<type>"
    * where <type> is one of the following:
    * %s, %d, %i, %f, %j, %o, %O. See https://nodejs.org/api/util.html#util_util_format_format_args for more details.
-   * 
-   * @returns 
+   * @returns string
    */
   public localize(label: string, ...args: any[]): string {
     let possibleLabel = this.getLabel(label);
