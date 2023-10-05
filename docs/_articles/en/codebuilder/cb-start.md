@@ -44,7 +44,7 @@ You can change the org you are connected to by clicking on the name of the curre
 
 You’re now in your developer environment in Code Builder. Code Builder has a rich IDE and it gives you access to cool Salesforce-specific development tools through the expanded Salesforce Extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
 
-![code_builder_ui](../../../images/code_builder_ui.jpg)
+![code_builder_ui](../../../images/code_builder_ga_ui.jpg)
 The Code Builder user interface is divided into five main areas.
 
 **Activity Bar**: Located on the left-hand side, it contains iconic buttons to switch between different views. In our example, the Explorer view is active.
