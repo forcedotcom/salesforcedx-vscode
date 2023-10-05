@@ -17,11 +17,11 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceAliasList extends SfdxCommandletExecutor<{}> {
+export class AliasList extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_alias_list_text'))
-      .withArg('force:alias:list')
+      .withDescription(nls.localize('alias_list_text'))
+      .withArg('alias:list')
       .withLogName('force_alias_list')
       .build();
   }
@@ -29,13 +29,13 @@ export class ForceAliasList extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceAliasList();
+const executor = new AliasList();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor
 );
 
-export async function forceAliasList() {
+export async function aliasList() {
   await commandlet.run();
 }

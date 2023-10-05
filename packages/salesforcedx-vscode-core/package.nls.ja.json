@@ -26,7 +26,7 @@
   "force_source_status_remote_text": "SFDX: デフォルトのスクラッチ組織内の変更を表示",
   "debugger_stop_text": "SFDX: Apex デバッガセッションを停止",
   "force_config_list_text": "SFDX: すべての設定変数を一覧表示",
-  "force_alias_list_text": "SFDX: すべてのエイリアスを一覧表示",
+  "alias_list_text": "SFDX: すべてのエイリアスを一覧表示",
   "force_org_delete_default_text": "SFDX: デフォルトの組織を削除",
   "force_org_delete_username_text": "SFDX: 組織を削除...",
   "org_display_default_text": "SFDX: デフォルトの組織の詳細を表示",

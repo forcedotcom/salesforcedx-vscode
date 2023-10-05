@@ -6,17 +6,17 @@
  */
 
 import { expect } from 'chai';
-import { ForceAliasList } from '../../../src/commands';
+import { AliasList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Alias List', () => {
+describe('Alias List', () => {
   it('Should build the alias list command', async () => {
-    const aliasList = new ForceAliasList();
+    const aliasList = new AliasList();
     const aliasListCommand = aliasList.build({});
-    expect(aliasListCommand.toCommand()).to.equal('sfdx force:alias:list');
+    expect(aliasListCommand.toCommand()).to.equal('sfdx alias:list');
     expect(aliasListCommand.description).to.equal(
-      nls.localize('force_alias_list_text')
+      nls.localize('alias_list_text')
     );
   });
 });
