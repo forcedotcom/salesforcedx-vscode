@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "node": "^16.15.1",
-    "npm": "^6",
+    "npm": "^9",
     "ts-node": "10.9.1"
   },
   "devDependencies": {
