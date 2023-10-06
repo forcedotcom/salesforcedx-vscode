@@ -28,7 +28,7 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
+import { APEX_LSP_STARTUP, LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
 import { resolveAnyFoundOrphanLanguageServers } from './languageServerOrphanHandler';
@@ -345,15 +345,11 @@ function addOnReadyHandlerToLanguageClient(
       .then(async () => {
         if (languageClient) {
           languageClient.onNotification('indexer/done', async () => {
-            await getTestOutlineProvider().refresh();
-            languageServerStatusBarItem.ready();
-
-            languageClientUtils.setStatus(ClientStatus.Ready, '');
-            languageClient?.errorHandler?.serviceHasStartedSuccessfully();
+            await languageServerReady();
           });
         }
         const startTime = telemetryService.getEndHRTime(langClientHRStart);
-        telemetryService.sendEventData('apexLSPStartup', undefined, {
+        telemetryService.sendEventData(APEX_LSP_STARTUP, undefined, {
           activationTime: startTime
         });
       })
@@ -370,4 +366,12 @@ function addOnReadyHandlerToLanguageClient(
         );
       });
   }
+}
+
+export async function languageServerReady() {
+  await getTestOutlineProvider().refresh();
+  languageServerStatusBarItem.ready();
+
+  languageClientUtils.setStatus(ClientStatus.Ready, '');
+  languageClient?.errorHandler?.serviceHasStartedSuccessfully();
 }

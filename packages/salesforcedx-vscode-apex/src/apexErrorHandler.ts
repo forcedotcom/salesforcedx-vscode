@@ -11,8 +11,7 @@ import {
   ErrorAction,
   ErrorHandler,
   Message
-} from 'vscode-languageclient';
-import { nls } from './messages';
+} from 'vscode-languageclient/node';
 
 export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   private restarts: number[];

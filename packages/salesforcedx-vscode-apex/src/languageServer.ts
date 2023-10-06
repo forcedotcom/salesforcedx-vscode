@@ -7,11 +7,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  LanguageClientOptions,
-  RevealOutputChannelOn
-} from 'vscode-languageclient';
-import { Executable } from 'vscode-languageclient/node';
+import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';

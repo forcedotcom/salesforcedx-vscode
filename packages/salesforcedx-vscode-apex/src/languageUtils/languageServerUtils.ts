@@ -60,8 +60,6 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
       return processInfo;
     })
     .filter(processInfo => processInfo.orphaned);
-  orphanedProcesses.forEach(processInfo => {
-  });
   return orphanedProcesses;
 }
 

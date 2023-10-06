@@ -1,47 +1,48 @@
 
+import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { findAndCheckOrphanedProcesses, ProcessDetail, terminateProcess } from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
-const ADVICE = nls.localize('orphan_process_advice');
-const YES = nls.localize('yes');
-const CANCEL = nls.localize('cancel');
-const SHOW_PROCESSES = nls.localize('terminate_show_processes');
-const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
-const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
-const DISMISSED_DEFAULT = nls.localize('dismissed');
-const PROCESS_ID = nls.localize('process_id');
-const PROCESS_PARENT_ID = nls.localize('parent_process_id');
-const COMMAND = nls.localize('process_command');
+const APEX_LSP_ORPHAN = 'apexLSPOrphan';
+export const ADVICE = nls.localize('orphan_process_advice');
+export const YES = nls.localize('yes');
+export const CANCEL = nls.localize('cancel');
+export const SHOW_PROCESSES = nls.localize('terminate_show_processes');
+export const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
+export const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
+export const DISMISSED_DEFAULT = 'dismissed';
+export const PROCESS_ID = nls.localize('process_id');
+export const PROCESS_PARENT_ID = nls.localize('parent_process_id');
+export const COMMAND = nls.localize('process_command');
 
-// these messages contain replacable parameters, cannot localize yet
-const CONFIRM = 'terminate_processes_confirm';
-const TERMINATE_ORPHANGED_PROCESSES = 'terminate_orphaned_language_server_instances';
-const TERMINATED_PROCESS = 'terminated_orphaned_process';
-const TERMINATE_FAILED = 'terminate_failed';
+// these messages contain replaceable parameters, cannot localize yet
+export const CONFIRM = 'terminate_processes_confirm';
+export const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
+export const TERMINATED_PROCESS = 'terminated_orphaned_process';
+export const TERMINATE_FAILED = 'terminate_failed';
 
 export async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
   const orphanedProcesses = findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {
-      telemetryService.sendEventData('apexLSPStartup', undefined, { orphanCount: orphanedProcesses.length, didTerminate: 1 });
+      telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, { orphanCount: orphanedProcesses.length, didTerminate: 1 });
       for (const processInfo of orphanedProcesses) {
         try {
           await terminateProcess(processInfo.pid);
-          telemetryService.sendEventData('apexLSPStartup', undefined, { terminateSuccessful: 1 });
+          telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, { terminateSuccessful: 1 });
           showProcessTerminated(processInfo);
         } catch (err) {
           showTerminationFailed(processInfo, err);
-          telemetryService.sendEventData(
-            'apexLSPStartup',
-            { terminationErrorMessage: typeof err === 'string' ? err : err?.message ? err.message : 'unknown' },
-            { terminateSuccessful: 0 });
+          telemetryService.sendException(
+            APEX_LSP_ORPHAN,
+            typeof err === 'string' ? err : err?.message ? err.message : 'unknown');
         }
       }
     } else {
-      telemetryService.sendEventData('apexLSPStartup', undefined, { orphanCount: orphanedProcesses.length, didTerminate: 0 });
+      telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, { orphanCount: orphanedProcesses.length, didTerminate: 0 });
     }
   }
 }
@@ -51,18 +52,18 @@ export async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
  * @param orphanedProcesses
  * @returns boolean
  */
-export async function getResolutionForOrphanProcesses(orphanedProcesses: ProcessDetail[]): Promise<boolean> {
+export const getResolutionForOrphanProcesses = async (orphanedProcesses: ProcessDetail[]): Promise<boolean> => {
   const orphanedCount = orphanedProcesses.length;
 
   if (orphanedCount === 0) {
     return false;
   }
 
-  let choice: string | undefined = nls.localize(SHOW_PROCESSES);
+  let choice: string | undefined;
   do {
     choice = await vscode.window.showWarningMessage(
       nls.localize(
-        TERMINATE_ORPHANGED_PROCESSES,
+        TERMINATE_ORPHANED_PROCESSES,
         orphanedCount
       ),
       TERMINATE_PROCESSES_BTN,
@@ -72,22 +73,38 @@ export async function getResolutionForOrphanProcesses(orphanedProcesses: Process
     if (requestsTermination(choice) && await terminationConfirmation(orphanedCount)) {
       return true;
     } else if (showProcesses(choice)) {
-      const processId: string = PROCESS_ID;
-      const parentProcessId: string = PROCESS_PARENT_ID;
-      const processCommand: string = COMMAND;
-      const title = `${processId} ${parentProcessId} ${processCommand}`;
-      const titleUnderline = `${'='.repeat(processId.length)} ${'='.repeat(parentProcessId.length)} ${'='.repeat(processCommand.length)}`;
-      const processList = orphanedProcesses.map(processInfo => {
-        return `${processInfo.pid.toString().padStart(processId.length)} ${processInfo.ppid.toString().padStart(parentProcessId.length)} ${processInfo.command}`;
-      });
-      channelService.showChannelOutput();
-      channelService.appendLine([ADVICE, '', title, titleUnderline, ...processList].join('\n'));
+      showOrphansInChannel(orphanedProcesses);
     }
   } while (!choice || showProcesses(choice));
   return false;
+};
+
+export function showOrphansInChannel(orphanedProcesses: ProcessDetail[]) {
+  const columns: Column[] = [
+    { key: 'pid', label: PROCESS_ID },
+    { key: 'ppid', label: PROCESS_PARENT_ID },
+    { key: 'command', label: COMMAND }
+  ];
+
+  const rows: Row[] = orphanedProcesses.map(processInfo => {
+    return {
+      pid: processInfo.pid.toString(),
+      ppid: processInfo.ppid.toString(),
+      // split command into equal chunks no more than 70 characters long
+      command: processInfo.command.length <= 70 ? processInfo.command : processInfo.command.match(/.{1,70}/g)?.join('\n') ?? ''
+    };
+  });
+
+  const table: Table = new Table();
+  const tableString = table.createTable(rows, columns);
+
+  channelService.showChannelOutput();
+  channelService.appendLine(ADVICE);
+  channelService.appendLine('');
+  channelService.appendLine(tableString);
 }
 
-async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
+export async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
   const choice = await vscode.window.showWarningMessage(
     nls.localize(
       CONFIRM,
@@ -99,18 +116,18 @@ async function terminationConfirmation(orphanedCount: number): Promise<boolean> 
   return choice === YES;
 }
 
-function requestsTermination(choice: string | undefined): boolean {
+export function requestsTermination(choice: string | undefined): boolean {
   return choice === TERMINATE_PROCESSES_BTN;
 }
 
-function showProcesses(choice: string) {
+export function showProcesses(choice: string): boolean {
   return choice === SHOW_PROCESSES_BTN;
 }
 
-function showProcessTerminated(processDetal: ProcessDetail) {
-  channelService.appendLine(nls.localize(TERMINATED_PROCESS, processDetal.pid));
+export function showProcessTerminated(processDetail: ProcessDetail): void {
+  channelService.appendLine(nls.localize(TERMINATED_PROCESS, processDetail.pid));
 }
 
-function showTerminationFailed(processInfo: ProcessDetail, err: any) {
+export function showTerminationFailed(processInfo: ProcessDetail, err: any): void {
   channelService.appendLine(nls.localize(TERMINATE_FAILED, processInfo.pid, err.message));
 }
