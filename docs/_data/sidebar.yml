@@ -37,7 +37,7 @@
         ja: 何が違うの
       url: /codebuilder/cb-diffs
     - title:
-        en: Install Code Builder
+        en: Set Up Code Builder
         ja: コードビルダーを設定する
       url: /codebuilder/cb-setup
     - title:
