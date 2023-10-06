@@ -22,6 +22,8 @@ on:
         required: false
         default: true
         type: boolean
+  schedule:
+    - cron: 10 6 * * *
 
 jobs:
 
