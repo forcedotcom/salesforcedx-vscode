@@ -22,17 +22,19 @@ If you want to change how suggestions are pre-selected, see [IntelliSense - Sugg
 Code snippets are available for scaffolding class and interface definitions, and a variety of statements such as loops and conditional statements, and so on. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions.
 
 Out of the box snippets for Salesforce development are available in these repositories:
-- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
-- [Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc.json) 
 
+- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
+- [HTML Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-html.json)
+- [JavaScript Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-js.json)
 
 ### Example Custom Snippet
+
 The real power of snippets lies in being able to customize snippets for your own use. Follow these steps to create a custom Apex snippet that lets you quickly write a simple SOQL query:
 
-1. Run the **Snippets: Configure User Snippets** command from the Command Palette. 
+1. Run the **Snippets: Configure User Snippets** command from the Command Palette.
 2. Select ``apex.json`` to open the file.
 3. Add this snippet code to the file:
-   
+
    ```
    "SOQL" : {
         "prefix": "soql",
@@ -42,9 +44,10 @@ The real power of snippets lies in being able to customize snippets for your own
         "description": "Apex SOQL query"
     }
    ```
+
 4. Save the file.
-5.  Use this snippet in your Apex class file by typing "soql" and selecting to add this snippet to your code.
-6.  The code snippet `` [SELECT field1, field2 FROM SobjectName WHERE clause];`` is added to your Apex file. 
+5. Use this snippet in your Apex class file by typing "soql" and selecting to add this snippet to your code.
+6. The code snippet ``[SELECT field1, field2 FROM SobjectName WHERE clause];`` is added to your Apex file.
 
 See [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets) for more information about snippets.
 
@@ -58,10 +61,10 @@ In addition to the generic snippets feature available in VS Code, you can use cu
 //Copyright (c) <year><copyright holder>
 
 public with sharing class <%= apiName %> {
-    		public <%= apiName %>(String prop) {
-			this.prop = prop;
-    		}
-		@AuraEnabled
+      public <%= apiName %>(String prop) {
+   this.prop = prop;
+      }
+  @AuraEnabled
     public static List<SObject> getRecords(){
       try {
           return [Select Id from Sobject];
@@ -71,10 +74,11 @@ public with sharing class <%= apiName %> {
     }
 }
 ```
+
 1. Run the **SFDX: Create Apex Class** command from the Command Palette.
 2. Enter `ApexClass` for filename.
 3. Accept the default directory location.
-   
+
 Confirm that the `ApexClass.cls` file contains your custom code.
 
 ## Intellisense for SObjects
@@ -151,9 +155,11 @@ Declare Missing Methods quick fix can be invoked in the following ways:
 > Note: Keyboard shortcut for the Quick Fix widget is <kbd>Cmd+</kbd>. in macOS and <kbd>Ctrl+</kbd> in Windows and Linux.
 
 ## Anonymous Apex
+
 It’s common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/`apex that contains an example `hello.apex` file. We recommend that you use this folder to create your Anonymous Apex files using the `.apex` file extension.
 
 You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways:
+
  1. Select any Apex code and run the command **SFDX: Execute Anonymous Apex with Currently Selected Text**.
  2. Run the command **SFDX: Execute Anonymous Apex with Editor Contents** to execute the entire context of a file.
 

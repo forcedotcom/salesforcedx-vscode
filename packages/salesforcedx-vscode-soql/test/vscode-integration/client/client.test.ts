@@ -20,7 +20,6 @@ import {
   WorkspaceConfiguration,
   commands
 } from 'vscode';
-import * as vscode from 'vscode';
 import { clearDiagnostics } from '../../../src/lspClient/client';
 import { stubMockConnection } from '../testUtilities';
 import {
@@ -29,6 +28,7 @@ import {
 } from '../../../src/constants';
 import { Connection } from '@salesforce/core';
 
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 async function sleep(ms: number = 0) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -113,7 +113,7 @@ describe('SOQL language client', () => {
     await waitUntil(
       () => languages.getDiagnostics(soqlFileUri).length === 0,
       10,
-      100
+      300
     );
 
     const fileDiags = languages.getDiagnostics(soqlFileUri);

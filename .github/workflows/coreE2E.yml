@@ -1,0 +1,147 @@
+name: Core End to End Tests
+
+on:
+
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      anInitialSuite:
+        description: 'anInitialSuite.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      authentication:
+        description: 'authentication.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieve:
+        description: 'deployAndRetrieve.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      manifestBuilder:
+        description: 'manifestBuilder.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: 'pushAndPull.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      sObjectsDefinitions:
+        description: 'sObjectsDefinitions.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: 'templates.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      anInitialSuite:
+        description: 'anInitialSuite.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      authentication:
+        description: 'authentication.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieve:
+        description: 'deployAndRetrieve.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      manifestBuilder:
+        description: 'manifestBuilder.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: 'pushAndPull.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      sObjectsDefinitions:
+        description: 'sObjectsDefinitions.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: 'templates.e2e.ts'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+
+  anInitialSuite:
+    if: ${{ inputs.anInitialSuite }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'anInitialSuite.e2e.ts'
+
+  authentication:
+    if: ${{ inputs.authentication }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'authentication.e2e.ts'
+
+  deployAndRetrieve:
+    if: ${{ inputs.deployAndRetrieve }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'deployAndRetrieve.e2e.ts'
+
+  manifestBuilder:
+    if: ${{ inputs.manifestBuilder }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'manifestBuilder.e2e.ts'
+
+  pushAndPull:
+    if: ${{ inputs.pushAndPull }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'pushAndPull.e2e.ts'
+
+  sObjectsDefinitions:
+    if: ${{ inputs.sObjectsDefinitions }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'sObjectsDefinitions.e2e.ts'
+
+  templates:
+    if: ${{ inputs.templates }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'templates.e2e.ts'
