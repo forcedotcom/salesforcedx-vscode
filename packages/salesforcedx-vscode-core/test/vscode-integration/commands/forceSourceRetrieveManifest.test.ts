@@ -26,7 +26,7 @@ const env = $$.SANDBOX;
 
 describe('Force Source Retrieve with Manifest Option', () => {
   beforeEach(() => {
-    env.stub(SourceTrackingService, 'createSourceTracking');
+    env.stub(SourceTrackingService, 'getSourceTracking');
     env.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
   });
   afterEach(() => {

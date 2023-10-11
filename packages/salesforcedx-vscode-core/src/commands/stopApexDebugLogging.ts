@@ -28,7 +28,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
+export class StopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
     return deleteTraceFlag();
   }
@@ -73,12 +73,12 @@ export async function turnOffLogging(): Promise<void> {
 function deleteTraceFlag(): Command {
   const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
   return new SfdxCommandBuilder()
-    .withDescription(nls.localize('force_stop_apex_debug_logging'))
-    .withArg('force:data:record:delete')
-    .withFlag('--sobjecttype', 'TraceFlag')
-    .withFlag('--sobjectid', nonNullTraceFlag)
-    .withArg('--usetoolingapi')
-    .withLogName('force_stop_apex_debug_logging')
+    .withDescription(nls.localize('stop_apex_debug_logging'))
+    .withArg('data:delete:record')
+    .withFlag('--sobject', 'TraceFlag')
+    .withFlag('--record-id', nonNullTraceFlag)
+    .withArg('--use-tooling-api')
+    .withLogName('stop_apex_debug_logging')
     .build();
 }
 class ActiveLogging implements ParametersGatherer<{}> {
@@ -91,13 +91,13 @@ class ActiveLogging implements ParametersGatherer<{}> {
 }
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new ActiveLogging();
-const executor = new ForceStopApexDebugLoggingExecutor();
+const executor = new StopApexDebugLoggingExecutor();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor
 );
 
-export async function forceStopApexDebugLogging() {
+export async function stopApexDebugLogging() {
   await commandlet.run();
 }
