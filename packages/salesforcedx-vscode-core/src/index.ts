@@ -14,21 +14,18 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
+  aliasList,
   checkSObjectsAndRefresh,
-  forceAliasList,
+  dataQuery,
+  debuggerStop,
+  deleteSource,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
   forceAuthAccessToken,
-  forceAuthDevHub,
-  forceAuthLogoutAll,
-  forceAuthLogoutDefault,
-  forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
-  forceDataSoqlQuery,
-  forceDebuggerStop,
   forceFunctionContainerlessStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
@@ -48,15 +45,11 @@ import {
   forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
-  forceOrgDisplay,
-  forceOrgList,
-  forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
   forceRenameLightningComponent,
   forceSfdxProjectCreate,
-  forceSourceDelete,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -66,24 +59,29 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceSourceStatus,
-  forceStartApexDebugLogging,
-  forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgDisplay,
+  orgList,
+  orgLoginWeb,
+  orgLoginWebDevHub,
+  orgLogoutAll,
+  orgLogoutDefault,
+  orgOpen,
   registerFunctionInvokeCodeLensProvider,
-  SourceStatusFlags,
+  startApexDebugLogging,
+  stopApexDebugLogging,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
-import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
+import { getUserId } from './commands/startApexDebugLogging';
 import {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
@@ -123,12 +121,6 @@ import { OrgAuthInfo } from './util/authInfo';
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
-const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Local
-};
-const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
-  flag: SourceStatusFlags.Remote
-};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -138,21 +130,21 @@ function registerCommands(
     'sfdx.force.auth.accessToken',
     forceAuthAccessToken
   );
-  const forceAuthWebLoginCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.web.login',
-    forceAuthWebLogin
+  const orgLoginWebCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.web',
+    orgLoginWeb
   );
-  const forceAuthDevHubCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.dev.hub',
-    forceAuthDevHub
+  const orgLoginWebDevHubCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.web.dev.hub',
+    orgLoginWebDevHub
   );
-  const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.logout.all',
-    forceAuthLogoutAll
+  const orgLogoutAllCmd = vscode.commands.registerCommand(
+    'sfdx.org.logout.all',
+    orgLogoutAll
   );
-  const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.logout.default',
-    forceAuthLogoutDefault
+  const orgLogoutDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.logout.default',
+    orgLogoutDefault
   );
   const forceOpenDocumentationCmd = vscode.commands.registerCommand(
     'sfdx.force.open.documentation',
@@ -162,17 +154,14 @@ function registerCommands(
     'sfdx.force.org.create',
     forceOrgCreate
   );
-  const forceOrgOpenCmd = vscode.commands.registerCommand(
-    ORG_OPEN_COMMAND,
-    forceOrgOpen
+  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
+  const deleteSourceCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source',
+    deleteSource
   );
-  const forceSourceDeleteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete',
-    forceSourceDelete
-  );
-  const forceSourceDeleteCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.delete.current.file',
-    forceSourceDelete
+  const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.delete.source.current.file',
+    deleteSource
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
@@ -283,17 +272,17 @@ function registerCommands(
     forceLightningLwcTestCreate
   );
 
-  const forceDebuggerStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.debugger.stop',
-    forceDebuggerStop
+  const debuggerStopCmd = vscode.commands.registerCommand(
+    'sfdx.debugger.stop',
+    debuggerStop
   );
   const forceConfigListCmd = vscode.commands.registerCommand(
     'sfdx.force.config.list',
     forceConfigList
   );
   const forceAliasListCmd = vscode.commands.registerCommand(
-    'sfdx.force.alias.list',
-    forceAliasList
+    'sfdx.alias.list',
+    aliasList
   );
   const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
     'sfdx.force.org.delete.default',
@@ -304,26 +293,26 @@ function registerCommands(
     forceOrgDelete,
     { flag: '--targetusername' }
   );
-  const forceOrgDisplayDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.display.default',
-    forceOrgDisplay
+  const orgDisplayDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.display.default',
+    orgDisplay
   );
-  const forceOrgDisplayUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.display.username',
-    forceOrgDisplay,
-    { flag: '--targetusername' }
+  const orgDisplayUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.org.display.username',
+    orgDisplay,
+    { flag: '--target-org' }
   );
-  const forceOrgListCleanCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.list.clean',
-    forceOrgList
+  const orgListCleanCmd = vscode.commands.registerCommand(
+    'sfdx.org.list.clean',
+    orgList
   );
-  const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query.input',
-    forceDataSoqlQuery
+  const dataQueryInputCmd = vscode.commands.registerCommand(
+    'sfdx.data.query.input',
+    dataQuery
   );
-  const forceDataSoqlQuerySelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query.selection',
-    forceDataSoqlQuery
+  const dataQuerySelectionCmd = vscode.commands.registerCommand(
+    'sfdx.data.query.selection',
+    dataQuery
   );
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
@@ -344,14 +333,14 @@ function registerCommands(
     forceApexTriggerCreate
   );
 
-  const forceStartApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.force.start.apex.debug.logging',
-    forceStartApexDebugLogging
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.start.apex.debug.logging',
+    startApexDebugLogging
   );
 
-  const forceStopApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.force.stop.apex.debug.logging',
-    forceStopApexDebugLogging
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.stop.apex.debug.logging',
+    stopApexDebugLogging
   );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand(
@@ -411,12 +400,8 @@ function registerCommands(
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
-    forceAuthWebLoginCmd,
-    forceAuthDevHubCmd,
-    forceAuthLogoutAllCmd,
-    forceAuthLogoutDefaultCmd,
-    forceDataSoqlQueryInputCmd,
-    forceDataSoqlQuerySelectionCmd,
+    dataQueryInputCmd,
+    dataQuerySelectionCmd,
     forceDiffFile,
     forceFunctionCreateCmd,
     forceFunctionInvokeCmd,
@@ -425,13 +410,11 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
-    forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
-    forceOrgListCleanCmd,
     forceRefreshSObjectsCmd,
-    forceSourceDeleteCmd,
-    forceSourceDeleteCurrentFileCmd,
+    deleteSourceCmd,
+    deleteSourceCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,
@@ -457,19 +440,23 @@ function registerCommands(
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
-    forceDebuggerStopCmd,
+    debuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
-    forceOrgDisplayDefaultCmd,
-    forceOrgDisplayUsernameCmd,
+    orgDisplayDefaultCmd,
+    orgDisplayUsernameCmd,
     forceProjectCreateCmd,
     forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
-    forceStartApexDebugLoggingCmd,
-    forceStopApexDebugLoggingCmd,
+    startApexDebugLoggingCmd,
+    stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceConfigSetCmd
+    forceConfigSetCmd,
+    orgListCleanCmd,
+    orgLoginWebCmd,
+    orgLoginWebDevHubCmd,
+    orgOpenCmd
   );
 }
 
@@ -510,10 +497,10 @@ function registerInternalDevCommands(
   );
 }
 
-function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
+function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
-    () => orgList.setDefaultOrg()
+    () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
@@ -568,13 +555,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    name,
-    aiKey,
-    version
-  );
+  await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
   // Task View
@@ -713,8 +694,8 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Register org picker commands
-  const orgList = new OrgList();
-  extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
+  const newOrgList = new OrgList();
+  extensionContext.subscriptions.push(registerOrgPickerCommands(newOrgList));
 
   await setupOrgBrowser(extensionContext);
   await setupConflictView(extensionContext);
@@ -725,7 +706,7 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await registerPushOrDeployOnSave();
   await decorators.showOrg();
 
-  await setUpOrgExpirationWatcher(orgList);
+  await setUpOrgExpirationWatcher(newOrgList);
 
   // Demo mode decorator
   if (isDemoMode()) {

@@ -11,7 +11,7 @@ import {
   TestResult
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   notificationService,
@@ -29,10 +29,9 @@ import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-const $$ = testSetup();
-
 // tslint:disable:no-unused-expression
 describe('Quick launch apex tests', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let testDebuggerExec: TestDebuggerExecutor;
   const APEX_LOG_ID = 'abcd';
@@ -67,7 +66,7 @@ describe('Quick launch apex tests', () => {
       })
     });
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
+      .withArgs('target-org')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);

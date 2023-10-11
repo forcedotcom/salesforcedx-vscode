@@ -1,10 +1,9 @@
 import {
   Config,
   Org,
-  OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { ConfigUtil, workspaceUtils } from '../../../src';
+import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
 describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlias', () => {
@@ -51,7 +50,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(
-      OrgConfigProperties.TARGET_ORG,
+      TARGET_ORG_KEY,
       username
     );
     expect(writeMock).toHaveBeenCalled();
@@ -71,7 +70,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
     await ConfigUtil.setDefaultUsernameOrAlias(username);
     expect(orgStub).not.toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(
-      OrgConfigProperties.TARGET_ORG,
+      TARGET_ORG_KEY,
       username
     );
     expect(writeMock).toHaveBeenCalled();

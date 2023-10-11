@@ -14,8 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "58.6.0",
+  "version": "58.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,23 +25,23 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
-    "@salesforce/core": "^3.34.8",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "58.6.0",
-    "@salesforce/salesforcedx-utils-vscode": "58.6.0",
+    "@salesforce/core": "5.3.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "58.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "58.16.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "^8.0.1",
-    "@salesforce/templates": "^57.1.2",
+    "@salesforce/source-deploy-retrieve": "9.7.18",
+    "@salesforce/templates": "^58.0.1",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
-    "jsforce": "2.0.0-beta.20",
+    "jsforce": "2.0.0-beta.27",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "58.6.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "58.16.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -90,17 +89,17 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "^3.34.8",
-        "@salesforce/source-tracking": "3.1.1",
-        "@salesforce/templates": "^57.1.2",
-        "@salesforce/source-deploy-retrieve": "^8.0.1",
+        "@salesforce/core": "5.3.0",
+        "@salesforce/source-tracking": "4.2.14",
+        "@salesforce/templates": "^58.0.1",
+        "@salesforce/source-deploy-retrieve": "9.7.18",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -221,7 +220,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.delete.current.file",
+          "command": "sfdx.delete.source.current.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -319,7 +318,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.delete",
+          "command": "sfdx.delete.source",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -341,7 +340,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.dev.hub",
+          "command": "sfdx.org.login.web.dev.hub",
           "when": "sfdx:project_opened"
         },
         {
@@ -349,15 +348,15 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.web.login",
+          "command": "sfdx.org.login.web",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.logout.all",
+          "command": "sfdx.org.logout.all",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.logout.default",
+          "command": "sfdx.org.logout.default",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -369,7 +368,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.open",
+          "command": "sfdx.org.open",
           "when": "sfdx:project_opened"
         },
         {
@@ -421,7 +420,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.debugger.stop",
+          "command": "sfdx.debugger.stop",
           "when": "sfdx:project_opened"
         },
         {
@@ -429,23 +428,23 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.alias.list",
+          "command": "sfdx.alias.list",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.display.default",
+          "command": "sfdx.org.display.default",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.display.username",
+          "command": "sfdx.org.display.username",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.data.soql.query.input",
+          "command": "sfdx.data.query.input",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
-          "command": "sfdx.force.data.soql.query.selection",
+          "command": "sfdx.data.query.selection",
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
@@ -469,11 +468,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.start.apex.debug.logging",
+          "command": "sfdx.start.apex.debug.logging",
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         },
         {
-          "command": "sfdx.force.stop.apex.debug.logging",
+          "command": "sfdx.stop.apex.debug.logging",
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         },
         {
@@ -513,7 +512,7 @@
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.delete",
+          "command": "sfdx.delete.source",
           "when": "false"
         },
         {
@@ -525,11 +524,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.list.clean",
+          "command": "sfdx.org.list.clean",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.delete.current.file",
+          "command": "sfdx.delete.source.current.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
@@ -628,24 +627,24 @@
         "title": "%force_package_install_text%"
       },
       {
-        "command": "sfdx.force.auth.dev.hub",
-        "title": "%force_auth_web_login_authorize_dev_hub_text%"
+        "command": "sfdx.org.login.web.dev.hub",
+        "title": "%org_login_web_authorize_dev_hub_text%"
       },
       {
-        "command": "sfdx.force.auth.web.login",
-        "title": "%force_auth_web_login_authorize_org_text%"
+        "command": "sfdx.org.login.web",
+        "title": "%org_login_web_authorize_org_text%"
       },
       {
         "command": "sfdx.force.auth.accessToken",
         "title": "%force_auth_access_token_authorize_org_text%"
       },
       {
-        "command": "sfdx.force.auth.logout.all",
-        "title": "%force_auth_logout_all_text%"
+        "command": "sfdx.org.logout.all",
+        "title": "%org_logout_all_text%"
       },
       {
-        "command": "sfdx.force.auth.logout.default",
-        "title": "%force_auth_logout_default_text%"
+        "command": "sfdx.org.logout.default",
+        "title": "%org_logout_default_text%"
       },
       {
         "command": "sfdx.force.open.documentation",
@@ -656,8 +655,8 @@
         "title": "%force_org_create_default_scratch_org_text%"
       },
       {
-        "command": "sfdx.force.org.open",
-        "title": "%force_org_open_default_scratch_org_text%"
+        "command": "sfdx.org.open",
+        "title": "%org_open_default_scratch_org_text%"
       },
       {
         "command": "sfdx.force.source.pull",
@@ -740,16 +739,16 @@
         "title": "%force_lightning_interface_create_text%"
       },
       {
-        "command": "sfdx.force.debugger.stop",
-        "title": "%force_debugger_stop_text%"
+        "command": "sfdx.debugger.stop",
+        "title": "%debugger_stop_text%"
       },
       {
         "command": "sfdx.force.config.list",
         "title": "%force_config_list_text%"
       },
       {
-        "command": "sfdx.force.alias.list",
-        "title": "%force_alias_list_text%"
+        "command": "sfdx.alias.list",
+        "title": "%alias_list_text%"
       },
       {
         "command": "sfdx.force.org.delete.default",
@@ -760,24 +759,24 @@
         "title": "%force_org_delete_username_text%"
       },
       {
-        "command": "sfdx.force.org.display.default",
-        "title": "%force_org_display_default_text%"
+        "command": "sfdx.org.display.default",
+        "title": "%org_display_default_text%"
       },
       {
-        "command": "sfdx.force.org.display.username",
-        "title": "%force_org_display_username_text%"
+        "command": "sfdx.org.display.username",
+        "title": "%org_display_username_text%"
       },
       {
-        "command": "sfdx.force.org.list.clean",
-        "title": "%force_org_list_clean_text%"
+        "command": "sfdx.org.list.clean",
+        "title": "%org_list_clean_text%"
       },
       {
-        "command": "sfdx.force.data.soql.query.input",
-        "title": "%force_data_soql_query_input_text%"
+        "command": "sfdx.data.query.input",
+        "title": "%data_query_input_text%"
       },
       {
-        "command": "sfdx.force.data.soql.query.selection",
-        "title": "%force_data_soql_query_selection_text%"
+        "command": "sfdx.data.query.selection",
+        "title": "%data_query_selection_text%"
       },
       {
         "command": "sfdx.force.project.create",
@@ -792,12 +791,12 @@
         "title": "%force_apex_trigger_create_text%"
       },
       {
-        "command": "sfdx.force.start.apex.debug.logging",
-        "title": "%force_start_apex_debug_logging%"
+        "command": "sfdx.start.apex.debug.logging",
+        "title": "%start_apex_debug_logging%"
       },
       {
-        "command": "sfdx.force.stop.apex.debug.logging",
-        "title": "%force_stop_apex_debug_logging%"
+        "command": "sfdx.stop.apex.debug.logging",
+        "title": "%stop_apex_debug_logging%"
       },
       {
         "command": "sfdx.debug.isv.bootstrap",
@@ -828,12 +827,12 @@
         "title": "%force_source_deploy_in_manifest_text%"
       },
       {
-        "command": "sfdx.force.source.delete",
-        "title": "%force_source_delete_text%"
+        "command": "sfdx.delete.source",
+        "title": "%delete_source_text%"
       },
       {
-        "command": "sfdx.force.source.delete.current.file",
-        "title": "%force_source_delete_this_source_text%"
+        "command": "sfdx.delete.source.current.file",
+        "title": "%delete_source_this_source_text%"
       },
       {
         "command": "sfdx.force.set.default.org",

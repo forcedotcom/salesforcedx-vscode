@@ -6,31 +6,31 @@
  */
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlagsRemover } from '../../../src';
 
-const $$ = testSetup();
-
 describe('Trace Flags Remover', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sb: SinonSandbox;
 
   beforeEach(async () => {
-    sb = createSandbox();
+    sb = $$.SANDBOX;
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
+    await $$.stubAliases({ myAlias: testData.username });
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
       })
     });
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
+      .withArgs('target-org')
       .returns(testData.username);
   });
 

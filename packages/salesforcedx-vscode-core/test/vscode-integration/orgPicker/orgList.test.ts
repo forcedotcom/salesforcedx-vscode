@@ -328,16 +328,16 @@ describe('orgList Tests', () => {
         expect(response.type).to.equal('CANCEL');
       });
 
-      it('should return Continue and call force:auth:web:login command if SFDX: Authorize an Org is selected', async () => {
+      it('should return Continue and call org:login:web command if SFDX: Authorize an Org is selected', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
-          '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
+          '$(plus) ' + nls.localize('org_login_web_authorize_org_text')
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(
-          executeCommandStub.calledWith('sfdx.force.auth.web.login')
-        ).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.org.login.web')).to.equal(
+          true
+        );
       });
 
       it('should return Continue and call force:org:create command if SFDX: Create a Default Scratch Org is selected', async () => {
@@ -355,13 +355,12 @@ describe('orgList Tests', () => {
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
-          '$(plus) ' +
-            nls.localize('force_auth_web_login_authorize_dev_hub_text')
+          '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text')
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(
-          executeCommandStub.calledWith('sfdx.force.auth.dev.hub')
+          executeCommandStub.calledWith('sfdx.org.login.web.dev.hub')
         ).to.equal(true);
       });
 
@@ -378,16 +377,14 @@ describe('orgList Tests', () => {
         ).to.equal(true);
       });
 
-      it('should return Continue and call force:org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
+      it('should return Continue and call org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns(
-          '$(plus) ' + nls.localize('force_org_list_clean_text')
-        );
+        quickPickStub.returns('$(plus) ' + nls.localize('org_list_clean_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(
-          executeCommandStub.calledWith('sfdx.force.org.list.clean')
-        ).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.org.list.clean')).to.equal(
+          true
+        );
       });
 
       it('should return Continue and call force:config:set command if a username/alias is selected', async () => {

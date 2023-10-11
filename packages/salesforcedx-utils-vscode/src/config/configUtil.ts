@@ -10,10 +10,10 @@ import {
   ConfigAggregator,
   Org,
   OrgConfigProperties,
-  SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
+import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
 
@@ -58,7 +58,7 @@ export class ConfigUtil {
     try {
       const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
       const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-        OrgConfigProperties.TARGET_ORG
+        TARGET_ORG_KEY
       );
       if (!defaultUsernameOrAlias) {
         return undefined;
@@ -79,7 +79,7 @@ export class ConfigUtil {
 
   public static async isGlobalDefaultUsername(): Promise<boolean> {
     const configSource: ConfigSource = await ConfigUtil.getConfigSource(
-      OrgConfigProperties.TARGET_ORG
+      TARGET_ORG_KEY
     );
     return configSource === ConfigSource.Global;
   }
@@ -95,7 +95,7 @@ export class ConfigUtil {
   public static async isTelemetryDisabled(): Promise<boolean> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(
-      SfConfigProperties.DISABLE_TELEMETRY
+      SF_CONFIG_DISABLE_TELEMETRY
     );
     return isTelemetryDisabled === 'true';
   }
@@ -105,7 +105,7 @@ export class ConfigUtil {
   > {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultDevHubUserName = configAggregator.getPropertyValue(
-      OrgConfigProperties.TARGET_DEV_HUB
+      TARGET_DEV_HUB_KEY
     );
     return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
   }
@@ -115,7 +115,7 @@ export class ConfigUtil {
   > {
     const globalConfig = await Config.create({ isGlobal: true });
     const defaultGlobalDevHubUserName = globalConfig.get(
-      OrgConfigProperties.TARGET_DEV_HUB
+      TARGET_DEV_HUB_KEY
     );
 
     return defaultGlobalDevHubUserName
@@ -195,7 +195,7 @@ export class ConfigUtil {
 
   private static async setUsernameOrAlias(usernameOrAlias: string) {
     const config = await Config.create(Config.getDefaultOptions());
-    config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
+    config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
     // Force the ConfigAggregatorProvider to reload its stored
     // ConfigAggregators so that this config file change is accounted

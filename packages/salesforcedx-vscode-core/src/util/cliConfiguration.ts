@@ -12,7 +12,7 @@ import {
 import { which } from 'shelljs';
 import { window } from 'vscode';
 import {
-  ENV_SFDX_DISABLE_TELEMETRY,
+  ENV_SF_DISABLE_TELEMETRY,
   SFDX_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
@@ -38,13 +38,9 @@ export function showCLINotInstalledMessage() {
   window.showWarningMessage(showMessage);
 }
 
-export function isSFDXContainerMode(): boolean {
-  return process.env.SFDX_CONTAINER_MODE ? true : false;
-}
-
 export function disableCLITelemetry() {
   GlobalCliEnvironment.environmentVariables.set(
-    ENV_SFDX_DISABLE_TELEMETRY,
+    ENV_SF_DISABLE_TELEMETRY,
     'true'
   );
 }
