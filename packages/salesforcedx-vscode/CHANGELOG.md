@@ -1,3 +1,11 @@
+# 59.0.0 - October 13, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Change alias list commands and flags to sf style ([PR #5112](https://github.com/forcedotcom/salesforcedx-vscode/pull/5112))
+
 # 58.16.0 - October 4, 2023
 
 ## Added
