@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "58.17.0",
+  "version": "59.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,8 @@
   "dependencies": {
     "@heroku/functions-core": "0.7.0",
     "@salesforce/core": "5.3.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "58.17.0",
-    "@salesforce/salesforcedx-utils-vscode": "58.17.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "59.0.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "9.7.18",
     "@salesforce/templates": "^58.0.1",
@@ -41,7 +41,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "58.17.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.0.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
