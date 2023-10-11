@@ -22,15 +22,15 @@ For more information about publishing take a look at:
 
 ## Creating a Release Branch
 
-The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
+The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 1PM GMT (i.e. 5AM or 6AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
 
 If any code changes are made between the time the release branch is automatically created and the actual release time, the engineer should run the `Create Release Branch` workflow with `patch` selected from the dropdown to create a new branch that contains those code changes.
 
 ## Updating the Change Log
 
-After the release branch is created, the changelog needs to be updated. To do so, the engineer should go into VSCode, pull the latest changes, and switch to the release branch. Then, they should open a Terminal window and run `npm run changelog` to generate the changelog entry for the upcoming release. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. If a changelog is necessary, the engineer will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for ${releaseBranchName}`.
+After the release branch is created, the changelog needs to be updated. To do so, the engineer should go into VSCode, pull the latest changes, and switch to the release branch. Then, they should open a Terminal window and run `npm run changelog` to generate the changelog entry for the upcoming release. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. If a changelog is necessary, the engineer will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
 
-The engineer should work with the team and doc writer to update and finalize the contents of the changelog. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vxx.xx.x and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
+The engineer should work with the team and doc writer to update and finalize the contents of the changelog. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 ## Compare Changes in the Release
 
