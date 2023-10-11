@@ -42,7 +42,7 @@
     "@types/chai": "4.3.3",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
-    "@types/node": "12.0.12",
+    "@types/node": "^18.11.9",
     "@types/path-exists": "^1.0.29",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
@@ -51,7 +51,7 @@
     "cross-env": "5.2.0",
     "mocha": "^10",
     "sinon": "^13.0.1",
-    "typescript": "^4.7.4",
+    "typescript": "^5.2.2",
     "vscode-extension-telemetry": "0.0.17"
   },
   "scripts": {

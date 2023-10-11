@@ -41,7 +41,7 @@
     "@types/chai": "4.3.3",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
-    "@types/node": "12.0.12",
+    "@types/node": "^18.11.9",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.61.2",
