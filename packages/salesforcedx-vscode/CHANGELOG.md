@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Change alias list commands and flags to sf style ([PR #5112](https://github.com/forcedotcom/salesforcedx-vscode/pull/5112))
+- We updated the `SFDX: List All Aliases` command to the new `sf style` and got rid of more of those pesky warnings. You're welcome. ([PR #5112](https://github.com/forcedotcom/salesforcedx-vscode/pull/5112))
 
 # 58.16.0 - October 4, 2023
 
