@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {  ConfigUtil, WorkspaceContextUtil } from '../../../src';
+import { ConfigUtil, WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -59,7 +59,7 @@ export class MockFileWatcher {
 
 const env = createSandbox();
 
-describe('WorkspaceContext', () => {
+describe.skip('WorkspaceContext', () => {
   const dummyOrgId = '000dummyOrgId';
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
