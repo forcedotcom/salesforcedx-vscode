@@ -197,7 +197,7 @@ Save all the files.
 
 Let’s deploy this new component to our org –
 
-Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org**
+Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org**.
 
 Your output window shows this message:
 
