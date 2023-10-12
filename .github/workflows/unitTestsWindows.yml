@@ -24,7 +24,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}
-          cache: npm
+          cache: ''
       - run: npm ci
       - run: npm run compile
       - run: npm run test:unit
