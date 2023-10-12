@@ -3,7 +3,7 @@ title: Set Up Code Builder
 lang: en
 ---
 
-Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a Salesforce supported org.
+Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a supported Salesforce edition.
 
 ### Required Editions
 
