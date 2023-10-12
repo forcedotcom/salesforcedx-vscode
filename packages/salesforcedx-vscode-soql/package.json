@@ -99,6 +99,8 @@
   ],
   "main": "out/src",
   "serverPath": [
+    "..",
+    "..",
     "node_modules",
     "@salesforce",
     "soql-language-server",

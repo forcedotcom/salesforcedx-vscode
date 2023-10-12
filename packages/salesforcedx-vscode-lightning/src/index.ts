@@ -91,6 +91,8 @@ export async function activate(extensionContext: ExtensionContext) {
   // Setup the language server
   const serverModule = extensionContext.asAbsolutePath(
     path.join(
+      '..',
+      '..',
       'node_modules',
       '@salesforce',
       'aura-language-server',

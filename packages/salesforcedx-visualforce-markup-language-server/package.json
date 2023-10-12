@@ -35,7 +35,8 @@
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run test:unit",
-    "test:unit": "jest --coverage",
+    "test:jest": "jest --coverage",
+    "test:unit": "mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "watch": "tsc -watch -p ."
   },
   "nyc": {

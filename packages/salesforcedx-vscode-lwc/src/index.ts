@@ -99,6 +99,8 @@ export async function activate(extensionContext: ExtensionContext) {
   const client = createLanguageClient(
     extensionContext.asAbsolutePath(
       path.join(
+        '..',
+        '..',
         'node_modules',
         '@salesforce',
         'lwc-language-server',

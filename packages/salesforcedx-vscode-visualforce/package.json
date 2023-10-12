@@ -70,6 +70,8 @@
   ],
   "main": "./out/src/extension",
   "serverPath": [
+    "..",
+    "..",
     "node_modules",
     "@salesforce",
     "salesforcedx-visualforce-language-server",
