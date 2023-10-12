@@ -7,7 +7,7 @@ Enable Code Builder to provide the permissions needed to install the Code Builde
 
 ### Required Editions
 
-**Available in**: Lightning Experience in Enterprise, Performance, Professional and Unlimited Editions.
+**Available in**: Lightning Experience in Enterprise, Performance, Professional, and Unlimited Editions.
 
 **Available in**: Government Cloud Plus as interoperable. Connecting Code Builder to Government Cloud Plus orgs can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
 
