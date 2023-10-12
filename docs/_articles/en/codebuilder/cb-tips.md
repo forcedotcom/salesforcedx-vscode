@@ -9,4 +9,4 @@ Maximize your productivity in Code Builder by installing additional extensions t
 
 ## Reset your Code Builder Environment
 
-Reset your Code Builder environment to start building with a fresh environment. Resetting deletes everything stored in your Code Builder environment all your data so you have a clean space to work with. To reset your Code Builder environment, click the dropdown next to the launch button and select **Reset Environment**.
+Reset your Code Builder environment to start building with a fresh environment. Resetting deletes everything stored in your Code Builder environment and all your data so you have a clean space to work with. To reset your Code Builder environment, click the dropdown next to the launch button and select **Reset Environment**.
