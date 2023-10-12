@@ -24,7 +24,7 @@ const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP =
-  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
+  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'false';
 const LANGUAGE_SERVER_LOG_LEVEL =
   process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
 declare var v8debug: any;
@@ -154,6 +154,9 @@ export async function createLanguageServer(
 // exported only for testing
 export function buildClientOptions(): LanguageClientOptions {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
+  const enableSyncInitJobs: boolean = vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
 
   return {
     // Register the server for Apex documents
@@ -174,7 +177,8 @@ export function buildClientOptions(): LanguageClientOptions {
       protocol2Code: protocol2CodeConverter
     },
     initializationOptions: {
-      enableEmbeddedSoqlCompletion: soqlExtensionInstalled
+      enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
+      enableSynchronizedInitJobs: enableSyncInitJobs
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()
