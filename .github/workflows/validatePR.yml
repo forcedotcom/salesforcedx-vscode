@@ -10,7 +10,7 @@ jobs:
   code-quality:
     strategy:
       matrix:
-        node_version: [lts/-1]
+        node_version: [lts/*]
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
