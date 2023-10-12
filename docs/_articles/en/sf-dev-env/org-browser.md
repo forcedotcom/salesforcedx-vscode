@@ -3,7 +3,7 @@ title: Org Browser
 lang: en
 ---
 
-Use the Org Browser to view the available metadata types and their corresponding components in your default org. You can also retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest) using the Org Browser. Also use the org browser to deploy source and then test you changes in your org.
+Use the Org Browser to view the available metadata types and their corresponding components in your default org. You can also retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest) using the Org Browser. You can also use it to deploy source and then test you the changes in your org.
 
 ## Create Project and Open the Org Browser
 
