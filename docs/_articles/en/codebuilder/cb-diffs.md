@@ -10,7 +10,7 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 - Because your Code Builder instance runs in the cloud, authorizing an org from it follows a different (device) flow than the desktop version. See [Connect to Different Org](https://developer.salesforce.com/tools/vscode/en/codebuilder/cb-start/#connect-to-a-different-org) for steps.
 - Code Builder is installed as a managed package, and it comes with everything you need: VS Code, Salesforce extensions, and Salesforce CLI. No installation required on your local machine.
 - Unlike VS Code for desktop, you cannot access the Microsoft Marketplace from Code Builder. Instead, you can add extensions available in [Open VSX](https://open-vsx.org/) marketplace to your Code Builder environment. This means that you might see differences in the extensions that are available.
-- Third party authorization sequence is different in Code Builder.
+- The third-party authorization sequence is different in Code Builder.
 
 ## Known Gaps and Issues
 
