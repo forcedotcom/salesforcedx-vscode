@@ -7,7 +7,7 @@ The Salesforce Extension pack comes with rich debugging options for every develo
 
 - [Replay Debugger](./en/apex/replay-debugger): Free and easy to use.
 - [Interactive Debugger](./en/apex/interactive-debugger): Traditional, licensed debugger that lets you view and pause events in real time.
-- [ISV Debugger](./en/apex/isv-debugger): Use to debug managed package code directly in customer orgs.
+- [ISV Debugger](./en/apex/isv-debugger): Use to debug managed package code directly in customer orgs from your License Management Org (LMO).
 
 ## Additional Resources
 
