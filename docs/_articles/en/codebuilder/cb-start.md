@@ -25,7 +25,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 ## Connect to a Salesforce Org
 
-Next, connect an org to your Code Builder environment. During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Development Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
+Next, connect an org to your Code Builder environment. During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Developer Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
 
 To connect to an org the first time you launch Code Builder:
 
