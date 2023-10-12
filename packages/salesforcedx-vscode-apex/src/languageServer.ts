@@ -24,7 +24,7 @@ const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP =
-  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'false';
+  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL =
   process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
 declare var v8debug: any;
