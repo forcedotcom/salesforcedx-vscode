@@ -1,9 +1,6 @@
 import {
-  LanguageClientOptions
-} from 'vscode-languageclient';
-
-import {
   LanguageClient,
+  LanguageClientOptions,
   ServerOptions
 } from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';

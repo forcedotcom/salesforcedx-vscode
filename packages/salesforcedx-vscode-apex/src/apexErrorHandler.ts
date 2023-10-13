@@ -6,7 +6,7 @@ import {
   ErrorHandler,
   ErrorHandlerResult,
   Message
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { nls } from './messages';
 
 export class ApexErrorHandler extends EventEmitter implements ErrorHandler {

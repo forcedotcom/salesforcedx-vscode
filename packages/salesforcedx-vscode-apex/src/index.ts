@@ -294,10 +294,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     if (languageClient) {
       languageClient.onNotification('indexer/done', async () => {
         await getTestOutlineProvider().refresh();
-        languageServerStatusBarItem.ready();
-
-        languageClientUtils.setStatus(ClientStatus.Ready, '');
-        languageClient?.errorHandler?.serviceHasStartedSuccessfully();
+        languageServerReady();
       });
       languageClient.errorHandler?.addListener('error', message => {
         languageServerStatusBarItem.error(message);
@@ -337,4 +334,10 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
       `${nls.localize('apex_language_server_failed_activate')} - ${eMsg}`
     );
   }
+}
+
+export function languageServerReady() {
+  languageServerStatusBarItem.ready();
+  languageClientUtils.setStatus(ClientStatus.Ready, '');
+  languageClient?.errorHandler?.serviceHasStartedSuccessfully();
 }
