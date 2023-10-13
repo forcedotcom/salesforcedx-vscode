@@ -4,7 +4,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
-import { SinonStub, createSandbox } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';

@@ -13,7 +13,7 @@ import {
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as shelljs from 'shelljs';
-import { SinonSandbox, SinonStub, assert, createSandbox } from 'sinon';
+import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import {
   ENV_SF_DISABLE_TELEMETRY,
