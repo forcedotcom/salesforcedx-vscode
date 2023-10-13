@@ -54,7 +54,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test:unit": "jest --coverage --forceExit",
+    "test:unit": "jest --coverage",
     "coverage": "jest --coverage"
   },
   "nyc": {

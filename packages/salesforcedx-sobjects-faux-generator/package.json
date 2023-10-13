@@ -30,7 +30,6 @@
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
-    "nyc": "^15",
     "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
@@ -43,13 +42,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "jest --coverage --forceExit",
+    "test:unit": "jest --coverage",
     "test:integration": "jest --coverage -c ./jest.integration.config.js"
-  },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
   }
 }
