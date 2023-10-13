@@ -41,6 +41,8 @@ describe('LWC Hovers', () => {
         '..',
         '..',
         '..',
+        '..',
+        '..',
         'node_modules',
         '@salesforce',
         'lwc-language-server',
