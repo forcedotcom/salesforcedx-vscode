@@ -46,6 +46,15 @@ describe('HTML Javascript Support', () => {
     }
   }
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   it('Should display completions', () => {
     assertCompletions('<html><script>window.|</script></html>', ['location']);
   });

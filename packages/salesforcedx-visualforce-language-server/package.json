@@ -30,7 +30,7 @@
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run test:unit",
-    "test:unit": "jest --coverage --forceExit",
+    "test:unit": "jest --coverage",
     "watch": "tsc -watch -p ."
   }
 }
