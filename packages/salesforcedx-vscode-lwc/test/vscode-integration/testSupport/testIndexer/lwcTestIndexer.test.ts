@@ -25,7 +25,7 @@ describe('LWC Test Indexer', function() {
   let lwcTests: URI[];
   let existingTestFileCount: number;
 
-  beforeAll(async () => {
+  before(async () => {
     lwcTests = await vscode.workspace.findFiles(
       new vscode.RelativePattern(
         vscode.workspace.workspaceFolders![0],

@@ -4,8 +4,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
-import { timeout } from 'rxjs/operators/timeout';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub, createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
@@ -182,7 +181,7 @@ describe('WorkspaceContext', () => {
       .fire('delete');
 
     // Test runs in CI build in approx: 45000ms
-    timeout(60000);
+    this.timeout(60000);
     await Promise.all([
       fileChangedPromise,
       fileCreatedPromise,

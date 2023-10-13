@@ -17,7 +17,7 @@ import {
 } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { createLanguageClient } from '../../src/languageClient';
-import { timeout } from 'rxjs/operators/timeout';
+import { before } from 'mocha';
 
 describe('LWC Hovers', () => {
   let lwcDir = path.join(
@@ -30,8 +30,8 @@ describe('LWC Hovers', () => {
 
   let client: LanguageClient;
 
-  beforeAll(async function() {
-    timeout(10000);
+  before(async function() {
+    this.timeout(10000);
     // creating a new client so that we can wait on its ready status before the
     // tests begin. set the timeout at the suite level to give the client some time
     // to get ready
@@ -56,7 +56,7 @@ describe('LWC Hovers', () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  afterAll(() => client.stop());
+  after(() => client.stop());
 
   it('Should provide additional details when hovering over a LWC tag', async () => {
     const doc = await workspace.openTextDocument(

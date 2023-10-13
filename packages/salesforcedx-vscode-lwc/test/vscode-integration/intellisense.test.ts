@@ -7,28 +7,26 @@
 
 import { assert, expect } from 'chai';
 import * as path from 'path';
-import { timeout } from 'rxjs/operators/timeout';
 import {
-  commands,
   CompletionItem,
   CompletionItemKind,
   CompletionList,
-  extensions,
   Extension,
   Position,
   Selection,
   TextDocument,
   TextEditor,
   Uri,
+  commands,
+  extensions,
   window,
   workspace
 } from 'vscode';
 
 describe('LWC Intellisense Integration Tests', () => {
-
   let lwcExtension: Extension<any>;
 
-  beforeAll(async () => {
+  before(async () => {
     lwcExtension = extensions.getExtension(
       'salesforce.salesforcedx-vscode-lwc'
     ) as Extension<any>;
@@ -40,10 +38,9 @@ describe('LWC Intellisense Integration Tests', () => {
   });
 
   describe('LWC JS Intellisense Test Suite', function() {
-
     // Time taken to execute the command to fetch actualcompletion list, varies with different environment and system.
     // tslint:disable-next-line:no-invalid-this
-    timeout(10000);
+    this.timeout(10000);
     let doc: TextDocument;
     let editor: TextEditor;
     let text: string;
@@ -63,15 +60,15 @@ describe('LWC Intellisense Integration Tests', () => {
       doc = await workspace.openTextDocument(docUri);
       editor = await window.showTextDocument(doc);
       startPosition = new Position(1, 0);
-      // To provide valid arguments to selection in afterEach, setting default value of endPosition same as startPosition. 
-      endPosition = new Position(1,0);
+      // To provide valid arguments to selection in afterEach, setting default value of endPosition same as startPosition.
+      endPosition = new Position(1, 0);
     });
 
     afterEach(() => {
       selection = new Selection(startPosition, endPosition);
       // We need to clear the editor's line or the input text will change and test will fail.
       editor.edit(editBuilder => {
-        editBuilder.delete(selection)
+        editBuilder.delete(selection);
       });
     });
 
@@ -86,7 +83,7 @@ describe('LWC Intellisense Integration Tests', () => {
         editBuilder.insert(startPosition, text);
       });
       const items = [
-          {
+        {
           label: 'c/helloBinding',
           kind: CompletionItemKind.Folder
         },
@@ -94,7 +91,7 @@ describe('LWC Intellisense Integration Tests', () => {
           label: 'c/hello',
           kind: CompletionItemKind.Folder
         }
-      ]
+      ];
       await testCompletion(docUri, endPosition, items);
     });
 
@@ -121,7 +118,7 @@ describe('LWC Intellisense Integration Tests', () => {
           label: '@commitlint/cli',
           kind: CompletionItemKind.Module
         }
-      ]
+      ];
       await testCompletion(docUri, endPosition, items);
     });
 
@@ -143,7 +140,7 @@ describe('LWC Intellisense Integration Tests', () => {
           label: 'c/demoLwcComponent',
           kind: CompletionItemKind.Folder
         }
-      ]
+      ];
       await testCompletion(docUri, endPosition, items);
     });
   });
@@ -168,13 +165,13 @@ describe('LWC Intellisense Integration Tests', () => {
       doc = await workspace.openTextDocument(docUri);
       editor = await window.showTextDocument(doc);
       startPosition = new Position(5, 0);
-      endPosition = new Position(5,0);
+      endPosition = new Position(5, 0);
     });
 
     afterEach(() => {
       selection = new Selection(startPosition, endPosition);
       editor.edit(editBuilder => {
-        editBuilder.delete(selection)
+        editBuilder.delete(selection);
       });
     });
 
@@ -191,15 +188,15 @@ describe('LWC Intellisense Integration Tests', () => {
         editBuilder.insert(startPosition, text);
       });
       const items = [
-          {
-            label: 'lightning-accordion',
-            kind: CompletionItemKind.Property
-          },
-          {
-            label: 'c-hello-binding',
-            kind: CompletionItemKind.Property
-          }
-        ]
+        {
+          label: 'lightning-accordion',
+          kind: CompletionItemKind.Property
+        },
+        {
+          label: 'c-hello-binding',
+          kind: CompletionItemKind.Property
+        }
+      ];
 
       // NOTE: Because the completion providers always returns all possible results and then VSCode
       // does the filtering based on what is typed, we have no good way of testing what vscode is
@@ -210,18 +207,17 @@ describe('LWC Intellisense Integration Tests', () => {
   });
 });
 
-
 async function testCompletion(
   docUri: Uri,
   position: Position,
   expectedCompletionList: CompletionItem[]
 ) {
   // Simulate triggering a completion
-  const actualCompletionList = (((await commands.executeCommand(
+  const actualCompletionList = ((await commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
     position
-  )) as CompletionList).items);
+  )) as CompletionList).items;
 
   actualCompletionList.sort();
   expectedCompletionList.sort();

@@ -42,7 +42,6 @@ import {
   testCaseSuccessResult,
   testFileResult
 } from '../mocks/testResultsMocks';
-import { timeout } from 'rxjs/operators/timeout';
 
 describe('LWC Test Outline Provider', () => {
   describe('Should load exiting test files into test explorer view Unit Tests', () => {
@@ -111,7 +110,7 @@ describe('LWC Test Outline Provider', () => {
     let actualFileNodes: SfdxTestGroupNode[];
     let actualFileNode: SfdxTestGroupNode;
     let actualTestCaseNodes: SfdxTestNode[];
-    beforeAll(async () => {
+    before(async () => {
       lwcTests = await vscode.workspace.findFiles(
         new vscode.RelativePattern(
           vscode.workspace.workspaceFolders![0],
@@ -372,7 +371,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should refresh test explorer', async function() {
-      timeout(10000);
+      this.timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
       actualFileNodes = await outlineProvder.getChildren();

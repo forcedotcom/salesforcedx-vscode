@@ -5,23 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Config,
-  ConfigFile,
-  Global,
-  OrgConfigProperties
-} from '@salesforce/core';
+import { Config, ConfigFile, Global } from '@salesforce/core';
 import {
   ConfigUtil,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
-import { timeout } from 'rxjs/operators/timeout';
 import * as shelljs from 'shelljs';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { SinonSandbox, SinonStub, assert, createSandbox } from 'sinon';
 import { window } from 'vscode';
-import { ENV_SF_DISABLE_TELEMETRY, TARGET_ORG_KEY } from '../../../src/constants';
+import {
+  ENV_SF_DISABLE_TELEMETRY,
+  TARGET_ORG_KEY
+} from '../../../src/constants';
 import { WorkspaceContext } from '../../../src/context';
 import {
   disableCLITelemetry,
@@ -188,8 +185,8 @@ describe('SFDX CLI Configuration utility', () => {
      * 4. The VS Code orgChange event was fired with the correct values
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
-    it('Should return the locally configured default username when it exists', async () => {
-      timeout(60000);
+    it('Should return the locally configured default username when it exists', async function() {
+      this.timeout(60000);
 
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
