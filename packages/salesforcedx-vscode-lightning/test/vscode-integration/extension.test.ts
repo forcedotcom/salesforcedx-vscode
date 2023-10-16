@@ -7,6 +7,7 @@
 
 import { expect } from 'chai';
 import * as vscode from 'vscode';
+import { Context } from 'mocha';
 
 const PERFECT_MATCH = 10;
 
@@ -69,13 +70,13 @@ describe('Test commands', () => {
     }
   });
 
-  it('coreExtension activation', async function() {
+  it('coreExtension activation', async function(this: Context) {
     this.timeout(10000);
     await coreExtension.activate();
     expect(coreExtension.isActive);
   });
 
-  it('aura activation', async function() {
+  it('aura activation', async function(this: Context) {
     this.timeout(10000);
     await auraExtension.activate();
     expect(auraExtension.isActive);

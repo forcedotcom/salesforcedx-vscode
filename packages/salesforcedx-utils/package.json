@@ -22,7 +22,7 @@
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
-    "@types/jest": "29.5.3",
+    "@types/jest": "^29.5.5",
     "@typescript-eslint/eslint-plugin": "5.56.0",
     "@typescript-eslint/parser": "5.56.0",
     "@types/node": "^18.11.9",
