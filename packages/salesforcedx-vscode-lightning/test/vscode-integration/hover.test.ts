@@ -7,7 +7,6 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import { timeout } from 'rxjs/operators';
 import {
   Hover,
   Position,
@@ -18,7 +17,7 @@ import {
 } from 'vscode';
 
 describe('Aura Hovers', function() {
-  timeout(4000);
+  this.timeout(4000);
 
   let auraDir: string;
 

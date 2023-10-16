@@ -18,10 +18,9 @@ import {
   TestResultStatus,
   TestType
 } from '../../../../src/testSupport/types';
-import { timeout } from 'rxjs/operators';
 
 describe('LWC Test Indexer', function() {
-  timeout(30000);
+  this.timeout(30000);
   let lwcTests: URI[];
   let existingTestFileCount: number;
 

@@ -38,11 +38,5 @@
     "test:jest": "jest --coverage",
     "test:unit": "mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "watch": "tsc -watch -p ."
-  },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
   }
 }
