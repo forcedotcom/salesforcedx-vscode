@@ -1,10 +1,12 @@
 import { EventEmitter } from 'events';
 import {
   CloseAction,
+  CloseHandlerResult,
   ErrorAction,
   ErrorHandler,
+  ErrorHandlerResult,
   Message
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { nls } from './messages';
 
 export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
@@ -15,26 +17,26 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
     this.restarts = [];
   }
   // TODO: when does error get called instead of closed?
-  public error(error: Error, message: Message, count: number): ErrorAction {
+  public error(error: Error, message: Message, count: number): ErrorHandlerResult {
     if (count && count <= 3) {
       this.emit('error', `Error: ${JSON.stringify(error)} ${message}`);
-      return ErrorAction.Continue;
+      return { action: ErrorAction.Continue };
     }
     this.emit('error', `Error: ${JSON.stringify(error)} ${message}`);
-    return ErrorAction.Shutdown;
+    return { action: ErrorAction.Shutdown };
   }
   // Closed is called when the server processes closes/quits
-  public closed() {
+  public closed(): CloseHandlerResult {
     if (this.hasStarted) {
       this.restarts = [Date.now()];
       this.emit('restarting', 1);
       this.hasStarted = false;
-      return CloseAction.Restart;
+      return { action: CloseAction.Restart };
     }
     this.restarts.push(Date.now());
     if (this.restarts.length < 5) {
       this.emit('restarting', this.restarts.length);
-      return CloseAction.Restart;
+      return { action: CloseAction.Restart };
     } else {
       const diff =
         this.restarts[this.restarts.length - 1] -
@@ -42,11 +44,11 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
       // 3 minutes
       if (diff <= 3 * 60 * 1000) {
         this.emit('startFailed', this.restarts.length);
-        return CloseAction.DoNotRestart;
+        return { action: CloseAction.DoNotRestart };
       } else {
         this.restarts.shift();
         this.emit('restarting', this.restarts.length);
-        return CloseAction.Restart;
+        return { action: CloseAction.Restart };
       }
     }
   }
