@@ -71,6 +71,15 @@
     "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
+  "serverPath": [
+    "..",
+    "..",
+    "node_modules",
+    "@salesforce",
+    "aura-language-server",
+    "lib",
+    "server.js"
+  ],
   "packaging": {
     "assets": [
       "License.txt",
@@ -86,6 +95,13 @@
     ],
     "packageUpdates": {
       "main": "dist/index.js",
+      "serverPath": [
+        "node_modules",
+        "@salesforce",
+        "aura-language-server",
+        "lib",
+        "server.js"
+      ],
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/core": "5.3.0",
