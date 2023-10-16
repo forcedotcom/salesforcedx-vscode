@@ -22,6 +22,7 @@
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
+    "@types/cross-spawn": "6.0.3",
     "@types/jest": "28.1.7",
     "@typescript-eslint/eslint-plugin": "5.56.0",
     "@typescript-eslint/parser": "5.56.0",

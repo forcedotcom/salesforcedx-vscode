@@ -5,31 +5,60 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import * as child_process from 'child_process';
+import * as crossSpawn from 'cross-spawn';
+import { UBER_JAR_NAME } from '../../../src/constants';
 import { findAndCheckOrphanedProcesses } from '../../../src/languageUtils/languageServerUtils';
 
 describe('languageServerUtils', () => {
   describe('findAndCheckOrphanedProcesses', () => {
     it('should return empty array if no processes found', () => {
       jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValue(Buffer.from(''));
+        .spyOn(crossSpawn, 'sync')
+        .mockReturnValue({
+          stdout: Buffer.from(''),
+          pid: 0,
+          output: [],
+          stderr: Buffer.from(''),
+          status: 0,
+          signal: ''
+        });
 
       const result = findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
     it('should return empty array if no orphaned processes found', () => {
       jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValueOnce(Buffer.from('1234 5678 jorje'))
-        .mockReturnValueOnce(Buffer.from(''));
+        .spyOn(crossSpawn, 'sync')
+        .mockReturnValueOnce({
+          stdout: Buffer.from(`1234 5678 ${UBER_JAR_NAME}`),
+          pid: 0,
+          output: [],
+          stderr: Buffer.from(''),
+          status: 0,
+          signal: ''
+        })
+        .mockReturnValueOnce({
+          stdout: Buffer.from(''),
+          pid: 0,
+          output: [],
+          stderr: Buffer.from(''),
+          status: 0,
+          signal: ''
+        });
       const result = findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
     it('should return array of orphaned processes', () => {
       jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValueOnce(Buffer.from('1234 5678 jorje'))
+        .spyOn(crossSpawn, 'sync')
+        .mockReturnValueOnce({
+          stdout: Buffer.from(`1234 5678 ${UBER_JAR_NAME}`),
+          pid: 0,
+          output: [],
+          stderr: Buffer.from(''),
+          status: 0,
+          signal: ''
+        })
         .mockImplementationOnce(() => {
           throw new Error();
         });
