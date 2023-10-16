@@ -10,7 +10,7 @@
 
 import * as cp from 'child_process';
 import * as path from 'path';
-import * as pathExists from 'path-exists';
+import * as fs from 'fs';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
@@ -70,7 +70,7 @@ function checkJavaRuntime(): Promise<string> {
           nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
         );
       }
-      if (!pathExists.sync(javaHome)) {
+      if (!fs.existsSync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
         );

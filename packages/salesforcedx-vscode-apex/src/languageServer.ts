@@ -8,10 +8,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-  Executable,
   LanguageClientOptions,
   RevealOutputChannelOn
 } from 'vscode-languageclient';
+import { Executable } from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR } from './constants';
@@ -91,8 +91,7 @@ async function createServer(
 
     return {
       options: {
-        env: process.env,
-        stdio: 'pipe'
+        env: process.env
       },
       command: javaExecutable,
       args

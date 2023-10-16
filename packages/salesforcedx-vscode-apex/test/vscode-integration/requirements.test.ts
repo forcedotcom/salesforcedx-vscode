@@ -10,7 +10,7 @@
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as cp from 'child_process';
-import * as pathExists from 'path-exists';
+import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../src/constants';
@@ -41,7 +41,7 @@ describe('Java Requirements Test', () => {
       .returns({
         get: settingStub
       });
-    pathExistsStub = sandbox.stub(pathExists, 'sync').resolves(true);
+    pathExistsStub = sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 
