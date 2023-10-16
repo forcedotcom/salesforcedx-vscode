@@ -2,7 +2,7 @@ import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 
 export class ApexLanguageClient extends LanguageClient {
