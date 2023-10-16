@@ -29,15 +29,11 @@ jobs:
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
-      - name: Add code to PATH
-        run: |
-          export PATH=$PATH:/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin
-      - name: Download and install extension vsixes
+      - name: Download extension vsixes
         run: |
           mkdir ./extensions
           pwd
           gh release download -D ./extensions -p '*.vsix'
-          find ./extensions -type f -name "*.vsix" -exec code --install-extension {} \;
         working-directory: salesforcedx-vscode
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
