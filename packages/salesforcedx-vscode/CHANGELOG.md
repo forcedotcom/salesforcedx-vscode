@@ -1,3 +1,11 @@
+# 59.0.0 - October 13, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We updated the `SFDX: List All Aliases` command to the new `sf style` and got rid of more of those pesky warnings. You're welcome. ([PR #5112](https://github.com/forcedotcom/salesforcedx-vscode/pull/5112))
+
 # 58.16.0 - October 4, 2023
 
 ## Added

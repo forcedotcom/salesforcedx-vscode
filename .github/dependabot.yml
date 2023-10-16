@@ -24,23 +24,6 @@ updates:
     open-pull-requests-limit: 10
     rebase-strategy: disabled
     versioning-strategy: increase
-  # Major version updates (not to be auto-merged)
-  - package-ecosystem: "npm"
-    directory: "/" # Location of package manifests
-    target-branch: "develop"
-    schedule:
-      # Monthly after the weekly minor,patch updates have been merged
-      interval: "monthly"
-      day: "friday"
-      time: "06:00"
-      timezone: "America/Los_Angeles"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          ["version-update:semver-minor", "version-update:semver-patch"]
-    open-pull-requests-limit: 10
-    rebase-strategy: disabled
-    versioning-strategy: increase
   # Exclude updates to doc tools
   # TODO: Enable after adding automated check(s) for doc generation
   - package-ecosystem: "bundler"
