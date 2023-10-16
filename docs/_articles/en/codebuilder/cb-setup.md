@@ -9,9 +9,7 @@ Enable Code Builder to provide the permissions needed to install the Code Builde
 
 **Available in**: Lightning Experience in Enterprise, Performance, Professional, and Unlimited Editions.
 
-**Available in**: Government Cloud Plus as interoperable. Connecting Code Builder to Government Cloud Plus orgs can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
-
-**Inoperable in**: Government Cloud. Although Code Builder appears in the Setup menu, don’t enable or install it because it won’t operate properly.
+**Available in**: Government Cloud Plus as interoperable. Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
 
 **Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
