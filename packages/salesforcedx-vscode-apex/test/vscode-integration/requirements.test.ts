@@ -9,6 +9,8 @@
 
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as cp from 'child_process';
+import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../src/constants';
@@ -18,8 +20,6 @@ import {
   JAVA_HOME_KEY,
   resolveRequirements
 } from '../../src/requirements';
-import pathExists = require('path-exists');
-import * as cp from 'child_process';
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = `~/java_home/real/jdk/${jdk}`;
@@ -41,7 +41,7 @@ describe('Java Requirements Test', () => {
       .returns({
         get: settingStub
       });
-    pathExistsStub = sandbox.stub(pathExists, 'sync').resolves(true);
+    pathExistsStub = sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 
