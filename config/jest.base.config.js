@@ -1,4 +1,4 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -9,5 +9,6 @@ module.exports = {
     ['jest-junit', { outputName: 'junit-custom-unitTests.xml' }]
   ],
   coverageReporters: ['lcov', 'text'],
-  resetMocks: true
+  resetMocks: true,
+  collectCoverageFrom: ['src/**/*.ts']
 };

@@ -86,7 +86,7 @@
     "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-*.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
     "test:ui:run": "extest run-tests -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
     "test:ui": "npm run test:ui:prepare && npm run test:ui:install && npm run test:ui:run",
-    "test:unit": "jest --coverage --forceExit",
+    "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
