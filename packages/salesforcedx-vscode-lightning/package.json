@@ -116,7 +116,7 @@
     "grammars": [
       {
         "language": "html",
-        "scopeName": "text.html.basic",
+        "scopeName": "aura.html",
         "path": "./syntaxes/html.tmLanguage.json"
       }
     ],
