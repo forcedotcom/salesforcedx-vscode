@@ -1,7 +1,8 @@
 name: Core End to End Tests
 
 on:
-
+  schedule:
+    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
