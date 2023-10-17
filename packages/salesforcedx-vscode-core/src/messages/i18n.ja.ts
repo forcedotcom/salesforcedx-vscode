@@ -522,5 +522,7 @@ export const messages = {
     'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
   parameter_gatherer_file_name_max_length_validation_error_message:
-    'ファイル名は {0} 文字を超えることはできません'
+    'ファイル名は {0} 文字を超えることはできません',
+  predicates_no_folder_opened_text:
+    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
 };

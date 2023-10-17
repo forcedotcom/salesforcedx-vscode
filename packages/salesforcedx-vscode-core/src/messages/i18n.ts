@@ -687,5 +687,7 @@ export const messages = {
   TimeSheetTemplate: 'TimeSheetTemplate',
   MessagingChannel: 'MessagingChannel',
   SchedulingObjective: 'SchedulingObjective',
-  SchedulingRule: 'SchedulingRule'
+  SchedulingRule: 'SchedulingRule',
+  predicates_no_folder_opened_text:
+    'No folder opened. Open a Salesforce DX project in VS Code.'
 };
