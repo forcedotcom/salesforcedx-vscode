@@ -1,6 +1,8 @@
 name: LSP End to End Tests
 
 on:
+  schedule:
+    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -40,7 +42,7 @@ on:
 jobs:
 
   auraLSP:
-    if: ${{ github.event.inputs.auraLsp }}
+    if: ${{ github.event.inputs.auraLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -48,7 +50,7 @@ jobs:
       testToRun: 'auraLsp.e2e.ts'
 
   visualforceLSP:
-    if: ${{ github.event.inputs.visualforceLsp }}
+    if: ${{ github.event.inputs.visualforceLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

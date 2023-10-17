@@ -1,6 +1,8 @@
 name: Core End to End Tests
 
 on:
+  schedule:
+    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -90,7 +92,7 @@ on:
 jobs:
 
   anInitialSuite:
-    if: ${{ github.event.inputs.anInitialSuite }}
+    if: ${{ github.event.inputs.anInitialSuite || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -98,7 +100,7 @@ jobs:
       testToRun: 'anInitialSuite.e2e.ts'
 
   authentication:
-    if: ${{ github.event.inputs.authentication }}
+    if: ${{ github.event.inputs.authentication || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -106,7 +108,7 @@ jobs:
       testToRun: 'authentication.e2e.ts'
 
   deployAndRetrieve:
-    if: ${{ github.event.inputs.deployAndRetrieve }}
+    if: ${{ github.event.inputs.deployAndRetrieve || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -114,7 +116,7 @@ jobs:
       testToRun: 'deployAndRetrieve.e2e.ts'
 
   manifestBuilder:
-    if: ${{ github.event.inputs.manifestBuilder }}
+    if: ${{ github.event.inputs.manifestBuilder || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -122,7 +124,7 @@ jobs:
       testToRun: 'manifestBuilder.e2e.ts'
 
   pushAndPull:
-    if: ${{ github.event.inputs.pushAndPull }}
+    if: ${{ github.event.inputs.pushAndPull || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -130,7 +132,7 @@ jobs:
       testToRun: 'pushAndPull.e2e.ts'
 
   sObjectsDefinitions:
-    if: ${{ github.event.inputs.sObjectsDefinitions }}
+    if: ${{ github.event.inputs.sObjectsDefinitions || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -138,7 +140,7 @@ jobs:
       testToRun: 'sObjectsDefinitions.e2e.ts'
 
   templates:
-    if: ${{ github.event.inputs.templates }}
+    if: ${{ github.event.inputs.templates || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

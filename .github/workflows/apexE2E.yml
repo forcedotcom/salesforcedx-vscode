@@ -1,6 +1,8 @@
 name: Apex End to End Tests
 
 on:
+  schedule:
+    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -70,7 +72,7 @@ on:
 jobs:
 
   apexLSP:
-    if: ${{ github.event.inputs.apexLsp }}
+    if: ${{ github.event.inputs.apexLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -78,7 +80,7 @@ jobs:
       testToRun: 'apexLsp.e2e.ts'
 
   apexReplayDebugger:
-    if: ${{ github.event.inputs.apexReplayDebugger }}
+    if: ${{ github.event.inputs.apexReplayDebugger || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -86,7 +88,7 @@ jobs:
       testToRun: 'apexReplayDebugger.e2e.ts'
 
   debugApexTests:
-    if: ${{ github.event.inputs.debugApexTests }}
+    if: ${{ github.event.inputs.debugApexTests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -94,7 +96,7 @@ jobs:
       testToRun: 'debugApexTests.e2e.ts'
 
   runApexTests:
-    if: ${{ github.event.inputs.runApexTests }}
+    if: ${{ github.event.inputs.runApexTests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -102,7 +104,7 @@ jobs:
       testToRun: 'runApexTests.e2e.ts'
 
   trailApexReplayDebugger:
-    if: ${{ github.event.inputs.trailApexReplayDebugger }}
+    if: ${{ github.event.inputs.trailApexReplayDebugger || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
