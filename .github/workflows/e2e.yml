@@ -1,5 +1,7 @@
 name: End to End Tests
 on:
+  schedule:
+    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -26,22 +28,22 @@ on:
 jobs:
 
   Apex_E2E_tests:
-    if: ${{ inputs.apexE2ETests }}
+    if: ${{ github.event.inputs.apexE2ETests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ github.event.inputs.automationBranch }}
 
   Core_E2E_tests:
-    if: ${{ inputs.coreE2ETests }}
+    if: ${{ github.event.inputs.coreE2ETests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ github.event.inputs.automationBranch }}
 
   LSP_E2E_tests:
-    if: ${{ inputs.lspE2ETests }}
+    if: ${{ github.event.inputs.lspE2ETests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ github.event.inputs.automationBranch }}
