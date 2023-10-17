@@ -2,11 +2,11 @@
 import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
+import { APEX_LSP_ORPHAN } from './constants';
 import { findAndCheckOrphanedProcesses, ProcessDetail, terminateProcess } from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
-const APEX_LSP_ORPHAN = 'apexLSPOrphan';
 export const ADVICE = nls.localize('orphan_process_advice');
 export const YES = nls.localize('yes');
 export const CANCEL = nls.localize('cancel');

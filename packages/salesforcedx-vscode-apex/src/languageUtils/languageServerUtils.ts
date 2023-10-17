@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { execSync } from 'child_process';
 import { SIGKILL } from 'constants';
-import * as crossSpawn from 'cross-spawn';
-import * as os from 'os';
-import { UBER_JAR_NAME } from '../constants';
+import { APEX_LSP_ORPHAN, POWERSHELL_NOT_FOUND, UBER_JAR_NAME } from '../constants';
+import { telemetryService } from '../telemetry';
 
 export type ProcessDetail = {
   pid: number;
@@ -21,25 +21,26 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   const platform = process.platform.toLowerCase();
   const isWindows = platform === 'win32';
 
-  let cmd: string;
-  let params: string[];
-  if (isWindows) {
-    cmd = 'wmic';
-    params = ['process', 'get', 'ProcessId,ParentProcessId,CommandLine'];
-  } else {
-    cmd = 'ps';
-    params = ['-e', '-o', 'pid,ppid,command'];
+  // check if able to check processes
+  if (!canRunCheck(isWindows)) {
+    return [];
   }
 
-  const result = crossSpawn.sync(cmd, params);
-  const lines: string[] = result.stdout.toString().trim().split(os.EOL);
+  const cmd = isWindows
+    ? `Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders`
+    : `ps -e -o pid,ppid,command`;
+
+  const stdout = execSync(
+    isWindows ? `powershell.exe -command "${cmd}"` : cmd
+  ).toString();
+  const lines = stdout.trim().split(/\r?\n/g);
   const processes: ProcessDetail[] = lines.map(line => {
     const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
     const pid = parseInt(pidStr, 10);
     const ppid = parseInt(ppidStr, 10);
     const command = commandParts.join(' ');
     return { pid, ppid, command, orphaned: false };
-  })
+  }).filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)))
     .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME));
 
   if (processes.length === 0) {
@@ -49,26 +50,20 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   // Filter orphaned processes
   const orphanedProcesses: ProcessDetail[] = processes
     .map(processInfo => {
+      const checkOrphanedCmd = isWindows
+        ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${processInfo.ppid}'"`
+        : `ps -p ${processInfo.ppid}`;
+      // a parent pid of 1 on posix means jorje was adopted by system process 1, which is always running.
       if (!isWindows && processInfo.ppid === 1) {
         processInfo.orphaned = true;
         return processInfo;
       }
-      if (isWindows) {
-        cmd = 'wmic';
-        params = ['process', 'where', `processid=${processInfo.ppid}`, 'get', 'processid'];
-      } else {
-        cmd = 'ps';
-        params = ['-p', processes.map(p => p.ppid).join(','), '-o', 'pid'];
-      }
       try {
-        const checkResult = crossSpawn.sync(cmd, params);
-        const checkLines: string[] = checkResult.stdout.toString().trim().split(os.EOL);
-        if (isWindows) {
-          if (checkLines.length === 1) {
-            processInfo.orphaned = true;
-          }
-        }
+        execSync(checkOrphanedCmd);
       } catch (err) {
+        telemetryService.sendException(
+          APEX_LSP_ORPHAN,
+          typeof err === 'string' ? err : err?.message ? err.message : 'unknown');
         processInfo.orphaned = true;
       }
       return processInfo;
@@ -79,4 +74,25 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
 
 export async function terminateProcess(pid: number) {
   process.kill(pid, SIGKILL);
+}
+
+export function canRunCheck(isWindows: boolean) {
+  if (isWindows) {
+    try {
+      // where command will return path if found and empty string if not
+      const wherePowershell = execSync('where powershell');
+      if (wherePowershell.toString().trim().length === 0) {
+        telemetryService.sendException(
+          APEX_LSP_ORPHAN, POWERSHELL_NOT_FOUND);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      telemetryService.sendException(
+        APEX_LSP_ORPHAN,
+        typeof err === 'string' ? err : err?.message ? err.message : 'unknown');
+      return false;
+    }
+  }
+  return true;
 }

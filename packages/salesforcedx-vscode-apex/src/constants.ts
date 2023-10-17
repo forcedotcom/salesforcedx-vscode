@@ -27,3 +27,5 @@ export const SKIP_RESULT = 'Skip';
 export const APEX_TESTS = 'ApexTests';
 export const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 export const APEX_LSP_STARTUP = 'apexLSPStartup';
+export const APEX_LSP_ORPHAN = 'apexLSPOrphan';
+export const POWERSHELL_NOT_FOUND = 'Powershell not found';
