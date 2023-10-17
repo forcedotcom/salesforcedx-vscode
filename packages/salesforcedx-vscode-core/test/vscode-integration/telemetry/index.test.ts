@@ -47,12 +47,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext(true);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'testKey007',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporter = telemetryService.getReporter();
 
@@ -64,12 +59,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext in which telemetry msg has never been previously shown
       mockExtensionContext = new MockExtensionContext(false);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'testKey007',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
@@ -83,12 +73,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext in which telemetry msg has been previously shown
       mockExtensionContext = new MockExtensionContext(true);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'testKey007',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
@@ -102,12 +87,7 @@ describe('Telemetry', () => {
       mockExtensionContext = new MockExtensionContext(true);
 
       cliStub.returns(Promise.resolve(false));
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'testKey007',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       expect(teleStub.firstCall.args).to.eql([false]);
     });
@@ -142,12 +122,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext in which telemetry msg has never been previously shown
       mockExtensionContext = new MockExtensionContext(false);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'testKey007',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
@@ -161,12 +136,7 @@ describe('Telemetry', () => {
       // create vscode extensionContext in which telemetry msg has been previously shown
       mockExtensionContext = new MockExtensionContext(true);
 
-      await telemetryService.initializeService(
-        mockExtensionContext,
-        'ext_name',
-        'testKey007',
-        'v0.0.1'
-      );
+      await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);

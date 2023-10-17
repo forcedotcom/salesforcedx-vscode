@@ -31,13 +31,13 @@ export {
   DiffSuccessResponse
 } from './diffResultParser';
 export { ForceConfigGet } from './forceConfigGet';
-export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { LocalCommandExecution } from './localCommandExecutor';
 export {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   OrgCreateSuccessResult
 } from './orgCreateResultParser';
+export { OrgDisplay, OrgInfo } from './orgDisplay';
 export {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,

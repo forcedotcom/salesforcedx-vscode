@@ -28,7 +28,7 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { APEX_EXTENSION_NAME, LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
+import { LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import {
   ClientStatus,
@@ -76,13 +76,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await workspaceContext.initialize(extensionContext);
 
   // Telemetry
-  const extensionPackage = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    APEX_EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
-  );
+  await telemetryService.initializeService(extensionContext);
 
   // start the language server and client
   await createLanguageClient(extensionContext);
@@ -298,6 +292,10 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     );
 
     if (languageClient) {
+      languageClient.onNotification('indexer/done', async () => {
+        await getTestOutlineProvider().refresh();
+        languageServerReady();
+      });
       languageClient.errorHandler?.addListener('error', message => {
         languageServerStatusBarItem.error(message);
       });
@@ -313,21 +311,23 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
           nls.localize('apex_language_server_failed_activate')
         );
       });
-      languageClient.onDidChangeState(({ newState }) => {
-        if (newState === State.Starting) {
-          addOnReadyHandlerToLanguageClient(langClientHRStart);
-        }
-      });
     }
 
     languageClientUtils.setClientInstance(languageClient);
-    const handle = languageClient!.start();
+    await languageClient!.start();
+    const startTime = telemetryService.getEndHRTime(langClientHRStart);
+    telemetryService.sendEventData('apexLSPStartup', undefined, {
+      activationTime: startTime
+    });
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
-    extensionContext.subscriptions.push(handle);
+    extensionContext.subscriptions.push(languageClient);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
-    let eMsg = typeof e === 'string' ? e : e.message ?? nls.localize('unknown_error');
-    if (eMsg.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {
+    let eMsg =
+      typeof e === 'string' ? e : e.message ?? nls.localize('unknown_error');
+    if (
+      eMsg.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
+    ) {
       eMsg = nls.localize('wrong_java_version_short');
     }
     languageServerStatusBarItem.error(
@@ -336,38 +336,8 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
   }
 }
 
-function addOnReadyHandlerToLanguageClient(
-  langClientHRStart: [number, number]
-) {
-  if (languageClient) {
-    languageClient
-      .onReady()
-      .then(async () => {
-        if (languageClient) {
-          languageClient.onNotification('indexer/done', async () => {
-            await getTestOutlineProvider().refresh();
-            languageServerStatusBarItem.ready();
-
-            languageClientUtils.setStatus(ClientStatus.Ready, '');
-            languageClient?.errorHandler?.serviceHasStartedSuccessfully();
-          });
-        }
-        const startTime = telemetryService.getEndHRTime(langClientHRStart);
-        telemetryService.sendEventData('apexLSPStartup', undefined, {
-          activationTime: startTime
-        });
-      })
-      .catch(err => {
-        // Handled by clients
-        telemetryService.sendException(LSP_ERR, err.message);
-        languageClientUtils.setStatus(
-          ClientStatus.Error,
-          nls.localize('apex_language_server_failed_activate')
-        );
-        languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${err.message
-          }`
-        );
-      });
-  }
+export function languageServerReady() {
+  languageServerStatusBarItem.ready();
+  languageClientUtils.setStatus(ClientStatus.Ready, '');
+  languageClient?.errorHandler?.serviceHasStartedSuccessfully();
 }
