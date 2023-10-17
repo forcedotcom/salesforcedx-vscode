@@ -8,10 +8,11 @@
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { State } from 'vscode-languageclient';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
+import { ServiceState } from './constants';
+
 import {
   forceAnonApexDebug,
   forceAnonApexExecute,
@@ -292,10 +293,6 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     );
 
     if (languageClient) {
-      languageClient.onNotification('indexer/done', async () => {
-        await getTestOutlineProvider().refresh();
-        languageServerReady();
-      });
       languageClient.errorHandler?.addListener('error', message => {
         languageServerStatusBarItem.error(message);
       });
@@ -315,6 +312,24 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     languageClientUtils.setClientInstance(languageClient);
     await languageClient!.start();
+    // Client is running
+
+    // The listener should be set after languageClient is ready
+    // Language client will get notified once async init jobs are done
+    languageClient.onNotification('indexer/done', async () => {
+      await getTestOutlineProvider().refresh();
+      languageServerReady();
+    });
+
+    // client will check status with server after initialization
+    const indexerStatus = await languageClient.sendRequest('indexer/status');
+    if (indexerStatus === ServiceState.RUNNING) { // 2 is RUNNING state
+      await getTestOutlineProvider().refresh();
+      languageServerReady();
+    } else if ([ServiceState.STOPPING, ServiceState.FAILED, ServiceState.TERMINATED].includes(indexerStatus as number)) {
+      throw new Error(nls.localize('apex_language_indexer_failed_run'));
+    }
+
     const startTime = telemetryService.getEndHRTime(langClientHRStart);
     telemetryService.sendEventData('apexLSPStartup', undefined, {
       activationTime: startTime
