@@ -72,41 +72,41 @@ on:
 jobs:
 
   apexLSP:
-    if: ${{ github.event.inputs.apexLsp || github.event_name == 'schedule' }}
+    if: ${{ inputs.apexLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'apexLsp.e2e.ts'
 
   apexReplayDebugger:
-    if: ${{ github.event.inputs.apexReplayDebugger || github.event_name == 'schedule' }}
+    if: ${{ inputs.apexReplayDebugger || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'apexReplayDebugger.e2e.ts'
 
   debugApexTests:
-    if: ${{ github.event.inputs.debugApexTests || github.event_name == 'schedule' }}
+    if: ${{ inputs.debugApexTests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'debugApexTests.e2e.ts'
 
   runApexTests:
-    if: ${{ github.event.inputs.runApexTests || github.event_name == 'schedule' }}
+    if: ${{ inputs.runApexTests || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'runApexTests.e2e.ts'
 
   trailApexReplayDebugger:
-    if: ${{ github.event.inputs.trailApexReplayDebugger || github.event_name == 'schedule' }}
+    if: ${{ inputs.trailApexReplayDebugger || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'trailApexReplayDebugger.e2e.ts'
