@@ -18,13 +18,21 @@
 /tools/vscode/en/user-guide/development-models                  /tools/vscode/en/sf-dev-models/development-models         301
 /tools/vscode/en/user-guide/source-diff                         /tools/vscode/en/user-guide/metadata-operations           301
 /tools/vscode/ja/user-guide/source-diff                         /tools/vscode/ja/user-guide/metadata-operations           301
+/tools/vscode/en/user-guide/deploy-on-save                      /tools/vscode/en/deploy-changes/deploy-on-save            301
+/tools/vscode/en/user-guide/metadata-operations                 /tools/vscode/en/deploy-changes/metadata-operations       301
+/tools/vscode/en/user-guide/detect-conflicts                    /tools/vscode/en/deploy-changes/detect-conflicts          301
+/tools/vscode/en/user-guide/source-format                       /tools/vscode/en/source-control/source-format             301
+/tools/vscode/en/user-guide/default-org                         /tools/vscode/en/sf-dev-env/default-org                   301
+/tools/vscode/en/user-guide/org-browser                         /tools/vscode/en/sf-dev-env/org-browser                   301
+/tools/vscode/en/user-guide/vscode-commands                     /tools/vscode/en/sf-dev-env/vscode-commands               301
+
 # Temporary Redirects for convenience
 /tools/vscode/en/                               /tools/vscode/                          302
 /tools/vscode/en/aura                           /tools/vscode/en/aura/writing           302
-/tools/vscode/jp/aura                           /tools/vscode/ja/aura/writing           302
+/tools/vscode/ja/aura                           /tools/vscode/ja/aura/writing           302
 /tools/vscode/en/lwc                            /tools/vscode/en/lwc/writing            302
-/tools/vscode/jp/lwc                            /tools/vscode/ja/lwc/writing            302
+/tools/vscode/ja/lwc                            /tools/vscode/ja/lwc/writing            302
 /tools/vscode/en/visualforce                    /tools/vscode/en/visualforce/writing    302
-/tools/vscode/jp/visualforce                    /tools/vscode/jp/visualforce/writing    302
+/tools/vscode/ja/visualforce                    /tools/vscode/ja/visualforce/writing    302
 /tools/vscode/en/lwc/write-lwc                  /tools/vscode/en/lwc/writing            302
 /tools/vscode/en/aura/write-aura                /tools/vscode/en/aura/writing           302

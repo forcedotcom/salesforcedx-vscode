@@ -1,5 +1,5 @@
 ---
-title: Remote Development
+title: Remote Development(Beta)
 lang: en
 ---
 
@@ -70,11 +70,11 @@ Follow these instruction for remote development using WSL 2.
 
 ### Install
 
-First, set up WSL 2 on your machine. Follow the [instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install-win10). 
+First, set up WSL 2 on your machine. Follow the [instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 **Important:** Only use WSL 2. There are known issues with WSL 1. These instructions below assume Ubuntu. Other Linux distros should work, but the steps may be slightly different.
 
-After you have installed WSL 2, set up your environment for Salesforce development. You'll need Node.js, Salesforce CLI, and  OpenJDK.
+After you have installed WSL 2, set up your environment for Salesforce development. You'll need Node.js, Salesforce CLI, and OpenJDK.
 
 To install Node.js, follow [these instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/nodejs/setup-on-wsl2). We recommend that you use NVM to easily switch between node versions. For Salesforce development, you'll like use the LTS version of Node.js.
 
