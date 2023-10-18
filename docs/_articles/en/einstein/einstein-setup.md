@@ -99,7 +99,7 @@ Edit the `config/project-scratch-def.json` file in your DX project and add the �
    {
    "orgName": "Acme Company",
    "edition": "Developer",
-   "features":[“Communities”, “ServiceCloud, "EinsteinGPTForDevelopers"]
+   "features":["Communities", "ServiceCloud", "EinsteinGPTForDevelopers"]
    }
 ```
 
