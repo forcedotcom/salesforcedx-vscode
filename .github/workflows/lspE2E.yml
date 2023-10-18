@@ -42,17 +42,17 @@ on:
 jobs:
 
   auraLSP:
-    if: ${{ github.event.inputs.auraLsp || github.event_name == 'schedule' }}
+    if: ${{ inputs.auraLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'auraLsp.e2e.ts'
 
   visualforceLSP:
-    if: ${{ github.event.inputs.visualforceLsp || github.event_name == 'schedule' }}
+    if: ${{ inputs.visualforceLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'visualforceLsp.e2e.ts'
