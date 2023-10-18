@@ -8,7 +8,6 @@
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { State } from 'vscode-languageclient';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
@@ -28,10 +27,10 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { APEX_LSP_STARTUP, LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
+import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
-import { resolveAnyFoundOrphanLanguageServers } from './languageServerOrphanHandler';
+import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -316,7 +315,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     languageClientUtils.setClientInstance(languageClient);
 
-    void resolveAnyFoundOrphanLanguageServers();
+    void lsoh.resolveAnyFoundOrphanLanguageServers();
 
     await languageClient!.start();
 

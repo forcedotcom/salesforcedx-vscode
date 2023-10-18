@@ -3,7 +3,7 @@ import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
-import { findAndCheckOrphanedProcesses, ProcessDetail, terminateProcess } from './languageUtils';
+import { languageServerUtils as lsu, ProcessDetail } from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -24,14 +24,14 @@ export const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_
 export const TERMINATED_PROCESS = 'terminated_orphaned_process';
 export const TERMINATE_FAILED = 'terminate_failed';
 
-export async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
-  const orphanedProcesses = findAndCheckOrphanedProcesses();
+async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
+  const orphanedProcesses = lsu.findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {
       telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, { orphanCount: orphanedProcesses.length, didTerminate: 1 });
       for (const processInfo of orphanedProcesses) {
         try {
-          await terminateProcess(processInfo.pid);
+          await lsu.terminateProcess(processInfo.pid);
           telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, { terminateSuccessful: 1 });
           showProcessTerminated(processInfo);
         } catch (err) {
@@ -52,7 +52,7 @@ export async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
  * @param orphanedProcesses
  * @returns boolean
  */
-export const getResolutionForOrphanProcesses = async (orphanedProcesses: ProcessDetail[]): Promise<boolean> => {
+async function getResolutionForOrphanProcesses(orphanedProcesses: ProcessDetail[]): Promise<boolean> {
   const orphanedCount = orphanedProcesses.length;
 
   if (orphanedCount === 0) {
@@ -77,9 +77,9 @@ export const getResolutionForOrphanProcesses = async (orphanedProcesses: Process
     }
   } while (!choice || showProcesses(choice));
   return false;
-};
+}
 
-export function showOrphansInChannel(orphanedProcesses: ProcessDetail[]) {
+function showOrphansInChannel(orphanedProcesses: ProcessDetail[]) {
   const columns: Column[] = [
     { key: 'pid', label: PROCESS_ID },
     { key: 'ppid', label: PROCESS_PARENT_ID },
@@ -104,7 +104,7 @@ export function showOrphansInChannel(orphanedProcesses: ProcessDetail[]) {
   channelService.appendLine(tableString);
 }
 
-export async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
+async function terminationConfirmation(orphanedCount: number): Promise<boolean> {
   const choice = await vscode.window.showWarningMessage(
     nls.localize(
       CONFIRM,
@@ -116,18 +116,29 @@ export async function terminationConfirmation(orphanedCount: number): Promise<bo
   return choice === YES;
 }
 
-export function requestsTermination(choice: string | undefined): boolean {
+function requestsTermination(choice: string | undefined): boolean {
   return choice === TERMINATE_PROCESSES_BTN;
 }
 
-export function showProcesses(choice: string): boolean {
+function showProcesses(choice: string): boolean {
   return choice === SHOW_PROCESSES_BTN;
 }
 
-export function showProcessTerminated(processDetail: ProcessDetail): void {
+function showProcessTerminated(processDetail: ProcessDetail): void {
   channelService.appendLine(nls.localize(TERMINATED_PROCESS, processDetail.pid));
 }
 
-export function showTerminationFailed(processInfo: ProcessDetail, err: any): void {
+function showTerminationFailed(processInfo: ProcessDetail, err: any): void {
   channelService.appendLine(nls.localize(TERMINATE_FAILED, processInfo.pid, err.message));
 }
+
+export const languageServerOrphanHandler = {
+  getResolutionForOrphanProcesses,
+  requestsTermination,
+  resolveAnyFoundOrphanLanguageServers,
+  showOrphansInChannel,
+  showProcessTerminated,
+  showProcesses,
+  showTerminationFailed,
+  terminationConfirmation
+};
