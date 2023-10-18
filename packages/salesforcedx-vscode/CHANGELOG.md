@@ -4,21 +4,21 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- Updates std sobjects in minSObjects.json ([PR #5125](https://github.com/forcedotcom/salesforcedx-vscode/pull/5125))
+- We added `Asset` and `Domain` objects to the current list of standard objects. ([PR #5125](https://github.com/forcedotcom/salesforcedx-vscode/pull/5125))
 
 #### salesforcedx-vscode-apex
 
-- Release 246 apex language server ([PR #5152](https://github.com/forcedotcom/salesforcedx-vscode/pull/5152))
+- We released a new version of the Apex Language Server. ([PR #5152](https://github.com/forcedotcom/salesforcedx-vscode/pull/5152))
 
 #### salesforcedx-vscode-core
 
-- Add missing label ([PR #5162](https://github.com/forcedotcom/salesforcedx-vscode/pull/5162))
+- We added a missing label. ([PR #5162](https://github.com/forcedotcom/salesforcedx-vscode/pull/5162))
 
-- Upgrade language client to version 9 ([PR #5127](https://github.com/forcedotcom/salesforcedx-vscode/pull/5127))
+- We upgraded the VS Code language client to version 9. ([PR #5127](https://github.com/forcedotcom/salesforcedx-vscode/pull/5127))
 
 #### salesforcedx-vscode-lightning
 
-- Update aura html grammar scope ([PR #5159](https://github.com/forcedotcom/salesforcedx-vscode/pull/5159))
+- We changed the scope name of `html` grammar in the Aura extension so that `php` and `html` code is correctly parsed and highlighted. ([PR #5159](https://github.com/forcedotcom/salesforcedx-vscode/pull/5159))
 
 # 59.0.0 - October 13, 2023
 
@@ -39,12 +39,13 @@
 ## Fixed
 
 #### salesforcedx-vscode-core
+
 - We made an update to the STL implementation so that Deploy and Retrieve operations are now faster. ([PR #5115](https://github.com/forcedotcom/salesforcedx-vscode/pull/5115), [ISSUE #4865](https://github.com/forcedotcom/salesforcedx-vscode/issues/4865))
-- We migrated breakpoints and debugging commands and flags to the new `sf-style`. We also migrated org display commands and flags to `sf-style`. More reprieve from those annoying warnings!  ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072), [PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
+- We migrated breakpoints and debugging commands and flags to the new `sf-style`. We also migrated org display commands and flags to `sf-style`. More reprieve from those annoying warnings! ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072), [PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
 
 #### forcedotcom/lightning-language-server
-- We fixed the LWC Language Server so that it no longer crashes on startup. Thank you [divmain](https://github.com/divmain) for your contribution. ([PR #578](https://github.com/forcedotcom/lightning-language-server/pull/578), [ISSUE #4994](https://github.com/forcedotcom/salesforcedx-vscode/issues/4994))
 
+- We fixed the LWC Language Server so that it no longer crashes on startup. Thank you [divmain](https://github.com/divmain) for your contribution. ([PR #578](https://github.com/forcedotcom/lightning-language-server/pull/578), [ISSUE #4994](https://github.com/forcedotcom/salesforcedx-vscode/issues/4994))
 
 # 58.15.0 - September 22, 2023
 
@@ -56,7 +57,7 @@
 
 #### salesforcedx-vscode-core
 
-- We migrated some commands that used `sfdx-style` to the new `sf-style`. You should now get some reprieve from those annoying warnings! ([PR #5071](https://github.com/forcedotcom/salesforcedx-vscode/pull/5071), [PR #5060](https://github.com/forcedotcom/salesforcedx-vscode/pull/5060),  [PR #5061](https://github.com/forcedotcom/salesforcedx-vscode/pull/5061), [PR #5059](https://github.com/forcedotcom/salesforcedx-vscode/pull/5059), [PR #5058](https://github.com/forcedotcom/salesforcedx-vscode/pull/5058))
+- We migrated some commands that used `sfdx-style` to the new `sf-style`. You should now get some reprieve from those annoying warnings! ([PR #5071](https://github.com/forcedotcom/salesforcedx-vscode/pull/5071), [PR #5060](https://github.com/forcedotcom/salesforcedx-vscode/pull/5060), [PR #5061](https://github.com/forcedotcom/salesforcedx-vscode/pull/5061), [PR #5059](https://github.com/forcedotcom/salesforcedx-vscode/pull/5059), [PR #5058](https://github.com/forcedotcom/salesforcedx-vscode/pull/5058))
 
 # 58.14.2 - September 8, 2023
 
