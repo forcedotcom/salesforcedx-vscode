@@ -1,7 +1,8 @@
 name: Core End to End Tests
 
 on:
-
+  schedule:
+    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -91,7 +92,7 @@ on:
 jobs:
 
   anInitialSuite:
-    if: ${{ inputs.anInitialSuite }}
+    if: ${{ inputs.anInitialSuite || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -99,7 +100,7 @@ jobs:
       testToRun: 'anInitialSuite.e2e.ts'
 
   authentication:
-    if: ${{ inputs.authentication }}
+    if: ${{ inputs.authentication || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -107,7 +108,7 @@ jobs:
       testToRun: 'authentication.e2e.ts'
 
   deployAndRetrieve:
-    if: ${{ inputs.deployAndRetrieve }}
+    if: ${{ inputs.deployAndRetrieve || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -115,7 +116,7 @@ jobs:
       testToRun: 'deployAndRetrieve.e2e.ts'
 
   manifestBuilder:
-    if: ${{ inputs.manifestBuilder }}
+    if: ${{ inputs.manifestBuilder || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -123,7 +124,7 @@ jobs:
       testToRun: 'manifestBuilder.e2e.ts'
 
   pushAndPull:
-    if: ${{ inputs.pushAndPull }}
+    if: ${{ inputs.pushAndPull || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -131,7 +132,7 @@ jobs:
       testToRun: 'pushAndPull.e2e.ts'
 
   sObjectsDefinitions:
-    if: ${{ inputs.sObjectsDefinitions }}
+    if: ${{ inputs.sObjectsDefinitions || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -139,7 +140,7 @@ jobs:
       testToRun: 'sObjectsDefinitions.e2e.ts'
 
   templates:
-    if: ${{ inputs.templates }}
+    if: ${{ inputs.templates || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
