@@ -7,7 +7,11 @@
 
 import { execSync } from 'child_process';
 import { SIGKILL } from 'constants';
-import { APEX_LSP_ORPHAN, POWERSHELL_NOT_FOUND, UBER_JAR_NAME } from '../constants';
+import {
+  APEX_LSP_ORPHAN,
+  POWERSHELL_NOT_FOUND,
+  UBER_JAR_NAME
+} from '../constants';
 import { telemetryService } from '../telemetry';
 
 export type ProcessDetail = {
@@ -22,25 +26,30 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   const isWindows = platform === 'win32';
 
   // check if able to check processes
-  if (!canRunCheck(isWindows)) {
+  if (!languageServerUtils.canRunCheck(isWindows)) {
     return [];
   }
 
   const cmd = isWindows
-    ? `Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders`
+    ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"`
     : `ps -e -o pid,ppid,command`;
 
-  const stdout = execSync(
-    isWindows ? `powershell.exe -command "${cmd}"` : cmd
-  ).toString();
+  const stdout = execSync(cmd).toString();
   const lines = stdout.trim().split(/\r?\n/g);
-  const processes: ProcessDetail[] = lines.map(line => {
-    const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
-    const pid = parseInt(pidStr, 10);
-    const ppid = parseInt(ppidStr, 10);
-    const command = commandParts.join(' ');
-    return { pid, ppid, command, orphaned: false };
-  }).filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)))
+  const processes: ProcessDetail[] = lines
+    .map(line => {
+      const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
+      const pid = parseInt(pidStr, 10);
+      const ppid = parseInt(ppidStr, 10);
+      const command = commandParts.join(' ');
+      return { pid, ppid, command, orphaned: false };
+    })
+    .filter(
+      processInfo =>
+        !['ps', 'grep', 'Get-CimInstance'].some(c =>
+          processInfo.command.includes(c)
+        )
+    )
     .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME));
 
   if (processes.length === 0) {
@@ -63,7 +72,8 @@ export function findAndCheckOrphanedProcesses(): ProcessDetail[] {
       } catch (err) {
         telemetryService.sendException(
           APEX_LSP_ORPHAN,
-          typeof err === 'string' ? err : err?.message ? err.message : 'unknown');
+          typeof err === 'string' ? err : err?.message ? err.message : 'unknown'
+        );
         processInfo.orphaned = true;
       }
       return processInfo;
@@ -82,17 +92,23 @@ export function canRunCheck(isWindows: boolean) {
       // where command will return path if found and empty string if not
       const wherePowershell = execSync('where powershell');
       if (wherePowershell.toString().trim().length === 0) {
-        telemetryService.sendException(
-          APEX_LSP_ORPHAN, POWERSHELL_NOT_FOUND);
+        telemetryService.sendException(APEX_LSP_ORPHAN, POWERSHELL_NOT_FOUND);
         return false;
       }
       return true;
     } catch (err) {
       telemetryService.sendException(
         APEX_LSP_ORPHAN,
-        typeof err === 'string' ? err : err?.message ? err.message : 'unknown');
+        typeof err === 'string' ? err : err?.message ? err.message : 'unknown'
+      );
       return false;
     }
   }
   return true;
 }
+
+export const languageServerUtils = {
+  findAndCheckOrphanedProcesses,
+  terminateProcess,
+  canRunCheck
+};

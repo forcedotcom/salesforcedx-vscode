@@ -319,6 +319,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     void resolveAnyFoundOrphanLanguageServers();
 
     await languageClient!.start();
+
     const startTime = telemetryService.getEndHRTime(langClientHRStart);
     telemetryService.sendEventData('apexLSPStartup', undefined, {
       activationTime: startTime

@@ -7,17 +7,15 @@
 import { expect } from 'chai';
 import * as child_process from 'child_process';
 import { UBER_JAR_NAME } from '../../../src/constants';
-import * as lsu from '../../../src/languageUtils/languageServerUtils';
+import { languageServerUtils } from '../../../src/languageUtils';
 
 describe('languageServerUtils', () => {
   describe('findAndCheckOrphanedProcesses', () => {
     it('should return empty array if no processes found', () => {
-      jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValue(Buffer.from(''));
-      jest.spyOn(lsu, 'canRunCheck').mockReturnValue(true);
+      jest.spyOn(child_process, 'execSync').mockReturnValue(Buffer.from(''));
+      jest.spyOn(languageServerUtils, 'canRunCheck').mockReturnValue(true);
 
-      const result = lsu.findAndCheckOrphanedProcesses();
+      const result = languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
     it('should return empty array if no orphaned processes found', () => {
@@ -25,9 +23,9 @@ describe('languageServerUtils', () => {
         .spyOn(child_process, 'execSync')
         .mockReturnValueOnce(Buffer.from(`1234 5678 ${UBER_JAR_NAME}`))
         .mockReturnValueOnce(Buffer.from(''));
-      jest.spyOn(lsu, 'canRunCheck').mockReturnValue(true);
+      jest.spyOn(languageServerUtils, 'canRunCheck').mockReturnValue(true);
 
-      const result = lsu.findAndCheckOrphanedProcesses();
+      const result = languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
     it('should return array of orphaned processes', () => {
@@ -37,9 +35,9 @@ describe('languageServerUtils', () => {
         .mockImplementationOnce(() => {
           throw new Error();
         });
-      jest.spyOn(lsu, 'canRunCheck').mockReturnValue(true);
+      jest.spyOn(languageServerUtils, 'canRunCheck').mockReturnValue(true);
 
-      const result = lsu.findAndCheckOrphanedProcesses();
+      const result = languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(1);
       expect(result[0]).to.have.property('pid', 1234);
     });
