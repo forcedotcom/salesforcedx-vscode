@@ -26,22 +26,22 @@ on:
 jobs:
 
   Apex_E2E_tests:
-    if: ${{ github.event.inputs.apexE2ETests }}
+    if: ${{ inputs.apexE2ETests }}
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
 
   Core_E2E_tests:
-    if: ${{ github.event.inputs.coreE2ETests }}
+    if: ${{ inputs.coreE2ETests }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
 
   LSP_E2E_tests:
-    if: ${{ github.event.inputs.lspE2ETests }}
+    if: ${{ inputs.lspE2ETests }}
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ github.event.inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch }}
