@@ -11,22 +11,25 @@ A Salesforce admin or user with the appropriate permissions can enable Einstein 
 2.  Connect to an org with Einstein for Developers enabled.
 3.  Use the extension to generate Apex code from natural language instructions.
 
-### Required Editions 
+### Required Editions
 
 **Available in**: Developer, Enterprise, Partner Developer, Performance and Unlimited Editions.
 
 **Inoperable in**: Group, Professional, and Essentials Editions
+
+**Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
 ### Required User Permissions
 
 To configure Einstein for Developers (beta): Customize Application AND Modify All Data
 
 ### Enhanced Domain Enabled
+
 Your Einstein for Developers org must have Enhanced Domain enabled. See [Enable Enhanced Domains](https://help.salesforce.com/s/articleView?id=sf.domain_name_enhanced_enable.htm&type=5) for more information.
 
 ## Enable Einstein for Developers
 
-When you enable Einstein for Developers in a supported Salesforce org, all users in the org have access to the feature. 
+When you enable Einstein for Developers in a supported Salesforce org, all users in the org have access to the feature.
 
 1. From Setup, in the Quick Find box, enter `Einstein for Developers`, and then select **Einstein for Developers**.
 
@@ -38,7 +41,7 @@ When you enable Einstein for Developers in a supported Salesforce org, all users
 
 **Important**: We encourage you to thoroughly review the license agreement and review all terms and conditions. Then accept to enable Einstein for Developers.
 
-Einstein for Developers is activated in the org. 
+Einstein for Developers is activated in the org.
 
 ### Add Users to the Org
 
@@ -47,7 +50,7 @@ An admin can add additional users to the org as needed:
 1. From Setup, in the Quick Find box, enter `Users`, and then select **Users**.
 2. Click **New User** or **Add Multiple Users**.
 3. Select the appropriate license type and profile based on the user’s role.
-4. Select **Generate passwords and notify user via email**. 
+4. Select **Generate passwords and notify user via email**.
 5. Click **Save**.
    This procedure generates an email inviting the new users into the org.
 
@@ -96,7 +99,7 @@ Edit the `config/project-scratch-def.json` file in your DX project and add the �
    {
    "orgName": "Acme Company",
    "edition": "Developer",
-   "features":[“Communities”, “ServiceCloud, "EinsteinGPTForDevelopers"]
+   "features":["Communities", "ServiceCloud", "EinsteinGPTForDevelopers"]
    }
 ```
 
