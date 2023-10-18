@@ -17,7 +17,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 **Note:** If you don't see Code Builder Dashboard as an option, contact your admin to make sure you have the correct license and permission set assigned to you.
 
-2. Click **Launch** to launch your Code Builder environment. A new environment is created for you the first time to launch. We've also created an empty Salesforce DX project to help you get started.
+2. Click **Launch** to launch your Code Builder environment. A new environment is created for you the first time to launch. We've also created an empty Salesforce DX project to help you get started. Note that it takes a few minutes for a new environment to be created and loaded.
 
 ![Code Builder Dashboard](../../../images/cb_dashboard.png)
 
