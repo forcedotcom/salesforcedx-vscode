@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
-import { ServiceState } from './constants';
+import { API, ServiceState } from './constants';
 
 import {
   forceAnonApexDebug,
@@ -314,20 +314,22 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     await languageClient!.start();
     // Client is running
 
-    // The listener should be set after languageClient is ready
-    // Language client will get notified once async init jobs are done
-    languageClient.onNotification('indexer/done', async () => {
-      await getTestOutlineProvider().refresh();
-      languageServerReady();
-    });
-
-    // client will check status with server after initialization
-    const indexerStatus = await languageClient.sendRequest('indexer/status');
-    if (indexerStatus === ServiceState.RUNNING) { // 2 is RUNNING state
-      await getTestOutlineProvider().refresh();
-      languageServerReady();
-    } else if ([ServiceState.STOPPING, ServiceState.FAILED, ServiceState.TERMINATED].includes(indexerStatus as number)) {
-      throw new Error(nls.localize('apex_language_indexer_failed_run'));
+    // Listener is useful only in async mode
+    if (!languageServer.enableSyncInitJobs) {
+      // The listener should be set after languageClient is ready
+      // Language client will get notified once async init jobs are done
+      languageClient.onNotification(API.doneIndexing, async () => {
+        await getTestOutlineProvider().refresh();
+        languageServerReady();
+      });
+    } else {
+      // Client will check status with server after initialization (only for sync mode)
+      // In async mode, indexerStatus is never RUNNING at the point
+      const indexerStatus = await languageClient.sendRequest(API.indexerStatus);
+      if (indexerStatus === ServiceState.RUNNING) {
+        await getTestOutlineProvider().refresh();
+        languageServerReady();
+      }
     }
 
     const startTime = telemetryService.getEndHRTime(langClientHRStart);

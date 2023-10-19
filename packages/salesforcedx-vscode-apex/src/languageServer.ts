@@ -153,9 +153,6 @@ export async function createLanguageServer(
 // exported only for testing
 export function buildClientOptions(): LanguageClientOptions {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
-  const enableSyncInitJobs: boolean = vscode.workspace
-    .getConfiguration()
-    .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
 
   return {
     // Register the server for Apex documents
@@ -189,3 +186,7 @@ function isSOQLExtensionInstalled() {
   const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
   return soqlExtension !== undefined;
 }
+
+export const enableSyncInitJobs: boolean = vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);

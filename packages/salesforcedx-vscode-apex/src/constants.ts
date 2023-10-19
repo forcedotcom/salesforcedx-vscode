@@ -51,3 +51,8 @@ export enum ServiceState {
    */
   FAILED
 }
+
+export const API = {
+  doneIndexing: 'indexer/done',
+  indexerStatus: 'indexer/status'
+};
