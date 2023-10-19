@@ -20,7 +20,7 @@
 
 - We changed the scope name of `html` grammar in the Aura extension so that `php` and `html` code is correctly parsed and highlighted. ([PR #5159](https://github.com/forcedotcom/salesforcedx-vscode/pull/5159))
 
-# 59.0.0 - October 13, 2023
+# 59.0.0 - October 11, 2023
 
 ## Fixed
 
