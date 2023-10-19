@@ -19,7 +19,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 2. Click **Launch** to launch your Code Builder environment. A new environment is created for you the first time to launch. We've also created an empty Salesforce DX project to help you get started. Note that it takes a few minutes for a new environment to be created and loaded.
 
-![Code Builder Dashboard](../../../images/cb_dashboard.png)
+![Code Builder Dashboard](./images/cb_dashboard.png)
 
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
@@ -44,7 +44,7 @@ You can change the org you are connected to by clicking on the name of the curre
 
 You’re now in your developer environment in Code Builder. Code Builder has a rich IDE and it gives you access to cool Salesforce-specific development tools through the expanded Salesforce Extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
 
-![code_builder_ui](../../../images/code_builder_ga_ui_dark.jpg)
+![code_builder_ui](./images/code_builder_ga_ui_dark.jpg)
 
 The Code Builder user interface is divided into five main areas.
 
@@ -64,7 +64,7 @@ Take a closer look at the activity bar and notice a cloud icon. This icon repres
 
 **More Information**: You can find more information about the [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) in the Salesforce Extension Pack documentation.
 
-![org_browser_small](../../../images/org_browser_small.jpg)
+![org_browser_small](./images/org_browser_small.jpg)
 
 Click Org Browser and scroll down to **Custom Objects**. The first object you see is Account. You can view the metadata of the **Account** object (and do a few more cool things, but we’ll get to those in a bit).
 
