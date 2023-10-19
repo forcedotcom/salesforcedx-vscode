@@ -5,6 +5,9 @@ lang: en
 
 The Local Development Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org.
 
+> [!WARNING]  
+> This plugin is out of date and does not work with `@AuraEnabled` Apex methods.  The best use you can get out of it is some light wireframing.  
+
 ## Run Local Development Salesforce CLI Commands in VS Code
 
 The Local Development server uses the following Salesforce CLI commands.
