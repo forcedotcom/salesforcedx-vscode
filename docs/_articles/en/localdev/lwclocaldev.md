@@ -14,6 +14,8 @@ The Local Development Server is a Salesforce CLI plug-in that configures and run
 > - multiple directories and sfdx multiple packages
 > 
 > The best use you can get out of it is some light wireframing.  
+>
+> If this modual has been useful to you in the past or would like to be able to use it in the furture please be sure to provide feadback on the issue [LWC Dev Server Request for feedback](https://github.com/forcedotcom/lwc-dev-server-feedback/issues/143). 
  
 
 ## Run Local Development Salesforce CLI Commands in VS Code
