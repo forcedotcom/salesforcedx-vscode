@@ -50,7 +50,7 @@ Then install Einstein for Developers(beta)from the VS Code marketplace.
 
 Open a Salesforce DX project in VS Code. A sidebar panel opens and the Einstein logo on the activity bar confirms that the extension is installed.
 
-![einstein installed](../../../images/einstein-sidebar.png)
+![einstein installed](./images/einstein-sidebar.png)
 
 ## Connect to an Org
 
@@ -85,4 +85,4 @@ For example:
 
 Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
 
-![feedback panel](../../../images/einstein-feedback.png)
+![feedback panel](./images/einstein-feedback.png)

@@ -9,7 +9,7 @@ The Apex Language Server is an implementation of the Language Server Protocol 3.
 
 For more information, watch the video of our Dreamforce ’17 presentation, [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/).
 
-[![Dreamforce '17 Presentation](../../../images/apex-language-server-presentation-dreamforce-17.png)](https://www.salesforce.com/video/1765282/)
+[![Dreamforce '17 Presentation](./images/apex-language-server-presentation-dreamforce-17.png)](https://www.salesforce.com/video/1765282/)
 
 ## Integrate with the Apex Language Server
 
@@ -21,11 +21,12 @@ See the [languageServer.ts](https://github.com/forcedotcom/salesforcedx-vscode/b
 
 Hover over `{}` in the status bar to view the current status of the Apex Language Server. To always have visibility into the status, pin the status message. The Apex Language Server status is now persistantly visible in the status bar until it is unpinned.
 
-![Apex Language Server Status](../../../images/apexlspstatus.png)
+![Apex Language Server Status](./images/apexlspstatus.png)
 
 ## Reset Apex Indexing
 
 To clear the Apex Language Server's indexing, delete the `PROJECT_DIR/.sfdx/tools/<Salesforce Release>` directory and restart VS Code.
+
 ## See Also
 
 - [Language Server Protocol Specification](https://github.com/Microsoft/language-server-protocol)
