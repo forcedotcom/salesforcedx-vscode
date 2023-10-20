@@ -24,6 +24,35 @@
         ja: ヒントとコツ
       url: /vscode-desktop/tips-and-tricks
 - title:
+    en: Code Builder
+    ja: コードビルダー（ベータ版）
+  baseUrl: /codebuilder/
+  children:
+    - title:
+        en: Code Builder Overview
+        ja: コードビルダーの概要
+      url: /codebuilder/about
+    - title:
+        en: What's Different
+        ja: 何が違うの
+      url: /codebuilder/cb-diffs
+    - title:
+        en: Set Up Code Builder
+        ja: コードビルダーを設定する
+      url: /codebuilder/cb-setup
+    - title:
+        en: Get Started with Code Builder
+        ja: コードビルダーを使い始める
+      url: /codebuilder/cb-start
+    - title:
+        en: Remove Code Builder
+        ja: コードビルダーをアンインストールする
+      url: /codebuilder/cb-remove
+    - title:
+        en: Useful Tips
+        ja: コードビルダーを使い始める
+      url: /codebuilder/cb-tips
+- title:
     en: Einstein for Developers (Beta)
     ja: Einstein for Developers (Beta)
   baseUrl: /einstein/
@@ -38,11 +67,11 @@
       url: /einstein/einstein-setup
     - title:
         en: Use Einstein for Apex Programming
-        ja: Use Einstein for Apex Programming
+        ja: Set Up Einstein for Developers
       url: /einstein/einstein-apex
     - title:
         en: Example Prompts and Responses
-        ja: Example Prompts and Responses
+        ja: Set Up Einstein for Developers
       url: /einstein/einstein-example-prompts
     - title:
         en: Troubleshooting
@@ -69,29 +98,8 @@
         ja: Terms of Use
       url: /einstein/einstein-termsofuse
 - title:
-    en: Code Builder (Beta)
-    ja: コードビルダー（ベータ版）
-  baseUrl: /codebuilder/
-  children:
-    - title:
-        en: Code Builder Overview
-        ja: コードビルダーの概要
-      url: /codebuilder/about
-    - title:
-        en: What's Different
-        ja: 何が違うの
-      url: /codebuilder/cb-diffs
-    - title:
-        en: Set Up Code Builder
-        ja: コードビルダーを設定する
-      url: /codebuilder/cb-setup
-    - title:
-        en: Get Started with Code Builder
-        ja: コードビルダーを使い始める
-      url: /codebuilder/cb-start
-- title:
-    en: Salesforce Development Models
-    ja: Salesforce 開発モデル
+    en: Development Models
+    ja: 開発モデル
   baseUrl: /sf-dev-models/
   children:
     - title:
@@ -107,54 +115,43 @@
         ja: 開発モデル
       url: /sf-dev-models/pkgdev
 - title:
-    en: User Guide
+    en: Salesforce Development Environment
+    ja: ユーザガイド
+  baseUrl: /sf-dev-env/
+  children:
+    - title:
+        en: Overview 
+        ja: コマンドリファレンス
+      url: /sf-dev-env/env-overview
+    - title:
+        en: Default Org
+        ja: デフォルトの組織
+      url: /sf-dev-env/default-org
+    - title:
+        en: Command Palette
+        ja: コマンドリファレンス
+      url: /sf-dev-env/vscode-commands
+    - title:
+        en: Project Explorer
+        ja: コマンドリファレンス
+      url: /sf-dev-env/project-explorer
+    - title:
+        en: Org Browser
+        ja: デフォルトの組織
+      url: /sf-dev-env/org-browser
+    - title:
+        en: Custom Templates
+        ja: カスタムテンプレート
+      url: /sf-dev-env/byotemplate
+- title:
+    en: Additional Tooling
     ja: ユーザガイド
   baseUrl: /user-guide/
   children:
     - title:
-        en: Metadata Operations
-        ja: メタデータ操作
-      url: /user-guide/metadata-operations
-    - title:
-        en: Detect Conflicts
-        ja: 競合の検知
-      url: /user-guide/detect-conflicts
-    - title:
-        en: Deploy on Save
-        ja: 保存時のデプロイ
-      url: /user-guide/deploy-on-save
-    - title:
-        en: Org Browser
-        ja: 組織ブラウザ
-      url: /user-guide/org-browser
-    - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
-      url: /user-guide/prettier
-    - title:
-        en: Command Palette
-        ja: コマンドリファレンス
-      url: /user-guide/vscode-commands
-    - title:
-        en: Source Format
-        ja: ソース形式
-      url: /user-guide/source-format
-    - title:
-        en: Default Org
-        ja: デフォルトの組織
-      url: /user-guide/default-org
-    - title:
-        en: Remote Development
-        ja: リモートコンテナ
-      url: /user-guide/remote-development
-    - title:
-        en: Custom Templates
-        ja: カスタムテンプレート
-      url: /user-guide/byotemplate
-    - title:
-        en: Manifest Builder
-        ja: マニフェスト ビルダー
-      url: /user-guide/manifestbuilder
+      url: /user-guide/prettier   
     - title:
         en: Demo Mode
         ja: デモモード
@@ -248,23 +245,6 @@
         ja: リンティング
       url: /lwc/linting
 - title:
-    en: Local Development
-    ja: ローカル開発
-  baseUrl: /localdev/
-  children:
-    - title:
-        en: Overview
-        ja: 概要
-      url: /localdev/lwclocaldev
-    - title:
-        en: Set Up LWC Local Development
-        ja: LWC ローカル開発の設定
-      url: /localdev/set-up-lwc-local-dev
-    - title:
-        en: Supported and Unsupported Modules, Components, and Features
-        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
-      url: /localdev/lwc-localdev-supported-modules
-- title:
     en: Visualforce
     ja: Visualforce
   baseUrl: /visualforce/
@@ -291,6 +271,40 @@
         ja: Example SOQL Tasks
       url: /soql/soql-tasks/
 - title:
+    en: Source Control
+    ja: ユーザガイド
+  baseUrl: /source-control/
+  children:
+    - title:
+        en: Source Format
+        ja: ソース形式
+      url: /source-control/source-format
+- title:
+    en: Deploy Changes
+    ja: ユーザガイド
+  baseUrl: /deploy-changes/
+  children:
+    - title:
+        en: Metadata Operations
+        ja: メタデータ操作
+      url: /deploy-changes/metadata-operations
+    - title:
+        en: Manifest Builder
+        ja: マニフェスト ビルダー
+      url: /deploy-changes/manifestbuilder
+    - title:
+        en: Detect Conflicts
+        ja: 競合の検知
+      url: /deploy-changes/detect-conflicts
+    - title:
+        en: Deploy on Save
+        ja: 保存時のデプロイ
+      url: /deploy-changes/deploy-on-save
+- title:
+        en: Remote Development
+        ja: リモートコンテナ
+  url: /remote-development
+- title:
     en: FAQ
     ja: FAQ
   baseUrl: /faq/
@@ -311,3 +325,20 @@
     en: Bugs and Feedback
     ja: バグとフィードバック
   url: /bugs-and-feedback
+- title:
+    en: Local Development (Beta)
+    ja: ローカル開発  (Beta)
+  baseUrl: /localdev/
+  children:
+    - title:
+        en: Overview
+        ja: 概要
+      url: /localdev/lwclocaldev
+    - title:
+        en: Set Up LWC Local Development
+        ja: LWC ローカル開発の設定
+      url: /localdev/set-up-lwc-local-dev
+    - title:
+        en: Supported and Unsupported Modules, Components, and Features
+        ja: サポート対象とサポート対象外のモジュール、コンポーネント、機能
+      url: /localdev/lwc-localdev-supported-modules
