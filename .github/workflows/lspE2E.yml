@@ -15,6 +15,11 @@ on:
         required: false
         default: true
         type: boolean
+      lwcLsp:
+        description: 'lwcLsp.e2e.ts'
+        required: false
+        default: true
+        type: boolean
       visualforceLsp:
         description: 'visualforceLsp.e2e.ts'
         required: false
@@ -33,6 +38,11 @@ on:
         required: false
         default: true
         type: boolean
+      lwcLsp:
+        description: 'lwcLsp.e2e.ts'
+        required: false
+        default: true
+        type: boolean
       visualforceLsp:
         description: 'visualforceLsp.e2e.ts'
         required: false
@@ -42,15 +52,23 @@ on:
 jobs:
 
   auraLSP:
-    if: ${{ inputs.auraLsp }}
+    if: ${{ inputs.auraLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'auraLsp.e2e.ts'
 
+  lwcLSP:
+    if: ${{ inputs.lwcLsp || github.event_name == 'schedule' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'lwcLsp.e2e.ts'
+
   visualforceLSP:
-    if: ${{ inputs.visualforceLsp }}
+    if: ${{ inputs.visualforceLsp || github.event_name == 'schedule' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

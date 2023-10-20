@@ -2,6 +2,7 @@
 title: Detect Conflicts on Deploy
 lang: en
 ---
+
 ## Overview
 
 When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the org. The conflict detection feature can be turned on for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs. Note that this feature is always on for scratch orgs and source-tracked sandboxes.
@@ -26,10 +27,10 @@ You can also enter conflict detection in the search box to find the feature and 
 
 When enabled, conflict detection will check for potential conflicts for all Deploy commands executed from VS Code. Changes based on last sync date are compared for all files that exist both in the org and in the local project; files that don’t exist in both are not considered in conflict. If conflicts are detected on deploy, you can choose to view them or override them to continue the deploy operation:
 
-![Prompt for conflict detection](../../../images/DetectConflict_prompt.png)
+![Prompt for conflict detection](./images/DetectConflict_prompt.png)
 
 You can either select to override conflicts or cancel the operation and view the conflicts in the Org Differences view.
 
-You can use [Source Diff](./en/user-guide/source-diff) if you are interested in detecting conflicts in advance of any retrieve operation. 
+You can use [Source Diff](./en/user-guide/source-diff) if you are interested in detecting conflicts in advance of any retrieve operation.
 
-![Retrieve metadata flow](../../../images/RetrieveMetadataFlow.gif)
+![Retrieve metadata flow](./images/RetrieveMetadataFlow.gif)
