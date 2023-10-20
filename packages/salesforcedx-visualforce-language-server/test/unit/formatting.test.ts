@@ -19,6 +19,15 @@ import { getLanguageModes } from '../../src/modes/languageModes';
 import { format } from '../../src/modes/formatting';
 
 describe('HTML Embedded Formatting', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   function assertFormat(
     value: string,
     expected: string,

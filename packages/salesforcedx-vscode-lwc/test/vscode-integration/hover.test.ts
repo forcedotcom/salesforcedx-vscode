@@ -17,6 +17,7 @@ import {
 } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { createLanguageClient } from '../../src/languageClient';
+import { before } from 'mocha';
 
 describe('LWC Hovers', () => {
   let lwcDir = path.join(
@@ -37,6 +38,8 @@ describe('LWC Hovers', () => {
     client = createLanguageClient(
       path.join(
         __dirname,
+        '..',
+        '..',
         '..',
         '..',
         '..',

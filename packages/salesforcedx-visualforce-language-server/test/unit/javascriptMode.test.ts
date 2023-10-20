@@ -46,8 +46,16 @@ describe('HTML Javascript Support', () => {
     }
   }
 
-  it('Should display completions', function() {
-    this.timeout(30000);
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('Should display completions', () => {
     assertCompletions('<html><script>window.|</script></html>', ['location']);
   });
 });

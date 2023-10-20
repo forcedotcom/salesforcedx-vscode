@@ -21,7 +21,7 @@ describe('Aura Hovers', function() {
 
   let auraDir: string;
 
-  before(async function() {
+  beforeEach(async function() {
     auraDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',

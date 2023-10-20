@@ -103,7 +103,14 @@ export class MockExtensionContext implements ExtensionContext {
       packageJSON: {
         version: 'v55.5.5',
         aiKey: 'fakeAIKey',
-        name: 'salesforcedx-vscode-lwc'
+        name: 'salesforcedx-vscode-lwc',
+        serverPath: [
+          'node_modules',
+          '@salesforce',
+          'lwc-language-server',
+          'lib',
+          'server.js'
+        ]
       }
     } as any;
   }

@@ -22,12 +22,12 @@ describe('Apex Language Server Client', () => {
   describe('Should properly handle sending URI to server on Windows', () => {
     let originalPlatform: PropertyDescriptor;
 
-    before(() => {
+    beforeEach(() => {
       originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
       Object.defineProperty(process, 'platform', { value: 'win32' });
     });
 
-    after(() => {
+    afterEach(() => {
       Object.defineProperty(process, 'platform', originalPlatform);
     });
 
@@ -44,12 +44,12 @@ describe('Apex Language Server Client', () => {
   describe('Should properly handle sending URI to server on *nix', () => {
     let originalPlatform: PropertyDescriptor;
 
-    before(() => {
+    beforeEach(() => {
       originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
       Object.defineProperty(process, 'platform', { value: 'darwin' });
     });
 
-    after(() => {
+    afterEach(() => {
       Object.defineProperty(process, 'platform', originalPlatform);
     });
 

@@ -15,6 +15,7 @@ import {
 } from '@salesforce/salesforcedx-utils';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
+import * as os from 'os';
 import * as sinon from 'sinon';
 import {
   OutputEvent,
@@ -78,7 +79,6 @@ import {
   DummyContainer,
   newStringValue
 } from './apexDebugVariablesHandling.test';
-import os = require('os');
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;

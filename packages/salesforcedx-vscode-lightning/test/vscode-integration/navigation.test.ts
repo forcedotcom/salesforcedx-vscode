@@ -14,7 +14,7 @@ describe('Aura Definition Linking', function() {
   let auraDir: string;
   let lwcDir: string;
 
-  before(async function() {
+  beforeEach(async function() {
     auraDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',

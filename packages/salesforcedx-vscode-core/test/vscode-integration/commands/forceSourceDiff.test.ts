@@ -12,11 +12,16 @@ import {
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
+import {
+  FilePathGatherer,
+  SfdxWorkspaceChecker
+} from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
   MetadataCacheResult,
@@ -24,14 +29,9 @@ import {
   MetadataContext,
   PathType
 } from '../../../src/conflict/metadataCacheService';
+import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import Sinon = require('sinon');
-import {
-  FilePathGatherer,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/util';
-import { WorkspaceContext } from '../../../src/context';
 import { telemetryService } from '../../../src/telemetry';
 
 const sandbox = createSandbox();

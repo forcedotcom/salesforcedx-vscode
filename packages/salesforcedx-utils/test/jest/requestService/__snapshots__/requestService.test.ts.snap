@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RequestService unit tests. execute() Should include proxy authorization info if defined. 1`] = `
-Array [
-  Object {
+[
+  {
     "data": "this-is-a-test-request-body",
-    "headers": Object {
+    "headers": {
       "Accept": "application/json",
       "Authorization": "OAuth totallyfake-access-token-not-real-1234",
       "Content-Length": "27",
@@ -20,10 +20,10 @@ Array [
 `;
 
 exports[`RequestService unit tests. execute() Should include proxy info if defined. 1`] = `
-Array [
-  Object {
+[
+  {
     "data": "this-is-a-test-request-body",
-    "headers": Object {
+    "headers": {
       "Accept": "application/json",
       "Authorization": "OAuth totallyfake-access-token-not-real-1234",
       "Content-Length": "27",
@@ -38,10 +38,10 @@ Array [
 `;
 
 exports[`RequestService unit tests. execute() Should include query string if defined. 1`] = `
-Array [
-  Object {
+[
+  {
     "data": undefined,
-    "headers": Object {
+    "headers": {
       "Accept": "application/json",
       "Authorization": "OAuth totallyfake-access-token-not-real-1234",
       "Content-Length": "0",

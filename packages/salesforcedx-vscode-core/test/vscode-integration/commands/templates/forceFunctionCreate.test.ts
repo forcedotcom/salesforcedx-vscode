@@ -21,7 +21,7 @@ import { telemetryService } from '../../../../src/telemetry';
 import { workspaceUtils } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
-import sinon = require('sinon');
+import * as sinon from 'sinon';
 
 describe('Force Function Create', () => {
   let execStub: SinonStub;

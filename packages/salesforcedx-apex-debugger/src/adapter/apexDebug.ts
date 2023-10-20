@@ -13,6 +13,7 @@ import {
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
+import * as os from 'os';
 import { basename } from 'path';
 import {
   DebugSession,
@@ -82,7 +83,6 @@ import {
   WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
-import os = require('os');
 
 // Below import has to be required for bundling
 /* tslint:disable */

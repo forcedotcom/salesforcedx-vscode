@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import Sinon = require('sinon');
+import * as Sinon from 'sinon';
 import { diffComponents } from '../../../src/conflict/componentDiffer';
 
 describe('Component Differ', () => {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import assert = require('assert');
+import * as assert from 'assert';
 import { Range, TextDocument } from 'vscode-languageserver-types';
 import { getLanguageService } from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';

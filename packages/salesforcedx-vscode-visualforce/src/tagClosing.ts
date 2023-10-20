@@ -30,7 +30,7 @@ export function activateTagClosing(
   updateEnabledState();
   window.onDidChangeActiveTextEditor(updateEnabledState, null, disposables);
 
-  let timeout: NodeJS.Timer | undefined = void 0;
+  let timeout: ReturnType<typeof setTimeout> | undefined = void 0;
 
   function updateEnabledState() {
     isEnabled = false;

@@ -10,10 +10,10 @@
 
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
-import path = require('path');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');

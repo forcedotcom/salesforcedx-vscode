@@ -217,7 +217,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -249,7 +249,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -308,7 +308,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseSuccessResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -340,7 +340,7 @@ describe('LWC Test Outline Provider', () => {
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseFailureResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
@@ -370,7 +370,7 @@ describe('LWC Test Outline Provider', () => {
       });
     });
 
-    it('Should refresh test explorer', async function(testDone) {
+    it('Should refresh test explorer', async function() {
       this.timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
@@ -398,7 +398,6 @@ describe('LWC Test Outline Provider', () => {
       expect(actualTestCaseNodes[1].testExecutionInfo!.testResult).to.equal(
         undefined
       );
-      testDone();
     });
   });
 });

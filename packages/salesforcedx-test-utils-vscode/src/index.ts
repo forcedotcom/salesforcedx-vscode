@@ -7,7 +7,7 @@
 
 // tslint:disable-next-line:no-var-requires
 // tslint:disable-next-line:variable-name
-import Mocha = require('mocha');
+import * as Mocha from 'mocha';
 
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info

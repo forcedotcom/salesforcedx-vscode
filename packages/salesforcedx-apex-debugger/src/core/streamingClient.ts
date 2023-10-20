@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Client } from 'faye';
-import os = require('os');
 import { RequestService } from '@salesforce/salesforcedx-utils';
+import { Client } from 'faye';
+import * as os from 'os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 

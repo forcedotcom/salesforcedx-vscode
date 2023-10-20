@@ -59,7 +59,7 @@ describe('Force Apex Log Get Logging', () => {
   let showQuickPickStub: sinon.SinonStub;
   let apexLogListStub: sinon.SinonStub;
 
-  before(() => {
+  beforeEach(() => {
     sb = createSandbox();
     apexLogListStub = sb
       .stub(LogFileSelector.prototype, 'getLogRecords')
@@ -76,7 +76,7 @@ describe('Force Apex Log Get Logging', () => {
       .returns(logInfos[0]);
   });
 
-  after(() => {
+  afterEach(() => {
     sb.restore();
   });
 

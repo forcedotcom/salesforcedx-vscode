@@ -9,15 +9,15 @@ import { AuthInfo, Org } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
+import * as Sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   OrgType,
   WorkspaceContext,
   workspaceContextUtils
 } from '../../../src/context';
-import { OrgAuthInfo } from '../../../src/util';
-import Sinon = require('sinon');
 import * as workspaceUtil from '../../../src/context/workspaceOrgType';
+import { OrgAuthInfo } from '../../../src/util';
 
 const sandbox = createSandbox();
 

@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 describe('Aura Intellisense Test Suite', function() {
   let auraDir: string;
 
-  before(async ()=> {
+  beforeEach(async ()=> {
     auraDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',

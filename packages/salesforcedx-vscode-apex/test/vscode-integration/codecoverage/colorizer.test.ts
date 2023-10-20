@@ -16,7 +16,7 @@ import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 describe('Code coverage colorizer', () => {
   let testCoverage: Uri[];
 
-  before(async () => {
+  beforeEach(async () => {
     testCoverage = await workspace.findFiles(
       new RelativePattern(
         workspace.workspaceFolders![0],
