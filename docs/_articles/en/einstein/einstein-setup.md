@@ -37,7 +37,7 @@ When you enable Einstein for Developers in a supported Salesforce org, all users
 
 2. Turn on Einstein for Developers.
 
-![Einstein Terms and Toggle](../../../images/einstein-terms.png)
+![Einstein Terms and Toggle](./images/einstein-terms.png)
 
 **Important**: We encourage you to thoroughly review the license agreement and review all terms and conditions. Then accept to enable Einstein for Developers.
 
@@ -78,7 +78,7 @@ The Einstein for Developers tool is run in the context of a Salesforce org, in a
 
 The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the sidebar.
 
-![einstein installed](../../../images/einstein-installed.png)
+![einstein installed](./images/einstein-installed.png)
 
 ### Use Einstein for Developers in a Scratch Org
 
@@ -109,4 +109,4 @@ Create a scratch org using the `SFDX: Create a Default Scratch Org...` command r
 
 Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us with feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
 
-![feedback panel](../../../images/einstein-feedback.png)
+![feedback panel](./images/einstein-feedback.png)
