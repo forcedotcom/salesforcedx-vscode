@@ -23,7 +23,7 @@ export class DeployQueue {
   private static instance: DeployQueue;
 
   private readonly queue = new Set<vscode.Uri>();
-  private timer: NodeJS.Timer | undefined;
+  private timer: ReturnType<typeof setTimeout> | undefined;
   private locked = false;
   private deployWaitStart?: [number, number];
 

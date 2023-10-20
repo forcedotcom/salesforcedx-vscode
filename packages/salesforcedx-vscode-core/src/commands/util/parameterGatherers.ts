@@ -11,7 +11,7 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
-import glob = require('glob');
+import * as glob from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
