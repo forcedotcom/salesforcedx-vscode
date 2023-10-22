@@ -11,6 +11,14 @@ on:
         description: 'Run this E2E test'
         required: false
         type: string
+      # codeBranch:
+      #   type: string
+      #   required: true
+      #   default: 'develop'
+      # label:
+      #   type: string
+      #   required: false
+      #   default: 'VS Code Extensions'
 
 jobs:
   build:
@@ -24,6 +32,11 @@ jobs:
         vscodeVersion:
           - stable
     steps:
+      # - name: Get vsixes from specified version
+      #   uses: ./.github/workflows/buildAll.yml
+      #   with:
+      #     branch: ${{ inputs.testBranch }}
+      #     label: ${{ inputs.label }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
