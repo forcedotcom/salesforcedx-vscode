@@ -147,7 +147,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
   let devServiceStub: any;
   let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
-  let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
+  let lstatSyncStub: sinon.SinonStub;
   let showErrorMessageStub: sinon.SinonStub;
   let isSFContainerModeStub: sinon.SinonStub;
   const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';

@@ -20,8 +20,8 @@ BEGIN THIRD PARTY
 
 // tslint:disable:quotemark
 
-import arrays = require('../utils/arrays');
-import strings = require('../utils/strings');
+import * as arrays from '../utils/arrays';
+import * as strings from '../utils/strings';
 
 export const EMPTY_ELEMENTS: string[] = [
   'area',
