@@ -146,3 +146,15 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'templates.e2e.ts'
+
+  slack_notification:
+    if: ${{ always() }}
+    needs: [anInitialSuite, authentication, deployAndRetrieve, manifestBuilder, pushAndPull, sObjectsDefinitions, templates]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'Core E2E Tests'
+      summary: 'An Initial Suite: ${{ needs.anInitialSuite.result }}, Authentication: ${{ needs.authentication.result }}, Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}, Manifest Builder: ${{ needs.manifestBuilder.result }}, Push and Pull: ${{ needs.pushAndPull.result }}, SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}, Templates: ${{ needs.templates.result }}'
+      result: ${{ github.event.workflow.result }}
+      workflow: 'actions/runs/${{ github.run_id}}'
+      type: 'e2e'
