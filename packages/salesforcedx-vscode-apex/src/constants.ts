@@ -26,32 +26,6 @@ export const SKIP_RESULT = 'Skip';
 
 export const APEX_TESTS = 'ApexTests';
 
-export enum ServiceState {
-  /** A service in this state is inactive. It does minimal work and consumes minimal resources. */
-  NEW,
-
-  /** A service in this state is transitioning to {@link #RUNNING}. */
-  STARTING,
-
-  /** A service in this state is operational. */
-  RUNNING,
-
-  /** A service in this state is transitioning to {@link #TERMINATED}. */
-  STOPPING,
-
-  /**
-   * A service in this state has completed execution normally. It does minimal work and consumes
-   * minimal resources.
-   */
-  TERMINATED,
-
-  /**
-   * A service in this state has encountered a problem and may not be operational. It cannot be
-   * started nor stopped.
-   */
-  FAILED
-}
-
 export const API = {
   doneIndexing: 'indexer/done',
   indexerStatus: 'indexer/status'

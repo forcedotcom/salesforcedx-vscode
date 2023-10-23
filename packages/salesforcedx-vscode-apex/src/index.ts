@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
-import { API, ServiceState } from './constants';
+import { API } from './constants';
 
 import {
   forceAnonApexDebug,
@@ -323,13 +323,9 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
         languageServerReady();
       });
     } else {
-      // Client will check status with server after initialization (only for sync mode)
-      // In async mode, indexerStatus is never RUNNING at the point
-      const indexerStatus = await languageClient.sendRequest(API.indexerStatus);
-      if (indexerStatus === ServiceState.RUNNING) {
-        await getTestOutlineProvider().refresh();
-        languageServerReady();
-      }
+      // indexer must be running at the point
+      await getTestOutlineProvider().refresh();
+      languageServerReady();
     }
 
     const startTime = telemetryService.getEndHRTime(langClientHRStart);
