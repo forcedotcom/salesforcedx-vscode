@@ -326,8 +326,8 @@
     ja: バグとフィードバック
   url: /bugs-and-feedback
 - title:
-    en: Local Development
-    ja: ローカル開発
+    en: Local Development (Beta)
+    ja: ローカル開発  (Beta)
   baseUrl: /localdev/
   children:
     - title:

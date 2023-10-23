@@ -3,7 +3,7 @@
     "docs",
     "packages/*"
   ],
-  "version": "59.1.0",
+  "version": "59.1.2",
   "command": {
     "version": {
       "allowBranch": [
@@ -12,5 +12,6 @@
       ]
     }
   },
-  "useNx": true
+  "useNx": true,
+  "useWorkspaces": true
 }

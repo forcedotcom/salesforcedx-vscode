@@ -68,7 +68,7 @@ You can deploy source of a manifest, source files, directories, or folders:
 The Source Diff command makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at diffs for an individual file or directory.
 Right-click on a file or folder and run **SFDX: Diff File Against Org** or **SFDX: Diff Folder Against Org**.
 
-![Source Diff command](../../../images/source_diff.png)
+![Source Diff command](./images/source_diff.png)
 
 View individual file diffs side by side. A file doesn't show up in the list of diffs if it doesn’t exist locally or in the org.
 

@@ -36,7 +36,7 @@ When installation is complete, you receive a confirmation email. You can confirm
 
 From Setup, enter `Installed Packages` in the Quick Find box, then select **Installed Packages**. You see an entry for Code Builder that looks something like this. If you get the message that the app is taking a long time to install, you get automatically redirected to this page after you click **Done**.
 
-![Installed Package](../../../images/installed_package.png)
+![Installed Package](./images/installed_package.png)
 
 ## Add Team Members as Users in the Code Builder Org
 

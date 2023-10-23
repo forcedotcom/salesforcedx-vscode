@@ -14,7 +14,7 @@ Use the Org Browser to view the available metadata types and their corresponding
 
 ## Org Browser Overview
 
-![Org Browser Overview](../../../images/org_browser_overview.png)
+![Org Browser Overview](./images/org_browser_overview.png)
 
 1. Open Org Browser
 2. Refresh available metadata types in the org
@@ -46,7 +46,7 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 - Folder metadata type to update the folders in the type, but not the components in the folder
 - Folder in a metadata type to refresh the components in it
 
-![Metadata type with folders](../../../images/org_browser_folder_ret.png)
+![Metadata type with folders](./images/org_browser_folder_ret.png)
 
 ## Retrieve Org Metadata
 
@@ -61,7 +61,7 @@ Currently, the source is retrieved into your default package directory as define
 
 You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you're prompted to select how to proceed.
 
-![Overwrite components](../../../images/overwrite-prompt.png)
+![Overwrite components](./images/overwrite-prompt.png)
 
 When you retrieve components for a metadata type, the Org Browser automatically refreshes the component list for the selected type and then retrieves them. This action ensures that the extensions accurately check the local workspace for existing components.
 
