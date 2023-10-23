@@ -20,8 +20,6 @@ export const messages = {
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
   apex_execute_unexpected_error: 'Unexpected error',
-  apex_language_indexer_failed_run:
-    'Apex Indexer failed to run',
   apex_language_server_loading:
     'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
   apex_language_server_loaded: 'Indexing complete $(check)',

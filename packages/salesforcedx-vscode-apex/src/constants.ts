@@ -27,6 +27,5 @@ export const SKIP_RESULT = 'Skip';
 export const APEX_TESTS = 'ApexTests';
 
 export const API = {
-  doneIndexing: 'indexer/done',
-  indexerStatus: 'indexer/status'
+  doneIndexing: 'indexer/done'
 };
