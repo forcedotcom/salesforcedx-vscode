@@ -1,8 +1,6 @@
 name: Core End to End Tests
 
 on:
-  schedule:
-    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -45,6 +43,10 @@ on:
         required: false
         default: true
         type: boolean
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
 
   workflow_call:
     inputs:
@@ -88,61 +90,72 @@ on:
         required: false
         default: true
         type: boolean
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: false
+        type: string
 
 jobs:
 
   anInitialSuite:
-    if: ${{ inputs.anInitialSuite || github.event_name == 'schedule' }}
+    if: ${{ inputs.anInitialSuite }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'anInitialSuite.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   authentication:
-    if: ${{ inputs.authentication || github.event_name == 'schedule' }}
+    if: ${{ inputs.authentication }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'authentication.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   deployAndRetrieve:
-    if: ${{ inputs.deployAndRetrieve || github.event_name == 'schedule' }}
+    if: ${{ inputs.deployAndRetrieve }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'deployAndRetrieve.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   manifestBuilder:
-    if: ${{ inputs.manifestBuilder || github.event_name == 'schedule' }}
+    if: ${{ inputs.manifestBuilder }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'manifestBuilder.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   pushAndPull:
-    if: ${{ inputs.pushAndPull || github.event_name == 'schedule' }}
+    if: ${{ inputs.pushAndPull }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'pushAndPull.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   sObjectsDefinitions:
-    if: ${{ inputs.sObjectsDefinitions || github.event_name == 'schedule' }}
+    if: ${{ inputs.sObjectsDefinitions }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'sObjectsDefinitions.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   templates:
-    if: ${{ inputs.templates || github.event_name == 'schedule' }}
+    if: ${{ inputs.templates }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'templates.e2e.ts'
+      runId: ${{ inputs.runId }}
