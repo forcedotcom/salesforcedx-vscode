@@ -6,4 +6,5 @@ on:
 jobs:
   build-and-test:
     uses: ./.github/workflows/buildAndTest.yml
-  
+    with:
+      runId: ${{ github.run_id }}

@@ -1,7 +1,7 @@
 name: Test, Build, and Release
 on:
   push:
-    branches: 
+    branches:
       - 'main'
 
 jobs:
@@ -21,9 +21,10 @@ jobs:
   build-and-test:
     uses: ./.github/workflows/buildAndTest.yml
     needs: [get-version]
-    with: 
+    with:
       branch: 'main'
       label: ${{ needs.get-version.outputs.RELEASE_VERSION }}
+      runId: ${{ github.run_id }}
   release:
     needs: [build-and-test]
     secrets: inherit

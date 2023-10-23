@@ -9,6 +9,9 @@ on:
         type: string
         required: false
         default: 'VS Code Extensions'
+      runId:
+        type: string
+        required: false
 
 jobs:
   unit-tests:
@@ -24,3 +27,4 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
       label: ${{ inputs.label }}
+      runId: ${{ inputs.runId }}
