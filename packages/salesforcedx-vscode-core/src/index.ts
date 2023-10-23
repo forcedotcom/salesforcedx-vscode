@@ -542,8 +542,10 @@ async function setupOrgBrowser(
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
+  console.log('#W-14255695 activate');
   const extensionHRStart = process.hrtime();
   const rootWorkspacePath = getRootWorkspacePath();
+  console.log('#W-14255695 activate 1');
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
   // @salesforce/source-tracking, etc. all use process.cwd()
@@ -557,6 +559,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
+  console.log('#W-14255695 activate 2');
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
@@ -564,6 +567,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     taskViewService
   );
   extensionContext.subscriptions.push(treeDataProvider);
+  console.log('#W-14255695 activate 3');
 
   // Set internal dev context
   const internalDev = sfdxCoreSettings.getInternalDev();
@@ -573,6 +577,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     'sfdx:internal_dev',
     internalDev
   );
+  console.log('#W-14255695 activate 4');
 
   if (internalDev) {
     // Internal Dev commands
@@ -596,16 +601,18 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
     telemetryService.sendExtensionActivationEvent(extensionHRStart);
     console.log('SFDX CLI Extension Activated (internal dev mode)');
+    console.log('#W-14255695 activate 5');
     return internalApi;
   }
 
+  console.log('#W-14255695 activate 6');
   FunctionService.instance.handleDidStartTerminateDebugSessions(
     extensionContext
   );
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
-
+  console.log('#W-14255695 activate 7');
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
   if (
@@ -620,21 +627,25 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     'sfdx:replay_debugger_extension',
     replayDebuggerExtensionInstalled
   );
+  console.log('#W-14255695 activate 8');
 
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
   );
-
+  console.log('#W-14255695 activate 9');
   if (sfdxProjectOpened) {
     await initializeProject(extensionContext);
   }
-
+  console.log('#W-14255695 activate 10');
   // Commands
   const commands = registerCommands(extensionContext);
+  console.log('#W-14255695 activate 11');
   extensionContext.subscriptions.push(commands);
+  console.log('#W-14255695 activate 12');
   extensionContext.subscriptions.push(registerConflictView());
+  console.log('#W-14255695 activate 13');
 
   const api: any = {
     channelService,
@@ -661,9 +672,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       WorkspaceContext
     }
   };
-
+  console.log('#W-14255695 activate 14');
   registerFunctionInvokeCodeLensProvider(extensionContext);
-
+  console.log('#W-14255695 activate 15');
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
 
@@ -671,6 +682,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders.length > 0
   ) {
+    console.log('#W-14255695 activate 16');
     // Refresh SObject definitions if there aren't any faux classes
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
@@ -685,8 +697,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         vscode.workspace.workspaceFolders[0].uri.fsPath
       ).catch(e => telemetryService.sendException(e.name, e.message));
     }
+    console.log('#W-14255695 activate 17');
   }
-
+  console.log('#W-14255695 activate 18');
   return api;
 }
 
