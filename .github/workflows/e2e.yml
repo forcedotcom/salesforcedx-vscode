@@ -1,5 +1,30 @@
 name: End to End Tests
 on:
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      apexE2ETests:
+        description: 'Apex E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      coreE2ETests:
+        description: 'Core E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      lspE2ETests:
+        description: 'LSP E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      runId:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -22,6 +47,9 @@ on:
         required: false
         default: true
         type: boolean
+      runId:
+        required: true
+        type: string
 
 jobs:
 
@@ -31,6 +59,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
+      runId: ${{ inputs.runId }}
 
   Core_E2E_tests:
     if: ${{ inputs.coreE2ETests }}
@@ -38,6 +67,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
+      runId: ${{ inputs.runId }}
 
   LSP_E2E_tests:
     if: ${{ inputs.lspE2ETests }}
@@ -45,3 +75,4 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
+      runId: ${{ inputs.runId }}
