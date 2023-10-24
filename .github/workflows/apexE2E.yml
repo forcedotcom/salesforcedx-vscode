@@ -118,9 +118,9 @@ jobs:
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
-      summary: 'Apex LSP: ${{ needs.apexLSP.result }}, Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}, Debug Apex Tests: ${{ needs.debugApexTests.result }}, Run Apex Tests: ${{ needs.runApexTests.result }}, Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
-      result: 'Success'
-      workflow: 'actions/runs/${{ github.run_id}}'
+      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }},\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }},\n- Debug Apex Tests: ${{ needs.debugApexTests.result }},\n- Run Apex Tests: ${{ needs.runApexTests.result }},\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
@@ -130,7 +130,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
-      summary: 'Apex LSP: ${{ needs.apexLSP.result }}, Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}, Debug Apex Tests: ${{ needs.debugApexTests.result }}, Run Apex Tests: ${{ needs.runApexTests.result }}, Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
-      result: 'Failure'
-      workflow: 'actions/runs/${{ github.run_id}}'
+      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }},\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }},\n- Debug Apex Tests: ${{ needs.debugApexTests.result }},\n- Run Apex Tests: ${{ needs.runApexTests.result }},\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
