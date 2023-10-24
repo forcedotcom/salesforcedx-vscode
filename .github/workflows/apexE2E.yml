@@ -134,7 +134,7 @@ jobs:
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
-    
+
   slack_cancelled_notification:
     if: ${{ cancelled() }}
     needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
