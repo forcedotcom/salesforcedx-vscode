@@ -26,7 +26,7 @@ export const messages = {
   apex_language_server_failed_activate:
     'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting:
-    'Apex Language Server has stopped. Restarting… $N of 5',
+    'Apex Language Server has stopped. Restarting… %d of 5',
   apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
@@ -85,5 +85,20 @@ export const messages = {
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
-  unknown_error: 'Unknown error'
+  terminate_orphaned_language_server_instances:
+    'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
+  terminate_processes: 'Terminate Processes',
+  terminate_show_processes: 'Show Processes',
+  terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
+  terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
+  terminated_orphaned_processes: 'Terminated %d orphaned processes.',
+  unknown_error: 'Unknown error',
+  process_id: 'Process ID',
+  parent_process_id: 'Parent Process ID',
+  process_command: 'Process Command',
+  terminate_processes_confirm: 'Terminate %d Orphaned Processes',
+  yes: 'Yes',
+  cancel: 'Cancel',
+  terminate_processes_title: 'Terminate Orphaned Processes',
+  orphan_process_advice: "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes."
 };

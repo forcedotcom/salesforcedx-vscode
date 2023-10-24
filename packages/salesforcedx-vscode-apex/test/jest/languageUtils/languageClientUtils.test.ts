@@ -10,7 +10,7 @@ import {
   ClientStatus,
   LanguageClientStatus,
   LanguageClientUtils
-} from '../../../src/languageClientUtils/languageClientUtils';
+} from '../../../src/languageUtils/languageClientUtils';
 
 describe('LanguageClientUtils', () => {
   let languageClientUtils: LanguageClientUtils;
