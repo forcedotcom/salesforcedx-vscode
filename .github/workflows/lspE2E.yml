@@ -75,14 +75,26 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'visualforceLsp.e2e.ts'
 
-  slack_notification:
-    if: ${{ always() }}
+  slack_success_notification:
+    if: ${{ success() }}
     needs: [auraLSP, lwcLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
       summary: 'Aura LSP: ${{ needs.auraLSP.result }}, LWC LSP: ${{ needs.lwcLSP.result }}, Visualforce LSP: ${{ needs.visualforceLSP.result }}'
-      result: ${{ github.event.workflow.result }}
+      result: 'Success'
+      workflow: 'actions/runs/${{ github.run_id}}'
+      type: 'e2e'
+
+  slack_failurenotification:
+    if: ${{ failure() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      summary: 'Aura LSP: ${{ needs.auraLSP.result }},\nLWC LSP: ${{ needs.lwcLSP.result }},\nVisualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'Failure'
       workflow: 'actions/runs/${{ github.run_id}}'
       type: 'e2e'
