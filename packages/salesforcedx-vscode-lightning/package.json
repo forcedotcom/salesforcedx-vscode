@@ -71,6 +71,9 @@
     "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "serverPath": [
     "..",
     "..",

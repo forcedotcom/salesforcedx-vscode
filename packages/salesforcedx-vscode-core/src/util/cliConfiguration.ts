@@ -9,18 +9,15 @@ import {
   ConfigUtil,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
-import { which } from 'shelljs';
 import { window } from 'vscode';
-import {
-  ENV_SF_DISABLE_TELEMETRY,
-  SFDX_CLI_DOWNLOAD_LINK
-} from '../constants';
+import * as which from 'which';
+import { ENV_SF_DISABLE_TELEMETRY, SFDX_CLI_DOWNLOAD_LINK } from '../constants';
 import { nls } from '../messages';
 
 export function isCLIInstalled(): boolean {
   let isInstalled = false;
   try {
-    if (which('sfdx')) {
+    if (which.sync('sfdx', { nothrow: true })) {
       isInstalled = true;
     }
   } catch (e) {

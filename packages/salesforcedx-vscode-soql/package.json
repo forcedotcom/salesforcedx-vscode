@@ -97,6 +97,9 @@
     "onCommand:soql.builder.toggle"
   ],
   "main": "out/src",
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "serverPath": [
     "..",
     "..",

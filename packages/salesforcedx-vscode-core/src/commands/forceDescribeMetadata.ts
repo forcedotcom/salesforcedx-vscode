@@ -14,7 +14,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { mkdir } from 'shelljs';
 import { SfdxCommandletExecutor } from '../commands/util';
 import { workspaceUtils } from '../util';
 
@@ -52,7 +51,8 @@ export async function forceDescribeMetadata(
   const forceDescribeMetadataExecutor = new ForceDescribeMetadataExecutor();
   const execution = forceDescribeMetadataExecutor.execute();
   if (!fs.existsSync(outputFolder)) {
-    mkdir('-p', outputFolder);
+    fs.mkdirSync(outputFolder, { recursive: true });
+    // mkdir('-p', outputFolder);
   }
   const filePath = path.join(outputFolder, 'metadataTypes.json');
 

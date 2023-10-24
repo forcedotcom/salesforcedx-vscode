@@ -21,7 +21,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import sanitizeFilename from 'sanitize-filename';
-import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
@@ -89,9 +88,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_configure_project')
-      )
+      .withDescription(nls.localize('isv_debug_bootstrap_configure_project'))
       .withArg('config:set')
       .withArg(`org-isv-debugger-sid=${data.sessionId}`)
       .withArg(`org-isv-debugger-url=${data.loginUrl}`)
@@ -105,9 +102,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_configure_project_retrieve_namespace'
-        )
+        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       )
       .withArg('data:query')
       .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
@@ -135,9 +130,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildRetrieveOrgSourceCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_retrieve_org_source')
-      )
+      .withDescription(nls.localize('isv_debug_bootstrap_retrieve_org_source'))
       .withArg('project:retrieve:start')
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
       .withFlag('--target-org', data.sessionId)
@@ -165,10 +158,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_retrieve_package_source',
-          packageName
-        )
+        nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
       )
       .withArg('project:retrieve:start')
       .withFlag('--package-name', packageName)
@@ -218,7 +208,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     // remove any previous project at this path location
-    shell.rm('-rf', projectPath);
+    fs.rmSync(projectPath, { recursive: true, force: true });
 
     // 1: create project
     await this.executeCommand(
@@ -269,7 +259,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 3a: create package.xml for downloading org apex
     try {
-      shell.mkdir('-p', projectMetadataTempPath);
+      fs.mkdirSync(projectMetadataTempPath, { recursive: true });
       fs.writeFileSync(
         apexRetrievePackageXmlPath,
         `<?xml version="1.0" encoding="UTF-8"?>
@@ -314,17 +304,14 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
     // 5a: create directory where packages are to be retrieved
-    shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
+    fs.mkdirSync(projectInstalledPackagesPath, { recursive: true });
     const packageNames = packageInfos.map(entry => entry.name);
 
     // 5b: retrieve packages
     // TODO: what if packageNames.length is 0?
     for (const packageName of packageNames) {
       await this.executeCommand(
-        this.buildRetrievePackageSourceCommand(
-          response.data,
-          packageName
-        ),
+        this.buildRetrievePackageSourceCommand(response.data, packageName),
         { cwd: projectPath },
         cancellationTokenSource,
         cancellationToken
@@ -361,7 +348,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 5c: cleanup temp files
     try {
-      shell.rm('-rf', projectMetadataTempPath);
+      fs.rmSync(projectMetadataTempPath, { recursive: true, force: true });
     } catch (error) {
       console.error(error);
       channelService.appendLine(
@@ -379,7 +366,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     );
     try {
       const projectVsCodeFolder = path.join(projectPath, '.vscode');
-      shell.mkdir('-p', projectVsCodeFolder);
+      fs.mkdirSync(projectVsCodeFolder, { recursive: true });
       fs.writeFileSync(
         path.join(projectVsCodeFolder, 'launch.json'),
         // mostly duplicated from ApexDebuggerConfigurationProvider to avoid hard dependency from core to debugger module

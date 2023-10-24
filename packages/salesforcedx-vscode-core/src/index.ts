@@ -26,11 +26,6 @@ import {
   forceConfigList,
   forceConfigSet,
   forceCreateManifest,
-  forceFunctionContainerlessStartCommand,
-  forceFunctionCreate,
-  forceFunctionDebugInvoke,
-  forceFunctionInvoke,
-  forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
   forceInternalLightningEventCreate,
@@ -70,7 +65,6 @@ import {
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
-  registerFunctionInvokeCodeLensProvider,
   startApexDebugLogging,
   stopApexDebugLogging,
   turnOffLogging,
@@ -79,7 +73,6 @@ import {
   viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
-import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { getUserId } from './commands/startApexDebugLogging';
 import {
@@ -363,31 +356,6 @@ function registerCommands(
     forceSourceFolderDiff
   );
 
-  const forceFunctionCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.create',
-    forceFunctionCreate
-  );
-
-  const forceFunctionStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.containerless.start',
-    forceFunctionContainerlessStartCommand
-  );
-
-  const forceFunctionInvokeCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.invoke',
-    forceFunctionInvoke
-  );
-
-  const forceFunctionDebugInvokeCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.debugInvoke',
-    forceFunctionDebugInvoke
-  );
-
-  const forceFunctionStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.stop',
-    forceFunctionStop
-  );
-
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
     'sfdx.force.internal.refreshsobjects',
     forceRefreshSObjects
@@ -403,11 +371,6 @@ function registerCommands(
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
-    forceFunctionCreateCmd,
-    forceFunctionInvokeCmd,
-    forceFunctionDebugInvokeCmd,
-    forceFunctionStartCmd,
-    forceFunctionStopCmd,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgDeleteDefaultCmd,
@@ -606,9 +569,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   console.log('#W-14255695 activate 6');
-  FunctionService.instance.handleDidStartTerminateDebugSessions(
-    extensionContext
-  );
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -673,7 +633,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     }
   };
   console.log('#W-14255695 activate 14');
-  registerFunctionInvokeCodeLensProvider(extensionContext);
   console.log('#W-14255695 activate 15');
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');

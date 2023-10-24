@@ -12,6 +12,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { before } from 'mocha';
 import {
   ConfirmationAndSourcePathGatherer,
   ManifestChecker
