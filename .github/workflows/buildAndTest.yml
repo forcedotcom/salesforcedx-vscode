@@ -32,4 +32,4 @@ jobs:
     needs: build-all
     uses: ./.github/workflows/e2e.yml
     with:
-      runId: ${{ github.run_id }}
+      runId: ${{ inputs.runId }}
