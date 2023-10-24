@@ -38,7 +38,7 @@ on:
 jobs:
   notification_on_success:
     runs-on: ubuntu-latest
-    if: inputs.result == 'success' 
+    if: inputs.result == 'success'
     steps:
       - name: Announce success
         uses: slackapi/slack-github-action@v1.22.0
