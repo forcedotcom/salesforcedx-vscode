@@ -15,7 +15,7 @@ Enable Code Builder to provide the permissions needed to install the Code Builde
 
 To install Code Builder in a Professional Edition org, the org must have API access. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. Contact your Account Executive to request the API add-on.
 
-**Note**: Code Builder is available in Government Cloud Plus as interoperable. Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
+**Note**: Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
 
 1. From Setup, enter Code Builder in the Quick Find box, then select Code Builder.
 
