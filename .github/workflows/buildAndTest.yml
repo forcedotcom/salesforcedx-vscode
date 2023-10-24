@@ -9,9 +9,6 @@ on:
         type: string
         required: false
         default: 'VS Code Extensions'
-      runId:
-        type: string
-        required: false
 
 jobs:
   unit-tests:
@@ -27,9 +24,3 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
       label: ${{ inputs.label }}
-  e2e-tests:
-    if: ${{ inputs.branch == 'main' }}
-    needs: build-all
-    uses: ./.github/workflows/e2e.yml
-    with:
-      runId: ${{ inputs.runId }}
