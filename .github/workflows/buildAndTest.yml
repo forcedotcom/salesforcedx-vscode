@@ -27,4 +27,9 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
       label: ${{ inputs.label }}
-      runId: ${{ inputs.runId }}
+  e2e-tests:
+    if: ${{ inputs.branch == 'main' }}
+    needs: build-all
+    uses: ./.github/workflows/e2e.yml
+    with:
+      runId: ${{ github.run_id }}

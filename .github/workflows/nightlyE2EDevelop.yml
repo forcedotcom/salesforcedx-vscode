@@ -1,0 +1,26 @@
+name: Nightly E2E Develop
+on:
+  schedule:
+    - cron: 15 6 * * *
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        required: false
+        default: 'develop'
+      label:
+        type: string
+        required: false
+        default: 'VS Code Extensions'
+jobs:
+  build-all:
+    uses: ./.github/workflows/buildAll.yml
+    with:
+      branch: ${{ inputs.branch || 'develop' }}
+      label: ${{ inputs.label || 'Nightly' }}
+
+  e2e-tests:
+    needs: build-all
+    uses: ./.github/workflows/e2e.yml
+    with:
+      runId: ${{ github.run_id }}

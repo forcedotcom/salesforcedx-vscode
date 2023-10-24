@@ -1,17 +1,5 @@
 name: Build All
 on:
-  schedule:
-    - cron: 15 6 * * *
-  workflow_dispatch:
-    inputs:
-      branch:
-        type: string
-        required: false
-        default: 'develop'
-      label:
-        type: string
-        required: false
-        default: 'VS Code Extensions'
   workflow_call:
     inputs:
       branch:
@@ -21,9 +9,6 @@ on:
         type: string
         required: false
         default: 'VS Code Extensions'
-      runId:
-        type: string
-        required: false
 
 jobs:
   build-all:
@@ -31,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.branch || 'develop' }}
+          ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
@@ -48,11 +33,5 @@ jobs:
       - name: Upload Extensions
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.label || 'nightly' }}
+          name: ${{ inputs.label }}
           path: ./extensions/
-
-  e2e-tests:
-    needs: build-all
-    uses: ./.github/workflows/e2e.yml
-    with:
-      runId: ${{ github.run_id || inputs.runId }}
