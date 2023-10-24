@@ -160,7 +160,7 @@ jobs:
       type: 'e2e'
 
   slack_failure_notification:
-    if: ${{ failure() || cancelled() }}
+    if: ${{ failure()}}
     needs: [anInitialSuite, authentication, deployAndRetrieve, manifestBuilder, pushAndPull, sObjectsDefinitions, templates]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -168,5 +168,17 @@ jobs:
       title: 'Core E2E Tests'
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs: [anInitialSuite, authentication, deployAndRetrieve, manifestBuilder, pushAndPull, sObjectsDefinitions, templates]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'Core E2E Tests'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
