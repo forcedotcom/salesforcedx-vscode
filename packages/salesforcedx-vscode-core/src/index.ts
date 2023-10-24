@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import { CheckCliVersion, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ChannelService,
   getRootWorkspacePath,
@@ -555,6 +555,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  await new CheckCliVersion().getCliVersion();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
