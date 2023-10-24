@@ -28,7 +28,20 @@ export class CheckCliVersion {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     console.log('**** result = ' + result);
-    throw new Error('Your installed CLI version is no longer supported. Uninstall CLI and reinstall it at https://developer.salesforce.com/tools/sfdxcli');
+    let version = '';
+    for (let position = 0; position < result.length; position++) {
+      console.log('result[' + position + '] = {' + result[position] + '}');
+      if (result[position] === ' ') {
+        console.log('HERE');
+        break;
+      }
+      else if (Number.isInteger(+result[position]) || result[position] === '.') {
+        version += result[position];
+      }
+
+    }
+    console.log('**** version = ' + version);
+    // throw new Error('Your installed CLI version is no longer supported. Uninstall CLI and reinstall it at https://developer.salesforce.com/tools/sfdxcli');
 
   }
 
