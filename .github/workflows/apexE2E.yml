@@ -124,7 +124,7 @@ jobs:
       type: 'e2e'
 
   slack_failure_notification:
-    if: ${{ failure() }}
+    if: ${{ failure() || cancelled() }}
     needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
