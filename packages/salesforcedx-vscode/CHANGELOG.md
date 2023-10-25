@@ -1,3 +1,25 @@
+# 59.2.0 - October 27, 2023
+
+## Added
+
+#### salesforcedx-utils
+
+- Add detection of orphaned apex ls at startup ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
+
+#### salesforcedx-vscode-apex
+
+- Add detection of orphaned apex ls at startup ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
+
+#### salesforcedx-vscode-core
+
+- Upgrade to node18 ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
+
+## Fixed
+
+#### docs
+
+- Gov cloud update ([PR #5177](https://github.com/forcedotcom/salesforcedx-vscode/pull/5177))
+
 # 59.1.2 - October 19, 2023
 
 ## Fixed
