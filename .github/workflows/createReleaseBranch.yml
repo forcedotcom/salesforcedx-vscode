@@ -45,7 +45,7 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
       - name: Set NPM at the correct version for Lerna
-        run: npm install -g npm@@9.8.1
+        run: npm install -g npm@9.8.1
       - run: npm ci
       - run: npm install -g shelljs && npm install -g lerna@5.5.4
       - name: Create and Push the Release Branch
