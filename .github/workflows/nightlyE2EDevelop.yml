@@ -5,18 +5,20 @@ on:
   workflow_dispatch:
     inputs:
       branch:
+        description: 'Set the branch to use to build the vsixes'
         type: string
         required: false
         default: 'develop'
       label:
+        description: 'Set the label for the vsixes'
         type: string
         required: false
         default: 'VS Code Extensions'
       automationBranch:
         description: 'Set the branch to use for automation tests'
+        type: string
         required: false
         default: 'develop'
-        type: string
 jobs:
   build-all:
     uses: ./.github/workflows/buildAll.yml
