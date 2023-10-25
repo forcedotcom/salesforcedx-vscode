@@ -1,3 +1,16 @@
+# 59.2.0 - October 27, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Our Apex extension can now detect orphaned language servers at startup. You can view the processes in the Output channel and then do as you please with them. Terminate them, or ignore them. The choice is yours. Remember this though --with great power comes great responsibility. ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
+
+
 # 59.1.2 - October 19, 2023
 
 ## Fixed
