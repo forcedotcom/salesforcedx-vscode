@@ -35,7 +35,7 @@ export function showCLINotInstalledMessage() {
     SFDX_CLI_DOWNLOAD_LINK,
     SFDX_CLI_DOWNLOAD_LINK
   );
-  window.showWarningMessage(showMessage);
+  window.showErrorMessage(showMessage);
 }
 
 export function disableCLITelemetry() {

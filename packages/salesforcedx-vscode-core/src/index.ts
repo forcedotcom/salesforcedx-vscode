@@ -555,12 +555,14 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  // TODO: add a line here to check if CLI is installed
+
+  // Check that the CLI is installed and that it is a supported version
   const installed = await isCLIInstalled();
   if (!installed) {
     showCLINotInstalledMessage();
   }
   await new CheckCliVersion().validateCliVersion();
+
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
