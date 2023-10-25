@@ -290,7 +290,7 @@ export const messages = {
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
-    'Salesforce CLI is not installed. Install it from [%s](%s)',
+    'Either Salesforce CLI is not installed or only SF v1 is present. Install the latest CLI version from [%s](%s)',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
