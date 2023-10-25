@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/buildAll.yml
     with:
       branch: ${{ inputs.branch || 'develop' }}
-      label: ${{ inputs.label || 'Nightly' }}
+      label: ${{ inputs.label || 'Nightly E2E' }}
 
   e2e-tests:
     needs: build-all
