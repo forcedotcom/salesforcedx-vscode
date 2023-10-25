@@ -8,6 +8,7 @@ import * as path from 'path';
 import {
   EnvironmentVariableCollection,
   EnvironmentVariableMutator,
+  EnvironmentVariableScope,
   Extension,
   ExtensionContext,
   ExtensionMode,
@@ -48,6 +49,7 @@ class MockEnvironmentVariableCollection
     throw new Error('Method not implemented.');
   }
   public persistent = true;
+  public description = 'Mock Environment Variable Collection';
   public replace(variable: string, value: string): void {
     throw new Error('Method not implemented.');
   }
@@ -76,6 +78,10 @@ class MockEnvironmentVariableCollection
   public clear(): void {
     throw new Error('Method not implemented.');
   }
+  public getScoped(scope: EnvironmentVariableScope): EnvironmentVariableCollection {
+    const envVar: any = null;
+    return envVar;
+  }
 }
 
 export class MockExtensionContext implements ExtensionContext {
@@ -97,7 +103,14 @@ export class MockExtensionContext implements ExtensionContext {
       packageJSON: {
         version: 'v55.5.5',
         aiKey: 'fakeAIKey',
-        name: 'salesforcedx-vscode-lwc'
+        name: 'salesforcedx-vscode-lwc',
+        serverPath: [
+          'node_modules',
+          '@salesforce',
+          'lwc-language-server',
+          'lib',
+          'server.js'
+        ]
       }
     } as any;
   }

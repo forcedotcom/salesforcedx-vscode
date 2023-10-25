@@ -29,6 +29,9 @@ import { CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
+    'push-errors'
+  );
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
@@ -86,7 +89,7 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     let output = '';

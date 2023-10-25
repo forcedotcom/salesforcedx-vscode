@@ -21,6 +21,12 @@ Apex 拡張機能は、Apex クラスやトリガで作業しているときに�
 
 コードスニペットは、クラスやインターフェースの定義の雛形クラスに、あるいはループや条件文などの様々なステートメントに利用できます。Apex のクラスやトリガで作業しているときに、使用可能な Apex コードスニペットを表示するには、コマンドパレットから **[Insert Snippet \(スニペットの挿入\)]** を実行します。また、これらのコードスニペットをコード補完の候補として表示することもできます。
 
+Out of the box snippets for Salesforce development are available in these repositories:
+
+- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
+- [HTML Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-html.json)
+- [JavaScript Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc-js.json)
+
 独自のコードスニペットを定義したい場合は、[Visual Studio Code のスニペット](https://code.visualstudio.com/docs/editor/userdefinedsnippets)をお読みください。
 
 ## sObject のコードスマートネス

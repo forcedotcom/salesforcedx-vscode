@@ -22,6 +22,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
+import * as sinon from 'sinon';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
@@ -30,7 +31,6 @@ import {
 } from '../../../src/conflict/metadataCacheService';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
-import sinon = require('sinon');
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -256,7 +256,7 @@ describe('Metadata Cache', () => {
       if (cache?.cachePropPath) {
         const propObj = JSON.parse(
           fs.readFileSync(cache?.cachePropPath, {
-            encoding: 'UTF-8'
+            encoding: 'utf-8'
           })
         );
 
