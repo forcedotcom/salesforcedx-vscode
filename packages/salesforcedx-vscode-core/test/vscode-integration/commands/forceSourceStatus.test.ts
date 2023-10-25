@@ -12,9 +12,9 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Source Status', () => {
-  it('Should build the source status command with local flag', async () => {
+  it('Should build the source status command with local flag', () => {
     const localFlag = new ForceSourceStatusExecutor(SourceStatusFlags.Local);
     const flagCommand = localFlag.build({});
     expect(flagCommand.toCommand()).to.equal(
@@ -25,7 +25,7 @@ describe('Force Source Status', () => {
     );
   });
 
-  it('Should build the source status command with remote flag', async () => {
+  it('Should build the source status command with remote flag', () => {
     const remoteFlag = new ForceSourceStatusExecutor(SourceStatusFlags.Remote);
     const flagCommand = remoteFlag.build({});
     expect(flagCommand.toCommand()).to.equal(

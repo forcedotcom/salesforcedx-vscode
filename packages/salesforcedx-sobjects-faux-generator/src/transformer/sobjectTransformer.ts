@@ -24,6 +24,7 @@ import {
   SObjectRefreshOutput as SObjectRefreshData,
   SObjectRefreshResult
 } from '../types';
+import { utils } from '../utils/utils';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -79,7 +80,7 @@ export class SObjectTransformer {
       try {
         await retriever.retrieve(output);
       } catch (err) {
-        return this.errorExit(err.message);
+        return this.errorExit(utils.getMessageFromError(err));
       }
     }
 
@@ -95,7 +96,7 @@ export class SObjectTransformer {
       try {
         gen.generate(output);
       } catch (err) {
-        return this.errorExit(err.message);
+        return this.errorExit(utils.getMessageFromError(err));
       }
     }
 

@@ -61,7 +61,7 @@ describe('Component Differ', () => {
     walkContentStubTwo.restore();
   });
 
-  it('Should return all file paths that differ', async () => {
+  it('Should return all file paths that differ', () => {
     walkContentStubOne.returns([diffPathLocal, noDiffPathLocal]);
     walkContentStubTwo.returns([diffPathRemote, noDiffPathRemote]);
     const results = diffComponents(sampleComponentOne, sampleComponentTwo);

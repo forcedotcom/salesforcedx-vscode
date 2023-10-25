@@ -67,21 +67,21 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   /**
    * Set up file system watcher for test files change/create/delete.
    */
-  public async configureAndIndex() {
+  public configureAndIndex() {
     const lwcTestWatcher = vscode.workspace.createFileSystemWatcher(
       LWC_TEST_GLOB_PATTERN
     );
     lwcTestWatcher.onDidCreate(
-      async testUri => {
-        await this.indexTestCases(testUri);
+      testUri => {
+        this.indexTestCases(testUri);
         this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
     );
     lwcTestWatcher.onDidChange(
-      async testUri => {
-        await this.indexTestCases(testUri);
+      testUri => {
+        this.indexTestCases(testUri);
         this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
@@ -96,6 +96,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       this,
       this.disposables
     );
+    return Promise.resolve();
   }
 
   /**
@@ -119,7 +120,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     return await this.indexAllTestFiles();
   }
 
-  public async indexTestCases(testUri: vscode.Uri) {
+  public indexTestCases(testUri: vscode.Uri) {
     // parse
     const { fsPath: testFsPath } = testUri;
     let testFileInfo = this.testFileInfoMap.get(testFsPath);
@@ -134,7 +135,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * It lazily parses test information, until expanding the test file or providing code lens
    * @param testUri uri of test file
    */
-  public async findTestInfoFromLwcJestTestFile(
+  public findTestInfoFromLwcJestTestFile(
     testUri: vscode.Uri
   ): Promise<TestCaseInfo[]> {
     // parse
@@ -144,9 +145,9 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       testFileInfo = this.indexTestFile(testFsPath);
     }
     if (testFileInfo.testCasesInfo) {
-      return testFileInfo.testCasesInfo;
+      return Promise.resolve(testFileInfo.testCasesInfo);
     }
-    return this.parseTestFileAndMergeTestResults(testFileInfo);
+    return Promise.resolve(this.parseTestFileAndMergeTestResults(testFileInfo));
   }
 
   private parseTestFileAndMergeTestResults(

@@ -28,31 +28,26 @@ export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   */
 }
 
-export async function checkForExpiredOrgs(orgList: OrgList) {
+export const checkForExpiredOrgs = async (orgList: OrgList) => {
   if (!orgList) {
     return;
   }
 
   try {
     const daysBeforeExpire = 5;
-    const today = new Date();
     const daysUntilExpiration = new Date();
     daysUntilExpiration.setDate(
       daysUntilExpiration.getDate() + daysBeforeExpire
     );
 
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
+    const orgAuthorizations = await AuthInfo.listAllAuthorizations(auth => !auth.isDevHub && !auth.isExpired);
+
     if (!orgAuthorizations) {
       return;
     }
 
     const results: string[] = [];
     for (const orgAuthorization of orgAuthorizations) {
-      // Filter out the dev hubs.
-      if (orgAuthorization.isDevHub) {
-        continue;
-      }
-
       const authFields = await getAuthFieldsFor(orgAuthorization.username);
 
       // Some dev hubs have isDevHub=false but no expiration date, so filter them out.
@@ -60,12 +55,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
         continue;
       }
 
-      // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
-      if (expirationDate < today) {
-        continue;
-      }
-
       // Now filter and only return the results that are within the 5 day window.
       if (expirationDate <= daysUntilExpiration) {
         const aliasName =
@@ -83,11 +73,11 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       }
     }
 
-    if (results.length < 1) {
+    if (!results.length) {
       return;
     }
 
-    notificationService.showWarningMessage(
+    void notificationService.showWarningMessage(
       nls.localize(
         'pending_org_expiration_notification_message',
         daysBeforeExpire
@@ -106,7 +96,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
   const authInfo: AuthInfo = await AuthInfo.create({

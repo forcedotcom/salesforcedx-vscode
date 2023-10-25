@@ -67,6 +67,7 @@ export class FrameStateUtil {
         // worse then using the typeRef is going to be a good fallback, like in the case of
         // getters/setters where frames aren't quite correct in the logs due to over logging.
         frameName = sig;
+        // eslint-disable-next-line no-case-declarations
         const methodName = fields[fields.length - 2].match(invokeMatch);
         // The match call can return null and temp[0] will end up being the full string which means that
         // any match that we want is going to end up being in temp[1]

@@ -37,7 +37,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(async data => {
+    execution.processExitSubject.subscribe((data: any) => {
       this.logMetric(execution.command.logName, startTime, {
         dirType: this.identifyDirType(response.data.outputdir)
       });
@@ -46,8 +46,10 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
           response.data.outputdir,
           response.data.fileName
         );
-        const document = await vscode.workspace.openTextDocument(outputFile);
-        vscode.window.showTextDocument(document);
+        void vscode.workspace.openTextDocument(outputFile)
+          .then(document => {
+            void vscode.window.showTextDocument(document);
+          });
         this.runPostCommandTasks(response.data);
       }
     });
@@ -57,10 +59,11 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected runPostCommandTasks(data: DirFileNameSelection) {
     // By default do nothing
     // This method is overridden in child classes to run any post command tasks

@@ -16,6 +16,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ChannelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -40,10 +44,6 @@ import {
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
-import {
-  ChannelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
 
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
@@ -210,9 +210,9 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
   }
 
   class MockWorkspace implements vscode.WorkspaceConfiguration {
-    // tslint:disable-next-line:member-access
+
     shouldRemember = false;
-    // tslint:disable-next-line:member-access
+
     loglevel = defaultLogLevel;
 
     constructor(shouldRemember: boolean, loglevel?: string) {
@@ -242,12 +242,12 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       section: string
     ):
       | {
-          key: string;
-          defaultValue?: T | undefined;
-          globalValue?: T | undefined;
-          workspaceValue?: T | undefined;
-          workspaceFolderValue?: T | undefined;
-        }
+        key: string;
+        defaultValue?: T | undefined;
+        globalValue?: T | undefined;
+        workspaceValue?: T | undefined;
+        workspaceFolderValue?: T | undefined;
+      }
       | undefined {
       return undefined;
     }
@@ -539,7 +539,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
+          'force_lightning_lwc_preview_unsupported',
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -558,7 +558,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
+          'force_lightning_lwc_preview_file_nonexist',
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -580,7 +580,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
 
     await lwcPreview(mockLwcFileDirectoryUri);
 
-    const commandName = nls.localize(`force_lightning_lwc_preview_text`);
+    const commandName = nls.localize('force_lightning_lwc_preview_text');
     sinon.assert.calledTwice(showErrorMessageStub);
     sinon.assert.calledWith(
       showErrorMessageStub,
@@ -715,7 +715,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
+          'force_lightning_lwc_preview_unsupported',
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -737,7 +737,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
+          'force_lightning_lwc_preview_file_nonexist',
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -932,13 +932,13 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       sinon.match(
         isAndroid
           ? nls.localize(
-              'force_lightning_lwc_android_failure',
-              androidQuickPick.defaultTargetName
-            )
+            'force_lightning_lwc_android_failure',
+            androidQuickPick.defaultTargetName
+          )
           : nls.localize(
-              'force_lightning_lwc_ios_failure',
-              iOSQuickPick.defaultTargetName
-            )
+            'force_lightning_lwc_ios_failure',
+            iOSQuickPick.defaultTargetName
+          )
       )
     );
     sinon.assert.calledOnce(streamCommandOutputSpy);
@@ -1421,11 +1421,11 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       fsPath =>
         path.normalize(fsPath as string) === path.normalize('/my/path') ||
         path.normalize(fsPath as string) ===
-          path.normalize('/my/sfdx-project.json')
+        path.normalize('/my/sfdx-project.json')
     );
     expect(
       getProjectRootDirectory(path.normalize('/my/path')) ===
-        path.normalize('/my')
+      path.normalize('/my')
     ).to.be.true;
   });
 });

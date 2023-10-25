@@ -6,10 +6,9 @@
  */
 
 import { JsonArray, JsonMap } from '@salesforce/ts-types';
-import { SfdxProjectConfig } from '../sfdxProject';
-
 import * as path from 'path';
-import { workspaceUtils } from '../util';
+import { SfdxProjectConfig } from '../sfdxProject';
+import { normalizeError, workspaceUtils } from '../util';
 
 export default class SfdxPackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {
@@ -71,9 +70,10 @@ export default class SfdxPackageDirectories {
     try {
       packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
+      const err = normalizeError(e);
       if (
-        e.name !== 'NoPackageDirectoryPathsFound' &&
-        e.name !== 'NoPackageDirectoriesFound'
+        err.name !== 'NoPackageDirectoryPathsFound' &&
+        err.name !== 'NoPackageDirectoriesFound'
       ) {
         throw e;
       }

@@ -13,7 +13,7 @@ import {
 import { LogContext } from '../../../src/core';
 import { NoOpState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
+
 describe('NoOp event', () => {
   it('Should handle event', () => {
     const context = new LogContext(

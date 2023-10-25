@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -20,7 +24,7 @@ export class HtmlUtils {
    * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
    * And store just the filename section of the script tag as group[1]
    */
-  protected static readonly scriptRegex = /script defer="defer"\ssrc=\"\.\/(?<app>[^\"]*app.js)\"/g;
+  protected static readonly scriptRegex = /script defer="defer"\ssrc="\.\/(?<app>[^"]*app.js)"/g;
 
   /**
    *
@@ -63,7 +67,7 @@ export class HtmlUtils {
   ): string {
     let matches;
     let newScriptSrc;
-    // tslint:disable-next-line:no-conditional-assignment
+
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
       newScriptSrc = webview.asWebviewUri(
         vscode.Uri.file(path.join(pathToLwcDist, matches[1]))

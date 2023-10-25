@@ -20,7 +20,7 @@ import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Lightning App Create', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
@@ -108,7 +108,7 @@ describe('Force Lightning App Create', () => {
     );
     assert.fileContent(
       auraAppMetaPath,
-      `<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">`
+      '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">'
     );
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);

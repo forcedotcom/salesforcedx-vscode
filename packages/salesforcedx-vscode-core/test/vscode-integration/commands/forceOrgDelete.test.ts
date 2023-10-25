@@ -9,7 +9,7 @@ import { ForceOrgDeleteExecutor } from '../../../src/commands/forceOrgDelete';
 import { nls } from '../../../src/messages';
 
 describe('Force Org Delete', () => {
-  it('Should build the delete command with no flag', async () => {
+  it('Should build the delete command with no flag', () => {
     const forceOrgDelete = new ForceOrgDeleteExecutor();
     const deleteCommand = forceOrgDelete.build({});
     expect(deleteCommand.toCommand()).to.equal(
@@ -20,7 +20,7 @@ describe('Force Org Delete', () => {
     );
   });
 
-  it('Should build the delete command with targetusername flag', async () => {
+  it('Should build the delete command with targetusername flag', () => {
     const forceOrgDelete = new ForceOrgDeleteExecutor('--targetusername');
     const deleteCommand = forceOrgDelete.build({ username: 'test' });
     expect(deleteCommand.toCommand()).to.equal(

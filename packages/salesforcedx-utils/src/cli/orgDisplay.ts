@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from './sfdxCommandBuilder';
+import { OrgInfo } from '../types';
 import { CliCommandExecutor } from './cliCommandExecutor';
 import { CommandOutput } from './commandOutput';
-import { OrgInfo } from '../types';
+import { SfdxCommandBuilder } from './sfdxCommandBuilder';
 
 export class OrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
@@ -23,6 +23,7 @@ export class OrgDisplay {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const orgInfo = JSON.parse(result).result as OrgInfo;
       return Promise.resolve(orgInfo);
     } catch (e) {

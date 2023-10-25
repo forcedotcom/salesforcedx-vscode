@@ -9,9 +9,9 @@ import { expect } from 'chai';
 import { AliasList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('Alias List', () => {
-  it('Should build the alias list command', async () => {
+  it('Should build the alias list command', () => {
     const aliasList = new AliasList();
     const aliasListCommand = aliasList.build({});
     expect(aliasListCommand.toCommand()).to.equal('sfdx alias:list');

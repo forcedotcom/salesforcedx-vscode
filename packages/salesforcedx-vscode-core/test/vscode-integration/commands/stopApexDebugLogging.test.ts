@@ -13,7 +13,7 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
   const fakeTraceFlagId = 'fakeDebugLevelId';
@@ -28,7 +28,7 @@ describe('Source Status', () => {
     getDebugLevelIdStub.restore();
   });
 
-  it('Should build the source command no flag', async () => {
+  it('Should build the source command no flag', () => {
     const forceStopLogging = new StopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
     expect(forceStopLoggingCmd.toCommand()).to.equal(

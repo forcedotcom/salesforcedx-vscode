@@ -357,7 +357,7 @@ describe('LWC Test Outline Provider', () => {
               actualTestCaseNodes[1].testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
 
-            const expectedErrorMessageBeginning = `Error: expect(received).toEqual(expected) // deep equality\n\nExpected: 2\nReceived: 1\n`;
+            const expectedErrorMessageBeginning = 'Error: expect(received).toEqual(expected) // deep equality\n\nExpected: 2\nReceived: 1\n';
             expect(
               vscode.languages
                 .getDiagnostics(lwcTestUri)[0]

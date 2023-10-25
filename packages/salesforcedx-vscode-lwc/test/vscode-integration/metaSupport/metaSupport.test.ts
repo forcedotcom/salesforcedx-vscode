@@ -5,17 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
+import { strict as assert } from 'assert';
 import { expect } from 'chai';
+import * as path from 'path';
+import * as sinon from 'sinon';
 import { extensions } from 'vscode';
 import { nls } from '../../../src/messages';
-import { MockRedhatExtension } from './MockRhExtension';
 import { metaSupport } from '../../../src/metasupport';
-import { strict as assert } from 'assert';
-import * as sinon from 'sinon';
-import * as path from 'path';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
+import { MockRedhatExtension } from './MockRhExtension';
 
-let sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox();
 let mockRhExtension: any;
 let rhExtension: any;
 let appendLineSpy: sinon.SinonSpy<any, any>;

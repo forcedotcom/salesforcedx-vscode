@@ -10,7 +10,7 @@ import { ForceSourcePullExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Force Source Pull', () => {
-  it('Should build the source pull command with the --json flag', async () => {
+  it('Should build the source pull command with the --json flag', () => {
     const sourcePullNoFlag = new ForceSourcePullExecutor();
     const pullCommand = sourcePullNoFlag.build({});
     expect(pullCommand.toCommand()).to.equal(
@@ -21,7 +21,7 @@ describe('Force Source Pull', () => {
     );
   });
 
-  it('Should build the source pull command with overwrite flag', async () => {
+  it('Should build the source pull command with overwrite flag', () => {
     const sourcePullOverwrite = new ForceSourcePullExecutor('--forceoverwrite');
     const pullCommand = sourcePullOverwrite.build({});
     expect(pullCommand.toCommand()).to.equal(

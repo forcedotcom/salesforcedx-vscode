@@ -65,7 +65,7 @@ export abstract class SfdxCommandletExecutor<T>
       execution,
       cancellationToken
     );
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
@@ -129,13 +129,14 @@ export abstract class SfdxCommandletExecutor<T>
   protected parseOutput(output: string) {
     let parsed: JSON;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       parsed = JSON.parse(output);
     } catch (error) {
       console.log(
         `There was an error parsing the output. Raw output: ${output}`
       );
 
-      notificationService.showWarningMessage(
+      void notificationService.showWarningMessage(
         nls.localize('lib_retrieve_result_parse_error')
       );
       throw error;
@@ -143,6 +144,7 @@ export abstract class SfdxCommandletExecutor<T>
     return parsed;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected getTelemetryData(
     success: boolean,
     response: ContinueResponse<T>,
@@ -150,6 +152,7 @@ export abstract class SfdxCommandletExecutor<T>
   ): TelemetryData | undefined {
     return;
   }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   /**
    * Base method (no-op) that is overridden by sub-classes
@@ -157,6 +160,7 @@ export abstract class SfdxCommandletExecutor<T>
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;

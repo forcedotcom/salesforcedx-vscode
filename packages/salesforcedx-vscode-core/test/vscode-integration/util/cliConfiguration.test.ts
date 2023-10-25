@@ -80,7 +80,7 @@ describe('SFDX CLI Configuration utility', () => {
       sandboxStub.restore();
     });
 
-    it('Should show cli install info message', async () => {
+    it('Should show cli install info message', () => {
       showCLINotInstalledMessage();
       assert.calledOnce(mShowWarning);
     });
@@ -122,7 +122,7 @@ describe('SFDX CLI Configuration utility', () => {
       expect(response).to.equal(true);
     });
 
-    it('Should set an environment variable', async () => {
+    it('Should set an environment variable', () => {
       const cliEnvSpy = sandboxStub.stub(
         GlobalCliEnvironment.environmentVariables,
         'set'

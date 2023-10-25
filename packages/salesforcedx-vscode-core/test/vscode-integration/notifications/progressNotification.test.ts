@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ProgressNotification } from '../../../src/notifications';
 
-// tslint:disable:no-unused-expression
+
 describe('Progress Notification', () => {
   let tokenSource: vscode.CancellationTokenSource;
   let execution: CommandExecution;
@@ -37,7 +37,7 @@ describe('Progress Notification', () => {
       .stub(vscode.window, 'withProgress')
       .returns(Promise.resolve());
 
-    ProgressNotification.show(execution, tokenSource);
+    await ProgressNotification.show(execution, tokenSource);
 
     expect(withProgressStub.called).to.be.true;
     expect(withProgressStub.getCall(0).args[0]).to.eql({
@@ -48,13 +48,13 @@ describe('Progress Notification', () => {
     withProgressStub.restore();
   });
 
-  it('Should display progress based on given progress location', () => {
+  it('Should display progress based on given progress location', async () => {
     const progressLocation = vscode.ProgressLocation.Window;
     const withProgressStub = sinon
       .stub(vscode.window, 'withProgress')
       .returns(Promise.resolve());
 
-    ProgressNotification.show(execution, tokenSource, progressLocation);
+    await ProgressNotification.show(execution, tokenSource, progressLocation);
 
     expect(withProgressStub.getCall(0).args[0]).to.eql({
       title: nls.localize('progress_notification_text', execution.command),

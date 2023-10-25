@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 /*
  * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
@@ -57,7 +58,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<
         return true;
       } catch (err) {
         const errorMessage = nls.localize(RENAME_ERROR);
-        notificationService.showErrorMessage(errorMessage);
+        void notificationService.showErrorMessage(errorMessage);
         throw err;
       }
     }
@@ -142,7 +143,7 @@ async function renameComponent(sourceFsPath: string, newName: string) {
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
   await fs.promises.rename(componentPath, newComponentPath);
-  notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
+  void notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 }
 
 export function getLightningComponentDirectory(sourceFsPath: string): string {
@@ -170,7 +171,7 @@ async function checkForDuplicateName(componentPath: string, newName: string) {
   const isNameDuplicate = await isDuplicate(componentPath, newName);
   if (isNameDuplicate) {
     const errorMessage = nls.localize(RENAME_INPUT_DUP_ERROR);
-    notificationService.showErrorMessage(errorMessage);
+    void notificationService.showErrorMessage(errorMessage);
     throw new Error(format(errorMessage));
   }
 }
@@ -215,7 +216,7 @@ async function checkForDuplicateInComponent(
   const allFileNames = getOnlyFileNames(allFiles);
   if (allFileNames.includes(newName)) {
     const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
-    notificationService.showErrorMessage(errorMessage);
+    void notificationService.showErrorMessage(errorMessage);
     throw new Error(format(errorMessage));
   }
 }

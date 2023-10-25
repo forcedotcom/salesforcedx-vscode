@@ -20,5 +20,5 @@ export async function soqlBuilderToggle(doc: vscode.Uri): Promise<void> {
     ? BUILDER_VIEW_TYPE
     : EDITOR_VIEW_TYPE;
 
-  vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType);
+  await vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType);
 }

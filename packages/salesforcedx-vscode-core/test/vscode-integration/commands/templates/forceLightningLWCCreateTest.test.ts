@@ -12,7 +12,7 @@ import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
 describe('Force Lightning Web Component Test Create', () => {
-  it('Should build the Lightning Web Component Test create command', async () => {
+  it('Should build the Lightning Web Component Test create command', () => {
     const lightningLWCTestCreate = new ForceLightningLwcTestCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'lwc');
     const fileName = 'testing';

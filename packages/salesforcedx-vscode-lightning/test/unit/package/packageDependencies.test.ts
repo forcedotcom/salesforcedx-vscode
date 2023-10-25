@@ -13,6 +13,7 @@ function readJsonFile(jsonFilePath: string) {
   try {
     return JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
   } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
   }
 }
@@ -27,6 +28,7 @@ const packageJsonPath = path.join(
 );
 const packageJson = readJsonFile(packageJsonPath);
 
+// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 describe(`package.json dependencies for ${packageJson.name}`, () => {
   const { dependencies, devDependencies } = packageJson;
 

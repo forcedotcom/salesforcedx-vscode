@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -72,6 +75,7 @@ import {
   ApexDebuggerEventType,
   BreakpointService,
   DebuggerMessage,
+  isApexDebuggerEventType,
   SessionService,
   StreamingClientInfo,
   StreamingClientInfoBuilder,
@@ -85,7 +89,7 @@ import {
 import { nls } from '../messages';
 
 // Below import has to be required for bundling
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const AsyncLock = require('async-lock');
 /* tslint:enable */
 
@@ -267,12 +271,14 @@ export class ScopeContainer implements VariableContainer {
     this.frameInfo = frameInfo;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async expand(
     session: ApexDebug,
     filter: FilterType,
     start?: number,
     count?: number
   ): Promise<ApexVariable[]> {
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     if (
       !this.frameInfo.locals &&
       !this.frameInfo.statics &&
@@ -332,12 +338,14 @@ export class ObjectReferenceContainer implements VariableContainer {
     this.size = reference.size;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async expand(
     session: ApexDebug,
     filter: FilterType,
     start?: number,
     count?: number
   ): Promise<ApexVariable[]> {
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     if (!this.reference.fields) {
       // this object is empty
       return [];
@@ -467,12 +475,14 @@ export class MapTupleContainer implements VariableContainer {
     return ApexVariable.valueAsString(this.tuple.value);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async expand(
     session: ApexDebug,
     filter: FilterType,
     start?: number,
     count?: number
   ): Promise<ApexVariable[]> {
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
       return [];
@@ -491,9 +501,9 @@ export class MapTupleContainer implements VariableContainer {
     if (this.tuple.key) {
       const keyVariableReference = this.tuple.key.ref
         ? await session.resolveApexIdToVariableReference(
-            this.requestId,
-            this.tuple.key.ref
-          )
+          this.requestId,
+          this.tuple.key.ref
+        )
         : undefined;
       variables.push(
         new ApexVariable(
@@ -507,9 +517,9 @@ export class MapTupleContainer implements VariableContainer {
     if (this.tuple.value) {
       const valueVariableReference = this.tuple.value.ref
         ? await session.resolveApexIdToVariableReference(
-            this.requestId,
-            this.tuple.value.ref
-          )
+          this.requestId,
+          this.tuple.value.ref
+        )
         : undefined;
       variables.push(
         new ApexVariable(
@@ -548,9 +558,10 @@ export class ApexDebug extends LoggingDebugSession {
   private trace: string[] | undefined;
   private traceAll = false;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: Array<ReturnType<typeof setTimeout>> = [];
+  protected idleTimers: ReturnType<typeof setTimeout>[] = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -562,6 +573,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
@@ -586,14 +598,15 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected attachRequest(
     response: DebugProtocol.AttachResponse,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     args: DebugProtocol.AttachRequestArguments
   ): void {
     response.success = false;
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): Array<ReturnType<typeof setTimeout>> {
-    const timers: Array<ReturnType<typeof setTimeout>> = [];
+  private getSessionIdleTimer(): ReturnType<typeof setTimeout>[] {
+    const timers: ReturnType<typeof setTimeout>[] = [];
     timers.push(
       setTimeout(() => {
         this.warnToDebugConsole(
@@ -639,7 +652,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public resetIdleTimer(): Array<ReturnType<typeof setTimeout>> {
+  public resetIdleTimer(): ReturnType<typeof setTimeout>[] {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;
@@ -779,6 +792,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
@@ -794,8 +808,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
           } else {
             this.errorToDebugConsole(
-              `${nls.localize('command_error_help_text')}:${
-                os.EOL
+              `${nls.localize('command_error_help_text')}:${os.EOL
               }${terminatedSessionId}`
             );
           }
@@ -821,6 +834,7 @@ export class ApexDebug extends LoggingDebugSession {
       const unverifiedBreakpoints: number[] = [];
       let verifiedBreakpoints: Set<number> = new Set();
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         verifiedBreakpoints = await this.lock.acquire(
           `breakpoint-${uri}`,
           async () => {
@@ -837,8 +851,7 @@ export class ApexDebug extends LoggingDebugSession {
             return Promise.resolve(knownBps);
           }
         );
-        // tslint:disable-next-line:no-empty
-      } catch (error) {}
+      } catch (error) { }
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({
@@ -964,6 +977,7 @@ export class ApexDebug extends LoggingDebugSession {
 
     const requestId = this.requestThreads.get(args.threadId)!;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const stateResponse = await this.lock.acquire('stacktrace', async () => {
         this.log(
           TRACE_CATEGORY_VARIABLES,
@@ -974,7 +988,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
         return Promise.resolve(responseString);
       });
-      const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
+      const stateRespObj = JSON.parse(stateResponse as string) as DebuggerResponse;
       const clientFrames: StackFrame[] = [];
       if (this.hasStackFrames(stateRespObj)) {
         const serverFrames = stateRespObj.stateResponse.state.stack.stackFrame;
@@ -992,7 +1006,7 @@ export class ApexDebug extends LoggingDebugSession {
             this.log(
               TRACE_CATEGORY_VARIABLES,
               'stackTraceRequest: state=' +
-                JSON.stringify(stateRespObj.stateResponse.state)
+              JSON.stringify(stateRespObj.stateResponse.state)
             );
             if (
               stateRespObj.stateResponse.state.locals &&
@@ -1040,9 +1054,9 @@ export class ApexDebug extends LoggingDebugSession {
               serverFrames[i].fullName,
               sourcePath
                 ? new Source(
-                    basename(sourcePath),
-                    this.convertDebuggerPathToClient(sourcePath)
-                  )
+                  basename(sourcePath),
+                  this.convertDebuggerPathToClient(sourcePath)
+                )
                 : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
@@ -1083,9 +1097,11 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
-        const requestArgs: SetExceptionBreakpointsArguments = args;
+        // eslint-disable-next-line no-case-declarations
+        const requestArgs = args as SetExceptionBreakpointsArguments;
         if (requestArgs && requestArgs.exceptionInfo) {
           try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             await this.lock.acquire('exception-breakpoint', async () => {
               return this.myBreakpointService.reconcileExceptionBreakpoints(
                 this.sfdxProject,
@@ -1118,12 +1134,14 @@ export class ApexDebug extends LoggingDebugSession {
             response.success = false;
             this.log(
               TRACE_CATEGORY_BREAKPOINTS,
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
               `exceptionBreakpointRequest: error=${error}`
             );
           }
         }
         break;
       case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
+        // eslint-disable-next-line no-case-declarations
         const exceptionBreakpoints = this.myBreakpointService.getExceptionBreakpointCache();
         response.body = {
           typerefs: Array.from(exceptionBreakpoints.keys())
@@ -1135,7 +1153,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected async scopesRequest(
+  protected scopesRequest(
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
@@ -1148,7 +1166,7 @@ export class ApexDebug extends LoggingDebugSession {
       );
       response.body = { scopes: [] };
       this.sendResponse(response);
-      return;
+      return Promise.resolve();
     }
 
     const scopes = new Array<Scope>();
@@ -1182,6 +1200,7 @@ export class ApexDebug extends LoggingDebugSession {
 
     response.body = { scopes };
     this.sendResponse(response);
+    return Promise.resolve();
   }
 
   protected async variablesRequest(
@@ -1219,6 +1238,7 @@ export class ApexDebug extends LoggingDebugSession {
         args.start,
         args.count
       );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       variables.sort(ApexVariable.compareVariables);
       response.body = { variables };
       this.resetIdleTimer();
@@ -1240,7 +1260,7 @@ export class ApexDebug extends LoggingDebugSession {
     const frameResponse = await this.myRequestService.execute(
       new FrameCommand(frameInfo.requestId, frameInfo.frameNumber)
     );
-    const frameRespObj: DebuggerResponse = JSON.parse(frameResponse);
+    const frameRespObj = JSON.parse(frameResponse) as DebuggerResponse;
     if (
       frameRespObj &&
       frameRespObj.frameResponse &&
@@ -1249,7 +1269,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.log(
         TRACE_CATEGORY_VARIABLES,
         `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
-          JSON.stringify(frameRespObj.frameResponse.frame)
+        JSON.stringify(frameRespObj.frameResponse.frame)
       );
       if (
         frameRespObj.frameResponse.frame.locals &&
@@ -1396,9 +1416,7 @@ export class ApexDebug extends LoggingDebugSession {
     const referencesResponse = await this.myRequestService.execute(
       new ReferencesCommand(requestId, ...apexIds)
     );
-    const referencesResponseObj: DebuggerResponse = JSON.parse(
-      referencesResponse
-    );
+    const referencesResponseObj = JSON.parse(referencesResponse) as DebuggerResponse;
     if (
       referencesResponseObj &&
       referencesResponseObj.referencesResponse &&
@@ -1490,8 +1508,11 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       response.success = false;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
       const errorObj = extractJsonObject(error);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (errorObj && errorObj.message) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const errorMessage: string = errorObj.message;
         if (
           errorMessage.includes(
@@ -1502,16 +1523,18 @@ export class ApexDebug extends LoggingDebugSession {
         } else {
           response.message = errorMessage;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (errorObj.action) {
           this.errorToDebugConsole(
-            `${nls.localize('command_error_help_text')}:${os.EOL}${
-              errorObj.action
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions
+            `${nls.localize('command_error_help_text')}:${os.EOL}${errorObj.action
             }`
           );
         }
       } else {
         response.message = nls.localize('unexpected_error_help_text');
         this.errorToDebugConsole(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
         );
       }
@@ -1519,6 +1542,7 @@ export class ApexDebug extends LoggingDebugSession {
       response.message =
         response.message || nls.localize('unexpected_error_help_text');
       this.errorToDebugConsole(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
       );
     }
@@ -1566,9 +1590,12 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[
-      message.sobject.Type
-    ];
+    let type: ApexDebuggerEventType;
+    if (isApexDebuggerEventType(message.sobject.Type)) {
+      type = message.sobject.Type;
+    } else {
+      throw new Error(`Unknown event type: ${message.sobject.Type as string}`);
+    }
     this.log(
       TRACE_CATEGORY_STREAMINGAPI,
       `handleEvent: received ${JSON.stringify(message)}`
@@ -1578,53 +1605,53 @@ export class ApexDebug extends LoggingDebugSession {
       this.mySessionService.getSessionId() !== message.sobject.SessionId ||
       this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
     ) {
-      this.log(TRACE_CATEGORY_STREAMINGAPI, `handleEvent: event ignored`);
+      this.log(TRACE_CATEGORY_STREAMINGAPI, 'handleEvent: event ignored');
       return;
     }
     switch (type) {
-      case ApexDebuggerEventType.ApexException: {
+      case 'ApexException': {
         this.handleApexException(message);
         break;
       }
-      case ApexDebuggerEventType.Debug: {
+      case 'Debug': {
         this.handleDebug(message);
         break;
       }
-      case ApexDebuggerEventType.RequestFinished: {
+      case 'RequestFinished': {
         this.handleRequestFinished(message);
         break;
       }
-      case ApexDebuggerEventType.RequestStarted: {
+      case 'RequestStarted': {
         this.handleRequestStarted(message);
         break;
       }
-      case ApexDebuggerEventType.Resumed: {
+      case 'Resumed': {
         this.handleResumed(message);
         break;
       }
-      case ApexDebuggerEventType.SessionTerminated: {
+      case 'SessionTerminated': {
         this.handleSessionTerminated(message);
         break;
       }
-      case ApexDebuggerEventType.Stopped: {
+      case 'Stopped': {
         this.handleStopped(message);
         break;
       }
-      case ApexDebuggerEventType.SystemGack: {
+      case 'SystemGack': {
         this.handleSystemGack(message);
         break;
       }
-      case ApexDebuggerEventType.SystemInfo: {
+      case 'SystemInfo': {
         this.handleSystemInfo(message);
         break;
       }
-      case ApexDebuggerEventType.SystemWarning: {
+      case 'SystemWarning': {
         this.handleSystemWarning(message);
         break;
       }
-      case ApexDebuggerEventType.LogLine:
-      case ApexDebuggerEventType.OrgChange:
-      case ApexDebuggerEventType.Ready:
+      case 'LogLine':
+      case 'OrgChange':
+      case 'Ready':
       default: {
         break;
       }

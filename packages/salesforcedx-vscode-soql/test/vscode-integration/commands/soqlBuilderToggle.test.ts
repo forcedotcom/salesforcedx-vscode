@@ -36,7 +36,7 @@ describe('soqlBuilderToggle should', () => {
     });
     await soqlBuilderToggle({} as vscode.Uri);
 
-    // tslint:disable-next-line:no-unused-expression
+
     expect(telemetryStub.called).is.true;
     expect(executeCommandSpy.getCall(0).args[2]).contains(BUILDER_VIEW_TYPE);
   });
@@ -47,7 +47,7 @@ describe('soqlBuilderToggle should', () => {
     });
     await soqlBuilderToggle({} as vscode.Uri);
 
-    // tslint:disable-next-line:no-unused-expression
+
     expect(telemetryStub.called).is.true;
     expect(executeCommandSpy.getCall(0).args[2]).contains(EDITOR_VIEW_TYPE);
   });

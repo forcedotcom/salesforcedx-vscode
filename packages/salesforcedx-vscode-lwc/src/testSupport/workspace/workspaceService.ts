@@ -26,7 +26,7 @@ class WorkspaceService {
     this.setCurrentWorkspaceType(workspaceType);
 
     const isInternalDev = this.isCoreWorkspace(workspaceType);
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
       'setContext',
       'sfdx:internal_dev',
       isInternalDev

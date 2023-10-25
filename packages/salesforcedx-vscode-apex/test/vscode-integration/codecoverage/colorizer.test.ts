@@ -29,7 +29,7 @@ describe('Code coverage colorizer', () => {
     );
   });
 
-  it('Should report correct status on statusbaritem', async () => {
+  it('Should report correct status on statusbaritem', () => {
     const statusBarToggle = new StatusBarToggle();
     const colorizer = new CodeCoverage(statusBarToggle);
 
@@ -48,9 +48,9 @@ describe('Code coverage colorizer', () => {
     const colorizer = new CodeCoverage(statusBarToggle);
 
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
 
     colorizer.toggleCoverage();
@@ -71,9 +71,9 @@ describe('Code coverage colorizer', () => {
 
     colorizer.toggleCoverage();
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
   });
 
@@ -85,9 +85,9 @@ describe('Code coverage colorizer', () => {
     const colorizer = new CodeCoverage(statusBarToggle);
 
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
 
     colorizer.toggleCoverage();
@@ -96,9 +96,9 @@ describe('Code coverage colorizer', () => {
 
     colorizer.toggleCoverage();
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
   });
 });

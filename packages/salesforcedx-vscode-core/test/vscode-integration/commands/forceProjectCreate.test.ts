@@ -34,7 +34,7 @@ import { notificationService } from '../../../src/notifications';
 import { telemetryService } from '../../../src/telemetry';
 import { workspaceUtils } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
   const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();

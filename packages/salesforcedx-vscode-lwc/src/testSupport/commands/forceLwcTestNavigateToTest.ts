@@ -35,7 +35,7 @@ function updateSelection(index: vscode.Range | number) {
  */
 export function forceLwcTestNavigateToTest(node: TestNode) {
   if (node.location) {
-    vscode.window.showTextDocument(node.location.uri);
+    void vscode.window.showTextDocument(node.location.uri);
   }
   const position: vscode.Range | number = node.location!.range;
   updateSelection(position);

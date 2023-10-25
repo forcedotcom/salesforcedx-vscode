@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
+import { stubInterface } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import { stubInterface } from '@salesforce/ts-sinon';
 
 import {
   extensions,
@@ -20,13 +21,12 @@ import {
   WorkspaceConfiguration,
   commands
 } from 'vscode';
-import { clearDiagnostics } from '../../../src/lspClient/client';
-import { stubMockConnection } from '../testUtilities';
 import {
   SOQL_CONFIGURATION_NAME,
   SOQL_VALIDATION_CONFIG
 } from '../../../src/constants';
-import { Connection } from '@salesforce/core';
+import { clearDiagnostics } from '../../../src/lspClient/client';
+import { stubMockConnection } from '../testUtilities';
 
 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
 async function sleep(ms: number = 0) {
@@ -84,7 +84,7 @@ describe('SOQL language client', () => {
     expect(diagnostics)
       .to.be.an('array')
       .to.have.lengthOf(1);
-    expect(diagnostics[0].message).to.equal(`missing 'from' at 'Account'`);
+    expect(diagnostics[0].message).to.equal('missing \'from\' at \'Account\'');
   });
 
   it('should show diagnostics for syntax error only if file is open', async () => {
@@ -100,7 +100,7 @@ describe('SOQL language client', () => {
     expect(diagnostics)
       .to.be.an('array')
       .to.have.lengthOf(1);
-    expect(diagnostics[0].message).to.equal(`missing 'from' at 'Account'`);
+    expect(diagnostics[0].message).to.equal('missing \'from\' at \'Account\'');
 
     await commands.executeCommand('workbench.action.closeOtherEditors');
     await commands.executeCommand('workbench.action.closeActiveEditor');
@@ -162,7 +162,7 @@ describe('SOQL language client', () => {
       soqlExtension
     );
 
-    const serverError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
+    const serverError = 'SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at \'Ids\'';
     const querySpy = sandbox.stub(mockConnection, 'query').throws({
       name: 'INVALID_FIELD',
       errorCode: 'INVALID_FIELD',
@@ -193,8 +193,8 @@ describe('SOQL language client', () => {
       soqlExtension
     );
 
-    const serverError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
-    const expectedError = `SELECT Ids FROM ACCOUNT\nError:\nSome error at 'Ids'`;
+    const serverError = 'SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at \'Ids\'';
+    const expectedError = 'SELECT Ids FROM ACCOUNT\nError:\nSome error at \'Ids\'';
 
     sandbox.stub(mockConnection, 'query').throws({
       name: 'INVALID_FIELD',
@@ -228,7 +228,7 @@ function generateRandomInt() {
 
 async function writeSOQLFile(baseName: string, content: string): Promise<Uri> {
   const fileName = `${baseName}_${generateRandomInt()}.soql`;
-  const workspacePath = workspace.workspaceFolders![0].uri.fsPath;
+  const workspacePath = workspace.workspaceFolders[0].uri.fsPath;
   const encoder = new TextEncoder();
   const fileUri = Uri.file(path.join(workspacePath, fileName));
   await workspace.fs.writeFile(fileUri, encoder.encode(content));

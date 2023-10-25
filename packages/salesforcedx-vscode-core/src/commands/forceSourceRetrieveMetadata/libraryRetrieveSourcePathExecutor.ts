@@ -98,7 +98,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
         preview: false
       };
       const document = await vscode.workspace.openTextDocument(file);
-      vscode.window.showTextDocument(document, showOptions);
+      void vscode.window.showTextDocument(document, showOptions);
     }
   }
 }

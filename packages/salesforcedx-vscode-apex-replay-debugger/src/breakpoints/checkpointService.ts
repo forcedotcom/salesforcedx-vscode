@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable prefer-arrow/prefer-arrow-functions */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -55,6 +59,7 @@ import { telemetryService } from '../telemetry';
 
 // below dependencies must be required for bundling to work properly
 /* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
 /* tslint:enable */
 
@@ -103,6 +108,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo(this.sfdxProject);
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize(
           'unable_to_retrieve_org_info'
@@ -283,7 +289,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           );
         }
       } catch (error) {
-        const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+        const errorMessage = `${JSON.stringify(errorString)}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
         writeToDebuggerOutputWindow(
           errorMessage,
           true,
@@ -302,7 +308,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     if (sfdxCore && sfdxCore.exports) {
       const userId = await sfdxCore.exports.getUserId(this.sfdxProject);
       if (userId) {
-        const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
+        const queryCommand = new QueryExistingOverlayActionIdsCommand(userId as string);
         let errorString;
         let returnString;
         await this.myRequestService
@@ -372,7 +378,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               if (deleteError) {
                 const errorMessage = `${nls.localize(
                   'cannot_delete_existing_checkpoint'
-                )} : ${deleteError}`;
+                )} : ${JSON.stringify(deleteError)}`;
                 writeToDebuggerOutputWindow(
                   errorMessage,
                   true,
@@ -453,6 +459,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     try {
       // The lock is necessary here to prevent the user from deleting the underlying breakpoint
       // attached to the checkpoint while they're being uploaded into the org.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         writeToDebuggerOutputWindow(
           `${nls.localize('long_command_start')} ${localizedProgressMessage}`
@@ -463,6 +470,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             title: localizedProgressMessage,
             cancellable: false
           },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           async (progress, token) => {
             writeToDebuggerOutputWindow(
               `${localizedProgressMessage}, ${nls.localize(
@@ -797,6 +805,7 @@ export class CheckpointInfoIterationNode extends CheckpointInfoNode {
 
 // The AsyncLock is necessary to prevent the user from deleting the underlying breakpoints
 // associated with the checkpoints while checkpoints are being uploaded to the server.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const lock = new AsyncLock();
 
 // This is the function registered for vscode.debug.onDidChangeBreakpoints. This
@@ -806,8 +815,9 @@ export async function processBreakpointChangedForCheckpoints(
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> {
   for (const bp of breakpointsChangedEvent.removed) {
-    if (bp.condition && bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0) {
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
+    if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      await lock.acquire(CHECKPOINTS_LOCK_STRING, () => {
         const breakpointId = bp.id;
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
       });
@@ -818,7 +828,7 @@ export async function processBreakpointChangedForCheckpoints(
     const breakpointId = bp.id;
     if (
       bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
       bp instanceof vscode.SourceBreakpoint
     ) {
       const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
@@ -827,7 +837,8 @@ export async function processBreakpointChangedForCheckpoints(
       const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
         breakpointId
       );
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      await lock.acquire(CHECKPOINTS_LOCK_STRING, () => {
         // If the node exists then update it
         if (theNode) {
           theNode.updateCheckpoint(
@@ -849,7 +860,8 @@ export async function processBreakpointChangedForCheckpoints(
       });
     } else {
       // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      await lock.acquire(CHECKPOINTS_LOCK_STRING, () => {
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
       });
     }
@@ -858,10 +870,11 @@ export async function processBreakpointChangedForCheckpoints(
   for (const bp of breakpointsChangedEvent.added) {
     if (
       bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
       bp instanceof vscode.SourceBreakpoint
     ) {
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      await lock.acquire(CHECKPOINTS_LOCK_STRING, () => {
         const breakpointId = bp.id;
         const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
         const uri = code2ProtocolConverter(bp.location.uri);
@@ -902,6 +915,7 @@ export function parseCheckpointInfoFromBreakpoint(
 
   // If the log message is defined and isn't empty then set the action script
   // based upon whether or not the string starts with SELECT
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const logMessage = (breakpoint as any).logMessage as string;
   if (logMessage && logMessage.length > 0) {
     if (logMessage.toLocaleLowerCase().startsWith('select')) {
@@ -963,7 +977,7 @@ let creatingCheckpoints = false;
 //    that may be on the checkpoint are the condition (which needs to get set to Checkpoint)
 //    and the logMessage. The logMessage is scrapped since this ends up being taken over by
 //    checkpoints for user input SOQL or Apex.
-export async function sfdxToggleCheckpoint() {
+export function sfdxToggleCheckpoint() {
   if (creatingCheckpoints) {
     writeToDebuggerOutputWindow(
       nls.localize('checkpoint_upload_in_progress'),
@@ -988,17 +1002,17 @@ export async function sfdxToggleCheckpoint() {
       // If the breakpoint is a checkpoint then remove it and return
       if (
         bp.condition &&
-        bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
+        bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0
       ) {
         bpRemove.push(bp);
-        return await vscode.debug.removeBreakpoints(bpRemove);
+        return vscode.debug.removeBreakpoints(bpRemove);
       } else {
         // The only thing from the old breakpoint that is applicable to keep is the hitCondition
         // which maps to iterations. Squirrel away hitCondition, remove the breakpoint and let
         // processing go into the code to create a new breakpoint with the checkpoint condition
         hitCondition = bp.hitCondition;
         bpRemove.push(bp);
-        await vscode.debug.removeBreakpoints(bpRemove);
+        vscode.debug.removeBreakpoints(bpRemove);
       }
     }
 
@@ -1012,7 +1026,7 @@ export async function sfdxToggleCheckpoint() {
       hitCondition
     );
     bpAdd.push(newBreakpoint);
-    await vscode.debug.addBreakpoints(bpAdd);
+    vscode.debug.addBreakpoints(bpAdd);
   }
   return;
 }

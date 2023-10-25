@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { CancellationToken, CommandExecution } from '../types';
 import { Command } from './command';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const treeKill = require('tree-kill');
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
@@ -42,7 +42,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) as Observable<number | undefined>;
+    );
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -51,7 +51,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
-    ) as Observable<Error | undefined>;
+    );
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -71,6 +71,7 @@ export class CliCommandExecution implements CommandExecution {
     // Cancellation watcher
     if (cancellationToken) {
       const timer = Observable.interval(CANCELLATION_INTERVAL);
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
@@ -95,8 +96,12 @@ export class CliCommandExecution implements CommandExecution {
  */
 async function killPromise(processId: number, signal: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     treeKill(processId, signal, (err: Error | undefined) => {
-      err ? reject(err) : resolve();
+      if (err) {
+        reject(err);
+      }
+      resolve();
     });
   });
 }

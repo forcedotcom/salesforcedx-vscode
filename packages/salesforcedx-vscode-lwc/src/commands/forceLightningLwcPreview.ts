@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -110,7 +113,7 @@ const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const preview = getPreview();
-  preview(sourceUri);
+  await preview(sourceUri);
 }
 
 export function getPreview() {
@@ -123,7 +126,7 @@ export function getPreview() {
 
 function lwcPreviewContainerMode() {
   const message = nls.localize('force_lightning_lwc_preview_container_mode');
-  vscode.window.showErrorMessage(message);
+  void vscode.window.showErrorMessage(message);
   return;
 }
 
@@ -201,7 +204,7 @@ async function executePreview(
   // 1. Prompt user to select a platform
   const platformSelection = await selectPlatform();
   if (!platformSelection) {
-    vscode.window.showWarningMessage(commandCancelledMessage);
+    void vscode.window.showWarningMessage(commandCancelledMessage);
     return;
   }
 
@@ -215,7 +218,7 @@ async function executePreview(
   try {
     const targetName = await selectTargetDevice(platformSelection);
     if (targetName === undefined) {
-      vscode.window.showInformationMessage(commandCancelledMessage);
+      void vscode.window.showInformationMessage(commandCancelledMessage);
       return;
     } else {
       targetDevice = targetName;
@@ -233,7 +236,7 @@ async function executePreview(
   // 4. Prompt user to select a target app (if any)
   const targetApp = await selectTargetApp(platformSelection, configFilePath);
   if (targetApp === undefined) {
-    vscode.window.showInformationMessage(commandCancelledMessage);
+    void vscode.window.showInformationMessage(commandCancelledMessage);
     return;
   }
 
@@ -530,7 +533,7 @@ async function selectTargetApp(
  * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
-async function executeMobilePreview(
+function executeMobilePreview(
   platformSelection: PreviewQuickPickItem,
   targetDevice: string,
   targetApp: string,
@@ -538,7 +541,7 @@ async function executeMobilePreview(
   configFile: string | undefined,
   componentName: string,
   startTime: [number, number]
-) {
+): Promise<void> {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
 
   let commandBuilder = new SfdxCommandBuilder()
@@ -571,20 +574,20 @@ async function executeMobilePreview(
   channelService.streamCommandOutput(previewExecution);
   channelService.showChannelOutput();
 
-  previewExecution.processExitSubject.subscribe(async exitCode => {
+  previewExecution.processExitSubject.subscribe((exitCode: number | undefined) => {
     if (exitCode !== 0) {
       const message = isAndroid
         ? nls.localize('force_lightning_lwc_android_failure', targetDevice)
         : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
-      notificationService
+      void notificationService
         .showSuccessfulExecution(
           previewExecution.command.toString(),
           channelService
         )
         .catch();
-      vscode.window.showInformationMessage(
+      void vscode.window.showInformationMessage(
         nls.localize('force_lightning_lwc_ios_start', targetDevice)
       );
     }
@@ -592,21 +595,23 @@ async function executeMobilePreview(
 
   // TODO: Remove this when SFDX Plugin launches Android Emulator as separate process.
   // listen for Android Emulator finished
+
   if (isAndroid) {
-    previewExecution.stdoutSubject.subscribe(async data => {
+    previewExecution.stdoutSubject.subscribe(data => {
       if (data && data.toString().includes(androidSuccessString)) {
-        notificationService
+        void notificationService
           .showSuccessfulExecution(
             previewExecution.command.toString(),
             channelService
           )
           .catch();
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
           nls.localize('force_lightning_lwc_android_start', targetDevice)
         );
       }
     });
   }
+  return Promise.resolve();
 }
 
 /**

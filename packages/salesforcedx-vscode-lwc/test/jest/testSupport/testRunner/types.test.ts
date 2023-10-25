@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isTestCaseInfo, TestCaseInfo, TestFileInfo, TestInfoKind, TestType } from '../../../../src/testSupport/types';
-import { Uri } from 'vscode';
 import * as path from 'path';
+import { Uri } from 'vscode';
+import { isTestCaseInfo, TestCaseInfo, TestFileInfo, TestInfoKind, TestType } from '../../../../src/testSupport/types';
 
 describe('test support types Unit Tests.', () => {
   const mockUriPath = path.join('/');
@@ -15,7 +15,7 @@ describe('test support types Unit Tests.', () => {
     fsPath: mockUriPath
   } as Uri;
   describe('test isTestCase', () => {
-    it('Should return true for a TestCase', async () => {
+    it('Should return true for a TestCase', () => {
       const testName = 'Testing is Fun!';
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
@@ -25,7 +25,7 @@ describe('test support types Unit Tests.', () => {
       };
       expect(isTestCaseInfo(testExecutionInfo)).toBeTruthy();
     });
-    it('Should return false for a TestFile', async () => {
+    it('Should return false for a TestFile', () => {
       const testExecutionInfo: TestFileInfo = {
         kind: TestInfoKind.TEST_FILE,
         testType: TestType.LWC,

@@ -18,8 +18,8 @@ import {
   Workbench
 } from 'vscode-extension-tester';
 
-// tslint:disable-next-line:only-arrow-functions
-describe('In project folder, SOQL files should', function() {
+
+describe('In project folder, SOQL files should', function () {
   this.timeout(55000);
   let browser: VSBrowser;
   let driver: WebDriver;

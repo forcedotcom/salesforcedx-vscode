@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -14,7 +18,7 @@ import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from './messages';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const debounce = require('debounce');
 export const channelService = ChannelService.getInstance(
   nls.localize('soql_channel_name')
@@ -22,12 +26,14 @@ export const channelService = ChannelService.getInstance(
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();
 
-function showChannelAndErrorMessage(e: any) {
-  channelService.appendLine(e);
+function showChannelAndErrorMessage(error: any) {
+  const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown';
+  channelService.appendLine(msg);
   const message = nls.localize('error_connection');
-  vscode.window.showErrorMessage(message);
+  void vscode.window.showErrorMessage(message);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 export const debouncedShowChannelAndErrorMessage = debounce(
   showChannelAndErrorMessage,
   1000
@@ -42,6 +48,7 @@ export async function withSFConnection(
     return f((conn as unknown) as Connection);
   } catch (e) {
     if (showErrorMessage) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       debouncedShowChannelAndErrorMessage(e);
     }
   }
@@ -49,6 +56,7 @@ export async function withSFConnection(
 
 export async function retrieveSObjects(): Promise<string[]> {
   let foundSObjectNames: string[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   await withSFConnection(async conn => {
     const describeGlobalResult = await conn.describeGlobal$();
     if (describeGlobalResult) {
@@ -66,6 +74,7 @@ export async function retrieveSObject(
   sobjectName: string
 ): Promise<DescribeSObjectResult> {
   let name: DescribeSObjectResult;
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   await withSFConnection(async conn => {
     name = await conn.describe$(sobjectName);
   });

@@ -15,7 +15,7 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Package Install', () => {
   describe('SelectPackageID Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
@@ -103,7 +103,7 @@ describe('Force Package Install', () => {
     });
   });
   describe('Package Install Builder', () => {
-    it('Should build the package install command', async () => {
+    it('Should build the package install command', () => {
       const TEST_PACKAGE_ID = 'testPackageID';
       const TEST_INSTALLATION_KEY = 'testInstallationKey';
       const forcePackageInstallExecutor = new ForcePackageInstallExecutor();
@@ -118,7 +118,7 @@ describe('Force Package Install', () => {
         nls.localize('force_package_install_text')
       );
     });
-    it('Should build the package install command without installation key', async () => {
+    it('Should build the package install command without installation key', () => {
       const TEST_PACKAGE_ID = 'testPackageID';
       const TEST_INSTALLATION_KEY = '';
       const forcePackageInstallExecutor = new ForcePackageInstallExecutor();

@@ -88,7 +88,7 @@ export class QueryDataFileService {
   private showFileInExplorer(targetPath: string) {
     // Only reveal saved file if its inside current workspace
     if (targetPath.startsWith(getRootWorkspacePath())) {
-      vscode.commands.executeCommand(
+      void vscode.commands.executeCommand(
         'revealInExplorer',
         vscode.Uri.file(targetPath)
       );
@@ -96,7 +96,7 @@ export class QueryDataFileService {
   }
 
   private showSaveSuccessMessage(savedFileName: string) {
-    vscode.window.showInformationMessage(
+    void vscode.window.showInformationMessage(
       nls.localize('info_file_save_success', savedFileName)
     );
   }

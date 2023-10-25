@@ -78,7 +78,7 @@ export function doComplete(
     return result;
   }
 
-  // tslint:disable-next-line:no-shadowed-variable
+
   function getLineIndent(offset: number) {
     let start = offset;
     while (start > 0) {

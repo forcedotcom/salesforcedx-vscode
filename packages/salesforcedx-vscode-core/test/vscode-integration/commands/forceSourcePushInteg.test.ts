@@ -11,7 +11,7 @@ import { nls } from '../../../src/messages';
 
 describe('Force Source Push', () => {
   const commonParams = '--json --loglevel fatal';
-  it('Should build the source push command with no flag', async () => {
+  it('Should build the source push command with no flag', () => {
     const sourcePushNoFlag = new ForceSourcePushExecutor();
     const pushCommand = sourcePushNoFlag.build({});
     expect(pushCommand.toCommand()).to.equal(
@@ -22,7 +22,7 @@ describe('Force Source Push', () => {
     );
   });
 
-  it('Should build the source push command with overwrite flag', async () => {
+  it('Should build the source push command with overwrite flag', () => {
     const sourcePushOverwrite = new ForceSourcePushExecutor('--forceoverwrite');
     const pushCommand = sourcePushOverwrite.build({});
     expect(pushCommand.toCommand()).to.equal(

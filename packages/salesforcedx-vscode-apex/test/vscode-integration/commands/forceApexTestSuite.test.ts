@@ -24,11 +24,11 @@ import { workspaceContext } from '../../../src/context';
 
 const sb = createSandbox();
 
-describe('Test Suite Selector', async () => {
+describe('Test Suite Selector', () => {
   let quickPickStub: sinon.SinonStub;
   let retrieveSuitesStub: sinon.SinonStub;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sb.stub(workspaceContext, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns({
       label: 'SuiteOne',
@@ -43,7 +43,7 @@ describe('Test Suite Selector', async () => {
       ]);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sb.restore();
   });
 
@@ -73,11 +73,11 @@ describe('Test Suite Selector', async () => {
   });
 });
 
-describe('Test Suite Builder', async () => {
+describe('Test Suite Builder', () => {
   let quickPickStub: sinon.SinonStub;
   let retrieveSuitesStub: sinon.SinonStub;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sb.stub(workspaceContext, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns([
       {
@@ -94,7 +94,7 @@ describe('Test Suite Builder', async () => {
       ]);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sb.restore();
   });
 
@@ -124,10 +124,10 @@ describe('Test Suite Builder', async () => {
   });
 });
 
-describe('Test Suite Creator', async () => {
+describe('Test Suite Creator', () => {
   let quickPickStub: sinon.SinonStub;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sb.stub(workspaceContext, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns([
       {
@@ -138,7 +138,7 @@ describe('Test Suite Creator', async () => {
     sb.stub(vscode.window, 'showInputBox').resolves('NewSuite');
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sb.restore();
   });
 

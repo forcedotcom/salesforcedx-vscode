@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -22,7 +24,7 @@ const SUSPEND_LANGUAGE_SERVER_STARTUP =
   process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL =
   process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
-declare var v8debug: any;
+declare let v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 async function createServer(
@@ -92,14 +94,14 @@ async function createServer(
       args
     };
   } catch (err) {
-    vscode.window.showErrorMessage(err);
+    void vscode.window.showErrorMessage(err);
     telemetryService.sendException(LSP_ERR, err.error);
     throw err;
   }
 }
 
 function startedInDebugMode(): boolean {
-  const args = (process as any).execArgv;
+  const args = process.execArgv;
   if (args) {
     return args.some(
       (arg: any) =>

@@ -9,7 +9,7 @@ import { getPreview } from '../../../src/commands/forceLightningLwcPreview';
 
 describe('forceLightningLwcPreview', () => {
   describe('not in container mode', () => {
-    it('uses default preview', async () => {
+    it('uses default preview', () => {
       const preview = getPreview();
       expect(preview.name).toBe('lwcPreview');
     });
@@ -24,7 +24,7 @@ describe('forceLightningLwcPreview', () => {
       delete process.env.SF_CONTAINER_MODE;
     });
 
-    it('uses container mode preview', async () => {
+    it('uses container mode preview', () => {
       const preview = getPreview();
       expect(preview.name).toBe('lwcPreviewContainerMode');
     });

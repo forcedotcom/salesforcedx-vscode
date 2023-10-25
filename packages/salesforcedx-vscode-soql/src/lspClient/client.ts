@@ -6,15 +6,15 @@
  */
 import * as path from 'path';
 import { ExtensionContext, workspace } from 'vscode';
-import * as codeCompletion from './codeCompletion';
-import * as queryValidation from './queryValidation';
-
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import * as codeCompletion from './codeCompletion';
+import * as queryValidation from './queryValidation';
+
 
 let client: LanguageClient;
 
@@ -26,8 +26,10 @@ export async function startLanguageClient(
   extensionContext: ExtensionContext
 ): Promise<void> {
   // path to language server module
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     path.join(...serverPath)
   );
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };

@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
+import { InputBuffer } from 'uuid/interfaces';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
@@ -21,13 +23,13 @@ import {
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
 } from '../../../../src/testSupport/commands/forceLwcTestDebugAction';
-import { workspace } from '../../../../src/testSupport/workspace';
 import {
   TestCaseInfo,
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
 import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import { workspace } from '../../../../src/testSupport/workspace';
 import {
   createMockTestFileInfo,
   mockActiveTextEditorUri,
@@ -35,8 +37,6 @@ import {
   unmockActiveTextEditorUri,
   unmockTestResultWatcher
 } from '../mocks';
-import { InputBuffer } from 'uuid/interfaces';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Debug - Code Action', () => {
   let uuidStub: SinonStub<

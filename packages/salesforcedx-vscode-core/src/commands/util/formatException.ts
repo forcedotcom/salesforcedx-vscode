@@ -13,7 +13,7 @@ import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
  * @param e Error to reformat
  * @returns A newly formatted error
  */
-export function formatException(e: Error): Error {
+export const formatException = (e: Error): Error => {
   e.message = e.message.replace(getRootWorkspacePath(), '');
   return e;
-}
+};

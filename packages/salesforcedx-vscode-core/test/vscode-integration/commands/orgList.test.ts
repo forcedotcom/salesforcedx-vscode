@@ -10,7 +10,7 @@ import { OrgListExecutor } from '../../../src/commands/orgList';
 import { nls } from '../../../src/messages';
 
 describe('Force Org List', () => {
-  it('Should build the list command with --clean option', async () => {
+  it('Should build the list command with --clean option', () => {
     const orgList = new OrgListExecutor();
     const listCommand = orgList.build({});
     expect(listCommand.toCommand()).to.equal(

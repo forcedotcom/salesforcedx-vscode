@@ -4,17 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { assert, match, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
+import { InputBuffer } from 'uuid/interfaces';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../../../src/telemetry';
 import {
   forceLwcTestRun,
   forceLwcTestRunActiveTextEditorTest
 } from '../../../../src/testSupport/commands/forceLwcTestRunAction';
-import { workspace } from '../../../../src/testSupport/workspace';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import { workspace } from '../../../../src/testSupport/workspace';
 import {
   createMockTestFileInfo,
   mockActiveTextEditorUri,
@@ -26,8 +28,6 @@ import {
   unmockSfdxTaskExecute,
   unmockTestResultWatcher
 } from '../mocks';
-import { InputBuffer } from 'uuid/interfaces';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {

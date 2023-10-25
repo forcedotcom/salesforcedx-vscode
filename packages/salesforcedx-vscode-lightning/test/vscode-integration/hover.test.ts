@@ -16,12 +16,12 @@ import {
   workspace
 } from 'vscode';
 
-describe('Aura Hovers', function() {
+describe('Aura Hovers', function () {
   this.timeout(4000);
 
   let auraDir: string;
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     auraDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -33,11 +33,11 @@ describe('Aura Hovers', function() {
     await new Promise(r => setTimeout(r, 1000));
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide additional details when hovering over an aura tag', async function() {
+  it('Should provide additional details when hovering over an aura tag', async function () {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -46,15 +46,16 @@ describe('Aura Hovers', function() {
     // hover over the 'lightning:card' tag
     const position = new Position(25, 17);
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const hoverInstances = (await commands.executeCommand(
       'vscode.executeHoverProvider',
       editor.document.uri,
       position
-    )) as Hover[];
+    ));
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const content = findContentFromInstances(hoverInstances, 'lightning:card');
+    const content = findContentFromInstances(hoverInstances as Hover[], 'lightning:card');
 
     expect(content).not.to.be.undefined;
     expect(content).not.to.be.null;
@@ -63,7 +64,7 @@ describe('Aura Hovers', function() {
     expect(content!.value).to.include('View in Component Library');
   });
 
-  it('Should provide additional details when hovering over an aura attribute', async function() {
+  it('Should provide additional details when hovering over an aura attribute', async function () {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -76,11 +77,11 @@ describe('Aura Hovers', function() {
       'vscode.executeHoverProvider',
       editor.document.uri,
       position
-    )) as Hover[];
+    ));
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const content = findContentFromInstances(hoverInstances, '**title**');
+    const content = findContentFromInstances(hoverInstances as Hover[], '**title**');
 
     expect(content).not.to.be.undefined;
     expect(content).not.to.be.null;
@@ -101,10 +102,10 @@ describe('Aura Hovers', function() {
 function findContentFromInstances(instances: Hover[], expectedContent: string) {
   for (const instance of instances) {
     // type assertion to prevent using a deprecated type
-    const contents = instance!.contents as MarkdownString[];
+    const contents = instance.contents as MarkdownString[];
 
-    const content = contents.find(content =>
-      content.value.includes(expectedContent)
+    const content = contents.find(cntnt =>
+      cntnt.value.includes(expectedContent)
     );
 
     // return the first found match

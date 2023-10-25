@@ -9,6 +9,7 @@ import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
 export class NoOpState implements DebugLogState {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public handle(logContext: LogContext): boolean {
     return false;
   }

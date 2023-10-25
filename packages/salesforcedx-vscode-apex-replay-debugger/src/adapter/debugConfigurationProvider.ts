@@ -29,7 +29,9 @@ export class DebugConfigurationProvider
   }
 
   public provideDebugConfigurations(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     folder: vscode.WorkspaceFolder | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig()];
@@ -38,12 +40,13 @@ export class DebugConfigurationProvider
   public resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(config).catch(async err => {
+    return this.asyncDebugConfig(config).catch(async error => {
       return vscode.window
-        .showErrorMessage(err.message, { modal: true })
-        .then(x => undefined);
+        .showErrorMessage(error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown', { modal: true })
+        .then(() => undefined);
     });
   }
 
@@ -53,6 +56,7 @@ export class DebugConfigurationProvider
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     config.logFile = config.logFile || '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;
@@ -71,6 +75,7 @@ export class DebugConfigurationProvider
 
     if (this.sfdxApex && this.sfdxApex.exports) {
       await this.isLanguageClientReady();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       config.lineBreakpointInfo = await this.sfdxApex.exports.getLineBreakpointInfo();
     }
     return config;
@@ -82,17 +87,22 @@ export class DebugConfigurationProvider
     while (
       this.sfdxApex &&
       this.sfdxApex.exports &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       !this.sfdxApex.exports.languageClientUtils.getStatus().isReady() &&
       !expired
     ) {
       if (
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         this.sfdxApex.exports.languageClientUtils
           .getStatus()
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           .failedToInitialize()
       ) {
         throw Error(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           this.sfdxApex.exports.languageClientUtils
             .getStatus()
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             .getStatusMessage()
         );
       }

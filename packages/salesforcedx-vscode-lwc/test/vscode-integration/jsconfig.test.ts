@@ -64,7 +64,7 @@ describe.skip('jsconfig Test Suite', () => {
 
     const newConfig = await parseConfig(configPath);
     expect(config).to.eql(newConfig);
-    expect(newConfig.paths).have.own.property(`c/*`);
+    expect(newConfig.paths).have.own.property('c/*');
   });
 
   it('Should not update jsconfig.json when a component is saved', async () => {

@@ -6,7 +6,7 @@ import { nls } from '../../../src/messages';
 
 describe('scratch org decorator', () => {
   const testUser = 'test@username.com';
-  const browserIcon = `$(browser)`;
+  const browserIcon = '$(browser)';
   const openOrgCommand = ORG_OPEN_COMMAND;
   let createFileSystemWatcherMock: jest.SpyInstance;
   let getDefaultUsernameOrAliasMock: jest.SpyInstance;

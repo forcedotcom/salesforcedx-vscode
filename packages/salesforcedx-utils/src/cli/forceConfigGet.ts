@@ -31,7 +31,9 @@ export class ForceConfigGet {
     const result = await cmdOutput.getCmdResult(execution);
     try {
       const forceConfigMap = new Map<string, string>();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const results = JSON.parse(result).result as any[];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       results.forEach(entry => forceConfigMap.set(entry.key, entry.value));
       return Promise.resolve(forceConfigMap);
     } catch (e) {

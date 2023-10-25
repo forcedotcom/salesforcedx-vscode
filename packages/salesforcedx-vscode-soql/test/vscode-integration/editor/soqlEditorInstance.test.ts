@@ -68,7 +68,7 @@ describe('SoqlEditorInstance should', () => {
     sandbox.restore();
   });
 
-  it('post CONNECTION_CHANGED message when connection is changed', async () => {
+  it('post CONNECTION_CHANGED message when connection is changed', () => {
     const expected = { type: 'connection_changed' };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -108,7 +108,7 @@ describe('SoqlEditorInstance should', () => {
     expect(postMessageSpy.calledWith(expectedMessage));
   });
 
-  it('handles query event and updates text document with soql', async () => {
+  it('handles query event and updates text document with soql', () => {
     const aQuery = 'select a,b,c from somewhere';
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
     instance.mockReceiveEvent({
@@ -122,7 +122,7 @@ describe('SoqlEditorInstance should', () => {
     expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
 
-  it('muffles the postMessage once if soql statement has NOT changed', async () => {
+  it('muffles the postMessage once if soql statement has NOT changed', () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const aQuery = 'select a,b,c from somewhere';
     instance.mockReceiveEvent({
@@ -150,7 +150,7 @@ describe('SoqlEditorInstance should', () => {
       type: MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
-    instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
+    await instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
     instance.updateWebview(mockTextDocument);
     expect(
       postMessageSpy.callCount === 1,
@@ -158,7 +158,7 @@ describe('SoqlEditorInstance should', () => {
     );
   });
 
-  it('handles activation event and updates the webview', async () => {
+  it('handles activation event and updates the webview', () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
     instance.mockReceiveEvent({
       type: MessageType.UI_ACTIVATED
@@ -169,7 +169,7 @@ describe('SoqlEditorInstance should', () => {
     );
   });
 
-  it('handles run query event and opens the webview and sends run_query_done to webview', async () => {
+  it('handles run query event and opens the webview and sends run_query_done to webview', () => {
     const expectedMessage = {
       type: 'run_query_done'
     };

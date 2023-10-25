@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-import { forceLightningLwcStop } from '../../../src/commands/forceLightningLwcStop';
-import { DevServerService } from '../../../src/service/devServerService';
-import { nls } from '../../../src/messages';
 import {
   ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+import { forceLightningLwcStop } from '../../../src/commands/forceLightningLwcStop';
+import { nls } from '../../../src/messages';
+import { DevServerService } from '../../../src/service/devServerService';
 
 describe('forceLightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;
@@ -58,7 +58,7 @@ describe('forceLightningLwcStop', () => {
   });
 
   it('shows successful server stop', async () => {
-    let devServiceStub = sinon.createStubInstance(DevServerService);
+    const devServiceStub = sinon.createStubInstance(DevServerService);
     devServiceStub.isServerHandlerRegistered.returns(true);
     sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 

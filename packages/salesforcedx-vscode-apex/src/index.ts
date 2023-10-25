@@ -30,7 +30,7 @@ import {
 import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
-import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler';
+import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -41,7 +41,7 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
-import { getTestOutlineProvider } from './views/testOutlineProvider';
+import { TestNode, getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 let languageClient: ApexLanguageClient | undefined;
@@ -220,7 +220,7 @@ function registerCommands(): vscode.Disposable {
   );
 }
 
-async function registerTestView(): Promise<vscode.Disposable> {
+function registerTestView(): Promise<vscode.Disposable> {
   const testOutlineProvider = getTestOutlineProvider();
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);
@@ -242,7 +242,7 @@ async function registerTestView(): Promise<vscode.Disposable> {
   );
   // Show Error Message command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.showError', test =>
+    vscode.commands.registerCommand('sfdx.force.test.view.showError', (test: TestNode) =>
       testRunner.showErrorMessage(test)
     )
   );
@@ -250,21 +250,21 @@ async function registerTestView(): Promise<vscode.Disposable> {
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.goToDefinition',
-      test => testRunner.showErrorMessage(test)
+      (test: TestNode) => testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.runClassTests',
-      test => testRunner.runApexTests([test.name], TestRunType.Class)
+      (test: TestNode) => testRunner.runApexTests([test.name], TestRunType.Class)
     )
   );
   // Run Single Test command
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.runSingleTest',
-      test => testRunner.runApexTests([test.name], TestRunType.Method)
+      (test: TestNode) => testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command
@@ -276,11 +276,12 @@ async function registerTestView(): Promise<vscode.Disposable> {
     })
   );
 
-  return vscode.Disposable.from(...testViewItems);
+  return Promise.resolve(vscode.Disposable.from(...testViewItems));
 }
 
-export async function deactivate() {
+export function deactivate(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
+  return Promise.resolve();
 }
 
 async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
@@ -292,21 +293,22 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     );
 
     if (languageClient) {
-      languageClient.onNotification('indexer/done', async () => {
-        await getTestOutlineProvider().refresh();
+      languageClient.onNotification('indexer/done', () => {
+        void getTestOutlineProvider().refresh();
         languageServerReady();
       });
-      languageClient.errorHandler?.addListener('error', message => {
+      languageClient.errorHandler?.addListener('error', (message: string) => {
         languageServerStatusBarItem.error(message);
       });
-      languageClient.errorHandler?.addListener('restarting', count => {
+      languageClient.errorHandler?.addListener('restarting', (count: number) => {
         languageServerStatusBarItem.error(
           nls
             .localize('apex_language_server_quit_and_restarting')
-            .replace('$N', count)
+            .replace('$N', `${count}`)
         );
       });
-      languageClient.errorHandler?.addListener('startFailed', count => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      languageClient.errorHandler?.addListener('startFailed', (count: number) => {
         languageServerStatusBarItem.error(
           nls.localize('apex_language_server_failed_activate')
         );
@@ -317,7 +319,7 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     void lsoh.resolveAnyFoundOrphanLanguageServers();
 
-    await languageClient!.start();
+    await languageClient.start();
 
     const startTime = telemetryService.getEndHRTime(langClientHRStart);
     telemetryService.sendEventData('apexLSPStartup', undefined, {
@@ -325,10 +327,10 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     });
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
     extensionContext.subscriptions.push(languageClient);
-  } catch (e) {
-    languageClientUtils.setStatus(ClientStatus.Error, e);
+  } catch (err) {
     let eMsg =
-      typeof e === 'string' ? e : e.message ?? nls.localize('unknown_error');
+      err instanceof Error ? err.message : typeof err === 'string' ? err : 'unknown';
+    languageClientUtils.setStatus(ClientStatus.Error, eMsg);
     if (
       eMsg.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
     ) {

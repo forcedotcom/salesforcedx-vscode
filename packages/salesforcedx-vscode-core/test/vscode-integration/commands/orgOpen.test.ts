@@ -13,7 +13,7 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('Org Open', () => {
   it('should build the org open command', () => {
     const orgOpenContainer = new OrgOpenExecutor();

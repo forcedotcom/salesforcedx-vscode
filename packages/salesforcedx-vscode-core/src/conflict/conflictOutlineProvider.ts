@@ -27,8 +27,9 @@ export class ConflictOutlineProvider
     this.internalOnDidChangeTreeData.fire(undefined);
   }
 
-  public async refresh(node?: ConflictNode): Promise<void> {
+  public refresh(node?: ConflictNode): Promise<void> {
     this.internalOnDidChangeTreeData.fire(node);
+    return Promise.resolve();
   }
 
   public reset(
@@ -56,7 +57,7 @@ export class ConflictOutlineProvider
 
   public getChildren(element?: ConflictNode): ConflictNode[] {
     if (element) {
-      return element.children!;
+      return element.children;
     }
     if (this.root) {
       return [this.root];

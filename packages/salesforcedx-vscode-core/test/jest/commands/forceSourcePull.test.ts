@@ -19,7 +19,7 @@ describe('ForceSourcePullExecutor', () => {
       } as any);
     });
 
-    it('should update the local cache for the pulled source components after pull', async () => {
+    it('should update the local cache for the pulled source components after pull', () => {
       const pullExecutor = new ForceSourcePullExecutor();
 
       (pullExecutor as any).updateCache(dummyPullResult);

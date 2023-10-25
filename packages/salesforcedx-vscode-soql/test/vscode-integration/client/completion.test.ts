@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import { Connection } from '@salesforce/core';
-import * as path from 'path';
+import { expect } from 'chai';
 import * as fsExtra from 'fs-extra';
+import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 
@@ -92,7 +92,7 @@ describe('Should do completion', async () => {
   });
 
   beforeEach(async () => {
-    workspacePath = workspace.workspaceFolders![0].uri.fsPath;
+    workspacePath = workspace.workspaceFolders[0].uri.fsPath;
     soqlFileUri = Uri.file(
       path.join(workspacePath, `test_${generateRandomInt()}.soql`)
     );
@@ -439,7 +439,7 @@ describe('Should not do completion on metadata errors', async () => {
   });
 
   beforeEach(async () => {
-    workspacePath = workspace.workspaceFolders![0].uri.fsPath;
+    workspacePath = workspace.workspaceFolders[0].uri.fsPath;
     soqlFileUri = Uri.file(
       path.join(workspacePath, `test_${generateRandomInt()}.soql`)
     );
@@ -547,11 +547,11 @@ function testCompletion(
     let passed = false;
     for (let tries = 3; !passed && tries > 0; tries--) {
       try {
-        const actualCompletionItems = ((await vscode.commands.executeCommand(
+        const actualCompletionItems = (((await vscode.commands.executeCommand(
           'vscode.executeCompletionItemProvider',
           docUri,
           position
-        )) as vscode.CompletionList).items;
+        ))) as {items: CompletionItem[]}).items;
 
         const pickMainItemKeys = (item: CompletionItem) => ({
           label: item.label,
@@ -616,7 +616,7 @@ export async function activate(docUri: vscode.Uri) {
 async function prepareSOQLFileAndGetCursorPosition(
   soqlTextWithCursorMarker: string,
   fileUri: vscode.Uri,
-  cursorChar: string = '|'
+  cursorChar = '|'
 ): Promise<vscode.Position> {
   const position = getCursorPosition(soqlTextWithCursorMarker, cursorChar);
   const soqlText = soqlTextWithCursorMarker.replace(cursorChar, '');
@@ -627,7 +627,7 @@ async function prepareSOQLFileAndGetCursorPosition(
   return position;
 }
 
-function getCursorPosition(text: string, cursorChar: string = '|'): Position {
+function getCursorPosition(text: string, cursorChar = '|'): Position {
   for (const [line, lineText] of text.split('\n').entries()) {
     const column = lineText.indexOf(cursorChar);
     if (column >= 0) return new Position(line, column);

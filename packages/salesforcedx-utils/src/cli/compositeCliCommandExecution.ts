@@ -33,10 +33,10 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async () => {
+      timerSubscriber = timer.subscribe(() => {
         if (cancellationToken.isCancellationRequested) {
           try {
-            this.exitSubject.next();
+            return this.exitSubject.next();
           } catch (e) {
             console.log(e);
           }
@@ -62,6 +62,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: Error | undefined) {
     if (e) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       this.stderr.next(`${e}${os.EOL}`);
     }
     this.exitSubject.next(1);

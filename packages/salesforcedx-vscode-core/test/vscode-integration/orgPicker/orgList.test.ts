@@ -62,7 +62,7 @@ describe('orgList Tests', () => {
       expect(orgAuthorizations).to.equal(null);
     });
 
-    describe('Filter Authorization Info', async () => {
+    describe('Filter Authorization Info', () => {
       let getDevHubUsernameStub: SinonStub;
       let getUsernameStub: SinonStub;
       let stateAggregatorCreateStub: SinonStub;
@@ -389,7 +389,8 @@ describe('orgList Tests', () => {
 
       it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
+        const org = orgsList[0].split(' ', 1)[0];
+        quickPickStub.returns(`$(plus)${org}`);
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(executeCommandStub.calledWith('sfdx.force.config.set')).to.equal(

@@ -19,7 +19,7 @@ export async function setupGlobalDefaultUserIsvAuth() {
       vscode.workspace.workspaceFolders[0].uri.fsPath
     );
 
-    vscode.commands.executeCommand(
+    await vscode.commands.executeCommand(
       'setContext',
       'sfdx:isv_debug_project',
       isvDebugProject
@@ -42,9 +42,9 @@ export function registerIsvAuthWatcher(extensionContext: vscode.ExtensionContext
   ) {
     const configPath = projectPaths.sfdxProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
-    isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidChange(() => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidCreate(() => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidDelete(() => setupGlobalDefaultUserIsvAuth());
     extensionContext.subscriptions.push(isvAuthWatcher);
   }
 }

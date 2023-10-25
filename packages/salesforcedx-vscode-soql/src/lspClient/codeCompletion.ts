@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -5,11 +8,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SoqlItemContext } from '@salesforce/soql-language-server';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
+import { Middleware } from 'vscode-languageclient';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
 
-import { SoqlItemContext } from '@salesforce/soql-language-server';
-import { Middleware } from 'vscode-languageclient';
 import { telemetryService } from '../telemetry';
 import {
   FileSystemOrgDataSource,
@@ -282,7 +285,7 @@ async function safeRetrieveSObject(
       'SOQLanguageServerException',
       'Missing `sobjectName` from SOQL completion context!'
     );
-    return Promise.resolve(undefined);
+    return undefined;
   }
   return await dataSource.retrieveSObject(sobjectName);
 }
@@ -360,5 +363,5 @@ function newFieldCompletionItems(
       )
     );
   }
-  return fieldItems;
+  return fieldItems as ProtocolCompletionItem[];
 }

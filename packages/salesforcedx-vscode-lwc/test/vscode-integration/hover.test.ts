@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { before } from 'mocha';
 import * as path from 'path';
 import {
   Hover,
@@ -17,10 +18,9 @@ import {
 } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { createLanguageClient } from '../../src/languageClient';
-import { before } from 'mocha';
 
 describe('LWC Hovers', () => {
-  let lwcDir = path.join(
+  const lwcDir = path.join(
     workspace.workspaceFolders![0].uri.fsPath,
     'force-app',
     'main',
@@ -73,11 +73,11 @@ describe('LWC Hovers', () => {
       'vscode.executeHoverProvider',
       editor.document.uri,
       position
-    )) as Hover[];
+    ));
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const content = findContentFromInstances(hoverInstances, 'Cards apply a');
+    const content = findContentFromInstances(hoverInstances as Hover[], 'Cards apply a');
 
     expect(content).not.to.be.undefined;
     expect(content).not.to.be.null;
@@ -99,11 +99,11 @@ describe('LWC Hovers', () => {
       'vscode.executeHoverProvider',
       editor.document.uri,
       position
-    )) as Hover[];
+    ));
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const content = findContentFromInstances(hoverInstances, 'The title can');
+    const content = findContentFromInstances(hoverInstances as Hover[], 'The title can');
 
     expect(content).not.to.be.undefined;
     expect(content).not.to.be.null;
@@ -124,7 +124,7 @@ describe('LWC Hovers', () => {
 function findContentFromInstances(instances: Hover[], expectedContent: string) {
   for (const instance of instances) {
     // type assertion to prevent using a deprecated type
-    const contents = instance!.contents as MarkdownString[];
+    const contents = instance.contents as MarkdownString[];
 
     const content = contents.find(content =>
       content.value.includes(expectedContent)

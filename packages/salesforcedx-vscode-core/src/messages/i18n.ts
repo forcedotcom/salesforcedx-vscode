@@ -35,7 +35,7 @@ export const messages = {
 
   task_view_running_message: '[Running] %s',
 
-  status_bar_text: `$(x) %s`,
+  status_bar_text: '$(x) %s',
   status_bar_tooltip: 'Click to cancel the command',
   status_bar_open_org_tooltip: 'Open Org',
   status_bar_org_picker_tooltip: 'Change Default Org',
@@ -234,7 +234,7 @@ export const messages = {
     'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
 
-  demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
+  demo_mode_status_text: '$(gist-secret) SFDX DEMO',
   demo_mode_status_tooltip:
     'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
   demo_mode_prompt:

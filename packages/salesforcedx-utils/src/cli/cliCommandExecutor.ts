@@ -19,10 +19,7 @@ export class CliCommandExecutor {
     baseEnvironment: Map<string, string>
   ): SpawnOptions {
     // start with current process environment
-    const env = Object.create(null);
-
-    // inherit current process environment
-    Object.assign(env, process.env);
+    const env = process.env;
 
     // now push anything from global environment
     baseEnvironment.forEach((value, key) => {

@@ -15,7 +15,7 @@ import { forceAnalyticsTemplateCreate } from '../../../../src/commands/templates
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Analytics Template Create', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

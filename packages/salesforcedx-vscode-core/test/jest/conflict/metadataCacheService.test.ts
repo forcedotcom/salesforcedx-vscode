@@ -26,8 +26,8 @@ describe('MetadataCacheService', () => {
       workspaceContextStub = jest
         .spyOn(WorkspaceContext, 'getInstance')
         .mockReturnValue({
-          getConnection: async () => {
-            return {};
+          getConnection: () => {
+            return Promise.resolve({});
           }
         } as any);
       getSourceComponentsStub = jest

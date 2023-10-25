@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
@@ -36,6 +38,7 @@ function insideSOQLBlock(
     i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL
   );
   return soqlItem
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     ? { queryText: soqlItem.detail as string, location: soqlItem.data }
     : undefined;
 }
@@ -48,6 +51,7 @@ function insideApexBindingExpression(
   // (which might have been missed by Apex LSP)
   const rangeAtCursor = document.getWordRangeAtPosition(
     position,
+    // eslint-disable-next-line no-useless-escape
     /[:(_\.\w)]+/
   );
   const wordAtCursor = rangeAtCursor
@@ -84,6 +88,7 @@ function getSOQLVirtualContent(
 }
 
 export const soqlMiddleware: Middleware = {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);
@@ -93,7 +98,7 @@ export const soqlMiddleware: Middleware = {
 
     const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
       ? (apexCompletionItems as ProtocolCompletionItem[])
-      : ((apexCompletionItems as CompletionList)
+      : ((apexCompletionItems )
         .items as ProtocolCompletionItem[]);
 
     const soqlBlock = insideSOQLBlock(items);

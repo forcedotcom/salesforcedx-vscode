@@ -19,10 +19,11 @@ type minSObjectsFileFormat = {
 };
 
 export class MinObjectRetriever implements SObjectDefinitionRetriever {
-  public async retrieve(output: SObjectRefreshOutput): Promise<void> {
+  public retrieve(output: SObjectRefreshOutput): Promise<void> {
     // TODO: validate the file format at runtime
     const minMetadata = minSObjectsFromFile as minSObjectsFileFormat;
     output.addTypeNames(minMetadata.typeNames);
     output.addStandard(minMetadata.standard);
+    return Promise.resolve();
   }
 }

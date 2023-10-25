@@ -13,6 +13,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { cp } from 'shelljs';
+import { StringLiteral } from 'typescript';
 import * as util from 'util';
 
 // Used only for CI purposes. Must call delete if you call create
@@ -48,7 +49,7 @@ export async function createScratchOrg(projectName: string): Promise<string> {
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const username = JSON.parse(result).result.username;
+  const username = JSON.parse(result).result.username as string;
   return Promise.resolve(username);
 }
 

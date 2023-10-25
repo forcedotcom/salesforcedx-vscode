@@ -17,11 +17,12 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
+import { developerLogTraceFlag } from '.';
+
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -33,6 +34,7 @@ export class StopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
     return deleteTraceFlag();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public execute(response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -43,7 +45,7 @@ export class StopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    execution.processExitSubject.subscribe(async data => {
+    execution.processExitSubject.subscribe(data => {
       this.logMetric(execution.command.logName, startTime);
       if (data !== undefined && String(data) === '0') {
         developerLogTraceFlag.turnOffLogging();
@@ -61,7 +63,9 @@ export async function turnOffLogging(): Promise<void> {
     telemetryService.sendCommandEvent(execution.command.logName);
     const resultPromise = new CommandOutput().getCmdResult(execution);
     const result = await resultPromise;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const resultJson = JSON.parse(result);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (resultJson.status === 0) {
       return Promise.resolve();
     } else {
@@ -82,11 +86,11 @@ function deleteTraceFlag(): Command {
     .build();
 }
 class ActiveLogging implements ParametersGatherer<{}> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
     if (developerLogTraceFlag.isActive()) {
-      return { type: 'CONTINUE', data: {} };
+      return Promise.resolve({ type: 'CONTINUE', data: {} });
     }
-    return { type: 'CANCEL' };
+    return Promise.resolve({ type: 'CANCEL' });
   }
 }
 const workspaceChecker = new SfdxWorkspaceChecker();

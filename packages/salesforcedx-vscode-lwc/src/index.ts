@@ -44,6 +44,7 @@ export function code2ProtocolConverter(value: Uri) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function protocol2CodeConverter(value: string) {
   return Uri.parse(value);
 }
@@ -96,8 +97,10 @@ export async function activate(extensionContext: ExtensionContext) {
   log('WorkspaceType detected: ' + workspaceType);
 
   // Start the LWC Language Server
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     path.join(...serverPath)
   );
   const client = createLanguageClient(serverModule);
@@ -125,7 +128,7 @@ export async function activate(extensionContext: ExtensionContext) {
       } catch (e) {
         telemetryService.sendException(
           'lwc_eslint_nodepath_couldnt_be_set',
-          e.message
+          (e instanceof Error ? e.message : JSON.stringify(e))
         );
       }
     }
@@ -156,6 +159,7 @@ function getActivationMode(): string {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registerCommands(_extensionContext: ExtensionContext): Disposable {
   return Disposable.from(
     commands.registerCommand(

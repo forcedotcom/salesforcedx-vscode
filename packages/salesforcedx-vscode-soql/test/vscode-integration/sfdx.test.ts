@@ -34,7 +34,7 @@ describe('sfdx utils', () => {
           sfdx.channelService,
           'appendLine'
         );
-        await sfdx.withSFConnection(async () => {}, showErrorMessage);
+        await sfdx.withSFConnection(() => { }, showErrorMessage);
         sfdx.debouncedShowChannelAndErrorMessage.flush();
         const errorCount = showErrorMessage ? 1 : 0;
         expect(vscodeErrorMessageSpy.callCount).to.equal(errorCount);

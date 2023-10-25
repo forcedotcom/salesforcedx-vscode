@@ -62,7 +62,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
         'force_source_deploy_with_manifest',
         errorMessage
       );
-      notificationService.showErrorMessage(errorMessage);
+      void notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;

@@ -14,7 +14,7 @@ import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
+
 describe('get metadata types folder', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
@@ -58,7 +58,7 @@ describe('build metadata types list', () => {
     readFileStub.restore();
   });
 
-  it('should return a sorted list of xmlNames when given a list of metadata types', async () => {
+  it('should return a sorted list of xmlNames when given a list of metadata types', () => {
     readFileStub.returns(fileData);
     const types = typeUtil.buildTypesList(fileData, undefined);
     if (!isNullOrUndefined(types)) {
@@ -67,7 +67,7 @@ describe('build metadata types list', () => {
     }
   });
 
-  it('should return a sorted list of xmlNames when given the metadata types result file path', async () => {
+  it('should return a sorted list of xmlNames when given the metadata types result file path', () => {
     const filePath = '/test/metadata/metadataTypes.json';
     readFileStub.returns(fileData);
 
@@ -79,7 +79,7 @@ describe('build metadata types list', () => {
     }
   });
 
-  it('should filter out blocklisted metadata types', async () => {
+  it('should filter out blocklisted metadata types', () => {
     const data = JSON.stringify({
       status: 0,
       result: {
@@ -88,7 +88,7 @@ describe('build metadata types list', () => {
         ).map(xmlName => ({ xmlName }))
       }
     });
-    const types = await typeUtil.buildTypesList(data, undefined);
+    const types = typeUtil.buildTypesList(data, undefined);
     expect(types).to.be.empty;
   });
 });

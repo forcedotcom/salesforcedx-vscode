@@ -21,13 +21,14 @@ import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
   private process: LocalRunProcess | undefined | void;
 
-  public async setupFunctionListeners(): Promise<void> {
+  public setupFunctionListeners(): Promise<void> {
     console.log('No listeners for containerless function.');
+    return Promise.resolve();
   }
 
-  public async cancelFunction(
+  public cancelFunction(
     registeredStartedFunctionDisposable: Disposable
-  ): Promise<void> {
+  ): void {
     if (this.process && !this.process.cancelled) {
       this.process.cancel();
       this.process = undefined;
@@ -56,7 +57,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
           this.UNEXPECTED_ERROR_KEY
         );
         telemetryService.sendException(this.UNEXPECTED_ERROR_KEY, err.message);
-        notificationService.showErrorMessage(errorNotificationMessage);
+        void notificationService.showErrorMessage(errorNotificationMessage);
         channelService.appendLine(errorNotificationMessage);
         if (err.message) {
           channelService.appendLine(err.message);

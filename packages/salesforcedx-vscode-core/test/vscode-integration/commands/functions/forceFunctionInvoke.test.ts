@@ -7,6 +7,7 @@
 
 import { runFunction } from '@heroku/functions-core';
 
+import * as library from '@heroku/functions-core';
 import * as fs from 'fs';
 import { run } from 'mocha';
 import * as path from 'path';
@@ -30,7 +31,6 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../../../../src/util';
 
-import * as library from '@heroku/functions-core';
 
 const demoPayload = {
   id: 2345,

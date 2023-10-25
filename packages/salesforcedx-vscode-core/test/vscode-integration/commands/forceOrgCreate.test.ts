@@ -13,7 +13,7 @@ import { AliasGatherer, ForceOrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { workspaceUtils } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Org Create', () => {
   describe('Alias Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
@@ -121,7 +121,7 @@ describe('Force Org Create', () => {
   });
 
   describe('Org Create Builder', () => {
-    it('Should build the org create command', async () => {
+    it('Should build the org create command', () => {
       const CONFIG_FILE = 'configFile.txt';
       const TEST_ALIAS = 'testAlias';
       const TEST_ORG_EXPIRATION_DAYS = '7';

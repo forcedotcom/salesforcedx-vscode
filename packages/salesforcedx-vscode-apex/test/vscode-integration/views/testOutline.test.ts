@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:no-unused-expression
+
 import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
@@ -328,11 +328,11 @@ describe('TestView', () => {
       testRunner = new ApexTestRunner(testOutline, eventEmitter);
     });
 
-    it('Should go to definition if a test does not have an error message', async () => {
+    it('Should go to definition if a test does not have an error message', () => {
       const testNode = new ApexTestNode('sampleTest', apexTestInfo[0].location);
       const testRange = testNode.location!.range;
 
-      await testRunner.showErrorMessage(testNode);
+      testRunner.showErrorMessage(testNode);
 
       // make sure we emit the update_selection event with the correct position
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
@@ -341,13 +341,13 @@ describe('TestView', () => {
       ]);
     });
 
-    it('Should go to error if a test has one', async () => {
+    it('Should go to error if a test has one', () => {
       const lineFailure = 22;
       const testNode = new ApexTestNode('failedTest', apexTestInfo[0].location);
       testNode.errorMessage = 'System.AssertException: Assertion Failed';
       testNode.stackTrace = `Class.fakeClass.test0: line ${lineFailure}, column 1`;
 
-      await testRunner.showErrorMessage(testNode);
+      testRunner.showErrorMessage(testNode);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
         'sfdx:update_selection',
@@ -355,11 +355,11 @@ describe('TestView', () => {
       ]);
     });
 
-    it('Should go to error of first failing test in a failed test class', async () => {
+    it('Should go to error of first failing test in a failed test class', () => {
       const testClass = testOutline.getHead().children[0] as ApexTestGroupNode;
       const lineFailure = 40; // first failure in apexLibMultipleResult.apexLibMultipleTests
 
-      await testRunner.showErrorMessage(testClass);
+      testRunner.showErrorMessage(testClass);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
         'sfdx:update_selection',

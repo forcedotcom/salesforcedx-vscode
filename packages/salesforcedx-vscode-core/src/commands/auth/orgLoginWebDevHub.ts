@@ -6,28 +6,23 @@
  */
 
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-
-import { DEFAULT_ALIAS } from './authParamsGatherer';
-
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '../util';
-
-import {
   CancelResponse,
+  Command,
   ContinueResponse,
-  isSFContainerMode,
-  ParametersGatherer
+  ParametersGatherer,
+  SfdxCommandBuilder,
+  isSFContainerMode
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
+import {
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '../util';
+import { DEFAULT_ALIAS } from './authParamsGatherer';
 import {
   ForceAuthDemoModeExecutor,
   OrgLoginWebContainerExecutor
@@ -50,7 +45,7 @@ export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExec
   }
 }
 
-export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<any> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
@@ -67,7 +62,7 @@ export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
+export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<any> {
   public build(data: AuthDevHubParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
@@ -111,7 +106,7 @@ export interface AuthDevHubParams {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();
 
-export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
+export function createAuthDevHubExecutor(): SfdxCommandletExecutor<any> {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebDevHubContainerExecutor();

@@ -27,7 +27,7 @@ import { DevServerService, ServerHandler } from '../service/devServerService';
 import { openBrowser, showError } from './commandUtils';
 
 const logName = 'force_lightning_lwc_start';
-const commandName = nls.localize(`force_lightning_lwc_start_text`);
+const commandName = nls.localize('force_lightning_lwc_start_text');
 
 /**
  * Hints for providing a user-friendly error message / action.
@@ -66,6 +66,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public execute(response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -92,7 +93,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     let printedError = false;
 
     const progress = new Subject<number>();
-    ProgressNotification.show(
+    void ProgressNotification.show(
       execution,
       cancellationTokenSource,
       vscode.ProgressLocation.Notification,
@@ -100,11 +101,11 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     // listen for server startup
-    execution.stdoutSubject.subscribe(async data => {
+    execution.stdoutSubject.subscribe(data => {
       if (!serverStarted && data && data.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
-        notificationService
+        void notificationService
           .showSuccessfulExecution(executionName, channelService)
           .catch();
 
@@ -113,7 +114,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         );
 
         if (this.options.openBrowser) {
-          await openBrowser(
+          void openBrowser(
             this.options.componentName
               ? DevServerService.instance.getComponentPreviewUrl(
                   this.options.componentName
@@ -126,7 +127,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       }
     });
 
-    execution.stderrSubject.subscribe(async data => {
+    execution.stderrSubject.subscribe(data => {
       if (!printedError && data) {
         let errorCode = -1;
         if (data.toString().includes(errorHints.SERVER_STARTUP_FALIED)) {
@@ -151,7 +152,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       }
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(exitCode => {
       if (!printedError) {
         this.handleErrors(
           cancellationToken,
@@ -169,7 +170,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     cancellationToken.onCancellationRequested(() => {
-      notificationService.showWarningMessage(
+      void notificationService.showWarningMessage(
         nls.localize('command_canceled', executionName)
       );
       channelService.showChannelOutput();

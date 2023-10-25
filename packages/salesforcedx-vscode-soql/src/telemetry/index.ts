@@ -18,8 +18,9 @@ export async function startTelemetry(
   telemetryService.sendExtensionActivationEvent(hrtime);
 }
 
-export async function stopTelemetry(): Promise<void> {
+export function stopTelemetry(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
+  return Promise.resolve();
 }
 
 export interface TelemetryModelJson extends JsonMap {

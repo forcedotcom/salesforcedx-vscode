@@ -1,3 +1,5 @@
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -74,6 +76,7 @@ function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
     );
   }
   const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const testResult = JSON.parse(testResultOutput);
   if (
     testResult.coverage === undefined &&
@@ -84,6 +87,7 @@ function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return testResult.codecoverage || testResult.coverage.coverage;
 }
 
@@ -110,6 +114,7 @@ export class CodeCoverage {
     this.coveredLines = Array<Range>();
     this.uncoveredLines = Array<Range>();
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this);
     this.onDidChangeActiveTextEditor(window.activeTextEditor);
   }
@@ -143,7 +148,7 @@ export class CodeCoverage {
   public colorizer(editor?: TextEditor) {
     try {
       if (editor && isApexMetadata(editor.document.uri.fsPath)) {
-        const codeCovArray = getCoverageData() as Array<{ name: string }>;
+        const codeCovArray = getCoverageData() as { name: string }[];
         const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
         const codeCovItem = codeCovArray.find(
           covItem => covItem.name === apexMemberName
@@ -189,9 +194,10 @@ export class CodeCoverage {
           this.uncoveredLines
         );
       }
-    } catch (e) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : typeof err === 'string' ? err : 'unknown';
       // telemetry
-      window.showWarningMessage(e.message);
+      void window.showWarningMessage(message);
     }
   }
 }

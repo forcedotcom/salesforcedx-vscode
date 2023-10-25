@@ -22,7 +22,7 @@ import { CancellationTokenSource } from 'vscode';
 import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
+import { authResponse, isDemoMode, isProdOrg } from '../../modes/demo-mode';
 import {
   notificationService,
   ProgressNotification
@@ -94,8 +94,9 @@ export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
       cancellationToken
     );
 
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource).then(() => {
+      taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    });
   }
 
   protected handleCliResponse(response: string) {
@@ -108,7 +109,7 @@ export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
       if (authUrl) {
         this.deviceCodeReceived = true;
         // open the default browser
-        vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
+        void vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
       }
     }
   }
@@ -130,6 +131,7 @@ export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
       );
       telemetryService.sendException(
         'force_auth_web_container',
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `There was an error when parsing the cli response ${error}`
       );
     }
@@ -188,12 +190,13 @@ export abstract class ForceAuthDemoModeExecutor<
     );
 
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource).then(() => {
+      taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    });
 
     try {
       const result = await new CommandOutput().getCmdResult(execution);
-      if (isProdOrg(JSON.parse(result))) {
+      if (isProdOrg(JSON.parse(result) as { status: number; result: authResponse })) {
         await promptLogOutForProdOrg();
       } else {
         await notificationService.showSuccessfulExecution(
@@ -235,7 +238,7 @@ export async function promptLogOutForProdOrg() {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<{}> {
+export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<any> {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();

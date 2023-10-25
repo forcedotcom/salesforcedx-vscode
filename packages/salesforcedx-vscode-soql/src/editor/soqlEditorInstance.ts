@@ -74,8 +74,9 @@ class ConnectionChangedListener {
     );
   }
 
-  public async connectionChanged(): Promise<void> {
+  public connectionChanged(): Promise<void> {
     this.editorInstances.forEach(editor => editor.onConnectionChanged());
+    return Promise.resolve();
   }
 }
 
@@ -96,6 +97,7 @@ export class SOQLEditorInstance {
   ) {
     // Update the UI when the Text Document is changed, if its the same document.
     vscode.workspace.onDidChangeTextDocument(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       debounce(this.onDocumentChangeHandler, 1000),
       this,
       this.subscriptions
@@ -103,6 +105,7 @@ export class SOQLEditorInstance {
 
     // Update the text document when message recieved
     webviewPanel.webview.onDidReceiveMessage(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       this.onDidRecieveMessageHandler,
       this,
       this.subscriptions
@@ -112,6 +115,7 @@ export class SOQLEditorInstance {
     ConnectionChangedListener.getInstance().addSoqlEditor(this);
 
     // Make sure we get rid of the event listeners when our editor is closed.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
@@ -130,7 +134,7 @@ export class SOQLEditorInstance {
           'web_view_post_message'
         );
         channelService.appendLine(message);
-        trackErrorWithTelemetry(type, err);
+        void trackErrorWithTelemetry(type, err);
       });
   }
 
@@ -170,7 +174,7 @@ export class SOQLEditorInstance {
       case MessageType.UI_SOQL_CHANGED: {
         const soql = event.payload as string;
         this.lastIncomingSoqlStatement = soql;
-        this.updateTextDocument(this.document, soql);
+        void this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.UI_TELEMETRY: {
@@ -219,8 +223,8 @@ export class SOQLEditorInstance {
             },
             () => this.handleRunQuery()
           )
-          .then(undefined, err => {
-            const message = nls.localize('error_run_soql_query', err.message);
+          .then(undefined, error => {
+            const message = nls.localize('error_run_soql_query', error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown');
             channelService.appendLine(message);
             this.runQueryDone();
           });
@@ -241,7 +245,7 @@ export class SOQLEditorInstance {
     if (!isDefaultOrgSet()) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
-      vscode.window.showInformationMessage(message);
+      void vscode.window.showInformationMessage(message);
       this.runQueryDone();
       return Promise.resolve();
     }
@@ -256,7 +260,7 @@ export class SOQLEditorInstance {
   }
 
   protected runQueryDone(): void {
-    this.webviewPanel.webview.postMessage({
+    void this.webviewPanel.webview.postMessage({
       type: MessageType.RUN_SOQL_QUERY_DONE
     });
   }
@@ -288,6 +292,7 @@ export class SOQLEditorInstance {
 
   protected dispose(): void {
     ConnectionChangedListener.getInstance().removeSoqlEditor(this);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);

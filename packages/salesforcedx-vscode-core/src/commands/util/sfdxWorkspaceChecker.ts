@@ -11,10 +11,10 @@ import { notificationService } from '../../notifications';
 import { isSfdxProjectOpened } from '../../predicates';
 
 export class SfdxWorkspaceChecker implements PreconditionChecker {
-  public check(): boolean {
+  public async check(): Promise<boolean> {
     const result = isSfdxProjectOpened.apply(workspace);
     if (!result.result) {
-      notificationService.showErrorMessage(result.message);
+      await notificationService.showErrorMessage(result.message);
       return false;
     }
 

@@ -122,10 +122,10 @@ export class MetadataCacheService {
       const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
-            manifestPath: this.componentPath,
-            resolveSourcePaths: packageDirs,
-            forceAddWildcards: true
-          })
+          manifestPath: this.componentPath,
+          resolveSourcePaths: packageDirs,
+          forceAddWildcards: true
+        })
         : ComponentSet.fromSource(this.componentPath);
       return this.sourceComponents;
     }
@@ -150,55 +150,54 @@ export class MetadataCacheService {
     return operation;
   }
 
-  public async processResults(
+  public processResults(
     result: RetrieveResult | undefined
   ): Promise<MetadataCacheResult | undefined> {
-    if (!result) {
-      return;
-    }
+    if (result) {
+      const { components, properties } = this.extractResults(result);
+      if (components.length > 0 && this.componentPath && this.projectPath) {
+        const propsFile = this.saveProperties(properties);
+        const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
 
-    const { components, properties } = this.extractResults(result);
-    if (components.length > 0 && this.componentPath && this.projectPath) {
-      const propsFile = this.saveProperties(properties);
-      const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
+        const sourceComps = this.sourceComponents.getSourceComponents().toArray();
+        const projCommon = this.findLongestCommonDir(
+          sourceComps,
+          this.projectPath
+        );
 
-      const sourceComps = this.sourceComponents.getSourceComponents().toArray();
-      const projCommon = this.findLongestCommonDir(
-        sourceComps,
-        this.projectPath
-      );
+        let selectedType = PathType.Unknown;
+        if (
+          fs.existsSync(this.componentPath) &&
+          fs.lstatSync(this.componentPath).isDirectory()
+        ) {
+          selectedType = PathType.Folder;
+        } else if (this.isManifest) {
+          selectedType = PathType.Manifest;
+        } else {
+          selectedType = PathType.Individual;
+        }
 
-      let selectedType = PathType.Unknown;
-      if (
-        fs.existsSync(this.componentPath) &&
-        fs.lstatSync(this.componentPath).isDirectory()
-      ) {
-        selectedType = PathType.Folder;
-      } else if (this.isManifest) {
-        selectedType = PathType.Manifest;
-      } else {
-        selectedType = PathType.Individual;
+        return Promise.resolve({
+          selectedPath: this.componentPath,
+          selectedType,
+
+          cache: {
+            baseDirectory: this.cachePath,
+            commonRoot: cacheCommon,
+            components
+          },
+          cachePropPath: propsFile,
+
+          project: {
+            baseDirectory: this.projectPath,
+            commonRoot: projCommon,
+            components: sourceComps
+          },
+          properties
+        });
       }
-
-      return {
-        selectedPath: this.componentPath,
-        selectedType,
-
-        cache: {
-          baseDirectory: this.cachePath,
-          commonRoot: cacheCommon,
-          components
-        },
-        cachePropPath: propsFile,
-
-        project: {
-          baseDirectory: this.projectPath,
-          commonRoot: projCommon,
-          components: sourceComps
-        },
-        properties
-      };
     }
+    return Promise.resolve(undefined);
   }
 
   private extractResults(
@@ -426,6 +425,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
 
   protected async getComponents(response: any): Promise<ComponentSet> {
     this.cacheService.initialize(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       response.data,
       workspaceUtils.getRootWorkspacePath(),
       this.isManifest

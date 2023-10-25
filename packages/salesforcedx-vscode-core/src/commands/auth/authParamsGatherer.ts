@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
-
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SfdxProjectConfig } from '../../sfdxProject';
 
@@ -98,7 +97,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    return (await SfdxProjectConfig.getValue('sfdcLoginUrl')) as string;
+    return await SfdxProjectConfig.getValue('sfdcLoginUrl');
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {

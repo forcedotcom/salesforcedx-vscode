@@ -23,7 +23,7 @@ import {
 } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('Start Apex Debug Logging', () => {
   let getTraceFlagIdStub: sinon.SinonStub;
   let getDebugLevelIdStub: sinon.SinonStub;
@@ -56,7 +56,7 @@ describe('Start Apex Debug Logging', () => {
     expDateStub.restore();
   });
 
-  it('Should build the start logging command and only have description set', async () => {
+  it('Should build the start logging command and only have description set', () => {
     const startLoggingExecutor = new StartApexDebugLoggingExecutor();
     const startLoggingCmd = startLoggingExecutor.build();
     expect(startLoggingCmd.toCommand().trim()).to.equal(
@@ -64,15 +64,15 @@ describe('Start Apex Debug Logging', () => {
     );
   });
 
-  it('Should build the traceflag query command for logging', async () => {
+  it('Should build the traceflag query command for logging', () => {
     const queryTraceFlagsExecutor = new QueryTraceFlag();
     const updateTraceFlagCmd = queryTraceFlagsExecutor.build('005x00000000123');
     expect(updateTraceFlagCmd.toCommand()).to.equal(
-      `sfdx data:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='005x00000000123' --use-tooling-api --json --loglevel fatal`
+      "sfdx data:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='005x00000000123' --use-tooling-api --json --loglevel fatal"
     );
   });
 
-  it('Should build the traceflag update command for logging', async () => {
+  it('Should build the traceflag update command for logging', () => {
     const updateTraceFlagsExecutor = new UpdateTraceFlagsExecutor();
     const updateTraceFlagCmd = updateTraceFlagsExecutor.build();
     expect(updateTraceFlagCmd.toCommand()).to.equal(
@@ -80,7 +80,7 @@ describe('Start Apex Debug Logging', () => {
     );
   });
 
-  it('Should build the debuglevel update command for logging', async () => {
+  it('Should build the debuglevel update command for logging', () => {
     const updateDebugLevelsExecutor = new UpdateDebugLevelsExecutor();
     const updateDebugLevelCmd = updateDebugLevelsExecutor.build();
     expect(updateDebugLevelCmd.toCommand()).to.equal(
@@ -88,7 +88,7 @@ describe('Start Apex Debug Logging', () => {
     );
   });
 
-  it('Should build the traceflag create command for logging', async () => {
+  it('Should build the traceflag create command for logging', () => {
     const createTraceFlagExecutor = new CreateTraceFlag('testUserId');
     const createTraceFlagCmd = createTraceFlagExecutor.build();
     expect(createTraceFlagCmd.toCommand()).to.equal(
@@ -96,7 +96,7 @@ describe('Start Apex Debug Logging', () => {
     );
   });
 
-  it('Should build the debuglevel create command for logging', async () => {
+  it('Should build the debuglevel create command for logging', () => {
     const createDebugLevelExecutor = new CreateDebugLevel();
     const createDebugLevelCmd = createDebugLevelExecutor.build();
     expect(createDebugLevelCmd.toCommand()).to.equal(
@@ -104,7 +104,7 @@ describe('Start Apex Debug Logging', () => {
     );
   });
 
-  it('Should build the user id query command', async () => {
+  it('Should build the user id query command', () => {
     const testUser = 'user@test.org';
     const forceQueryUserExecutor = new QueryUser(testUser);
     const forceQueryUserCmd = forceQueryUserExecutor.build();

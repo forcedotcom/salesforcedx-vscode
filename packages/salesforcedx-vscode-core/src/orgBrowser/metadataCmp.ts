@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -30,7 +34,7 @@ const STANDARDVALUESET_FULLNAME = 'StandardValueSet';
 export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
 export class ComponentUtils {
-  public async getComponentsPath(
+  public getComponentsPath(
     metadataType: string,
     folderName?: string
   ): Promise<string> {
@@ -44,10 +48,10 @@ export class ComponentUtils {
       folderName ? `${metadataType}_${folderName}` : metadataType
     }.json`;
     const componentsPath = path.join(
-      await projectPaths.metadataFolder(),
+      projectPaths.metadataFolder(),
       fileName
     );
-    return componentsPath;
+    return Promise.resolve(componentsPath);
   }
 
   public buildComponentsList(
@@ -81,6 +85,7 @@ export class ComponentUtils {
         { metadataType },
         { metadataComponents: components.length }
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return components.sort();
     } catch (e) {
       telemetryService.sendException('metadata_cmp_build_cmp_list', e.message);
@@ -115,6 +120,7 @@ export class ComponentUtils {
         }
       }
     );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return fields;
   }
 

@@ -6,8 +6,9 @@
  */
 
 // eslint:disable-next-line: no-var-requires
-const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
 import { join, normalize } from 'path';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure(

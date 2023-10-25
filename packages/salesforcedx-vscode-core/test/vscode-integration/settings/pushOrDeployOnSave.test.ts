@@ -90,9 +90,9 @@ describe('Push or Deploy on Save', () => {
       let errorWasThrown = false;
       try {
         await pathIsInPackageDirectory('test-path');
-      } catch (error) {
+      } catch (err) {
         errorWasThrown = true;
-        expect(error.message).to.equal(
+        expect(err.message).to.equal(
           nls.localize('error_no_package_directories_paths_found_text')
         );
       } finally {
@@ -246,25 +246,25 @@ describe('Push or Deploy on Save', () => {
   describe('fileShouldNotBeDeployed', () => {
     // verify which types of files we want to be deployed on save
 
-    it('should return true for dot files', async () => {
+    it('should return true for dot files', () => {
       const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(
         '/force-app/main/default/.env'
       );
       expect(stopDotFileFromBeingDeployed).to.be.true;
     });
-    it('should return true for soql files', async () => {
+    it('should return true for soql files', () => {
       const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed(
         '/force-app/main/default/AccountQuery.soql'
       );
       expect(stopSOQLFileFromBeingDeployed).to.be.true;
     });
-    it('should return true for anonymous apex files', async () => {
+    it('should return true for anonymous apex files', () => {
       const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed(
         '/force-app/main/default/GetAccounts.apex'
       );
       expect(stopAnonApexFileFromBeingDeployed).to.be.true;
     });
-    it('should return false for class files', async () => {
+    it('should return false for class files', () => {
       const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed(
         '/force-app/main/default/MyAccountMap.cls'
       );

@@ -34,6 +34,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<string>,
     progress?: vscode.Progress<{
@@ -42,6 +43,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
+  /* eslint-enable @typescript-eslint/no-unused-vars */
     if (this.sourcePaths) {
       const packageXML = await ComponentSet.fromSource(
         this.sourcePaths
@@ -88,7 +90,7 @@ async function openUntitledDocument(packageXML: string) {
     language: 'xml'
   });
 
-  vscode.window.showTextDocument(newManifest);
+  await vscode.window.showTextDocument(newManifest);
 }
 
 function saveDocument(response: string, packageXML: string) {
@@ -102,14 +104,15 @@ function saveDocument(response: string, packageXML: string) {
   checkForDuplicateManifest(saveLocation, fileName);
 
   fs.writeFileSync(saveLocation, packageXML);
-  vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
-    vscode.window.showTextDocument(newManifest);
+  void vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    void vscode.window.showTextDocument(newManifest);
   });
 }
 
 function checkForDuplicateManifest(saveLocation: string, fileName: string) {
   if (fs.existsSync(saveLocation)) {
-    vscode.window.showErrorMessage(
+    void vscode.window.showErrorMessage(
       format(nls.localize('manifest_input_dupe_error'), fileName)
     );
     throw new Error(

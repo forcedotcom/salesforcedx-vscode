@@ -1,0 +1,12 @@
+{
+  "root": true,
+  "extends": ["../../base-eslintrc.json"],
+  "overrides": [
+    {
+      "files": ["./test/**/*.ts"],
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      }
+    }
+  ]
+}

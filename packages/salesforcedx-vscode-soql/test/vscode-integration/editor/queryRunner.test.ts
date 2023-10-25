@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import { Connection } from '@salesforce/core';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { QueryRunner } from '../../../src/editor/queryRunner';
 import { getMockConnection, mockQueryText } from '../testUtilities';
@@ -25,7 +25,6 @@ describe('Query Runner Should', () => {
   });
 
   it('returns query data without attribute properties', async () => {
-    // @ts-ignore
     const queryRunner = new QueryRunner(mockConnection);
     const queryData = await queryRunner.runQuery(mockQueryText);
     queryData.records.forEach((result: {}) => {
@@ -36,7 +35,6 @@ describe('Query Runner Should', () => {
   it('throws error with conection.query() exception', async () => {
     const errorName = 'Bad Query';
     sandbox.stub(mockConnection, 'query').throws(errorName);
-    // @ts-ignore
     const queryRunner = new QueryRunner(mockConnection);
     try {
       await queryRunner.runQuery(mockQueryText);

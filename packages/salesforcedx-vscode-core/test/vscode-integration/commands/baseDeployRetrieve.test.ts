@@ -254,7 +254,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
     const packageDir = 'test-app';
 
-    beforeEach(async () => {
+    beforeEach(() => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         packageDir
       ]);
@@ -312,12 +312,12 @@ describe('Base Deploy Retrieve Commands', () => {
         this.getFileResponsesStub = sb.stub().returns(this.fileResponses);
       }
 
-      protected async getComponents(
+      protected getComponents(
         response: ContinueResponse<{}>
       ): Promise<ComponentSet> {
-        return this.components;
+        return Promise.resolve(this.components);
       }
-      protected async setupCancellation(
+      protected setupCancellation(
         operation: DeployRetrieveOperation | undefined,
         token?: vscode.CancellationToken
       ) {
@@ -517,7 +517,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`table_title_deployed_source`)
+          nls.localize('table_title_deployed_source')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -560,7 +560,7 @@ describe('Base Deploy Retrieve Commands', () => {
             },
             { key: 'error', label: nls.localize('table_header_errors') }
           ],
-          nls.localize(`table_title_deploy_errors`)
+          nls.localize('table_title_deploy_errors')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -614,10 +614,10 @@ describe('Base Deploy Retrieve Commands', () => {
         );
       }
 
-      protected async getComponents(
+      protected getComponents(
         response: ContinueResponse<{}>
       ): Promise<ComponentSet> {
-        return this.components;
+        return Promise.resolve(this.components);
       }
     }
 
@@ -760,7 +760,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`lib_retrieve_result_title`)
+          nls.localize('lib_retrieve_result_title')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });

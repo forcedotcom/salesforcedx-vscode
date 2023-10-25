@@ -8,9 +8,9 @@
 import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 
 export class EmptyPostChecker implements PostconditionChecker<any> {
-  public async check(
+  public check(
     inputs: ContinueResponse<any> | CancelResponse
   ): Promise<ContinueResponse<any> | CancelResponse> {
-    return inputs;
+    return Promise.resolve(inputs);
   }
 }

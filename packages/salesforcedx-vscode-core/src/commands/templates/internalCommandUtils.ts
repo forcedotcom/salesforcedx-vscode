@@ -28,7 +28,7 @@ export class FileInternalPathGatherer
     this.filePath = uri.fsPath;
   }
 
-  public async gather(): Promise<
+  public gather(): Promise<
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
     const outputdir = this.filePath;
@@ -36,9 +36,9 @@ export class FileInternalPathGatherer
       fs.existsSync(outputdir) && fs.lstatSync(outputdir).isDirectory();
 
     if (isDir) {
-      return { type: 'CONTINUE', data: { outputdir } };
+      return Promise.resolve({ type: 'CONTINUE', data: { outputdir } });
     }
 
-    return { type: 'CANCEL' };
+    return Promise.resolve({ type: 'CANCEL' });
   }
 }

@@ -51,7 +51,7 @@ export class PersistentStorageService {
     key: string,
     conflictFileProperties: ConflictFileProperties | undefined
   ) {
-    this.storage.update(key, conflictFileProperties);
+    void this.storage.update(key, conflictFileProperties);
   }
 
   public setPropertiesForFilesRetrieve(

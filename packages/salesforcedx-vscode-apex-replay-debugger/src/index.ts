@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prefer-arrow/prefer-arrow-functions */
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -127,8 +134,8 @@ export function updateLastOpened(
   extensionContext: vscode.ExtensionContext,
   logPath: string
 ) {
-  extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
-  extensionContext.workspaceState.update(
+  void extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
+  void extensionContext.workspaceState.update(
     LAST_OPENED_LOG_FOLDER_KEY,
     path.dirname(logPath)
   );
@@ -305,15 +312,15 @@ export function writeToDebuggerOutputWindow(
   if (showVSCodeWindow && vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
-        vscode.window.showErrorMessage(output);
+        void vscode.window.showErrorMessage(output);
         break;
       }
       case VSCodeWindowTypeEnum.Informational: {
-        vscode.window.showInformationMessage(output);
+        void vscode.window.showInformationMessage(output);
         break;
       }
       case VSCodeWindowTypeEnum.Warning: {
-        vscode.window.showWarningMessage(output);
+        void vscode.window.showWarningMessage(output);
         break;
       }
     }

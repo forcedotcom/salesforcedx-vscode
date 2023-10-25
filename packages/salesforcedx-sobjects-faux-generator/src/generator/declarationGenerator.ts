@@ -165,6 +165,7 @@ export class DeclarationGenerator {
             type:
               field.referenceTo && field.referenceTo.length > 1
                 ? 'SObject'
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 : `${field.referenceTo}`
           },
           comment ? { comment } : {}

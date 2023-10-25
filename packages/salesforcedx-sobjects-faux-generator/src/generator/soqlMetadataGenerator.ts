@@ -78,10 +78,10 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     });
   }
 
-  private async resetOutputFolder(
+  private resetOutputFolder(
     outputFolder: string,
     category: SObjectCategory
-  ): Promise<boolean> {
+  ): boolean {
     const customsFolder = path.join(outputFolder, CUSTOMOBJECTS_DIR);
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 

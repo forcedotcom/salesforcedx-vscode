@@ -23,13 +23,13 @@ import {
   window,
   workspace
 } from 'vscode';
-import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 import {
   CancellationToken,
   ProvideCompletionItemsSignature
 } from 'vscode-languageclient';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
@@ -58,21 +58,21 @@ const FAKE_SOQL_COMPLETION_ITEM = new CompletionItem(
   CompletionItemKind.Class
 );
 
-describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completion', async () => {
+describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completion', () => {
   let sandbox: sinon.SinonSandbox;
   let tempDoc: Uri;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sandbox = sinon.createSandbox();
   });
 
   afterEach(async () => {
     sandbox.restore();
-    commands.executeCommand('workbench.action.closeActiveEditor');
+    await commands.executeCommand('workbench.action.closeActiveEditor');
     await workspace.fs.delete(tempDoc);
   });
 
-  describe('When outside SOQL block', async () => {
+  describe('When outside SOQL block', () => {
     it('Should return Apex completion items unchanged', async () => {
       const executeCommandSpy = sandbox.spy(commands, 'executeCommand');
       const { doc, position } = await prepareFile('class Test { | }');
@@ -82,12 +82,12 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       ]);
 
       expect(items.length).to.equal(1);
-      // tslint:disable:no-unused-expression
+
       expect(executeCommandSpy.called).to.be.false;
     });
   });
 
-  describe('When inside SOQL block', async () => {
+  describe('When inside SOQL block', () => {
     it('Should drop Apex LSP items, invoke SOQL completion and return SOQL LSP items', async () => {
       const lines: string[] = [
         'class Test {',
@@ -119,7 +119,7 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
         })
       ]);
 
-      // tslint:disable:no-unused-expression
+
       expect(executeCommandSpy.called).to.be.true;
       expect(items.length).to.equal(1);
       expect(items[0]).to.equal(FAKE_SOQL_COMPLETION_ITEM);

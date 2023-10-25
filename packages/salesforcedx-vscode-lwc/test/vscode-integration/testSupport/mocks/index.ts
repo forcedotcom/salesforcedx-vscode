@@ -6,12 +6,13 @@
  */
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as which from 'which';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
+import * as which from 'which';
 import { SfdxTask } from '../../../../src/testSupport/testRunner/taskService';
 import { testResultsWatcher } from '../../../../src/testSupport/testRunner/testResultsWatcher';
 import {
@@ -23,7 +24,6 @@ import {
   mockPreviewJavaScriptDebugger,
   unmockPreviewJavaScriptDebugger
 } from './vscodeConfiguration';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 export { mockPreviewJavaScriptDebugger, unmockPreviewJavaScriptDebugger };
 

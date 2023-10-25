@@ -76,7 +76,9 @@ class TestResultsWatcher implements vscode.Disposable {
       const testResultsJSON = fs.readFileSync(testResultsFsPath, {
         encoding: 'utf8'
       });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const testResults = JSON.parse(testResultsJSON);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       lwcTestIndexer.updateTestResults(testResults);
     } catch (error) {
       console.error(error);

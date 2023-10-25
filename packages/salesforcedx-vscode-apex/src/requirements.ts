@@ -15,10 +15,10 @@ import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const expandHomeDir = require('expand-home-dir');
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
@@ -63,6 +63,7 @@ function checkJavaRuntime(): Promise<string> {
     }
 
     if (javaHome) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       javaHome = expandHomeDir(javaHome) as string;
       if (isLocal(javaHome)) {
         // prevent injecting malicious code from unknown repositories
@@ -79,6 +80,7 @@ function checkJavaRuntime(): Promise<string> {
     }
 
     // Last resort, try to automatically detect
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     findJavaHome((err: Error, home: string) => {
       if (err) {
         return reject(

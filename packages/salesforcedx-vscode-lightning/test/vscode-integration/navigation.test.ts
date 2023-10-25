@@ -38,18 +38,18 @@ describe('Aura Definition Linking', function() {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide navigation to a selected Aura tag', function() {
+  it('Should provide navigation to a selected Aura tag', async function() {
     // select the 'c:DemoComponent' Aura tag
-    testDefinitionNavigation(
+    await testDefinitionNavigation(
       path.join(auraDir, 'DemoApp', 'DemoApp.app'),
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp'),
       new Position(1, 12)
     );
   });
 
-  it('Should provide navigation to a selected LWC tag', function() {
+  it('Should provide navigation to a selected LWC tag', async function() {
     // select the 'c:contactList' LWC tag
-    testDefinitionNavigation(
+    await testDefinitionNavigation(
       path.join(auraDir, 'auraEmbeddedLWC', 'auraEmbeddedLWC.cmp'),
       path.join(lwcDir, 'contactList', 'contactList.js'),
       new Position(20, 28)
@@ -75,11 +75,12 @@ async function testDefinitionNavigation(
     'vscode.executeDefinitionProvider',
     editor.document.uri,
     position
-  )) as Location[];
+  ));
 
   expect(locations).to.have.lengthOf(1);
 
-  const location = locations![0];
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const location = (locations as any[])[0];
 
   expect(location).to.have.property('uri');
 

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigUtil, ContinueResponse, LibraryCommandletExecutor, Row, Table} from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, ContinueResponse, LibraryCommandletExecutor, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
@@ -15,6 +15,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { nls } from '../messages';
+import { normalizeError } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -33,6 +34,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     let result: boolean;
     let message: string | undefined;
@@ -40,9 +42,8 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       result = true;
       await ConfigUtil.setDefaultUsernameOrAlias(this.usernameOrAlias);
     } catch (error) {
-      error instanceof Error
-        ? message = error.message
-        : message = String(error);
+      const err = normalizeError(error);
+      message = err.message;
       result = false;
     }
     this.outputTableRow = { name: TARGET_ORG_KEY, val: this.usernameOrAlias, success: String(result) };

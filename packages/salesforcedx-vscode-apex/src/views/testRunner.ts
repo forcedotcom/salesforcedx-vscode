@@ -8,15 +8,14 @@
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
 import {
-  LanguageClientStatus,
   languageClientUtils
 } from '../languageUtils';
 import { nls } from '../messages';
@@ -44,6 +43,7 @@ export class ApexTestRunner {
   ) {
     this.testOutline = testOutline;
     this.eventsEmitter = eventsEmitter || new events.EventEmitter();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
   }
 
@@ -81,7 +81,7 @@ export class ApexTestRunner {
     }
 
     if (testNode.location) {
-      vscode.window.showTextDocument(testNode.location.uri).then(() => {
+      void vscode.window.showTextDocument(testNode.location.uri).then(() => {
         this.eventsEmitter.emit('sfdx:update_selection', position);
       });
     }
@@ -123,10 +123,10 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const languageClientStatus = languageClientUtils.getStatus() ;
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
-        vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
+        await vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
         return Promise.resolve([]);
       }
     }

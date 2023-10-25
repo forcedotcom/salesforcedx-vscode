@@ -21,7 +21,7 @@ import { SObject } from '../src/types';
 
 import { Connection, Org } from '@salesforce/core';
 
-// tslint:disable-next-line:no-floating-promises
+
 (async () => {
   const args = process.argv.slice(2);
 

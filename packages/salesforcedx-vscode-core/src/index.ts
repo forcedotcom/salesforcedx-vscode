@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -115,7 +118,7 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
+import { isCLIInstalled, normalizeError, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
@@ -568,7 +571,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // Set internal dev context
   const internalDev = sfdxCoreSettings.getInternalDev();
 
-  vscode.commands.executeCommand(
+  await vscode.commands.executeCommand(
     'setContext',
     'sfdx:internal_dev',
     internalDev
@@ -615,13 +618,13 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   ) {
     replayDebuggerExtensionInstalled = true;
   }
-  vscode.commands.executeCommand(
+  await vscode.commands.executeCommand(
     'setContext',
     'sfdx:replay_debugger_extension',
     replayDebuggerExtensionInstalled
   );
 
-  vscode.commands.executeCommand(
+  await vscode.commands.executeCommand(
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
@@ -679,11 +682,16 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     if (sobjectRefreshStartup) {
       initSObjectDefinitions(
         vscode.workspace.workspaceFolders[0].uri.fsPath
-      ).catch(e => telemetryService.sendException(e.name, e.message));
+      ).catch(e => {
+        const err = normalizeError(e);
+        telemetryService.sendException(err.name, err.message);
+      });
     } else {
       checkSObjectsAndRefresh(
         vscode.workspace.workspaceFolders[0].uri.fsPath
-      ).catch(e => telemetryService.sendException(e.name, e.message));
+      ).catch(e => {
+        const err = normalizeError(e);;
+      });
     }
   }
 

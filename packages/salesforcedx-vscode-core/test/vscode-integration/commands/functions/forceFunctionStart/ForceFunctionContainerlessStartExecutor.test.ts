@@ -30,11 +30,11 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
   const LOG_NAME = 'logName';
 
   // mapping to class names here so need to have vars that start with a capital letter
-  // tslint:disable-next-line:variable-name
+
   let ForceFunctionStartExecutor: any;
-  // tslint:disable-next-line:variable-name
+
   let ForceFunctionContainerlessStartExecutor: any;
-  // tslint:disable-next-line:variable-name
+
   let ContinueResponse: any;
   let appendLineStub: SinonStub;
   let showChannelOutputStub: SinonStub;

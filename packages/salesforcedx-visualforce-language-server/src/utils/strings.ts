@@ -45,7 +45,7 @@ export function startsWith(haystack: string, needle: string): boolean {
   return true;
 }
 
-// tslint:disable:no-bitwise
+
 export function repeat(value: string, count: number) {
   let s = '';
   while (count > 0) {
@@ -57,7 +57,7 @@ export function repeat(value: string, count: number) {
   }
   return s;
 }
-// tslint:enable:no-bitwise
+
 
 export function isWhitespaceOnly(str: string) {
   return /^\s*$/.test(str);

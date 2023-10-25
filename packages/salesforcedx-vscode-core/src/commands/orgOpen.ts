@@ -32,6 +32,7 @@ import {
 } from './util';
 
 export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -78,7 +79,7 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
 
           channelService.appendLine(this.buildUserMessageWith(cliOrgData));
           // open the default browser
-          vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
+          void vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
         } else {
           const errorResponse = orgOpenParser.getResult() as OrgOpenErrorResult;
           channelService.appendLine(errorResponse.message);
@@ -89,6 +90,7 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
         );
         telemetryService.sendException(
           'force_org_open_container',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an error when parsing the org open response ${error}`
         );
       }
@@ -98,13 +100,14 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
       execution,
       cancellationToken
     );
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 
 export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))

@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-// tslint:disable:quotemark
+
 
 'use strict';
 
@@ -305,7 +305,7 @@ function substituteWithWhitespace(
   return result;
 }
 
-// tslint:disable:no-bitwise
+
 function append(result: string, str: string, n: number): string {
   while (n > 0) {
     if (n & 1) {
@@ -316,7 +316,7 @@ function append(result: string, str: string, n: number): string {
   }
   return result;
 }
-// tslint:enable:no-bitwise
+
 
 function getAttributeLanguage(attributeName: string): string {
   const match = attributeName.match(/^(style)$|^(on\w+)$/i);

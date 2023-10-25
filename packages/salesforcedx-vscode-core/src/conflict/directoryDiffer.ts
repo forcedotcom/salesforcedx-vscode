@@ -14,6 +14,7 @@ import { conflictView } from '../conflict';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
+import { normalizeError } from '../util';
 import { MetadataCacheResult } from './metadataCacheService';
 
 export interface TimestampFileProperties {
@@ -112,7 +113,7 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
   }
 }
 
-export async function diffFolder(cache: MetadataCacheResult, username: string) {
+export const diffFolder = (cache: MetadataCacheResult, username: string) => {
   const localPath = path.join(
     cache.project.baseDirectory,
     cache.project.commonRoot
@@ -131,7 +132,7 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
     diffs,
     true
   );
-}
+};
 
 /**
  * Perform file diff and execute VS Code diff comand to show in UI.
@@ -141,11 +142,11 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
  * @param defaultUsernameorAlias username/org info to show in diff
  * @returns {Promise<void>}
  */
-export async function diffOneFile(
+export const diffOneFile = async (
   localFile: string,
   remoteComponent: SourceComponent,
   defaultUsernameorAlias: string
-): Promise<void> {
+): Promise<void> => {
   const filePart = path.basename(localFile);
 
   const remoteFilePaths = remoteComponent.walkContent();
@@ -169,8 +170,9 @@ export async function diffOneFile(
             filePart
           )
         );
-      } catch (err) {
-        notificationService.showErrorMessage(err.message);
+      } catch (error) {
+        const err = normalizeError(error);
+        void notificationService.showErrorMessage(err.message);
         channelService.appendLine(err.message);
         channelService.showChannelOutput();
         telemetryService.sendException(err.name, err.message);
@@ -178,4 +180,4 @@ export async function diffOneFile(
       return;
     }
   }
-}
+};

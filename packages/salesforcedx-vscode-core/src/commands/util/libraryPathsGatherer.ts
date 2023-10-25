@@ -18,13 +18,13 @@ export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
     this.uris = uris;
   }
 
-  public async gather(): Promise<ContinueResponse<string[]>> {
+  public gather(): Promise<ContinueResponse<string[]>> {
     const sourcePaths = this.uris.map(uri => uri.fsPath);
     const flushedSourcePaths = fileUtils.flushFilePaths(sourcePaths);
 
-    return {
+    return Promise.resolve({
       type: 'CONTINUE',
       data: flushedSourcePaths
-    };
+    });
   }
 }

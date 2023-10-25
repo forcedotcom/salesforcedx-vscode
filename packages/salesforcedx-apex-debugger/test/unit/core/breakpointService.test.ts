@@ -20,6 +20,7 @@ import { BreakpointService } from '../../../src/core/breakpointService';
 
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mockSpawn = require('mock-spawn');
   const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> = new Map();
   const typerefMapping: Map<string, string> = new Map();

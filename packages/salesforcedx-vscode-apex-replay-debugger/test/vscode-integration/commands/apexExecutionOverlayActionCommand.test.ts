@@ -30,7 +30,7 @@ describe('ApexExecutionOverlayAction basic class tests', () => {
     "{'ActionScript':'','ActionScriptType':'None','ExecutableEntityName':'MyFakeClassOrTrigger','IsDumpingHeap':true,'Iteration':1,'Line':25}";
   const actionObjectId = '1doxx000000FAKE';
 
-  it('Should should create requestUrl without actionId on the API Path ', async () => {
+  it('Should should create requestUrl without actionId on the API Path ', () => {
     overlayActionCommand = new ApexExecutionOverlayActionCommand(requestString);
     expect(overlayActionCommand.getCommandUrl()).to.equal(
       'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction'
@@ -39,7 +39,7 @@ describe('ApexExecutionOverlayAction basic class tests', () => {
     expect(overlayActionCommand.getRequest()).to.equal(requestString);
   });
 
-  it('Should should create requestUrl with actionId on the API Path ', async () => {
+  it('Should should create requestUrl with actionId on the API Path ', () => {
     overlayActionCommand = new ApexExecutionOverlayActionCommand(
       requestString,
       actionObjectId
@@ -186,7 +186,7 @@ export function createExpectedXHROptions(
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
       Accept: 'application/json',
-      Authorization: `OAuth 123`,
+      Authorization: 'OAuth 123',
       'Content-Length': requestBody
         ? String(Buffer.byteLength(requestBody, 'utf-8'))
         : '0',

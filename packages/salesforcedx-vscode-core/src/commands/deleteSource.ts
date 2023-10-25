@@ -4,19 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
-
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
+  Command,
   ContinueResponse,
   ParametersGatherer,
-  PreconditionChecker
+  PreconditionChecker,
+  SfdxCommandBuilder,
+  fileUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
@@ -63,7 +60,7 @@ export class ManifestChecker implements PreconditionChecker {
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {
-        notificationService.showErrorMessage(
+        void notificationService.showErrorMessage(
           nls.localize('delete_source_manifest_unsupported_message')
         );
         return false;
@@ -115,7 +112,7 @@ export async function deleteSource(sourceUri: vscode.Uri) {
         'delete_source_select_file_or_directory'
       );
       telemetryService.sendException('force_source_delete', errorMessage);
-      notificationService.showErrorMessage(errorMessage);
+      await notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;

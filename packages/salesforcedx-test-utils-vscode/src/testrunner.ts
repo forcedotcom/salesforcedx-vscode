@@ -3,8 +3,8 @@
 import * as glob from 'glob';
 import * as paths from 'path';
 
-// tslint:disable:no-var-requires
-// tslint:disable-next-line:variable-name
+
+
 const Mocha = require('mocha');
 
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
@@ -106,6 +106,7 @@ function run(testsRoot: any, clb: any): any {
             });
           })
           .on('fail', (test: any, err: any): void => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Failure in test '${test}': ${err}`);
             failureCount++;
           })

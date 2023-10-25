@@ -6,7 +6,7 @@
  *
  * Derived from https://github.com/Microsoft/vscode-html-languageservice/blob/a607328b6c1532b87cfb2ba532f27b297465d7e4/src/test/completion.test.ts
  */
-// tslint:disable:no-unused-expression
+
 
 import * as assert from 'assert';
 import { expect } from 'chai';
@@ -49,8 +49,8 @@ describe('HTML Completion', () => {
       matches.length,
       1,
       expected.label +
-        ' should only existing once: Actual: ' +
-        completions.items.map(c => c.label).join(', ')
+      ' should only existing once: Actual: ' +
+      completions.items.map(c => c.label).join(', ')
     );
     const match = matches[0];
     if (expected.documentation) {
@@ -112,8 +112,8 @@ describe('HTML Completion', () => {
     assert.equal(actual, expected);
   };
 
-  function run(tests: Array<PromiseLike<void>>, testDone) {
-    // tslint:disable-next-line:no-floating-promises
+  function run(tests: PromiseLike<void>[], testDone) {
+
     Promise.all(tests).then(
       () => {
         testDone();
@@ -628,9 +628,9 @@ describe('HTML Completion', () => {
       });
     });
 
-    it('Should have only Visualforce attributes - no HTML attributes', () => {
+    it('Should have only Visualforce attributes - no HTML attributes', async () => {
       // Used apex:page since it's one of the main tags
-      testCompletionFor('<apex:page |> </apex:page>', {
+      await testCompletionFor('<apex:page |> </apex:page>', {
         items: [
           { label: 'action' },
           { label: 'apiVersion' },
@@ -673,8 +673,8 @@ describe('HTML Completion', () => {
       });
     });
 
-    it('Should show true, false as attribute options automatically', () => {
-      testCompletionFor('<apex:page applyBodyTag="|"> </apex:page>', {
+    it('Should show true, false as attribute options automatically', async () => {
+      await testCompletionFor('<apex:page applyBodyTag="|"> </apex:page>', {
         items: [{ label: 'true' }, { label: 'false' }]
       });
     });

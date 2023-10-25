@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-describe('Aura Intellisense Test Suite', function() {
+describe('Aura Intellisense Test Suite', function () {
   let auraDir: string;
 
-  beforeEach(async ()=> {
+  beforeEach(async () => {
     auraDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -50,21 +50,20 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    try {
-      await testCompletion(docUri, endPosition, {
-        items: [
-          // Aura system attributes
-          { label: 'aura:attribute', kind: vscode.CompletionItemKind.Property },
-          // Standard components
-          {
-            label: 'lightning:button',
-            kind: vscode.CompletionItemKind.Property
-          },
-          // Custom Aura
-          {
-            label: 'c:DemoApp',
-            kind: vscode.CompletionItemKind.Property
-          }/*,
+    await testCompletion(docUri, endPosition, {
+      items: [
+        // Aura system attributes
+        { label: 'aura:attribute', kind: vscode.CompletionItemKind.Property },
+        // Standard components
+        {
+          label: 'lightning:button',
+          kind: vscode.CompletionItemKind.Property
+        },
+        // Custom Aura
+        {
+          label: 'c:DemoApp',
+          kind: vscode.CompletionItemKind.Property
+        }/*,
           // NOTE: this commented out since it caused the test to inconsistently fail
           // in the autobuilds, this area is covered by tests in the lang server repo.
           // Custom LWC
@@ -72,11 +71,8 @@ describe('Aura Intellisense Test Suite', function() {
             label: 'c:demoLwcComponent',
             kind: vscode.CompletionItemKind.Property
           }*/
-        ]
-      });
-    } catch (error) {
-      throw error;
-    }
+      ]
+    });
   });
 
   /**
@@ -102,15 +98,11 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    try {
-      await testCompletion(docUri, endPosition, {
-        items: [
-          { label: 'getBooleanValue', kind: vscode.CompletionItemKind.Function }
-        ]
-      });
-    } catch (error) {
-      throw error;
-    }
+    await testCompletion(docUri, endPosition, {
+      items: [
+        { label: 'getBooleanValue', kind: vscode.CompletionItemKind.Function }
+      ]
+    });
   });
 
   it('Aura property javascript intellisense', async () => {
@@ -132,13 +124,9 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    try {
-      await testCompletion(docUri, endPosition, {
-        items: [{ label: 'getEvent', kind: vscode.CompletionItemKind.Function }]
-      });
-    } catch (error) {
-      throw error;
-    }
+    await testCompletion(docUri, endPosition, {
+      items: [{ label: 'getEvent', kind: vscode.CompletionItemKind.Function }]
+    });
   });
 
   it('Aura helper javascript intellisense', async () => {
@@ -160,15 +148,11 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    try {
-      await testCompletion(docUri, endPosition, {
-        items: [
-          { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
-        ]
-      });
-    } catch (error) {
-      throw error;
-    }
+    await testCompletion(docUri, endPosition, {
+      items: [
+        { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
+      ]
+    });
   });
 });
 
@@ -181,14 +165,17 @@ async function testCompletion(
   expectedCompletionList: vscode.CompletionList
 ) {
   // Simulate triggering a completion
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const actualCompletionList = (await vscode.commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
     position
-  )) as vscode.CompletionList;
+  )) as any[];
 
-  expectedCompletionList.items.forEach(function(expectedItem) {
-    const actualItem = actualCompletionList.items.find(function(obj) {
+  expectedCompletionList.items.forEach(function (expectedItem) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const actualItem = actualCompletionList.items.find(function (obj: { label: string | vscode.CompletionItemLabel }) {
       if (obj.label) {
         return obj.label === expectedItem.label;
       }
@@ -197,27 +184,31 @@ async function testCompletion(
 
     assert.isDefined(
       actualItem,
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
       "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
     assert.equal(
-      actualItem!.label,
+      actualItem.label,
       expectedItem.label,
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
       'Expected completion item to have label: ' + expectedItem.label
     );
     assert.equal(
-      actualItem!.kind,
+      actualItem.kind,
       expectedItem.kind,
       "Expected completion item'" +
-        expectedItem.label +
-        "' to have type: " +
-        expectedItem.kind
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
+      expectedItem.label +
+      "' to have type: " +
+      expectedItem.kind
     );
     if (actualItem?.detail === 'Lightning') {
       assert.isDefined(
-        actualItem!.documentation,
+        actualItem.documentation,
         "Expected completion item '" +
-          expectedItem.label +
-          "' to have documentation"
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
+        expectedItem.label +
+        "' to have documentation"
       );
     }
   });

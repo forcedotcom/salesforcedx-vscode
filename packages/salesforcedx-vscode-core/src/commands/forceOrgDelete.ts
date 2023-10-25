@@ -48,19 +48,19 @@ export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 
 export async function forceOrgDelete(this: FlagParameter<string>) {
-  // tslint:disable-next-line:no-invalid-this
+
   const flag = this ? this.flag : undefined;
 
   const parameterGatherer = flag
     ? new CompositeParametersGatherer(
-        new SelectUsername(),
-        new PromptConfirmGatherer(
-          nls.localize('parameter_gatherer_placeholder_delete_selected_org')
-        )
+      new SelectUsername(),
+      new PromptConfirmGatherer(
+        nls.localize('parameter_gatherer_placeholder_delete_selected_org')
       )
+    )
     : new PromptConfirmGatherer(
-        nls.localize('parameter_gatherer_placeholder_delete_default_org')
-      );
+      nls.localize('parameter_gatherer_placeholder_delete_default_org')
+    );
 
   const executor = new ForceOrgDeleteExecutor(flag);
   const commandlet = new SfdxCommandlet(

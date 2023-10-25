@@ -9,7 +9,6 @@ import { TelemetryReporter, WorkspaceContextUtil } from '../../../src';
 
 describe('Telemetry Reporter', () => {
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
-    let getInstanceMock: jest.SpyInstance;
     const dummyOrgId = '000dummyOrgId';
     const getMock = jest.fn().mockReturnValueOnce(true);
     const fakeConfig: any = { get: getMock };
@@ -21,7 +20,7 @@ describe('Telemetry Reporter', () => {
 
     beforeEach(() => {
       // Arrange
-      getInstanceMock = jest
+      jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue({
           orgId: dummyOrgId

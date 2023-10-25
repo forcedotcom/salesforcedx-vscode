@@ -11,8 +11,8 @@ import {
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { workspaceContextUtils } from '.';
 import { decorators } from '../decorators';
+import { workspaceContextUtils } from '.';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -25,6 +25,7 @@ export class WorkspaceContext {
   protected constructor() {
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     this.onOrgChange = workspaceContextUtil.onOrgChange;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     this.onOrgChange(this.handleCliConfigChange);
   }
 

@@ -23,7 +23,7 @@ import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils } from '../../util';
+import { normalizeError, workspaceUtils } from '../../util';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {
@@ -77,10 +77,10 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         );
         return await this.handleConflicts(inputs.data, username, diffs);
       } catch (error) {
-        console.error(error);
+        const err = normalizeError(error);
         const errorMsg = nls.localize(
           'conflict_detect_error',
-          error.toString()
+          err.message
         );
         channelService.appendLine(errorMsg);
         telemetryService.sendException('ConflictDetectionException', errorMsg);

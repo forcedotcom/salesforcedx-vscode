@@ -18,7 +18,7 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
+
 describe('ManifestChecker', () => {
   let workspaceStub: sinon.SinonStub;
   const workspaceFolderPath = path.join('path', 'to', 'workspace', 'folder');

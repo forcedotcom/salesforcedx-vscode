@@ -118,6 +118,7 @@ export class FauxClassGenerator implements SObjectGenerator {
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       .map(FauxClassGenerator.fieldDeclToString)
       .join(`${EOL}`);
     const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;

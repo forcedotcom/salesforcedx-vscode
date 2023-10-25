@@ -110,9 +110,11 @@ export class Task extends TreeItem {
   }
 
   public monitor() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.execution.processExitSubject.subscribe(data => {
       this.taskViewProvider.removeTask(this);
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.execution.processErrorSubject.subscribe(data => {
       this.taskViewProvider.removeTask(this);
     });

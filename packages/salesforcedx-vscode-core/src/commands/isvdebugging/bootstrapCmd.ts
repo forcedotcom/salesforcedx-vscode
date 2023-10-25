@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -41,9 +45,8 @@ import {
   SfdxCommandletExecutor
 } from '../util';
 // below uses require due to bundling restrictions
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
 const AdmZip = require('adm-zip');
-/* tslint:enable */
 
 export interface InstalledPackageInfo {
   id: string;
@@ -72,6 +75,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     INSTALLED_PACKAGES
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     throw new Error('not in use');
   }
@@ -261,7 +265,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       channelService.appendLine(
         nls.localize('error_updating_sfdx_project', error.toString())
       );
-      notificationService.showErrorMessage(
+      void notificationService.showErrorMessage(
         nls.localize('error_updating_sfdx_project', error.toString())
       );
       return;
@@ -290,7 +294,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       channelService.appendLine(
         nls.localize('error_creating_packagexml', error.toString())
       );
-      notificationService.showErrorMessage(
+      void notificationService.showErrorMessage(
         nls.localize('error_creating_packagexml', error.toString())
       );
       return;
@@ -352,7 +356,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(
           nls.localize('error_writing_installed_package_info', error.toString())
         );
-        notificationService.showErrorMessage(
+        void notificationService.showErrorMessage(
           nls.localize('error_writing_installed_package_info', error.toString())
         );
         return;
@@ -367,7 +371,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       channelService.appendLine(
         nls.localize('error_cleanup_temp_files', error.toString())
       );
-      notificationService.showErrorMessage(
+      void notificationService.showErrorMessage(
         nls.localize('error_cleanup_temp_files', error.toString())
       );
       return;
@@ -409,7 +413,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       channelService.appendLine(
         nls.localize('error_creating_launchjson', error.toString())
       );
-      notificationService.showErrorMessage(
+      void notificationService.showErrorMessage(
         nls.localize('error_creating_launchjson', error.toString())
       );
       return;
@@ -447,6 +451,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     cancellationToken: vscode.CancellationToken
   ) {
     channelService.streamCommandOutput(execution);
@@ -455,7 +460,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
@@ -520,7 +525,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
         };
       }
 
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         nls.localize('parameter_gatherer_invalid_forceide_url')
       );
     }
@@ -539,7 +544,7 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
       return sanitizeFilename(
-        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
     }
     return '';

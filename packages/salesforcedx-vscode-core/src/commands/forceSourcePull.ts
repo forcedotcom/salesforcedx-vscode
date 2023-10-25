@@ -50,6 +50,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     this.flag = flag;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
@@ -140,9 +141,11 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
    * @param pullResult that comes from stdOut after cli pull operation
    */
   protected updateCache(pullResult: any): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const pulledSource = pullResult.result.pulledSource;
 
     const instance = PersistentStorageService.getInstance();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     instance.setPropertiesForFilesPushPull(pulledSource);
   }
 
@@ -178,7 +181,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
         console.log(
-          `There were errors parsing the pull operation response.  Raw response: ${errors}`
+          `There were errors parsing the pull operation response.  Raw response: ${JSON.stringify(errors)}`
         );
       }
     }
@@ -204,7 +207,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getErrorTable(table: Table, result: unknown, titleType: string) {
     const outputTable = table.createTable(
-      (result as unknown) as Row[],
+      result as Row[],
       [
         {
           key: 'filePath',

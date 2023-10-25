@@ -55,7 +55,7 @@ export enum Step {
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
   logFile: string;
-  stopOnEntry?: boolean | true;
+  stopOnEntry?: boolean;
   trace?: boolean | string;
   lineBreakpointInfo?: LineBreakpointInfo[];
   projectPath: string | undefined;

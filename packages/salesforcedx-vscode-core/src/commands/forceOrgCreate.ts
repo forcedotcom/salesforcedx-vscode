@@ -25,7 +25,7 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
+import { normalizeError, workspaceUtils } from '../util';
 import {
   CompositeParametersGatherer,
   CompositePreconditionChecker,
@@ -78,7 +78,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       stdOut += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
       try {
         const createParser = new OrgCreateResultParser(stdOut);
@@ -99,14 +99,15 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
             );
           }
         }
-      } catch (err) {
+      } catch (error) {
+        const err = normalizeError(error);
         channelService.appendLine(
           nls.localize('force_org_create_result_parsing_error')
         );
-        channelService.appendLine(err);
+        channelService.appendLine(err.message);
         telemetryService.sendException(
           'force_org_create',
-          `Error while parsing org create response ${err}`
+          `Error while parsing org create response ${JSON.stringify(err)}`
         );
       }
     });
@@ -115,7 +116,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       execution,
       cancellationToken
     );
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

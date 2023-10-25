@@ -138,7 +138,7 @@ export class RequestService {
       const response = await this.sendRequest(options);
       return Promise.resolve(response.responseText);
     } catch (error) {
-      const xhrResponse: XHRResponse = error;
+      const xhrResponse: XHRResponse = error as XHRResponse;
       return Promise.reject(xhrResponse.responseText);
     }
   }

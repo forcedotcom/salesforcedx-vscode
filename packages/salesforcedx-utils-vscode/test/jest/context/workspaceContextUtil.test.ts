@@ -63,7 +63,7 @@ describe('WorkspaceContextUtil', () => {
     getConnectionMock = jest.spyOn(workspaceContextUtil, 'getConnection');
 
     await workspaceContextUtil.initialize(context);
-    (workspaceContextUtil as any)._username = testUser;
+    workspaceContextUtil._username = testUser;
   });
 
   it('test for the constructor', () => {
@@ -183,7 +183,7 @@ describe('WorkspaceContextUtil', () => {
 
   it('should return the _orgId property', () => {
     // Arrange
-    (workspaceContextUtil as any)._orgId = dummyOrgId;
+    workspaceContextUtil._orgId = dummyOrgId;
 
     // Act/Assert
     expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);

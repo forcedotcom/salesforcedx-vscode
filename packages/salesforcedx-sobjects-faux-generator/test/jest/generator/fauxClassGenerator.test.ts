@@ -33,7 +33,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       expect(actual).toEqual(empty);
     });
 
-    it('Should parse a simple field inline comment', async () => {
+    it('Should parse a simple field inline comment', () => {
       let firstComment = `/* Please add a unique name${EOL}`;
       firstComment += `    */${EOL}`;
       let expectedFirstComment = `${INDENT}/*  Please add a unique name${EOL}`;
@@ -42,10 +42,10 @@ describe('FauxClassGenerator Unit Tests.', () => {
       expect(expectedFirstComment).toEqual(parseFirstComment);
     });
 
-    it('Should parse a complex field inline comment', async () => {
+    it('Should parse a complex field inline comment', () => {
       let secondComment = `/******** More complex **************/${EOL}`;
       secondComment += `**************this is a test **************${EOL}`;
-      secondComment += `/**************/`;
+      secondComment += '/**************/';
       let expectedSecondComment = `${INDENT}/*  More complex ${EOL}`;
       expectedSecondComment += `**************this is a test **************${EOL}`;
       expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;

@@ -45,11 +45,10 @@ describe('Source Tracking Service', () => {
       updateTrackingFromRetrieve: updateTrackingFromRetrieveSpy
     } as any;
 
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let getSourceTrackingForCurrentProjectMock: jest.SpyInstance;
 
     beforeEach(() => {
-      workspaceContextUtilGetInstanceSpy = jest
+      jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 

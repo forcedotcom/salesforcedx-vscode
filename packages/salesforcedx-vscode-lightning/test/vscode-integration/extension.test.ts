@@ -6,8 +6,8 @@
  */
 
 import { expect } from 'chai';
-import * as vscode from 'vscode';
 import { Context } from 'mocha';
+import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
 
@@ -54,7 +54,7 @@ describe('Test commands', () => {
   let coreExtension: vscode.Extension<any>;
   let auraExtension: vscode.Extension<any>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     if (
       vscode.workspace &&
       vscode.workspace.workspaceFolders &&

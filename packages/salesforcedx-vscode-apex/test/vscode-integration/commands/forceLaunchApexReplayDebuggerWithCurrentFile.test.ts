@@ -21,7 +21,7 @@ describe('Force Launch Replay Debugger', () => {
   const $$ = new TestContext();
   const sb = createSandbox();
   let flushFilePathStub: SinonStub;
-  beforeEach(async () => {
+  beforeEach(() => {
     flushFilePathStub = sb.stub(fileUtils, 'flushFilePath');
   });
 

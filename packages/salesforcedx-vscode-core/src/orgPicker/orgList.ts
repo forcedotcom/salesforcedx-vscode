@@ -96,7 +96,7 @@ export class OrgList implements vscode.Disposable {
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =
         aliases && aliases.length > 0
-          ? `${aliases} - ${orgAuth.username}`
+          ? `${aliases.join(',')} - ${orgAuth.username}`
           : orgAuth.username;
 
       if (isExpired) {
@@ -140,30 +140,30 @@ export class OrgList implements vscode.Disposable {
     }
     switch (selection) {
       case '$(plus) ' + nls.localize('org_login_web_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.org.login.web');
+        await vscode.commands.executeCommand('sfdx.org.login.web');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'): {
-        vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
+        await vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +
         nls.localize('force_org_create_default_scratch_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.org.create');
+        await vscode.commands.executeCommand('sfdx.force.org.create');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +
         nls.localize('force_auth_access_token_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.auth.accessToken');
+        await vscode.commands.executeCommand('sfdx.force.auth.accessToken');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' + nls.localize('org_list_clean_text'): {
-        vscode.commands.executeCommand('sfdx.org.list.clean');
+        await vscode.commands.executeCommand('sfdx.org.list.clean');
         return { type: 'CONTINUE', data: {} };
       }
       default: {
         const usernameOrAlias = selection.split(' - ', 1);
-        vscode.commands.executeCommand(
+        await vscode.commands.executeCommand(
           'sfdx.force.config.set',
           usernameOrAlias
         );

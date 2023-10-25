@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Language, generateFunction } from '@heroku/functions-core';
 import {
   CancelResponse,
   ContinueResponse,
@@ -13,19 +14,16 @@ import {
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
+import { OUTPUT_CHANNEL, channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { MetadataDictionary, MetadataInfo } from '../../util';
+import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
-
-import { generateFunction, Language } from '@heroku/functions-core';
-import { workspaceUtils } from '../../util';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
@@ -74,13 +72,13 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
       metadata!.suffix
     );
     const document = await vscode.workspace.openTextDocument(outputFile);
-    vscode.window.showTextDocument(document);
+    void vscode.window.showTextDocument(document);
     channelService.appendLine('Installing dependencies...');
 
     if (language === LANGUAGE_JAVA) {
       cp.exec('mvn install', { cwd: path.join(functionPath) }, err => {
         if (err) {
-          notificationService.showWarningMessage(
+          void notificationService.showWarningMessage(
             nls.localize(
               'force_function_install_mvn_dependencies_error',
               err.message
@@ -91,7 +89,7 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
     } else {
       cp.exec('npm install', { cwd: functionPath }, err => {
         if (err) {
-          notificationService.showWarningMessage(
+          void notificationService.showWarningMessage(
             nls.localize(
               'force_function_install_npm_dependencies_error',
               err.message

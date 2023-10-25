@@ -19,8 +19,8 @@ describe('LanguageClientUtils', () => {
     languageClientUtils = LanguageClientUtils.getInstance();
   });
 
-  it('Should return correct initial status', async () => {
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+  it('Should return correct initial status', () => {
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(false);
@@ -28,9 +28,9 @@ describe('LanguageClientUtils', () => {
     expect(clientStatus.getStatusMessage()).to.equal('');
   });
 
-  it('Should return ready status', async () => {
+  it('Should return ready status', () => {
     languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(true);
     expect(clientStatus.isIndexing()).to.equal(false);
@@ -38,12 +38,12 @@ describe('LanguageClientUtils', () => {
     expect(clientStatus.getStatusMessage()).to.equal('Apex client is ready');
   });
 
-  it('Should return indexing status', async () => {
+  it('Should return indexing status', () => {
     languageClientUtils.setStatus(
       ClientStatus.Indexing,
       'Apex client is indexing'
     );
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(true);
@@ -51,12 +51,12 @@ describe('LanguageClientUtils', () => {
     expect(clientStatus.getStatusMessage()).to.equal('Apex client is indexing');
   });
 
-  it('Should return error status', async () => {
+  it('Should return error status', () => {
     languageClientUtils.setStatus(
       ClientStatus.Error,
       'Java version is misconfigured'
     );
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(false);

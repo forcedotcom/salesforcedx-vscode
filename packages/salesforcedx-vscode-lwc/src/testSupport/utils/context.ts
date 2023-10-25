@@ -16,7 +16,7 @@ import { isLwcJestTest } from './isLwcJestTest';
  */
 function setLwcJestFileFocusedContext(textEditor?: vscode.TextEditor) {
   if (textEditor) {
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
       'setContext',
       SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT,
       !!isLwcJestTest(textEditor.document)
@@ -24,7 +24,7 @@ function setLwcJestFileFocusedContext(textEditor?: vscode.TextEditor) {
 
     testWatcher.setWatchingContext(textEditor.document.uri);
   } else {
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
       'setContext',
       SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT,
       false

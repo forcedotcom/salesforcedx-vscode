@@ -53,21 +53,22 @@ export const functionInvokeCodeLensProvider = new ForceFunctionInvokeCodeLensPro
  * Register Code Lens Provider with the extension context
  * @param extensionContext Extension context
  */
-export function registerFunctionInvokeCodeLensProvider(
+export const registerFunctionInvokeCodeLensProvider = (
   extensionContext: ExtensionContext
-) {
+) => {
   extensionContext.subscriptions.push(
     languages.registerCodeLensProvider(
       FUNCTION_PAYLOAD_DOCUMENT_SELECTOR,
       functionInvokeCodeLensProvider
     )
   );
-}
+};
 
-export async function provideFunctionInvokeCodeLens(
+export const provideFunctionInvokeCodeLens = (
   document: TextDocument,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   token: CancellationToken
-): Promise<CodeLens[]> {
+): Promise<CodeLens[]> => {
   const nonpayloadJsons = [
     'package.json',
     'package-lock.json',
@@ -76,7 +77,7 @@ export async function provideFunctionInvokeCodeLens(
     'tsconfig.json'
   ];
   if (nonpayloadJsons.includes(path.basename(document.uri.fsPath))) {
-    return [];
+    return Promise.resolve([]);
   }
   const range = new Range(new Position(0, 0), new Position(0, 1));
 
@@ -98,5 +99,5 @@ export async function provideFunctionInvokeCodeLens(
   };
   const debugInvokeCodeLens = new CodeLens(range, functionDebugInvokeCommand);
 
-  return [invokeCodeLens, debugInvokeCodeLens];
-}
+  return Promise.resolve([invokeCodeLens, debugInvokeCodeLens]);
+};

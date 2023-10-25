@@ -136,7 +136,7 @@ type LwcJestTestResultStatus =
   | 'failed'
   | 'pending'
   | 'skipped'
-  | 'pending'
+
   | 'todo'
   | 'disabled';
 

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -15,7 +18,7 @@ import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { workspaceUtils } from '../util';
 
 export type MetadataObject = {
   directoryName: string;
@@ -40,14 +43,14 @@ export class TypeUtils {
     'Scontrol'
   ]);
 
-  public async getTypesFolder(): Promise<string> {
+  public getTypesFolder(): Promise<string> {
     if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
     const metadataTypesPath = projectPaths.metadataFolder();
-    return metadataTypesPath;
+    return Promise.resolve(metadataTypesPath);
   }
 
   public buildTypesList(

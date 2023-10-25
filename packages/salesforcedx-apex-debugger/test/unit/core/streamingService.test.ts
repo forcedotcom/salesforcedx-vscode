@@ -17,6 +17,7 @@ import {
 } from '../../../src/core';
 
 describe('Debugger streaming service', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mockSpawn = require('mock-spawn');
   const requestService = new RequestService();
   requestService.instanceUrl = 'https://www.salesforce.com';
@@ -224,7 +225,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle ApexException', () => {
-      const client = service.getClient(ApexDebuggerEventType.ApexException)!;
+      const client = service.getClient('ApexException')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.USER_EVENT_CHANNEL
@@ -232,7 +233,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle Debug', () => {
-      const client = service.getClient(ApexDebuggerEventType.Debug)!;
+      const client = service.getClient('Debug')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.USER_EVENT_CHANNEL
@@ -240,7 +241,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle LogLine', () => {
-      const client = service.getClient(ApexDebuggerEventType.ApexException)!;
+      const client = service.getClient('ApexException')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.USER_EVENT_CHANNEL
@@ -248,7 +249,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle OrgChange', () => {
-      const client = service.getClient(ApexDebuggerEventType.OrgChange)!;
+      const client = service.getClient('OrgChange')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -256,7 +257,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle Ready', () => {
-      const client = service.getClient(ApexDebuggerEventType.Ready)!;
+      const client = service.getClient('Ready')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -264,7 +265,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle RequestFinished', () => {
-      const client = service.getClient(ApexDebuggerEventType.RequestFinished)!;
+      const client = service.getClient('RequestFinished')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -272,7 +273,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle RequestStarted', () => {
-      const client = service.getClient(ApexDebuggerEventType.RequestStarted)!;
+      const client = service.getClient('RequestStarted')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -280,7 +281,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle Resumed', () => {
-      const client = service.getClient(ApexDebuggerEventType.Resumed)!;
+      const client = service.getClient('Resumed')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -288,9 +289,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle SessionTerminated', () => {
-      const client = service.getClient(
-        ApexDebuggerEventType.SessionTerminated
-      )!;
+      const client = service.getClient('SessionTerminated')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -298,7 +297,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle Stopped', () => {
-      const client = service.getClient(ApexDebuggerEventType.Stopped)!;
+      const client = service.getClient('Stopped')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -306,7 +305,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle SystemGack', () => {
-      const client = service.getClient(ApexDebuggerEventType.SystemGack)!;
+      const client = service.getClient('SystemGack')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -314,7 +313,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle SystemInfo', () => {
-      const client = service.getClient(ApexDebuggerEventType.SystemInfo)!;
+      const client = service.getClient('SystemInfo')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -322,7 +321,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should handle SystemWarning', () => {
-      const client = service.getClient(ApexDebuggerEventType.SystemWarning)!;
+      const client = service.getClient('SystemWarning')!;
 
       expect(client.getClientInfo().channel).to.equal(
         StreamingService.SYSTEM_EVENT_CHANNEL
@@ -330,7 +329,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should not handle Heartbeat', () => {
-      const client = service.getClient(ApexDebuggerEventType.HeartBeat)!;
+      const client = service.getClient('HeartBeat')!;
 
       expect(client).to.equal(undefined);
     });
@@ -376,26 +375,26 @@ describe('Debugger streaming service', () => {
 
     it('Should not have processed event', () => {
       expect(
-        service.hasProcessedEvent(ApexDebuggerEventType.Stopped, 2)
+        service.hasProcessedEvent('Stopped', 2)
       ).to.equal(false);
     });
 
     it('Should have processed event', () => {
-      service.markEventProcessed(ApexDebuggerEventType.Stopped, 2);
+      service.markEventProcessed('Stopped', 2);
 
       expect(
-        service.hasProcessedEvent(ApexDebuggerEventType.Stopped, 2)
+        service.hasProcessedEvent('Stopped', 2)
       ).to.equal(true);
     });
 
     it('Should have processed event if client cannot be determined', () => {
       expect(
-        service.hasProcessedEvent(ApexDebuggerEventType.HeartBeat, 2)
+        service.hasProcessedEvent('HeartBeat', 2)
       ).to.equal(true);
     });
 
     it('Should not mark event processed if client cannot be determined', () => {
-      service.markEventProcessed(ApexDebuggerEventType.HeartBeat, 2);
+      service.markEventProcessed('HeartBeat', 2);
 
       expect(clientSetReplayIdSpy.called).to.equal(false);
     });

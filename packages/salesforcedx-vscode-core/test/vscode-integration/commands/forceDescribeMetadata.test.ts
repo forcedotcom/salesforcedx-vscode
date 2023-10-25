@@ -13,13 +13,13 @@ import {
   ForceDescribeMetadataExecutor
 } from '../../../src/commands';
 
-// tslint:disable:no-unused-expression
+
 describe('Force Describe Metadata', () => {
-  it('Should build describe metadata command', async () => {
+  it('Should build describe metadata command', () => {
     const forceDescribeMetadataExec = new ForceDescribeMetadataExecutor();
     const forceDescribeMetadataCmd = forceDescribeMetadataExec.build({});
     expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:describemetadata --json --loglevel fatal`
+      'sfdx force:mdapi:describemetadata --json --loglevel fatal'
     );
   });
 

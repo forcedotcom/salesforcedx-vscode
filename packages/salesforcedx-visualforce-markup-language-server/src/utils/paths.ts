@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-// tslint:disable:no-bitwise
+
 export const enum CharCode {
   Slash = 47,
   Backslash = 92

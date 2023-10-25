@@ -74,7 +74,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     } else if (info && info.suffix) {
       metadataSuffix = info.suffix;
     } else {
-      notificationService.showErrorMessage(
+      void notificationService.showErrorMessage(
         nls.localize('error_overwrite_prompt')
       );
       telemetryService.sendException(

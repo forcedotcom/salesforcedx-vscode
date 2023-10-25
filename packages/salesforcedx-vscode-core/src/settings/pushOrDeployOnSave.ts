@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,17 +6,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
+import { setTimeout } from 'timers';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-
-import * as path from 'path';
-import { setTimeout } from 'timers';
-import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
+import { normalizeError } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds
@@ -27,7 +28,7 @@ export class DeployQueue {
   private locked = false;
   private deployWaitStart?: [number, number];
 
-  private constructor() {}
+  private constructor() { }
 
   public static get(): DeployQueue {
     if (!DeployQueue.instance) {
@@ -67,7 +68,7 @@ export class DeployQueue {
   }
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    vscode.commands.executeCommand(
+    await vscode.commands.executeCommand(
       'sfdx.force.source.deploy.multiple.source.paths',
       toDeploy
     );
@@ -78,7 +79,7 @@ export class DeployQueue {
       ? '.force'
       : '';
     const command = `sfdx.force.source.push${forceCommand}`;
-    vscode.commands.executeCommand(command);
+    await vscode.commands.executeCommand(command);
   }
 
   private async doDeploy(): Promise<void> {
@@ -115,7 +116,8 @@ export class DeployQueue {
               : 0
           }
         );
-      } catch (e) {
+      } catch (error) {
+        const e = normalizeError(error);
         switch (e.name) {
           case 'NamedOrgNotFound':
             displayError(nls.localize('error_fetching_auth_info_text'));
@@ -138,7 +140,7 @@ export class DeployQueue {
   }
 }
 
-export async function registerPushOrDeployOnSave() {
+export const registerPushOrDeployOnSave = (): Promise<void> => {
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
       const documentUri = textDocument.uri;
@@ -150,15 +152,16 @@ export async function registerPushOrDeployOnSave() {
       }
     }
   );
-}
+  return Promise.resolve();
+};
 
 function displayError(message: string) {
-  notificationService.showErrorMessage(message);
+  void notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
   telemetryService.sendException(
     'push_deploy_on_save_queue',
-    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+    'DeployOnSaveError: Documents were queued but a deployment was not triggered'
   );
 }
 
@@ -169,13 +172,14 @@ async function ignorePath(documentPath: string) {
   );
 }
 
-export async function pathIsInPackageDirectory(
+export const pathIsInPackageDirectory = async (
   documentPath: string
-): Promise<boolean> {
+): Promise<boolean> => {
   try {
     return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
-    switch (error.name) {
+    const err = normalizeError(error);
+    switch (err.name) {
       case 'NoPackageDirectoriesFound':
         error.message = nls.localize(
           'error_no_package_directories_found_on_setup_text'
@@ -187,10 +191,10 @@ export async function pathIsInPackageDirectory(
         );
         break;
     }
-    displayError(error.message);
+    displayError(err.message);
     throw error;
   }
-}
+};
 
 export function fileShouldNotBeDeployed(fsPath: string) {
   return isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);

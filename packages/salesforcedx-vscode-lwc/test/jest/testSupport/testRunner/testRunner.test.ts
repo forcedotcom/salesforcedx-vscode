@@ -9,21 +9,21 @@ import { getTestNamePatternArgs } from '../../../../src/testSupport/testRunner/t
 
 describe('testRunner Unit Tests.', () => {
   describe('test getTestNamePatternArgs', () => {
-    it('Should return testNamePattern if flag is included', async () => {
+    it('Should return testNamePattern if flag is included', () => {
       const testName = 'Testing is Fun!';
       const testPatternArgs = getTestNamePatternArgs(testName);
       expect(testPatternArgs.length).toEqual(2);
       expect(testPatternArgs).toMatchSnapshot();
     });
-    it('Should escape certain symbols if testNamePattern is included', async () => {
+    it('Should escape certain symbols if testNamePattern is included', () => {
       const testName = 'Test ?$^*().[]{}|+ Symbols';
       const testNameEscaped = 'Test \\?\\$\\^\\*\\(\\)\\.\\[\\]\\{\\}\\|\\+ Symbols';
       const testPatternArgs = getTestNamePatternArgs(testName);
       expect(testPatternArgs).toContain(testNameEscaped);
       expect(testPatternArgs).toMatchSnapshot();
     });
-    it('Should not escape certain symbols if testNamePattern is included', async () => {
-      const testName = 'Test !@#"%&;:,<>\=~` Symbols';
+    it('Should not escape certain symbols if testNamePattern is included', () => {
+      const testName = 'Test !@#"%&;:,<>=~` Symbols';
       const testPatternArgs = getTestNamePatternArgs(testName);
       expect(testPatternArgs).toMatchSnapshot();
     });

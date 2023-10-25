@@ -6,9 +6,9 @@
  */
 
 import * as vscode from 'vscode';
-import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
+import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { workspaceContext, channelService } from './sfdx';
 import { startTelemetry, stopTelemetry } from './telemetry';
@@ -31,12 +31,12 @@ export async function activate(
   );
 
   await startLanguageClient(extensionContext);
-  startTelemetry(extensionContext, extensionHRStart).catch();
+  await startTelemetry(extensionContext, extensionHRStart).catch();
   console.log('SOQL Extension Activated');
   return { workspaceContext, channelService };
 }
 
 export function deactivate(): Thenable<void> | undefined {
-  stopTelemetry().catch();
+  void stopTelemetry().catch();
   return stopLanguageClient();
 }

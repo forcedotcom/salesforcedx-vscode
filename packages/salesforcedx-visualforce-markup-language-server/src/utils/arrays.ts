@@ -35,7 +35,7 @@ export function binarySearch<T>(
   let high = array.length - 1;
 
   while (low <= high) {
-    // tslint:disable-next-line:no-bitwise
+
     const mid = ((low + high) / 2) | 0;
     const comp = comparator(array[mid], key);
     if (comp < 0) {

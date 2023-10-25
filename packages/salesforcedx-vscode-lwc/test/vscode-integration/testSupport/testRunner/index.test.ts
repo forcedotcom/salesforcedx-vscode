@@ -5,24 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
+import { InputBuffer } from 'uuid/interfaces';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
+import {
+  TestRunner,
+  TestRunType
+} from '../../../../src/testSupport/testRunner';
 import {
   TestCaseInfo,
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
 
-import {
-  TestRunner,
-  TestRunType
-} from '../../../../src/testSupport/testRunner';
-import { InputBuffer } from 'uuid/interfaces';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('LWC Test Runner', () => {
   describe('Jest Execution Info Unit Tests', () => {
