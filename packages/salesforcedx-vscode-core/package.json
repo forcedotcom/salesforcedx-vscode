@@ -32,7 +32,7 @@
     "@salesforce/templates": "^58.0.1",
     "@salesforce/ts-types": "1.5.21",
     "adm-zip": "0.5.10",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "^2.9.0",
     "glob": "^7.1.2",
     "jsforce": "2.0.0-beta.27",
     "rxjs": "^5.4.1",
@@ -86,7 +86,6 @@
     "packageUpdates": {
       "main": "dist/index.js",
       "dependencies": {
-        "applicationinsights": "1.0.7",
         "@salesforce/core": "5.3.0",
         "@salesforce/source-tracking": "4.2.14",
         "@salesforce/templates": "^58.0.1",
@@ -96,7 +95,7 @@
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
