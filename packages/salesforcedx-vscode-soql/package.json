@@ -118,6 +118,13 @@
     ],
     "packageUpdates": {
       "main": "dist/index.js",
+      "serverPath": [
+        "node_modules",
+        "@salesforce",
+        "soql-language-server",
+        "lib",
+        "server.js"
+      ],
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
