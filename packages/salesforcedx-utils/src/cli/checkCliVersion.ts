@@ -44,7 +44,7 @@ export class CheckCliVersion {
         validSfdxVersion = true;
       }
       if (validSfdxVersion === false) {
-        throw new Error('Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version using this link: https://developer.salesforce.com/tools/salesforcecli');
+        throw new Error('Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version using this link: [https://developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli)');
       }
     }
 
@@ -58,13 +58,13 @@ export class CheckCliVersion {
         validSfVersion = true;
       }
       if (validSfVersion === false) {
-        throw new Error('Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version using this link: https://developer.salesforce.com/tools/salesforcecli');
+        throw new Error('Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version using this link: [https://developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli)');
       }
     }
 
     // Case 3: Neither SFDX CLI nor SF CLI is installed
     else {
-      throw new Error('Either Salesforce CLI is not installed or only SF v1 is present. Install the latest CLI version from https://developer.salesforce.com/tools/salesforcecli');
+      throw new Error('Either Salesforce CLI is not installed or only SF v1 is present. Install the latest CLI version from [https://developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli)');
     }
 
     // // Get the version number of the CLI
