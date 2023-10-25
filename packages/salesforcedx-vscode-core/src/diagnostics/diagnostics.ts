@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ForceSourcePushErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentStatus,
@@ -12,6 +12,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { SfdxCommandletExecutor } from '../commands/util';
 
 const notApplicable = 'N/A';
 
@@ -38,7 +39,7 @@ export function getRange(
 }
 
 export function handleDiagnosticErrors(
-  errors: ForceSourceDeployErrorResponse,
+  errors: ForceSourcePushErrorResponse,
   workspacePath: string,
   sourcePathOrPaths: string,
   errorCollection: vscode.DiagnosticCollection
@@ -53,8 +54,8 @@ export function handleDiagnosticErrors(
     : sourcePathOrPaths;
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  if (errors.hasOwnProperty('result')) {
-    errors.result.forEach(error => {
+  if (errors.hasOwnProperty('data')) {
+    errors.data.forEach(error => {
       const fileUri = getFileUri(
         workspacePath,
         error.filePath,
@@ -104,6 +105,7 @@ export function handleDeployDiagnostics(
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
   errorCollection.clear();
+  SfdxCommandletExecutor.errorCollection.clear();
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 

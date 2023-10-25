@@ -7,6 +7,7 @@
 
 import { OrgInfo, RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import * as sinon from 'sinon';
 import {
   ApexDebuggerEventType,
@@ -14,7 +15,6 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../../../src/core';
-import childProcess = require('child_process');
 
 describe('Debugger streaming service', () => {
   const mockSpawn = require('mock-spawn');
@@ -47,7 +47,7 @@ describe('Debugger streaming service', () => {
       service = new StreamingService();
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       mySpawn.setDefault(
         mySpawn.simple(
           0,
@@ -60,7 +60,7 @@ describe('Debugger streaming service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       clientIsConnectedSpy.restore();
       clientSubscribeSpy.restore();
     });

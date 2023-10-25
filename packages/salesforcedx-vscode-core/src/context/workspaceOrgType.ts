@@ -6,7 +6,6 @@
  */
 import { Org } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 import { WorkspaceContext } from './workspaceContext';
 
@@ -16,7 +15,7 @@ export enum OrgType {
 }
 
 /**
- * @description determines whether the default org is source-tracked or not.
+ * Determines whether the default org is source-tracked or not.
  * During dev it was observed that there were some potential issues with other options
  * (org.isScratch, org.tracksSource) related to cache-ing and a newly created
  * Scratch Org would sometimes return false.  Using org.supportsSourceTracking()
@@ -25,7 +24,15 @@ export enum OrgType {
  */
 export async function getWorkspaceOrgType(): Promise<OrgType> {
   const workspaceContext = WorkspaceContext.getInstance();
-  const connection = await workspaceContext.getConnection();
+  let connection;
+  try {
+    connection = await workspaceContext.getConnection();
+  } catch (error) {
+    console.warn(
+      `An error was encountered while getting the org connection:\n ${error}`
+    );
+    return OrgType.NonSourceTracked;
+  }
   const org = await Org.create({ connection });
   const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
@@ -33,53 +40,18 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
   setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
 }
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
-  try {
-    setHasDefaultUsername(!!defaultUsernameOrAlias);
-    const orgType = await getWorkspaceOrgType();
-    setWorkspaceOrgTypeWithOrgType(orgType);
-  } catch (e) {
-    console.error(e);
-    if (e instanceof Error) {
-      telemetryService.sendException('send_workspace_org_type', e.message);
-      switch (e.name) {
-        case 'NamedOrgNotFound':
-          // If the info for a default username cannot be found,
-          // then assume that the org can be of either type
-          setDefaultUsernameHasChangeTracking(true);
-          setDefaultUsernameHasNoChangeTracking(true);
-          break;
-        case 'NoDefaultusernameSet':
-          setDefaultUsernameHasChangeTracking(false);
-          setDefaultUsernameHasNoChangeTracking(false);
-          break;
-        case 'NoUsernameFoundError':
-          setDefaultUsernameHasChangeTracking(false);
-          setDefaultUsernameHasNoChangeTracking(false);
-          break;
-        default:
-          setDefaultUsernameHasChangeTracking(true);
-          setDefaultUsernameHasNoChangeTracking(true);
-      }
-    }
-  }
+  setHasDefaultUsername(!!defaultUsernameOrAlias);
+  const orgType = await getWorkspaceOrgType();
+  setWorkspaceOrgTypeWithOrgType(orgType);
 }
 
 function setDefaultUsernameHasChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:default_username_has_change_tracking',
-    val
-  );
-}
-
-function setDefaultUsernameHasNoChangeTracking(val: boolean) {
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:default_username_has_no_change_tracking',
     val
   );
 }

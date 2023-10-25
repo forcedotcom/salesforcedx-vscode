@@ -84,26 +84,14 @@ export async function activate(extensionContext: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  const { name, aiKey, version } = extensionContext.extension.packageJSON;
-
-  await TelemetryService.getInstance().initializeService(
-    extensionContext,
-    name,
-    aiKey,
-    version
-  );
+  await TelemetryService.getInstance().initializeService(extensionContext);
 
   // Start the Aura Language Server
 
   // Setup the language server
+  const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
-    path.join(
-      'node_modules',
-      '@salesforce',
-      'aura-language-server',
-      'lib',
-      'server.js'
-    )
+    path.join(...serverPath)
   );
 
   // The debug options for the server

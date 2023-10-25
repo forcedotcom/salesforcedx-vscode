@@ -5,12 +5,14 @@ on:
       branch:
         type: string
         required: false
-        
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
+
 jobs:
   windows-unit-tests:
     strategy:
       matrix:
-        node_version: [lts/-1, lts/*]
+        node_version: [lts/*]
       fail-fast: false
     runs-on: windows-latest
     timeout-minutes: 20
@@ -22,7 +24,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}
-          cache: npm
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - run: npm ci
       - run: npm run compile
       - run: npm run test:unit

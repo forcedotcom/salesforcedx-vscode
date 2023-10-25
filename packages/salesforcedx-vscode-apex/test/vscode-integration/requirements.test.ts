@@ -9,6 +9,8 @@
 
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as cp from 'child_process';
+import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../src/constants';
@@ -18,8 +20,6 @@ import {
   JAVA_HOME_KEY,
   resolveRequirements
 } from '../../src/requirements';
-import pathExists = require('path-exists');
-import * as cp from 'child_process';
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = `~/java_home/real/jdk/${jdk}`;
@@ -41,7 +41,7 @@ describe('Java Requirements Test', () => {
       .returns({
         get: settingStub
       });
-    pathExistsStub = sandbox.stub(pathExists, 'sync').resolves(true);
+    pathExistsStub = sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 
@@ -62,19 +62,19 @@ describe('Java Requirements Test', () => {
 
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-    execFileStub.yields('', '', 'build 1.8');
+    execFileStub.yields('', '', 'build 11.0.0');
     const requirements = await resolveRequirements();
     expect(requirements.java_home).contains(jdk);
   });
 
-  it('Should support Java 8', async () => {
+  it('Should not support Java 8', async () => {
     execFileStub.yields('', '', 'build 1.8.0');
     try {
-      const result = await checkJavaVersion('~/java_home');
-      expect(result).to.equal(true);
+      await checkJavaVersion('~/java_home');
+      fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      fail(
-        `Should not have thrown when the Java version is 17.  The error was: ${err}`
+      expect(err).to.equal(
+        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
       );
     }
   });

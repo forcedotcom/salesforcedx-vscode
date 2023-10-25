@@ -12,7 +12,9 @@ import {
 import * as vscode from 'vscode';
 import {
   CONFLICT_DETECTION_ENABLED,
+  ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
   INTERNAL_DEVELOPMENT_FLAG,
+  PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
@@ -66,6 +68,14 @@ export class SfdxCoreSettings {
       PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
       false
     );
+  }
+
+  public getPreferDeployOnSaveEnabled(): boolean {
+    return this.getConfigValue(PREFER_DEPLOY_ON_SAVE_ENABLED, false);
+  }
+
+  public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
+    return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
   }
 
   public getRetrieveTestCodeCoverage(): boolean {

@@ -11,6 +11,7 @@ import {
   LibraryCommandletExecutor,
   Row,
   SourceTrackingService,
+  SourceTrackingType,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -29,14 +30,17 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { WorkspaceContext } from '../context';
+import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
-import { setApiVersionOn } from '../services/sdr/componentSetUtils';
-import { DeployQueue } from '../settings';
+import { componentSetUtils } from '../services/sdr/componentSetUtils';
+import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { BaseDeployExecutor } from './baseDeployCommand';
-import { createComponentCount, formatException } from './util';
+import {
+  createComponentCount,
+  formatException,
+  SfdxCommandletExecutor
+} from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
@@ -44,6 +48,9 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -62,7 +69,8 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      await setApiVersionOn(components);
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -114,13 +122,15 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<DeployResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-
     components.projectDirectory = projectPath;
-    const sourceTracking = await SourceTrackingService.createSourceTracking(
-      projectPath,
-      connection
-    );
-    await sourceTracking.ensureLocalTracking();
+    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    if (sourceTrackingEnabled) {
+      const sourceTracking = await SourceTrackingService.getSourceTracking(
+        projectPath,
+        connection
+      );
+      await sourceTracking.ensureLocalTracking();
+    }
 
     const operation = await components.deploy({
       usernameOrConnection: connection
@@ -136,8 +146,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     try {
       if (result) {
-        BaseDeployExecutor.errorCollection.clear();
-
         // Update Persistent Storage for the files that were deployed
         PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
           result
@@ -149,12 +157,25 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
         const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
-          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
+          this.unsuccessfulOperationHandler(
+            result,
+            DeployRetrieveExecutor.errorCollection
+          );
+        } else {
+          DeployRetrieveExecutor.errorCollection.clear();
+          SfdxCommandletExecutor.errorCollection.clear();
         }
       }
     } finally {
       await DeployQueue.get().unlock();
     }
+  }
+
+  protected unsuccessfulOperationHandler(
+    result: DeployResult,
+    errorCollection: any
+  ) {
+    handleDeployDiagnostics(result, errorCollection);
   }
 
   private createOutput(
@@ -206,16 +227,24 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+  private sourceTracking?: SourceTrackingType;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const sourceTracking = await SourceTrackingService.createSourceTracking(
-      projectPath,
-      connection
-    );
+    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    if (sourceTrackingEnabled) {
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+      if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+        this.sourceTracking = await SourceTrackingService.getSourceTracking(
+          projectPath,
+          connection
+        );
+      }
+    }
 
     const defaultOutput = join(
       projectPath,
@@ -232,10 +261,18 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     this.setupCancellation(operation, token);
 
     const result: RetrieveResult = await operation.pollStatus();
-    await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-      sourceTracking,
-      result
-    );
+    if (sourceTrackingEnabled) {
+      const status = result?.response?.status;
+      if (
+        (status === 'Succeeded' || status === 'SucceededPartial') &&
+        this.sourceTracking
+      ) {
+        await SourceTrackingService.updateSourceTrackingAfterRetrieve(
+          this.sourceTracking,
+          result
+        );
+      }
+    }
 
     return result;
   }
@@ -244,6 +281,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     result: RetrieveResult | undefined
   ): Promise<void> {
     if (result) {
+      DeployRetrieveExecutor.errorCollection.clear();
+      SfdxCommandletExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);

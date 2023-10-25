@@ -30,7 +30,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 1. Connect to the org that you added the custom object to in VS Code.
 2. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette to get completion suggestions for your SObjects related code.
 3. Scroll down to Custom Object in the Org Browser and locate the `Book_c` object. Click the retrieve icon to run `SFDX: Retrieve Source from Org`.
-4. From the command palette run `SFDX:Create Apex Class` and create a class called `MyHelloWorld`. 
+4. From the Command Palette run `SFDX:Create Apex Class` and create a class called `MyHelloWorld`. 
 5. Add a method called `applyDiscount` to this class. 
    
 We’ll make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method—you can just use the name of the class followed by a dot (.) and the name of the method.
@@ -53,7 +53,7 @@ Next we’ll add a trigger that calls this `applyDiscount` method.
 
 ### Add an Apex Trigger
 An Apex trigger is a piece of code that executes before or after records of a particular type are inserted, updated, or deleted from the Lightning Platform database. Every trigger runs with a set of context variables that provide access to the records that caused the trigger to fire.
-1. From the command palette run SFDX:Create Apex Trigger and create a new class called HelloWorldTrigger. 
+1. From the Command Palette run SFDX:Create Apex Trigger and create a new class called HelloWorldTrigger. 
 2. Update the default template to this trigger definition:
 
 ```
@@ -71,7 +71,7 @@ Now we'll add a test class with one test method. We’ll also run the test and v
 For our example, we’ll create a test class that inserts a new book object which sets off the Apex trigger we wrote earlier. 
 To create the test class:
 
-1. From the command palette run SFDX:Create Apex Class and create a class called HelloWorldTestClass. 
+1. From the Command Palette run SFDX:Create Apex Class and create a class called HelloWorldTestClass. 
 2. Paste the following code in the HelloworldTestClass.cls file:
 
 ```
@@ -103,6 +103,6 @@ With your code deployed in the org, you’re ready to use the Apex Replay Debugg
  The log file opens.
 2. Open the `HelloWorldTestClass.cls` file and set a breakpoint on Decimal `b_price = b.Price__c;`.
 3. Set another breakpoint on `Book__c[] books = Trigger.new;` in the `HelloWorldTrigger.trigger` file. 
-4. Open `HelloWorldTestClass.cls` file and run `SFDX: Launch Apex Replay Debugger with Current File` from the command palette to generate and load the debug log file and launch the replay debugger.
+4. Open `HelloWorldTestClass.cls` file and run `SFDX: Launch Apex Replay Debugger with Current File` from the Command Palette to generate and load the debug log file and launch the replay debugger.
 5. Step through the code and check variable values.
 6. Your debugging session automatically ends when the test is complete.

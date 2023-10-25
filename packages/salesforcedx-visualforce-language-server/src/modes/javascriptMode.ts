@@ -263,17 +263,21 @@ export function getJavascriptMode(
       position: Position
     ): DocumentHighlight[] {
       updateCurrentTextDocument(document);
-      const occurrences = jsLanguageService.getOccurrencesAtPosition(
+      const highlights = jsLanguageService.getDocumentHighlights(
         FILE_NAME,
-        currentTextDocument.offsetAt(position)
+        currentTextDocument.offsetAt(position),
+        [document.uri]
       );
-      if (occurrences) {
-        return occurrences.map(entry => {
+
+      if (highlights.length > 0) {
+        // Only one file to search above so there should only be one result
+        return highlights[0].highlightSpans.map(entry => {
           return {
             range: convertRange(currentTextDocument, entry.textSpan),
-            kind: (entry.isWriteAccess
-              ? DocumentHighlightKind.Write
-              : DocumentHighlightKind.Text) as DocumentHighlightKind
+            kind:
+              entry.kind === 'writtenReference'
+                ? DocumentHighlightKind.Write
+                : DocumentHighlightKind.Text
           };
         });
       }

@@ -10,9 +10,9 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
-import childProcess = require('child_process');
 
 describe('Debugger session service', () => {
   let service: SessionService;
@@ -45,7 +45,7 @@ describe('Debugger session service', () => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       sandboxStub = createSandbox();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sandboxStub.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sandboxStub.spy(
         SfdxCommandBuilder.prototype,
@@ -59,7 +59,7 @@ describe('Debugger session service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       sandboxStub.restore();
     });
 
@@ -84,10 +84,10 @@ describe('Debugger session service', () => {
         .start();
 
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:create'
+        'data:create:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerSession'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
@@ -95,7 +95,7 @@ describe('Debugger session service', () => {
         "UserIdFilter='user' EntryPointFilter='entry' RequestTypeFilter='request'"
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
@@ -167,7 +167,7 @@ describe('Debugger session service', () => {
       sandboxStub = createSandbox();
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sandboxStub.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sandboxStub.spy(
         SfdxCommandBuilder.prototype,
@@ -181,7 +181,7 @@ describe('Debugger session service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       sandboxStub.restore();
     });
 
@@ -201,15 +201,15 @@ describe('Debugger session service', () => {
 
       expect(cmdWithArgSpy.calledTwice).to.equal(true);
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:update'
+        'data:update:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerSession'
       ]);
-      /* TODO: this is throwing an undefined on --sobjectid
+      /* TODO: this is throwing an undefined on --record-id
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-        '--sobjectid',
+        '--record-id',
         '07aFAKE'
       ]); */
       expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
@@ -217,7 +217,7 @@ describe('Debugger session service', () => {
         "Status='Detach'"
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);

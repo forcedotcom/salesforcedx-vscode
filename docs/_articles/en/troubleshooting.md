@@ -7,7 +7,7 @@ Here’s some information on how to get past roadblocks that you might encounter
 
 ## SFDX Commands Aren’t Available
 
-If you don’t see any SFDX commands in the command palette, make sure that you’re working on a Salesforce DX project and that you have the latest version of Salesforce CLI.
+If you don’t see any SFDX commands in the Command Palette, make sure that you’re working on a Salesforce DX project and that you have the latest version of Salesforce CLI.
 
 1. Make sure that the root directory you have open in VS Code contains an `sfdx-project.json` file. If you haven’t set up a Salesforce DX project, check out [Project Setup](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
 2. [Update Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_update_cli.htm), as described in the _Salesforce DX Setup Guide_.
@@ -46,7 +46,7 @@ If the Apex Language Server didn’t activate, ensure that you've:
 
 1. Opened a Salesforce DX project that has a valid `sfdx-project.json` file.
 1. Opened the Salesforce DX project as a top-level folder.
-1. Installed Java 8, Java 11, or Java 17; you’ll see a warning if neither version is installed.
+1. Installed Java 11 or Java 17; you’ll see a warning if neither version is installed.
 
 If you’ve checked all of the above and nothing is working, check for errors in VS Code itself. In the VS Code menu bar, select **Help** > **Toggle Developer Tools**, click **Console**, and search for relevant messages.
 

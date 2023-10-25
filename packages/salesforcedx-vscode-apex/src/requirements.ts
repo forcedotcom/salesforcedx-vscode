@@ -9,11 +9,11 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
-import path = require('path');
-import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
@@ -70,7 +70,7 @@ function checkJavaRuntime(): Promise<string> {
           nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
         );
       }
-      if (!pathExists.sync(javaHome)) {
+      if (!fs.existsSync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
         );
@@ -108,7 +108,6 @@ export function checkJavaVersion(javaHome: string): Promise<boolean> {
       {},
       (error, stdout, stderr) => {
         if (
-          stderr.indexOf('build 1.8') < 0 &&
           stderr.indexOf('build 11.') < 0 &&
           stderr.indexOf('build 17.') < 0
         ) {

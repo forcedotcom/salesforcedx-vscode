@@ -8,7 +8,8 @@
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/lib/main';
+import { ApexLanguageClient } from './apexLanguageClient';
+import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
   forceAnonApexDebug,
@@ -26,8 +27,10 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
+import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
+import * as languageServer from './languageServer';
+import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -35,14 +38,14 @@ import {
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   languageClientUtils
-} from './languageClientUtils';
-import * as languageServer from './languageServer';
+} from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-let languageClient: LanguageClient | undefined;
+let languageClient: ApexLanguageClient | undefined;
+const languageServerStatusBarItem = new ApexLSPStatusBarItem();
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
@@ -73,53 +76,10 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await workspaceContext.initialize(extensionContext);
 
   // Telemetry
-  const extensionPackage = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    APEX_EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
-  );
+  await telemetryService.initializeService(extensionContext);
 
-  // Initialize Apex language server
-  try {
-    const langClientHRStart = process.hrtime();
-    languageClient = await languageServer.createLanguageServer(
-      extensionContext
-    );
-    languageClientUtils.setClientInstance(languageClient);
-    const handle = languageClient.start();
-    languageClientUtils.setStatus(ClientStatus.Indexing, '');
-    extensionContext.subscriptions.push(handle);
-
-    languageClient
-      .onReady()
-      .then(async () => {
-        if (languageClient) {
-          languageClient.onNotification('indexer/done', async () => {
-            await getTestOutlineProvider().refresh();
-          });
-        }
-        // TODO: This currently keeps existing behavior in which we set the language
-        // server to ready before it finishes indexing. We'll evaluate this in the future.
-        languageClientUtils.setStatus(ClientStatus.Ready, '');
-        const startTime = telemetryService.getEndHRTime(langClientHRStart);
-        telemetryService.sendEventData('apexLSPStartup', undefined, {
-          activationTime: startTime
-        });
-      })
-      .catch(err => {
-        // Handled by clients
-        telemetryService.sendException(LSP_ERR, err.message);
-        languageClientUtils.setStatus(
-          ClientStatus.Error,
-          nls.localize('apex_language_server_failed_activate')
-        );
-      });
-  } catch (e) {
-    console.error('Apex language server failed to initialize');
-    languageClientUtils.setStatus(ClientStatus.Error, e);
-  }
+  // start the language server and client
+  await createLanguageClient(extensionContext);
 
   // Javadoc support
   enableJavaDocSymbols();
@@ -321,4 +281,67 @@ async function registerTestView(): Promise<vscode.Disposable> {
 
 export async function deactivate() {
   telemetryService.sendExtensionDeactivationEvent();
+}
+
+async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
+  // Initialize Apex language server
+  try {
+    const langClientHRStart = process.hrtime();
+    languageClient = await languageServer.createLanguageServer(
+      extensionContext
+    );
+
+    if (languageClient) {
+      languageClient.onNotification('indexer/done', async () => {
+        await getTestOutlineProvider().refresh();
+        languageServerReady();
+      });
+      languageClient.errorHandler?.addListener('error', message => {
+        languageServerStatusBarItem.error(message);
+      });
+      languageClient.errorHandler?.addListener('restarting', count => {
+        languageServerStatusBarItem.error(
+          nls
+            .localize('apex_language_server_quit_and_restarting')
+            .replace('$N', count)
+        );
+      });
+      languageClient.errorHandler?.addListener('startFailed', count => {
+        languageServerStatusBarItem.error(
+          nls.localize('apex_language_server_failed_activate')
+        );
+      });
+    }
+
+    languageClientUtils.setClientInstance(languageClient);
+
+    void lsoh.resolveAnyFoundOrphanLanguageServers();
+
+    await languageClient!.start();
+
+    const startTime = telemetryService.getEndHRTime(langClientHRStart);
+    telemetryService.sendEventData('apexLSPStartup', undefined, {
+      activationTime: startTime
+    });
+    languageClientUtils.setStatus(ClientStatus.Indexing, '');
+    extensionContext.subscriptions.push(languageClient);
+  } catch (e) {
+    languageClientUtils.setStatus(ClientStatus.Error, e);
+    let eMsg =
+      typeof e === 'string' ? e : e.message ?? nls.localize('unknown_error');
+    if (
+      eMsg.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
+    ) {
+      eMsg = nls.localize('wrong_java_version_short');
+    }
+    languageServerStatusBarItem.error(
+      `${nls.localize('apex_language_server_failed_activate')} - ${eMsg}`
+    );
+  }
+}
+
+export function languageServerReady() {
+  languageServerStatusBarItem.ready();
+  languageClientUtils.setStatus(ClientStatus.Ready, '');
+  languageClient?.errorHandler?.serviceHasStartedSuccessfully();
 }
