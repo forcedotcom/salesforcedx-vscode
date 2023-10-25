@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- We're now using `Node.js` version 18. ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
+- We made some changes under the hood. ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
 
 
 # 59.1.2 - October 19, 2023
