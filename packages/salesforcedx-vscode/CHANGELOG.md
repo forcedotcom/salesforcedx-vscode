@@ -3,22 +3,14 @@
 ## Added
 
 #### salesforcedx-utils
-
-- Add detection of orphaned apex ls at startup ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
-
 #### salesforcedx-vscode-apex
 
-- Add detection of orphaned apex ls at startup ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
+- Our Apex extension can now detect orphaned language servers at startup. You can view the processes in the Output channel and then do as you please with them. Terminate them, or ignore them. The choice is yours. Remember this though --with great power comes great responsibility. ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
 
 #### salesforcedx-vscode-core
 
-- Upgrade to node18 ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
+- We're now using `Node.js` version 18. ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
 
-## Fixed
-
-#### docs
-
-- Gov cloud update ([PR #5177](https://github.com/forcedotcom/salesforcedx-vscode/pull/5177))
 
 # 59.1.2 - October 19, 2023
 
