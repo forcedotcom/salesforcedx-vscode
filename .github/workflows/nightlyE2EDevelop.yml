@@ -12,6 +12,11 @@ on:
         type: string
         required: false
         default: 'VS Code Extensions'
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
 jobs:
   build-all:
     uses: ./.github/workflows/buildAll.yml
@@ -24,3 +29,4 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       runId: ${{ github.run_id }}
+      automationBranch: ${{ inputs.automationBranch }}
