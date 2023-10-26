@@ -12,6 +12,7 @@ import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import { API } from './constants';
+import { enableSyncInitJobs } from './settings';
 
 import {
   forceAnonApexDebug,
@@ -317,11 +318,12 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 
     await languageClient!.start();
     // Client is running
-
+    const startTime = telemetryService.getEndHRTime(langClientHRStart); // Record the end time
     // Listener is useful only in async mode
-    if (!languageServer.enableSyncInitJobs) {
+    if (!enableSyncInitJobs) {
       // The listener should be set after languageClient is ready
       // Language client will get notified once async init jobs are done
+      languageClientUtils.setStatus(ClientStatus.Indexing, '');
       languageClient.onNotification(API.doneIndexing, async () => {
         await getTestOutlineProvider().refresh();
         languageServerReady();
@@ -331,12 +333,9 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
       await getTestOutlineProvider().refresh();
       languageServerReady();
     }
-
-    const startTime = telemetryService.getEndHRTime(langClientHRStart);
     telemetryService.sendEventData('apexLSPStartup', undefined, {
       activationTime: startTime
     });
-    languageClientUtils.setStatus(ClientStatus.Indexing, '');
     extensionContext.subscriptions.push(languageClient);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);

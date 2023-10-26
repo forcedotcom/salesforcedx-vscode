@@ -14,6 +14,7 @@ import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
+import { enableSyncInitJobs } from './settings';
 import { telemetryService } from './telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -181,7 +182,3 @@ function isSOQLExtensionInstalled() {
   const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
   return soqlExtension !== undefined;
 }
-
-export const enableSyncInitJobs: boolean = vscode.workspace
-    .getConfiguration()
-    .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);

@@ -13,3 +13,7 @@ export function retrieveTestCodeCoverage(): boolean {
     .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
     .get<boolean>('retrieve-test-code-coverage', false);
 }
+
+export const enableSyncInitJobs: boolean = vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
