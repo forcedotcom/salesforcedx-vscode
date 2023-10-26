@@ -8,11 +8,12 @@
 import {
   extractJsonObject,
   ForceConfigGet,
-  ForceOrgDisplay,
+  OrgDisplay,
   RequestService,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
+import * as os from 'os';
 import { basename } from 'path';
 import {
   DebugSession,
@@ -82,7 +83,6 @@ import {
   WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
-import os = require('os');
 
 // Below import has to be required for bundling
 /* tslint:disable */
@@ -682,9 +682,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new ForceOrgDisplay().getOrgInfo(
-          args.sfdxProject
-        );
+        const orgInfo = await new OrgDisplay().getOrgInfo(args.sfdxProject);
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }

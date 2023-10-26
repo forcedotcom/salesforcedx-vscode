@@ -10,13 +10,13 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import * as sinon from 'sinon';
 import {
   ApexBreakpointLocation,
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
-import childProcess = require('child_process');
 
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;
@@ -155,7 +155,7 @@ describe('Debugger breakpoint service', () => {
       service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
       cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
@@ -163,7 +163,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
       cmdWithJsonSpy.restore();
@@ -182,10 +182,10 @@ describe('Debugger breakpoint service', () => {
 
       expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:create'
+        'data:create:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerBreakpoint'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
@@ -193,7 +193,7 @@ describe('Debugger breakpoint service', () => {
         "SessionId='07aFAKE' FileName='foo$inner' Line=1 IsEnabled='true' Type='Line'"
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
@@ -268,7 +268,7 @@ describe('Debugger breakpoint service', () => {
       service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
       cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
@@ -276,7 +276,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
       cmdWithJsonSpy.restore();
@@ -294,10 +294,10 @@ describe('Debugger breakpoint service', () => {
 
       expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:create'
+        'data:create:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerBreakpoint'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
@@ -305,7 +305,7 @@ describe('Debugger breakpoint service', () => {
         "SessionId='07aFAKE' FileName='fooexception' IsEnabled='true' Type='Exception'"
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
@@ -324,7 +324,7 @@ describe('Debugger breakpoint service', () => {
       service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
       cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
@@ -332,7 +332,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
       cmdWithJsonSpy.restore();
@@ -349,18 +349,18 @@ describe('Debugger breakpoint service', () => {
 
       expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-        'force:data:record:delete'
+        'data:delete:record'
       ]);
       expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-        '--sobjecttype',
+        '--sobject',
         'ApexDebuggerBreakpoint'
       ]);
       expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-        '--sobjectid',
+        '--record-id',
         '07bFAKE'
       ]);
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
-        '--usetoolingapi'
+        '--use-tooling-api'
       ]);
       expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);

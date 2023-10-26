@@ -1,3 +1,117 @@
+# 59.2.0 - October 27, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Our Apex extension can now detect orphaned language servers at startup. You can view the processes in the Output channel and then do as you please with them. Terminate them, or ignore them. The choice is yours. Remember this though --with great power comes great responsibility. ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
+
+
+# 59.1.2 - October 19, 2023
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- We added `Asset` and `Domain` objects to the current list of standard objects. ([PR #5125](https://github.com/forcedotcom/salesforcedx-vscode/pull/5125))
+
+#### salesforcedx-vscode-apex
+
+- We released a new version of the Apex Language Server. ([PR #5152](https://github.com/forcedotcom/salesforcedx-vscode/pull/5152))
+
+#### salesforcedx-vscode-core
+
+- We added a missing label. ([PR #5162](https://github.com/forcedotcom/salesforcedx-vscode/pull/5162))
+
+- We upgraded the VS Code language client to version 9. ([PR #5127](https://github.com/forcedotcom/salesforcedx-vscode/pull/5127))
+
+#### salesforcedx-vscode-lightning
+
+- We changed the scope name of `html` grammar in the Aura extension so that `php` and `html` code is correctly parsed and highlighted. ([PR #5159](https://github.com/forcedotcom/salesforcedx-vscode/pull/5159))
+
+# 59.0.0 - October 11, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We updated the `SFDX: List All Aliases` command to the new `sf style` and got rid of more of those pesky warnings. You're welcome. ([PR #5112](https://github.com/forcedotcom/salesforcedx-vscode/pull/5112))
+
+# 58.16.0 - October 4, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We fixed an Apex snippet and added some cool new ones. Thank you [Vishal Skywalker](https://github.com/Vishal-skywalker) for your contribution. It is greatly appreciated. ([PR #5108](https://github.com/forcedotcom/salesforcedx-vscode/pull/5108))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made an update to the STL implementation so that Deploy and Retrieve operations are now faster. ([PR #5115](https://github.com/forcedotcom/salesforcedx-vscode/pull/5115), [ISSUE #4865](https://github.com/forcedotcom/salesforcedx-vscode/issues/4865))
+- We migrated breakpoints and debugging commands and flags to the new `sf-style`. We also migrated org display commands and flags to `sf-style`. More reprieve from those annoying warnings! ([PR #5072](https://github.com/forcedotcom/salesforcedx-vscode/pull/5072), [PR #5111](https://github.com/forcedotcom/salesforcedx-vscode/pull/5111))
+
+#### forcedotcom/lightning-language-server
+
+- We fixed the LWC Language Server so that it no longer crashes on startup. Thank you [divmain](https://github.com/divmain) for your contribution. ([PR #578](https://github.com/forcedotcom/lightning-language-server/pull/578), [ISSUE #4994](https://github.com/forcedotcom/salesforcedx-vscode/issues/4994))
+
+# 58.15.0 - September 22, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We've formally withdrawn support for Java 8. ([PR #5078](https://github.com/forcedotcom/salesforcedx-vscode/pull/5078))
+
+#### salesforcedx-vscode-core
+
+- We migrated some commands that used `sfdx-style` to the new `sf-style`. You should now get some reprieve from those annoying warnings! ([PR #5071](https://github.com/forcedotcom/salesforcedx-vscode/pull/5071), [PR #5060](https://github.com/forcedotcom/salesforcedx-vscode/pull/5060), [PR #5061](https://github.com/forcedotcom/salesforcedx-vscode/pull/5061), [PR #5059](https://github.com/forcedotcom/salesforcedx-vscode/pull/5059), [PR #5058](https://github.com/forcedotcom/salesforcedx-vscode/pull/5058))
+
+# 58.14.2 - September 8, 2023
+
+## Added
+
+- We released a brand new [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension 🎉 🎉! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor.
+
+#### docs
+
+- We added documentation for Einstein for Developers (Beta) ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
+
+# 58.14.1 - September 1, 2023
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made improvements to the `SFDX: Create and Set Up Project for ISV Debugging` command by greatly reducing the number of steps involved in the retrieval of metadata and packages. We recommend that you use `sfdx-cli v7.192.2` or above to run this command successfully. We hope you find this update helpful. Thank you [Jelle van Geuns](https://github.com/jvg123) for opening the issue. Happy debugging! ([PR #5038](https://github.com/forcedotcom/salesforcedx-vscode/pull/5038), [ISSUE #5032](https://github.com/forcedotcom/salesforcedx-vscode/issues/5032))
+- We made some changes that prevent the output panel from opening when the `SFDX: Refresh SObject Definitions` command is run in container mode. ([PR #5042](https://github.com/forcedotcom/salesforcedx-vscode/pull/5042))
+
+#### docs
+
+- We added a new Apex Language Server topic to documentation. The topic highlights the new Apex LSP status bar feature. ([PR #5044](https://github.com/forcedotcom/salesforcedx-vscode/pull/5044))
+
+# 58.13.1 - August 25, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We added a brand spanking new icon to the status bar that displays the status of the Apex Language Server. Now you always know where you stand with the Apex LSP. :star2: :white_check_mark: 🎉. ([PR #4991](https://github.com/forcedotcom/salesforcedx-vscode/pull/4991))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+#### salesforcedx-vscode-apex
+
+- We made performance improvements to the Apex Language Server, so you should see faster startup times after the initial activation. The Language Server now only indexes changed files in your workspace. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956))
+- We fixed an issue where `Go To Definition` was throwing an error for built-in Apex classes. ([PR #4956](https://github.com/forcedotcom/salesforcedx-vscode/pull/4956), [ISSUE #4762](https://github.com/forcedotcom/salesforcedx-vscode/issues/4762))
+
 # 58.11.0 - August 17, 2023
 
 ## Added
@@ -45,7 +159,9 @@
 ## Added
 
 #### salesforcedx-apex-debugger
+
 #### salesforcedx-utils
+
 #### salesforcedx-utils-vscode
 
 - We updated environment variables for the Apex Interactive Debugger to reflect the new SF CLI style. ([PR #4980](https://github.com/forcedotcom/salesforcedx-vscode/pull/4980))
@@ -89,7 +205,6 @@
 #### salesforcedx-vscode-apex
 
 - We made updated dependencies in the Apex LSP and made some changes under the hood to enhance the debugging experience. ([PR #4950](https://github.com/forcedotcom/salesforcedx-vscode/pull/4950))
-
 
 #### salesforcedx-vscode-core
 

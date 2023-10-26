@@ -7,7 +7,7 @@
   "run_single_test_title": "Run Single Test",
   "show_error_title": "Display Error",
   "go_to_definition_title": "Go to Definition",
-  "java_home_description": "Specifies the folder path to the Java 8, Java 11, or Java 17 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home).",
+  "java_home_description": "Specifies the folder path to the Java 11 or Java 17 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home).",
   "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB, or null to use the system default value.",
   "apex_semantic_errors_description": "Allow Apex Language Server to surface semantic errors",
   "force_anon_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",

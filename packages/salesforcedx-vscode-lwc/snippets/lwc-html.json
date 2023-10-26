@@ -53,7 +53,7 @@
       "  enabled-icon-src=\"${3:enabledSrc}\"",
       "  enabled-alternative-text=\"${4:enabled state description}\"",
       "  disabled-icon-src=\"${5:disabledSrc}\"",
-      "  disabled-alternative-text=\"${6:disabed state description}\"",
+      "  disabled-alternative-text=\"${6:disabled state description}\"",
       "  icon-size=\"medium\"",
       "  scanner-options={${7:barcodeScannerConfig}}",
       "></lightning-barcode-scanner>"
@@ -1647,11 +1647,11 @@
   },
   "lwc-spinner-conditional": {
     "body": [
-      "<template if:true={${1:loaded}}>",
+      "<template lwc:if={${1:loaded}}>",
       "  <!-- place loaded content here -->",
       "  $0",
       "</template>",
-      "<template if:false={${1}}>",
+      "<template lwc:elseif={${1}}>",
       "  <lightning-spinner ",
       "    alternative-text=\"${2:Loading}\" ",
       "    size=\"${3|xx-small,x-small,small,medium,large|}\"",

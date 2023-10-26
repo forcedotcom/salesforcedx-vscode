@@ -9,12 +9,13 @@
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ForceConfigGet,
-  ForceOrgDisplay,
+  OrgDisplay,
   OrgInfo,
   RequestService
 } from '@salesforce/salesforcedx-utils';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
+import * as os from 'os';
 import * as sinon from 'sinon';
 import {
   OutputEvent,
@@ -78,7 +79,6 @@ import {
   DummyContainer,
   newStringValue
 } from './apexDebugVariablesHandling.test';
-import os = require('os');
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
@@ -174,7 +174,7 @@ describe('Interactive debugger adapter - unit', () => {
         'resetIdleTimer'
       );
       orgInfoSpy = sinon
-        .stub(ForceOrgDisplay.prototype, 'getOrgInfo')
+        .stub(OrgDisplay.prototype, 'getOrgInfo')
         .returns({} as OrgInfo);
       configGetSpy = sinon
         .stub(ForceConfigGet.prototype, 'getConfig')
@@ -529,7 +529,7 @@ describe('Interactive debugger adapter - unit', () => {
     beforeEach(() => {
       requestService = new RequestService();
       adapter = new ApexDebugForTest(requestService);
-      orgInfoSpy = sinon.stub(ForceOrgDisplay.prototype, 'getOrgInfo').returns({
+      orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({
         instanceUrl: 'https://na15.salesforce.com',
         accessToken: '00DxxFaK3T0ken'
       } as OrgInfo);
@@ -615,7 +615,7 @@ describe('Interactive debugger adapter - unit', () => {
         initializedResponse,
         {} as DebugProtocol.InitializeRequestArguments
       );
-      orgInfoSpy = sinon.stub(ForceOrgDisplay.prototype, 'getOrgInfo').returns({
+      orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({
         instanceUrl: 'https://na15.salesforce.com',
         accessToken: '00DxxFaK3T0ken'
       } as OrgInfo);

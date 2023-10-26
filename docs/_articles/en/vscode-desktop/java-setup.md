@@ -3,13 +3,13 @@ title: Java Setup
 lang: en
 ---
 
-The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code, depends on the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 17 (Recommended), JDK version 11, or JDK version 8. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension can't find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
+The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code, depends on the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 17 (Recommended), or JDK version 11. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension can't find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 2. Search for `apex`.
 3. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. Note that this pathname can't point to a location inside your project folder.
 
-![Apex Java Setting](../../../images/apex-java-home-setting.png)
+![Apex Java Setting](./images/apex-java-home-setting.png)
 
 Below you'll find instructions on how to download and configure different versions of Java.
 
@@ -118,28 +118,6 @@ Windows:
 ```json
 {
   "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk17.0.2"
-}
-```
-
-## Oracle Java 8 (Legacy)
-
-If you are still running Java 8 the values for `salesforcedx-vscode-apex.java.home` are as follows.
-
-MacOS:
-
-For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
-
-```json
-{
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home"
-}
-```
-
-Windows:
-
-```json
-{
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk1.8.0_131"
 }
 ```
 

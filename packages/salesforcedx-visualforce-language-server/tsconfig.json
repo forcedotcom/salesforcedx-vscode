@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "moduleResolution": "node",
     "rootDir": ".",
     "outDir": "out",
     "strict": false,
