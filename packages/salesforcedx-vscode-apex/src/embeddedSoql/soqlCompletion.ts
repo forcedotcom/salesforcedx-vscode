@@ -14,8 +14,9 @@ import {
   Uri,
   workspace
 } from 'vscode';
-import { Middleware } from 'vscode-languageclient';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+
+import { Middleware } from 'vscode-languageclient/node';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
@@ -83,6 +84,7 @@ function getSOQLVirtualContent(
 }
 
 export const soqlMiddleware: Middleware = {
+  // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);
     if (!apexCompletionItems) {

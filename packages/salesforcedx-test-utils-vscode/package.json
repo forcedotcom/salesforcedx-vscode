@@ -2,21 +2,21 @@
   "name": "@salesforce/salesforcedx-test-utils-vscode",
   "displayName": "SFDX Test Utilities for VS Code",
   "description": "Provides test utilities to interface the SFDX libraries with VS Code",
-  "version": "59.1.2",
+  "version": "59.2.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "59.1.2",
+    "@salesforce/salesforcedx-utils-vscode": "59.2.0",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
     "@types/mocha": "^2.2.38",
-    "@types/node": "12.0.12",
+    "@types/node": "^18.11.9",
     "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.7",
     "chai": "^4.0.2",
@@ -30,7 +30,7 @@
     "request-light": "^0.7.0",
     "sinon": "^13.0.1",
     "source-map-support": "^0.4.15",
-    "typescript": "^4.7.4"
+    "typescript": "^5.2.2"
   },
   "engines": {
     "vscode": "^1.61.2"

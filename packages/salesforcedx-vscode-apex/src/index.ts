@@ -29,8 +29,10 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { LSP_ERR, SET_JAVA_DOC_LINK } from './constants';
+import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
+import * as languageServer from './languageServer';
+import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -38,8 +40,7 @@ import {
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   languageClientUtils
-} from './languageClientUtils';
-import * as languageServer from './languageServer';
+} from './languageUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
@@ -311,6 +312,9 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     }
 
     languageClientUtils.setClientInstance(languageClient);
+
+    void lsoh.resolveAnyFoundOrphanLanguageServers();
+
     await languageClient!.start();
     // Client is running
 
