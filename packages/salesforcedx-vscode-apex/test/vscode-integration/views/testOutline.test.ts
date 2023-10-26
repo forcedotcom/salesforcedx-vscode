@@ -21,7 +21,7 @@ import {
 import {
   ClientStatus,
   LanguageClientUtils
-} from '../../../src/languageClientUtils/languageClientUtils';
+} from '../../../src/languageUtils/languageClientUtils';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
 import { forceApexTestRunCacheService } from '../../../src/testRunCache';

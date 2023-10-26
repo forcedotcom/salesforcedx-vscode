@@ -74,3 +74,39 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'visualforceLsp.e2e.ts'
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'

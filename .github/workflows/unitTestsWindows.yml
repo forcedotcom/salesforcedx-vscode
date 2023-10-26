@@ -10,10 +10,6 @@ env:
 
 jobs:
   windows-unit-tests:
-    strategy:
-      matrix:
-        node_version: [lts/*]
-      fail-fast: false
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
@@ -23,7 +19,7 @@ jobs:
           ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - run: npm ci
