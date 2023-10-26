@@ -166,7 +166,18 @@ describe('SfdxCommandlet', () => {
         }
       })(),
       new (class implements CommandletExecutor<{}> {
-        public execute(response: ContinueResponse<{}>): void {}
+        protected showChannelOutput = true;
+
+        public execute(response: ContinueResponse<{}>): void {
+          const success = true;
+          if (
+            this.showChannelOutput &&
+            (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation() ||
+              !success)
+          ) {
+            channelService.showChannelOutput();
+          }
+        }
       })()
     );
     await commandlet.run();
@@ -174,7 +185,7 @@ describe('SfdxCommandlet', () => {
     expect(showChannelOutputStub.called).to.be.true;
   });
 
-  it('Should suppress message if user preference is set to true', async () => {
+  it('Should suppress message if user preference is set to true on success deploy', async () => {
     sandbox
       .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
       .returns(true);
@@ -200,5 +211,44 @@ describe('SfdxCommandlet', () => {
     await commandlet.run();
     // tslint:disable-next-line:no-unused-expression
     expect(showChannelOutputStub.called).to.be.false;
+  });
+
+  it('Should suppress message if user preference is set to true on failure deploy', async () => {
+    sandbox
+      .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
+      .returns(true);
+    const showChannelOutputStub = sandbox.stub(
+      channelService,
+      'showChannelOutput'
+    );
+    const commandlet = new SfdxCommandlet(
+      new (class {
+        public check(): boolean {
+          return true;
+        }
+      })(),
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      })(),
+      new (class implements CommandletExecutor<{}> {
+        protected showChannelOutput = true;
+
+        public execute(response: ContinueResponse<{}>): void {
+          const success = false;
+          if (
+            this.showChannelOutput &&
+            (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation() ||
+              !success)
+          ) {
+            channelService.showChannelOutput();
+          }
+        }
+      })()
+    );
+    await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
+    expect(showChannelOutputStub.called).to.be.true;
   });
 });
