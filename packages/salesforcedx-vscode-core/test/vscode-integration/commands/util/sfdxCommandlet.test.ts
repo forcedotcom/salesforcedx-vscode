@@ -113,12 +113,15 @@ describe('SfdxCommandlet', () => {
         }
       })(),
       new (class implements CommandletExecutor<{}> {
-        public execute(response: ContinueResponse<{}>): void {}
+        public execute(response: ContinueResponse<{}>): void {
+          if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+            channelService.clear();
+          }
+        }
       })()
     );
     await commandlet.run();
-    // tslint:disable-next-line:no-unused-expression
-    expect(clearStub.called).to.be.false;
+    expect(clearStub.called).to.be.true;
   });
 
   it('Should not clear channel if user preference is set to false', async () => {
@@ -138,11 +141,14 @@ describe('SfdxCommandlet', () => {
         }
       })(),
       new (class implements CommandletExecutor<{}> {
-        public execute(response: ContinueResponse<{}>): void {}
+        public execute(response: ContinueResponse<{}>): void {
+          if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+            channelService.clear();
+          }
+        }
       })()
     );
     await commandlet.run();
-    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
 
