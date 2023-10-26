@@ -115,7 +115,7 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setUpOrgExpirationWatcher, showCLINotInstalledMessage } from './util';
+import { isCLIInstalled, setUpOrgExpirationWatcher, showCLINotInstalledMessage, showCLINotSupportedMessage } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
@@ -557,11 +557,19 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
 
   // Check that the CLI is installed and that it is a supported version
+  // If there is no CLI or it is an unsupported version then the Core extension will not activate
   const installed = await isCLIInstalled();
   if (!installed) {
     showCLINotInstalledMessage();
   }
-  await new CheckCliVersion().validateCliVersion();
+  const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion();
+  if (cliVersionCheckResult === 'cliNotSupported') {
+    showCLINotSupportedMessage();
+    throw new Error();
+  } else if (cliVersionCheckResult === 'cliNotInstalled') {
+    showCLINotInstalledMessage();
+    throw new Error();
+  }
 
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);

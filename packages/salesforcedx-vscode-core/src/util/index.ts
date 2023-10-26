@@ -10,7 +10,8 @@ export {
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
-  showCLINotInstalledMessage
+  showCLINotInstalledMessage,
+  showCLINotSupportedMessage
 } from './cliConfiguration';
 export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';

@@ -250,6 +250,8 @@ export const messages = {
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
+  sfdx_cli_not_supported:
+    '!!! Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version using this link: [%s](%s)',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',

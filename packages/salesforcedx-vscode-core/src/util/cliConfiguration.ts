@@ -38,6 +38,15 @@ export function showCLINotInstalledMessage() {
   window.showErrorMessage(showMessage);
 }
 
+export function showCLINotSupportedMessage() {
+  const showMessage = nls.localize(
+    'sfdx_cli_not_supported',
+    SFDX_CLI_DOWNLOAD_LINK,
+    SFDX_CLI_DOWNLOAD_LINK
+  );
+  window.showErrorMessage(showMessage);
+}
+
 export function disableCLITelemetry() {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_SF_DISABLE_TELEMETRY,
