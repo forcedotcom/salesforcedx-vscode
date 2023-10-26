@@ -1,30 +1,8 @@
 name: End to End Tests
 on:
-  workflow_call:
-    inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'develop'
-        type: string
-      apexE2ETests:
-        description: 'Apex E2E Tests'
-        required: false
-        default: true
-        type: boolean
-      coreE2ETests:
-        description: 'Core E2E Tests'
-        required: false
-        default: true
-        type: boolean
-      lspE2ETests:
-        description: 'LSP E2E Tests'
-        required: false
-        default: true
-        type: boolean
-      runId:
-        required: true
-        type: string
+  workflow_run:
+    workflows:
+     - Nightly Build Develop
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -54,25 +32,25 @@ on:
 jobs:
 
   Apex_E2E_tests:
-    if: ${{ inputs.apexE2ETests }}
+    if: ${{ inputs.apexE2ETests || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      runId: ${{ inputs.runId }}
+      automationBranch: ${{ inputs.automationBranch || 'develop' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
 
   Core_E2E_tests:
-    if: ${{ inputs.coreE2ETests }}
+    if: ${{ inputs.coreE2ETests || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      runId: ${{ inputs.runId }}
+      automationBranch: ${{ inputs.automationBranch || 'develop' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
 
   LSP_E2E_tests:
-    if: ${{ inputs.lspE2ETests }}
+    if: ${{ inputs.lspE2ETests || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      runId: ${{ inputs.runId }}
+      automationBranch: ${{ inputs.automationBranch || 'develop' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
