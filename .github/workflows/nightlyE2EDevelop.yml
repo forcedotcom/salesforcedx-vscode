@@ -29,6 +29,7 @@ jobs:
   e2e-tests:
     needs: build-all
     uses: ./.github/workflows/e2e.yml
+    secrets: inherit
     with:
       runId: ${{ github.run_id }}
       automationBranch: ${{ inputs.automationBranch }}
