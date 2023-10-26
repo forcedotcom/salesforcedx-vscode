@@ -25,7 +25,6 @@ export class CheckCliVersion {
     // Save the result of the command
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
-    console.log('**** result = ' + result);
 
     // Parse the result to check if the version is supported
     const sfdxPattern = /sfdx-cli\/(\d+\.\d+\.\d+)/;
