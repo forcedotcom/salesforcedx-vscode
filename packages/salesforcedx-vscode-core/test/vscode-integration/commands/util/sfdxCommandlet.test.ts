@@ -121,6 +121,7 @@ describe('SfdxCommandlet', () => {
       })()
     );
     await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.true;
   });
 
@@ -149,6 +150,7 @@ describe('SfdxCommandlet', () => {
       })()
     );
     await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
 
