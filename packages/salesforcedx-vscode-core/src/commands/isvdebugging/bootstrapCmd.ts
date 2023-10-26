@@ -20,6 +20,7 @@ import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
+import sanitizeFilename from 'sanitize-filename';
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
@@ -39,7 +40,6 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from '../util';
-import sanitizeFilename = require('sanitize-filename');
 // below uses require due to bundling restrictions
 /* tslint:disable */
 const AdmZip = require('adm-zip');

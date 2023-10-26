@@ -19,7 +19,7 @@ import {
   getApexTests,
   LanguageClientStatus,
   languageClientUtils
-} from '../languageClientUtils';
+} from '../languageUtils';
 import { nls } from '../messages';
 import { iconHelpers, IconsEnum } from './icons';
 import { ApexTestMethod } from './lspConverter';

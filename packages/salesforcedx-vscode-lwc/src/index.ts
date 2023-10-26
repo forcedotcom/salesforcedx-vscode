@@ -96,17 +96,12 @@ export async function activate(extensionContext: ExtensionContext) {
   log('WorkspaceType detected: ' + workspaceType);
 
   // Start the LWC Language Server
-  const client = createLanguageClient(
-    extensionContext.asAbsolutePath(
-      path.join(
-        'node_modules',
-        '@salesforce',
-        'lwc-language-server',
-        'lib',
-        'server.js'
-      )
-    )
+  const serverPath = extensionContext.extension.packageJSON.serverPath;
+  const serverModule = extensionContext.asAbsolutePath(
+    path.join(...serverPath)
   );
+  const client = createLanguageClient(serverModule);
+
   extensionContext.subscriptions.push(client.start());
 
   // Creates resources for js-meta.xml to work
