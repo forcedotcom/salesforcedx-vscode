@@ -198,6 +198,11 @@ export class CliCommandExecution implements CommandExecution {
   ) {
     this.command = command;
     this.cancellationToken = cancellationToken;
+
+    if (childProcess.pid === undefined) {
+      // TODO: Gordon should we throw here or what?
+      throw new Error('CLI Command process failed to start');
+    }
     this.childProcessPid = childProcess.pid;
 
     let timerSubscriber: Subscription | null;

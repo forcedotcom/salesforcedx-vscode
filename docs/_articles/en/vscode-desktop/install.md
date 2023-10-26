@@ -2,6 +2,7 @@
 title: Install Salesforce Extensions
 lang: en
 ---
+
 ## Overview
 
 Before you get started, install the required software on your computer.
@@ -12,11 +13,12 @@ Install Visual Studio Code on any computer running macOS, Windows, or Linux. VS 
 
 To install Visual Studio Code visit <https://code.visualstudio.com> and click the big green **Download** button. After the download finishes, open the installer and follow the steps to complete the installation.
 
-## Salesforce Extensions for Visual Studio Code
+## Salesforce Extension Pack
 
 Want to develop locally? Already using VS Code? Install Salesforce Extensions and Salesforce CLI to develop quickly and more productively on Salesforce platform.
 
 <span>Use the links to install VS Code and the Salesforce Extension pack. <span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
+
 ## Salesforce CLI
 
 Salesforce CLI is used to execute commands against Salesforce orgs and work with source files on your local machine. Salesforce Extensions for VS Code uses Salesforce CLI behind the scenes, so even if you don’t want to use the CLI directly you need to install it on your machine.

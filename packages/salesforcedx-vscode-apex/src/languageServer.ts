@@ -7,20 +7,15 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  Executable,
-  LanguageClientOptions,
-  RevealOutputChannelOn
-} from 'vscode-languageclient';
+import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
-import { LSP_ERR } from './constants';
+import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
 
-const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP =
@@ -91,8 +86,7 @@ async function createServer(
 
     return {
       options: {
-        env: process.env,
-        stdio: 'pipe'
+        env: process.env
       },
       command: javaExecutable,
       args

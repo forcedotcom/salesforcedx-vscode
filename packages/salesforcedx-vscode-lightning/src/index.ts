@@ -89,14 +89,9 @@ export async function activate(extensionContext: ExtensionContext) {
   // Start the Aura Language Server
 
   // Setup the language server
+  const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
-    path.join(
-      'node_modules',
-      '@salesforce',
-      'aura-language-server',
-      'lib',
-      'server.js'
-    )
+    path.join(...serverPath)
   );
 
   // The debug options for the server

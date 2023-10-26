@@ -14,9 +14,9 @@ import {
   Uri,
   workspace
 } from 'vscode';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
-import { Middleware } from 'vscode-languageclient/lib/main';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import { Middleware } from 'vscode-languageclient/node';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
@@ -84,6 +84,7 @@ function getSOQLVirtualContent(
 }
 
 export const soqlMiddleware: Middleware = {
+  // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);
     if (!apexCompletionItems) {
@@ -93,7 +94,7 @@ export const soqlMiddleware: Middleware = {
     const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
       ? (apexCompletionItems as ProtocolCompletionItem[])
       : ((apexCompletionItems as CompletionList)
-          .items as ProtocolCompletionItem[]);
+        .items as ProtocolCompletionItem[]);
 
     const soqlBlock = insideSOQLBlock(items);
     if (soqlBlock) {
@@ -145,5 +146,4 @@ function eolForDocument(doc: TextDocument) {
     case EndOfLine.CRLF:
       return '\r\n';
   }
-  return '\n';
 }

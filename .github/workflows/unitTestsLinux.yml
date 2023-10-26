@@ -10,10 +10,6 @@ env:
 
 jobs:
   linux-unit-tests:
-    strategy:
-      matrix:
-        node_version: [lts/-1, lts/*]
-      fail-fast: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -22,7 +18,7 @@ jobs:
           ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
       - run: npm run compile
