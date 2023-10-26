@@ -205,7 +205,18 @@ describe('SfdxCommandlet', () => {
         }
       })(),
       new (class implements CommandletExecutor<{}> {
-        public execute(response: ContinueResponse<{}>): void {}
+        protected showChannelOutput = true;
+
+        public execute(response: ContinueResponse<{}>): void {
+          const success = false;
+          if (
+            this.showChannelOutput &&
+            (!sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation() ||
+              !success)
+          ) {
+            channelService.showChannelOutput();
+          }
+        }
       })()
     );
     await commandlet.run();
