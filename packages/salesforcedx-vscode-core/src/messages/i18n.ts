@@ -292,7 +292,7 @@ export const messages = {
   sfdx_cli_not_found:
     'Either Salesforce CLI is not installed or only SF v1 is present. Install the latest CLI version from [%s](%s)',
   sfdx_cli_not_supported:
-    'Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version using this link: [%s](%s)',
+    'Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version from [%s](%s)',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
