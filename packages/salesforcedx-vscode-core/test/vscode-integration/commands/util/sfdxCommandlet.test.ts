@@ -101,6 +101,7 @@ describe('SfdxCommandlet', () => {
       .stub(sfdxCoreSettings, 'getEnableClearOutputBeforeEachCommand')
       .returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
+    console.log(sfdxCoreSettings.getEnableClearOutputBeforeEachCommand());
     const commandlet = new SfdxCommandlet(
       new (class {
         public check(): boolean {
@@ -197,6 +198,9 @@ describe('SfdxCommandlet', () => {
     sandbox
       .stub(sfdxCoreSettings, 'getEnableSuppressOutputAfterSuccessfulOperation')
       .returns(true);
+    console.log(
+      sfdxCoreSettings.getEnableSuppressOutputAfterSuccessfulOperation()
+    );
     const showChannelOutputStub = sandbox.stub(
       channelService,
       'showChannelOutput'
