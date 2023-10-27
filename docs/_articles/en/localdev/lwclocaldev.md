@@ -9,7 +9,7 @@ The Local Development Server is a Salesforce CLI plug-in that configures and run
 - `@AuraEnabled` Apex methods
 - `CSS` custom properties
 - `LightningModal`
-- `lwc:if`, `lwc:elseif`, and `lwc:els`e directives
+- `lwc:if`, `lwc:elseif`, and `lwc:else` directives
 - multiple directories and `sfdx` multiple packages
  
  
