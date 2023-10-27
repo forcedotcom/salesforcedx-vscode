@@ -96,6 +96,9 @@
     "workspaceContains:sfdx-project.json",
     "onCommand:soql.builder.toggle"
   ],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "main": "out/src",
   "serverPath": [
     "..",

@@ -70,6 +70,9 @@
     "workspaceContains:sfdx-project.json",
     "workspaceContains:**/workspace-user.xml"
   ],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "main": "./out/src",
   "serverPath": [
     "..",

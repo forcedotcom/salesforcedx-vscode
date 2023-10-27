@@ -99,6 +99,9 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "main": "./out/src",
   "languageServerDir": "out",
   "contributes": {
