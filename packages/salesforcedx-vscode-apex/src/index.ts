@@ -349,7 +349,7 @@ export async function indexerDoneHandler(enableSyncInitJobs: boolean, languageCl
     languageClient.onNotification(API.doneIndexing, setClientReady);
   } else {
     // indexer must be running at the point
-    setClientReady();
+    await setClientReady();
   }
 }
 
