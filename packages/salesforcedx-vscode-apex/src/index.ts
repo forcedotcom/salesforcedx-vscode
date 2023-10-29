@@ -319,23 +319,10 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     await languageClient!.start();
     // Client is running
     const startTime = telemetryService.getEndHRTime(langClientHRStart); // Record the end time
-    // Listener is useful only in async mode
-    if (!enableSyncInitJobs) {
-      // The listener should be set after languageClient is ready
-      // Language client will get notified once async init jobs are done
-      languageClientUtils.setStatus(ClientStatus.Indexing, '');
-      languageClient.onNotification(API.doneIndexing, async () => {
-        await getTestOutlineProvider().refresh();
-        languageServerReady();
-      });
-    } else {
-      // indexer must be running at the point
-      await getTestOutlineProvider().refresh();
-      languageServerReady();
-    }
     telemetryService.sendEventData('apexLSPStartup', undefined, {
       activationTime: startTime
     });
+    await indexerDoneHandler(enableSyncInitJobs, languageClient);
     extensionContext.subscriptions.push(languageClient);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
@@ -352,8 +339,28 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
   }
 }
 
-export function languageServerReady() {
+// exported only for test
+export async function indexerDoneHandler(enableSyncInitJobs: boolean, languageClient: ApexLanguageClient) {
+  // Listener is useful only in async mode
+  if (!enableSyncInitJobs) {
+    // The listener should be set after languageClient is ready
+    // Language client will get notified once async init jobs are done
+    languageClientUtils.setStatus(ClientStatus.Indexing, '');
+    languageClient.onNotification(API.doneIndexing, setClientReady);
+  } else {
+    // indexer must be running at the point
+    setClientReady();
+  }
+}
+
+// exported only for test
+export const setClientReady = async () => {
+  await getTestOutlineProvider().refresh();
+  languageServerReady();
+};
+
+const languageServerReady = () => {
   languageServerStatusBarItem.ready();
   languageClientUtils.setStatus(ClientStatus.Ready, '');
   languageClient?.errorHandler?.serviceHasStartedSuccessfully();
-}
+};
