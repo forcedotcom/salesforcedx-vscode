@@ -37,6 +37,7 @@ import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler
 import {
   ClientStatus,
   enableJavaDocSymbols,
+  extensionUtils,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -346,21 +347,11 @@ export async function indexerDoneHandler(enableSyncInitJobs: boolean, languageCl
     // The listener should be set after languageClient is ready
     // Language client will get notified once async init jobs are done
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
-    languageClient.onNotification(API.doneIndexing, setClientReady);
+    languageClient.onNotification(API.doneIndexing, async () => {
+      await extensionUtils.setClientReady(languageClient, languageServerStatusBarItem);
+    });
   } else {
     // indexer must be running at the point
-    await setClientReady();
+    await extensionUtils.setClientReady(languageClient, languageServerStatusBarItem);
   }
 }
-
-// exported only for test
-export const setClientReady = async () => {
-  await getTestOutlineProvider().refresh();
-  languageServerReady();
-};
-
-const languageServerReady = () => {
-  languageServerStatusBarItem.ready();
-  languageClientUtils.setStatus(ClientStatus.Ready, '');
-  languageClient?.errorHandler?.serviceHasStartedSuccessfully();
-};

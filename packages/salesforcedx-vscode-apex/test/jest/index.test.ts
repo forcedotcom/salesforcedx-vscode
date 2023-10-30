@@ -1,6 +1,7 @@
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientUtils } from '../../src/languageUtils';
+import { extensionUtils } from '../../src/languageUtils/extensionUtils';
 
 describe('indexDoneHandler', () => {
   let setStatusSpy: jest.SpyInstance;
@@ -14,7 +15,7 @@ describe('indexDoneHandler', () => {
       onNotification: jest.fn()
     };
     onNotificationSpy = jest.spyOn(mockLanguageClient, 'onNotification');
-    setClientReadySpy = jest.spyOn(index, 'setClientReady').mockImplementation(jest.fn());
+    setClientReadySpy = jest.spyOn(extensionUtils, 'setClientReady').mockImplementation(jest.fn());
   });
 
   afterEach(() => {
@@ -26,7 +27,7 @@ describe('indexDoneHandler', () => {
     expect(setStatusSpy).toHaveBeenCalled();
     expect(setStatusSpy).toHaveBeenCalledWith(1, '');
     expect(onNotificationSpy).toHaveBeenCalled();
-    expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, setClientReadySpy);
+    expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
   });
 
   it('should call setClientReady when enableSyncInitJobs is true', async () => {
