@@ -53,4 +53,4 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
