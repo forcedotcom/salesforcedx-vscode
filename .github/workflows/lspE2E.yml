@@ -1,8 +1,6 @@
 name: LSP End to End Tests
 
 on:
-  schedule:
-    - cron: 10 6 * * *
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -25,6 +23,10 @@ on:
         required: false
         default: true
         type: boolean
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
 
   workflow_call:
     inputs:
@@ -48,32 +50,39 @@ on:
         required: false
         default: true
         type: boolean
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: false
+        type: string
 
 jobs:
 
   auraLSP:
-    if: ${{ inputs.auraLsp || github.event_name == 'schedule' }}
+    if: ${{ inputs.auraLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'auraLsp.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   lwcLSP:
-    if: ${{ inputs.lwcLsp || github.event_name == 'schedule' }}
+    if: ${{ inputs.lwcLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'lwcLsp.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   visualforceLSP:
-    if: ${{ inputs.visualforceLsp || github.event_name == 'schedule' }}
+    if: ${{ inputs.visualforceLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'visualforceLsp.e2e.ts'
+      runId: ${{ inputs.runId }}
 
   slack_success_notification:
     if: ${{ success() }}
