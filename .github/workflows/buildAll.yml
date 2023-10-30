@@ -35,4 +35,3 @@ jobs:
         with:
           name: ${{ inputs.label }}
           path: ./extensions/
-  
