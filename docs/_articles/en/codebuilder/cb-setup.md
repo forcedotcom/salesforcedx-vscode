@@ -40,14 +40,7 @@ From Setup, enter `Installed Packages` in the Quick Find box, then select **Inst
 
 ## Add Team Members as Users in the Code Builder Org
 
-Add any team members who aren’t already users in the Code Builder org. For each team member, specify the appropriate license and profile based on their role.
-
-The listed license and profile is required to use Code Builder.
-
-| **Role**    | **License**                                                                                                                                                                                                                 | **Profile**       |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Team Member | [Free Limited Access](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/dev_hub_license.htm) or [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) | DX Limited Access |
-|             |                                                                                                                                                                                                                             |                   |
+Add any team members who aren’t already users in the Code Builder org. 
 
 **Note**: This procedure generates an email inviting the new users into the org. But until you’re finished setting up Code Builder, there’s not much for them to do in the org. We recommend that you let your team know that you’re setting up Code Builder and to wait until they hear from you before logging in.
 
