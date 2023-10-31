@@ -10,7 +10,7 @@
   "java_home_description": "Specifies the folder path to the Java 11 or Java 17 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home).",
   "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB, or null to use the system default value.",
   "apex_semantic_errors_description": "Allow Apex Language Server to surface semantic errors",
-  "apex_wait_init_jobs_description": "Allow Apex Language Client not to send requests until the initializing jobs such as indexing are done.",
+  "apex_wait_init_jobs_description": "Don't allow requests to the Apex Language Server until its done initializing.",
   "force_anon_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",
   "force_anon_apex_execute_selection_text": "SFDX: Execute Anonymous Apex with Currently Selected Text",
   "force_apex_log_get_text": "SFDX: Get Apex Debug Logs",
