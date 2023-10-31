@@ -3,6 +3,9 @@ on:
   workflow_run:
     workflows:
      - Nightly Build Develop
+     - Test, Build, and Release
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       automationBranch:
@@ -37,7 +40,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Core_E2E_tests:
     if: ${{ inputs.coreE2ETests || github.event_name == 'workflow_run' }}
@@ -45,7 +48,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP_E2E_tests:
     if: ${{ inputs.lspE2ETests || github.event_name == 'workflow_run' }}
@@ -53,4 +56,4 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.run_number }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
