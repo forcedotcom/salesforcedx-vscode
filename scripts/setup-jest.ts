@@ -39,17 +39,6 @@ enum TreeItemCollapsibleState {
   Expanded = 2
 }
 
-const mockExtension = {
-  id: '1123',
-  extensionUri: Uri,
-  extensionPath: '123',
-  isActive: true,
-  packageJson: jest.fn(),
-  extensionKind: jest.fn(),
-  exports: jest.fn(),
-  activate: jest.fn()
-};
-
 const getMockVSCode = () => {
   return {
     CancellationTokenSource: class {
@@ -83,7 +72,7 @@ const getMockVSCode = () => {
     EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     extensions: {
-      getExtension: jest.fn().mockReturnValue(mockExtension)
+      getExtension: jest.fn()
     },
     languages: {
       createDiagnosticCollection: jest.fn(),

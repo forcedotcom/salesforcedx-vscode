@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientUtils } from '../../src/languageUtils';
@@ -6,13 +5,12 @@ import { extensionUtils } from '../../src/languageUtils/extensionUtils';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 
 jest.mock('./../../src/apexLspStatusBarItem');
-const apexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
-
 describe('indexDoneHandler', () => {
   let setStatusSpy: jest.SpyInstance;
   let onNotificationSpy: jest.SpyInstance;
   let mockLanguageClient: any;
   let setClientReadySpy: jest.SpyInstance;
+  const apexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
 
   beforeEach(() => {
     setStatusSpy = jest
@@ -63,20 +61,5 @@ describe('indexDoneHandler', () => {
       mockLanguageClient,
       languageServerStatusBarItem
     );
-  });
-
-  // TODO: delete these two tests...only used to verify vscode mocks are reset
-  it('should reset mocks between calls 1.', () => {
-    const ext = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-apex'
-    );
-    expect(vscode.extensions.getExtension).toHaveBeenCalledTimes(1);
-  });
-
-  it('should reset mocks between calls 2.', () => {
-    const ext = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-apex'
-    );
-    expect(vscode.extensions.getExtension).toHaveBeenCalledTimes(1);
   });
 });
