@@ -1,12 +1,12 @@
+import * as vscode from 'vscode';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientUtils } from '../../src/languageUtils';
 import { extensionUtils } from '../../src/languageUtils/extensionUtils';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
-import * as vscode from 'vscode';
 
 jest.mock('./../../src/apexLspStatusBarItem');
-const ApexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
+const apexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
 
 describe('indexDoneHandler', () => {
   let setStatusSpy: jest.SpyInstance;
@@ -41,7 +41,7 @@ describe('indexDoneHandler', () => {
       API.doneIndexing,
       expect.any(Function)
     );
-    expect(ApexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
+    expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
 
     const mockCallback = onNotificationSpy.mock.calls[0][1];
 
@@ -65,7 +65,7 @@ describe('indexDoneHandler', () => {
     );
   });
 
-  //TODO: delete these two tests...only used to verify vscode mocks are reset
+  // TODO: delete these two tests...only used to verify vscode mocks are reset
   it('should reset mocks between calls 1.', () => {
     const ext = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-apex'
