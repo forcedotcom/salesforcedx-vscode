@@ -33,7 +33,7 @@ import {
 import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
-import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler';
+import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -49,10 +49,10 @@ import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 let languageClient: ApexLanguageClient | undefined;
-const languageServerStatusBarItem = new ApexLSPStatusBarItem();
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
+  const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(
@@ -83,7 +83,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await telemetryService.initializeService(extensionContext);
 
   // start the language server and client
-  await createLanguageClient(extensionContext);
+  await createLanguageClient(extensionContext, languageServerStatusBarItem);
 
   // Javadoc support
   enableJavaDocSymbols();
@@ -287,7 +287,10 @@ export async function deactivate() {
   telemetryService.sendExtensionDeactivationEvent();
 }
 
-async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
+async function createLanguageClient(
+  extensionContext: vscode.ExtensionContext,
+  languageServerStatusBarItem: ApexLSPStatusBarItem
+) {
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
@@ -323,7 +326,11 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
     telemetryService.sendEventData('apexLSPStartup', undefined, {
       activationTime: startTime
     });
-    await indexerDoneHandler(enableSyncInitJobs, languageClient);
+    await indexerDoneHandler(
+      enableSyncInitJobs,
+      languageClient,
+      languageServerStatusBarItem
+    );
     extensionContext.subscriptions.push(languageClient);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
@@ -341,17 +348,27 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
 }
 
 // exported only for test
-export async function indexerDoneHandler(enableSyncInitJobs: boolean, languageClient: ApexLanguageClient) {
+export async function indexerDoneHandler(
+  enableSyncInitJobs: boolean,
+  languageClient: ApexLanguageClient,
+  languageServerStatusBarItem: ApexLSPStatusBarItem
+) {
   // Listener is useful only in async mode
   if (!enableSyncInitJobs) {
     // The listener should be set after languageClient is ready
     // Language client will get notified once async init jobs are done
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
     languageClient.onNotification(API.doneIndexing, async () => {
-      await extensionUtils.setClientReady(languageClient, languageServerStatusBarItem);
+      await extensionUtils.setClientReady(
+        languageClient,
+        languageServerStatusBarItem
+      );
     });
   } else {
     // indexer must be running at the point
-    await extensionUtils.setClientReady(languageClient, languageServerStatusBarItem);
+    await extensionUtils.setClientReady(
+      languageClient,
+      languageServerStatusBarItem
+    );
   }
 }
