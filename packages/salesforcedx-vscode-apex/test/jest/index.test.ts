@@ -32,9 +32,7 @@ describe('indexDoneHandler', () => {
       mockLanguageClient as any,
       languageServerStatusBarItem
     );
-    expect(setStatusSpy).toHaveBeenCalled();
     expect(setStatusSpy).toHaveBeenCalledWith(1, '');
-    expect(onNotificationSpy).toHaveBeenCalled();
     expect(onNotificationSpy).toHaveBeenCalledWith(
       API.doneIndexing,
       expect.any(Function)
@@ -61,5 +59,6 @@ describe('indexDoneHandler', () => {
       mockLanguageClient,
       languageServerStatusBarItem
     );
+    expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
   });
 });
