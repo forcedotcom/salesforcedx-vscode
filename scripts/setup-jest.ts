@@ -83,7 +83,7 @@ const getMockVSCode = () => {
     EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     extensions: {
-      getExtension: () => mockExtension
+      getExtension: jest.fn().mockReturnValue(mockExtension)
     },
     languages: {
       createDiagnosticCollection: jest.fn(),
@@ -152,13 +152,33 @@ const getMockVSCode = () => {
       public constructor(range: Range, message: string, severity?: any) {}
     },
     CallHierarchyItem: class {
-      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
+      public constructor(
+        kind: any,
+        name: string,
+        detail: string,
+        uri: Uri,
+        range: Range,
+        selectionRange: Range
+      ) {}
     },
     TypeHierarchyItem: class {
-      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
+      public constructor(
+        kind: any,
+        name: string,
+        detail: string,
+        uri: Uri,
+        range: Range,
+        selectionRange: Range
+      ) {}
     },
     SymbolInformation: class {
-      public constructor(name: string, kind: any, range: Range, uri?: Uri, containerName?: string) {}
+      public constructor(
+        name: string,
+        kind: any,
+        range: Range,
+        uri?: Uri,
+        containerName?: string
+      ) {}
     },
     InlayHint: class {
       public constructor(position: any, label: any, kind?: any) {}
