@@ -14,6 +14,8 @@ export function retrieveTestCodeCoverage(): boolean {
     .get<boolean>('retrieve-test-code-coverage', false);
 }
 
-export const enableSyncInitJobs: boolean = vscode.workspace
+export function retrieveEnableSyncInitJobs(): boolean {
+  return vscode.workspace
     .getConfiguration()
     .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
+}

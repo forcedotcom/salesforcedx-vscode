@@ -12,7 +12,7 @@ import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import { API } from './constants';
-import { enableSyncInitJobs } from './settings';
+import { retrieveEnableSyncInitJobs } from './settings';
 
 import {
   forceAnonApexDebug,
@@ -327,7 +327,7 @@ async function createLanguageClient(
       activationTime: startTime
     });
     await indexerDoneHandler(
-      enableSyncInitJobs,
+      retrieveEnableSyncInitJobs(),
       languageClient,
       languageServerStatusBarItem
     );

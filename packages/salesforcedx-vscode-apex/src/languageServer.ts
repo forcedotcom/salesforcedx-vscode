@@ -7,14 +7,18 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
+import {
+  Executable,
+  LanguageClientOptions,
+  RevealOutputChannelOn
+} from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { enableSyncInitJobs } from './settings';
+import { retrieveEnableSyncInitJobs } from './settings';
 import { telemetryService } from './telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -70,7 +74,8 @@ async function createServer(
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
+          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
@@ -170,7 +175,7 @@ export function buildClientOptions(): LanguageClientOptions {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-      enableSynchronizedInitJobs: enableSyncInitJobs
+      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs()
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()

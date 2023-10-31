@@ -341,11 +341,6 @@
           "default": false,
           "description": "%apex_semantic_errors_description%"
         },
-        "salesforcedx-vscode-apex.wait-init-jobs": {
-          "type": "boolean",
-          "default": true,
-          "description": "%apex_wait_init_jobs_description%"
-        },
         "salesforcedx-vscode-apex.advanced.enable-completion-statistics": {
           "type": "boolean",
           "default": false,
