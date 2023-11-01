@@ -20,7 +20,7 @@
 
 #### forcedotcom/lightning-language-server
 
-- We made some updates to the Lightning Language Server so that it no longer crashes on startup. Yay us! ([PR #583](https://github.com/forcedotcom/lightning-language-server/pull/583))
+- We made some updates to the Lightning Language Server so that it no longer crashes on startup. Thank you [Itachi Uchiha](https://github.com/salesforceProDev) for creating the issue. ([PR #583](https://github.com/forcedotcom/lightning-language-server/pull/583), [ISSUE #5069](https://github.com/forcedotcom/salesforcedx-vscode/issues/5069))
 
 # 59.1.2 - October 19, 2023
 
