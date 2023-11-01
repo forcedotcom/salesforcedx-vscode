@@ -9,7 +9,7 @@ Complete this Quick Start to become familiar with the Code Builder interface and
 
 ### Don’t Forget to Save Your Work
 
-Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work somewhere permanent. Work saved in your Code Builder environment will be there when you come back but Code Builder is not suited for permanent-long-term storage. We recommended saving your work before you close the Code Builder tab.
+Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org or commit them to source control to save your work somewhere permanent. Work saved in your Code Builder environment will be there when you return, but Code Builder is not suited for permanent-long-term storage. We recommend saving your work before you close the Code Builder tab.
 
 ## Create Your Code Builder Environment
 
@@ -21,7 +21,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 ![Code Builder Dashboard](./images/cb_dashboard.png)
 
-**Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
+**Tip**: Once you have created your Code Builder environment, launch it from the dashboard anytime or bookmark it for fast access.
 
 ## Connect to a Salesforce Org
 
@@ -134,8 +134,8 @@ The metadata is here for your reference:
 We’ll now make a simple edit to this field and deploy our changes back to our org with a single click.
 
 1. Edit `createdon_c.field-meta.xml` and change the `<required>` tag value to `true` to indicate that this custom field is required.
-2. Right click the `objects/Account` folder and click **SFDX: Deploy Source to Org**.
-3. After the command has successfully run, go back to your org and check details of the **Created On** custom field and confirm that it’s now a required field.
+2. Right-click the `objects/Account` folder and click **SFDX: Deploy Source to Org**.
+3. After the command has successfully run, go back to your org and check the details of the **Created On** custom field and confirm that it’s now a required field.
 
 ## Create and Deploy a New Lightning Web Component
 
