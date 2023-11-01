@@ -24,7 +24,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "vscode-languageserver-types": "3.4.0",
+    "vscode-languageserver-types": "3.17.2",
     "vscode-nls": "^2.0.2",
     "vscode-uri": "^1.0.1"
   },
