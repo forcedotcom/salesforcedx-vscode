@@ -18,6 +18,10 @@
 
 - Add warning message to lwc-local-dev ([PR #5170](https://github.com/forcedotcom/salesforcedx-vscode/pull/5170))
 
+#### forcedotcom/lightning-language-server
+
+- Fixes for Lightning Language Server so that it no longer crashes on startup ([PR #583](https://github.com/forcedotcom/lightning-language-server/pull/583))
+
 # 59.1.2 - October 19, 2023
 
 ## Fixed
