@@ -40,16 +40,9 @@ From Setup, enter `Installed Packages` in the Quick Find box, then select **Inst
 
 ## Add Team Members as Users in the Code Builder Org
 
-Add any team members who aren’t already users in the Code Builder org. For each team member, specify the appropriate license and profile based on their role.
+Code Builder works with the [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) or the [Free Limited Access](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/dev_hub_license.htm) license. 
 
-The listed license and profile is required to use Code Builder.
-
-| **Role**    | **License**                                                                                                                                                                                                                 | **Profile**       |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Team Member | [Free Limited Access](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/dev_hub_license.htm) or [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) | DX Limited Access |
-|             |                                                                                                                                                                                                                             |                   |
-
-**Note**: This procedure generates an email inviting the new users into the org. But until you’re finished setting up Code Builder, there’s not much for them to do in the org. We recommend that you let your team know that you’re setting up Code Builder and to wait until they hear from you before logging in.
+Add any team members who aren’t already users in the Code Builder org: 
 
 1. Log in to the Code Builder org.
 2. From Setup, enter `Users` in the Quick Find box, then select **Users.**
@@ -57,6 +50,8 @@ The listed license and profile is required to use Code Builder.
 4. Select the appropriate license type and profile based on the user’s role.
 5. Select the **Generate passwords and notify user via email** checkbox.
 6. Click **Save**.
+
+**Note**: This procedure generates an email inviting the new users into the org. But until you’re finished setting up Code Builder, there’s not much for them to do in the org. We recommend that you let your team know that you’re setting up Code Builder and to wait until they hear from you before logging in.
 
 ## Assign Permissions
 

@@ -97,6 +97,7 @@ jobs:
           payload: |
             {
               "category": "${{ inputs.title }}",
+              "branch": "${{ github.ref_name }}",
               "summary": "${{ inputs.summary }}",
               "event": "${{ github.event.repository.html_url }}/${{ inputs.workflow }}",
               "result": "${{ inputs.result }}"
