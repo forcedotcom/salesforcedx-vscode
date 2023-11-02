@@ -1,5 +1,3 @@
-import { Observable } from 'rxjs/Observable';
-import * as kill from 'tree-kill';
 import { CancellationToken, CliCommandExecution, Command } from '../../../src';
 import {
   CANCELLATION_INTERVAL,
@@ -8,6 +6,8 @@ import {
   NO_STDERR_ERROR,
   NO_STDOUT_ERROR
 } from '../../../src/cli/cliCommandExecution';
+import { Observable } from 'rxjs/Observable';
+import * as kill from 'tree-kill';
 jest.mock('tree-kill');
 
 const treeKillMocked = jest.mocked(kill);
@@ -168,7 +168,7 @@ describe('CliCommandExecution Unit Tests.', () => {
       } else {
         fail('Should have had a kill callback function.');
       }
-      await timeoutPromise.then(() => {
+      timeoutPromise.then(() => {
         expect(logSpy).not.toHaveBeenCalled();
       });
     });

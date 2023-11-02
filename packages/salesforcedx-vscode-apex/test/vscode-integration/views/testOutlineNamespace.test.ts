@@ -136,7 +136,7 @@ describe('Test View with namespace', () => {
       expect(testNode.outcome).to.equal(PASS_RESULT);
     });
 
-    it('Should update tests and test groups with passing/failing results using Apex library', () => {
+    it('Should update tests and test groups with passing/failing results using Apex library', async () => {
       parseJSONStub.callsFake(() => {
         return apexLibMultipleNsResult;
       });
@@ -194,14 +194,14 @@ describe('Test View with namespace', () => {
       sb.restore();
     });
 
-    it('Should go to definition if a test does not have an error message', () => {
+    it('Should go to definition if a test does not have an error message', async () => {
       const testNode = new ApexTestNode(
         'sampleTest',
         apexNamespacedTestInfo[0].location
       );
       const testRange = testNode.location!.range;
 
-      testRunner.showErrorMessage(testNode);
+      await testRunner.showErrorMessage(testNode);
 
       // make sure we emit the update_selection event with the correct position
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
@@ -210,7 +210,7 @@ describe('Test View with namespace', () => {
       ]);
     });
 
-    it('Should go to error if a test has one', () => {
+    it('Should go to error if a test has one', async () => {
       const lineFailure = 22;
       const testNode = new ApexTestNode(
         'failedTest',
@@ -219,7 +219,7 @@ describe('Test View with namespace', () => {
       testNode.errorMessage = 'System.AssertException: Assertion Failed';
       testNode.stackTrace = `Class.fakeClass.test0: line ${lineFailure}, column 1`;
 
-      testRunner.showErrorMessage(testNode);
+      await testRunner.showErrorMessage(testNode);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
         'sfdx:update_selection',
@@ -227,11 +227,11 @@ describe('Test View with namespace', () => {
       ]);
     });
 
-    it('Should go to error of first failing test in a failed test class', () => {
+    it('Should go to error of first failing test in a failed test class', async () => {
       const testClass = testOutline.getHead().children[0] as ApexTestGroupNode;
       const lineFailure = 40; // first failure in apexLibMultipleNsResult.apexLibMultipleTests
 
-      testRunner.showErrorMessage(testClass);
+      await testRunner.showErrorMessage(testClass);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
         'sfdx:update_selection',

@@ -61,7 +61,7 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
         'force_source_retrieve_with_manifest',
         errorMessage
       );
-      void notificationService.showErrorMessage(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;

@@ -6,11 +6,11 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { soqlComments } from '@salesforce/soql-common';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { soqlComments } from '@salesforce/soql-common';
 export class QueryRunner {
   constructor(private connection: Connection) {}
 
@@ -23,7 +23,7 @@ export class QueryRunner {
     try {
       const rawQueryData = (await this.connection.query(
         pureSOQLText
-      ));
+      )) as QueryResult<JsonMap>;
       const cleanQueryData = {
         ...rawQueryData,
         records: this.flattenQueryRecords(rawQueryData.records)
@@ -32,8 +32,8 @@ export class QueryRunner {
     } catch (error) {
       // TODO: i18n
       if (options.showErrors) {
-        const message = nls.localize('error_run_soql_query', error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown');
-        void vscode.window.showErrorMessage(message);
+        const message = nls.localize('error_run_soql_query', error.message);
+        vscode.window.showErrorMessage(message);
       }
       throw error;
     }

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-
+// tslint:disable:no-unused-expression
 
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -64,7 +64,7 @@ describe('Apex Language Server Client', () => {
   describe('Should conditionally initialize server for SOQL block detection', () => {
     const sandbox = createSandbox();
 
-    beforeEach(() => { });
+    beforeEach(() => {});
     afterEach(() => sandbox.restore());
 
     it('should enable it when SOQL extension is present', () => {
@@ -99,7 +99,7 @@ describe('Apex Language Server Client', () => {
   describe('Should not actively disturb user while running in the background', () => {
     const sandbox = createSandbox();
 
-    beforeEach(() => { });
+    beforeEach(() => {});
     afterEach(() => sandbox.restore());
 
     it('should never reveal output channel', () => {
@@ -119,7 +119,7 @@ describe('Apex Language Server Client', () => {
   describe('Anonymous Apex Support', () => {
     const sandbox = createSandbox();
 
-    beforeEach(() => { });
+    beforeEach(() => {});
     afterEach(() => sandbox.restore());
 
     it('should enable document selector for anon-apex', () => {

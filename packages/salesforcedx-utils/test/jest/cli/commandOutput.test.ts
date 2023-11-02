@@ -35,7 +35,7 @@ describe('CommandOutput Unit Tests.', () => {
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
-    await result.then(outValue => {
+    result.then(outValue => {
       expect(outValue).toEqual('');
     });
   });
@@ -51,7 +51,7 @@ describe('CommandOutput Unit Tests.', () => {
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
-    await result.then(outValue => {
+    result.then(outValue => {
       expect(outValue).toEqual(goodOutput);
     });
   });
@@ -66,7 +66,7 @@ describe('CommandOutput Unit Tests.', () => {
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
-    await result.then(outValue => {
+    result.then(outValue => {
       expect(outValue).toEqual(goodOutput + goodOutput + goodOutput);
     });
   });
@@ -82,7 +82,7 @@ describe('CommandOutput Unit Tests.', () => {
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(failCode);
-    await result.catch(outValue => {
+    result.catch(outValue => {
       expect(outValue).toEqual(badOutput);
     });
   });
@@ -95,7 +95,7 @@ describe('CommandOutput Unit Tests.', () => {
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(failCode);
-    await result.catch(outValue => {
+    result.catch(outValue => {
       expect(outValue).toEqual(goodOutput);
     });
   });

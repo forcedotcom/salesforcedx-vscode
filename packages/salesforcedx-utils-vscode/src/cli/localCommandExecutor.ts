@@ -28,18 +28,18 @@ export class LocalCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.EXIT_EVENT
-    ) ;
+    ) as Observable<number>;
     this.processErrorSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.ERROR_EVENT
-    ) ;
+    ) as Observable<Error>;
     this.stdoutSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.STDOUT_EVENT
-    ) ;
+    ) as Observable<string>;
     this.stderrSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.STDERR_EVENT
-    ) ;
+    ) as Observable<string>;
   }
 }

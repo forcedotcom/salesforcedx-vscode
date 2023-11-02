@@ -10,21 +10,24 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  CancelResponse,
-  ContinueResponse,
+  hasRootWorkspace,
   LibraryCommandletExecutor,
-  ParametersGatherer,
+  projectPaths,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
-  TraceFlags,
-  getYYYYMMddHHmmssDateFormat,
-  hasRootWorkspace,
-  projectPaths
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
+import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL, channelService } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
@@ -36,13 +39,13 @@ interface ApexExecuteParameters {
 
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters> {
-  public gather(): Promise<
+  public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        return Promise.resolve({ type: 'CANCEL' });
+        return { type: 'CANCEL' };
       }
 
       const document = editor.document;
@@ -51,7 +54,7 @@ export class AnonApexGatherer
         document.isUntitled ||
         document.isDirty
       ) {
-        return Promise.resolve({
+        return {
           type: 'CONTINUE',
           data: {
             apexCode: !editor.selection.isEmpty
@@ -61,12 +64,12 @@ export class AnonApexGatherer
               ? new vscode.Range(editor.selection.start, editor.selection.end)
               : undefined
           }
-        });
+        };
       }
 
-      return Promise.resolve({ type: 'CONTINUE', data: { fileName: document.uri.fsPath } });
+      return { type: 'CONTINUE', data: { fileName: document.uri.fsPath } };
     }
-    return Promise.resolve({ type: 'CANCEL' });
+    return { type: 'CANCEL' };
   }
 }
 
@@ -135,7 +138,6 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     const editor = vscode.window.activeTextEditor;
     const document = editor!.document;
     const filePath = apexFilePath ?? document.uri.fsPath;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     this.handleDiagnostics(result, filePath, selection);
   }
 

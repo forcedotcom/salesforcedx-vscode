@@ -25,7 +25,7 @@ async function displayBrowserIcon() {
       statusBarItem.command = ORG_OPEN_COMMAND;
       statusBarItem.show();
     }
-    statusBarItem.text = '$(browser)';
+    statusBarItem.text = `$(browser)`;
   } else if (!defaultUsernameOrAlias && statusBarItem) {
     statusBarItem.dispose();
     statusBarItem = undefined;

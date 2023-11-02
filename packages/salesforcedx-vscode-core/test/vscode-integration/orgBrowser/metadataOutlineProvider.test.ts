@@ -522,7 +522,7 @@ describe('load folder node when folder-type metadata type is selected', () => {
 function compareNodes(actual: BrowserNode[], expected: any[]) {
   expected.forEach((node, index) => {
     Object.keys(node).forEach(key => {
-      expect((actual[index] as any)[key]).to.equal((node )[key]);
+      expect((actual[index] as any)[key]).to.equal((node as any)[key]);
     });
   });
 }
@@ -554,7 +554,7 @@ function getMetadataObject(label1: string) {
 }
 
 describe('parse errors and throw with appropriate message', () => {
-  it('should return default message when given a dirty json', () => {
+  it('should return default message when given a dirty json', async () => {
     const error = `< Warning: sfdx-cli update available +
       ${JSON.stringify({ status: 1, name: 'RetrievingError' })}`;
     const errorResponse = parseErrors(error);
@@ -565,7 +565,7 @@ describe('parse errors and throw with appropriate message', () => {
     );
   });
 
-  it('should return authorization token message when throwing RefreshTokenAuthError', () => {
+  it('should return authorization token message when throwing RefreshTokenAuthError', async () => {
     const error = JSON.stringify({ status: 1, name: 'RefreshTokenAuthError' });
     const errorResponse = parseErrors(error);
     expect(errorResponse.message).to.equal(
@@ -575,7 +575,7 @@ describe('parse errors and throw with appropriate message', () => {
     );
   });
 
-  it('should return no org found message when throwing NoOrgFound error', () => {
+  it('should return no org found message when throwing NoOrgFound error', async () => {
     const error = JSON.stringify({ status: 1, name: 'NoOrgFound' });
     const errorResponse = parseErrors(error);
     expect(errorResponse.message).to.equal(

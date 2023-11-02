@@ -66,7 +66,7 @@ describe('ForceOrgGet unit tests.', () => {
       getCmdResultSpy.mockResolvedValue(partialJson);
       const forceConfigGet = new ForceConfigGet();
       // Unexpected token error is thrown b/c json can not be parsed.
-      await expect(forceConfigGet.getConfig(fakePath)).rejects.toThrowError(/Unexpected token/);
+      expect(forceConfigGet.getConfig(fakePath)).rejects.toThrowError(/Unexpected token/);
     });
   });
 });

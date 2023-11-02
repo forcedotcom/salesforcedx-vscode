@@ -62,8 +62,8 @@ describe('Postcondition Checkers', () => {
   describe('CompositePostconditionChecker', () => {
     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
       const postChecker = new CompositePostconditionChecker(
-        new (class implements PostconditionChecker<any> {
-          public check(): Promise<CancelResponse | ContinueResponse<any>> {
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
             throw new Error('This should not be called');
           }
         })()
@@ -75,17 +75,17 @@ describe('Postcondition Checkers', () => {
     it('Should proceed to next checker if previous checker in composite checker is ContinueResponse', async () => {
       const compositePostconditionChecker = new CompositePostconditionChecker(
         new (class implements PostconditionChecker<string> {
-          public check(): Promise<
+          public async check(): Promise<
             CancelResponse | ContinueResponse<string>
           > {
-            return Promise.resolve({ type: 'CONTINUE', data: 'package.xml' });
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
         new (class implements PostconditionChecker<string> {
-          public check(): Promise<
+          public async check(): Promise<
             CancelResponse | ContinueResponse<string>
           > {
-            return Promise.resolve({ type: 'CONTINUE', data: 'package.xml' });
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })()
       );
@@ -100,14 +100,14 @@ describe('Postcondition Checkers', () => {
     it('Should not proceed to next checker if previous checker in composite checker is CancelResponse', async () => {
       const compositePostconditionChecker = new CompositePostconditionChecker(
         new (class implements PostconditionChecker<string> {
-          public check(): Promise<
+          public async check(): Promise<
             CancelResponse | ContinueResponse<string>
           > {
-            return Promise.resolve({ type: 'CANCEL' });
+            return { type: 'CANCEL' };
           }
         })(),
         new (class implements PostconditionChecker<string> {
-          public check(): Promise<
+          public async check(): Promise<
             CancelResponse | ContinueResponse<string>
           > {
             throw new Error('This should not be called');
@@ -121,7 +121,7 @@ describe('Postcondition Checkers', () => {
       });
     });
 
-
+    // tslint:disable:no-unused-expression
     it('Should call executor if composite checker is ContinueResponse', async () => {
       let executed = false;
       const commandlet = new SfdxCommandlet(
@@ -131,10 +131,10 @@ describe('Postcondition Checkers', () => {
           }
         })(),
         new (class {
-          public gather(): Promise<
+          public async gather(): Promise<
             CancelResponse | ContinueResponse<string>
           > {
-            return Promise.resolve({ type: 'CONTINUE', data: 'package.xml' });
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
         new (class implements CommandletExecutor<string> {
@@ -144,10 +144,10 @@ describe('Postcondition Checkers', () => {
         })(),
         new CompositePostconditionChecker<string>(
           new (class implements PostconditionChecker<string> {
-            public check(): Promise<
+            public async check(): Promise<
               CancelResponse | ContinueResponse<string>
             > {
-              return Promise.resolve({ type: 'CONTINUE', data: 'package.xml' });
+              return { type: 'CONTINUE', data: 'package.xml' };
             }
           })()
         )
@@ -166,23 +166,23 @@ describe('Postcondition Checkers', () => {
           }
         })(),
         new (class {
-          public gather(): Promise<
-            CancelResponse | ContinueResponse<any>
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
           > {
-            return Promise.resolve({ type: 'CONTINUE', data: 'package.xml' });
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
-        new (class implements CommandletExecutor<any> {
-          public execute(response: ContinueResponse<any>): void {
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
             throw new Error('This should not be called');
           }
         })(),
-        new CompositePostconditionChecker<any>(
-          new (class implements PostconditionChecker<any> {
-            public check(): Promise<
-              CancelResponse | ContinueResponse<any>
+        new CompositePostconditionChecker<{}>(
+          new (class implements PostconditionChecker<{}> {
+            public async check(): Promise<
+              CancelResponse | ContinueResponse<{}>
             > {
-              return Promise.resolve({ type: 'CANCEL' });
+              return { type: 'CANCEL' };
             }
           })()
         )
@@ -235,7 +235,7 @@ describe('Postcondition Checkers', () => {
       it('Should prompt overwrite for EPT components that exist', async () => {
         existsStub.returns(false);
         const data = {
-          fileName: 'Test1',
+          fileName: `Test1`,
           outputdir: 'package/tests',
           type: 'ExperiencePropertyTypeBundle',
           suffix: 'json'
@@ -250,7 +250,7 @@ describe('Postcondition Checkers', () => {
       it('Should prompt overwrite for EPT components that does not exist', async () => {
         existsStub.returns(false);
         const data = {
-          fileName: 'Test1',
+          fileName: `Test1`,
           outputdir: 'package/tests',
           type: 'ExperiencePropertyTypeBundle',
           suffix: 'json'
@@ -457,7 +457,7 @@ describe('Postcondition Checkers', () => {
   });
 
   describe('TimestampConflictChecker', () => {
-    const mockWorkspaceContext = { getConnection: () => { } } as any;
+    const mockWorkspaceContext = { getConnection: () => {} } as any;
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let conflictViewStub: SinonStub;

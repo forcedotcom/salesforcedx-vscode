@@ -51,8 +51,8 @@ export class IdGatherer implements ParametersGatherer<IdSelection> {
     this.sessionIdToUpdate = sessionIdToUpdate;
   }
 
-  public gather(): Promise<ContinueResponse<IdSelection>> {
-    return Promise.resolve({ type: 'CONTINUE', data: { id: this.sessionIdToUpdate } });
+  public async gather(): Promise<ContinueResponse<IdSelection>> {
+    return { type: 'CONTINUE', data: { id: this.sessionIdToUpdate } };
   }
 }
 
@@ -73,7 +73,6 @@ export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
 }
 
 export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withArg('data:query')
@@ -103,7 +102,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     });
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -124,12 +123,12 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
           await sessionDetachCommandlet.run();
         }
       } else {
-        await notificationService.showInformationMessage(
+        notificationService.showInformationMessage(
           nls.localize('debugger_stop_none_found_text')
         );
       }
-
-    } catch (e) { }
+      // tslint:disable-next-line:no-empty
+    } catch (e) {}
 
     return Promise.resolve();
   }

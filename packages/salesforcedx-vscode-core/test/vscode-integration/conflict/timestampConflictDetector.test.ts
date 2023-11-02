@@ -9,6 +9,7 @@ import {
   FileProperties,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -19,6 +20,7 @@ import * as differ from '../../../src/conflict/componentDiffer';
 import { TimestampFileProperties } from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheResult } from '../../../src/conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
+import { nls } from '../../../src/messages';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Timestamp Conflict Detector Execution', () => {
@@ -75,7 +77,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     shell.rm('-rf', PROJECT_DIR);
   });
 
-  it('Should report differences', () => {
+  it('Should report differences', async () => {
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
@@ -124,7 +126,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     differStub.returns(diffResults);
     cacheStub.returns(storageResult);
 
-    const results = executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs(cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
@@ -157,7 +159,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     );
   });
 
-  it('Should not report differences if the component is only local', () => {
+  it('Should not report differences if the component is only local', async () => {
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
@@ -185,7 +187,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       ] as FileProperties[]
     } as MetadataCacheResult;
 
-    const results = executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs(cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(0);
@@ -193,7 +195,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
-  it('Should not report differences if the component is only remote', () => {
+  it('Should not report differences if the component is only remote', async () => {
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
@@ -221,7 +223,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       ] as FileProperties[]
     } as MetadataCacheResult;
 
-    const results = executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs(cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(0);
@@ -229,7 +231,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
-  it('Should not report differences if the timestamps match', () => {
+  it('Should not report differences if the timestamps match', async () => {
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
@@ -270,7 +272,7 @@ describe('Timestamp Conflict Detector Execution', () => {
 
     cacheStub.returns(storageResult);
 
-    const results = executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs(cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
@@ -278,7 +280,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
-  it('Should not report differences if the files match', () => {
+  it('Should not report differences if the files match', async () => {
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
@@ -322,7 +324,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     differStub.returns(diffResults);
     cacheStub.returns(storageResult);
 
-    const results = executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs(cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
@@ -346,10 +348,10 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
-  it('Should return empty diffs for an undefined retrieve result', () => {
+  it('Should return empty diffs for an undefined retrieve result', async () => {
     const cacheResults = undefined;
 
-    const diffs = executor.createDiffs(cacheResults);
+    const diffs = await executor.createDiffs(cacheResults);
 
     expect(channelServiceStub.callCount).to.equal(0);
     expect(executorSpy.callCount).to.equal(1);

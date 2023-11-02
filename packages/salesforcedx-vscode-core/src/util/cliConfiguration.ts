@@ -17,7 +17,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 
-export const isCLIInstalled = (): boolean => {
+export function isCLIInstalled(): boolean {
   let isInstalled = false;
   try {
     if (which('sfdx')) {
@@ -27,7 +27,7 @@ export const isCLIInstalled = (): boolean => {
     console.error('An error happened while looking for sfdx cli', e);
   }
   return isInstalled;
-};
+}
 
 export function showCLINotInstalledMessage() {
   const showMessage = nls.localize(
@@ -35,7 +35,7 @@ export function showCLINotInstalledMessage() {
     SFDX_CLI_DOWNLOAD_LINK,
     SFDX_CLI_DOWNLOAD_LINK
   );
-  void window.showWarningMessage(showMessage);
+  window.showWarningMessage(showMessage);
 }
 
 export function disableCLITelemetry() {

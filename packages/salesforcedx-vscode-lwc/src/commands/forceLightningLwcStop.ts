@@ -24,7 +24,7 @@ export async function forceLightningLwcStop() {
         nls.localize('force_lightning_lwc_stop_in_progress')
       );
       await DevServerService.instance.stopServer();
-      void notificationService
+      notificationService
         .showSuccessfulExecution(
           nls.localize('force_lightning_lwc_stop_text'),
           channelService
@@ -32,12 +32,11 @@ export async function forceLightningLwcStop() {
         .catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {
-      void notificationService.showWarningMessage(
+      notificationService.showWarningMessage(
         nls.localize('force_lightning_lwc_stop_not_running')
       );
     }
   } catch (e) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     showError(e, logName, commandName);
   }
 }

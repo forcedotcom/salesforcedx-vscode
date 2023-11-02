@@ -38,8 +38,7 @@ async function resolveAnyFoundOrphanLanguageServers(): Promise<void> {
           showTerminationFailed(processInfo, err);
           telemetryService.sendException(
             APEX_LSP_ORPHAN,
-            err instanceof Error ? err.message : typeof err === 'string' ? err : 'unknown'
-          );
+            typeof err === 'string' ? err : err?.message ? err.message : 'unknown');
         }
       }
     } else {
@@ -130,7 +129,6 @@ function showProcessTerminated(processDetail: ProcessDetail): void {
 }
 
 function showTerminationFailed(processInfo: ProcessDetail, err: any): void {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   channelService.appendLine(nls.localize(TERMINATE_FAILED, processInfo.pid, err.message));
 }
 

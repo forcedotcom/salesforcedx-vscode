@@ -17,7 +17,7 @@ import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo } from '../../../../src/util';
 
 describe('Force Auth Logout All', () => {
-  it('Should build the auth logout all command', () => {
+  it('Should build the auth logout all command', async () => {
     const authLogoutAll = new OrgLogoutAll();
     const authLogoutAllCommand = authLogoutAll.build({});
     expect(authLogoutAllCommand.toCommand()).to.equal(

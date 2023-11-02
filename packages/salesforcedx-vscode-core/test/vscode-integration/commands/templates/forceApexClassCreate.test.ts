@@ -23,7 +23,7 @@ import { workspaceUtils } from '../../../../src/util';
 
 const sandbox = createSandbox();
 
-
+// tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

@@ -45,7 +45,7 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
       const warningMessage = nls.localize(
         'force_function_start_warning_no_toml'
       );
-      void notificationService.showWarningMessage(warningMessage);
+      notificationService.showWarningMessage(warningMessage);
       telemetryService.sendException(
         'force_function_start_no_toml',
         warningMessage
@@ -62,7 +62,7 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
             const message = nls.localize('force_function_start_no_org_auth');
             channelService.appendLine(message);
             channelService.showChannelOutput();
-            void notificationService.showInformationMessage(message);
+            notificationService.showInformationMessage(message);
           }
         }
       );
@@ -87,7 +87,6 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
 
     this.telemetry.addProperty(
       'language',
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       FunctionService.instance.getFunctionLanguage()
     );
 
@@ -102,17 +101,13 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
     });
 
     channelService.appendLine('Parsing project.toml');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const descriptor = await getProjectDescriptor(
       path.join(functionDirPath, 'project.toml')
     );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const functionName = descriptor.com.salesforce.id;
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     channelService.appendLine(`Starting ${functionName}`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.startFunction(functionName, functionDirPath);
+    await this.startFunction(functionName, functionDirPath);
     return true;
   }
 

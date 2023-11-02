@@ -51,12 +51,12 @@ async function testDefinitionNavigation(
     'vscode.executeDefinitionProvider',
     editor.document.uri,
     position
-  )) as { uri: { toString: () => any; }; }[];
+  )) as Location[];
 
   // allows a users to pick between the html, js or css files in a component to navigate to
   expect(locations).to.have.lengthOf(3);
 
-  const locationUris = locations.map((location: { uri: { toString: () => any; }; }) => {
+  const locationUris = locations.map(location => {
     return location.uri.toString();
   });
   const expectedURI = URI.file(endLocation);

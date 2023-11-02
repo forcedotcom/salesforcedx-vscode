@@ -22,7 +22,7 @@ import * as settings from '../../../src/settings';
 const sb = createSandbox();
 
 /* tslint:disable:no-unused-expression */
-describe('Apex Library Test Run Executor', () => {
+describe('Apex Library Test Run Executor', async () => {
   let runTestStub: SinonStub;
   let buildPayloadStub: SinonStub;
   let writeResultFilesStub: SinonStub;
@@ -31,7 +31,7 @@ describe('Apex Library Test Run Executor', () => {
   let cancellationTokenEventEmitter;
   let cancellationToken: vscode.CancellationToken;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     sb.stub(settings, 'retrieveTestCodeCoverage').returns(true);
     runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous');
     sb.stub(workspaceContext, 'getConnection');
@@ -48,7 +48,7 @@ describe('Apex Library Test Run Executor', () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     sb.restore();
   });
 

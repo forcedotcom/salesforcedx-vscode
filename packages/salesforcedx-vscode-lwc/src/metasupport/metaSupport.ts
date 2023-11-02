@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -54,7 +50,7 @@ export class MetaSupport {
    */
   private async setupRedhatXml(
     inputCatalogs: string[],
-    inputFileAssociations: { systemId: string; pattern: string }[]
+    inputFileAssociations: Array<{ systemId: string; pattern: string }>
   ) {
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     try {
@@ -82,7 +78,7 @@ export class MetaSupport {
         nls.localize('force_lightning_lwc_no_redhat_extension_found')
       );
     } else if (redHatExtension) {
-      const pluginVersionNumber = redHatExtension.packageJSON['version'];
+      const pluginVersionNumber = redHatExtension!.packageJSON['version'];
 
       // checks if the installed plugin version is exactly 0.14.0 or 0.16+,
       // 0.15.0 has a regression and 0.13.0 or earlier versions are not supported

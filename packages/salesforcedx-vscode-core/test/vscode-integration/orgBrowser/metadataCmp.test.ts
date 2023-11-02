@@ -75,7 +75,7 @@ const expectedFieldList = [
   'Age__c (number)'
 ];
 
-
+// tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
   let metadataFolderStub: SinonStub;
@@ -135,7 +135,7 @@ describe('build metadata components list', () => {
     readFileStub.restore();
   });
 
-  it('should return a sorted list of fullNames when given a list of metadata components', () => {
+  it('should return a sorted list of fullNames when given a list of metadata components', async () => {
     const metadataType = 'ApexClass';
     const fileData = JSON.stringify({
       status: 0,
@@ -164,7 +164,7 @@ describe('build metadata components list', () => {
     }
   });
 
-  it('should return a sorted list of fullNames when given the metadata components result file path', () => {
+  it('should return a sorted list of fullNames when given the metadata components result file path', async () => {
     const filePath = '/test/metadata/ApexClass.json';
     const metadataType = 'ApexClass';
     const fileData = JSON.stringify({
@@ -196,7 +196,7 @@ describe('build metadata components list', () => {
     }
   });
 
-  it('should not return components if they are uneditable', () => {
+  it('should not return components if they are uneditable', async () => {
     const type = 'ApexClass';
     const states = ['installed', 'released', 'deleted', 'deprecated', 'beta'];
     const fileData = {
@@ -673,15 +673,15 @@ describe('fetch fields of a standard or custom object', () => {
       .be.true;
   });
 
-  it('should validate that buildCustomObjectFields() is called while fetching custom object fields if file exists', () => {
-    const fieldList = cmpUtil.fetchExistingCustomObjectsFields(filePath);
+  it('should validate that buildCustomObjectFields() is called while fetching custom object fields if file exists', async () => {
+    const fieldList = await cmpUtil.fetchExistingCustomObjectsFields(filePath);
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
     expect(buildCustomObjectFieldsListStub.calledWith(undefined, filePath)).to
       .be.true;
   });
 
-  it('should validate that fetchAndSaveSObjectFieldsProperties() is not called while fetching custom object fields if file exists', () => {
-    const fieldList = cmpUtil.fetchExistingCustomObjectsFields(filePath);
+  it('should validate that fetchAndSaveSObjectFieldsProperties() is not called while fetching custom object fields if file exists', async () => {
+    const fieldList = await cmpUtil.fetchExistingCustomObjectsFields(filePath);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.called).to.equal(false);
   });
 });

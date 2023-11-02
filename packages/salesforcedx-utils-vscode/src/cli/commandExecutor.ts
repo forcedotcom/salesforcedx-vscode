@@ -7,18 +7,19 @@
 
 import { ChildProcess, SpawnOptions } from 'child_process';
 import * as os from 'os';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/interval';
-import { Command } from './';
 
 // Below two dependancies are not structured correcly for import unless require is used.
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const cross_spawn = require('cross-spawn');
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+/* tslint:disable */
 const kill = require('tree-kill');
+const cross_spawn = require('cross-spawn');
+/* tslint:enable */
+
+import { Command } from './';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -34,7 +35,7 @@ export class CliCommandExecutor {
     baseEnvironment: Map<string, string>
   ): SpawnOptions {
     // start with current process environment
-    const env = process.env;
+    const env = Object.create(null);
 
     // inherit current process environment
     Object.assign(env, process.env);
@@ -76,12 +77,11 @@ export class CliCommandExecutor {
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const childProcess = cross_spawn(
       this.command.command,
       this.command.args,
       this.options
-    ) as ChildProcess;
+    );
     return new CliCommandExecution(
       this.command,
       childProcess,
@@ -146,7 +146,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(() => {
+      timerSubscriber = timer.subscribe(async next => {
         if (cancellationToken.isCancellationRequested) {
           try {
             this.exitSubject.next();
@@ -156,13 +156,13 @@ export class CompositeCliCommandExecution implements CommandExecution {
         }
       });
     }
-    this.processErrorSubject.subscribe(() => {
+    this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
 
-    this.processExitSubject.subscribe(() => {
+    this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -173,9 +173,9 @@ export class CompositeCliCommandExecution implements CommandExecution {
     this.exitSubject.next(0);
   }
 
-  public failureExit(e?: object) {
+  public failureExit(e?: {}) {
     if (e) {
-      this.stderr.next(`${JSON.stringify(e)}${os.EOL}`);
+      this.stderr.next(`${e}${os.EOL}`);
     }
     this.exitSubject.next(1);
   }
@@ -211,8 +211,8 @@ export class CliCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) ;
-    this.processExitSubject.subscribe(() => {
+    ) as Observable<number | undefined>;
+    this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -220,8 +220,8 @@ export class CliCommandExecution implements CommandExecution {
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
-    ) ;
-    this.processErrorSubject.subscribe(() => {
+    ) as Observable<Error | undefined>;
+    this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -234,7 +234,6 @@ export class CliCommandExecution implements CommandExecution {
     // Cancellation watcher
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-unused-vars
       timerSubscriber = timer.subscribe(async next => {
         if (cancellationToken.isCancellationRequested) {
           try {
@@ -257,14 +256,10 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = async (processId: number, signal: string): Promise<void> => {
+async function killPromise(processId: number, signal: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    kill(processId, signal, (err: any) => {
-      if (err) {
-        reject(err);
-      }
-      resolve();
+    kill(processId, signal, (err: {}) => {
+      err ? reject(err) : resolve();
     });
   });
-};
+}

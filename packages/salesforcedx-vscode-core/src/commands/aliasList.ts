@@ -18,7 +18,6 @@ import {
 } from './util';
 
 export class AliasList extends SfdxCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('alias_list_text'))

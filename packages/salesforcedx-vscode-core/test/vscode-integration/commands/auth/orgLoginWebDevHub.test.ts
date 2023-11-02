@@ -5,22 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigFile } from '@salesforce/core';
 import {
-  instantiateContext
+  instantiateContext,
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
+import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   AuthDevHubParams,
   AuthDevHubParamsGatherer,
+  createAuthDevHubExecutor,
   DEFAULT_ALIAS,
   OrgLoginWebDevHubContainerExecutor,
   OrgLoginWebDevHubDemoModeExecutor,
-  OrgLoginWebDevHubExecutor,
-  createAuthDevHubExecutor
+  OrgLoginWebDevHubExecutor
 } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
+import { OrgAuthInfo } from '../../../../src/util';
 
 const TEST_ALIAS = 'testAlias';
 
@@ -30,9 +36,9 @@ class TestOrgLoginWebDevHubExecutor extends OrgLoginWebDevHubExecutor {
   }
 }
 
-
+// tslint:disable:no-unused-expression
 describe('Org Login Web for Dev Hub', () => {
-  it('Should build the org login web login command', () => {
+  it('Should build the org login web login command', async () => {
     const orgLoginWeb = new OrgLoginWebDevHubExecutor();
     const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS
@@ -50,7 +56,7 @@ describe('Org Login Web for Dev Hub', () => {
 const $$ = instantiateContext();
 
 describe('Org Login Web For Dev Hub in Demo  Mode', () => {
-  it('Should build the org login web login command', () => {
+  it('Should build the org login web login command', async () => {
     const orgLoginWeb = new OrgLoginWebDevHubDemoModeExecutor();
     const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS

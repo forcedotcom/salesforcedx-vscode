@@ -12,7 +12,7 @@ export interface QueryOverlayActionIdsSuccessResult {
   size: number;
   totalSize: number;
   done: boolean;
-  queryLocator: any;
+  queryLocator: any | null;
   entityTypeName: string;
   records: ApexExecutionOverlayActionRecord[];
 }

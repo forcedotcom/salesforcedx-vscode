@@ -32,7 +32,6 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
     this.folder = folder;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withArg('force:mdapi:listmetadata')

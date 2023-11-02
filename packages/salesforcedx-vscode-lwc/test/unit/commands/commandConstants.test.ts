@@ -6,7 +6,7 @@ import {
 
 describe('force:lightning:lwc:start constants', () => {
   describe('base url', () => {
-    it('should include localhost', () => {
+    it('should include localhost', async () => {
       expect(DEV_SERVER_DEFAULT_BASE_URL).to.include('localhost');
     });
   });

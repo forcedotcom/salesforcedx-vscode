@@ -10,14 +10,14 @@ import { ConfigUtil } from '../config/configUtil';
 
 export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
 
-export const disableCLITelemetry = () => {
+export function disableCLITelemetry() {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_SF_DISABLE_TELEMETRY,
     'true'
   );
-};
+}
 
-export const isCLITelemetryAllowed =  async (): Promise<boolean> => {
+export async function isCLITelemetryAllowed(): Promise<boolean> {
   try {
     const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
     return !isTelemetryDisabled;
@@ -25,4 +25,4 @@ export const isCLITelemetryAllowed =  async (): Promise<boolean> => {
     console.log('Error checking cli settings: ' + e);
   }
   return true;
-};
+}

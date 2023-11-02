@@ -29,7 +29,7 @@ import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-
+// tslint:disable:no-unused-expression
 describe('Quick launch apex tests', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();

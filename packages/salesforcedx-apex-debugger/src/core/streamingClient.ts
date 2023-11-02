@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -13,25 +11,23 @@ import * as os from 'os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 
-export const DebuggerEvents = ['ApexException', 'Debug',
-  'HeartBeat',
-  'LogLine',
-  'OrgChange',
-  'Ready',
-  'RequestStarted',
-  'RequestFinished',
-  'Resumed',
-  'SessionTerminated',
-  'Stopped',
-  'SystemInfo',
-  'SystemGack',
-  'SystemWarning'];
+export enum ApexDebuggerEventType {
+  ApexException,
+  Debug,
+  HeartBeat,
+  LogLine,
+  OrgChange,
+  Ready,
+  RequestStarted,
+  RequestFinished,
+  Resumed,
+  SessionTerminated,
+  Stopped,
+  SystemInfo,
+  SystemGack,
+  SystemWarning
+}
 
-export type ApexDebuggerEventType = typeof DebuggerEvents[number];
-
-export const isApexDebuggerEventType = (event: string): event is ApexDebuggerEventType => {
-  return DebuggerEvents.includes(event);
-};
 export interface StreamingEvent {
   createdDate: string;
   replayId: number;
@@ -75,10 +71,10 @@ export class StreamingClientInfo {
 export class StreamingClientInfoBuilder {
   public channel!: string;
   public timeout: number = DEFAULT_STREAMING_TIMEOUT_MS;
-  public errorHandler: (reason: string) => void = () => { };
-  public connectedHandler: () => void = () => { };
-  public disconnectedHandler: () => void = () => { };
-  public messageHandler: (message: any) => void = () => { };
+  public errorHandler: (reason: string) => void = () => {};
+  public connectedHandler: () => void = () => {};
+  public disconnectedHandler: () => void = () => {};
+  public messageHandler: (message: any) => void = () => {};
 
   public forChannel(channel: string): StreamingClientInfoBuilder {
     this.channel = channel;
@@ -162,7 +158,7 @@ export class StreamingClient {
       }
     );
 
-    this.client.on('transport:down', () => {
+    this.client.on('transport:down', async () => {
       if (!this.connected) {
         this.clientInfo.errorHandler(
           nls.localize('streaming_handshake_timeout_text')
@@ -181,7 +177,8 @@ export class StreamingClient {
           } else {
             this.connected = false;
             this.clientInfo.errorHandler(
-              `${nls.localize('streaming_handshake_error_text')}:${os.EOL
+              `${nls.localize('streaming_handshake_error_text')}:${
+                os.EOL
               }${JSON.stringify(message)}${os.EOL}`
             );
             subscribeReject();
@@ -191,7 +188,6 @@ export class StreamingClient {
           !this.shouldDisconnect
         ) {
           const wasConnected = this.connected;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           this.connected = message.successful;
           if (!wasConnected && this.connected) {
             this.clientInfo.connectedHandler();
@@ -212,7 +208,6 @@ export class StreamingClient {
           }
           const replayFrom: any = {};
           replayFrom[this.clientInfo.channel] = this.replayId;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           message.ext['replay'] = replayFrom;
         }
         callback(message);

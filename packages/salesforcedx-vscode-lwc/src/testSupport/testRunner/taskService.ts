@@ -78,7 +78,6 @@ class TaskService {
         const { definition } = execution.task;
         const { sfdxTaskId } = definition;
         if (sfdxTaskId) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const foundTask = this.createdTasks.get(sfdxTaskId);
           if (foundTask) {
             foundTask.notifyStartTask();
@@ -95,11 +94,9 @@ class TaskService {
         const { definition } = execution.task;
         const { sfdxTaskId } = definition;
         if (sfdxTaskId) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const foundTask = this.createdTasks.get(sfdxTaskId);
           if (foundTask) {
             foundTask.notifyEndTask();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             this.createdTasks.delete(sfdxTaskId);
             foundTask.dispose();
           }
@@ -124,7 +121,7 @@ class TaskService {
     taskName: string,
     taskScope: vscode.WorkspaceFolder | vscode.TaskScope,
     cmd: string,
-    args: (string | vscode.ShellQuotedString)[]
+    args: Array<string | vscode.ShellQuotedString>
   ): SfdxTask {
     const taskDefinition: SfdxTaskDefinition = {
       type: 'sfdxLwcTest',

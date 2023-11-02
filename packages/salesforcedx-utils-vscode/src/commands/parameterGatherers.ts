@@ -7,8 +7,8 @@
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '../types';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
+  private readonly gatherers: Array<ParametersGatherer<any>>;
+  public constructor(...gatherers: Array<ParametersGatherer<any>>) {
     this.gatherers = gatherers;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
@@ -16,9 +16,7 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
     for (const gatherer of this.gatherers) {
       const input = await gatherer.gather();
       if (input.type === 'CONTINUE') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         Object.keys(input.data).map(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-member-access
           key => (aggregatedData[key] = input.data[key])
         );
       } else {
@@ -29,13 +27,13 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
     }
     return {
       type: 'CONTINUE',
-      data: aggregatedData as T
+      data: aggregatedData
     };
   }
 }
 
-export class EmptyParametersGatherer implements ParametersGatherer<unknown> {
-  public gather(): Promise<CancelResponse | ContinueResponse<unknown>> {
-    return Promise.resolve({ type: 'CONTINUE', data: {} });
+export class EmptyParametersGatherer implements ParametersGatherer<{}> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    return { type: 'CONTINUE', data: {} };
   }
 }

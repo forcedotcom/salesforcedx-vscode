@@ -12,7 +12,7 @@ import { Config, DEFAULT_LOCALE, Localization, Message } from './localization';
 
 const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
 
-const loadMessageBundle = (config?: Config): Message => {
+function loadMessageBundle(config?: Config): Message {
   const base = new Message(enMessages);
 
   const localeConfig = config ? config.locale : DEFAULT_LOCALE;
@@ -26,12 +26,12 @@ const loadMessageBundle = (config?: Config): Message => {
   }
 
   return base;
-};
+}
 
 export const nls = new Localization(
   loadMessageBundle(
     process.env.VSCODE_NLS_CONFIG
-      ? JSON.parse(process.env.VSCODE_NLS_CONFIG) as Config
+      ? JSON.parse(process.env.VSCODE_NLS_CONFIG!)
       : undefined
   )
 );

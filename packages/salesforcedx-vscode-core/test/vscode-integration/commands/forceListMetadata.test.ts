@@ -14,7 +14,7 @@ import {
 } from '../../../src/commands';
 
 describe('Force List Metadata', () => {
-  it('Should build list metadata command', () => {
+  it('Should build list metadata command', async () => {
     const metadataType = 'ApexClass';
     const defaultUsername = 'test-username1@example.com';
     const forceListMetadataExec = new ForceListMetadataExecutor(
@@ -27,7 +27,7 @@ describe('Force List Metadata', () => {
     );
   });
 
-  it('Should build list metadata command with folder arg', () => {
+  it('Should build list metadata command with folder arg', async () => {
     const metadataType = 'Report';
     const defaultUsername = 'test-username1@example.com';
     const folder = 'SampleFolder';

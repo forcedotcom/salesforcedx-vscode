@@ -97,7 +97,7 @@ export async function getApexTests(): Promise<ApexTestMethod[]> {
   if (languageClient) {
     response = (await languageClient.sendRequest(
       'test/getTestMethods'
-    ));
+    )) as LSPApexTestMethod[];
   }
   for (const requestInfo of response) {
     ret.push(ApexLSPConverter.toApexTestMethod(requestInfo));

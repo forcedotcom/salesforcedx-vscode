@@ -1,0 +1,8 @@
+{ "rules": 
+{
+  "@typescript-eslint/no-floating-promises": "warn",
+  "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+  "@typescript-eslint/quotes": "warn",
+  "@typescript-eslint/require-await": "warn"
+}
+}

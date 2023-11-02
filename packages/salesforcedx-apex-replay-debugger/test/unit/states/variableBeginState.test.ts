@@ -17,7 +17,7 @@ import {
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableBeginState } from '../../../src/states';
 
-
+// tslint:disable:no-unused-expression
 describe('Variable begin scope event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
   let getStaticMapStub: sinon.SinonStub;

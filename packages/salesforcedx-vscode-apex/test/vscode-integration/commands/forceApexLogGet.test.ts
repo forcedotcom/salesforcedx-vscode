@@ -14,7 +14,7 @@ import {
   LogFileSelector
 } from '../../../src/commands/forceApexLogGet';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Apex Log Get Logging', () => {
   const newerStartTime = new Date(Date.now());
   const olderStartTime = new Date(Date.now() - 10 * 60000);

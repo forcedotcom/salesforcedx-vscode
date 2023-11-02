@@ -22,7 +22,7 @@ describe('ensureCurrentWorkingDirIsProjectPath', () => {
       .mockImplementation(jest.fn());
   });
 
-  it('should change the processes current working directory to the project directory', () => {
+  it('should change the processes current working directory to the project directory', async () => {
     processCwdSpy.mockReturnValue(dummyDefaultPath);
     fsExistsSyncSpy.mockReturnValue(true);
 
@@ -31,19 +31,19 @@ describe('ensureCurrentWorkingDirIsProjectPath', () => {
     expect(processChDirSpy).toHaveBeenCalledWith(dummyProjectPath);
   });
 
-  it('should not change the processes current working directory when already in the project directory', () => {
+  it('should not change the processes current working directory when already in the project directory', async () => {
     processCwdSpy.mockReturnValue(dummyProjectPath);
 
-    ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
+    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
 
     expect(processChDirSpy).not.toHaveBeenCalled();
   });
 
-  it('should not change the processes current working directory when the project path does not exist', () => {
+  it('should not change the processes current working directory when the project path does not exist', async () => {
     processCwdSpy.mockReturnValue(dummyDefaultPath);
     fsExistsSyncSpy.mockReturnValue(false);
 
-    ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
+    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
 
     expect(processChDirSpy).not.toHaveBeenCalled();
   });

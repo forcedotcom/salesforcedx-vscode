@@ -228,8 +228,8 @@ describe('Force Apex Test Run - Code Action', () => {
     ]
   };
   const sb = createSandbox();
-
-  describe('Apex Library Test Run Executor', () => {
+  // tslint:disable:no-unused-expression
+  describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
     let writeResultFilesStub: SinonStub;
@@ -244,7 +244,7 @@ describe('Force Apex Test Run - Code Action', () => {
     let progress: Progress<unknown>;
     let cancellationTokenEventEmitter;
     let cancellationToken: CancellationToken;
-    beforeEach(() => {
+    beforeEach(async () => {
       runTestStub = sb
         .stub(TestService.prototype, 'runTestAsynchronous')
         .resolves(passingResult);
@@ -276,7 +276,7 @@ describe('Force Apex Test Run - Code Action', () => {
         onCancellationRequested: cancellationTokenEventEmitter.event
       };
     });
-    afterEach(() => {
+    afterEach(async () => {
       sb.restore();
     });
 

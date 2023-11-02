@@ -10,11 +10,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { OrgAuthInfo, normalizeError, workspaceUtils } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 import {
   BrowserNode,
-  CUSTOMOBJECTS_FULLNAME,
   ComponentUtils,
+  CUSTOMOBJECTS_FULLNAME,
   MetadataObject,
   NodeType,
   TypeUtils
@@ -79,14 +79,12 @@ export class MetadataOutlineProvider
 
     switch (element.type) {
       case NodeType.Org:
-        // eslint-disable-next-line no-case-declarations
         const types = await this.getTypes();
         element.setTypes(types, NodeType.MetadataType);
         this.toRefresh = false;
         break;
       case NodeType.Folder:
       case NodeType.MetadataType:
-        // eslint-disable-next-line no-case-declarations
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
@@ -97,7 +95,6 @@ export class MetadataOutlineProvider
           nodeType = NodeType.MetadataField;
         }
 
-        // eslint-disable-next-line no-case-declarations
         const components = await this.getComponents(element);
         element.setComponents(components, nodeType);
         element.toRefresh = false;
@@ -111,7 +108,7 @@ export class MetadataOutlineProvider
     try {
       return await typeUtil.loadTypes(this.toRefresh);
     } catch (e) {
-      throw parseErrors(normalizeError(e));
+      throw parseErrors(e);
     }
   }
 
@@ -144,7 +141,7 @@ export class MetadataOutlineProvider
 
       return components;
     } catch (e) {
-      throw parseErrors(normalizeError(e));
+      throw parseErrors(e);
     }
   }
 
@@ -158,10 +155,10 @@ export class MetadataOutlineProvider
   }
 }
 
-export const parseErrors = (error: string | Error): Error => {
+export function parseErrors(error: string | any): Error {
   try {
-    const err = normalizeError(error);
-    const e = extractJsonObject(err.message) as Error;
+    const errMsg = typeof error === 'string' ? error : error.message;
+    const e = extractJsonObject(errMsg);
 
     let message: string;
 
@@ -179,6 +176,6 @@ export const parseErrors = (error: string | Error): Error => {
     message += ' ' + nls.localize('error_org_browser_text');
     return new Error(message);
   } catch (e) {
-    return normalizeError(e);
+    return new Error(e);
   }
-};
+}

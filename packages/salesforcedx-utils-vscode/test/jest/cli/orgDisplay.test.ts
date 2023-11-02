@@ -87,7 +87,7 @@ describe('orgDisplay Unit Tests.', () => {
       );
 
       const orgDisplay = new OrgDisplay();
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      // tslint:disable-next-line:no-floating-promises
       expect(orgDisplay.getOrgInfo(fakeProjectPath)).rejects.toEqual(badJson);
     });
   });

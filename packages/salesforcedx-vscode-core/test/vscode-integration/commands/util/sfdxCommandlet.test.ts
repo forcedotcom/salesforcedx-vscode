@@ -33,13 +33,13 @@ describe('SfdxCommandlet', () => {
           return false;
         }
       })(),
-      new (class implements ParametersGatherer<any> {
-        public gather(): Promise<CancelResponse | ContinueResponse<any>> {
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
           throw new Error('This should not be called');
         }
       })(),
-      new (class implements CommandletExecutor<any> {
-        public execute(response: ContinueResponse<any>): void {
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
           throw new Error('This should not be called');
         }
       })()
@@ -55,13 +55,13 @@ describe('SfdxCommandlet', () => {
           return true;
         }
       })(),
-      new (class implements ParametersGatherer<any> {
-        public gather(): Promise<CancelResponse | ContinueResponse<any>> {
-          return Promise.resolve({ type: 'CANCEL' });
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CANCEL' };
         }
       })(),
-      new (class implements CommandletExecutor<any> {
-        public execute(response: ContinueResponse<any>): void {
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
           throw new Error('This should not be called');
         }
       })()
@@ -78,13 +78,13 @@ describe('SfdxCommandlet', () => {
           return true;
         }
       })(),
-      new (class implements ParametersGatherer<any> {
-        public gather(): Promise<CancelResponse | ContinueResponse<any>> {
-          return Promise.resolve({ type: 'CONTINUE', data: {} });
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
         }
       })(),
-      new (class implements CommandletExecutor<any> {
-        public execute(response: ContinueResponse<any>): void {
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
           executed = true;
         }
       })()
@@ -92,7 +92,7 @@ describe('SfdxCommandlet', () => {
 
     await commandlet.run();
 
-
+    // tslint:disable-next-line:no-unused-expression
     expect(executed).to.be.true;
   });
 
@@ -107,17 +107,17 @@ describe('SfdxCommandlet', () => {
           return true;
         }
       })(),
-      new (class implements ParametersGatherer<any> {
-        public gather(): Promise<CancelResponse | ContinueResponse<any>> {
-          return Promise.resolve({ type: 'CONTINUE', data: {} });
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
         }
       })(),
-      new (class implements CommandletExecutor<any> {
-        public execute(response: ContinueResponse<any>): void { }
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {}
       })()
     );
     await commandlet.run();
-
+    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
 
@@ -132,17 +132,17 @@ describe('SfdxCommandlet', () => {
           return true;
         }
       })(),
-      new (class implements ParametersGatherer<any> {
-        public gather(): Promise<CancelResponse | ContinueResponse<any>> {
-          return Promise.resolve({ type: 'CONTINUE', data: {} });
+      new (class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
         }
       })(),
-      new (class implements CommandletExecutor<any> {
-        public execute(response: ContinueResponse<any>): void { }
+      new (class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {}
       })()
     );
     await commandlet.run();
-
+    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
 });

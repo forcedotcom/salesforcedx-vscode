@@ -24,7 +24,7 @@ import { forceAnonApexDebug } from './forceAnonApexExecute';
 export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
-    void notificationService.showErrorMessage(
+    notificationService.showErrorMessage(
       nls.localize('unable_to_locate_editor')
     );
     return;
@@ -32,7 +32,7 @@ export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
 
   const sourceUri = editor.document.uri;
   if (!sourceUri) {
-    void notificationService.showErrorMessage(
+    notificationService.showErrorMessage(
       nls.localize('unable_to_locate_document')
     );
     return;
@@ -54,7 +54,7 @@ export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
     return;
   }
 
-  void notificationService.showErrorMessage(
+  notificationService.showErrorMessage(
     nls.localize('launch_apex_replay_debugger_unsupported_file')
   );
 }

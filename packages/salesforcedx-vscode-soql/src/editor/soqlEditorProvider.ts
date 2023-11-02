@@ -33,9 +33,9 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private instances: SOQLEditorInstance[] = [];
 
-  constructor(private readonly extensionContext: vscode.ExtensionContext) { }
+  constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
-  public resolveCustomTextEditor(
+  public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
     // eslint-disable-next-line
@@ -57,16 +57,14 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     instance.onDispose(this.disposeInstance.bind(this));
     this.extensionContext.subscriptions.push(...instance.subscriptions);
 
     if (!isDefaultOrgSet()) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
-      void vscode.window.showInformationMessage(message);
+      vscode.window.showInformationMessage(message);
     }
-    return Promise.resolve();
   }
 
   private getWebViewContent(webview: vscode.Webview): string {

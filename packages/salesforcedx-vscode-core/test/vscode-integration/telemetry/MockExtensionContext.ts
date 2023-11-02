@@ -133,9 +133,9 @@ export class MockExtensionContext implements ExtensionContext {
   public extensionMode = ExtensionMode.Test;
   public extensionUri = Uri.parse('file://test');
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
-  public subscriptions: { dispose(): any }[] = [];
+  public subscriptions: Array<{ dispose(): any }> = [];
   public workspaceState: Memento;
-  public globalState: Memento & { setKeysForSync(keys: readonly string[]): void };
+  public globalState: Memento & { setKeysForSync(keys: readonly string[]): void; };
   public extensionPath: string = 'myExtensionPath';
   public globalStoragePath = 'globalStatePath';
   public logPath = 'logPath';

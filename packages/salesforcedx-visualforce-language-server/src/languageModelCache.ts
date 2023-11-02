@@ -69,7 +69,7 @@ export function getLanguageModelCache<T>(
       if (nModels === maxEntries) {
         let oldestTime = Number.MAX_VALUE;
         let oldestUri = null;
-
+        // tslint:disable-next-line:forin
         for (const uri in languageModels) {
           const localLanguageModelInfo = languageModels[uri];
           if (localLanguageModelInfo.cTime < oldestTime) {

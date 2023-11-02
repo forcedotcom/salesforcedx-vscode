@@ -16,15 +16,15 @@ const env = createSandbox();
 
 class MockFileWatcher implements vscode.Disposable {
   private watchUri: vscode.Uri;
-  private changeSubscribers: ((uri: vscode.Uri) => void)[] = [];
-  private createSubscribers: ((uri: vscode.Uri) => void)[] = [];
-  private deleteSubscribers: ((uri: vscode.Uri) => void)[] = [];
+  private changeSubscribers: Array<(uri: vscode.Uri) => void> = [];
+  private createSubscribers: Array<(uri: vscode.Uri) => void> = [];
+  private deleteSubscribers: Array<(uri: vscode.Uri) => void> = [];
 
   constructor(fsPath: string) {
     this.watchUri = vscode.Uri.file(fsPath);
   }
 
-  public dispose() { }
+  public dispose() {}
 
   public onDidChange(f: (uri: vscode.Uri) => void): vscode.Disposable {
     this.changeSubscribers.push(f);
@@ -41,7 +41,7 @@ class MockFileWatcher implements vscode.Disposable {
     return this;
   }
 
-  public fire(type: 'change' | 'create' | 'delete') {
+  public async fire(type: 'change' | 'create' | 'delete') {
     let subscribers;
 
     switch (type) {
@@ -57,7 +57,7 @@ class MockFileWatcher implements vscode.Disposable {
     }
 
     for (const subscriber of subscribers) {
-      subscriber(this.watchUri);
+      await subscriber(this.watchUri);
     }
   }
 
@@ -136,11 +136,11 @@ describe('WorkspaceContext', () => {
     expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
   });
 
-  it('should update default username and alias upon config change', () => {
+  it('should update default username and alias upon config change', async () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
-    (workspaceContextUtil as TestWorkspaceContextUtil)
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('change');
 
@@ -149,11 +149,11 @@ describe('WorkspaceContext', () => {
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  it('should update default username and alias to undefined if one is not set', () => {
+  it('should update default username and alias to undefined if one is not set', async () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
-    (workspaceContextUtil as TestWorkspaceContextUtil)
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('change');
 
@@ -162,8 +162,8 @@ describe('WorkspaceContext', () => {
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-
-  it('should notify subscribers that the default org may have changed', async function () {
+  // tslint:disable-next-line:only-arrow-functions
+  it('should notify subscribers that the default org may have changed', async function() {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);

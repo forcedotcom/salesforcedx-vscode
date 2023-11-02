@@ -122,8 +122,8 @@ describe.skip('Interactive debugger adapter - integration', () => {
     try {
       await dc.attachRequest({});
       expect.fail('Debugger client should have thrown an error');
-
-    } catch (error) { }
+      // tslint:disable-next-line:no-empty
+    } catch (error) {}
   });
 
   it('End-to-end flow', async () => {

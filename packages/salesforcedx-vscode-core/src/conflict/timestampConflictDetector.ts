@@ -46,12 +46,15 @@ export class TimestampConflictDetector {
       TimestampFileProperties
     >();
     components.forEach(component => {
-      const lastModifiedInOrg = component.lastModifiedDate;
+      let lastModifiedInOrg: string | undefined;
+      let lastModifiedInCache: string | undefined;
+
+      lastModifiedInOrg = component.lastModifiedDate;
       const key = cache.makeKey(
         component.cacheComponent.type.name,
         component.cacheComponent.fullName
       );
-      const lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
+      lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (
         !lastModifiedInCache ||
         this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)

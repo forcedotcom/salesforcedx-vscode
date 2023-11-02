@@ -54,7 +54,6 @@ export function handleDiagnosticErrors(
     : sourcePathOrPaths;
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  // eslint-disable-next-line no-prototype-builtins
   if (errors.hasOwnProperty('data')) {
     errors.data.forEach(error => {
       const fileUri = getFileUri(
@@ -85,7 +84,6 @@ export function handleDiagnosticErrors(
       const fileUri = vscode.Uri.file(file);
       errorCollection.set(fileUri, diagMap);
     });
-  // eslint-disable-next-line no-prototype-builtins
   } else if (errors.hasOwnProperty('message')) {
     const fileUri = vscode.Uri.file(defaultErrorPath);
     const range = getRange('1', '1');

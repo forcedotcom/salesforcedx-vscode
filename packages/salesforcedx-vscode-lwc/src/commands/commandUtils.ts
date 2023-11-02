@@ -13,8 +13,8 @@ import { telemetryService } from '../telemetry';
 
 export function showError(e: Error, logName: string, commandName: string) {
   telemetryService.sendException(`${logName}_error`, e.message);
-  void notificationService.showErrorMessage(e.message);
-  void notificationService.showErrorMessage(
+  notificationService.showErrorMessage(e.message);
+  notificationService.showErrorMessage(
     nls.localize('command_failure', commandName)
   );
   channelService.appendLine(`Error: ${e.message}`);

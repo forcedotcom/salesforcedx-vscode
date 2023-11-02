@@ -23,7 +23,6 @@ import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 
 describe('Debugger stop command', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mockSpawn = require('mock-spawn');
 
   describe('Session query', () => {

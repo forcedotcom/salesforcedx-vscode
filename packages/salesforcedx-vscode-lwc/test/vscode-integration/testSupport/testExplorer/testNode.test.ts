@@ -24,8 +24,8 @@ import {
 
 describe('Sfdx Test Node', () => {
   const mockDirectory = /^win32/.test(process.platform)
-    ? 'C:\\Users\\tester'
-    : '/Users/tester';
+    ? `C:\\Users\\tester`
+    : `/Users/tester`;
   const mockTestFile = 'mockTest.test.js';
   const mockTestFilePath = path.join(mockDirectory, mockTestFile);
   describe('Should set correct values for test nodes', () => {

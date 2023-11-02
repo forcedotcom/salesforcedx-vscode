@@ -27,7 +27,7 @@ export function getTestWorkspaceFolder(testUri?: vscode.Uri) {
       'no_workspace_folder_found_for_test_text'
     );
     console.error(errorMessage);
-    void vscode.window.showErrorMessage(errorMessage);
+    vscode.window.showErrorMessage(errorMessage);
     telemetryService.sendException(
       'lwc_test_no_workspace_folder_found_for_test',
       errorMessage

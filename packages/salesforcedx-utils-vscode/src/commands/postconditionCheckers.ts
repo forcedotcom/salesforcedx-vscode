@@ -11,9 +11,9 @@ import {
 } from '../types';
 
 export class EmptyPostChecker implements PostconditionChecker<any> {
-  public check(
+  public async check(
     inputs: ContinueResponse<any> | CancelResponse
   ): Promise<ContinueResponse<any> | CancelResponse> {
-    return Promise.resolve(inputs);
+    return inputs;
   }
 }

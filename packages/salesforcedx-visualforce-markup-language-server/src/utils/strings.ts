@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-
+// tslint:disable:no-bitwise
 export function startsWithCaseInsentively(
   haystack: string,
   needle: string

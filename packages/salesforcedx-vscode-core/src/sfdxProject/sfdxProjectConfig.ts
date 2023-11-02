@@ -13,7 +13,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { telemetryService } from '../telemetry';
-import { normalizeError, workspaceUtils } from '../util';
+import { workspaceUtils } from '../util';
 
 /**
  * Class representing the local sfdx-project.json file.
@@ -55,16 +55,15 @@ export default class SfdxProjectConfig {
   }
 
   private static handleError(error: any) {
-    const err = normalizeError(error) as Error & { path?: string };
-    let errorMessage = err.message;
-    if (err.name === 'JsonParseError') {
+    let errorMessage = error.message;
+    if (error.name === 'JsonParseError') {
       errorMessage = nls.localize(
         'error_parsing_sfdx_project_file',
-        err.path ?? 'Uknown path',
-        err.message
+        error.path,
+        error.message
       );
     }
-    void notificationService.showErrorMessage(errorMessage);
+    notificationService.showErrorMessage(errorMessage);
     telemetryService.sendException('project_config', errorMessage);
   }
 

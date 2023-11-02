@@ -15,7 +15,7 @@ import {
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
-
+// tslint:disable:no-unused-expression
 describe('ISV Debugging Project Bootstrap Command', () => {
   const LOGIN_URL = 'a.b.c';
   const SESSION_ID = '0x123';
@@ -121,14 +121,14 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       }
     });
 
-    it('Should accept valid URI', () => {
+    it('Should accept valid URI', async () => {
       const response = EnterForceIdeUri.uriValidator(
         `forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`
       );
       expect(response).to.be.null;
     });
 
-    it('Should complain about invalid URI', () => {
+    it('Should complain about invalid URI', async () => {
       expect(
         EnterForceIdeUri.uriValidator(
           `forceide://abc?url=${LOGIN_URL}&missingSessionId`
@@ -140,7 +140,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         )
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
-        EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')
+        EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
         nls.localize('parameter_gatherer_invalid_forceide_url')
@@ -149,7 +149,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
   });
 
   describe('CLI Builder', () => {
-    it('Verify buildCreateProjectCommand', () => {
+    it('Verify buildCreateProjectCommand', async () => {
       const forceProjectCreateBuilder = new IsvDebugBootstrapExecutor();
       const createCommand = forceProjectCreateBuilder.buildCreateProjectCommand(
         {
@@ -169,7 +169,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildConfigureProjectCommand', () => {
+    it('Verify buildConfigureProjectCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
       const configureCommand = forceProjectConfigBuilder.buildConfigureProjectCommand(
         {
@@ -189,7 +189,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildQueryForOrgNamespacePrefixCommand', () => {
+    it('Verify buildQueryForOrgNamespacePrefixCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
       const command = forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand(
         {
@@ -211,7 +211,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify parseOrgNamespaceQueryResultJson', () => {
+    it('Verify parseOrgNamespaceQueryResultJson', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
       expect(
         forceProjectConfigBuilder.parseOrgNamespaceQueryResultJson(
@@ -225,7 +225,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       ).to.equal('abc');
     });
 
-    it('Verify buildRetrieveOrgSourceCommand', () => {
+    it('Verify buildRetrieveOrgSourceCommand', async () => {
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildRetrieveOrgSourceCommand({
         loginUrl: LOGIN_URL,
@@ -243,7 +243,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildPackageInstalledListAsJsonCommand', () => {
+    it('Verify buildPackageInstalledListAsJsonCommand', async () => {
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildPackageInstalledListAsJsonCommand({
         loginUrl: LOGIN_URL,
@@ -261,7 +261,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify buildRetrievePackageSourceCommand', () => {
+    it('Verify buildRetrievePackageSourceCommand', async () => {
       const packageName = 'mypackage_abc_mpackage_def';
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildRetrievePackageSourceCommand(
@@ -283,7 +283,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
-    it('Verify build does nothing', () => {
+    it('Verify build does nothing', async () => {
       const builder = new IsvDebugBootstrapExecutor();
       expect(builder.build.bind(builder, {})).to.throw('not in use');
     });

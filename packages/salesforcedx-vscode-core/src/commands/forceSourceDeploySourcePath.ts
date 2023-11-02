@@ -30,14 +30,14 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
     );
   }
 
-  public getComponents(
+  public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
     const paths =
       typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
-    return Promise.resolve(componentSet);
+    return componentSet;
   }
 }
 
@@ -107,7 +107,7 @@ export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
     'force_source_deploy_with_sourcepath',
     errorMessage
   );
-  void notificationService.showErrorMessage(errorMessage);
+  notificationService.showErrorMessage(errorMessage);
   channelService.appendLine(errorMessage);
   channelService.showChannelOutput();
 

@@ -5,11 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join, normalize } from 'path';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// tslint:disable-next-line:no-var-requires
 const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
-
+import { join, normalize } from 'path';
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure(

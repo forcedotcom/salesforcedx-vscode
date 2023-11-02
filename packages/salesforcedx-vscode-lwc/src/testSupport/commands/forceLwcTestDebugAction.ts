@@ -6,7 +6,6 @@
  */
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
-import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestCaseInfo,
@@ -18,6 +17,7 @@ import {
 import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
+import { telemetryService } from '../../telemetry';
 import { workspaceService } from '../workspace/workspaceService';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();
@@ -120,7 +120,6 @@ export function handleDidStartDebugSession(session: vscode.DebugSession) {
   const { configuration } = session;
   const { sfdxDebugSessionId } = configuration;
   const startTime = process.hrtime();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   debugSessionStartTimes.set(sfdxDebugSessionId, startTime);
 }
 
@@ -131,7 +130,6 @@ export function handleDidStartDebugSession(session: vscode.DebugSession) {
 export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
   const { configuration } = session;
   const startTime = debugSessionStartTimes.get(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     configuration.sfdxDebugSessionId
   );
   if (Array.isArray(startTime)) {

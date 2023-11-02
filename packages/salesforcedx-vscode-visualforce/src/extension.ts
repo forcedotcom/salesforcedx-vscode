@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -29,6 +26,9 @@ import {
   TextDocumentPositionParams,
   TransportKind
 } from 'vscode-languageclient';
+import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
+import { activateTagClosing } from './tagClosing';
+
 import { ConfigurationFeature } from 'vscode-languageclient/lib/configuration';
 import {
   ColorPresentationParams,
@@ -36,11 +36,9 @@ import {
   DocumentColorParams,
   DocumentColorRequest
 } from 'vscode-languageserver-protocol';
-import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
-import { activateTagClosing } from './tagClosing';
 import { telemetryService } from './telemetry';
 
-
+// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
   export const type: RequestType<
     TextDocumentPositionParams,
@@ -50,8 +48,7 @@ namespace TagCloseRequest {
   > = new RequestType('html/tag');
 }
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-export function activate(context: ExtensionContext): Promise<void> {
+export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const toDispose = context.subscriptions;
 
@@ -183,10 +180,10 @@ export function activate(context: ExtensionContext): Promise<void> {
     });
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
-      increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
-      decreaseIndentPattern: /^\s*(<\/(?!html)[-_.A-Za-z0-9]+\b[^>]*>|-->|\})/
+      increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_\.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
+      decreaseIndentPattern: /^\s*(<\/(?!html)[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/
     },
-    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+[{]}\\\|;:'",.<>\/\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
@@ -211,7 +208,7 @@ export function activate(context: ExtensionContext): Promise<void> {
   });
 
   languages.setLanguageConfiguration('handlebars', {
-    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*)=+[{]}\\\|;:'",\.<>\/\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
@@ -236,7 +233,7 @@ export function activate(context: ExtensionContext): Promise<void> {
   });
 
   languages.setLanguageConfiguration('razor', {
-    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()-=+[{\]}\\|;:'",.<>/\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
@@ -273,8 +270,6 @@ export function activate(context: ExtensionContext): Promise<void> {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-
-  return Promise.resolve();
 }
 
 export function deactivate() {

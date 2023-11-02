@@ -25,9 +25,9 @@ import { nls } from '../../../../src/messages';
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
 
-
+// tslint:disable:no-unused-expression
 describe('Org Login Web', () => {
-  it('Should build the org login web login command', () => {
+  it('Should build the org login web login command', async () => {
     const orgLoginWeb = new OrgLoginWebExecutor();
     const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS,
@@ -43,7 +43,7 @@ describe('Org Login Web', () => {
 });
 
 describe('Org Login Web in Demo Mode', () => {
-  it('Should build the org login web login command', () => {
+  it('Should build the org login web login command', async () => {
     const orgLoginWeb = new OrgLoginWebDemoModeExecutor();
     const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS,
@@ -141,7 +141,7 @@ describe('Auth Params Gatherer', () => {
       }
     });
 
-    it('Should consider URL invalid if it does not begin with http:// or https://', () => {
+    it('Should consider URL invalid if it does not begin with http:// or https://', async () => {
       expect(AuthParamsGatherer.validateUrl('http://example.com')).to.be.null;
       expect(AuthParamsGatherer.validateUrl('https://example.com')).to.be.null;
       expect(AuthParamsGatherer.validateUrl('example.com')).to.be.not.null;
@@ -294,7 +294,7 @@ describe('Force Auth Device Login', () => {
     sb = sinon.createSandbox();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     sb.restore();
   });
 

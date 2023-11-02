@@ -194,8 +194,8 @@ export class SpectronApplication {
           await this.screenshot.capture();
           rej(
             `Could not retrieve the element in ${this.testRetry *
-            this.pollTrials *
-            this.pollTimeout} seconds. (${JSON.stringify(args)})`
+              this.pollTrials *
+              this.pollTimeout} seconds. (${JSON.stringify(args)})`
           );
           break;
         }
@@ -203,7 +203,7 @@ export class SpectronApplication {
         let result;
         try {
           result = await func.call(this.client, args, false);
-
+          // tslint:disable-next-line:no-empty
         } catch (e) {
           console.log(` Attempt #${trial}: ${args} :::: ${e}`);
           await this.screenshot.capture();

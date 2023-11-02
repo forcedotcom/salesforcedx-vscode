@@ -8,8 +8,8 @@ import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { assert, SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
+import { assert, SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as which from 'which';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
@@ -67,7 +67,6 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
       existsSyncStub.returns(false);
       workspace.getLwcTestRunnerExecutable(sfdxProjectPath);
       assert.calledOnce(notificationStub);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       assert.calledWith(
         notificationStub,
@@ -109,7 +108,6 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
       existsSyncStub.returns(false);
       workspace.getLwcTestRunnerExecutable(projectPath);
       assert.calledOnce(notificationStub);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       assert.calledWith(
         notificationStub,

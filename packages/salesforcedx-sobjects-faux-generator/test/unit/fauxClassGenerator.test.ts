@@ -41,7 +41,7 @@ describe('SObject faux class generator', () => {
     }
   });
 
-  it('Should generate a faux class with a proper header comment', () => {
+  it('Should generate a faux class with a proper header comment', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -57,7 +57,7 @@ describe('SObject faux class generator', () => {
     );
   });
 
-  it('Should generate a faux class with field inline comments', () => {
+  it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
     const customDef = declGenerator.generateSObjectDefinition(
       minimalCustomSObject
@@ -75,7 +75,7 @@ describe('SObject faux class generator', () => {
     expect(classContent).to.include(customFieldComment);
   });
 
-  it('Should generate a faux class as read-only', () => {
+  it('Should generate a faux class as read-only', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -90,7 +90,7 @@ describe('SObject faux class generator', () => {
     expect(stat.mode).to.equal(expectedMode);
   });
 
-  it('Should generate a faux class with all types of fields that can be in custom SObjects', () => {
+  it('Should generate a faux class with all types of fields that can be in custom SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -140,7 +140,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('Id IdField;');
   });
 
-  it('Should generate a faux class with all types of fields that show only in standard SObjects', () => {
+  it('Should generate a faux class with all types of fields that show only in standard SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -170,7 +170,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('String ComboboxField;');
   });
 
-  it('Should create a a valid class with a field and relationship', () => {
+  it('Should create a a valid class with a field and relationship', async () => {
     const field1 =
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const relation1 =
@@ -195,7 +195,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('Id Account__c');
   });
 
-  it('Should create a valid class with child relationship', () => {
+  it('Should create a valid class with child relationship', async () => {
     const field1 =
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const childRelation1 =
@@ -217,7 +217,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('List<Case> Case__r');
   });
 
-  it('Should create a valid field name for a child relationship that is missing the relationshipName', () => {
+  it('Should create a valid field name for a child relationship that is missing the relationshipName', async () => {
     const childRelation1 =
       '{"childSObject": "Case", "field": "RelatedCaseId", "relationshipName": null}';
     const sobject1: string =
@@ -237,7 +237,7 @@ describe('SObject faux class generator', () => {
 
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
 
-  it('Should create a class that has no duplicate field names', () => {
+  it('Should create a class that has no duplicate field names', async () => {
     const childRelation1 =
       '{"childSObject": "Case", "relationshipName": "Reference"}';
     const childRelation2 =
@@ -261,7 +261,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.not.include('Account Reference');
   });
 
-  it('Should create a valid field reference to another SObject when missing the relationshipName', () => {
+  it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
     const childRelation1 =
       '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
     const field1 =
@@ -282,7 +282,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('List<Account> Reference');
   });
 
-  it('Should create a String field type for an external lookup relationship', () => {
+  it('Should create a String field type for an external lookup relationship', async () => {
     const field1 =
       '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const header = '{ "name": "Custom__c",  "childRelationships": []';
@@ -306,7 +306,7 @@ describe('SObject faux class generator', () => {
 
   // Note, currently __x (ExternalObject) is not handled by describe (REST or Cli), but is handled by SDD
 
-  it('Should create a valid class for a metadata object with EntityDefinition relationship target', () => {
+  it('Should create a valid class for a metadata object with EntityDefinition relationship target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
@@ -325,7 +325,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('String MDRef__c');
   });
 
-  it('Should create a valid class for a metadata object with a __mdt target', () => {
+  it('Should create a valid class for a metadata object with a __mdt target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
@@ -344,7 +344,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('XX_mdt MDRef__r');
   });
 
-  it('Should create a valid class for a platform event object', () => {
+  it('Should create a valid class for a platform event object', async () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 

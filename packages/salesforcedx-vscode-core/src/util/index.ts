@@ -20,4 +20,3 @@ export {
   getDefaultDevHubUsernameOrAlias,
   setUpOrgExpirationWatcher
 } from './orgUtil';
-export { normalizeError } from './normalizeError';

@@ -17,7 +17,7 @@ import {
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 
-
+// tslint:disable:no-unused-expression
 describe('Frame entry event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
   let getStaticMapStub: sinon.SinonStub;

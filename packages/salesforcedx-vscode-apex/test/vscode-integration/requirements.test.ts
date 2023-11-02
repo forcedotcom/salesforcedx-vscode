@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-
+// tslint:disable:no-unused-expression
 
 import { fail } from 'assert';
 import { expect } from 'chai';
@@ -86,7 +86,6 @@ describe('Java Requirements Test', () => {
       expect(result).to.equal(true);
     } catch (err) {
       fail(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Should not have thrown when the Java version is 11.  The error was: ${err}`
       );
     }
@@ -99,7 +98,6 @@ describe('Java Requirements Test', () => {
       expect(result).to.equal(true);
     } catch (err) {
       fail(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Should not have thrown when the Java version is 17.  The error was: ${err}`
       );
     }

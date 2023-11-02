@@ -28,7 +28,6 @@ export class TelemetryReporter extends Disposable {
     key: string,
     enableUniqueMetrics?: boolean
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     super(() => this.toDispose.forEach(d => d && d.dispose()));
     let logFilePath = process.env['VSCODE_LOGS'] || '';
     if (
@@ -67,7 +66,8 @@ export class TelemetryReporter extends Disposable {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        void this.dispose();
+        // tslint:disable-next-line:no-floating-promises
+        this.dispose();
       }
     }
   }
@@ -108,7 +108,7 @@ export class TelemetryReporter extends Disposable {
   }
 
   private getCommonProperties(): { [key: string]: string } {
-    const commonProperties: { [key: string]: string } = {};
+    const commonProperties = Object.create(null);
     commonProperties['common.os'] = os.platform();
     commonProperties['common.platformversion'] = (os.release() || '').replace(
       /^(\d+)(\.\d+)?(\.\d+)?(.*)/,
@@ -151,9 +151,10 @@ export class TelemetryReporter extends Disposable {
       }
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        properties,
-
-        measurements
+        // tslint:disable-next-line:object-literal-shorthand
+        properties: properties,
+        // tslint:disable-next-line:object-literal-shorthand
+        measurements: measurements
       });
 
       if (this.logStream) {

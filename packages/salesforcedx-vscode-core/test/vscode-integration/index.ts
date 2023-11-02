@@ -17,10 +17,9 @@
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
 
-import { join, normalize } from 'path';
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+// tslint:disable-next-line:no-var-requires
 const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
+import { join, normalize } from 'path';
 
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info

@@ -1,4 +1,3 @@
-/* eslint-disable prefer-arrow/prefer-arrow-functions */
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -90,10 +89,8 @@ export async function activate(extensionContext: ExtensionContext) {
   // Start the Aura Language Server
 
   // Setup the language server
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     path.join(...serverPath)
   );
 
@@ -165,7 +162,7 @@ export async function activate(extensionContext: ExtensionContext) {
     clientOptions
   );
 
-  await client
+  client
     .onReady()
     .then(() => {
       client.onNotification('salesforce/indexingStarted', startIndexing);
@@ -194,12 +191,11 @@ function startIndexing(): void {
 }
 
 function endIndexing(): void {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   indexingResolve(undefined);
 }
 
 function reportIndexing(indexingPromise: Promise<void>) {
-  void window.withProgress(
+  window.withProgress(
     {
       location: ProgressLocation.Window,
       title: nls.localize('index_components_text'),

@@ -72,7 +72,7 @@ export class MockApexReplayDebug extends ApexReplayDebug {
   }
 }
 
-
+// tslint:disable:no-unused-expression
 describe('Replay debugger adapter - unit', () => {
   let adapter: MockApexReplayDebug;
   const logFileName = 'foo.log';

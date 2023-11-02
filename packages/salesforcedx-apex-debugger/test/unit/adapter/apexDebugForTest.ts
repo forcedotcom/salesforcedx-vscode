@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // This is only done in tests because we are mocking things
-
+// tslint:disable:no-floating-promises
 
 import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Source } from 'vscode-debugadapter/lib/debugSession';
@@ -120,21 +120,21 @@ export class ApexDebugForTest extends ApexDebug {
     response: DebugProtocol.NextResponse,
     args: DebugProtocol.NextArguments
   ): Promise<void> {
-    await super.nextRequest(response, args);
+    super.nextRequest(response, args);
   }
 
   public async stepInRequest(
     response: DebugProtocol.StepInResponse,
     args: DebugProtocol.StepInArguments
   ): Promise<void> {
-    await super.stepInRequest(response, args);
+    super.stepInRequest(response, args);
   }
 
   public async stepOutRequest(
     response: DebugProtocol.StepOutResponse,
     args: DebugProtocol.StepOutArguments
   ): Promise<void> {
-    await super.stepOutRequest(response, args);
+    super.stepOutRequest(response, args);
   }
 
   public threadsReq(response: DebugProtocol.ThreadsResponse): void {
@@ -216,7 +216,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.variablesRequest(response, args);
   }
 
-  public getIdleTimers(): ReturnType<typeof setTimeout>[] {
+  public getIdleTimers(): Array<ReturnType<typeof setTimeout>> {
     return this.idleTimers;
   }
 }

@@ -53,7 +53,7 @@ export abstract class SfdxCommandletExecutor<T>
       channel,
       cancellationToken
     );
-    void ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
   }
 
   public logMetric(
@@ -108,11 +108,9 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   protected getTelemetryData(
-    /* eslint-disable @typescript-eslint/no-unused-vars */
     success: boolean,
     response: ContinueResponse<T>,
     output: string
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }

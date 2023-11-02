@@ -19,7 +19,6 @@ describe('workspaceOrgType', () => {
 
     it('should return SourceTracked for an org that supports source-tracking', async () => {
       orgStub = jest.spyOn(Org, 'create').mockResolvedValue({
-        // eslint-disable-next-line @typescript-eslint/require-await
         supportsSourceTracking: async () => true
       } as any);
 
@@ -31,7 +30,6 @@ describe('workspaceOrgType', () => {
 
     it('should return NonSourceTracked for an org that does not support source-tracking', async () => {
       orgStub = jest.spyOn(Org, 'create').mockResolvedValue({
-        // eslint-disable-next-line @typescript-eslint/require-await
         supportsSourceTracking: async () => false
       } as any);
 

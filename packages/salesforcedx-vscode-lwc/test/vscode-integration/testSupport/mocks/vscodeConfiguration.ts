@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SinonStub, stub } from 'sinon';
 import {
   workspace,
   Uri,
@@ -13,6 +12,7 @@ import {
   TextDocument,
   WorkspaceFolder
 } from 'vscode';
+import { SinonStub, stub } from 'sinon';
 
 let getConfigurationStub: SinonStub<
   [

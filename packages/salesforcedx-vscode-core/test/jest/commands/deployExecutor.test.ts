@@ -88,7 +88,7 @@ describe('Deploy Executor', () => {
     }
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     workspaceContextGetInstanceSpy = jest

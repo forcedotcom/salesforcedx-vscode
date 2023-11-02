@@ -18,11 +18,11 @@ export const NO_FUNCTION_FOLDER_KEY =
 export const validateStartFunctionsUri = (sourceUri?: Uri): Uri | undefined => {
   if (!sourceUri) {
     // Try to start function from current active editor, if running SFDX: start function from command palette
-    sourceUri = window.activeTextEditor?.document.uri;
+    sourceUri = window.activeTextEditor?.document.uri!;
   }
   if (!sourceUri) {
     const warningMessage = nls.localize(WARNING_MSG_KEY);
-    void notificationService.showWarningMessage(warningMessage);
+    notificationService.showWarningMessage(warningMessage);
     telemetryService.sendException(NO_FUNCTION_FOLDER_KEY, warningMessage);
     return;
   }

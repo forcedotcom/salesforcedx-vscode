@@ -28,15 +28,14 @@ import {
 } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
-export class OrgLogoutAll extends SfdxCommandletExecutor<object> {
+export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
   public static withoutShowingChannel(): OrgLogoutAll {
     const instance = new OrgLogoutAll();
     instance.showChannelOutput = false;
     return instance;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public build(data: any): Command {
+  public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
       .withArg('org:logout')
@@ -56,9 +55,9 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export const orgLogoutAll = async () => {
+export async function orgLogoutAll() {
   await commandlet.run();
-};
+}
 
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
@@ -71,18 +70,15 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 
   public async run(
     response: ContinueResponse<string>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     progress?: Progress<{
       message?: string | undefined;
       increment?: number | undefined;
     }>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: CancellationToken
   ): Promise<boolean> {
     try {
       await removeUsername(response.data);
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       telemetryService.sendException(e.name, e.message);
       return false;
     }
@@ -90,11 +86,11 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   }
 }
 
-export const orgLogoutDefault = async () => {
+export async function orgLogoutDefault() {
   const { username, isScratch, alias, error } = await resolveDefaultUsername();
   if (error) {
     telemetryService.sendException(error.name, error.message);
-    void notificationService.showErrorMessage('Logout failed to run');
+    notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
     // confirm logout for scratch orgs due to special considerations:
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
@@ -107,24 +103,24 @@ export const orgLogoutDefault = async () => {
     );
     await logoutCommandlet.run();
   } else {
-    void notificationService.showInformationMessage(
+    notificationService.showInformationMessage(
       nls.localize('org_logout_no_default_org')
     );
   }
-};
+}
 
-const removeUsername = async (username: string) => {
+async function removeUsername(username: string) {
   await forceConfigSet('');
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
-};
+}
 
-const resolveDefaultUsername = async (): Promise<{
+async function resolveDefaultUsername(): Promise<{
   username?: string;
   isScratch: boolean;
   alias?: string;
   error?: Error;
-}> => {
+}> {
   const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
   if (usernameOrAlias) {
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
@@ -139,4 +135,4 @@ const resolveDefaultUsername = async (): Promise<{
     return { username, isScratch, alias };
   }
   return { isScratch: false };
-};
+}

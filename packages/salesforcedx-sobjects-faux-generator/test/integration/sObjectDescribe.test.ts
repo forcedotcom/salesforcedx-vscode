@@ -34,7 +34,7 @@ const SOBJECTS_DESCRIBE_SAMPLE = {
 };
 const env = createSandbox();
 
-
+// tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
   const USERNAME = 'test@example.com';
   let connection: Connection;
@@ -97,7 +97,7 @@ describe('Fetch sObjects', () => {
     );
   });
 
-  it('Should build the batch request url', () => {
+  it('Should build the batch request url', async () => {
     expect(sobjectdescribe.buildBatchRequestURL()).to.equal(
       'https://na1.salesforce.com/services/data/v50.0/composite/batch'
     );
@@ -136,7 +136,7 @@ describe('Fetch sObjects', () => {
       body: JSON.stringify(testBatchReq),
       headers: {
         'User-Agent': 'salesforcedx-extension',
-        'Sforce-Call-Options': 'client=sfdx-vscode'
+        'Sforce-Call-Options': `client=sfdx-vscode`
       }
     });
   });

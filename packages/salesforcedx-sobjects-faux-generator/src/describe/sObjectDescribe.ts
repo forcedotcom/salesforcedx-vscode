@@ -7,10 +7,10 @@
 
 import { Connection } from '@salesforce/core';
 import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
+import { SObjectShortDescription } from '.';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';
-import { SObjectShortDescription } from '.';
 export const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {
@@ -75,7 +75,7 @@ export class SObjectDescribe {
   }
 
   public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
-    return (await this.connection.request({
+    return (this.connection.request({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -83,7 +83,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    }));
+    }) as unknown) as BatchResponse;
   }
 
   public async describeSObjectBatchRequest(
@@ -100,17 +100,18 @@ export class SObjectDescribe {
 
       batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
-          const r = sr.result[0] as { errorCode: any; message: string };
-          if (r.errorCode && r.message) {
-            console.log(`Error: ${r.message} - ${types[i]}`);
+          if (sr.result[0].errorCode && sr.result[0].message) {
+            console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
           }
         } else fetchedObjects.push(toMinimalSObject(sr.result));
       });
 
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const e = error as { body: string; message: string };
-      return Promise.reject(e.body ?? e.message);
+      const errorMsg = error.hasOwnProperty('body')
+        ? error.body
+        : error.message;
+      return Promise.reject(errorMsg);
     }
   }
 
@@ -173,10 +174,10 @@ function toMinimalSObjectField(describeField: Field): SObjectField {
   );
 }
 
-const pick = <T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> => {
-  const ret: Pick<T, K> = {} as Pick<T, K>;
+function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+  const ret: any = {};
   keys.forEach(key => {
     ret[key] = obj[key];
   });
   return ret;
-};
+}

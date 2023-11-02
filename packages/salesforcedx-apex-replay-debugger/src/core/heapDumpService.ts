@@ -279,7 +279,7 @@ export class HeapDumpService {
 
   public isAddress(value: any): boolean {
     return (
-      typeof value === 'string' && value.startsWith(ADDRESS_PREFIX)
+      typeof value === 'string' && (value as string).startsWith(ADDRESS_PREFIX)
     );
   }
 
@@ -289,8 +289,8 @@ export class HeapDumpService {
         this.isCollectionType(outerExtent.typeName)) &&
       (outerExtent.count > 0 &&
         outerExtent.extent[0].symbols !== null &&
-        outerExtent.extent[0].symbols.length > 0 &&
-        outerExtent.extent[0].symbols[0].startsWith(EXTENT_TRIGGER_PREFIX))
+        outerExtent.extent[0].symbols!.length > 0 &&
+        outerExtent.extent[0].symbols![0].startsWith(EXTENT_TRIGGER_PREFIX))
     ) {
       return true;
     }
@@ -621,7 +621,7 @@ export class HeapDumpService {
     } else if (value === null) {
       return 'null';
     }
-    return `${value}`;
+    return value.toString();
   }
   // When this is invoked, the leaf references have all been set and it is now time to
   // create the variable, piecing it together from any references.
@@ -685,7 +685,7 @@ export class HeapDumpService {
           const keyVarContainer = childVarContainer.variables.get(
             KEY_VALUE_PAIR_KEY
           ) as ApexVariableContainer;
-          let keyName = keyVarContainer.value;
+          let keyName = keyVarContainer!.value;
           if (keyVarContainer && keyVarContainer.ref) {
             const keyRef = this.logContext
               .getRefsMap()
@@ -693,7 +693,7 @@ export class HeapDumpService {
             if (keyRef) {
               const updatedKeyVarContainer = this.createVariableFromReference(
                 KEY_VALUE_PAIR_KEY,
-                keyRef,
+                keyRef!,
                 visitedMap,
                 updateAfterVarCreation
               );
@@ -715,7 +715,7 @@ export class HeapDumpService {
           const valueVarContainer = childVarContainer.variables.get(
             KEY_VALUE_PAIR_VALUE
           ) as ApexVariableContainer;
-          let valueVal = valueVarContainer.value;
+          let valueVal = valueVarContainer!.value;
           if (valueVarContainer && valueVarContainer.ref) {
             const valueRef = this.logContext
               .getRefsMap()
@@ -723,7 +723,7 @@ export class HeapDumpService {
             if (valueRef) {
               const updatedValueVarContainer = this.createVariableFromReference(
                 KEY_VALUE_PAIR_VALUE,
-                valueRef,
+                valueRef!,
                 visitedMap,
                 updateAfterVarCreation
               );
@@ -757,14 +757,14 @@ export class HeapDumpService {
           // At this point a recursive call needs to be made to process this child variable
           const childVarRefContainer = this.logContext
             .getRefsMap()
-            .get(childVarContainer.ref);
+            .get(childVarContainer.ref!);
 
           // The childVarRefContainer can be undefined. If this is the case then the
           // variable's value just happened to match the pattern for an address.
           if (childVarRefContainer) {
             const updatedChildContainer = this.createVariableFromReference(
               childVarName,
-              childVarRefContainer,
+              childVarRefContainer!,
               visitedMap,
               updateAfterVarCreation
             );
@@ -797,7 +797,7 @@ export class HeapDumpService {
       // time to update them
       if (visitedMap.size === 0) {
         updateAfterVarCreation.forEach(element => {
-          const varContainer = element;
+          const varContainer = element as ApexVariableContainer;
           varContainer.value = this.createStringFromVarContainer(
             varContainer,
             new Set<string>()

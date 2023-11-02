@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { TestRunType } from '../../../../src/testSupport/testRunner/testRunner';
 import { workspace } from '../../../../src/testSupport/workspace';
+import { TestRunType } from '../../../../src/testSupport/testRunner/testRunner';
 import {
   mockPreviewJavaScriptDebugger,
   unmockPreviewJavaScriptDebugger

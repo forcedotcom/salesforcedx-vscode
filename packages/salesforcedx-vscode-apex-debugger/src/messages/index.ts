@@ -35,7 +35,7 @@ function loadMessageBundle(config?: Config): Message {
 export const nls = new Localization(
   loadMessageBundle(
     process.env.VSCODE_NLS_CONFIG
-      ? JSON.parse(process.env.VSCODE_NLS_CONFIG) as Config
+      ? JSON.parse(process.env.VSCODE_NLS_CONFIG!)
       : undefined
   )
 );

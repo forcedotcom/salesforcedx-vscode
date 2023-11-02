@@ -9,9 +9,9 @@ import { expect } from 'chai';
 import { OrgDisplay } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Source Status', () => {
-  it('Should build the source command no flag', () => {
+  it('Should build the source command no flag', async () => {
     const orgDisplay = new OrgDisplay();
     const displayCommand = orgDisplay.build({});
     expect(displayCommand.toCommand()).to.equal('sfdx org:display');
@@ -19,7 +19,7 @@ describe('Force Source Status', () => {
       nls.localize('org_display_default_text')
     );
   });
-  it('Should build the source command with target-org flag', () => {
+  it('Should build the source command with target-org flag', async () => {
     const orgDisplay = new OrgDisplay('--target-org');
     const displayCommand = orgDisplay.build({ username: 'test' });
     expect(displayCommand.toCommand()).to.equal(

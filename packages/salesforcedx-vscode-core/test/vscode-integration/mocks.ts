@@ -79,7 +79,6 @@ export const vscodeStub = {
     withProgress: () => {
       return Promise.resolve(true);
     },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     createOutputChannel: mockChannel => {
       return mockChannel;

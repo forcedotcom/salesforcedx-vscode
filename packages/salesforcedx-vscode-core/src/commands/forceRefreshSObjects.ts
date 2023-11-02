@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -86,7 +84,6 @@ export class SObjectRefreshGatherer
 
 export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
@@ -99,7 +96,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     response: ContinueResponse<RefreshSelection>
   ): Promise<void> {
     if (ForceRefreshSObjectsExecutor.isActive) {
-      await vscode.window.showErrorMessage(
+      vscode.window.showErrorMessage(
         nls.localize('force_sobjects_no_refresh_if_already_active_error_text')
       );
       return;
@@ -128,7 +125,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     if (response.data.source !== SObjectRefreshSource.Manual) {
       progressLocation = vscode.ProgressLocation.Window;
     }
-    await ProgressNotification.show(
+    ProgressNotification.show(
       execution,
       cancellationTokenSource,
       progressLocation
@@ -136,6 +133,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
     const commandName = execution.command.logName;
     try {
+      let result;
       let transformer;
       if (response.data.source === SObjectRefreshSource.StartupMin) {
         transformer = await SObjectTransformerFactory.create(
@@ -152,8 +150,9 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           response.data.source
         );
       }
-      const result = await transformer.transform();
+      result = await transformer.transform();
 
+      console.log('Generate success ' + result.data);
       this.logMetric(
         commandName,
         startTime,
@@ -182,7 +181,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export const forceRefreshSObjects = async (source?: SObjectRefreshSource) => {
+export async function forceRefreshSObjects(source?: SObjectRefreshSource) {
   const parameterGatherer = new SObjectRefreshGatherer(source);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
@@ -190,22 +189,22 @@ export const forceRefreshSObjects = async (source?: SObjectRefreshSource) => {
     new ForceRefreshSObjectsExecutor()
   );
   await commandlet.run();
-};
+}
 
-export const verifyUsernameAndInitSObjectDefinitions = async (
+export async function verifyUsernameAndInitSObjectDefinitions(
   projectPath: string
-) => {
+) {
   const hasDefaultUsernameSet =
     (await WorkspaceContext.getInstance().getConnection()).getUsername() !==
     undefined;
   if (hasDefaultUsernameSet) {
-    await initSObjectDefinitions(projectPath).catch(e =>
+    initSObjectDefinitions(projectPath).catch(e =>
       telemetryService.sendException(e.name, e.message)
     );
   }
-};
+}
 
-export const initSObjectDefinitions = async (projectPath: string) => {
+export async function initSObjectDefinitions(projectPath: string) {
   if (projectPath) {
     const sobjectFolder = getSObjectsDirectory();
     if (!fs.existsSync(sobjectFolder)) {
@@ -214,26 +213,26 @@ export const initSObjectDefinitions = async (projectPath: string) => {
         { type: SObjectRefreshSource.Startup },
         undefined
       );
-      await forceRefreshSObjects(SObjectRefreshSource.Startup).catch(e => {
+      forceRefreshSObjects(SObjectRefreshSource.Startup).catch(e => {
         throw e;
       });
     }
   }
-};
+}
 
-const getSObjectsDirectory = () => {
+function getSObjectsDirectory() {
   return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
-};
+}
 
-const getStandardSObjectsDirectory = () => {
+function getStandardSObjectsDirectory() {
   return path.join(
     projectPaths.toolsFolder(),
     SOBJECTS_DIR,
     STANDARDOBJECTS_DIR
   );
-};
+}
 
-export const checkSObjectsAndRefresh = async (projectPath: string) => {
+export async function checkSObjectsAndRefresh(projectPath: string) {
   if (projectPath && !fs.existsSync(getStandardSObjectsDirectory())) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',
@@ -247,4 +246,4 @@ export const checkSObjectsAndRefresh = async (projectPath: string) => {
       throw e;
     }
   }
-};
+}

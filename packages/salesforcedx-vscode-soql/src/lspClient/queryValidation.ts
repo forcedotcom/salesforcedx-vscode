@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -31,7 +29,6 @@ export function afterStart(client: LanguageClient): LanguageClient {
 
     try {
       return enabled
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         ? await withSFConnection(async conn => {
             const queryData = await new QueryRunner(conn).runQuery(queryText, {
               showErrors: false

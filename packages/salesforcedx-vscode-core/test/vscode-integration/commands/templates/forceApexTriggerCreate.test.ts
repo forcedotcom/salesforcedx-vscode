@@ -16,7 +16,7 @@ import { forceApexTriggerCreate } from '../../../../src/commands/templates/force
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Apex Trigger Create', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

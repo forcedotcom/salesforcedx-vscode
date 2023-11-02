@@ -5,24 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, ContinueResponse, Properties } from '@salesforce/salesforcedx-utils-vscode';
 import {
   TemplateOptions,
   TemplateService,
   TemplateType
 } from '@salesforce/templates';
-import * as path from 'path';
-import { ProgressLocation, window, workspace } from 'vscode';
-import { channelService } from '../../channels';
-import { notificationService } from '../../notifications';
-import { telemetryService } from '../../telemetry';
-import { MetadataDictionary, MetadataInfo, normalizeError, workspaceUtils } from '../../util';
 import {
   CommandletExecutor,
   PathStrategyFactory,
   SelectOutputDir,
   SourcePathStrategy
 } from '../util';
+
+import { ConfigUtil, Properties } from '@salesforce/salesforcedx-utils-vscode';
+import { channelService } from '../../channels';
+import { notificationService } from '../../notifications';
+import { telemetryService } from '../../telemetry';
+import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
+
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+
+import * as path from 'path';
+import { ProgressLocation, window, workspace } from 'vscode';
 
 interface ExecutionResult {
   output?: string;
@@ -90,13 +94,12 @@ export abstract class LibraryBaseTemplateCommand<T>
             output: libraryResult.rawOutput
           };
         } catch (error) {
-          const err = normalizeError(error);
           telemetryService.sendException(
             'force_template_create_library',
-            err.message
+            error.message
           );
           return {
-            err
+            error
           };
         }
       }
@@ -148,7 +151,7 @@ export abstract class LibraryBaseTemplateCommand<T>
       const document = await workspace.openTextDocument(
         this.getPathToSource(outputdir, fileName)
       );
-      await window.showTextDocument(document);
+      window.showTextDocument(document);
     }
   }
 

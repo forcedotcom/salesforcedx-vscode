@@ -31,8 +31,8 @@ function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   }
 
   const cmd = isWindows
-    ? 'powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"'
-    : 'ps -e -o pid,ppid,command';
+    ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"`
+    : `ps -e -o pid,ppid,command`;
 
   const stdout = execSync(cmd).toString();
   const lines = stdout.trim().split(/\r?\n/g);
@@ -72,7 +72,7 @@ function findAndCheckOrphanedProcesses(): ProcessDetail[] {
       } catch (err) {
         telemetryService.sendException(
           APEX_LSP_ORPHAN,
-          err instanceof Error ? err.message : typeof err === 'string' ? err : 'unknown'
+          typeof err === 'string' ? err : err?.message ? err.message : 'unknown'
         );
         processInfo.orphaned = true;
       }
@@ -82,9 +82,8 @@ function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   return orphanedProcesses;
 }
 
-function terminateProcess(pid: number): Promise<void> {
+async function terminateProcess(pid: number) {
   process.kill(pid, SIGKILL);
-  return Promise.resolve();
 }
 
 function canRunCheck(isWindows: boolean) {
@@ -100,7 +99,7 @@ function canRunCheck(isWindows: boolean) {
     } catch (err) {
       telemetryService.sendException(
         APEX_LSP_ORPHAN,
-        err instanceof Error ? err.message : typeof err === 'string' ? err : 'unknown'
+        typeof err === 'string' ? err : err?.message ? err.message : 'unknown'
       );
       return false;
     }

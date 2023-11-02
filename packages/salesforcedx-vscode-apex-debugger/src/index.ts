@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
@@ -58,15 +54,15 @@ function registerCommands(): vscode.Disposable {
           if (eventBody && eventBody.type && eventBody.message) {
             switch (eventBody.type as VscodeDebuggerMessageType) {
               case VscodeDebuggerMessageType.Info: {
-                void vscode.window.showInformationMessage(eventBody.message);
+                vscode.window.showInformationMessage(eventBody.message);
                 break;
               }
               case VscodeDebuggerMessageType.Warning: {
-                void vscode.window.showWarningMessage(eventBody.message);
+                vscode.window.showWarningMessage(eventBody.message);
                 break;
               }
               case VscodeDebuggerMessageType.Error: {
-                void vscode.window.showErrorMessage(eventBody.message);
+                vscode.window.showErrorMessage(eventBody.message);
                 break;
               }
             }
@@ -84,7 +80,7 @@ function registerCommands(): vscode.Disposable {
       const args: SetExceptionBreakpointsArguments = {
         exceptionInfo: breakpoint
       };
-      void session.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
+      session.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
     });
   });
 
@@ -224,19 +220,19 @@ export function getExceptionBreakpointCache(): Map<
 
 function registerFileWatchers(): vscode.Disposable {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
-  clsWatcher.onDidChange(() => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidCreate(() => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidDelete(() => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
   const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
-  trgWatcher.onDidChange(() => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidCreate(() => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidDelete(() => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
   return vscode.Disposable.from(clsWatcher, trgWatcher);
 }
 
 function notifyDebuggerSessionFileChanged(): void {
   if (vscode.debug.activeDebugSession) {
-    void vscode.debug.activeDebugSession.customRequest(HOTSWAP_REQUEST);
+    vscode.debug.activeDebugSession.customRequest(HOTSWAP_REQUEST);
   }
 }
 
@@ -264,7 +260,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         await setupGlobalDefaultUserIsvAuth();
       } catch (e) {
         console.error(e);
-        void vscode.window.showWarningMessage(
+        vscode.window.showWarningMessage(
           nls.localize('isv_debug_config_environment_error')
         );
       }

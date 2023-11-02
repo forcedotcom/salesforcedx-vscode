@@ -19,7 +19,7 @@ describe('OrgAuthInfo', () => {
   const username = 'user@test.test';
   let getDefaultDevHubUsernameOrAliasStub: SinonStub;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     getDefaultDevHubUsernameOrAliasStub = sandbox.stub(
       ConfigUtil,
       'getDefaultDevHubUsernameOrAlias'

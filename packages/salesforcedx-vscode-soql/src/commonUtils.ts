@@ -29,7 +29,7 @@ export function getRootWorkspacePath(): string {
   return getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '';
 }
 
-export function trackErrorWithTelemetry(
+export async function trackErrorWithTelemetry(
   problemId: string,
   error: string
 ): Promise<void> {
@@ -41,5 +41,4 @@ export function trackErrorWithTelemetry(
   } catch (err) {
     channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
   }
-  return Promise.resolve();
 }

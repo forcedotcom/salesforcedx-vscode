@@ -8,9 +8,6 @@
 /**
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
-import { runFunction } from '@heroku/functions-core';
-import { ContinueResponse, LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import { Uri } from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
@@ -24,7 +21,10 @@ import {
 } from '../util';
 import { FunctionService } from './functionService';
 
-type ErrorResponse = Error & { response: { status?: number; data?: any; statusText?: string } };
+import { runFunction } from '@heroku/functions-core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import * as fs from 'fs';
 
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   constructor(debug: boolean = false) {
@@ -35,7 +35,6 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
     );
     this.telemetry.addProperty(
       'language',
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       FunctionService.instance.getFunctionLanguage()
     );
   }
@@ -55,18 +54,12 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
         JSON.stringify(functionResponse.data, undefined, 4)
       );
     } catch (error) {
-      const errorResponse = (error instanceof Error ? error : typeof error === 'string' ?
-        new Error(error) : new Error('Unknown error')) as ErrorResponse;
-      channelService.appendLine(errorResponse.message);
-      if (errorResponse.response) {
-        if (errorResponse.response.statusText) {
-          channelService.appendLine(errorResponse.response.statusText);
-        }
-        if (errorResponse.response.data) {
-          channelService.appendLine(
-            JSON.stringify(errorResponse.response.data, undefined, 4)
-          );
-        }
+      channelService.appendLine(error);
+      if (error.response) {
+        channelService.appendLine(error.response);
+        channelService.appendLine(
+          JSON.stringify(error.response.data, undefined, 4)
+        );
       }
       return false;
     }
@@ -74,20 +67,20 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   }
 }
 
-export const forceFunctionInvoke = async (sourceUri: Uri) => {
+export async function forceFunctionInvoke(sourceUri: Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
     new ForceFunctionInvoke()
   );
   await commandlet.run();
-};
+}
 
-export const forceFunctionDebugInvoke = async (sourceUri: Uri) => {
+export async function forceFunctionDebugInvoke(sourceUri: Uri) {
   const localRoot = FunctionService.getFunctionDir(sourceUri.fsPath);
   if (!localRoot) {
     const warningMessage = nls.localize('force_function_start_warning_no_toml');
-    void notificationService.showWarningMessage(warningMessage);
+    notificationService.showWarningMessage(warningMessage);
     telemetryService.sendException(
       'force_function_debug_invoke_no_toml',
       warningMessage
@@ -105,4 +98,4 @@ export const forceFunctionDebugInvoke = async (sourceUri: Uri) => {
   await commandlet.run();
 
   await FunctionService.instance.stopDebuggingFunction(localRoot);
-};
+}

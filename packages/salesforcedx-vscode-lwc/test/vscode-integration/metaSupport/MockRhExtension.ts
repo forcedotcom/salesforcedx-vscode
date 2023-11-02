@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
 import { Extension, ExtensionKind, extensions, Uri } from 'vscode';
+import * as path from 'path';
 
 export class MockRedhatExtension implements Extension<any> {
   public extensionKind = ExtensionKind.Workspace;
@@ -17,7 +17,7 @@ export class MockRedhatExtension implements Extension<any> {
       name: 'vscode-xml',
       displayName: 'XML',
       description: 'XML Language Support by Red Hat',
-      version,
+      version: version,
       author: 'Red Hat',
       publisher: 'redhat'
     };
@@ -39,7 +39,7 @@ export class MockRedhatExtension implements Extension<any> {
 class MockRhApi {
   public extentionPath: string;
   public listOfCatalogs: string[];
-  public listOfAssociations: { systemId: string; pattern: string }[];
+  public listOfAssociations: Array<{ systemId: string; pattern: string }>;
   constructor(extensionPath: string) {
     this.extentionPath = extensionPath;
     this.listOfCatalogs = [];
@@ -54,7 +54,7 @@ class MockRhApi {
     return true;
   }
   public addXMLFileAssociations(
-    associations: { systemId: string; pattern: string }[]
+    associations: Array<{ systemId: string; pattern: string }>
   ) {
     associations.forEach(associate => {
       this.listOfAssociations.push({

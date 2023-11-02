@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -20,13 +16,13 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { developerLogTraceFlag } from '.';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
-import { developerLogTraceFlag } from '.';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -115,7 +111,6 @@ export class StartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
       this.attachSubExecution(execution);
       const resultPromise = new CommandOutput().getCmdResult(execution);
       const result = await resultPromise;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return JSON.parse(result);
     }
   }
@@ -144,7 +139,6 @@ export async function getUserId(projectPath: string): Promise<string> {
   const result = await cmdOutput.getCmdResult(execution);
   try {
     const orgInfo = JSON.parse(result).result.records[0].Id;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return Promise.resolve(orgInfo);
   } catch (e) {
     return Promise.reject(result);

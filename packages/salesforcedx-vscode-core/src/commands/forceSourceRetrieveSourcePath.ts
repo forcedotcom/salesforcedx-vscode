@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
@@ -16,9 +17,9 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { normalizeError } from '../util';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
+  ConflictDetectionMessages,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
@@ -34,14 +35,14 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
     );
   }
 
-  public getComponents(
+  public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
     const paths =
       typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
-    return Promise.resolve(componentSet);
+    return componentSet;
   }
 }
 
@@ -66,10 +67,9 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
 
         return inputs;
       } catch (error) {
-        const err = normalizeError(error);
         telemetryService.sendException(
           'force_source_retrieve_with_sourcepath',
-          `Error while parsing package directories. ${err.message}`
+          `Error while parsing package directories. ${error.message}`
         );
       }
 
@@ -80,7 +80,7 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
         'force_source_retrieve_with_sourcepath',
         errorMessage
       );
-      void notificationService.showErrorMessage(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
     }
@@ -139,7 +139,7 @@ export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
     'force_source_retrieve_with_sourcepath',
     errorMessage
   );
-  void notificationService.showErrorMessage(errorMessage);
+  notificationService.showErrorMessage(errorMessage);
   channelService.appendLine(errorMessage);
   channelService.showChannelOutput();
 

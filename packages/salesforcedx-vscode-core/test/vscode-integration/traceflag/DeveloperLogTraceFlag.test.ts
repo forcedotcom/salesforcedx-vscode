@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import { developerLogTraceFlag } from '../../../src/commands';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Start Apex Debug Logging', () => {
   describe('Invalid start and end date', () => {
     before(() => {
@@ -29,10 +29,10 @@ describe('Force Start Apex Debug Logging', () => {
       developerLogTraceFlag.validateDates();
       expect(
         developerLogTraceFlag.getExpirationDate().getTime() -
-        developerLogTraceFlag.getStartDate().getTime()
+          developerLogTraceFlag.getStartDate().getTime()
       ).to.equal(
         developerLogTraceFlag.LOG_TIMER_LENGTH_MINUTES *
-        developerLogTraceFlag.MILLISECONDS_PER_SECOND
+          developerLogTraceFlag.MILLISECONDS_PER_SECOND
       );
     });
   });

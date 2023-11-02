@@ -14,7 +14,7 @@ import { openBrowser, showError } from './commandUtils';
 const logName = 'force_lightning_lwc_open';
 const commandName = nls.localize('force_lightning_lwc_open_text');
 
-export const forceLightningLwcOpen = async () => {
+export async function forceLightningLwcOpen() {
   const startTime = process.hrtime();
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
@@ -22,7 +22,6 @@ export const forceLightningLwcOpen = async () => {
       await openBrowser(DevServerService.instance.getBaseUrl());
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       showError(e, logName, commandName);
     }
   } else {
@@ -30,4 +29,4 @@ export const forceLightningLwcOpen = async () => {
     await vscode.commands.executeCommand('sfdx.force.lightning.lwc.start');
     telemetryService.sendCommandEvent(logName, startTime);
   }
-};
+}

@@ -36,7 +36,6 @@ import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { normalizeError } from '../util';
 import {
   createComponentCount,
   formatException,
@@ -87,7 +86,7 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      throw formatException(normalizeError(e));
+      throw formatException(e);
     } finally {
       await this.postOperation(result);
     }
@@ -176,7 +175,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     result: DeployResult,
     errorCollection: any
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     handleDeployDiagnostics(result, errorCollection);
   }
 
@@ -208,7 +206,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
             label: nls.localize('table_header_project_path')
           }
         ],
-        nls.localize('table_title_deployed_source')
+        nls.localize(`table_title_deployed_source`)
       );
     } else {
       output = table.createTable(
@@ -220,7 +218,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           },
           { key: 'error', label: nls.localize('table_header_errors') }
         ],
-        nls.localize('table_title_deploy_errors')
+        nls.localize(`table_title_deploy_errors`)
       );
     }
 
@@ -266,7 +264,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     if (sourceTrackingEnabled) {
       const status = result?.response?.status;
       if (
-        (status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) &&
+        (status === 'Succeeded' || status === 'SucceededPartial') &&
         this.sourceTracking
       ) {
         await SourceTrackingService.updateSourceTrackingAfterRetrieve(
@@ -333,7 +331,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
             label: nls.localize('table_header_project_path')
           }
         ],
-        nls.localize('lib_retrieve_result_title')
+        nls.localize(`lib_retrieve_result_title`)
       );
     }
 

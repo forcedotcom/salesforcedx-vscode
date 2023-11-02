@@ -142,7 +142,7 @@ describe('RequestService unit tests.', () => {
 
     it('Should reject on error.', async () => {
       sendRequestMock.mockRejectedValue(fakeResponse);
-      await expect(requestServiceInst.execute(testCommand)).rejects.toMatch(
+      expect(requestServiceInst.execute(testCommand)).rejects.toMatch(
         fakeResponse.responseText
       );
     });

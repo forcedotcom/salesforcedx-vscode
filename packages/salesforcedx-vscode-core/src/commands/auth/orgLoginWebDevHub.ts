@@ -6,23 +6,28 @@
  */
 
 import {
-  CancelResponse,
   Command,
-  ContinueResponse,
-  ParametersGatherer,
-  SfdxCommandBuilder,
-  isSFContainerMode
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { CLI } from '../../constants';
-import { nls } from '../../messages';
-import { isDemoMode } from '../../modes/demo-mode';
+
+import { DEFAULT_ALIAS } from './authParamsGatherer';
+
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
-import { DEFAULT_ALIAS } from './authParamsGatherer';
+
+import {
+  CancelResponse,
+  ContinueResponse,
+  isSFContainerMode,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
+import { CLI } from '../../constants';
+import { nls } from '../../messages';
+import { isDemoMode } from '../../modes/demo-mode';
 import {
   ForceAuthDemoModeExecutor,
   OrgLoginWebContainerExecutor
@@ -45,7 +50,7 @@ export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExec
   }
 }
 
-export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<any> {
+export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
@@ -62,7 +67,7 @@ export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<any> {
   }
 }
 
-export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<any> {
+export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
   public build(data: AuthDevHubParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
@@ -106,7 +111,7 @@ export interface AuthDevHubParams {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();
 
-export function createAuthDevHubExecutor(): SfdxCommandletExecutor<any> {
+export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebDevHubContainerExecutor();

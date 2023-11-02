@@ -16,7 +16,7 @@ import { forceVisualforceComponentCreate } from '../../../../src/commands/templa
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Visualforce Component Create', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

@@ -11,12 +11,6 @@ import {
   Command,
   CommandExecution
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancellationToken,
-  CliCommandExecution,
-  ChannelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
@@ -31,6 +25,12 @@ import {
 } from '../../../src/commands/forceLightningLwcStart';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
+import {
+  CancellationToken,
+  CliCommandExecution,
+  ChannelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
 
 class FakeExecution implements CommandExecution {
   public command: Command;
@@ -60,7 +60,7 @@ describe('forceLightningLwcStart', () => {
       it('returns a command with the correct params', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const command = executor.build();
-        expect(command.toCommand()).to.equal('sfdx force:lightning:lwc:start');
+        expect(command.toCommand()).to.equal(`sfdx force:lightning:lwc:start`);
       });
 
       it('returns a command with the correct description', () => {
@@ -187,7 +187,7 @@ describe('forceLightningLwcStart', () => {
           sinon.match(
             nls.localize(
               'command_failure',
-              nls.localize('force_lightning_lwc_start_text')
+              nls.localize(`force_lightning_lwc_start_text`)
             )
           )
         );
@@ -274,7 +274,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stdoutSubject.next('foo');
         fakeExecution.processExitSubject.next(127);
 
-        const commandName = nls.localize('force_lightning_lwc_start_text');
+        const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -297,7 +297,7 @@ describe('forceLightningLwcStart', () => {
         executor.execute({ type: 'CONTINUE', data: {} });
         fakeExecution.processExitSubject.next(98);
 
-        const commandName = nls.localize('force_lightning_lwc_start_text');
+        const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -321,7 +321,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stderrSubject.next(errorHints.INACTIVE_SCRATCH_ORG);
         fakeExecution.processExitSubject.next(1);
 
-        const commandName = nls.localize('force_lightning_lwc_start_text');
+        const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -358,7 +358,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stdoutSubject.next('foo');
         fakeExecution.processExitSubject.next(0);
 
-        const commandName = nls.localize('force_lightning_lwc_start_text');
+        const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(

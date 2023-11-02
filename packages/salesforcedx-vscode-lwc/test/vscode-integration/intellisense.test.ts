@@ -10,7 +10,6 @@ import * as path from 'path';
 import {
   CompletionItem,
   CompletionItemKind,
-  CompletionItemLabel,
   CompletionList,
   Extension,
   Position,
@@ -38,9 +37,9 @@ describe('LWC Intellisense Integration Tests', () => {
     expect(lwcExtension.isActive);
   });
 
-  describe('LWC JS Intellisense Test Suite', function () {
+  describe('LWC JS Intellisense Test Suite', function() {
     // Time taken to execute the command to fetch actualcompletion list, varies with different environment and system.
-
+    // tslint:disable-next-line:no-invalid-this
     this.timeout(10000);
     let doc: TextDocument;
     let editor: TextEditor;
@@ -146,7 +145,7 @@ describe('LWC Intellisense Integration Tests', () => {
     });
   });
 
-  describe('LWC MarkUp Intellisense Test Suite', function () {
+  describe('LWC MarkUp Intellisense Test Suite', function() {
     let doc: TextDocument;
     let editor: TextEditor;
     let text: string;
@@ -214,18 +213,17 @@ async function testCompletion(
   expectedCompletionList: CompletionItem[]
 ) {
   // Simulate triggering a completion
-  // @ts-ignore
-  const actualCompletionList = (await commands.executeCommand(
+  const actualCompletionList = ((await commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
     position
-  )).items;
+  )) as CompletionList).items;
 
   actualCompletionList.sort();
   expectedCompletionList.sort();
 
   expectedCompletionList.forEach(expectedItem => {
-    const actualItem = actualCompletionList.find((obj: { label: string | CompletionItemLabel; }) => {
+    const actualItem = actualCompletionList.find(obj => {
       if (obj.label) {
         return obj.label === expectedItem.label;
       }
@@ -237,17 +235,17 @@ async function testCompletion(
       "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
     assert.equal(
-      actualItem.label,
+      actualItem!.label,
       expectedItem.label,
       'Expected completion item to have label: ' + expectedItem.label
     );
     assert.equal(
-      actualItem.kind,
+      actualItem!.kind,
       expectedItem.kind,
       "Expected completion item'" +
-      expectedItem.label +
-      "' to have type: " +
-      expectedItem.kind
+        expectedItem.label +
+        "' to have type: " +
+        expectedItem.kind
     );
   });
 }

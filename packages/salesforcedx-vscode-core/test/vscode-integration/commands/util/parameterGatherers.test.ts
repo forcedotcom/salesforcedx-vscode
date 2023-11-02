@@ -41,7 +41,7 @@ import { workspaceUtils } from '../../../../src/util';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 
-
+// tslint:disable:no-unused-expression
 describe('Parameter Gatherers', () => {
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {
@@ -49,7 +49,7 @@ describe('Parameter Gatherers', () => {
       const response = await gatherer.gather();
       expect(response.type).to.be.eql('CONTINUE');
 
-      const continueResponse = response as ContinueResponse<any>;
+      const continueResponse = response as ContinueResponse<{}>;
       expect(continueResponse.data).to.be.eql({});
     });
   });
@@ -57,18 +57,18 @@ describe('Parameter Gatherers', () => {
   describe('CompositeParametersGatherer', () => {
     it('Should proceed to next gatherer if previous gatherer in composite gatherer is CONTINUE', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
-        new (class implements ParametersGatherer<any> {
-          public gather(): Promise<
-            CancelResponse | ContinueResponse<any>
+        new (class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
           > {
-            return Promise.resolve({ type: 'CONTINUE', data: {} });
+            return { type: 'CONTINUE', data: {} };
           }
         })(),
-        new (class implements ParametersGatherer<any> {
-          public gather(): Promise<
-            CancelResponse | ContinueResponse<any>
+        new (class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
           > {
-            return Promise.resolve({ type: 'CONTINUE', data: {} });
+            return { type: 'CONTINUE', data: {} };
           }
         })()
       );
@@ -79,16 +79,16 @@ describe('Parameter Gatherers', () => {
 
     it('Should not proceed to next gatherer if previous gatherer in composite gatherer is CANCEL', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
-        new (class implements ParametersGatherer<any> {
-          public gather(): Promise<
-            CancelResponse | ContinueResponse<any>
+        new (class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
           > {
-            return Promise.resolve({ type: 'CANCEL' });
+            return { type: 'CANCEL' };
           }
         })(),
-        new (class implements ParametersGatherer<any> {
-          public gather(): Promise<
-            CancelResponse | ContinueResponse<any>
+        new (class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
           > {
             throw new Error('This should not be called');
           }
@@ -107,16 +107,16 @@ describe('Parameter Gatherers', () => {
           }
         })(),
         new CompositeParametersGatherer(
-          new (class implements ParametersGatherer<any> {
-            public gather(): Promise<
-              CancelResponse | ContinueResponse<any>
+          new (class implements ParametersGatherer<{}> {
+            public async gather(): Promise<
+              CancelResponse | ContinueResponse<{}>
             > {
-              return Promise.resolve({ type: 'CONTINUE', data: {} });
+              return { type: 'CONTINUE', data: {} };
             }
           })()
         ),
-        new (class implements CommandletExecutor<any> {
-          public execute(response: ContinueResponse<any>): void {
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
             executed = true;
           }
         })()
@@ -135,16 +135,16 @@ describe('Parameter Gatherers', () => {
           }
         })(),
         new CompositeParametersGatherer(
-          new (class implements ParametersGatherer<any> {
-            public gather(): Promise<
-              CancelResponse | ContinueResponse<any>
+          new (class implements ParametersGatherer<{}> {
+            public async gather(): Promise<
+              CancelResponse | ContinueResponse<{}>
             > {
-              return Promise.resolve({ type: 'CANCEL' });
+              return { type: 'CANCEL' };
             }
           })()
         ),
-        new (class implements CommandletExecutor<any> {
-          public execute(response: ContinueResponse<any>): void {
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
             throw new Error('This should not be called');
           }
         })()
@@ -209,7 +209,7 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should display error when no files are available for selection', async () => {
-      fileFinderStub.returns([]);
+      fileFinderStub.returns(new Array());
 
       const response = await gatherer.gather();
 
@@ -238,7 +238,7 @@ describe('Parameter Gatherers', () => {
       const gatherer = new DemoModePromptGatherer();
       const result = await gatherer.gather();
       expect(result.type).to.equal('CONTINUE');
-      expect((result as ContinueResponse<any>).data).to.eql({});
+      expect((result as ContinueResponse<{}>).data!).to.eql({});
     });
 
     it('Should return CANCEL if message is Authorize Org', async () => {
@@ -252,7 +252,7 @@ describe('Parameter Gatherers', () => {
   describe('SelectOutputDir', () => {
     const packageDirs = ['force-app'];
 
-    it('Should correctly build default menu options', () => {
+    it('Should correctly build default menu options', async () => {
       const selector = new SelectOutputDir('test');
       const options = selector.getDefaultOptions(['testapp', 'testapp2']);
 
@@ -263,7 +263,7 @@ describe('Parameter Gatherers', () => {
       ]);
     });
 
-    it('Should generate correct number of custom options for a workspace', () => {
+    it('Should generate correct number of custom options for a workspace', async () => {
       const selector = new SelectOutputDir('test');
       const options = selector.getCustomOptions(
         packageDirs,
@@ -319,7 +319,7 @@ describe('Parameter Gatherers', () => {
       }
     });
   });
-  describe('SelectLwcComponentDir', () => {
+  describe('SelectLwcComponentDir', async () => {
     it('Should gather filepath and Lightning web component options', async () => {
       const selector = new SelectLwcComponentDir();
       const packageDirs = ['force-app'];

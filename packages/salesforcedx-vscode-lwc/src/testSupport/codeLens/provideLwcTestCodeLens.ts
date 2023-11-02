@@ -23,17 +23,15 @@ import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
  * @param document text document
  * @param token cancellation token
  */
-export const provideLwcTestCodeLens = (
+export async function provideLwcTestCodeLens(
   document: TextDocument,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   token: CancellationToken
-): Promise<CodeLens[]> => {
+): Promise<CodeLens[]> {
   const fsPath = document.uri.fsPath;
   const parseResults = parse(fsPath, document.getText());
   const { itBlocks } = parseResults;
-  return Promise.resolve(itBlocks
+  return itBlocks
     .map(itBlock => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { name, nameRange, start, end } = itBlock;
       // VS Code position is zero-based
       const range = new Range(
@@ -66,5 +64,5 @@ export const provideLwcTestCodeLens = (
       const debugTestCaseCodeLens = new CodeLens(range, debugTestCaseCommand);
       return [runTestCaseCodeLens, debugTestCaseCodeLens];
     })
-    .reduce((xs, x) => xs.concat(x), []));
-};
+    .reduce((xs, x) => xs.concat(x), []);
+}

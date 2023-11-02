@@ -13,7 +13,6 @@ import {
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
-  SObjectRefreshResult,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import {
@@ -170,10 +169,14 @@ describe('ForceGenerateFauxClasses', () => {
       transformer = new SObjectTransformer(new EventEmitter(), [], []);
       transformerStub = sandboxStub
         .stub(transformer, 'transform')
-        .resolves(({ data: expectedData }));
+        .callsFake(() => {
+          return Promise.resolve({ data: expectedData });
+        });
       factoryStub = sandboxStub
         .stub(SObjectTransformerFactory, 'create')
-        .resolves(transformer);
+        .callsFake(() => {
+          return Promise.resolve(transformer);
+        });
       logStub = sandboxStub.stub(
         ForceRefreshSObjectsExecutor.prototype,
         'logMetric'

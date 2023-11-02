@@ -23,7 +23,8 @@ import { breakpointUtil } from '../breakpoints';
 import {
   ApexExecutionOverlayResultCommand,
   ApexExecutionOverlayResultCommandFailure,
-  ApexExecutionOverlayResultCommandSuccess
+  ApexExecutionOverlayResultCommandSuccess,
+  OrgInfoError
 } from '../commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -191,7 +192,7 @@ export class LogContext {
   public copyStateForHeapDump(): void {
     this.backupStackFrameInfos = JSON.parse(
       JSON.stringify(this.stackFrameInfos)
-    ) as StackFrame[];
+    );
     this.backupFrameHandles = this.frameHandles.copy();
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
     this.backupVariableHandles = new Handles<ApexVariableContainer>();
@@ -204,7 +205,7 @@ export class LogContext {
   }
 
   private copyVariableContainers(variables: Map<string, VariableContainer>) {
-    variables.forEach(value => {
+    variables.forEach((value, key) => {
       const variableContainer = value as ApexVariableContainer;
       if (variableContainer.ref) {
         this.backupRefsMap.set(variableContainer.ref, variableContainer);
@@ -221,10 +222,10 @@ export class LogContext {
       Map<string, ApexVariableContainer>
     >();
     this.staticVariablesClassMap.forEach((value, key) => {
-      const varMap = value ;
+      const varMap = value as Map<string, ApexVariableContainer>;
       const newMap = new Map<string, ApexVariableContainer>();
       varMap.forEach((innerValue, innerKey) => {
-        const variable = innerValue ;
+        const variable = innerValue as ApexVariableContainer;
         newMap.set(innerKey, variable.copy());
       });
       this.backupStaticVariablesClassMap.set(key, newMap);
@@ -281,8 +282,8 @@ export class LogContext {
         const overlayActionCommand = new ApexExecutionOverlayResultCommand(
           heapDump.getHeapDumpId()
         );
-        let errorString: string | undefined;
-        let returnString: string | undefined;
+        let errorString;
+        let returnString;
         await requestService
           .execute(overlayActionCommand, RestHttpMethodEnum.Get)
           .then(
@@ -290,7 +291,6 @@ export class LogContext {
               returnString = value;
             },
             reason => {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               errorString = reason;
             }
           );
@@ -319,11 +319,10 @@ export class LogContext {
       }
     } catch (error) {
       success = false;
-      const m = error instanceof Error ? {message: error.message} :
-        typeof error === 'string' ? JSON.parse(error) as {message: string} : {message: 'Unknown'};
-
-      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${m.message
-        }`;
+      const result = JSON.parse(error) as OrgInfoError;
+      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
+        result.message
+      }`;
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;
@@ -400,9 +399,9 @@ export class LogContext {
     }
     const processedSignature = signature.endsWith(')')
       ? signature.substring(
-        0,
-        signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
-      )
+          0,
+          signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
+        )
       : signature;
     const typerefMapping = breakpointUtil.getTyperefMapping();
     let uri = '';

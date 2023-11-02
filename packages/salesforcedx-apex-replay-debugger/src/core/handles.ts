@@ -28,7 +28,7 @@ export class Handles<T> {
   }
 
   public get(handle: number, dflt?: T): T {
-    return (this._handleMap.get(handle) || dflt) as T;
+    return (this._handleMap.get(handle) || dflt) as any;
   }
 
   public copy(): Handles<T> {

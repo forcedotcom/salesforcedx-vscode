@@ -31,12 +31,7 @@ export class OrgObjectRetriever implements SObjectDefinitionRetriever {
     try {
       sobjects = await this.describer.describeGlobal();
     } catch (e) {
-      let err: Error;
-      if (typeof e === 'string') {
-        err = JSON.parse(e) as Error;
-      } else {
-        err = new Error('Unknown error');
-      }
+      const err = JSON.parse(e);
       output.setError(
         nls.localize('failure_fetching_sobjects_list_text', err.message),
         err.stack
@@ -70,7 +65,7 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
 
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
         customSObjects.push(fetchedSObjects[i]);

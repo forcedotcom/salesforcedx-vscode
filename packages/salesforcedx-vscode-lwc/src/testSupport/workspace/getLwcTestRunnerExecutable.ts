@@ -31,7 +31,7 @@ export function getLwcTestRunnerExecutable(cwd: string) {
     } else {
       const errorMessage = nls.localize('no_lwc_jest_found_text');
       console.error(errorMessage);
-      void vscode.window.showErrorMessage(errorMessage);
+      vscode.window.showErrorMessage(errorMessage);
       telemetryService.sendException(
         'lwc_test_no_lwc_jest_found',
         errorMessage
@@ -46,7 +46,7 @@ export function getLwcTestRunnerExecutable(cwd: string) {
     } else {
       const errorMessage = nls.localize('no_lwc_testrunner_found_text');
       console.error(errorMessage);
-      void vscode.window.showErrorMessage(errorMessage);
+      vscode.window.showErrorMessage(errorMessage);
       telemetryService.sendException(
         'lwc_test_no_lwc_testrunner_found',
         errorMessage

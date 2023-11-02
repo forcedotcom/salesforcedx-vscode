@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.

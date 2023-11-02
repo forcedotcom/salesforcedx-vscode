@@ -136,8 +136,8 @@ class MultiLineStream {
       for (
         ;
         i < ch.length && this.source.charCodeAt(this.position + i) === ch[i];
-        i++
-      ) { }
+        i++ // tslint:disable-next-line:no-empty
+      ) {}
       if (i === ch.length) {
         return true;
       }
@@ -174,7 +174,7 @@ const _RAN = '>'.charCodeAt(0);
 const _FSL = '/'.charCodeAt(0);
 const _EQS = '='.charCodeAt(0);
 const _DQO = '"'.charCodeAt(0);
-
+// tslint:disable-next-line:quotemark
 const _SQO = "'".charCodeAt(0);
 const _NWL = '\n'.charCodeAt(0);
 const _CAR = '\r'.charCodeAt(0);
@@ -255,11 +255,11 @@ export function createScanner(
     if (token !== TokenType.EOS && offset === stream.pos()) {
       console.log(
         'Scanner.scan has not advanced at offset ' +
-        offset +
-        ', state before: ' +
-        oldState +
-        ' after: ' +
-        state
+          offset +
+          ', state before: ' +
+          oldState +
+          ' after: ' +
+          state
       );
       stream.advance(1);
       return finishToken(offset, TokenType.Unknown);

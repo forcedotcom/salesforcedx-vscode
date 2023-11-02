@@ -66,7 +66,7 @@ export class LogFileSelector
       if (logItem) {
         return {
           type: 'CONTINUE',
-          data: { id: logItem.id, startTime: logItem.startTime }
+          data: { id: logItem.id, startTime: logItem.startTime! }
         };
       }
     } else {
@@ -129,14 +129,13 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logPath = logResults[0].logPath;
     if (logPath) {
       const document = await vscode.workspace.openTextDocument(logPath);
-      await vscode.window.showTextDocument(document);
+      vscode.window.showTextDocument(document);
     }
 
     return true;
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function forceApexLogGet(explorerDir?: any) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),

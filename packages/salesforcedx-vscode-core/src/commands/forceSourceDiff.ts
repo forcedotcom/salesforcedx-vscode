@@ -29,7 +29,7 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
     } else {
       const errorMessage = nls.localize('force_source_diff_unsupported_type');
       telemetryService.sendException('unsupported_type_on_diff', errorMessage);
-      void notificationService.showErrorMessage(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -38,7 +38,7 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
 
   const defaultUsernameorAlias = WorkspaceContext.getInstance().username;
   if (!defaultUsernameorAlias) {
-    void notificationService.showErrorMessage(nls.localize('missing_default_org'));
+    notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;
   }
   const executor = new MetadataCacheExecutor(
@@ -63,7 +63,7 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
     } else {
       const errorMessage = nls.localize('force_source_diff_unsupported_type');
       telemetryService.sendException('unsupported_type_on_diff', errorMessage);
-      void notificationService.showErrorMessage(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -72,7 +72,7 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
 
   const username = WorkspaceContext.getInstance().username;
   if (!username) {
-    void notificationService.showErrorMessage(nls.localize('missing_default_org'));
+    notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;
   }
 
@@ -101,11 +101,11 @@ export async function handleCacheResults(
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      differ.diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('force_source_diff_components_not_in_org');
-    void notificationService.showErrorMessage(message);
+    notificationService.showErrorMessage(message);
     throw new Error(message);
   }
 }

@@ -36,7 +36,7 @@ export class PreviewService {
   ): void {
     const store = WorkspaceUtils.instance.getGlobalStore();
     if (store !== undefined) {
-      void store.update(`last${platform}Device`, deviceName);
+      store.update(`last${platform}Device`, deviceName);
     }
   }
 

@@ -36,7 +36,7 @@ export class OrgAuthInfo {
     try {
       const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
       if (!defaultUsernameOrAlias) {
-        void displayMessage(
+        displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
           VSCodeWindowTypeEnum.Informational
@@ -44,7 +44,7 @@ export class OrgAuthInfo {
         return undefined;
       } else {
         if (await ConfigUtil.isGlobalDefaultUsername()) {
-          void displayMessage(
+          displayMessage(
             nls.localize('warning_using_global_username'),
             enableWarning,
             VSCodeWindowTypeEnum.Warning
@@ -84,11 +84,11 @@ export class OrgAuthInfo {
           [showButtonText]
         );
         if (selection && selection === showButtonText) {
-          await vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
+          vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
         }
         return undefined;
       }
-      return JSON.stringify(defaultDevHubUserName).replace(/"/g, '');
+      return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
@@ -149,12 +149,12 @@ enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-const displayMessage = (
+function displayMessage(
   output: string,
   enableWarning?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum,
   items?: string[]
-) => {
+) {
   if (enableWarning !== undefined && !enableWarning) {
     return;
   }
@@ -174,4 +174,4 @@ const displayMessage = (
       }
     }
   }
-};
+}

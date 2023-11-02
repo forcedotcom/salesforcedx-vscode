@@ -40,7 +40,7 @@ describe('OrgDisplay unit tests.', () => {
     const partialJson = fakeResult.substring(2);
     getCmdResultSpy.mockResolvedValue(partialJson);
     const orgDisplay = new OrgDisplay();
-    await expect(orgDisplay.getOrgInfo(fakePath)).rejects.toEqual(partialJson);
+    expect(orgDisplay.getOrgInfo(fakePath)).rejects.toEqual(partialJson);
     expect(executeSpy).toHaveBeenCalled();
     expect(getCmdResultSpy).toHaveBeenCalledWith(fakeExecution);
   });

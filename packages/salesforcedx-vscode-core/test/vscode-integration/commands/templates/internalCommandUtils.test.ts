@@ -29,13 +29,13 @@ describe('Internal Command Utilities', () => {
       settings.restore();
     });
 
-    it('Should always return false', () => {
+    it('Should always return false', async () => {
       settings.returns(false);
       const internalDevWSChecker = new InternalDevWorkspaceChecker();
       expect(internalDevWSChecker.check()).to.be.eql(false);
     });
 
-    it('Should always return true', () => {
+    it('Should always return true', async () => {
       settings.returns(true);
       const internalDevWSChecker = new InternalDevWorkspaceChecker();
       expect(internalDevWSChecker.check()).to.be.eql(true);

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -194,8 +193,8 @@ export class BreakpointService {
             if (breakpointId) {
               knownBreakpoints.splice(knownBpIdx, 1);
             }
-
-          } catch (error) { }
+            // tslint:disable-next-line:no-empty
+          } catch (error) {}
         }
       }
     }
@@ -218,7 +217,8 @@ export class BreakpointService {
             if (breakpointId) {
               this.cacheLineBreakpoint(uri, clientLine, breakpointId);
             }
-          } catch (error) { }
+            // tslint:disable-next-line:no-empty
+          } catch (error) {}
         }
       }
     }

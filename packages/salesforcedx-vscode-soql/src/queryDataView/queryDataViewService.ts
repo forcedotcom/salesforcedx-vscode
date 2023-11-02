@@ -62,11 +62,11 @@ export class QueryDataViewService {
         data: extendQueryData(this.queryText, queryData),
         documentName: getDocumentName(this.document)
       })
-      .then(undefined, (err: string) => {
+      .then(undefined, async (err: string) => {
         const errorType = 'data_view_post_message';
         const message = nls.localize('error_unknown_error', errorType);
         channelService.appendLine(message);
-        void trackErrorWithTelemetry(errorType, err);
+        trackErrorWithTelemetry(errorType, err);
       });
   }
 
@@ -118,7 +118,6 @@ export class QueryDataViewService {
     );
 
     this.currentPanel.webview.onDidReceiveMessage(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       this.onDidRecieveMessageHandler,
       this,
       this.subscriptions
@@ -134,10 +133,9 @@ export class QueryDataViewService {
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format );
+        this.handleSaveRecords(format as FileFormat);
         break;
       default:
-        // eslint-disable-next-line no-case-declarations
         const errorMessage = nls.localize('error_unknown_error', type);
         channelService.appendLine(errorMessage);
         trackErrorWithTelemetry('data_view_message_type', type).catch(
@@ -155,13 +153,11 @@ export class QueryDataViewService {
         format,
         this.document
       );
-      fileService.save().catch(() => {
-        const message = nls.localize('error_data_view_save');
-        void vscode.window.showErrorMessage(message);
-        void trackErrorWithTelemetry('data_view_save', message);
-      });
+      fileService.save();
     } catch (err) {
-      // ignore
+      const message = nls.localize('error_data_view_save');
+      vscode.window.showErrorMessage(message);
+      trackErrorWithTelemetry('data_view_save', message);
     }
   }
 

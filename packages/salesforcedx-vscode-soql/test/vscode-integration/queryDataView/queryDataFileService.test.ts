@@ -32,7 +32,7 @@ describe('Query Data File Service', () => {
   let mockTextDocument: vscode.TextDocument;
   let docProviderDisposable: vscode.Disposable;
   const documentName = 'example.soql';
-  const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+  const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
   const mockUriPath = path.join(testResultsDirPath, documentName);
   let sandbox: sinon.SinonSandbox;
@@ -57,6 +57,7 @@ describe('Query Data File Service', () => {
 
   afterEach(() => {
     // delete the query-results directory and its files.
+    // @ts-ignore
     fs.rmSync(testResultsDirPath, { recursive: true });
     sandbox.restore();
   });

@@ -21,8 +21,6 @@ export function activateTagClosing(
 ): Disposable {
   const disposables: Disposable[] = [];
   workspace.onDidChangeTextDocument(
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     event => onDidChangeTextDocument(event.document, event.contentChanges),
     null,
     disposables
@@ -54,7 +52,7 @@ export function activateTagClosing(
 
   function onDidChangeTextDocument(
     document: TextDocument,
-    changes: TextDocumentContentChangeEvent[]
+    changes: ReadonlyArray<TextDocumentContentChangeEvent>
   ) {
     if (!isEnabled) {
       return;
@@ -82,7 +80,7 @@ export function activateTagClosing(
         rangeStart.line,
         rangeStart.character + lastChange.text.length
       );
-      void tagProvider(document, position).then(text => {
+      tagProvider(document, position).then(text => {
         if (text && isEnabled) {
           const activeEditor = window.activeTextEditor!;
           const currentDocument = activeEditor && activeEditor.document;
@@ -95,12 +93,12 @@ export function activateTagClosing(
               selections.length &&
               selections.some(s => s.active.isEqual(position))
             ) {
-              void activeEditor.insertSnippet(
+              activeEditor.insertSnippet(
                 new SnippetString(text),
                 selections.map(s => s.active)
               );
             } else {
-              void activeEditor.insertSnippet(new SnippetString(text), position);
+              activeEditor.insertSnippet(new SnippetString(text), position);
             }
           }
         }

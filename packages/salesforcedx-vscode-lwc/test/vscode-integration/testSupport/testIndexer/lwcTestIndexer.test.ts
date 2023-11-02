@@ -72,7 +72,7 @@ describe('LWC Test Indexer', function() {
         mockFileSystemWatcher as vscode.FileSystemWatcher
       );
 
-      const mockFile = 'it(\'mockTestCase1\', () => {})\nit(\'mockTestCase2\', () => {})\n';
+      const mockFile = `it('mockTestCase1', () => {})\nit('mockTestCase2', () => {})\n`;
       readFileStub = stub(fs, 'readFileSync');
       readFileStub.callsFake(fileName => {
         return mockFile;

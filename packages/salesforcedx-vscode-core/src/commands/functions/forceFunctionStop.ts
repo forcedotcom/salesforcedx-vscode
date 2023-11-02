@@ -18,22 +18,21 @@ const LOG_NAME = 'force_function_stop';
  * Currently, we don't support stopping individual containers,
  * because we don't support running multiple containers.
  */
-export const forceFunctionStop = async () => {
+export async function forceFunctionStop() {
   const startTime = process.hrtime();
 
   if (FunctionService.instance.isFunctionStarted()) {
     channelService.appendLine(nls.localize('force_function_stop_in_progress'));
     await FunctionService.instance.stopFunction();
-    void notificationService
+    notificationService
       .showSuccessfulExecution(nls.localize('force_function_stop_text'))
       .catch(() => { });
     telemetryService.sendCommandEvent(LOG_NAME, startTime, {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       language: FunctionService.instance.getFunctionLanguage()
     });
   } else {
-    void notificationService.showWarningMessage(
+    notificationService.showWarningMessage(
       nls.localize('force_function_stop_not_started')
     );
   }
-};
+}

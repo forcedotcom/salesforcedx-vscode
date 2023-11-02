@@ -35,7 +35,7 @@ export const messages = {
 
   task_view_running_message: '[実行しています] %s',
 
-  status_bar_text: '$(x) %s',
+  status_bar_text: `$(x) %s`,
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
@@ -203,7 +203,7 @@ export const messages = {
     'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
-  demo_mode_status_text: '$(gist-secret) SFDX DEMO',
+  demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
   demo_mode_status_tooltip:
     'VS Code のSalesforce 拡張機能をデモモードで実行しています。本番環境に接続するときに確認を求められます。',
   demo_mode_prompt:

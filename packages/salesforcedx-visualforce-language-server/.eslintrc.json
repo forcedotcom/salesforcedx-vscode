@@ -1,29 +1,18 @@
 {
   "root": true,
-  "extends": ["../../base-eslintrc.json"],
+  "extends": [
+    "../../base-eslintrc.json",
+    "./fix-these-rules.json"
+  ],
   "overrides": [
     {
-      "files": ["./src/**/*.ts", "./test/**/*.ts"],
+      "files": [
+        "./src/**/*.ts",
+        "./test/**/*.ts"
+      ],
       "parserOptions": {
         "project": "./tsconfig.json"
       }
     }
-  ],
-  "rules": {
-    "@typescript-eslint/no-unsafe-assignment": "off",
-    "@typescript-eslint/no-misused-promises": "off",
-    "@typescript-eslint/no-unsafe-argument": "off",
-    "@typescript-eslint/no-unsafe-member-access": "off",
-    "@typescript-eslint/no-duplicate-type-constituents": "off",
-    "@typescript-eslint/no-floating-promises": "off",
-    "guard-for-in": "off",
-    "@typescript-eslint/no-unsafe-return": "off",
-    "no-useless-escape": "off",
-    "@typescript-eslint/no-unsafe-call": "off",
-    "no-prototype-builtins": "off",
-    "@typescript-eslint/no-unsafe-enum-comparison": "off",
-    "import/order": "off",
-    "@typescript-eslint/array-type": "off",
-    "@typescript-eslint/prefer-for-of": "off"
-  }
+  ]
 }

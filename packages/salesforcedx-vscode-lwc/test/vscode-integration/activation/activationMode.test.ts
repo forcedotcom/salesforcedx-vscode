@@ -1,12 +1,12 @@
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import * as chai from 'chai';
-import { expect, assert } from 'chai';
-import * as sinonChai from 'sinon-chai';
-import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import * as vscode from 'vscode';
-import * as constants from '../../../src/constants';
 import { activate } from '../../../src/index';
+import * as constants from '../../../src/constants';
+import * as vscode from 'vscode';
+import sinon, { stubInterface, stubObject } from 'ts-sinon';
+import * as sinonChai from 'sinon-chai';
+import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { MockExtensionContext } from './MockExtensionContext';
+import { expect, assert } from 'chai';
 
 chai.use(sinonChai);
 

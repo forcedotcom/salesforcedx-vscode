@@ -171,7 +171,6 @@ describe('componentSetUtils', () => {
   describe('getOrgApiVersion', () => {
     it('should validate that the Org\'s API version is returned', async () => {
       const workspaceContextFake = {
-        // eslint-disable-next-line @typescript-eslint/require-await
         getConnection: async () => {
           return {
             getApiVersion: () => '60.0'

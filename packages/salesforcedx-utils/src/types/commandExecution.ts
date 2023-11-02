@@ -1,6 +1,6 @@
-import { Observable } from 'rxjs/Observable';
 import { CancellationToken } from './cancellationToken';
 import { Command } from './command';
+import { Observable } from 'rxjs/Observable';
 
 /**
  * Represents a command execution (a process has already been spawned for it).

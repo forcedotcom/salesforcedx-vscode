@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { testWatcher } from '../testRunner/testWatcher';
 import {
   TestExecutionInfo,
   TestFileInfo,
@@ -13,6 +12,7 @@ import {
   TestType
 } from '../types';
 
+import { testWatcher } from '../testRunner/testWatcher';
 import { isLwcJestTest } from '../utils';
 
 /**
@@ -34,7 +34,7 @@ export async function forceLwcTestStartWatching(data: {
  * It will terminate the test watch task matched by the test URI.
  * @param data provided by test watch commands
  */
-export function forceLwcTestStopWatching(data: {
+export async function forceLwcTestStopWatching(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
   const { testExecutionInfo } = data;

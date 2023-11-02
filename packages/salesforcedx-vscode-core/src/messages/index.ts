@@ -34,7 +34,6 @@ function loadMessageBundle(config?: Config): Message {
 
 function getNlsConfig(): Config | undefined {
   const procNlsConfig = process.env.VSCODE_NLS_CONFIG;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return procNlsConfig ? JSON.parse(procNlsConfig) : null;
 }
 

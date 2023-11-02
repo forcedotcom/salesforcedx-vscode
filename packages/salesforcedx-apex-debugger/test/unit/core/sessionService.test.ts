@@ -16,7 +16,6 @@ import { SessionService } from '../../../src/core/sessionService';
 
 describe('Debugger session service', () => {
   let service: SessionService;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mockSpawn = require('mock-spawn');
 
   beforeEach(() => {

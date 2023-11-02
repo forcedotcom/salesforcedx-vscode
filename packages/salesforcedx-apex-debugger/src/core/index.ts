@@ -10,9 +10,7 @@ export { SessionService } from './sessionService';
 export {
   ApexDebuggerEvent,
   ApexDebuggerEventType,
-  DebuggerEvents as DeguggerEvents,
   DebuggerMessage,
-  isApexDebuggerEventType,
   StreamingClient,
   StreamingClientInfo,
   StreamingClientInfoBuilder,

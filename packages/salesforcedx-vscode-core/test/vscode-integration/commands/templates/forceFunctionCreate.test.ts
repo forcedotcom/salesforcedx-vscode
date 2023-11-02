@@ -5,11 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as library from '@heroku/functions-core';
 import * as cp from 'child_process';
 import * as path from 'path';
 import { assert, createSandbox, SinonStub } from 'sinon';
-import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   forceFunctionCreate,
@@ -22,6 +20,8 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { workspaceUtils } from '../../../../src/util';
 
+import * as library from '@heroku/functions-core';
+import * as sinon from 'sinon';
 
 describe('Force Function Create', () => {
   let execStub: SinonStub;
@@ -33,14 +33,14 @@ describe('Force Function Create', () => {
   let showTextDocumentStub: SinonStub;
   let gatherStub: SinonStub;
   const functionInfoJS = {
-    type: 'CONTINUE' as const,
+    type: 'CONTINUE' as 'CONTINUE',
     data: {
       fileName: 'myFunc1',
       language: 'javascript'
     }
   };
   const functionInfoJava = {
-    type: 'CONTINUE' as const,
+    type: 'CONTINUE' as 'CONTINUE',
     data: {
       fileName: 'myFunc1',
       language: 'java'

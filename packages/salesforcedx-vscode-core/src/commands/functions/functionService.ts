@@ -135,7 +135,6 @@ export class FunctionService {
   public getFunctionLanguage() {
     const functionIterator = this.startedExecutions.values();
     if (functionIterator) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       return functionIterator.next().value?.debugType;
     }
     return undefined;
@@ -251,7 +250,6 @@ export class FunctionService {
       session => {
         const { configuration } = session;
         const { localRoot } = configuration;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const functionExecution = this.getStartedFunction(localRoot);
         if (functionExecution) {
           functionExecution.debugSession = session;
@@ -262,7 +260,6 @@ export class FunctionService {
       session => {
         const { configuration } = session;
         const { localRoot } = configuration;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const functionExecution = this.getStartedFunction(localRoot);
         if (functionExecution) {
           functionExecution.debugSession = undefined;

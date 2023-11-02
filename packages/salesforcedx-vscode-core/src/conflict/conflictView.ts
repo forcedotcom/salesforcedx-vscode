@@ -10,7 +10,6 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
-import { normalizeError } from '../util';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictOutlineProvider } from './conflictOutlineProvider';
 import { DirectoryDiffResults } from './directoryDiffer';
@@ -91,16 +90,16 @@ export class ConflictView {
     return conflicts;
   }
 
-  public init(extensionContext: ExtensionContext) {
+  public async init(extensionContext: ExtensionContext) {
     this._dataProvider = new ConflictOutlineProvider();
     this._treeView = window.createTreeView(ConflictView.VIEW_ID, {
       treeDataProvider: this._dataProvider
     });
 
-    this._treeView.onDidChangeVisibility(() => {
+    this._treeView.onDidChangeVisibility(async () => {
       if (this.treeView.visible) {
         this.updateEnablementMessage();
-        this.dataProvider.onViewChange();
+        await this.dataProvider.onViewChange();
       }
     });
 
@@ -118,8 +117,7 @@ export class ConflictView {
     const node = this.dataProvider.getRevealNode();
     if (node) {
       Promise.resolve(this.treeView.reveal(node, { expand: true })).catch(e => {
-        const err = normalizeError(e);
-        const errorMessage = err.message;
+        const errorMessage = e.toString();
         channelService.appendLine('Error during reveal: ' + errorMessage);
         telemetryService.sendException(
           'ConflictDetectionException',

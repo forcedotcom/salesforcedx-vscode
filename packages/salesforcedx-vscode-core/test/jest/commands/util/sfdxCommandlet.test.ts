@@ -110,7 +110,7 @@ describe('SfdxCommandletExecutor', () => {
       expect(parseSpy).toHaveBeenCalledWith(dummyStdOut);
     });
 
-    it('should show a message to the User if there is a parsing error', () => {
+    it('should show a message to the User if there is a parsing error', async () => {
       // Arrange
       const executor = new ForceSourcePushExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();

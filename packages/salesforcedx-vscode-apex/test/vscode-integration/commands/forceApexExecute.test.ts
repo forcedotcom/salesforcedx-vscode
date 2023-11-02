@@ -27,7 +27,7 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Apex Execute', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();
@@ -81,7 +81,7 @@ describe('Force Apex Execute', () => {
     sb.restore();
   });
 
-  describe('AnonApexGatherer', () => {
+  describe('AnonApexGatherer', async () => {
     it('should return the selected file to execute anonymous apex', async () => {
       const fileName = path.join(
         projectPaths.stateFolder(),
@@ -137,7 +137,7 @@ describe('Force Apex Execute', () => {
       expect(result.data.apexCode).to.equal(text);
     });
 
-    it('should return the currently highlighted \'selection\' to execute anonymous apex', async () => {
+    it(`should return the currently highlighted 'selection' to execute anonymous apex`, async () => {
       const mockActiveTextEditor = {
         document: {
           getText: (doc: { isEmpty: boolean; text: string }) => doc.text,
@@ -205,8 +205,9 @@ describe('Force Apex Execute', () => {
       };
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs
-        }`;
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
+        execAnonResponse.logs
+      }`;
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
         execAnonResponse
       );
@@ -226,7 +227,7 @@ describe('Force Apex Execute', () => {
           {
             columnNumber: 1,
             lineNumber: 6,
-            compileProblem: 'Unexpected token \'(\'.',
+            compileProblem: `Unexpected token '('.`,
             exceptionMessage: '',
             exceptionStackTrace: ''
           }
@@ -265,8 +266,9 @@ describe('Force Apex Execute', () => {
       } = execAnonResponse.diagnostic[0];
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\nError: ${exceptionMessage}\nError: ${exceptionStackTrace}\n\n${execAnonResponse.logs
-        }`;
+      )}\nError: ${exceptionMessage}\nError: ${exceptionStackTrace}\n\n${
+        execAnonResponse.logs
+      }`;
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
         execAnonResponse
       );
@@ -534,8 +536,9 @@ describe('Force Apex Execute', () => {
       };
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs
-        }`;
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
+        execAnonResponse.logs
+      }`;
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
         execAnonResponse
       );
@@ -565,8 +568,9 @@ describe('Force Apex Execute', () => {
       };
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs
-        }`;
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
+        execAnonResponse.logs
+      }`;
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
         execAnonResponse
       );

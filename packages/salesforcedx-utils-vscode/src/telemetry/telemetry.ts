@@ -79,7 +79,7 @@ export class TelemetryService {
   public async initializeService(
     extensionContext: ExtensionContext
   ): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON as Record<string, string>;
+    const { name, version, aiKey } = extensionContext.extension.packageJSON;
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
@@ -92,7 +92,7 @@ export class TelemetryService {
     this.aiKey = aiKey || this.aiKey;
 
     this.checkCliTelemetry()
-      .then(cliEnabled => {
+      .then(async cliEnabled => {
         this.setCliTelemetryEnabled(
           this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
         );
@@ -101,8 +101,6 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    // TODO: Should this be in telemetry data? Seems like PII
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const machineId = env ? env.machineId : 'someValue.machineId';
     const isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;

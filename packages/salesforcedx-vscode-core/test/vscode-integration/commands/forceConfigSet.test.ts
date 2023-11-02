@@ -54,7 +54,7 @@ describe('Force Config Set', () => {
     expect(channelSpy.calledWith(expectedOutput)).to.equal(true);
   });
 
-  it('should display correct output to user', () => {
+  it('should display correct output to user', async () => {
     const outputTableRow = { name: TARGET_ORG_KEY, val: usernameOrAlias, success: String(true) };
     const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
     const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);

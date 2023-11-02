@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -100,8 +96,8 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       stdOut += realData.toString();
     });
 
-    execution.processExitSubject.subscribe((exitCode: number | undefined) => {
-      void this.exitProcessHandlerPush(
+    execution.processExitSubject.subscribe(async exitCode => {
+      await this.exitProcessHandlerPush(
         exitCode,
         stdOut,
         workspacePath,
@@ -115,7 +111,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  protected exitProcessHandlerPush(
+  protected async exitProcessHandlerPush(
     exitCode: number | undefined,
     stdOut: string,
     workspacePath: string,
@@ -170,7 +166,6 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       );
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     }
-    return Promise.resolve();
   }
 
   /**
@@ -217,7 +212,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
         console.log(
-          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(errors)}`
+          `There were errors parsing the push operation response.  Raw response: ${errors}`
         );
       }
     }
@@ -243,7 +238,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getErrorTable(table: Table, result: unknown, titleType: string) {
     const outputTable = table.createTable(
-      (result) as Row[],
+      (result as unknown) as Row[],
       [
         {
           key: 'filePath',

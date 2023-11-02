@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.

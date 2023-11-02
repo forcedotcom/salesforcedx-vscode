@@ -147,7 +147,7 @@ describe('Metadata Cache', () => {
       shell.rm('-rf', PROJECT_DIR);
     });
 
-    it('Should clear cache directory', () => {
+    it('Should clear cache directory', async () => {
       const cachePath = service.getCachePath();
       const tempFilePath = path.join(cachePath, 'TestFile.xml');
 

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DescribeSObjectResult, Field } from 'jsforce';
 
 import {
   CUSTOMOBJECTS_DIR,
@@ -17,7 +18,6 @@ import {
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
-import { DescribeSObjectResult, Field } from 'jsforce';
 import * as path from 'path';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sfdx';
@@ -94,7 +94,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     try {
       const file = await fs.promises.readFile(filePath);
       // TODO: validate content against a schema
-      return JSON.parse(file.toString()) as SObject;
+      return JSON.parse(file.toString());
     } catch (e) {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',

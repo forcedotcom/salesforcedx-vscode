@@ -18,7 +18,7 @@ const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
   'notification_show_in_status_bar_button_text'
 );
 
-
+// tslint:disable:no-empty
 describe('Notifications', () => {
   let mShowInformation: SinonStub;
   let mShowWarningMessage: SinonStub;

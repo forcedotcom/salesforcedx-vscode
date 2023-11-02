@@ -31,7 +31,7 @@ import {
   createHeapDumpWithStrings
 } from './heapDumpTestUtil';
 
-
+// tslint:disable:no-unused-expression
 describe('Replay debugger adapter variable handling - unit', () => {
   let adapter: MockApexReplayDebug;
   let sendResponseSpy: sinon.SinonSpy;

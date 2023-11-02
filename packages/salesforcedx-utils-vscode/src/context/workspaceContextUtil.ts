@@ -103,7 +103,7 @@ export class WorkspaceContextUtil {
       } catch (error) {
         this._orgId = '';
         console.log(
-          `There was an problem getting the orgId of the default org: ${error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown'}`
+          `There was an problem getting the orgId of the default org: ${error}`
         );
       }
     } else {

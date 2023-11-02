@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -27,8 +23,8 @@ export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
+  private readonly gatherers: Array<ParametersGatherer<any>>;
+  public constructor(...gatherers: Array<ParametersGatherer<any>>) {
     this.gatherers = gatherers;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
@@ -53,8 +49,8 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
 }
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return Promise.resolve({ type: CONTINUE, data: {} });
+  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    return { type: CONTINUE, data: {} };
   }
 }
 
@@ -64,11 +60,11 @@ export class FilePathGatherer implements ParametersGatherer<string> {
     this.filePath = uri.fsPath;
   }
 
-  public gather(): Promise<CancelResponse | ContinueResponse<string>> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
     if (workspaceUtils.hasRootWorkspace()) {
-      return Promise.resolve({ type: CONTINUE, data: this.filePath });
+      return { type: CONTINUE, data: this.filePath };
     }
-    return Promise.resolve({ type: CANCEL });
+    return { type: CANCEL };
   }
 }
 
@@ -109,7 +105,7 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
       };
     });
     if (fileItems.length === 0) {
-      await vscode.window.showErrorMessage(this.errorMessage);
+      vscode.window.showErrorMessage(this.errorMessage);
       return { type: CANCEL };
     }
     const selection = await vscode.window.showQuickPick(fileItems, {
@@ -335,11 +331,11 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
     this.input = input;
   }
 
-  public gather(): Promise<ContinueResponse<T>> {
-    return Promise.resolve({
+  public async gather(): Promise<ContinueResponse<T>> {
+    return {
       type: CONTINUE,
       data: this.input
-    });
+    };
   }
 }
 

@@ -17,7 +17,7 @@ export function launchFromLogFile(
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    void vscode.debug.startDebugging(
+    vscode.debug.startDebugging(
       vscode.workspace.workspaceFolders[0],
       DebugConfigurationProvider.getConfig(logFile, stopOnEntry)
     );

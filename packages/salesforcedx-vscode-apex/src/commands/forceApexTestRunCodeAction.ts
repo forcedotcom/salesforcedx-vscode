@@ -184,13 +184,13 @@ function getTempFolder(): string {
 export async function forceApexTestClassRunCodeActionDelegate(
   testClass: string
 ) {
-  await vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
+  vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
 }
 
 export async function forceApexDebugClassRunCodeActionDelegate(
   testClass: string
 ) {
-  await vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+  vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
     name: testClass
   });
 }
@@ -217,7 +217,7 @@ export async function forceApexTestClassRunCodeAction(testClass: string) {
   testClass = await resolveTestClassParam(testClass);
   if (isEmpty(testClass)) {
     // test param not provided: show error and terminate
-    void notificationService.showErrorMessage(
+    notificationService.showErrorMessage(
       nls.localize('force_apex_test_run_codeAction_no_class_test_param_text')
     );
     return;
@@ -232,12 +232,12 @@ export async function forceApexTestClassRunCodeAction(testClass: string) {
 export async function forceApexTestMethodRunCodeActionDelegate(
   testMethod: string
 ) {
-  await vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
+  vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
 }
 export async function forceApexDebugMethodRunCodeActionDelegate(
   testMethod: string
 ) {
-  await vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
+  vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
     name: testMethod
   });
 }
@@ -265,7 +265,7 @@ export async function forceApexTestMethodRunCodeAction(testMethod: string) {
   testMethod = await resolveTestMethodParam(testMethod);
   if (isEmpty(testMethod)) {
     // test param not provided: show error and terminate
-    void notificationService.showErrorMessage(
+    notificationService.showErrorMessage(
       nls.localize('force_apex_test_run_codeAction_no_method_test_param_text')
     );
     return;

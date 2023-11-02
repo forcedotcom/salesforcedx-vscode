@@ -6,9 +6,9 @@
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'path';
+import { RetrieveDescriber } from '.';
 import { BrowserNode } from '../../orgBrowser';
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { RetrieveDescriber } from '.';
 
 export abstract class NodeDescriber implements RetrieveDescriber {
   protected node: BrowserNode;

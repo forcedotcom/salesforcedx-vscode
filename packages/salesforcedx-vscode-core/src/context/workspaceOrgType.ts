@@ -29,7 +29,6 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
     connection = await workspaceContext.getConnection();
   } catch (error) {
     console.warn(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `An error was encountered while getting the org connection:\n ${error}`
     );
     return OrgType.NonSourceTracked;
@@ -50,7 +49,7 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
 }
 
 function setDefaultUsernameHasChangeTracking(val: boolean) {
-  void vscode.commands.executeCommand(
+  vscode.commands.executeCommand(
     'setContext',
     'sfdx:default_username_has_change_tracking',
     val
@@ -58,7 +57,7 @@ function setDefaultUsernameHasChangeTracking(val: boolean) {
 }
 
 function setHasDefaultUsername(val: boolean) {
-  void vscode.commands.executeCommand(
+  vscode.commands.executeCommand(
     'setContext',
     'sfdx:has_default_username',
     val

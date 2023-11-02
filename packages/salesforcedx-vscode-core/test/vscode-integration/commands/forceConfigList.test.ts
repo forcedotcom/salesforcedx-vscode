@@ -9,9 +9,9 @@ import { expect } from 'chai';
 import { ForceConfigList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Config List', () => {
-  it('Should build the config list command', () => {
+  it('Should build the config list command', async () => {
     const configList = new ForceConfigList();
     const configListCommand = configList.build({});
     expect(configListCommand.toCommand()).to.equal('sfdx force:config:list');

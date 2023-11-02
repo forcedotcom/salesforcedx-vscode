@@ -20,7 +20,7 @@ import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-
+// tslint:disable:no-unused-expression
 describe('Force Lightning Event Create', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;

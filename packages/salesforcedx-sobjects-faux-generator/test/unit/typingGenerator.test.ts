@@ -27,7 +27,7 @@ describe('SObject Javacript type declaration generator', () => {
     }
   });
 
-  it('Should generate a declaration file as read-only', () => {
+  it('Should generate a declaration file as read-only', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -45,7 +45,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(stat.mode).to.equal(expectedMode);
   });
 
-  it('Should generate a declaration file with all types of fields that can be in custom SObjects', () => {
+  it('Should generate a declaration file with all types of fields that can be in custom SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -141,7 +141,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('export default IdField;');
   });
 
-  it('Should generate a declaration file with all types of fields that show only in standard SObjects', () => {
+  it('Should generate a declaration file with all types of fields that show only in standard SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -171,7 +171,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('const ComboboxField:string;');
   });
 
-  it('Should create a declaration file with a field and relationship', () => {
+  it('Should create a declaration file with a field and relationship', async () => {
     const field1 =
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const relation1 =
@@ -204,7 +204,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('export default Account__c;');
   });
 
-  it('Should create a String field type for an external lookup relationship', () => {
+  it('Should create a String field type for an external lookup relationship', async () => {
     const field1 =
       '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const header = '{ "name": "Custom__c",  "childRelationships": []';
@@ -224,7 +224,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('export default ExtRef__c;');
   });
 
-  it('Should create a valid declaration file for a metadata object with EntityDefinition relationship target', () => {
+  it('Should create a valid declaration file for a metadata object with EntityDefinition relationship target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
@@ -245,7 +245,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('export default MDRef__c;');
   });
 
-  it('Should create a valid declaration file for a metadata object with a __mdt target', () => {
+  it('Should create a valid declaration file for a metadata object with a __mdt target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
@@ -266,7 +266,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('export default MDRef__r;');
   });
 
-  it('Should create a valid declaration file for a platform event object', () => {
+  it('Should create a valid declaration file for a platform event object', async () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 

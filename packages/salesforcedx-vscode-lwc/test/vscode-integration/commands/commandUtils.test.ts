@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as sinon from 'sinon';
+import { showError } from '../../../src/commands/commandUtils';
 import {
   ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as sinon from 'sinon';
-import { showError } from '../../../src/commands/commandUtils';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('command utilities', () => {
@@ -27,7 +27,7 @@ describe('command utilities', () => {
       sinon.assert.calledOnce(spy);
       sinon.assert.calledWith(
         spy,
-        'force_lightning_lwc_start_test_error',
+        `force_lightning_lwc_start_test_error`,
         'test error message'
       );
 
@@ -62,7 +62,7 @@ describe('command utilities', () => {
       );
 
       sinon.assert.calledOnce(spy);
-      sinon.assert.calledWith(spy, 'Error: test error message');
+      sinon.assert.calledWith(spy, `Error: test error message`);
 
       spy.restore();
     });

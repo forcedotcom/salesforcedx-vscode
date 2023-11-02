@@ -79,7 +79,7 @@ export class QuickLaunch {
         return true;
       }
     } else if (testResult.message) {
-      await notificationService.showErrorMessage(testResult.message);
+      notificationService.showErrorMessage(testResult.message);
     }
     return false;
   }
@@ -123,8 +123,8 @@ export class QuickLaunch {
       }
 
       return { logFileId: tests[0].apexLogId, success: true };
-    } catch (error) {
-      return { message: error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown', success: false };
+    } catch (e) {
+      return { message: e.message, success: false };
     }
   }
 
