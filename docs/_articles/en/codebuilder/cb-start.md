@@ -21,7 +21,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 ![Code Builder Dashboard](./images/cb_dashboard.png)
 
-**Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time or bookmark it for fast access.
+**Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
 ## Connect to a Salesforce Org
 
