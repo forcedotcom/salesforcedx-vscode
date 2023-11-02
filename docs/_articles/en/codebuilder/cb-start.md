@@ -21,7 +21,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 ![Code Builder Dashboard](./images/cb_dashboard.png)
 
-**Tip**: Once you have created your Code Builder environment, launch it from the dashboard anytime or bookmark it for fast access.
+**Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time or bookmark it for fast access.
 
 ## Connect to a Salesforce Org
 
@@ -86,7 +86,7 @@ Let’s build and run a simple SOQL query on the Account object:
 You’re prompted to save your changes if you close the untitled file.
 
 5. Save the changes to a file using a “.soql” extension.
-6. Let’s rerun the saved query – Right click the file and select **Open With…** then select SOQL Builder.
+6. Let’s rerun the saved query – Right-click the file and select **Open With…** then select SOQL Builder.
    The file opens in SOQL Builder and you can rerun or edit the query as you wish.
 
 For more information on building complex queries see the [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder) in the Salesforce Extensions for Visual Studio Code documentation.
