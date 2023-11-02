@@ -22,6 +22,8 @@
     "./packages/salesforcedx-vscode-apex",
     "./packages/salesforcedx-utils-vscode",
     "./packages/salesforcedx-visualforce-markup-language-server",
+    "./packages/salesforcedx-visualforce-language-server",
+    "./@typescript-eslint/no-unsafe-return",
     "./packages/salesforcedx-test-utils-vscode",
     "./packages/system-tests",
     "./packages/salesforcedx-vscode-apex-debugger",
