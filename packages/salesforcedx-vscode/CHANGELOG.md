@@ -1,15 +1,26 @@
-# 59.2.0 - October 27, 2023
+# 59.3.1 - November 3, 2023
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- Our Apex extension can now detect orphaned language servers at startup. You can view the processes in the Output channel and then do as you please with them. Terminate them, or ignore them. The choice is yours. Remember this though --with great power comes great responsibility. ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
+- We made some changes under the hood. ([PR #5184](https://github.com/forcedotcom/salesforcedx-vscode/pull/5184))
+
+- Our Apex extension can now detect orphaned language servers at startup. You can view the processes in the Output channel and then do as you please with them. Terminate them, or ignore them. The choice is yours. Always remember though, with great power comes great responsibility! ([PR #5160](https://github.com/forcedotcom/salesforcedx-vscode/pull/5160))
 
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #5155](https://github.com/forcedotcom/salesforcedx-vscode/pull/5155))
 
+## Fixed
+
+#### docs
+
+- We added a helpful note to the Local Development Server topic. Thank you [Brett](https://github.com/BrettMN) for your contribution. ([PR #5170](https://github.com/forcedotcom/salesforcedx-vscode/pull/5170))
+
+#### forcedotcom/lightning-language-server
+
+- We made some updates to the Lightning Language Server so that it no longer crashes on startup. Thank you [Itachi Uchiha](https://github.com/salesforceProDev) for creating the issue. Thank you [Rob Baillie](https://github.com/bobalicious) and [Răzvan Racolța](https://github.com/Razvan-Racolta) for helping us with testing. We appreciate each one of you. ([PR #583](https://github.com/forcedotcom/lightning-language-server/pull/583), [ISSUE #5069](https://github.com/forcedotcom/salesforcedx-vscode/issues/5069))
 
 # 59.1.2 - October 19, 2023
 

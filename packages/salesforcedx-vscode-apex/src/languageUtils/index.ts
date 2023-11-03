@@ -18,3 +18,5 @@ export {
 export { enableJavaDocSymbols } from './javaDocSymbols';
 
 export { languageServerUtils, ProcessDetail } from './languageServerUtils';
+
+export { extensionUtils } from './extensionUtils';
