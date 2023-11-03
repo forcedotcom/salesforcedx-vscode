@@ -6,6 +6,39 @@ class EventEmitter {
   public fire = (e: any) => this.listeners.forEach(listener => listener(e));
 }
 
+class Uri {
+  public static parse = jest.fn();
+  public static file = jest.fn();
+  public static joinPath = jest.fn();
+}
+
+const mockLanguageStatusItem = {
+  id: jest.fn(),
+  name: jest.fn(),
+  selector: jest.fn(),
+  severity: jest.fn(),
+  text: jest.fn(),
+  detail: jest.fn(),
+  busy: jest.fn(),
+  command: jest.fn(),
+  accessibilityInformation: jest.fn()
+};
+
+const mockCreateLanguageStatusItem = jest.fn();
+mockCreateLanguageStatusItem.mockReturnValue(mockLanguageStatusItem);
+
+enum LanguageStatusSeverity {
+  Information = 0,
+  Warning = 1,
+  Error = 2
+}
+
+enum TreeItemCollapsibleState {
+  None = 0,
+  Collapsed = 1,
+  Expanded = 2
+}
+
 const getMockVSCode = () => {
   return {
     CancellationTokenSource: class {
@@ -42,13 +75,10 @@ const getMockVSCode = () => {
       getExtension: jest.fn()
     },
     languages: {
-      createDiagnosticCollection: jest.fn()
+      createDiagnosticCollection: jest.fn(),
+      createLanguageStatusItem: mockCreateLanguageStatusItem
     },
-    Uri: {
-      parse: jest.fn(),
-      file: jest.fn(),
-      joinPath: jest.fn()
-    },
+    Uri,
     Position: jest.fn(),
     ProgressLocation: {
       SourceControl: 1,
@@ -73,7 +103,8 @@ const getMockVSCode = () => {
       OutputChannel: {
         show: jest.fn()
       },
-      createStatusBarItem: jest.fn()
+      createStatusBarItem: jest.fn(),
+      createTextEditorDecorationType: jest.fn()
     },
     workspace: {
       getConfiguration: () => {
@@ -91,8 +122,61 @@ const getMockVSCode = () => {
       workspaceFolders: [],
       fs: {
         writeFile: jest.fn()
-      }
-    }
+      },
+      registerTextDocumentContentProvider: jest.fn()
+    },
+    CompletionItem: class {
+      public constructor(label: string) {}
+    },
+    CodeLens: class {
+      public constructor(range: Range) {}
+    },
+    DocumentLink: class {
+      public constructor(range: Range, target?: Uri) {}
+    },
+    CodeAction: class {
+      public constructor(title: string, data?: any) {}
+    },
+    Diagnostic: class {
+      public constructor(range: Range, message: string, severity?: any) {}
+    },
+    CallHierarchyItem: class {
+      public constructor(
+        kind: any,
+        name: string,
+        detail: string,
+        uri: Uri,
+        range: Range,
+        selectionRange: Range
+      ) {}
+    },
+    TypeHierarchyItem: class {
+      public constructor(
+        kind: any,
+        name: string,
+        detail: string,
+        uri: Uri,
+        range: Range,
+        selectionRange: Range
+      ) {}
+    },
+    SymbolInformation: class {
+      public constructor(
+        name: string,
+        kind: any,
+        range: Range,
+        uri?: Uri,
+        containerName?: string
+      ) {}
+    },
+    InlayHint: class {
+      public constructor(position: any, label: any, kind?: any) {}
+    },
+    CancellationError: class {
+      public constructor() {}
+    },
+    LanguageStatusSeverity,
+    TreeItemCollapsibleState
   };
 };
 
