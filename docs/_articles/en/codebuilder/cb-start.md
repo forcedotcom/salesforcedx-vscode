@@ -11,6 +11,8 @@ Complete this Quick Start to become familiar with the Code Builder interface and
 
 Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work somewhere permanent. Work saved in your Code Builder environment will be there when you come back but Code Builder is not suited for permanent-long-term storage. We recommended saving your work before you close the Code Builder tab.
 
+**Note**:  We may delete your Code Builder environment if its been inactive for longer than 60 days. 
+
 ## Create Your Code Builder Environment
 
 1. From the App Launcher, find and open **Code Builder Dashboard**.
