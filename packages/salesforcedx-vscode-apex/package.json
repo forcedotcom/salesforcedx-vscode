@@ -51,6 +51,9 @@
     "typescript": "^5.2.2",
     "vscode-extension-telemetry": "0.0.17"
   },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
