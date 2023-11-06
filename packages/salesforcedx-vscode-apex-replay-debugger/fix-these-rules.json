@@ -14,6 +14,7 @@
     "@typescript-eslint/quotes": "warn",
     "@typescript-eslint/require-await": "warn",
     "@typescript-eslint/restrict-template-expressions": "warn",
-    "@typescript-eslint/unbound-method": "warn"
+    "@typescript-eslint/unbound-method": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn"
   }
 }
