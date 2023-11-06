@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.3.1",
+  "version": "59.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,10 +24,9 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.7.0",
     "@salesforce/core": "5.3.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "59.3.1",
-    "@salesforce/salesforcedx-utils-vscode": "59.3.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "59.4.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "9.7.18",
     "@salesforce/templates": "^58.0.1",
@@ -41,7 +40,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.3.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.4.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -55,8 +54,18 @@
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.61.2",
     "@types/yeoman-assert": "^3.1.1",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-jest": "27.5.0",
+    "eslint-plugin-jest-formatting": "3.1.0",
+    "eslint-plugin-jsdoc": "46.8.2",
+    "eslint-plugin-prefer-arrow": "1.2.3",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "mocha": "^10",
@@ -64,6 +73,7 @@
     "mocha-multi-reporters": "^1.1.7",
     "mock-spawn": "0.2.6",
     "nyc": "^15",
+    "prettier": "3.0.3",
     "proxyquire": "2.1.3",
     "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
@@ -87,7 +97,6 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@heroku/functions-core": "0.7.0",
         "@salesforce/core": "5.3.0",
         "@salesforce/source-tracking": "4.2.14",
         "@salesforce/templates": "^58.0.1",
@@ -98,13 +107,13 @@
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
@@ -198,10 +207,6 @@
         }
       ],
       "editor/context": [
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
-        },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
@@ -319,10 +324,6 @@
         {
           "command": "sfdx.delete.source",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
-        },
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.create.manifest",
@@ -589,26 +590,6 @@
         {
           "command": "sfdx.force.conflict.open",
           "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.create",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/"
-        },
-        {
-          "command": "sfdx.force.function.invoke",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.debugInvoke",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.stop",
-          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
@@ -900,26 +881,6 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
-      },
-      {
-        "command": "sfdx.force.function.create",
-        "title": "%force_function_create%"
-      },
-      {
-        "command": "sfdx.force.function.containerless.start",
-        "title": "%force_function_start%"
-      },
-      {
-        "command": "sfdx.force.function.invoke",
-        "title": "%force_function_invoke%"
-      },
-      {
-        "command": "sfdx.force.function.debugInvoke",
-        "title": "%force_function_debug_invoke%"
-      },
-      {
-        "command": "sfdx.force.function.stop",
-        "title": "%force_function_stop%"
       },
       {
         "command": "sfdx.force.internal.refreshsobjects",
