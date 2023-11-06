@@ -215,6 +215,15 @@
         ja: 作成
       url: /aura/writing
 - title:
+    en: Salesforce Functions
+    ja: Salesforce の機能
+  baseUrl: /functions/
+  children:
+    - title:
+        en: Overview
+        ja: 作成
+      url: /functions/overview
+- title:
     en: Lightning Web Components
     ja: Lightning Web コンポーネント
   baseUrl: /lwc/
