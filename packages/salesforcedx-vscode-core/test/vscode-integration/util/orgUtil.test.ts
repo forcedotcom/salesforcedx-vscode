@@ -13,6 +13,7 @@ import { checkForExpiredOrgs } from '../../../src/util';
 
 // Imports from the target source file
 import { AuthInfo } from '@salesforce/core';
+import { before } from 'mocha';
 import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
 

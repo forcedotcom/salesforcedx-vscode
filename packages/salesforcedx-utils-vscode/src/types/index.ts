@@ -87,8 +87,3 @@ export type LocalComponent = DirFileNameSelection & {
    */
   suffix?: string;
 };
-
-export type FunctionInfo = {
-  fileName: string;
-  language: string;
-};
