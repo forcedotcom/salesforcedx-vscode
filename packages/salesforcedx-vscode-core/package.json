@@ -24,7 +24,6 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.7.0",
     "@salesforce/core": "5.3.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "59.4.0",
     "@salesforce/salesforcedx-utils-vscode": "59.4.0",
@@ -98,7 +97,6 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@heroku/functions-core": "0.7.0",
         "@salesforce/core": "5.3.0",
         "@salesforce/source-tracking": "4.2.14",
         "@salesforce/templates": "^58.0.1",
@@ -109,7 +107,7 @@
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -209,10 +207,6 @@
         }
       ],
       "editor/context": [
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
-        },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
@@ -330,10 +324,6 @@
         {
           "command": "sfdx.delete.source",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
-        },
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.create.manifest",
@@ -600,26 +590,6 @@
         {
           "command": "sfdx.force.conflict.open",
           "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.create",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/"
-        },
-        {
-          "command": "sfdx.force.function.invoke",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.debugInvoke",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.stop",
-          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
@@ -911,26 +881,6 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
-      },
-      {
-        "command": "sfdx.force.function.create",
-        "title": "%force_function_create%"
-      },
-      {
-        "command": "sfdx.force.function.containerless.start",
-        "title": "%force_function_start%"
-      },
-      {
-        "command": "sfdx.force.function.invoke",
-        "title": "%force_function_invoke%"
-      },
-      {
-        "command": "sfdx.force.function.debugInvoke",
-        "title": "%force_function_debug_invoke%"
-      },
-      {
-        "command": "sfdx.force.function.stop",
-        "title": "%force_function_stop%"
       },
       {
         "command": "sfdx.force.internal.refreshsobjects",
