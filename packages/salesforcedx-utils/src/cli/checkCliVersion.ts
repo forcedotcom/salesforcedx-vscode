@@ -17,8 +17,7 @@ export enum CheckCliEnum {
 
 export class CheckCliVersion {
 
-  public async validateCliVersion(): Promise<number> {
-
+  public async getCliVersion(): Promise<string> {
     // Execute the command "sfdx --version" in the Terminal
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
@@ -30,14 +29,17 @@ export class CheckCliVersion {
 
     // Save the result of the command
     const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
+    return await cmdOutput.getCmdResult(execution);
+  }
+
+  public async validateCliVersion(cliVersion: string): Promise<number> {
 
     // Parse the result to check if the version is supported
     const sfdxPattern = /sfdx-cli\/(\d+\.\d+\.\d+)/;
     const sfPattern = /@salesforce\/cli\/(\d+\.\d+\.\d+)/;
 
-    const sfdxMatch = sfdxPattern.exec(result);
-    const sfMatch = sfPattern.exec(result);
+    const sfdxMatch = sfdxPattern.exec(cliVersion);
+    const sfMatch = sfPattern.exec(cliVersion);
 
     // Case 1: SFDX CLI is installed
     if (sfdxMatch) {

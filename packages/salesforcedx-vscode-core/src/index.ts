@@ -562,7 +562,8 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   if (!installed) {
     showCLINotInstalledMessage();
   }
-  const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion();
+  const cliVersion = await new CheckCliVersion().getCliVersion();
+  const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion(cliVersion);
   if (cliVersionCheckResult === CheckCliEnum.cliNotSupported) {
     showCLINotSupportedMessage();
     throw new Error();
