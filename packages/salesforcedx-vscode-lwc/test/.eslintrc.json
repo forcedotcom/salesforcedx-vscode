@@ -1,5 +1,8 @@
 {
-  "extends": ["../.eslintrc.json", "../../../common-test-lint-rules.json"],
+  "extends": [
+    "../.eslintrc.json",
+    "../../../config/common-test-lint-rules.json"
+  ],
   "overrides": [
     {
       "files": ["./test/jest/**/*.ts", "./test/unit/**/*.ts"]

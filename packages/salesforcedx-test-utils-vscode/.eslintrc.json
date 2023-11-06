@@ -1,6 +1,6 @@
 {
   "root": true,
-  "extends": ["../../base-eslintrc.json", "./fix-these-rules.json"],
+  "extends": ["../../config/base-eslintrc.json", "./fix-these-rules.json"],
   "overrides": [
     {
       "files": ["./src/**/*.ts", "./test/**/*.ts"],
