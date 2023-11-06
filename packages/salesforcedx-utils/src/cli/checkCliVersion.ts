@@ -9,9 +9,15 @@ import { SfdxCommandBuilder } from './sfdxCommandBuilder';
 import { CliCommandExecutor } from './cliCommandExecutor';
 import { CommandOutput } from './commandOutput';
 
+export enum CheckCliEnum {
+  validCli = 1,
+  cliNotSupported = 2,
+  cliNotInstalled = 3
+}
+
 export class CheckCliVersion {
 
-  public async validateCliVersion(): Promise<string> {
+  public async validateCliVersion(): Promise<number> {
 
     // Execute the command "sfdx --version" in the Terminal
     const execution = new CliCommandExecutor(
@@ -39,10 +45,10 @@ export class CheckCliVersion {
       const sfdxVersionNumber = sfdxVersion.split('.').map(Number);
       // The last working version of SFDX is v7.193.2
       if (sfdxVersionNumber[0] >= 7 && sfdxVersionNumber[1] >= 193 && sfdxVersionNumber[2] >= 2) {
-        return 'validCli';
+        return CheckCliEnum.validCli;
       }
       else {
-        return 'cliNotSupported';
+        return CheckCliEnum.cliNotSupported;
       }
     }
 
@@ -52,16 +58,16 @@ export class CheckCliVersion {
       const sfVersionNumber = sfVersion.split('.').map(Number);
       // SF v1 does not map sf commands to sfdx commands and is not supported
       if (sfVersionNumber[0] >= 2 && sfVersionNumber[1] >= 0 && sfVersionNumber[2] >= 0) {
-        return 'validCli';
+        return CheckCliEnum.validCli;
       }
       else {
-        return 'cliNotSupported';
+        return CheckCliEnum.cliNotSupported;
       }
     }
 
     // Case 3: Neither SFDX CLI nor SF CLI is installed
     else {
-      return 'cliNotInstalled';
+      return CheckCliEnum.cliNotInstalled;
     }
   }
 }

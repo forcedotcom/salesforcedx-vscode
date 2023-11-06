@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CheckCliVersion, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import { CheckCliEnum, CheckCliVersion, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ChannelService,
   getRootWorkspacePath,
@@ -563,10 +563,10 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     showCLINotInstalledMessage();
   }
   const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion();
-  if (cliVersionCheckResult === 'cliNotSupported') {
+  if (cliVersionCheckResult === CheckCliEnum.cliNotSupported) {
     showCLINotSupportedMessage();
     throw new Error();
-  } else if (cliVersionCheckResult === 'cliNotInstalled') {
+  } else if (cliVersionCheckResult === CheckCliEnum.cliNotInstalled) {
     showCLINotInstalledMessage();
     throw new Error();
   }
