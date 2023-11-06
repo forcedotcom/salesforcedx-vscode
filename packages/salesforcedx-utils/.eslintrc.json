@@ -1,11 +1,12 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2018,
-    "sourceType": "module"
-  },
-  "plugins": ["@typescript-eslint"],
-  "extends": [
-      "plugin:@typescript-eslint/recommended"
+  "root": true,
+  "extends": ["../../config/base-eslintrc.json", "./fix-these-rules.json"],
+  "overrides": [
+    {
+      "files": ["./src/**/*.ts", "./test/**/*.ts"],
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      }
+    }
   ]
 }

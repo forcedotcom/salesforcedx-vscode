@@ -1,0 +1,6 @@
+{ "rules": 
+{
+  "@typescript-eslint/array-type": "warn",
+  "@typescript-eslint/no-floating-promises": "warn"
+}
+}
