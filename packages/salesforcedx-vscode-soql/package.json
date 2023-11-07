@@ -45,7 +45,7 @@
     "@salesforce/salesforcedx-utils-vscode": "59.4.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
-    "@salesforce/ts-types": "1.5.13",
+    "@salesforce/ts-types": "2.0.9",
     "@types/chai": "4.3.3",
     "@types/debounce": "^1.2.0",
     "@types/fs-extra": "^8.1.0",
