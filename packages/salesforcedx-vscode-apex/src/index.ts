@@ -284,6 +284,7 @@ async function registerTestView(): Promise<vscode.Disposable> {
 }
 
 export async function deactivate() {
+  await languageClient?.stop();
   telemetryService.sendExtensionDeactivationEvent();
 }
 
