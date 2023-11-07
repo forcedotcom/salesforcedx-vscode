@@ -5,7 +5,7 @@ lang: en
 
 ## Salesforce Functions
 
-The Salesforce Extensions pack no longer supports Salesforce Functions. We're listing equivalent CLI commands that you can use to create and start a Function.
+The Salesforce Extension Pack no longer supports Salesforce Functions. We're listing equivalent CLI commands that you can use to create and start a Function.
 
 ### Create Function
 
