@@ -11,8 +11,6 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
-import { API } from './constants';
-import { retrieveEnableSyncInitJobs } from './settings';
 
 import {
   forceAnonApexDebug,
@@ -30,6 +28,7 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
+import { API } from './constants';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
@@ -44,11 +43,12 @@ import {
   languageClientUtils
 } from './languageUtils';
 import { nls } from './messages';
+import { retrieveEnableSyncInitJobs } from './settings';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-let languageClient: ApexLanguageClient | undefined;
+export const getClient = () => languageClientUtils.getClientInstance();
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
@@ -284,20 +284,25 @@ async function registerTestView(): Promise<vscode.Disposable> {
 }
 
 export async function deactivate() {
-  await languageClient?.stop();
+  await getClient()?.stop();
   telemetryService.sendExtensionDeactivationEvent();
 }
 
 async function createLanguageClient(
   extensionContext: vscode.ExtensionContext,
   languageServerStatusBarItem: ApexLSPStatusBarItem
-) {
+): Promise<void> {
+  // Resolve any found orphan language servers
+  void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server
   try {
+
     const langClientHRStart = process.hrtime();
-    languageClient = await languageServer.createLanguageServer(
+    languageClientUtils.setClientInstance(await languageServer.createLanguageServer(
       extensionContext
-    );
+    ));
+
+    const languageClient = getClient();
 
     if (languageClient) {
       languageClient.errorHandler?.addListener('error', message => {
@@ -315,24 +320,27 @@ async function createLanguageClient(
           nls.localize('apex_language_server_failed_activate')
         );
       });
+
+      // TODO: the client should not be undefined. We should refactor the code to
+      // so there is no question as to whether the client is defined or not.
+      await languageClient.start();
+      // Client is running
+      const startTime = telemetryService.getEndHRTime(langClientHRStart); // Record the end time
+      telemetryService.sendEventData('apexLSPStartup', undefined, {
+        activationTime: startTime
+      });
+      await indexerDoneHandler(
+        retrieveEnableSyncInitJobs(),
+        languageClient,
+        languageServerStatusBarItem
+      );
+      extensionContext.subscriptions.push(getClient()!);
+    } else {
+      languageClientUtils.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`);
+      languageServerStatusBarItem.error(
+        `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
+      );
     }
-
-    languageClientUtils.setClientInstance(languageClient);
-
-    void lsoh.resolveAnyFoundOrphanLanguageServers();
-
-    await languageClient!.start();
-    // Client is running
-    const startTime = telemetryService.getEndHRTime(langClientHRStart); // Record the end time
-    telemetryService.sendEventData('apexLSPStartup', undefined, {
-      activationTime: startTime
-    });
-    await indexerDoneHandler(
-      retrieveEnableSyncInitJobs(),
-      languageClient,
-      languageServerStatusBarItem
-    );
-    extensionContext.subscriptions.push(languageClient);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
     let eMsg =
@@ -359,8 +367,8 @@ export async function indexerDoneHandler(
     // The listener should be set after languageClient is ready
     // Language client will get notified once async init jobs are done
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
-    languageClient.onNotification(API.doneIndexing, async () => {
-      await extensionUtils.setClientReady(
+    languageClient.onNotification(API.doneIndexing, () => {
+      void extensionUtils.setClientReady(
         languageClient,
         languageServerStatusBarItem
       );
