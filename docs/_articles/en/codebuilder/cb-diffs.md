@@ -11,7 +11,7 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 - Code Builder is installed as a managed package, and it comes with everything you need: VS Code, Salesforce extensions, and Salesforce CLI. No installation required on your local machine.
 - Unlike VS Code for desktop, you cannot access the Microsoft Marketplace from Code Builder. Instead, you can add extensions available in [Open VSX](https://open-vsx.org/) marketplace to your Code Builder environment. This means that you might see differences in the extensions that are available.
 - The third-party authorization sequence is different in Code Builder.
-- We keep the Salesforce extensions up to date for you in Code Builder. You don’t need to take any action but you may see a lag when you come back to Code Builder while the extensions update behind the scenes.
+- We keep the Salesforce extensions up to date for you in Code Builder. You don’t need to take any action.
 
 ## Known Gaps and Issues
 
