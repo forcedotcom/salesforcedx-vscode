@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "2.1.1",
-    "@salesforce/apex-tmlanguage": "1.4.0",
+    "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "5.3.18",
     "@salesforce/salesforcedx-utils-vscode": "59.4.0",
     "@salesforce/source-deploy-retrieve": "9.8.4",
@@ -74,6 +74,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
     "test": "npm run test:vscode-integration",
     "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
@@ -87,6 +88,7 @@
       "README.md",
       ".vscodeignore",
       "OSSREADME.json",
+      "grammars",
       "resources",
       "snippets",
       "syntaxes",
@@ -388,12 +390,12 @@
       {
         "language": "apex",
         "scopeName": "source.apex",
-        "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       },
       {
         "language": "apex-anon",
         "scopeName": "source.apex",
-        "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       }
     ],
     "snippets": [
