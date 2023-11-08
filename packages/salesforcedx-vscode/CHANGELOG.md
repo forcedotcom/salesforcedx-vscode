@@ -4,7 +4,7 @@
 
 #### docs
 
-- We updated cb-start.md to fix wording. ([PR #5197](https://github.com/forcedotcom/salesforcedx-vscode/pull/5197))
+- We made some doc updates. ([PR #5197](https://github.com/forcedotcom/salesforcedx-vscode/pull/5197))
 
 # 59.3.1 - November 3, 2023
 
