@@ -86,6 +86,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
     "test": "npm run test:vscode-integration",
     "test:ui:prepare": "extest get-vscode -s ~/.vscode-test-resources && extest get-chromedriver -s ~/.vscode-test-resources ",
     "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-*.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
@@ -119,6 +120,7 @@
       "package.nls.json",
       "README.md",
       ".vscodeignore",
+      "grammars",
       "images",
       "dist"
     ],
@@ -174,7 +176,7 @@
       {
         "language": "soql",
         "scopeName": "source.soql",
-        "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
+        "path": "./grammars/soql.tmLanguage"
       }
     ],
     "commands": [
