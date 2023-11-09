@@ -699,9 +699,9 @@ export async function validateCliInstallationAndVersion(): Promise<void> {
   const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion(cliVersion);
   if (cliVersionCheckResult === CheckCliEnum.cliNotSupported) {
     showCLINotSupportedMessage();
-    throw new Error();
+    throw new Error('CLI version is no longer supported');
   } else if (cliVersionCheckResult === CheckCliEnum.cliNotInstalled) {
     showCLINotInstalledMessage();
-    throw new Error();
+    throw new Error('Salesforce CLI is not installed');
   }
 }
