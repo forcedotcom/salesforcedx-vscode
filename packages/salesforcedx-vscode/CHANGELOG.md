@@ -1,3 +1,11 @@
+# 59.4.0 - November 10, 2023
+
+## Fixed
+
+#### docs
+
+- We made some doc updates. ([PR #5197](https://github.com/forcedotcom/salesforcedx-vscode/pull/5197))
+
 # 59.3.1 - November 3, 2023
 
 ## Added
