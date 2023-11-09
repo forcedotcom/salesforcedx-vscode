@@ -9,7 +9,7 @@ Complete this Quick Start to become familiar with the Code Builder interface and
 
 ### Don’t Forget to Save Your Work
 
-Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work somewhere permanent. Work saved in your Code Builder environment will be there when you come back but Code Builder is not suited for permanent-long-term storage. We recommended saving your work before you close the Code Builder tab.
+Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org or commit them to source control to save your work somewhere permanent. Work saved in your Code Builder environment will be there when you return, but Code Builder is not suited for permanent-long-term storage. We recommend saving your work before you close the Code Builder tab.
 
 ## Create Your Code Builder Environment
 
@@ -22,6 +22,8 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 ![Code Builder Dashboard](./images/cb_dashboard.png)
 
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
+
+**Note**: The `.bashrc`,`.profile` and `.bash_logout` files are overwritten every time you launch your Code Builder enviroment. We recommend that you do not edit these files because your changes will be lost. Create new `.bashrc.local`,`.profile.local` and `.bash_logout.local` files to store your Dotfile customizations.
 
 ## Connect to a Salesforce Org
 
@@ -86,7 +88,7 @@ Let’s build and run a simple SOQL query on the Account object:
 You’re prompted to save your changes if you close the untitled file.
 
 5. Save the changes to a file using a “.soql” extension.
-6. Let’s rerun the saved query – Right click the file and select **Open With…** then select SOQL Builder.
+6. Let’s rerun the saved query – Right-click the file and select **Open With…** then select SOQL Builder.
    The file opens in SOQL Builder and you can rerun or edit the query as you wish.
 
 For more information on building complex queries see the [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder) in the Salesforce Extensions for Visual Studio Code documentation.
@@ -134,8 +136,8 @@ The metadata is here for your reference:
 We’ll now make a simple edit to this field and deploy our changes back to our org with a single click.
 
 1. Edit `createdon_c.field-meta.xml` and change the `<required>` tag value to `true` to indicate that this custom field is required.
-2. Right click the `objects/Account` folder and click **SFDX: Deploy Source to Org**.
-3. After the command has successfully run, go back to your org and check details of the **Created On** custom field and confirm that it’s now a required field.
+2. Right-click the `objects/Account` folder and click **SFDX: Deploy Source to Org**.
+3. After the command has successfully run, go back to your org and check the details of the **Created On** custom field and confirm that it’s now a required field.
 
 ## Create and Deploy a New Lightning Web Component
 

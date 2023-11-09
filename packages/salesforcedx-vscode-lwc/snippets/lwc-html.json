@@ -1578,7 +1578,7 @@
   "lwc-relative-date-time": {
     "body": [
       "<lightning-relative-date-time ",
-      "  value={${dateTime}}",
+      "  value={${0:dateTime}}",
       "></lightning-relative-date-time>"
     ],
     "description": "Relative Date Time - Displays the relative time difference between the source date-time and the provided date-time.",
