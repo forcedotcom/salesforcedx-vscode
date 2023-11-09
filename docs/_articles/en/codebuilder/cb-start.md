@@ -25,6 +25,8 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
+**Note**: The `.bashrc`,`.profile` and `.bash_logout` files are overwritten every time you launch your Code Builder enviroment. We recommend that you do not edit these files because your changes will be lost. Create new `.bashrc.local`,`.profile.local` and `.bash_logout.local` files to store your Dotfile customizations.
+
 ## Connect to a Salesforce Org
 
 Next, connect an org to your Code Builder environment. During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Developer Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
