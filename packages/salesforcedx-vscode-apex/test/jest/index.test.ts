@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientUtils } from '../../src/languageUtils';
@@ -29,7 +36,7 @@ describe('indexDoneHandler', () => {
     const languageServerStatusBarItem = new ApexLSPStatusBarItem();
     await index.indexerDoneHandler(
       false,
-      mockLanguageClient as any,
+      mockLanguageClient,
       languageServerStatusBarItem
     );
     expect(setStatusSpy).toHaveBeenCalledWith(1, '');
@@ -52,7 +59,7 @@ describe('indexDoneHandler', () => {
     const languageServerStatusBarItem = new ApexLSPStatusBarItem();
     await index.indexerDoneHandler(
       true,
-      mockLanguageClient as any,
+      mockLanguageClient,
       languageServerStatusBarItem
     );
     expect(setClientReadySpy).toHaveBeenCalledWith(
@@ -60,5 +67,18 @@ describe('indexDoneHandler', () => {
       languageServerStatusBarItem
     );
     expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('deactivate', () => {
+  let stopSpy: jest.SpyInstance;
+  beforeEach(() => {
+    stopSpy = jest.fn();
+    jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
+  });
+
+  it('should call stop on the language client', async () => {
+    await index.deactivate();
+    expect(stopSpy).toHaveBeenCalled();
   });
 });

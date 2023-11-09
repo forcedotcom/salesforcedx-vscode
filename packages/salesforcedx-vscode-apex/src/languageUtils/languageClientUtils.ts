@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LanguageClient } from 'vscode-languageclient/node';
+import { ApexLanguageClient } from '../apexLanguageClient';
 import {
   DEBUGGER_EXCEPTION_BREAKPOINTS,
   DEBUGGER_LINE_BREAKPOINTS
@@ -17,7 +17,7 @@ import {
 
 export class LanguageClientUtils {
   private static instance: LanguageClientUtils;
-  private clientInstance: LanguageClient | undefined;
+  private clientInstance: ApexLanguageClient | undefined;
   private status: LanguageClientStatus;
 
   constructor() {
@@ -31,11 +31,11 @@ export class LanguageClientUtils {
     return LanguageClientUtils.instance;
   }
 
-  public getClientInstance(): LanguageClient | undefined {
+  public getClientInstance(): ApexLanguageClient | undefined {
     return this.clientInstance;
   }
 
-  public setClientInstance(languageClient: LanguageClient | undefined) {
+  public setClientInstance(languageClient: ApexLanguageClient | undefined) {
     this.clientInstance = languageClient;
   }
 
@@ -97,7 +97,7 @@ export async function getApexTests(): Promise<ApexTestMethod[]> {
   if (languageClient) {
     response = (await languageClient.sendRequest(
       'test/getTestMethods'
-    )) as LSPApexTestMethod[];
+    ));
   }
   for (const requestInfo of response) {
     ret.push(ApexLSPConverter.toApexTestMethod(requestInfo));
