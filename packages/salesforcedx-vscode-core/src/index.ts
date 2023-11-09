@@ -1,9 +1,9 @@
-/*
- * Copyright (c) 2017, salesforce.com, inc.
+/**
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
+ **/
 import { CheckCliEnum, CheckCliVersion, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ChannelService,
@@ -522,21 +522,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
 
-  // Check that the CLI is installed and that it is a supported version
-  // If there is no CLI or it is an unsupported version then the Core extension will not activate
-  const installed = await isCLIInstalled();
-  if (!installed) {
-    showCLINotInstalledMessage();
-  }
-  const cliVersion = await new CheckCliVersion().getCliVersion();
-  const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion(cliVersion);
-  if (cliVersionCheckResult === CheckCliEnum.cliNotSupported) {
-    showCLINotSupportedMessage();
-    throw new Error();
-  } else if (cliVersionCheckResult === CheckCliEnum.cliNotInstalled) {
-    showCLINotInstalledMessage();
-    throw new Error();
-  }
+  await validateCliInstallationAndVersion();
 
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
@@ -700,4 +686,22 @@ export function deactivate(): Promise<void> {
 
   disposeTraceFlagExpiration();
   return turnOffLogging();
+}
+
+export async function validateCliInstallationAndVersion(): Promise<void> {
+  // Check that the CLI is installed and that it is a supported version
+  // If there is no CLI or it is an unsupported version then the Core extension will not activate
+  const installed = await isCLIInstalled();
+  if (!installed) {
+    showCLINotInstalledMessage();
+  }
+  const cliVersion = await new CheckCliVersion().getCliVersion();
+  const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion(cliVersion);
+  if (cliVersionCheckResult === CheckCliEnum.cliNotSupported) {
+    showCLINotSupportedMessage();
+    throw new Error();
+  } else if (cliVersionCheckResult === CheckCliEnum.cliNotInstalled) {
+    showCLINotInstalledMessage();
+    throw new Error();
+  }
 }
