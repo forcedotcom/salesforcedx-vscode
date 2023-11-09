@@ -28,13 +28,13 @@ on:
         required: false
         default: true
         type: boolean
-      pushAndPull:
-        description: 'Push and Pull'
+      orgBrowser:
+        description: 'Org Browser'
         required: false
         default: true
         type: boolean
-      orgBrowser:
-        description: 'Org Browser'
+      pushAndPull:
+        description: 'Push and Pull'
         required: false
         default: true
         type: boolean
@@ -80,13 +80,13 @@ on:
         required: false
         default: true
         type: boolean
-      pushAndPull:
-        description: 'Push and Pull'
+      orgBrowser:
+        description: 'Org Browser'
         required: false
         default: true
         type: boolean
-      orgBrowser:
-        description: 'Org Browser'
+      pushAndPull:
+        description: 'Push and Pull'
         required: false
         default: true
         type: boolean
