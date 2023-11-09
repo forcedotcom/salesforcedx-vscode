@@ -9,27 +9,27 @@ on:
         default: 'develop'
         type: string
       apexLsp:
-        description: 'apexLsp.e2e.ts'
+        description: 'Apex LSP'
         required: false
         default: true
         type: boolean
       apexReplayDebugger:
-        description: 'apexReplayDebugger.e2e.ts'
+        description: 'Apex Replay Debugger'
         required: false
         default: true
         type: boolean
       debugApexTests:
-        description: 'debugApexTests.e2e.ts'
+        description: 'Debug Apex Tests'
         required: false
         default: true
         type: boolean
       runApexTests:
-        description: 'runApexTests.e2e.ts'
+        description: 'Run Apex Tests'
         required: false
         default: true
         type: boolean
       trailApexReplayDebugger:
-        description: 'trailApexReplayDebugger.e2e.ts'
+        description: 'Trail Apex Replay Debugger'
         required: false
         default: true
         type: boolean
@@ -46,27 +46,27 @@ on:
         default: 'develop'
         type: string
       apexLsp:
-        description: 'apexLsp.e2e.ts'
+        description: 'Apex LSP'
         required: false
         default: true
         type: boolean
       apexReplayDebugger:
-        description: 'apexReplayDebugger.e2e.ts'
+        description: 'Apex Replay Debugger'
         required: false
         default: true
         type: boolean
       debugApexTests:
-        description: 'debugApexTests.e2e.ts'
+        description: 'Debug Apex Tests'
         required: false
         default: true
         type: boolean
       runApexTests:
-        description: 'runApexTests.e2e.ts'
+        description: 'Run Apex Tests'
         required: false
         default: true
         type: boolean
       trailApexReplayDebugger:
-        description: 'trailApexReplayDebugger.e2e.ts'
+        description: 'Trail Apex Replay Debugger'
         required: false
         default: true
         type: boolean
@@ -76,7 +76,6 @@ on:
         type: string
 
 jobs:
-
   apexLSP:
     if: ${{ inputs.apexLsp }}
     uses: ./.github/workflows/runE2ETest.yml
@@ -124,7 +123,14 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
+    needs:
+      [
+        apexLSP,
+        apexReplayDebugger,
+        debugApexTests,
+        runApexTests,
+        trailApexReplayDebugger,
+      ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -136,7 +142,14 @@ jobs:
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
+    needs:
+      [
+        apexLSP,
+        apexReplayDebugger,
+        debugApexTests,
+        runApexTests,
+        trailApexReplayDebugger,
+      ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -148,7 +161,14 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
+    needs:
+      [
+        apexLSP,
+        apexReplayDebugger,
+        debugApexTests,
+        runApexTests,
+        trailApexReplayDebugger,
+      ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:

@@ -9,17 +9,17 @@ on:
         default: 'develop'
         type: string
       auraLsp:
-        description: 'auraLsp.e2e.ts'
+        description: 'Aura LSP'
         required: false
         default: true
         type: boolean
       lwcLsp:
-        description: 'lwcLsp.e2e.ts'
+        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
       visualforceLsp:
-        description: 'visualforceLsp.e2e.ts'
+        description: 'Visualforce LSP'
         required: false
         default: true
         type: boolean
@@ -36,17 +36,17 @@ on:
         default: 'develop'
         type: string
       auraLsp:
-        description: 'auraLsp.e2e.ts'
+        description: 'Aura LSP'
         required: false
         default: true
         type: boolean
       lwcLsp:
-        description: 'lwcLsp.e2e.ts'
+        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
       visualforceLsp:
-        description: 'visualforceLsp.e2e.ts'
+        description: 'Visualforce LSP'
         required: false
         default: true
         type: boolean
@@ -56,7 +56,6 @@ on:
         type: string
 
 jobs:
-
   auraLSP:
     if: ${{ inputs.auraLsp }}
     uses: ./.github/workflows/runE2ETest.yml
