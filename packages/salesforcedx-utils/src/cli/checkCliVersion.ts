@@ -29,6 +29,14 @@ export class CheckCliVersion {
   }
 
   public async validateCliVersion(cliVersion: string): Promise<number> {
+    // The last working version of SFDX is v7.193.2
+    const minSFDXVersion = '7.193.2';
+    const minSFDXVersionArray = minSFDXVersion.split('.').map(Number);
+
+    // SF v1 does not map sf commands to sfdx commands and is not supported
+    const minSFVersion = '2.0.0';
+    const minSFVersionArray = minSFVersion.split('.').map(Number);
+
     // Parse the result to check if the version is supported
     const sfdxPattern = /sfdx-cli\/(\d+\.\d+\.\d+)/;
     const sfPattern = /@salesforce\/cli\/(\d+\.\d+\.\d+)/;
@@ -40,11 +48,10 @@ export class CheckCliVersion {
     if (sfdxMatch) {
       const sfdxVersion = sfdxMatch[1];
       const sfdxVersionNumber = sfdxVersion.split('.').map(Number);
-      // The last working version of SFDX is v7.193.2
       if (
-        sfdxVersionNumber[0] >= 7 &&
-        sfdxVersionNumber[1] >= 193 &&
-        sfdxVersionNumber[2] >= 2
+        sfdxVersionNumber[0] >= minSFDXVersionArray[0] &&
+        sfdxVersionNumber[1] >= minSFDXVersionArray[1] &&
+        sfdxVersionNumber[2] >= minSFDXVersionArray[2]
       ) {
         return CheckCliEnum.validCli;
       } else {
@@ -56,11 +63,10 @@ export class CheckCliVersion {
     else if (sfMatch) {
       const sfVersion = sfMatch[1];
       const sfVersionNumber = sfVersion.split('.').map(Number);
-      // SF v1 does not map sf commands to sfdx commands and is not supported
       if (
-        sfVersionNumber[0] >= 2 &&
-        sfVersionNumber[1] >= 0 &&
-        sfVersionNumber[2] >= 0
+        sfVersionNumber[0] >= minSFVersionArray[0] &&
+        sfVersionNumber[1] >= minSFVersionArray[1] &&
+        sfVersionNumber[2] >= minSFVersionArray[2]
       ) {
         return CheckCliEnum.validCli;
       } else {
