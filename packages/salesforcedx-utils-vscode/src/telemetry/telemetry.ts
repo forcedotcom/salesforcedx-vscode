@@ -60,7 +60,7 @@ export class TelemetryProvider {
   private static instances = new Map<string, TelemetryService>();
   public static getInstance(extensionName?: string): TelemetryService {
     // If there is no parameter, it is in the context of core extension
-    if (typeof extensionName == undefined) {
+    if (!extensionName) {
       if (!TelemetryProvider.instances.has(SFDX_CORE_EXTENSION_NAME)) {
         TelemetryProvider.instances.set(
           SFDX_CORE_EXTENSION_NAME,
@@ -68,15 +68,12 @@ export class TelemetryProvider {
         );
       }
       return TelemetryProvider.instances.get(
-        SFDX_CORE_CONFIGURATION_NAME
+        SFDX_CORE_EXTENSION_NAME
       ) as TelemetryService;
     } else {
       // If there is parameter, it is called by a external extension
       if (!TelemetryProvider.instances.has(extensionName as string)) {
-        TelemetryProvider.instances.set(
-          SFDX_CORE_EXTENSION_NAME,
-          new TelemetryService()
-        );
+        TelemetryProvider.instances.set(extensionName, new TelemetryService());
       }
       return TelemetryProvider.instances.get(
         extensionName as string
