@@ -70,18 +70,11 @@ describe('indexDoneHandler', () => {
   });
 });
 
-class MockApexLanguageClient {
-  constructor() { }
-  start() { }
-  stop() { }
-}
-
 describe('deactivate', () => {
   let stopSpy: jest.SpyInstance;
   beforeEach(() => {
-    const lc = new MockApexLanguageClient() as ApexLanguageClient;
-    languageClientUtils.setClientInstance(lc);
-    stopSpy = jest.spyOn(lc, 'stop');
+    stopSpy = jest.fn();
+    jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
   });
 
   it('should call stop on the language client', async () => {

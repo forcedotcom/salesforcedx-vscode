@@ -48,8 +48,6 @@ import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-export const getClient = () => languageClientUtils.getClientInstance();
-
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
@@ -284,7 +282,7 @@ async function registerTestView(): Promise<vscode.Disposable> {
 }
 
 export async function deactivate() {
-  await getClient()?.stop();
+  await languageClientUtils.getClientInstance()?.stop();
   telemetryService.sendExtensionDeactivationEvent();
 }
 
@@ -296,13 +294,12 @@ async function createLanguageClient(
   void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server
   try {
-
     const langClientHRStart = process.hrtime();
     languageClientUtils.setClientInstance(await languageServer.createLanguageServer(
       extensionContext
     ));
 
-    const languageClient = getClient();
+    const languageClient = languageClientUtils.getClientInstance();
 
     if (languageClient) {
       languageClient.errorHandler?.addListener('error', message => {
@@ -334,7 +331,7 @@ async function createLanguageClient(
         languageClient,
         languageServerStatusBarItem
       );
-      extensionContext.subscriptions.push(getClient()!);
+      extensionContext.subscriptions.push(languageClientUtils.getClientInstance()!);
     } else {
       languageClientUtils.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`);
       languageServerStatusBarItem.error(
