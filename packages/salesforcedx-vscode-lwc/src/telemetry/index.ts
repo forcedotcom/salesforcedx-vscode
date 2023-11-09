@@ -5,5 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-export const telemetryService = TelemetryService.getInstance();
+import { TelemetryProvider } from '@salesforce/salesforcedx-utils-vscode';
+export const telemetryService = TelemetryProvider.getInstance();

@@ -7,7 +7,11 @@
 
 import * as util from 'util';
 import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { DEFAULT_AIKEY, SFDX_CORE_CONFIGURATION_NAME } from '../constants';
+import {
+  DEFAULT_AIKEY,
+  SFDX_CORE_CONFIGURATION_NAME,
+  SFDX_CORE_EXTENSION_NAME
+} from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -52,8 +56,36 @@ export class TelemetryBuilder {
   }
 }
 
+export class TelemetryProvider {
+  private static instances = new Map<string, TelemetryService>();
+  public static getInstance(extensionName?: string): TelemetryService {
+    // If there is no parameter, it is in the context of core extension
+    if (typeof extensionName == undefined) {
+      if (!TelemetryProvider.instances.has(SFDX_CORE_EXTENSION_NAME)) {
+        TelemetryProvider.instances.set(
+          SFDX_CORE_EXTENSION_NAME,
+          new TelemetryService()
+        );
+      }
+      return TelemetryProvider.instances.get(
+        SFDX_CORE_CONFIGURATION_NAME
+      ) as TelemetryService;
+    } else {
+      // If there is parameter, it is called by a external extension
+      if (!TelemetryProvider.instances.has(extensionName as string)) {
+        TelemetryProvider.instances.set(
+          SFDX_CORE_EXTENSION_NAME,
+          new TelemetryService()
+        );
+      }
+      return TelemetryProvider.instances.get(
+        extensionName as string
+      ) as TelemetryService;
+    }
+  }
+}
+
 export class TelemetryService {
-  private static instance: TelemetryService;
   private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
@@ -63,13 +95,6 @@ export class TelemetryService {
    */
   private cliAllowsTelemetryPromise?: Promise<boolean> = undefined;
   public extensionName: string = 'unknown';
-
-  public static getInstance() {
-    if (!TelemetryService.instance) {
-      TelemetryService.instance = new TelemetryService();
-    }
-    return TelemetryService.instance;
-  }
 
   /**
    * Initialize Telemetry Service during extension activation.

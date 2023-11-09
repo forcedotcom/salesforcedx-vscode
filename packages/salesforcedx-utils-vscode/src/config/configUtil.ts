@@ -13,9 +13,13 @@ import {
   StateAggregator
 } from '@salesforce/core';
 import { workspaceUtils } from '..';
-import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
+import {
+  SF_CONFIG_DISABLE_TELEMETRY,
+  TARGET_DEV_HUB_KEY,
+  TARGET_ORG_KEY
+} from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryService } from '../telemetry/telemetry';
+import { TelemetryProvider } from '../telemetry/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -68,12 +72,12 @@ export class ConfigUtil {
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
-        TelemetryService.getInstance().sendException(
+        TelemetryProvider.getInstance().sendException(
           'get_default_username_alias',
           err.message
         );
       }
-      throw(err);
+      throw err;
     }
   }
 
@@ -114,9 +118,7 @@ export class ConfigUtil {
     string | undefined
   > {
     const globalConfig = await Config.create({ isGlobal: true });
-    const defaultGlobalDevHubUserName = globalConfig.get(
-      TARGET_DEV_HUB_KEY
-    );
+    const defaultGlobalDevHubUserName = globalConfig.get(TARGET_DEV_HUB_KEY);
 
     return defaultGlobalDevHubUserName
       ? String(defaultGlobalDevHubUserName)

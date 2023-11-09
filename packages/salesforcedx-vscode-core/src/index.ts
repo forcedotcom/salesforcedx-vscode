@@ -9,7 +9,7 @@ import {
   ChannelService,
   getRootWorkspacePath,
   SFDX_CORE_CONFIGURATION_NAME,
-  TelemetryService
+  TelemetryProvider
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
@@ -164,11 +164,10 @@ function registerCommands(
     'sfdx.force.source.deploy.in.manifest',
     forceSourceDeployManifest
   );
-  const forceSourceDeployMultipleSourcePathsCmd =
-    vscode.commands.registerCommand(
-      'sfdx.force.source.deploy.multiple.source.paths',
-      forceSourceDeploySourcePaths
-    );
+  const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.multiple.source.paths',
+    forceSourceDeploySourcePaths
+  );
   const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.source.path',
     forceSourceDeploySourcePaths
@@ -432,22 +431,20 @@ function registerInternalDevCommands(
     forceInternalLightningAppCreate
   );
 
-  const forceInternalLightningComponentCreateCmd =
-    vscode.commands.registerCommand(
-      'sfdx.internal.lightning.component.create',
-      forceInternalLightningComponentCreate
-    );
+  const forceInternalLightningComponentCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.component.create',
+    forceInternalLightningComponentCreate
+  );
 
   const forceInternalLightningEventCreateCmd = vscode.commands.registerCommand(
     'sfdx.internal.lightning.event.create',
     forceInternalLightningEventCreate
   );
 
-  const forceInternalLightningInterfaceCreateCmd =
-    vscode.commands.registerCommand(
-      'sfdx.internal.lightning.interface.create',
-      forceInternalLightningInterfaceCreate
-    );
+  const forceInternalLightningInterfaceCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.interface.create',
+    forceInternalLightningInterfaceCreate
+  );
 
   const forceInternalLightningLwcCreateCmd = vscode.commands.registerCommand(
     'sfdx.internal.lightning.lwc.create',
@@ -619,7 +616,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     telemetryService,
     services: {
       ChannelService,
-      TelemetryService,
+      TelemetryProvider,
       WorkspaceContext
     }
   };
