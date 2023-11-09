@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/aura-language-server": "4.7.2",
-    "@salesforce/core": "5.3.0",
+    "@salesforce/core": "5.3.18",
     "@salesforce/lightning-lsp-common": "4.7.2",
     "@salesforce/salesforcedx-utils-vscode": "59.4.0",
     "applicationinsights": "1.0.7",
@@ -115,8 +115,8 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "5.3.0",
-        "@salesforce/source-tracking": "4.2.14",
+        "@salesforce/core": "5.3.18",
+        "@salesforce/source-tracking": "4.3.0",
         "@salesforce/aura-language-server": "4.7.2",
         "@salesforce/lightning-lsp-common": "4.7.2"
       },
