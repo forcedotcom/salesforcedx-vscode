@@ -10,7 +10,8 @@ import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME
+  SFDX_CORE_EXTENSION_NAME,
+  SFDX_E4D_EXTENSION_NAME
 } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
@@ -87,6 +88,10 @@ export class TelemetryService {
   private reporter: TelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
+  // Temporary usage for earlier version of e4d
+  public static getInstance() {
+    return TelemetryProvider.getInstance(SFDX_E4D_EXTENSION_NAME);
+  }
   /**
    * Cached promise to check if CLI telemetry config is enabled
    */
