@@ -90,8 +90,7 @@ export const syncTestResultWithFailures: SyncTestResult = {
 };
 
 export const testStartTime = '2020-11-09T18:02:50.000+0000';
-const date = new Date(testStartTime);
-const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
+const localStartTime = new Date(testStartTime).toISOString();
 export const testRunId = '707xx0000AGQ3jbQQD';
 
 export const syncResult: TestResult = {

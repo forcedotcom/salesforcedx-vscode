@@ -9,7 +9,7 @@ import {
   ApexTestResultOutcome,
   TestResult
 } from '../tests/types';
-import { msToSecond } from '../utils';
+import { formatStartTime, msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
@@ -29,7 +29,7 @@ export class JUnitReporter {
     let output = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     output += `<testsuites>\n`;
     output += `${tab}<testsuite name="force.apex" `;
-    output += `timestamp="${new Date(summary.testStartTime).toISOString()}" `;
+    output += `timestamp="${summary.testStartTime}" `;
     output += `hostname="${summary.hostname}" `;
     output += `tests="${summary.testsRan}" `;
     output += `failures="${summary.failing}"  `;
@@ -59,6 +59,10 @@ export class JUnitReporter {
 
       if (key === 'outcome' && value === 'Passed') {
         value = 'Successful';
+      }
+
+      if (key === 'testStartTime') {
+        value = formatStartTime(value);
       }
 
       junitProperties += `${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`;

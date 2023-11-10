@@ -234,7 +234,7 @@ export class AsyncTests {
         passRate: calculatePercentage(globalTests.passed, testResults.length),
         failRate: calculatePercentage(globalTests.failed, testResults.length),
         skipRate: calculatePercentage(globalTests.skipped, testResults.length),
-        testStartTime: formatStartTime(testRunSummary.StartTime),
+        testStartTime: formatStartTime(testRunSummary.StartTime, 'ISO'),
         testExecutionTimeInMs: testRunSummary.TestTime ?? 0,
         testTotalTimeInMs: testRunSummary.TestTime ?? 0,
         commandTimeInMs: getCurrentTime() - commandStartTime,

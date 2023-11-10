@@ -99,7 +99,7 @@ export class SyncTests {
           apiTestResult.numTestsRun
         ),
         skipRate: calculatePercentage(0, apiTestResult.numTestsRun),
-        testStartTime: formatStartTime(startTime),
+        testStartTime: formatStartTime(startTime, 'ISO'),
         testExecutionTimeInMs: apiTestResult.totalTime ?? 0,
         testTotalTimeInMs: apiTestResult.totalTime ?? 0,
         commandTimeInMs: getCurrentTime() - startTime,

@@ -10,6 +10,7 @@ import { ApexTestResultOutcome, TestResult } from '../../src/tests/types';
 
 const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
+const isoStartTime = date.toISOString();
 const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
 
 export const coverageResult: TestResult = {
@@ -20,7 +21,7 @@ export const coverageResult: TestResult = {
     outcome: 'Completed',
     passRate: '100%',
     skipRate: '0%',
-    testStartTime: localStartTime,
+    testStartTime: isoStartTime,
     testExecutionTimeInMs: 5463,
     testTotalTimeInMs: 5463,
     commandTimeInMs: 6000,
@@ -134,7 +135,7 @@ export const successResult: TestResult = {
     outcome: 'Completed',
     passRate: '100%',
     skipRate: '0%',
-    testStartTime: localStartTime,
+    testStartTime: isoStartTime,
     testExecutionTimeInMs: 5463,
     testTotalTimeInMs: 5463,
     commandTimeInMs: 6000,
@@ -196,7 +197,7 @@ export const testResults: TestResult = {
     outcome: 'Completed',
     passRate: '88%',
     skipRate: '0%',
-    testStartTime: localStartTime,
+    testStartTime: isoStartTime,
     testExecutionTimeInMs: 5463,
     testTotalTimeInMs: 5463,
     commandTimeInMs: 6000,
