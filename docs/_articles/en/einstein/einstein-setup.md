@@ -17,7 +17,7 @@ A Salesforce admin or user with the appropriate permissions can enable Einstein 
 
 **Inoperable in**: Group, Professional, and Essentials Editions
 
-**Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
+**Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Einstein for Developers is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
 ### Required User Permissions
 
