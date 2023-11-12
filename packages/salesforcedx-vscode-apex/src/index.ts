@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
+
 import {
   forceAnonApexDebug,
   forceAnonApexExecute,
@@ -27,28 +28,29 @@ import {
   forceApexTestSuiteRun,
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
+import { API } from './constants';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
-import {languageServerOrphanHandler as lsoh} from './languageServerOrphanHandler';
+import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
   ClientStatus,
   enableJavaDocSymbols,
+  extensionUtils,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   languageClientUtils
 } from './languageUtils';
 import { nls } from './messages';
+import { retrieveEnableSyncInitJobs } from './settings';
 import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-let languageClient: ApexLanguageClient | undefined;
-const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
+  const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(
@@ -79,7 +81,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await telemetryService.initializeService(extensionContext);
 
   // start the language server and client
-  await createLanguageClient(extensionContext);
+  await createLanguageClient(extensionContext, languageServerStatusBarItem);
 
   // Javadoc support
   enableJavaDocSymbols();
@@ -280,22 +282,26 @@ async function registerTestView(): Promise<vscode.Disposable> {
 }
 
 export async function deactivate() {
+  await languageClientUtils.getClientInstance()?.stop();
   telemetryService.sendExtensionDeactivationEvent();
 }
 
-async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
+async function createLanguageClient(
+  extensionContext: vscode.ExtensionContext,
+  languageServerStatusBarItem: ApexLSPStatusBarItem
+): Promise<void> {
+  // Resolve any found orphan language servers
+  void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
-    languageClient = await languageServer.createLanguageServer(
+    languageClientUtils.setClientInstance(await languageServer.createLanguageServer(
       extensionContext
-    );
+    ));
+
+    const languageClient = languageClientUtils.getClientInstance();
 
     if (languageClient) {
-      languageClient.onNotification('indexer/done', async () => {
-        await getTestOutlineProvider().refresh();
-        languageServerReady();
-      });
       languageClient.errorHandler?.addListener('error', message => {
         languageServerStatusBarItem.error(message);
       });
@@ -311,20 +317,27 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
           nls.localize('apex_language_server_failed_activate')
         );
       });
+
+      // TODO: the client should not be undefined. We should refactor the code to
+      // so there is no question as to whether the client is defined or not.
+      await languageClient.start();
+      // Client is running
+      const startTime = telemetryService.getEndHRTime(langClientHRStart); // Record the end time
+      telemetryService.sendEventData('apexLSPStartup', undefined, {
+        activationTime: startTime
+      });
+      await indexerDoneHandler(
+        retrieveEnableSyncInitJobs(),
+        languageClient,
+        languageServerStatusBarItem
+      );
+      extensionContext.subscriptions.push(languageClientUtils.getClientInstance()!);
+    } else {
+      languageClientUtils.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`);
+      languageServerStatusBarItem.error(
+        `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
+      );
     }
-
-    languageClientUtils.setClientInstance(languageClient);
-
-    void lsoh.resolveAnyFoundOrphanLanguageServers();
-
-    await languageClient!.start();
-
-    const startTime = telemetryService.getEndHRTime(langClientHRStart);
-    telemetryService.sendEventData('apexLSPStartup', undefined, {
-      activationTime: startTime
-    });
-    languageClientUtils.setStatus(ClientStatus.Indexing, '');
-    extensionContext.subscriptions.push(languageClient);
   } catch (e) {
     languageClientUtils.setStatus(ClientStatus.Error, e);
     let eMsg =
@@ -340,8 +353,28 @@ async function createLanguageClient(extensionContext: vscode.ExtensionContext) {
   }
 }
 
-export function languageServerReady() {
-  languageServerStatusBarItem.ready();
-  languageClientUtils.setStatus(ClientStatus.Ready, '');
-  languageClient?.errorHandler?.serviceHasStartedSuccessfully();
+// exported only for test
+export async function indexerDoneHandler(
+  enableSyncInitJobs: boolean,
+  languageClient: ApexLanguageClient,
+  languageServerStatusBarItem: ApexLSPStatusBarItem
+) {
+  // Listener is useful only in async mode
+  if (!enableSyncInitJobs) {
+    // The listener should be set after languageClient is ready
+    // Language client will get notified once async init jobs are done
+    languageClientUtils.setStatus(ClientStatus.Indexing, '');
+    languageClient.onNotification(API.doneIndexing, () => {
+      void extensionUtils.setClientReady(
+        languageClient,
+        languageServerStatusBarItem
+      );
+    });
+  } else {
+    // indexer must be running at the point
+    await extensionUtils.setClientReady(
+      languageClient,
+      languageServerStatusBarItem
+    );
+  }
 }

@@ -7,7 +7,6 @@
     "donjayamanne.githistory",
     // Linter
     "dbaeumer.vscode-eslint",
-    "eg2.tslint",
     // Formatting
     "esbenp.prettier-vscode",
     "stkb.rewrap",

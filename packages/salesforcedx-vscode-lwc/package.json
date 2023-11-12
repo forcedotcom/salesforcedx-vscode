@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.2.0",
+  "version": "59.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,14 +24,13 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "5.3.0",
+    "@salesforce/core": "5.3.18",
     "@salesforce/eslint-config-lwc": "3.5.1",
-    "@salesforce/lightning-lsp-common": "4.7.1",
-    "@salesforce/lwc-language-server": "4.7.1",
-    "@salesforce/salesforcedx-utils-vscode": "59.2.0",
+    "@salesforce/lightning-lsp-common": "4.7.2",
+    "@salesforce/lwc-language-server": "4.7.2",
+    "@salesforce/salesforcedx-utils-vscode": "59.4.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
-    "eslint": "8.23.0",
     "jest-editor-support": "^30.1.0",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",
@@ -41,7 +40,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.2.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -49,12 +48,23 @@
     "@types/uuid": "^3.4.8",
     "@types/vscode": "^1.61.2",
     "@types/which": "^1.3.1",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-jest": "27.5.0",
+    "eslint-plugin-jest-formatting": "3.1.0",
+    "eslint-plugin-jsdoc": "46.8.2",
+    "eslint-plugin-prefer-arrow": "1.2.3",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
     "nyc": "^15",
+    "prettier": "3.0.3",
     "sinon": "^13.0.1",
     "sinon-chai": "^3.7.0",
     "ts-sinon": "^1.0.25",
@@ -72,7 +82,7 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
@@ -104,10 +114,10 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "5.3.0",
-        "@salesforce/source-tracking": "4.2.14",
-        "@salesforce/lightning-lsp-common": "4.7.1",
-        "@salesforce/lwc-language-server": "4.7.1"
+        "@salesforce/core": "5.3.18",
+        "@salesforce/source-tracking": "4.3.0",
+        "@salesforce/lightning-lsp-common": "4.7.2",
+        "@salesforce/lwc-language-server": "4.7.2"
       },
       "devDependencies": {}
     }

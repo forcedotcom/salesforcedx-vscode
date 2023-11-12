@@ -115,13 +115,6 @@ export {
   forceSourceStatus
 } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
-export {
-  forceFunctionContainerlessStartCommand,
-  forceFunctionDebugInvoke,
-  forceFunctionInvoke,
-  forceFunctionStop,
-  registerFunctionInvokeCodeLensProvider
-} from './functions';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
@@ -168,6 +161,5 @@ export {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate
 } from './templates';
-export { forceFunctionCreate } from './templates/forceFunctionCreate';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
