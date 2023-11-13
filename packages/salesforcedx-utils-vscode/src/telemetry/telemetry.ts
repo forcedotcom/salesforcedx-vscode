@@ -60,24 +60,12 @@ export class TelemetryBuilder {
 export class TelemetryProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryService {
-    // If there is no parameter, it is in the context of core extension
-    if (!extensionName) {
-      if (!TelemetryProvider.instances.has(SFDX_CORE_EXTENSION_NAME)) {
-        TelemetryProvider.instances.set(
-          SFDX_CORE_EXTENSION_NAME,
-          new TelemetryService()
-        );
-      }
-      return TelemetryProvider.instances.get(
-        SFDX_CORE_EXTENSION_NAME
-      ) as TelemetryService;
-    } else {
-      // If there is parameter, it is called by a external extension
-      if (!TelemetryProvider.instances.has(extensionName)) {
-        TelemetryProvider.instances.set(extensionName, new TelemetryService());
-      }
-      return TelemetryProvider.instances.get(extensionName) as TelemetryService;
+    // default if not present
+    const name = extensionName || SFDX_CORE_EXTENSION_NAME;
+    if (!TelemetryProvider.instances.has(name)) {
+      TelemetryProvider.instances.set(name, new TelemetryService());
     }
+    return TelemetryProvider.instances.get(name)!;
   }
 }
 
