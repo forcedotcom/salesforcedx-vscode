@@ -1,7 +1,13 @@
+/**
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ **/
 import { TelemetryProvider, TelemetryService } from '../../../src';
 import {
   SFDX_CORE_EXTENSION_NAME,
-  SFDX_E4D_EXTENSION_NAME,
+  SFDX_E4D_EXTENSION_NAME
 } from '../../../src/constants';
 
 describe('Telemetry', () => {
@@ -14,7 +20,7 @@ describe('Telemetry', () => {
       const instance = TelemetryProvider.getInstance();
       expect(instance).toBeInstanceOf(TelemetryService);
       expect(
-        TelemetryProvider.instances.has(SFDX_CORE_EXTENSION_NAME),
+        TelemetryProvider.instances.has(SFDX_CORE_EXTENSION_NAME)
       ).toBeTruthy();
     });
 
@@ -51,7 +57,7 @@ describe('Telemetry', () => {
     it('getInstance should return the e4d instance for compatibility', () => {
       const firstInstance = TelemetryService.getInstance();
       const secondInstance = TelemetryProvider.getInstance(
-        SFDX_E4D_EXTENSION_NAME,
+        SFDX_E4D_EXTENSION_NAME
       );
       expect(firstInstance).toBe(secondInstance);
     });
