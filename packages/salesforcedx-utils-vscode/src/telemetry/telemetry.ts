@@ -11,7 +11,7 @@ import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
-  SFDX_E4D_EXTENSION_NAME
+  SFDX_E4D_EXTENSION_NAME,
 } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
@@ -52,24 +52,24 @@ export class TelemetryBuilder {
   public build(): TelemetryData {
     return {
       properties: this.properties,
-      measurements: this.measurements
+      measurements: this.measurements,
     };
   }
 }
 
 export class TelemetryProvider {
-  private static instances = new Map<string, TelemetryService>();
+  public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryService {
     // If there is no parameter, it is in the context of core extension
     if (!extensionName) {
       if (!TelemetryProvider.instances.has(SFDX_CORE_EXTENSION_NAME)) {
         TelemetryProvider.instances.set(
           SFDX_CORE_EXTENSION_NAME,
-          new TelemetryService()
+          new TelemetryService(),
         );
       }
       return TelemetryProvider.instances.get(
-        SFDX_CORE_EXTENSION_NAME
+        SFDX_CORE_EXTENSION_NAME,
       ) as TelemetryService;
     } else {
       // If there is parameter, it is called by a external extension
@@ -77,7 +77,7 @@ export class TelemetryProvider {
         TelemetryProvider.instances.set(extensionName, new TelemetryService());
       }
       return TelemetryProvider.instances.get(
-        extensionName as string
+        extensionName as string,
       ) as TelemetryService;
     }
   }
@@ -104,7 +104,7 @@ export class TelemetryService {
    * @param extensionName extension name
    */
   public async initializeService(
-    extensionContext: ExtensionContext
+    extensionContext: ExtensionContext,
   ): Promise<void> {
     const { name, version, aiKey } = extensionContext.extension.packageJSON;
     if (!name) {
@@ -119,12 +119,12 @@ export class TelemetryService {
     this.aiKey = aiKey || this.aiKey;
 
     this.checkCliTelemetry()
-      .then(async cliEnabled => {
+      .then(async (cliEnabled) => {
         this.setCliTelemetryEnabled(
-          this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
+          this.isTelemetryExtensionConfigurationEnabled() && cliEnabled,
         );
       })
-      .catch(error => {
+      .catch((error) => {
         console.log('Error initializing telemetry service: ' + error);
       });
 
@@ -142,7 +142,7 @@ export class TelemetryService {
         'salesforcedx-vscode',
         this.version,
         this.aiKey,
-        true
+        true,
       );
       this.extensionContext.subscriptions.push(this.reporter);
     }
@@ -190,9 +190,9 @@ export class TelemetryService {
       this.reporter!.sendTelemetryEvent(
         'activationEvent',
         {
-          extensionName: this.extensionName
+          extensionName: this.extensionName,
         },
-        { startupTime }
+        { startupTime },
       );
     });
   }
@@ -200,7 +200,7 @@ export class TelemetryService {
   public sendExtensionDeactivationEvent(): void {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent('deactivationEvent', {
-        extensionName: this.extensionName
+        extensionName: this.extensionName,
       });
     });
   }
@@ -209,13 +209,13 @@ export class TelemetryService {
     commandName?: string,
     hrstart?: [number, number],
     properties?: Properties,
-    measurements?: Measurements
+    measurements?: Measurements,
   ): void {
     this.validateTelemetry(() => {
       if (commandName) {
         const baseProperties: CommandMetric = {
           extensionName: this.extensionName,
-          commandName
+          commandName,
         };
         const aggregatedProps = Object.assign(baseProperties, properties);
 
@@ -229,7 +229,7 @@ export class TelemetryService {
         this.reporter!.sendTelemetryEvent(
           'commandExecution',
           aggregatedProps,
-          aggregatedMeasurements
+          aggregatedMeasurements,
         );
       }
     });
@@ -244,7 +244,7 @@ export class TelemetryService {
   public sendEventData(
     eventName: string,
     properties?: { [key: string]: string },
-    measures?: { [key: string]: number }
+    measures?: { [key: string]: number },
   ): void {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent(eventName, properties, measures);
@@ -253,7 +253,7 @@ export class TelemetryService {
 
   public dispose(): void {
     if (this.reporter !== undefined) {
-      this.reporter.dispose().catch(err => console.log(err));
+      this.reporter.dispose().catch((err) => console.log(err));
     }
   }
 
@@ -275,8 +275,8 @@ export class TelemetryService {
   private validateTelemetry(callback: () => void): void {
     if (this.reporter !== undefined) {
       this.isTelemetryEnabled()
-        .then(enabled => (enabled ? callback() : undefined))
-        .catch(err => console.error(err));
+        .then((enabled) => (enabled ? callback() : undefined))
+        .catch((err) => console.error(err));
     }
   }
 }
