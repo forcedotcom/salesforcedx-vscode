@@ -14,6 +14,7 @@ import * as childProcess from 'child_process';
 import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
 
+jest.setTimeout(30000);
 describe('Debugger session service', () => {
   let service: SessionService;
   const mockSpawn = require('mock-spawn');

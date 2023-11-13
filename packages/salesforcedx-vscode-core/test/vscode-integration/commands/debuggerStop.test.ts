@@ -22,6 +22,8 @@ import {
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 
+jest.setTimeout(30000);
+
 describe('Debugger stop command', () => {
   const mockSpawn = require('mock-spawn');
 

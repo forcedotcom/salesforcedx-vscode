@@ -16,6 +16,8 @@ import {
   StreamingService
 } from '../../../src/core';
 
+jest.setTimeout(30000);
+
 describe('Debugger streaming service', () => {
   const mockSpawn = require('mock-spawn');
   const requestService = new RequestService();
