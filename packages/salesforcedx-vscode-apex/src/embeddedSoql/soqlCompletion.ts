@@ -84,6 +84,7 @@ function getSOQLVirtualContent(
 }
 
 export const soqlMiddleware: Middleware = {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);

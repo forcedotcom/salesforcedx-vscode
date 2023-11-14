@@ -271,6 +271,7 @@ export abstract class TestNode extends vscode.TreeItem {
   };
 
   // TODO: create a ticket to address this particular issue.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   get tooltip(): string {
     return this.description;

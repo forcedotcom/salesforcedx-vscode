@@ -7,7 +7,7 @@
     "prefer-const": "warn",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/await-thenable": "warn",
-    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/ban-ts-comment": "error",
     "@typescript-eslint/member-delimiter-style": "warn",
     "@typescript-eslint/no-array-constructor": "warn",
     "@typescript-eslint/no-base-to-string": "warn",
