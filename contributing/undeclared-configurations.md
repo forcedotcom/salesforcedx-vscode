@@ -7,4 +7,4 @@ To access this file, use the Command Palette by typing "Preferences: Open User S
 
 ## Configuration Details
 
-- `'salesforcedx-vscode-apex.wait-init-jobs'`: This setting prevents requests from being sent to the Apex Language Server until the initialization process is complete.
+- `'salesforcedx-vscode-apex.wait-init-jobs'`: This setting prevents requests from being sent to the Apex Language Server until the initialization process is complete. Default is true.
