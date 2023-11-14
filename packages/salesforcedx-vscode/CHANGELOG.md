@@ -1,3 +1,35 @@
+# 59.5.0 - November 16, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Generate jar ([PR #5205](https://github.com/forcedotcom/salesforcedx-vscode/pull/5205))
+
+## Fixed
+
+#### docs
+
+- Functions out ([PR #5213](https://github.com/forcedotcom/salesforcedx-vscode/pull/5213))
+
+- An update about dotfiles ([PR #5218](https://github.com/forcedotcom/salesforcedx-vscode/pull/5218))
+
+#### salesforcedx-vscode-apex
+
+- Call language client stop during deactivation ([PR #5217](https://github.com/forcedotcom/salesforcedx-vscode/pull/5217))
+
+- Bump @salesforce/apex-tmlanguage version ([PR #5212](https://github.com/forcedotcom/salesforcedx-vscode/pull/5212))
+
+#### salesforcedx-vscode-core
+
+- Migrate from tslint to eslint ([PR #5203](https://github.com/forcedotcom/salesforcedx-vscode/pull/5203))
+
+- Remove heroku functions support ([PR #5204](https://github.com/forcedotcom/salesforcedx-vscode/pull/5204))
+
+#### salesforcedx-vscode-soql
+
+- Bump @salesforce/apex-tmlanguage version ([PR #5212](https://github.com/forcedotcom/salesforcedx-vscode/pull/5212))
+
 # 59.4.0 - November 10, 2023
 
 ## Fixed
