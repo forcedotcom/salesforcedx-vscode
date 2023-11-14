@@ -15,11 +15,11 @@ import { Subscription } from 'rxjs/Subscription';
 
 // Below two dependancies are not structured correcly for import unless require is used.
 /* tslint:disable */
-const kill = require('tree-kill');
+import { Command } from './';
 const cross_spawn = require('cross-spawn');
+const kill = require('tree-kill');
 /* tslint:enable */
 
-import { Command } from './';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -70,9 +70,9 @@ export class CliCommandExecutor {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
       ? CliCommandExecutor.patchEnv(
-          options,
-          GlobalCliEnvironment.environmentVariables
-        )
+        options,
+        GlobalCliEnvironment.environmentVariables
+      )
       : options;
   }
 
@@ -212,7 +212,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) ;
+    );
     this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -221,7 +221,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
-    ) ;
+    );
     this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -260,7 +260,10 @@ export class CliCommandExecution implements CommandExecution {
 async function killPromise(processId: number, signal: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     kill(processId, signal, (err: {}) => {
-      err ? reject(err) : resolve();
+      if (err) {
+        reject(err);
+      }
+      resolve();
     });
   });
 }

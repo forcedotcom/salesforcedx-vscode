@@ -40,9 +40,9 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       result = true;
       await ConfigUtil.setDefaultUsernameOrAlias(this.usernameOrAlias);
     } catch (error) {
-      error instanceof Error
-        ? message = error.message
-        : message = String(error);
+      message = error instanceof Error
+        ? error.message
+        : String(error);
       result = false;
     }
     this.outputTableRow = { name: TARGET_ORG_KEY, val: this.usernameOrAlias, success: String(result) };
