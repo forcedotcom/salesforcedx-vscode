@@ -24,7 +24,7 @@
     "@typescript-eslint/restrict-plus-operands": "warn",
     "@typescript-eslint/restrict-template-expressions": "warn",
     "@typescript-eslint/unbound-method": "warn",
-    "@typescript-eslint/no-redundant-type-constituents": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "error",
     "@typescript-eslint/no-shadow": "warn"
   }
 }

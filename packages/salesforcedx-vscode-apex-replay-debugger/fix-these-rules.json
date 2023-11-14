@@ -3,7 +3,7 @@
     "import/order": "warn",
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/no-floating-promises": "warn",
-    "@typescript-eslint/no-redundant-type-constituents": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "error",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",
