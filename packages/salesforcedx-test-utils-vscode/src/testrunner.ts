@@ -113,9 +113,9 @@ function run(testsRoot: any, clb: any): any {
             console.log(`Tests ended with ${failureCount} failure(s)`);
             clb(undefined, failureCount);
           });
-      } catch (error) {
-        console.error('An error occured: ' + error);
-        return clb(error);
+      } catch (err) {
+        console.error('An error occured: ' + err);
+        return clb(err);
       }
     }
   );

@@ -15,7 +15,7 @@
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
     "@typescript-eslint/no-redundant-type-constituents": "error",
-    "@typescript-eslint/no-shadow": "warn",
+    "@typescript-eslint/no-shadow": "error",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",

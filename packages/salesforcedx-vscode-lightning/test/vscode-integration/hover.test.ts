@@ -103,8 +103,8 @@ function findContentFromInstances(instances: Hover[], expectedContent: string) {
     // type assertion to prevent using a deprecated type
     const contents = instance!.contents as MarkdownString[];
 
-    const content = contents.find(content =>
-      content.value.includes(expectedContent)
+    const content = contents.find(cncnt =>
+      cncnt.value.includes(expectedContent)
     );
 
     // return the first found match

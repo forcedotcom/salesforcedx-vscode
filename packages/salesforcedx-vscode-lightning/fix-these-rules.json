@@ -4,7 +4,7 @@
     "no-useless-catch": "warn",
     "@typescript-eslint/no-base-to-string": "error",
     "@typescript-eslint/no-floating-promises": "warn",
-    "@typescript-eslint/no-shadow": "warn",
+    "@typescript-eslint/no-shadow": "error",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",

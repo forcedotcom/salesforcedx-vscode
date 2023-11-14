@@ -10,6 +10,6 @@
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/restrict-plus-operands": "warn",
     "no-var": "warn",
-    "@typescript-eslint/no-shadow": "warn"
+    "@typescript-eslint/no-shadow": "error"
   }
 }
