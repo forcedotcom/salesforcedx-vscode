@@ -57,15 +57,15 @@ export class TelemetryBuilder {
   }
 }
 
-export class TelemetryProvider {
+export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryService {
     // default if not present
     const name = extensionName || SFDX_CORE_EXTENSION_NAME;
-    if (!TelemetryProvider.instances.has(name)) {
-      TelemetryProvider.instances.set(name, new TelemetryService());
+    if (!TelemetryServiceProvider.instances.has(name)) {
+      TelemetryServiceProvider.instances.set(name, new TelemetryService());
     }
-    return TelemetryProvider.instances.get(name)!;
+    return TelemetryServiceProvider.instances.get(name)!;
   }
 }
 
@@ -76,7 +76,7 @@ export class TelemetryService {
   private version: string = '';
   // Temporary usage for earlier version of e4d
   public static getInstance() {
-    return TelemetryProvider.getInstance(SFDX_E4D_EXTENSION_NAME);
+    return TelemetryServiceProvider.getInstance(SFDX_E4D_EXTENSION_NAME);
   }
   /**
    * Cached promise to check if CLI telemetry config is enabled

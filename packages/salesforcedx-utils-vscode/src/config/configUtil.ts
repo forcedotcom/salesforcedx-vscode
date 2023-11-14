@@ -19,7 +19,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryProvider } from '../telemetry/telemetry';
+import { TelemetryServiceProvider } from '../telemetry/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -29,7 +29,8 @@ export enum ConfigSource {
 
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
@@ -51,7 +52,8 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const apiVersion = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_API_VERSION
     );
@@ -60,10 +62,10 @@ export class ConfigUtil {
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
     try {
-      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-      const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-        TARGET_ORG_KEY
-      );
+      const configAggregator =
+        await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const defaultUsernameOrAlias =
+        configAggregator.getPropertyValue(TARGET_ORG_KEY);
       if (!defaultUsernameOrAlias) {
         return undefined;
       }
@@ -72,7 +74,7 @@ export class ConfigUtil {
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
-        TelemetryProvider.getInstance().sendException(
+        TelemetryServiceProvider.getInstance().sendException(
           'get_default_username_alias',
           err.message
         );
@@ -82,14 +84,14 @@ export class ConfigUtil {
   }
 
   public static async isGlobalDefaultUsername(): Promise<boolean> {
-    const configSource: ConfigSource = await ConfigUtil.getConfigSource(
-      TARGET_ORG_KEY
-    );
+    const configSource: ConfigSource =
+      await ConfigUtil.getConfigSource(TARGET_ORG_KEY);
     return configSource === ConfigSource.Global;
   }
 
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const templatesDirectory = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
@@ -97,7 +99,8 @@ export class ConfigUtil {
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(
       SF_CONFIG_DISABLE_TELEMETRY
     );
@@ -107,10 +110,10 @@ export class ConfigUtil {
   public static async getDefaultDevHubUsernameOrAlias(): Promise<
     string | undefined
   > {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultDevHubUserName = configAggregator.getPropertyValue(
-      TARGET_DEV_HUB_KEY
-    );
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const defaultDevHubUserName =
+      configAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
     return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
   }
 
@@ -156,7 +159,8 @@ export class ConfigUtil {
    * Org if it exists.
    */
   public static async getDevHubUsername(): Promise<string | undefined> {
-    const defaultDevHubUsernameOrAlias = await ConfigUtil.getDefaultDevHubUsernameOrAlias();
+    const defaultDevHubUsernameOrAlias =
+      await ConfigUtil.getDefaultDevHubUsernameOrAlias();
     if (!defaultDevHubUsernameOrAlias) {
       return;
     }
