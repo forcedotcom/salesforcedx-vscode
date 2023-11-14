@@ -209,7 +209,7 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should display error when no files are available for selection', async () => {
-      fileFinderStub.returns(new Array());
+      fileFinderStub.returns([]);
 
       const response = await gatherer.gather();
 
