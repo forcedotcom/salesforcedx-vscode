@@ -230,7 +230,7 @@ export class ApexTestOutlineProvider
       if (apexTestNode) {
         apexTestNode.outcome = test.outcome;
         apexTestNode.updateOutcome();
-        if (test.outcome === FAIL_RESULT) {
+        if (test.outcome.toString() === FAIL_RESULT) {
           apexTestNode.errorMessage = test.message || '';
           apexTestNode.stackTrace = test.stackTrace || '';
           apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;

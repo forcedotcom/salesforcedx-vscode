@@ -264,7 +264,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     if (sourceTrackingEnabled) {
       const status = result?.response?.status;
       if (
-        (status === 'Succeeded' || status === 'SucceededPartial') &&
+        (status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) &&
         this.sourceTracking
       ) {
         await SourceTrackingService.updateSourceTrackingAfterRetrieve(
