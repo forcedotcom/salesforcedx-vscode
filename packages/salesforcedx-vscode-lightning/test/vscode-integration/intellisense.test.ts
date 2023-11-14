@@ -197,17 +197,20 @@ async function testCompletion(
 
     assert.isDefined(
       actualItem,
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
     assert.equal(
       actualItem!.label,
       expectedItem.label,
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       'Expected completion item to have label: ' + expectedItem.label
     );
     assert.equal(
       actualItem!.kind,
       expectedItem.kind,
       "Expected completion item'" +
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         expectedItem.label +
         "' to have type: " +
         expectedItem.kind
@@ -216,6 +219,7 @@ async function testCompletion(
       assert.isDefined(
         actualItem!.documentation,
         "Expected completion item '" +
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
           expectedItem.label +
           "' to have documentation"
       );

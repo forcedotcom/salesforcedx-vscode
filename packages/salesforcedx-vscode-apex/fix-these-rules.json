@@ -7,7 +7,7 @@
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/ban-ts-comment": "error",
-    "@typescript-eslint/no-base-to-string": "warn",
+    "@typescript-eslint/no-base-to-string": "error",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",

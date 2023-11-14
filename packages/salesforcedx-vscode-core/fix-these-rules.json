@@ -10,7 +10,7 @@
     "@typescript-eslint/ban-ts-comment": "error",
     "@typescript-eslint/member-delimiter-style": "warn",
     "@typescript-eslint/no-array-constructor": "error",
-    "@typescript-eslint/no-base-to-string": "warn",
+    "@typescript-eslint/no-base-to-string": "error",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",

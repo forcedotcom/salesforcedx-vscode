@@ -26,10 +26,10 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   // TODO: when does error get called instead of closed?
   public error(error: Error, message: Message, count: number): ErrorHandlerResult {
     if (count && count <= 3) {
-      this.emit('error', `Error: ${JSON.stringify(error)} ${message}`);
+      this.emit('error', `Error: ${JSON.stringify(error)} ${message.jsonrpc}`);
       return { action: ErrorAction.Continue };
     }
-    this.emit('error', `Error: ${JSON.stringify(error)} ${message}`);
+    this.emit('error', `Error: ${JSON.stringify(error)} ${message.jsonrpc}`);
     return { action: ErrorAction.Shutdown };
   }
   // Closed is called when the server processes closes/quits

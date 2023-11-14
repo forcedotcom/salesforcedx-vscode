@@ -152,7 +152,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
       }
       result = await transformer.transform();
 
-      console.log('Generate success ' + result.data);
+      console.log('Generate success ' + JSON.stringify(result.data));
       this.logMetric(
         commandName,
         startTime,

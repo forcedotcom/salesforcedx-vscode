@@ -175,6 +175,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: {}) {
     if (e) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       this.stderr.next(`${e}${os.EOL}`);
     }
     this.exitSubject.next(1);

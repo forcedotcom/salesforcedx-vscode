@@ -3,7 +3,7 @@
     "import/order": "warn",
     "no-useless-escape": "warn",
     "@typescript-eslint/array-type": "error",
-    "@typescript-eslint/no-duplicate-type-constituents": "warn",
+    "@typescript-eslint/no-duplicate-type-constituents": "error",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",

@@ -212,7 +212,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
         console.log(
-          `There were errors parsing the push operation response.  Raw response: ${errors}`
+          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(errors)}`
         );
       }
     }
