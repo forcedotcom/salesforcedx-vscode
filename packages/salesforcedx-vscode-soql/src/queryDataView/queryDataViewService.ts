@@ -133,7 +133,7 @@ export class QueryDataViewService {
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format as FileFormat);
+        this.handleSaveRecords(format );
         break;
       default:
         const errorMessage = nls.localize('error_unknown_error', type);

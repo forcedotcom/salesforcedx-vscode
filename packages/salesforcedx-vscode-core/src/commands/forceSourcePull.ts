@@ -204,7 +204,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getErrorTable(table: Table, result: unknown, titleType: string) {
     const outputTable = table.createTable(
-      (result as unknown) as Row[],
+      (result ) as Row[],
       [
         {
           key: 'filePath',

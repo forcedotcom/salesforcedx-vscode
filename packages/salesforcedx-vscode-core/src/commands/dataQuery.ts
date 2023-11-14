@@ -63,14 +63,14 @@ export class GetQueryAndApiInputs
         query = document.getText(editor.selection);
       }
     }
-    query = query!
-      .replace('[', '')
-      .replace(']', '')
-      .replace(/(\r\n|\n)/g, ' ');
-
     if (!query) {
       return { type: 'CANCEL' };
     }
+
+    query = query
+      .replace('[', '')
+      .replace(']', '')
+      .replace(/(\r\n|\n)/g, ' ');
 
     const restApi = {
       api: ApiType.REST,

@@ -344,10 +344,7 @@ describe('Variable assignment event', () => {
       const state = new VariableAssignmentState(
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap() ;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -369,10 +366,7 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
       state.handle(context);
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap() ;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -402,10 +396,7 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
       state.handle(context);
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap() ;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -447,10 +438,7 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_REASSIGNMENT2.split('|')
       );
       state.handle(context);
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap() ;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,

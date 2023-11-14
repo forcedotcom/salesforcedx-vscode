@@ -806,7 +806,7 @@ export async function processBreakpointChangedForCheckpoints(
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> {
   for (const bp of breakpointsChangedEvent.removed) {
-    if (bp.condition && bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0) {
+    if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         const breakpointId = bp.id;
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
@@ -818,7 +818,7 @@ export async function processBreakpointChangedForCheckpoints(
     const breakpointId = bp.id;
     if (
       bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
       bp instanceof vscode.SourceBreakpoint
     ) {
       const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
@@ -858,7 +858,7 @@ export async function processBreakpointChangedForCheckpoints(
   for (const bp of breakpointsChangedEvent.added) {
     if (
       bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
       bp instanceof vscode.SourceBreakpoint
     ) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
@@ -988,7 +988,7 @@ export async function sfdxToggleCheckpoint() {
       // If the breakpoint is a checkpoint then remove it and return
       if (
         bp.condition &&
-        bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
+        bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0
       ) {
         bpRemove.push(bp);
         return await vscode.debug.removeBreakpoints(bpRemove);

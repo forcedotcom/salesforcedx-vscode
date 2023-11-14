@@ -23,7 +23,7 @@ export class QueryRunner {
     try {
       const rawQueryData = (await this.connection.query(
         pureSOQLText
-      )) as QueryResult<JsonMap>;
+      ));
       const cleanQueryData = {
         ...rawQueryData,
         records: this.flattenQueryRecords(rawQueryData.records)

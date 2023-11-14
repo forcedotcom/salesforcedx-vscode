@@ -66,7 +66,7 @@ export class LogFileSelector
       if (logItem) {
         return {
           type: 'CONTINUE',
-          data: { id: logItem.id, startTime: logItem.startTime! }
+          data: { id: logItem.id, startTime: logItem.startTime }
         };
       }
     } else {

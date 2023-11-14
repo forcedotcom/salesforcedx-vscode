@@ -94,7 +94,7 @@ export const soqlMiddleware: Middleware = {
 
     const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
       ? (apexCompletionItems as ProtocolCompletionItem[])
-      : ((apexCompletionItems as CompletionList)
+      : ((apexCompletionItems )
         .items as ProtocolCompletionItem[]);
 
     const soqlBlock = insideSOQLBlock(items);

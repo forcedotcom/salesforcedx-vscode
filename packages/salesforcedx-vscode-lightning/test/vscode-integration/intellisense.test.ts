@@ -181,6 +181,7 @@ async function testCompletion(
   expectedCompletionList: vscode.CompletionList
 ) {
   // Simulate triggering a completion
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const actualCompletionList = (await vscode.commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
@@ -217,6 +218,7 @@ async function testCompletion(
     );
     if (actualItem?.detail === 'Lightning') {
       assert.isDefined(
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         actualItem!.documentation,
         "Expected completion item '" +
           // eslint-disable-next-line @typescript-eslint/no-base-to-string

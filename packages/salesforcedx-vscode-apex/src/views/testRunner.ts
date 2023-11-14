@@ -123,7 +123,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const languageClientStatus = languageClientUtils.getStatus() ;
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
         vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());

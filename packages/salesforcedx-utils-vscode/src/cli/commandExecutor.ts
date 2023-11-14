@@ -212,7 +212,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) as Observable<number | undefined>;
+    ) ;
     this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -221,7 +221,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
-    ) as Observable<Error | undefined>;
+    ) ;
     this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();

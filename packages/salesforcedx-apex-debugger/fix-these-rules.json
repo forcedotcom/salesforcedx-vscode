@@ -3,7 +3,7 @@
     "no-case-declarations": "warn",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-floating-promises": "warn",
-    "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",
     "@typescript-eslint/no-unsafe-call": "warn",

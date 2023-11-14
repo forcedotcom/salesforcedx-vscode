@@ -71,7 +71,7 @@ export class ApexTestOutlineProvider
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+        const languageClientStatus = languageClientUtils.getStatus() ;
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
             vscode.window.showInformationMessage(

@@ -78,7 +78,7 @@ export class MetaSupport {
         nls.localize('force_lightning_lwc_no_redhat_extension_found')
       );
     } else if (redHatExtension) {
-      const pluginVersionNumber = redHatExtension!.packageJSON['version'];
+      const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
       // checks if the installed plugin version is exactly 0.14.0 or 0.16+,
       // 0.15.0 has a regression and 0.13.0 or earlier versions are not supported

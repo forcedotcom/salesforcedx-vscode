@@ -98,7 +98,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    return (await SfdxProjectConfig.getValue('sfdcLoginUrl')) as string;
+    return (await SfdxProjectConfig.getValue('sfdcLoginUrl'));
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {

@@ -113,7 +113,7 @@ export class ConflictGroupNode extends ConflictNode {
     conflicts.forEach(entry => {
       const child = new ConflictFileNode(entry, this);
       child.attachCommands();
-      this.children!.push(child);
+      this.children.push(child);
     });
   }
 }
