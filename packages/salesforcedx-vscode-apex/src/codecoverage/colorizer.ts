@@ -143,7 +143,7 @@ export class CodeCoverage {
   public colorizer(editor?: TextEditor) {
     try {
       if (editor && isApexMetadata(editor.document.uri.fsPath)) {
-        const codeCovArray = getCoverageData() as Array<{ name: string }>;
+        const codeCovArray = getCoverageData() as { name: string }[];
         const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
         const codeCovItem = codeCovArray.find(
           covItem => covItem.name === apexMemberName

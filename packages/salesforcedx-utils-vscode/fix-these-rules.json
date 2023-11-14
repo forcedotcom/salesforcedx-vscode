@@ -5,7 +5,7 @@
     "object-shorthand": "warn",
     "prefer-spread": "warn",
     "radix": "warn",
-    "@typescript-eslint/array-type": "warn",
+    "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-base-to-string": "warn",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",

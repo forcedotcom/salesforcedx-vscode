@@ -2,7 +2,7 @@
   "rules": {
     "import/order": "warn",
     "no-useless-escape": "warn",
-    "@typescript-eslint/array-type": "warn",
+    "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-duplicate-type-constituents": "warn",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",

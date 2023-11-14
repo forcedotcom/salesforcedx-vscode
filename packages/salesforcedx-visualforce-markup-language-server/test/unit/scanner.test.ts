@@ -20,7 +20,7 @@ describe('HTML Scanner', () => {
     content?: string;
   }
 
-  function assertTokens(tests: Array<{ input: string; tokens: Token[] }>) {
+  function assertTokens(tests: { input: string; tokens: Token[] }[]) {
     let scannerState = ScannerState.WithinContent;
     for (const t of tests) {
       const scanner = createScanner(t.input, 0, scannerState);

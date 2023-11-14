@@ -16,9 +16,9 @@ const env = createSandbox();
 
 class MockFileWatcher implements vscode.Disposable {
   private watchUri: vscode.Uri;
-  private changeSubscribers: Array<(uri: vscode.Uri) => void> = [];
-  private createSubscribers: Array<(uri: vscode.Uri) => void> = [];
-  private deleteSubscribers: Array<(uri: vscode.Uri) => void> = [];
+  private changeSubscribers: ((uri: vscode.Uri) => void)[] = [];
+  private createSubscribers: ((uri: vscode.Uri) => void)[] = [];
+  private deleteSubscribers: ((uri: vscode.Uri) => void)[] = [];
 
   constructor(fsPath: string) {
     this.watchUri = vscode.Uri.file(fsPath);

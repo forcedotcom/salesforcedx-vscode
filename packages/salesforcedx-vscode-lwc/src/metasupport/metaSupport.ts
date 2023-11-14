@@ -50,7 +50,7 @@ export class MetaSupport {
    */
   private async setupRedhatXml(
     inputCatalogs: string[],
-    inputFileAssociations: Array<{ systemId: string; pattern: string }>
+    inputFileAssociations: { systemId: string; pattern: string }[]
   ) {
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     try {

@@ -112,7 +112,7 @@ describe('HTML Completion', () => {
     assert.equal(actual, expected);
   };
 
-  function run(tests: Array<PromiseLike<void>>, testDone) {
+  function run(tests: PromiseLike<void>[], testDone) {
     // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {

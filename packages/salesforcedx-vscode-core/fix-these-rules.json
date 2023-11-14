@@ -5,7 +5,7 @@
     "no-prototype-builtins": "warn",
     "no-useless-escape": "warn",
     "prefer-const": "warn",
-    "@typescript-eslint/array-type": "warn",
+    "@typescript-eslint/array-type": "error",
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/member-delimiter-style": "warn",
