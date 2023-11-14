@@ -13,7 +13,7 @@
     "@typescript-eslint/no-base-to-string": "error",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
-    "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
+    "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
     "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/no-shadow": "warn",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",
