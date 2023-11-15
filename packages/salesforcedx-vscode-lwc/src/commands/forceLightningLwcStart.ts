@@ -66,6 +66,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public execute(response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();

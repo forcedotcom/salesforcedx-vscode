@@ -121,17 +121,3 @@ function run(testsRoot: any, clb: any): any {
   );
 }
 exports.run = run;
-
-interface ITestRunnerOptions {
-  enabled?: boolean;
-  relativeCoverageDir: string;
-  relativeSourcePath: string;
-  ignorePatterns: string[];
-  includePid?: boolean;
-  reports?: string[];
-  verbose?: boolean;
-}
-
-declare var global: {
-  [key: string]: any; // missing index defintion
-};

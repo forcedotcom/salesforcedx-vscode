@@ -8,15 +8,14 @@
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
 import {
-  LanguageClientStatus,
   languageClientUtils
 } from '../languageUtils';
 import { nls } from '../messages';

@@ -84,6 +84,7 @@ export class SObjectRefreshGatherer
 
 export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))

@@ -29,6 +29,7 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
     );
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<AccessTokenParams>,
     progress?: vscode.Progress<{
@@ -36,6 +37,7 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
     try {

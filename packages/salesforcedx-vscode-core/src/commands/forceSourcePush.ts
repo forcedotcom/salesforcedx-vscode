@@ -63,6 +63,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     return DeployType.Push;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
@@ -111,6 +112,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected async exitProcessHandlerPush(
     exitCode: number | undefined,
     stdOut: string,
@@ -120,6 +122,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     startTime: [number, number],
     cancellationToken: vscode.CancellationToken | undefined,
     cancellationTokenSource: vscode.CancellationTokenSource
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<void> {
     if (execution.command.logName === FORCE_SOURCE_PUSH_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);

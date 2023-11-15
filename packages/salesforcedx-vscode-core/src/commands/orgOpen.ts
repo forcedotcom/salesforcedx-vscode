@@ -32,6 +32,7 @@ import {
 } from './util';
 
 export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -105,6 +106,7 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
 
 export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))

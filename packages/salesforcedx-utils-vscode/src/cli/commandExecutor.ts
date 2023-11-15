@@ -146,7 +146,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async next => {
+      timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
             this.exitSubject.next();
@@ -156,13 +156,13 @@ export class CompositeCliCommandExecution implements CommandExecution {
         }
       });
     }
-    this.processErrorSubject.subscribe(next => {
+    this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
 
-    this.processExitSubject.subscribe(next => {
+    this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -213,7 +213,7 @@ export class CliCommandExecution implements CommandExecution {
       childProcess,
       'exit'
     );
-    this.processExitSubject.subscribe(next => {
+    this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -222,7 +222,7 @@ export class CliCommandExecution implements CommandExecution {
       childProcess,
       'error'
     );
-    this.processErrorSubject.subscribe(next => {
+    this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -235,7 +235,7 @@ export class CliCommandExecution implements CommandExecution {
     // Cancellation watcher
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async next => {
+      timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
             await this.killExecution();

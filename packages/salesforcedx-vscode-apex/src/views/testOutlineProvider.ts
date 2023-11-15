@@ -17,11 +17,10 @@ import {
 } from '../constants';
 import {
   getApexTests,
-  LanguageClientStatus,
   languageClientUtils
 } from '../languageUtils';
 import { nls } from '../messages';
-import { iconHelpers, IconsEnum } from './icons';
+import { IconsEnum, iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
 // Message

@@ -463,6 +463,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             title: localizedProgressMessage,
             cancellable: false
           },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           async (progress, token) => {
             writeToDebuggerOutputWindow(
               `${localizedProgressMessage}, ${nls.localize(

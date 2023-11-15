@@ -33,6 +33,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     let result: boolean;
     let message: string | undefined;

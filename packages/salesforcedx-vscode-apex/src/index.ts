@@ -312,7 +312,7 @@ async function createLanguageClient(
             .replace('$N', count)
         );
       });
-      languageClient.errorHandler?.addListener('startFailed', count => {
+      languageClient.errorHandler?.addListener('startFailed', () => {
         languageServerStatusBarItem.error(
           nls.localize('apex_language_server_failed_activate')
         );

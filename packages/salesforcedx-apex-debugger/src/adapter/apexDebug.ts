@@ -267,11 +267,13 @@ export class ScopeContainer implements VariableContainer {
     this.frameInfo = frameInfo;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async expand(
     session: ApexDebug,
     filter: FilterType,
     start?: number,
     count?: number
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<ApexVariable[]> {
     if (
       !this.frameInfo.locals &&
@@ -332,11 +334,13 @@ export class ObjectReferenceContainer implements VariableContainer {
     this.size = reference.size;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async expand(
     session: ApexDebug,
     filter: FilterType,
     start?: number,
     count?: number
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
@@ -467,11 +471,13 @@ export class MapTupleContainer implements VariableContainer {
     return ApexVariable.valueAsString(this.tuple.value);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async expand(
     session: ApexDebug,
     filter: FilterType,
     start?: number,
     count?: number
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
@@ -491,9 +497,9 @@ export class MapTupleContainer implements VariableContainer {
     if (this.tuple.key) {
       const keyVariableReference = this.tuple.key.ref
         ? await session.resolveApexIdToVariableReference(
-            this.requestId,
-            this.tuple.key.ref
-          )
+          this.requestId,
+          this.tuple.key.ref
+        )
         : undefined;
       variables.push(
         new ApexVariable(
@@ -507,9 +513,9 @@ export class MapTupleContainer implements VariableContainer {
     if (this.tuple.value) {
       const valueVariableReference = this.tuple.value.ref
         ? await session.resolveApexIdToVariableReference(
-            this.requestId,
-            this.tuple.value.ref
-          )
+          this.requestId,
+          this.tuple.value.ref
+        )
         : undefined;
       variables.push(
         new ApexVariable(
@@ -560,9 +566,11 @@ export class ApexDebug extends LoggingDebugSession {
     this.threadId = 1;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -584,9 +592,11 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected attachRequest(
     response: DebugProtocol.AttachResponse,
     args: DebugProtocol.AttachRequestArguments
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): void {
     response.success = false;
     this.sendResponse(response);
@@ -779,6 +789,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
@@ -794,8 +805,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
           } else {
             this.errorToDebugConsole(
-              `${nls.localize('command_error_help_text')}:${
-                os.EOL
+              `${nls.localize('command_error_help_text')}:${os.EOL
               }${terminatedSessionId}`
             );
           }
@@ -838,7 +848,7 @@ export class ApexDebug extends LoggingDebugSession {
           }
         );
         // tslint:disable-next-line:no-empty
-      } catch (error) {}
+      } catch (error) { }
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({
@@ -992,7 +1002,7 @@ export class ApexDebug extends LoggingDebugSession {
             this.log(
               TRACE_CATEGORY_VARIABLES,
               'stackTraceRequest: state=' +
-                JSON.stringify(stateRespObj.stateResponse.state)
+              JSON.stringify(stateRespObj.stateResponse.state)
             );
             if (
               stateRespObj.stateResponse.state.locals &&
@@ -1040,9 +1050,9 @@ export class ApexDebug extends LoggingDebugSession {
               serverFrames[i].fullName,
               sourcePath
                 ? new Source(
-                    basename(sourcePath),
-                    this.convertDebuggerPathToClient(sourcePath)
-                  )
+                  basename(sourcePath),
+                  this.convertDebuggerPathToClient(sourcePath)
+                )
                 : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
@@ -1249,7 +1259,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.log(
         TRACE_CATEGORY_VARIABLES,
         `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
-          JSON.stringify(frameRespObj.frameResponse.frame)
+        JSON.stringify(frameRespObj.frameResponse.frame)
       );
       if (
         frameRespObj.frameResponse.frame.locals &&
@@ -1504,8 +1514,7 @@ export class ApexDebug extends LoggingDebugSession {
         }
         if (errorObj.action) {
           this.errorToDebugConsole(
-            `${nls.localize('command_error_help_text')}:${os.EOL}${
-              errorObj.action
+            `${nls.localize('command_error_help_text')}:${os.EOL}${errorObj.action
             }`
           );
         }
