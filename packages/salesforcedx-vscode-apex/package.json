@@ -361,7 +361,11 @@
         },
         "apex.trace.server": {
           "type": "string",
-          "enum": ["verbose", "messages", "off"],
+          "enum": [
+            "verbose",
+            "messages",
+            "off"
+          ],
           "default": "off",
           "description": "%apex_trace_server_description%",
           "enumDescriptions": [
