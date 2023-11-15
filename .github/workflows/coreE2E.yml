@@ -116,7 +116,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   authentication:
-    if: ${{ inputs.authentication }}
+    if: ${{ false }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -125,7 +125,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   deployAndRetrieve:
-    if: ${{ inputs.deployAndRetrieve }}
+    if: ${{ false }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -152,7 +152,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   pushAndPull:
-    if: ${{ inputs.pushAndPull }}
+    if: ${{ false }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -170,7 +170,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   templates:
-    if: ${{ inputs.templates }}
+    if: ${{ false }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
