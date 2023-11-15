@@ -21,5 +21,9 @@
   "force_apex_test_suite_run_text": "SFDX: Run Apex Test Suite",
   "force_apex_test_suite_create_text": "SFDX: Create Apex Test Suite",
   "force_apex_test_suite_build_text": "SFDX: Add Tests to Apex Test Suite",
-  "apex_code_completion_stats_description": "Allow Apex Language Server to collect telemetry on code completion usage"
+  "apex_code_completion_stats_description": "Allow Apex Language Server to collect telemetry on code completion usage",
+  "apex_trace_server_description": "Controls the level of detail for trace logs in Apex Language Server",
+  "apex_verbose_level_trace_description": "Output everything, including all details about notifications & responses received from the client, requests being sent from the server.",
+  "apex_messages_level_trace_description": "Only output high-level messages of notifications & responses received from the client, requests being sent from the server.",
+  "apex_off_level_trace_description": "No output. Turn off all tracing."
 }
