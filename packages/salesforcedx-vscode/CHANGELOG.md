@@ -23,7 +23,7 @@
 
 - We migrated from `TSLint` to `ESLint`. We can now support both TypeScript and JavaScript linting. ([PR #5203](https://github.com/forcedotcom/salesforcedx-vscode/pull/5203))
 
-- We formally ended support for Salesforce Functions. ([PR #5204](https://github.com/forcedotcom/salesforcedx-vscode/pull/5204))
+- We’ve removed support for Functions from the Salesforce Extension Pack. You can still use the SF CLI to access this functionality. ([PR #5204](https://github.com/forcedotcom/salesforcedx-vscode/pull/5204))
 
 #### salesforcedx-vscode-soql
 
