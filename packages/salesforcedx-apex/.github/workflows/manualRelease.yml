@@ -7,7 +7,7 @@ jobs:
   release:
     runs-on: static-ip-ubuntu-runners
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Conventional Changelog Action
@@ -22,7 +22,7 @@ jobs:
           # always do the release, even if there are no semantic commits
           skip-on-empty: false
           tag-prefix: ''
-      - uses: notiz-dev/github-action-json-property@2192e246737701f108a4571462b76c75e7376216
+      - uses: notiz-dev/github-action-json-property@7a701887f4b568b23eb7b78bb0fc49aaeb1b68d3
         id: packageVersion
         with:
           path: 'package.json'
