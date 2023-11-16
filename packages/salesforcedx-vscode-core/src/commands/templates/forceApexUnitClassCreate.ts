@@ -18,8 +18,8 @@ export const forceApexUnitClassCreate = async (unitFileToCreate?: string, unitFi
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       new MetadataTypeGatherer(APEX_CLASS_TYPE),
-      unitFileToCreate ? new SimpleGatherer<string>(unitFileToCreate): gatherers.fileNameGatherer,
-      unitFileDirectory ? new SimpleGatherer<string>(unitFileDirectory): gatherers.outputDirGatherer
+      unitFileToCreate ? new SimpleGatherer<{fileName: string}>({fileName: unitFileToCreate}): gatherers.fileNameGatherer,
+      unitFileDirectory ? new SimpleGatherer<{outputdir: string}>({outputdir: unitFileDirectory}): gatherers.outputDirGatherer
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
