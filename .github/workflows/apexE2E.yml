@@ -135,6 +135,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
+      testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -154,6 +155,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
+      testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -173,6 +175,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
+      testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'

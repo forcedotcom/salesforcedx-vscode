@@ -27,6 +27,9 @@ on:
       summary:
         description: Summary of e2e results
         type: string
+      testsBranch:
+        description: Branch from the E2E Automation Tests repo
+        type: string
     secrets:
       IDEE_RELEASE_SLACK_WEBHOOK:
         required: true
@@ -98,6 +101,7 @@ jobs:
             {
               "category": "${{ inputs.title }}",
               "branch": "${{ github.ref_name }}",
+              "testsBranch" "${{ inputs.testsBranch }}"
               "summary": "${{ inputs.summary }}",
               "event": "${{ github.event.repository.html_url }}/${{ inputs.workflow }}",
               "result": "${{ inputs.result }}"
