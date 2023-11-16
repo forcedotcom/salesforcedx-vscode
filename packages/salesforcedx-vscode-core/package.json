@@ -250,6 +250,10 @@
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.apex.class.create.unit",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.folder.diff",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         },
@@ -405,6 +409,10 @@
         },
         {
           "command": "sfdx.force.apex.class.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.class.create.unit",
           "when": "sfdx:project_opened"
         },
         {
@@ -673,6 +681,10 @@
       {
         "command": "sfdx.force.apex.class.create",
         "title": "%force_apex_class_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.class.create.unit",
+        "title": "%force_apex_class_create_unit_text%"
       },
       {
         "command": "sfdx.force.analytics.template.create",
