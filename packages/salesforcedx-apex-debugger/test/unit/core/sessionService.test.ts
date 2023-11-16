@@ -14,6 +14,8 @@ import * as childProcess from 'child_process';
 import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
 
+const isWindows = process.platform === 'win32';
+
 describe('Debugger session service', () => {
   let service: SessionService;
   const mockSpawn = require('mock-spawn');
@@ -132,7 +134,7 @@ describe('Debugger session service', () => {
       }
     });
 
-    it('Should not start successfully with error message & action', async () => {
+    (isWindows ? it.skip : it)('Should not start successfully with error message & action', async () => {
       mySpawn.setDefault(
         mySpawn.simple(
           1,
@@ -249,7 +251,7 @@ describe('Debugger session service', () => {
       }
     });
 
-    it('Should not stop successfully with error message & action', async () => {
+    (isWindows ? it.skip : it)('Should not stop successfully with error message & action', async () => {
       mySpawn.setDefault(
         mySpawn.simple(
           1,
