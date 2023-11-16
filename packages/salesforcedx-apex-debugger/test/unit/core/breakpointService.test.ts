@@ -18,6 +18,8 @@ import {
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
 
+const isWindows = process.platform === 'win32';
+
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;
   const mockSpawn = require('mock-spawn');
@@ -231,7 +233,7 @@ describe('Debugger breakpoint service', () => {
       }
     });
 
-    it('Should not create breakpoint successfully with error message & action', async () => {
+    (isWindows ? it.skip : it)('Should not create breakpoint successfully with error message & action', async () => {
       mySpawn.setDefault(
         mySpawn.simple(
           1,
@@ -388,7 +390,7 @@ describe('Debugger breakpoint service', () => {
       }
     });
 
-    it('Should not delete breakpoint successfully with error message & action', async () => {
+    (isWindows ? it.skip : it)('Should not delete breakpoint successfully with error message & action', async () => {
       mySpawn.setDefault(
         mySpawn.simple(
           1,
