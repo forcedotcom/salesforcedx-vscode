@@ -35,7 +35,7 @@
 
 #### docs
 
-- We made some updates to your documentation. ([PR #5197](https://github.com/forcedotcom/salesforcedx-vscode/pull/5197))
+- We made some updates to our documentation. ([PR #5197](https://github.com/forcedotcom/salesforcedx-vscode/pull/5197))
 
 # 59.3.1 - November 3, 2023
 
