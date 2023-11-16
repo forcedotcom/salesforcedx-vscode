@@ -358,6 +358,21 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_code_completion_stats_description%"
+        },
+        "apex.trace.server": {
+          "type": "string",
+          "enum": [
+            "verbose",
+            "messages",
+            "off"
+          ],
+          "default": "off",
+          "description": "%apex_trace_server_description%",
+          "enumDescriptions": [
+            "%apex_verbose_level_trace_description%",
+            "%apex_messages_level_trace_description%",
+            "%apex_off_level_trace_description%"
+          ]
         }
       }
     },
