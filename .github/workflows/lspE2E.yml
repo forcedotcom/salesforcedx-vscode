@@ -57,7 +57,7 @@ on:
 
 jobs:
   auraLSP:
-    if: ${{ false }}
+    if: ${{ inputs.auraLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -66,7 +66,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   lwcLSP:
-    if: ${{ inputs.lwcLsp }}
+    if: ${{ false }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -75,7 +75,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   visualforceLSP:
-    if: ${{ false }}
+    if: ${{ inputs.visualforceLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
