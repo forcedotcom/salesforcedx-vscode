@@ -1,4 +1,4 @@
-# 59.5.1 - November 18, 2023
+# 59.5.1 - November 16, 2023
 
 ## Added
 
