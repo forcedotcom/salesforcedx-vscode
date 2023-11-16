@@ -24,12 +24,12 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "5.3.18",
+    "@salesforce/core": "5.3.19",
     "@salesforce/salesforcedx-sobjects-faux-generator": "59.5.0",
     "@salesforce/salesforcedx-utils-vscode": "59.5.0",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "9.8.4",
-    "@salesforce/templates": "^58.0.1",
+    "@salesforce/templates": "^59.0.2",
     "@salesforce/ts-types": "2.0.9",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
@@ -97,9 +97,9 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "5.3.18",
+        "@salesforce/core": "5.3.19",
         "@salesforce/source-tracking": "4.3.0",
-        "@salesforce/templates": "^58.0.1",
+        "@salesforce/templates": "^59.0.2",
         "@salesforce/source-deploy-retrieve": "9.8.4",
         "shelljs": "0.8.5"
       },
