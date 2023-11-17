@@ -77,7 +77,7 @@ on:
 
 jobs:
   apexLSP:
-    if: ${{ false }}
+    if: ${{ inputs.apexLsp }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
