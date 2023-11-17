@@ -161,7 +161,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   sObjectsDefinitions:
-    if: ${{ false }}
+    if: ${{ inputs.sObjectsDefinitions }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -170,7 +170,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   templates:
-    if: ${{ false }}
+    if: ${{ inputs.templates }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
