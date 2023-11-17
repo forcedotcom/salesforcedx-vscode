@@ -598,6 +598,14 @@
         {
           "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+        },
+        {
+          "command": "sfdx.force.metadata.view.type.refresh",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.metadata.view.component.refresh",
+          "when": "sfdx:project_opened"
         }
       ]
     },
