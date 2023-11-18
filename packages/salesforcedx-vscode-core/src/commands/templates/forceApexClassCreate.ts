@@ -29,7 +29,7 @@ let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;
 let outputDirGatherer: ParametersGatherer<any>;
 let metadataTypeGatherer: ParametersGatherer<any>;
-function getParamGatherers() {
+export const getParamGatherers = () => {
   if (!initialized) {
     fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
     outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
@@ -41,9 +41,9 @@ function getParamGatherers() {
     outputDirGatherer,
     metadataTypeGatherer
   };
-}
+};
 
-export async function forceApexClassCreate() {
+export const forceApexClassCreate = async () => {
   const gatherers = getParamGatherers();
 
   const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
@@ -58,4 +58,4 @@ export async function forceApexClassCreate() {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
-}
+};

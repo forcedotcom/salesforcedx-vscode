@@ -133,6 +133,7 @@ export const messages = {
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
   force_apex_class_create_text: 'SFDX: Create Apex Class',
+  force_apex_unit_class_create_text: 'SFDX: Create Apex Unit Test Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
   force_lightning_app_create_text: 'SFDX: Create Aura App',

@@ -22,6 +22,7 @@ import {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
+  forceApexUnitClassCreate,
   forceAuthAccessToken,
   forceConfigList,
   forceConfigSet,
@@ -223,6 +224,10 @@ function registerCommands(
     'sfdx.force.apex.class.create',
     forceApexClassCreate
   );
+  const forceApexClassCreateUnitCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.class.create.unit',
+    forceApexUnitClassCreate
+  );
   const forceAnalyticsTemplateCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.analytics.template.create',
     forceAnalyticsTemplateCreate
@@ -395,6 +400,7 @@ function registerCommands(
     forceSourceStatusRemoteCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
+    forceApexClassCreateUnitCmd,
     forceAnalyticsTemplateCreateCmd,
     forceVisualforceComponentCreateCmd,
     forceVisualforcePageCreateCmd,

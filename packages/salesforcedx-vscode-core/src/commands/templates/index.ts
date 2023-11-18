@@ -30,6 +30,7 @@ export { forceVisualforceComponentCreate } from './forceVisualforceComponentCrea
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceApexClassCreate } from './forceApexClassCreate';
+export * from './forceApexUnitClassCreate';
 export { forceAnalyticsTemplateCreate } from './forceAnalyticsTemplateCreate';
 export { ForceLightningLwcTestCreateExecutor } from './forceLightningLwcTestCreate';
 export {
