@@ -17,7 +17,8 @@ import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
-  SelectOutputDir
+  SelectOutputDir,
+  SimpleGatherer
 } from '../../../../src/commands/util/parameterGatherers';
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
@@ -39,6 +40,7 @@ const compositeParametersGathererMocked = jest.mocked(
   CompositeParametersGatherer
 );
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
+const simpleGathererMocked = jest.mocked(SimpleGatherer);
 
 describe('forceApexUnitClassCreate Unit Tests.', () => {
   let runMock: jest.Mock<any, any>;
@@ -63,6 +65,23 @@ describe('forceApexUnitClassCreate Unit Tests.', () => {
       APEX_CLASS_NAME_MAX_LENGTH
     );
     expect(selectOutputDirMocked).toHaveBeenCalledWith(APEX_CLASS_DIRECTORY);
+    expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
+    expect(libraryForceApexUnitClassCreateExecutorMocked).toHaveBeenCalled();
+    expect(sfdxCommandletMocked).toHaveBeenCalled();
+    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
+    expect(compositeParametersGathererMocked).toHaveBeenCalled();
+    expect(overwriteComponentPromptMocked).toHaveBeenCalled();
+    expect(runMock).toHaveBeenCalled();
+  });
+
+  it('Should prompt if the provided params are not valid.', async () => {
+    // This happens when the command is executed from the context menu in the explorer on the classes folder.
+    const notAString = {path: 'thing'};
+    const notAString2 = {path: 'thing2'};
+    await (forceApexUnitClassCreate as any)(notAString, notAString2);
+    // Note there is a bad pattern in the exported getParamGatherers method that uses module state to cache the gatherers.
+    // This being the case the selectFileNameMocked check is invalid here when all tests are run.
+    expect(simpleGathererMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryForceApexUnitClassCreateExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
