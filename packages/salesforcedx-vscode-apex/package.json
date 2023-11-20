@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.5.1",
+  "version": "59.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
     "@salesforce/apex-node": "2.1.1",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "5.3.18",
-    "@salesforce/salesforcedx-utils-vscode": "59.5.1",
+    "@salesforce/salesforcedx-utils-vscode": "59.6.0",
     "@salesforce/source-deploy-retrieve": "9.8.4",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
@@ -36,7 +36,7 @@
     "vscode-languageclient": "8.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.5.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.6.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
