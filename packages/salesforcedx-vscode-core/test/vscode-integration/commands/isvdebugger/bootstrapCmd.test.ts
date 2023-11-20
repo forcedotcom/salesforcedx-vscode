@@ -140,7 +140,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         )
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
-        EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
+        EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
         nls.localize('parameter_gatherer_invalid_forceide_url')

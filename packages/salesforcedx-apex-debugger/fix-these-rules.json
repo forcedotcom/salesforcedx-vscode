@@ -10,7 +10,7 @@
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/no-var-requires": "error",
-    "@typescript-eslint/quotes": "warn",
+    "@typescript-eslint/quotes": "error",
     "@typescript-eslint/require-await": "warn",
     "@typescript-eslint/restrict-template-expressions": "warn",
     "@typescript-eslint/unbound-method": "warn",

@@ -250,7 +250,7 @@ describe('Custom Templates Create', () => {
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
     assert.file([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
-    assert.fileContent(lwcHtmlPath, `<template>\n    \n</template>`);
+    assert.fileContent(lwcHtmlPath, '<template>\n    \n</template>');
     assert.fileContent(
       lwcJsPath,
       `import { LightningElement } from 'lwc';

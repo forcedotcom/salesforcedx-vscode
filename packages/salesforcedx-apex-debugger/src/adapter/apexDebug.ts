@@ -1586,7 +1586,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.mySessionService.getSessionId() !== message.sobject.SessionId ||
       this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
     ) {
-      this.log(TRACE_CATEGORY_STREAMINGAPI, `handleEvent: event ignored`);
+      this.log(TRACE_CATEGORY_STREAMINGAPI, 'handleEvent: event ignored');
       return;
     }
     switch (type) {

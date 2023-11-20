@@ -158,7 +158,7 @@ function displayError(message: string) {
   channelService.showChannelOutput();
   telemetryService.sendException(
     'push_deploy_on_save_queue',
-    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+    'DeployOnSaveError: Documents were queued but a deployment was not triggered'
   );
 }
 
