@@ -3,7 +3,7 @@
     "import/order": "warn",
     "no-useless-escape": "error",
     "object-shorthand": "warn",
-    "prefer-spread": "warn",
+    "prefer-spread": "error",
     "radix": "warn",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-base-to-string": "error",

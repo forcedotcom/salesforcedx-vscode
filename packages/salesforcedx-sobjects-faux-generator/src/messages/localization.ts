@@ -70,7 +70,7 @@ export class Message implements LocalizationProvider {
       }
 
       args.unshift(possibleLabel);
-      return util.format.apply(util, args as [any, ...any[]]);
+      return util.format(...args);
     }
 
     return possibleLabel;

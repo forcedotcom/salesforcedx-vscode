@@ -3,7 +3,7 @@
     "import/order": "warn",
     "no-prototype-builtins": "error",
     "no-useless-escape": "error",
-    "prefer-spread": "warn",
+    "prefer-spread": "error",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",

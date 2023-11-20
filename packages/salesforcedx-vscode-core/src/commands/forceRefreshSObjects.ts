@@ -134,7 +134,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
     const commandName = execution.command.logName;
     try {
-      let result;
       let transformer;
       if (response.data.source === SObjectRefreshSource.StartupMin) {
         transformer = await SObjectTransformerFactory.create(
@@ -151,7 +150,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           response.data.source
         );
       }
-      result = await transformer.transform();
+      const result = await transformer.transform();
 
       console.log('Generate success ' + JSON.stringify(result.data));
       this.logMetric(

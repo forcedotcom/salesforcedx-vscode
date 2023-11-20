@@ -4,7 +4,7 @@
     "no-case-declarations": "error",
     "no-prototype-builtins": "error",
     "no-useless-escape": "error",
-    "prefer-const": "warn",
+    "prefer-const": "error",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/ban-ts-comment": "error",
