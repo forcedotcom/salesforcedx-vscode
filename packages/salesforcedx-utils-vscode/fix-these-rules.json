@@ -4,7 +4,7 @@
     "no-useless-escape": "error",
     "object-shorthand": "warn",
     "prefer-spread": "error",
-    "radix": "warn",
+    "radix": "error",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-base-to-string": "error",
     "@typescript-eslint/no-floating-promises": "warn",
