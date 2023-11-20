@@ -1,6 +1,6 @@
 {
   "rules": {
-    "import/order": "warn",
+    "import/order": "error",
     "no-useless-escape": "error",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-duplicate-type-constituents": "error",

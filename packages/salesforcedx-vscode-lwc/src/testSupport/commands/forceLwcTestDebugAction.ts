@@ -6,6 +6,7 @@
  */
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
+import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestCaseInfo,
@@ -17,7 +18,6 @@ import {
 import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
-import { telemetryService } from '../../telemetry';
 import { workspaceService } from '../workspace/workspaceService';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();

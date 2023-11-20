@@ -1,6 +1,6 @@
 {
   "rules": {
-    "import/order": "warn",
+    "import/order": "error",
     "no-case-declarations": "error",
     "no-prototype-builtins": "error",
     "no-useless-escape": "error",

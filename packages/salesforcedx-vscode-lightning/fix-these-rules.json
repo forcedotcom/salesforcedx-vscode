@@ -1,6 +1,6 @@
 {
   "rules": {
-    "import/order": "warn",
+    "import/order": "error",
     "no-useless-catch": "error",
     "@typescript-eslint/no-base-to-string": "error",
     "@typescript-eslint/no-floating-promises": "warn",

@@ -7,10 +7,10 @@
 
 import { Connection } from '@salesforce/core';
 import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
-import { SObjectShortDescription } from '.';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';
+import { SObjectShortDescription } from '.';
 export const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {

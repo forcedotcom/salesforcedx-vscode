@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
-
 import { AuthInfo, AuthSideEffects } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';

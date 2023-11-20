@@ -27,9 +27,6 @@ import {
   TextDocumentPositionParams,
   TransportKind
 } from 'vscode-languageclient';
-import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
-import { activateTagClosing } from './tagClosing';
-
 import { ConfigurationFeature } from 'vscode-languageclient/lib/configuration';
 import {
   ColorPresentationParams,
@@ -37,6 +34,9 @@ import {
   DocumentColorParams,
   DocumentColorRequest
 } from 'vscode-languageserver-protocol';
+import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
+import { activateTagClosing } from './tagClosing';
+
 import { telemetryService } from './telemetry';
 
 // tslint:disable-next-line:no-namespace
