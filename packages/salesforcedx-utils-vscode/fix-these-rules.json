@@ -1,7 +1,7 @@
 {
   "rules": {
     "import/order": "warn",
-    "no-useless-escape": "warn",
+    "no-useless-escape": "error",
     "object-shorthand": "warn",
     "prefer-spread": "warn",
     "radix": "warn",

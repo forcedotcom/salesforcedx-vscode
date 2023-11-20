@@ -541,7 +541,7 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
       return sanitizeFilename(
-        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
     }
     return '';

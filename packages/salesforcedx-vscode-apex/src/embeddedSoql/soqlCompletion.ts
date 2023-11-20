@@ -48,7 +48,7 @@ function insideApexBindingExpression(
   // (which might have been missed by Apex LSP)
   const rangeAtCursor = document.getWordRangeAtPosition(
     position,
-    /[:(_\.\w)]+/
+    /[:(_.\w)]+/
   );
   const wordAtCursor = rangeAtCursor
     ? document.getText(rangeAtCursor)

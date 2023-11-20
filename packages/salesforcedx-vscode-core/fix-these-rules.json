@@ -3,7 +3,7 @@
     "import/order": "warn",
     "no-case-declarations": "error",
     "no-prototype-builtins": "error",
-    "no-useless-escape": "warn",
+    "no-useless-escape": "error",
     "prefer-const": "warn",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/await-thenable": "warn",

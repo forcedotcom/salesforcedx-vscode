@@ -2,7 +2,7 @@
   "rules": {
     "import/order": "warn",
     "no-prototype-builtins": "error",
-    "no-useless-escape": "warn",
+    "no-useless-escape": "error",
     "prefer-spread": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",

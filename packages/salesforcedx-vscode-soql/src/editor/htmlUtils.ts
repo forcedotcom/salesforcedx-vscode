@@ -20,7 +20,7 @@ export class HtmlUtils {
    * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
    * And store just the filename section of the script tag as group[1]
    */
-  protected static readonly scriptRegex = /script defer="defer"\ssrc=\"\.\/(?<app>[^\"]*app.js)\"/g;
+  protected static readonly scriptRegex = /script defer="defer"\ssrc="\.\/(?<app>[^"]*app.js)"/g;
 
   /**
    *

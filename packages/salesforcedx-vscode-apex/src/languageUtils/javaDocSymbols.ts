@@ -12,11 +12,11 @@ export function enableJavaDocSymbols(): void {
       // ^.*\{[^}"']*$
       increaseIndentPattern: /^.*\{[^}"']*$/
     },
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()-=+[{\]}\\|;:'",.<>/?\s]+)/g,
     onEnterRules: [
       {
         // e.g. /** | */
-        beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
+        beforeText: /^\s*\/\*\*(?!\/)([^*]|\*(?!\/))*$/,
         afterText: /^\s*\*\/$/,
         action: {
           indentAction: IndentAction.IndentOutdent,
@@ -25,22 +25,22 @@ export function enableJavaDocSymbols(): void {
       },
       {
         // e.g. /** ...|
-        beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
+        beforeText: /^\s*\/\*\*(?!\/)([^*]|\*(?!\/))*$/,
         action: { indentAction: IndentAction.None, appendText: ' * ' }
       },
       {
         // e.g.  * ...|
-        beforeText: /^(\t|(\ \ ))*\ \*(\ ([^\*]|\*(?!\/))*)?$/,
+        beforeText: /^(\t|( {2}))* \*( ([^*]|\*(?!\/))*)?$/,
         action: { indentAction: IndentAction.None, appendText: '* ' }
       },
       {
         // e.g.  */|
-        beforeText: /^(\t|(\ \ ))*\ \*\/\s*$/,
+        beforeText: /^(\t|( {2}))* \*\/\s*$/,
         action: { indentAction: IndentAction.None, removeText: 1 }
       },
       {
         // e.g.  *-----*/|
-        beforeText: /^(\t|(\ \ ))*\ \*[^/]*\*\/\s*$/,
+        beforeText: /^(\t|( {2}))* \*[^/]*\*\/\s*$/,
         action: { indentAction: IndentAction.None, removeText: 1 }
       }
     ]

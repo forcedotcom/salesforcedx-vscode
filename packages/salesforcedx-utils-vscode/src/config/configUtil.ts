@@ -64,7 +64,7 @@ export class ConfigUtil {
         return undefined;
       }
 
-      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
+      return JSON.stringify(defaultUsernameOrAlias).replace(/"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
