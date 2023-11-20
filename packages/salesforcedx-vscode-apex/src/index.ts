@@ -348,6 +348,7 @@ async function createLanguageClient(
       eMsg = nls.localize('wrong_java_version_short');
     }
     languageServerStatusBarItem.error(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `${nls.localize('apex_language_server_failed_activate')} - ${eMsg}`
     );
   }

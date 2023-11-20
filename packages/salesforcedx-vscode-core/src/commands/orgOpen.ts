@@ -90,6 +90,7 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
         );
         telemetryService.sendException(
           'force_org_open_container',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an error when parsing the org open response ${error}`
         );
       }

@@ -136,7 +136,7 @@ export class ApexTestOutlineProvider
     } else {
       testResultFilePath = path.join(
         apexTestPath,
-        `test-result-${testRunId}.json`
+        `test-result-${testRunId.toString()}.json`
       );
     }
     if (testResultFile === testResultFilePath) {

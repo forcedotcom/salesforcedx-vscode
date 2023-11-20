@@ -62,7 +62,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: Error | undefined) {
     if (e) {
-      this.stderr.next(`${e}${os.EOL}`);
+      this.stderr.next(`${JSON.stringify(e)}${os.EOL}`);
     }
     this.exitSubject.next(1);
   }

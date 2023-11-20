@@ -67,7 +67,7 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       } catch (error) {
         telemetryService.sendException(
           'force_source_retrieve_with_sourcepath',
-          `Error while parsing package directories. ${error.message}`
+          `Error while parsing package directories. ${error instanceof Error ? error.message : JSON.stringify(error)}`
         );
       }
 

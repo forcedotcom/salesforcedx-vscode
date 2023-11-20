@@ -19,6 +19,6 @@
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/no-var-requires": "error",
     "@typescript-eslint/require-await": "warn",
-    "@typescript-eslint/restrict-template-expressions": "warn"
+    "@typescript-eslint/restrict-template-expressions": "error"
   }
 }

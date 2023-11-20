@@ -282,6 +282,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           );
         }
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
         writeToDebuggerOutputWindow(
           errorMessage,
@@ -371,6 +372,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               if (deleteError) {
                 const errorMessage = `${nls.localize(
                   'cannot_delete_existing_checkpoint'
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 )} : ${deleteError}`;
                 writeToDebuggerOutputWindow(
                   errorMessage,

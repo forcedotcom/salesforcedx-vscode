@@ -108,6 +108,7 @@ function run(testsRoot: any, clb: any): any {
             });
           })
           .on('fail', (test: any, err: any): void => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Failure in test '${test}': ${err}`);
             failureCount++;
           })

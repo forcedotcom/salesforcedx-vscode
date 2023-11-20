@@ -61,9 +61,8 @@ export class HtmlUtils {
     pathToLwcDist: string,
     webview: vscode.Webview
   ): string {
-    let matches;
-    let newScriptSrc;
-    // tslint:disable-next-line:no-conditional-assignment
+    let matches: string[] | null;
+    let newScriptSrc: vscode.Uri;
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
       newScriptSrc = webview.asWebviewUri(
         vscode.Uri.file(path.join(pathToLwcDist, matches[1]))

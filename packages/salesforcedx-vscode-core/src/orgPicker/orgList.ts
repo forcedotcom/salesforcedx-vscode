@@ -96,7 +96,7 @@ export class OrgList implements vscode.Disposable {
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =
         aliases && aliases.length > 0
-          ? `${aliases} - ${orgAuth.username}`
+          ? `${aliases.join(',')} - ${orgAuth.username}`
           : orgAuth.username;
 
       if (isExpired) {
@@ -149,14 +149,14 @@ export class OrgList implements vscode.Disposable {
       }
       case '$(plus) ' +
         nls.localize('force_org_create_default_scratch_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.org.create');
-        return { type: 'CONTINUE', data: {} };
-      }
+          vscode.commands.executeCommand('sfdx.force.org.create');
+          return { type: 'CONTINUE', data: {} };
+        }
       case '$(plus) ' +
         nls.localize('force_auth_access_token_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.auth.accessToken');
-        return { type: 'CONTINUE', data: {} };
-      }
+          vscode.commands.executeCommand('sfdx.force.auth.accessToken');
+          return { type: 'CONTINUE', data: {} };
+        }
       case '$(plus) ' + nls.localize('org_list_clean_text'): {
         vscode.commands.executeCommand('sfdx.org.list.clean');
         return { type: 'CONTINUE', data: {} };

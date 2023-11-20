@@ -13,6 +13,6 @@
     "@typescript-eslint/no-var-requires": "error",
     "@typescript-eslint/require-await": "warn",
     "@typescript-eslint/restrict-plus-operands": "error",
-    "@typescript-eslint/restrict-template-expressions": "warn"
+    "@typescript-eslint/restrict-template-expressions": "error"
   }
 }
