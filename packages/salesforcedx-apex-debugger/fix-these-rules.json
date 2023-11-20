@@ -1,6 +1,6 @@
 {
   "rules": {
-    "no-case-declarations": "warn",
+    "no-case-declarations": "error",
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-unnecessary-type-assertion": "error",

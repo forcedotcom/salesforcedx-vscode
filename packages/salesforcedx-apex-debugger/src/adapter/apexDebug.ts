@@ -1092,6 +1092,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
+        // eslint-disable-next-line no-case-declarations
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {
           try {
@@ -1133,9 +1134,8 @@ export class ApexDebug extends LoggingDebugSession {
         }
         break;
       case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
-        const exceptionBreakpoints = this.myBreakpointService.getExceptionBreakpointCache();
         response.body = {
-          typerefs: Array.from(exceptionBreakpoints.keys())
+          typerefs: Array.from(this.myBreakpointService.getExceptionBreakpointCache().keys())
         };
         break;
       default:

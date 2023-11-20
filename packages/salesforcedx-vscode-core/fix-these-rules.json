@@ -1,8 +1,8 @@
 {
   "rules": {
     "import/order": "warn",
-    "no-case-declarations": "warn",
-    "no-prototype-builtins": "warn",
+    "no-case-declarations": "error",
+    "no-prototype-builtins": "error",
     "no-useless-escape": "warn",
     "prefer-const": "warn",
     "@typescript-eslint/array-type": "error",

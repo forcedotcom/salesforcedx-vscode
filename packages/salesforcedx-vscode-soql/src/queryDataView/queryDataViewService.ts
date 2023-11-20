@@ -133,11 +133,10 @@ export class QueryDataViewService {
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format );
+        this.handleSaveRecords(format);
         break;
       default:
-        const errorMessage = nls.localize('error_unknown_error', type);
-        channelService.appendLine(errorMessage);
+        channelService.appendLine(nls.localize('error_unknown_error', type));
         trackErrorWithTelemetry('data_view_message_type', type).catch(
           console.error
         );

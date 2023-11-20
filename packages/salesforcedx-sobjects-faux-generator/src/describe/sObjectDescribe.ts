@@ -109,7 +109,7 @@ export class SObjectDescribe {
 
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const errorMsg = error.hasOwnProperty('body')
+      const errorMsg = Reflect.has(error, 'body')
         ? error.body
         : error.message;
       return Promise.reject(errorMsg);

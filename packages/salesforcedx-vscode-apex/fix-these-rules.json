@@ -1,7 +1,7 @@
 {
   "rules": {
     "import/order": "warn",
-    "no-prototype-builtins": "warn",
+    "no-prototype-builtins": "error",
     "no-useless-escape": "warn",
     "no-var": "warn",
     "@typescript-eslint/array-type": "error",

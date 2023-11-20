@@ -1,7 +1,7 @@
 {
   "rules": {
     "import/order": "warn",
-    "no-case-declarations": "warn",
+    "no-case-declarations": "error",
     "no-useless-escape": "warn",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
