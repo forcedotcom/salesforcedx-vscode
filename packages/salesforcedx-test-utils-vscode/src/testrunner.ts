@@ -84,7 +84,8 @@ function run(testsRoot: any, clb: any): any {
     { cwd: testsRoot },
     (error, files): any => {
       if (error) {
-        console.error('An error occured: ' + error);
+        const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+        console.error(msg);
         return clb(error);
       }
       try {

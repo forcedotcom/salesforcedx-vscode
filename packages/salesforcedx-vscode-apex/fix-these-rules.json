@@ -21,7 +21,7 @@
     "@typescript-eslint/no-var-requires": "error",
     "@typescript-eslint/quotes": "warn",
     "@typescript-eslint/require-await": "warn",
-    "@typescript-eslint/restrict-plus-operands": "warn",
+    "@typescript-eslint/restrict-plus-operands": "error",
     "@typescript-eslint/restrict-template-expressions": "warn",
     "@typescript-eslint/unbound-method": "warn",
     "@typescript-eslint/no-redundant-type-constituents": "error",

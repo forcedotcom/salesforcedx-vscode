@@ -261,6 +261,7 @@ const expandFunctions: {
             .map(v =>
               newCompletionItem(
                 v.value,
+                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                 "'" + v.value + "'",
                 CompletionItemKind.Value
               )
@@ -356,7 +357,7 @@ function newFieldCompletionItems(
         `${field.relationshipName}`,
         field.relationshipName + '.',
         CompletionItemKind.Class,
-        { detail: 'Ref. to ' + field.referenceTo }
+        { detail: 'Ref. to ' + field.referenceTo.join(',') }
       )
     );
   }

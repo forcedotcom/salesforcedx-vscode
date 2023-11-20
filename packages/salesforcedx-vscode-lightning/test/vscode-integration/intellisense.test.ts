@@ -198,20 +198,20 @@ async function testCompletion(
 
     assert.isDefined(
       actualItem,
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
       "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
     assert.equal(
       actualItem!.label,
       expectedItem.label,
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
       'Expected completion item to have label: ' + expectedItem.label
     );
     assert.equal(
       actualItem!.kind,
       expectedItem.kind,
       "Expected completion item'" +
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
         expectedItem.label +
         "' to have type: " +
         expectedItem.kind
@@ -221,7 +221,7 @@ async function testCompletion(
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         actualItem!.documentation,
         "Expected completion item '" +
-          // eslint-disable-next-line @typescript-eslint/no-base-to-string
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
           expectedItem.label +
           "' to have documentation"
       );

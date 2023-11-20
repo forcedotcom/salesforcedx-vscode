@@ -181,6 +181,7 @@ export class ApexTestOutlineProvider
           this.apexTestMap.set(test.definingType, apexGroup);
         }
         const apexTest = new ApexTestNode(test.methodName, test.location);
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         apexTest.name = apexGroup.label + '.' + apexTest.label;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);

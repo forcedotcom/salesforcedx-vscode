@@ -26,10 +26,10 @@
     "@typescript-eslint/no-unused-expressions": "error",
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/no-var-requires": "error",
-    "@typescript-eslint/prefer-as-const": "warn",
+    "@typescript-eslint/prefer-as-const": "error",
     "@typescript-eslint/quotes": "warn",
     "@typescript-eslint/require-await": "warn",
-    "@typescript-eslint/restrict-plus-operands": "warn",
+    "@typescript-eslint/restrict-plus-operands": "error",
     "@typescript-eslint/restrict-template-expressions": "warn",
     "@typescript-eslint/unbound-method": "warn"
   }

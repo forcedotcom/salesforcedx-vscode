@@ -8,7 +8,7 @@
     "@typescript-eslint/no-var-requires": "error",
     "@typescript-eslint/no-unsafe-call": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
-    "@typescript-eslint/restrict-plus-operands": "warn",
+    "@typescript-eslint/restrict-plus-operands": "error",
     "no-var": "warn",
     "@typescript-eslint/no-shadow": "error"
   }
