@@ -85,9 +85,8 @@ import {
 import { nls } from '../messages';
 
 // Below import has to be required for bundling
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
-/* tslint:enable */
 
 const TRACE_ALL = 'all';
 const TRACE_CATEGORY_VARIABLES = 'variables';

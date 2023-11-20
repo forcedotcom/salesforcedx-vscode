@@ -3,12 +3,12 @@
 import * as glob from 'glob';
 import * as paths from 'path';
 
-// tslint:disable:no-var-requires
-// tslint:disable-next-line:variable-name
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Mocha = require('mocha');
 
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
 // Since we are not running in a tty environment, we just implementt he method statically
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const tty = require('tty');
 if (!tty.getWindowSize) {
   tty.getWindowSize = (): number[] => {
@@ -75,6 +75,7 @@ function run(testsRoot: any, clb: any): any {
   }
 
   // Enable source map support
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('source-map-support').install();
 
   // Glob test files

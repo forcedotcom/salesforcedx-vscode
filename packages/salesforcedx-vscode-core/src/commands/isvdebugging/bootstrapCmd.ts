@@ -41,7 +41,7 @@ import {
   SfdxCommandletExecutor
 } from '../util';
 // below uses require due to bundling restrictions
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
 const AdmZip = require('adm-zip');
 
 export interface InstalledPackageInfo {

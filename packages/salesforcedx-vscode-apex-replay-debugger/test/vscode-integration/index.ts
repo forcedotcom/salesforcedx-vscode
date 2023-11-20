@@ -17,7 +17,7 @@
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
 import { join, normalize } from 'path';
 

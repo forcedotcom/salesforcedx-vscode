@@ -14,12 +14,11 @@ import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
 // Below two dependancies are not structured correcly for import unless require is used.
-/* tslint:disable */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { Command } from './';
 const cross_spawn = require('cross-spawn');
 const kill = require('tree-kill');
-/* tslint:enable */
-
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 export interface CancellationToken {
   isCancellationRequested: boolean;

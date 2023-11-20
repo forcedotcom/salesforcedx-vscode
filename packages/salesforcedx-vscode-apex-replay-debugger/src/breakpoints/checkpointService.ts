@@ -54,9 +54,8 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
 // below dependencies must be required for bundling to work properly
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
-/* tslint:enable */
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
