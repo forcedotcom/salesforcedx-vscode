@@ -67,7 +67,7 @@
     "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
     "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
