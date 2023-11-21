@@ -31,7 +31,7 @@
   ],
   "rules": {
     "header/header": [
-      "warn",
+      "error",
       "block",
       [
         "",
