@@ -109,7 +109,7 @@
   "scripts": {
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
