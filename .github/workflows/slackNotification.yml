@@ -101,7 +101,7 @@ jobs:
             {
               "category": "${{ inputs.title }}",
               "branch": "${{ github.ref_name }}",
-              "testsBranch" "${{ inputs.testsBranch }}"
+              "testsBranch": "${{ inputs.testsBranch }}"
               "summary": "${{ inputs.summary }}",
               "event": "${{ github.event.repository.html_url }}/${{ inputs.workflow }}",
               "result": "${{ inputs.result }}"
