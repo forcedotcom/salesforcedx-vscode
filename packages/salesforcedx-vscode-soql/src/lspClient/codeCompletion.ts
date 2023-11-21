@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable prefer-arrow/prefer-arrow-functions */
 
 import { SoqlItemContext } from '@salesforce/soql-language-server';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
@@ -327,7 +328,6 @@ function newFieldCompletionItems(
   soqlContext: SoqlItemContext
 ): ProtocolCompletionItem[] {
   const fieldItems = [];
-
   const fieldNameLowercase = field.name.toLowerCase();
   const isPreferredItem = soqlContext.mostLikelyItems?.some(
     f => f.toLowerCase() === fieldNameLowercase

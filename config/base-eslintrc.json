@@ -144,7 +144,7 @@
     "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/unified-signatures": "error",
     "@typescript-eslint/restrict-template-expressions": [
-      "error",
+      "warn",
       {
         "allowNumber": true,
         "allowBoolean": true,

@@ -136,6 +136,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const { properties } = executor.telemetryData;
       expect(properties).to.not.equal(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const { metadataCount } = properties!;
       expect(metadataCount).to.not.equal(undefined);
 
