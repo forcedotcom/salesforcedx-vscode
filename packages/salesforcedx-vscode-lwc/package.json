@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.5.1",
+  "version": "59.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,7 +28,7 @@
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.7.2",
     "@salesforce/lwc-language-server": "4.7.2",
-    "@salesforce/salesforcedx-utils-vscode": "59.5.1",
+    "@salesforce/salesforcedx-utils-vscode": "59.6.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
     "jest-editor-support": "^30.1.0",
@@ -40,7 +40,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.5.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.6.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -78,7 +78,7 @@
   "scripts": {
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --loader:.node=file --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/lwc-language-serve --external:@babel/preset-typescript/package.json --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
