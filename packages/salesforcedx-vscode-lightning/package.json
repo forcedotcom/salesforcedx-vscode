@@ -71,7 +71,7 @@
     "test:unit": "mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "test:vscode-integration": "node ../../scripts/run-tests-with-recipes",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
