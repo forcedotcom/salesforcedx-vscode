@@ -90,6 +90,7 @@ jobs:
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
+      testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -102,6 +103,7 @@ jobs:
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
+      testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -114,6 +116,7 @@ jobs:
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
+      testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
