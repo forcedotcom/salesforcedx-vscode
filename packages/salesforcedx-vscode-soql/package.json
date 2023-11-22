@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "59.5.0",
+  "version": "59.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -40,9 +40,9 @@
     "jsforce": "2.0.0-beta.28"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "59.5.0",
-    "@salesforce/salesforcedx-test-utils-vscode": "59.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "59.5.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.6.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "59.6.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "2.0.9",
@@ -95,7 +95,7 @@
     "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
