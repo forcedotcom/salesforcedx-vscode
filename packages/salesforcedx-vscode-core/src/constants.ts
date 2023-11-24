@@ -47,9 +47,10 @@ export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
   'enableDeployAndRetrieveForSourceTrackedOrgs.enabled';
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE =
   'experimental.enableSourceTrackingForDeployAndRetrieve';
+export const NODE_EXTRA_CA_CERTS = 'nodeExtraCaCerts';
 export const CLI = {
   ORG_LOGIN_DEVICE: 'org:login:device',
-  ORG_LOGIN_WEB: 'org:login:web'
+  ORG_LOGIN_WEB: 'org:login:web',
 };
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';
