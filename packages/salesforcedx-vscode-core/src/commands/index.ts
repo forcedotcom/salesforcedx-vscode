@@ -146,6 +146,7 @@ export {
 export {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
+  forceApexUnitClassCreate,
   forceApexTriggerCreate,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
