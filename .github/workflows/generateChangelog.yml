@@ -1,10 +1,7 @@
 name: Generate Changelog
 
 on:
-  workflow_run:
-    workflows: ['Create Release Branch']
-    types:
-      - completed
+  workflow_call:
 
 jobs:
   generate_changelog:
