@@ -19,7 +19,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryServiceProvider } from '../telemetry/telemetry';
+import { TelemetryService } from '../telemetry/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -74,7 +74,7 @@ export class ConfigUtil {
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
-        TelemetryServiceProvider.getInstance().sendException(
+        TelemetryService.getInstance().sendException(
           'get_default_username_alias',
           err.message
         );
