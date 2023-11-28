@@ -708,23 +708,23 @@ export async function validateCliInstallationAndVersion(): Promise<void> {
   const cliInstallationResult = await c.validateCliInstallationAndVersion(sfdxCliVersionArray, sfCliVersionArray);
 
   if (cliInstallationResult === CheckCliEnum.cliNotInstalled) {
-    showPopupMessage('sfdx_cli_not_found', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    showErrorNotification('sfdx_cli_not_found', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
     throw Error('No Salesforce CLI installed');
   } else if (cliInstallationResult === CheckCliEnum.onlySFv1) {
-    showPopupMessage('sf_v1_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    showErrorNotification('sf_v1_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
     throw Error('Only SF v1 installed');
   } else if (cliInstallationResult === CheckCliEnum.outdatedSFDXVersion) {
-    showPopupMessage('sfdx_cli_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    showErrorNotification('sfdx_cli_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
     throw Error('Outdated SFDX CLI version that is no longer supported');
   } else if (cliInstallationResult === CheckCliEnum.bothSFDXAndSFInstalled) {
-    showPopupMessage('both_sfdx_and_sf', []);
+    showErrorNotification('both_sfdx_and_sf', []);
     throw Error('Both SFDX v7 and SF v2 are installed');
   } else {
     // do nothing - this is a valid CLI version that is compatible with the extensions
   }
 }
 
-export function showPopupMessage(type: string, args: any[]) {
+export function showErrorNotification(type: string, args: any[]) {
   const showMessage = nls.localize(
     type,
     ...args
