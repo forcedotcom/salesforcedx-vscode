@@ -14,7 +14,7 @@ import {
   CONFLICT_DETECTION_ENABLED,
   ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
   INTERNAL_DEVELOPMENT_FLAG,
-  NODE_EXTRA_CA_CERTS,
+  ENV_NODE_EXTRA_CA_CERTS,
   PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
@@ -99,7 +99,7 @@ export class SfdxCoreSettings {
   }
 
   public getNodeExtraCaCerts(): string {
-    return this.getConfigValue(NODE_EXTRA_CA_CERTS, '');
+    return this.getConfigValue(ENV_NODE_EXTRA_CA_CERTS, '');
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
