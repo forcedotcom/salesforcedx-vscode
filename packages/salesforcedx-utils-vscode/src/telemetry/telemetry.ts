@@ -129,13 +129,19 @@ export class TelemetryService {
       !isDevMode
     ) {
       this.reporter = new TelemetryReporter(
-        'salesforcedx-vscode',
+        this.getTelemetryReporterName(),
         this.version,
         this.aiKey,
         true
       );
       this.extensionContext.subscriptions.push(this.reporter);
     }
+  }
+
+  getTelemetryReporterName(): string {
+    return this.extensionName.startsWith('salesforcedx-vscode')
+      ? 'salesforcedx-vscode'
+      : this.extensionName;
   }
 
   public getReporter(): TelemetryReporter | undefined {
