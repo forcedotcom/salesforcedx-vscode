@@ -11,7 +11,7 @@ import {
   Properties,
   TelemetryBuilder,
   TelemetryData,
-  TelemetryServiceProvider
+  TelemetryService
 } from '../index';
 import { nls } from '../messages';
 import { SfdxSettingsService } from '../settings';
@@ -63,7 +63,7 @@ export abstract class SfdxCommandletExecutor<T>
     properties?: Properties,
     measurements?: Measurements
   ) {
-    TelemetryServiceProvider.getInstance().sendCommandEvent(
+    TelemetryService.getInstance().sendCommandEvent(
       logName,
       hrstart,
       properties,
@@ -163,7 +163,7 @@ export abstract class LibraryCommandletExecutor<T>
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
-    const telemetryService = TelemetryServiceProvider.getInstance();
+    const telemetryService = TelemetryService.getInstance();
     if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
       channelService.clear();
     }

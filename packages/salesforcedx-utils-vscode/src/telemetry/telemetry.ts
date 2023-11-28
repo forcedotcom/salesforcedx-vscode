@@ -10,8 +10,7 @@ import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME,
-  SFDX_E4D_EXTENSION_NAME
+  SFDX_CORE_EXTENSION_NAME
 } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
@@ -57,6 +56,7 @@ export class TelemetryBuilder {
   }
 }
 
+// export only for unit test
 export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryService {
@@ -74,9 +74,13 @@ export class TelemetryService {
   private reporter: TelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
-  // Temporary usage for earlier version of e4d
-  public static getInstance() {
-    return TelemetryServiceProvider.getInstance(SFDX_E4D_EXTENSION_NAME);
+  /**
+   * Retrieve Telemetry Service according to the extension name.
+   * If no extension name provided, return the instance for core extension by default
+   * @param extensionName extension name
+   */
+  public static getInstance(extensionName?: string) {
+    return TelemetryServiceProvider.getInstance(extensionName);
   }
   /**
    * Cached promise to check if CLI telemetry config is enabled

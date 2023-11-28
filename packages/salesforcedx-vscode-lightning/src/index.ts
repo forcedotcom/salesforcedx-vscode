@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { TelemetryServiceProvider } from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   ExtensionContext,
@@ -84,9 +84,7 @@ export async function activate(extensionContext: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  await TelemetryServiceProvider.getInstance().initializeService(
-    extensionContext
-  );
+  await TelemetryService.getInstance().initializeService(extensionContext);
 
   // Start the Aura Language Server
 
@@ -180,9 +178,7 @@ export async function activate(extensionContext: ExtensionContext) {
   extensionContext.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
-  TelemetryServiceProvider.getInstance().sendExtensionActivationEvent(
-    extensionHRStart
-  );
+  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
 }
 
 let indexingResolve: any;
@@ -213,5 +209,5 @@ function reportIndexing(indexingPromise: Promise<void>) {
 
 export function deactivate() {
   console.log('Aura Components Extension Deactivated');
-  TelemetryServiceProvider.getInstance().sendExtensionDeactivationEvent();
+  TelemetryService.getInstance().sendExtensionDeactivationEvent();
 }

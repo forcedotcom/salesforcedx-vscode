@@ -4,11 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryServiceProvider, TelemetryService } from '../../../src';
-import {
-  SFDX_CORE_EXTENSION_NAME,
-  SFDX_E4D_EXTENSION_NAME
-} from '../../../src/constants';
+import { TelemetryService } from '../../../src';
+import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
+import { TelemetryServiceProvider } from '../../../src/telemetry/telemetry';
 
 describe('Telemetry', () => {
   describe('Telemetry Provider', () => {
@@ -59,12 +57,19 @@ describe('Telemetry', () => {
   });
 
   describe('Telemetry Service', () => {
-    it('getInstance should return the e4d instance for compatibility', () => {
+    it('getInstance should return the core instance if no extension name provided', () => {
       const firstInstance = TelemetryService.getInstance();
       const secondInstance = TelemetryServiceProvider.getInstance(
-        SFDX_E4D_EXTENSION_NAME
+        SFDX_CORE_EXTENSION_NAME
       );
       expect(firstInstance).toBe(secondInstance);
+    });
+    it('getInstance should return the same TelemetryService instance for a named extension on subsequent calls', () => {
+      const extensionName = 'someExtension';
+      const firstInstance = TelemetryService.getInstance(extensionName);
+      const secondInstance =
+        TelemetryServiceProvider.getInstance(extensionName);
+      expect(secondInstance).toBe(firstInstance);
     });
   });
 });

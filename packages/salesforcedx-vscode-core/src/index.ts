@@ -9,7 +9,6 @@ import {
   ChannelService,
   getRootWorkspacePath,
   SFDX_CORE_CONFIGURATION_NAME,
-  TelemetryServiceProvider,
   TelemetryService
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -626,7 +625,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     telemetryService,
     services: {
       ChannelService,
-      TelemetryServiceProvider,
       TelemetryService,
       WorkspaceContext
     }

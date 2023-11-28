@@ -31,7 +31,6 @@ export {
   WorkspaceContextUtil
 } from './context/workspaceContextUtil';
 export {
-  TelemetryServiceProvider,
   TelemetryService,
   TelemetryBuilder,
   TelemetryData,
