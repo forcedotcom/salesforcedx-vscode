@@ -14,7 +14,7 @@ jobs:
           ref: 'develop'
           ssh-strict: false
           token: ${{ secrets.IDEE_GH_TOKEN }}
-          fetch-depth: '0' # Fetch all tags to prepare for tag retrieval
+          fetch-depth: '0' # Fetching tags will fail if it is not 0
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
