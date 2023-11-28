@@ -78,6 +78,9 @@
     "vscode-extension-tester": "^5.0.0",
     "vscode-languageclient": "6.1.3"
   },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "scripts": {
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
     "build": "npm run compile",

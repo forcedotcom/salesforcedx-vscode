@@ -60,6 +60,9 @@
     "typescript": "^5.2.2",
     "vscode-uri": "1.0.1"
   },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "scripts": {
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/aura-language-server --minify",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
