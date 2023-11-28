@@ -11,6 +11,10 @@ import {
   getLanguageService as getHTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import {
+  ColorInformation,
+  ColorPresentation
+} from 'vscode-languageserver-protocol';
+import {
   CompletionItem,
   CompletionList,
   Definition,
@@ -28,10 +32,6 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 
-import {
-  ColorInformation,
-  ColorPresentation
-} from 'vscode-languageserver-protocol';
 
 import {
   getLanguageModelCache,
@@ -123,7 +123,7 @@ export function getLanguageModes(supportedLanguages: {
     document => getDocumentRegions(htmlLanguageService, document)
   );
 
-  let modelCaches: Array<LanguageModelCache<any>> = [];
+  let modelCaches: LanguageModelCache<any>[] = [];
   modelCaches.push(documentRegions);
 
   let modes = {};
