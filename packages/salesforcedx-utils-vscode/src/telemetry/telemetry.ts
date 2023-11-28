@@ -138,6 +138,11 @@ export class TelemetryService {
     }
   }
 
+  /**
+   * Helper to get the name for telemetryReporter
+   * if the extension from extension pack, use salesforcedx-vscode
+   * otherwise use the extension name
+   */
   getTelemetryReporterName(): string {
     return this.extensionName.startsWith('salesforcedx-vscode')
       ? 'salesforcedx-vscode'
