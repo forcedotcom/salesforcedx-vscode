@@ -7,7 +7,7 @@
 
 import {
   SETTING_CLEAR_OUTPUT_TAB,
-  SFDX_CORE_CONFIGURATION_NAME,
+  SFDX_CORE_CONFIGURATION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
@@ -20,7 +20,7 @@ import {
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED,
+  TELEMETRY_ENABLED
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -67,7 +67,7 @@ export class SfdxCoreSettings {
   public getPushOrDeployOnSaveOverrideConflicts(): boolean {
     return this.getConfigValue<boolean>(
       PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
-      false,
+      false
     );
   }
 
@@ -78,7 +78,7 @@ export class SfdxCoreSettings {
   public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
     return this.getConfigValue(
       ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
-      true,
+      true
     );
   }
 
