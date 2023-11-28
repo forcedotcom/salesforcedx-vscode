@@ -109,7 +109,11 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
+import {
+  isCLIInstalled,
+  setUpOrgExpirationWatcher,
+  setNodeExtraCaCerts
+} from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
@@ -373,6 +377,8 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
+    forceRenameComponentCmd,
+    forceDiffFolder,
     forceAuthAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
@@ -426,6 +432,8 @@ function registerCommands(
     orgListCleanCmd,
     orgLoginWebCmd,
     orgLoginWebDevHubCmd,
+    orgLogoutAllCmd,
+    orgLogoutDefaultCmd,
     orgOpenCmd
   );
 }
@@ -527,6 +535,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  setNodeExtraCaCerts();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 

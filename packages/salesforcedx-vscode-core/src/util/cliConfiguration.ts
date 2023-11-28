@@ -12,10 +12,12 @@ import {
 import { which } from 'shelljs';
 import { window } from 'vscode';
 import {
+  ENV_NODE_EXTRA_CA_CERTS,
   ENV_SF_DISABLE_TELEMETRY,
   SFDX_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
+import { sfdxCoreSettings } from '../settings';
 
 export function isCLIInstalled(): boolean {
   let isInstalled = false;
@@ -48,4 +50,11 @@ export function disableCLITelemetry() {
 export async function isCLITelemetryAllowed() {
   const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
   return !isTelemetryDisabled;
+}
+
+export function setNodeExtraCaCerts() {
+  GlobalCliEnvironment.environmentVariables.set(
+    ENV_NODE_EXTRA_CA_CERTS,
+    sfdxCoreSettings.getNodeExtraCaCerts()
+  );
 }
