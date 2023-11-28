@@ -109,7 +109,11 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
+import {
+  isCLIInstalled,
+  setUpOrgExpirationWatcher,
+  setNodeExtraCaCerts
+} from './util';
 import { OrgAuthInfo } from './util/authInfo';
 import { nls } from './messages';
 import { SFDX_CLI_DOWNLOAD_LINK } from './constants';
@@ -375,6 +379,8 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
+    forceRenameComponentCmd,
+    forceDiffFolder,
     forceAuthAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
@@ -428,6 +434,8 @@ function registerCommands(
     orgListCleanCmd,
     orgLoginWebCmd,
     orgLoginWebDevHubCmd,
+    orgLogoutAllCmd,
+    orgLogoutDefaultCmd,
     orgOpenCmd
   );
 }
@@ -530,6 +538,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   await validateCliInstallationAndVersion();
+  setNodeExtraCaCerts();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
