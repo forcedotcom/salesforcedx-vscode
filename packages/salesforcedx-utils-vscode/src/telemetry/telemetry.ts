@@ -118,7 +118,6 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const machineId = env ? env.machineId : 'someValue.machineId';
     const isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;
 
@@ -142,8 +141,9 @@ export class TelemetryService {
    * Helper to get the name for telemetryReporter
    * if the extension from extension pack, use salesforcedx-vscode
    * otherwise use the extension name
+   * exported only for unit test
    */
-  getTelemetryReporterName(): string {
+  public getTelemetryReporterName(): string {
     return this.extensionName.startsWith('salesforcedx-vscode')
       ? 'salesforcedx-vscode'
       : this.extensionName;

@@ -72,4 +72,23 @@ describe('Telemetry', () => {
       expect(secondInstance).toBe(firstInstance);
     });
   });
+
+  describe('getTelemetryReporterName', () => {
+    let telemetryService: TelemetryService;
+    beforeEach(() => {
+      telemetryService = new TelemetryService();
+    });
+
+    it('should return "salesforcedx-vscode" when extensionName starts with "salesforcedx-vscode"', () => {
+      telemetryService.extensionName = 'salesforcedx-vscode-core';
+      const result = telemetryService.getTelemetryReporterName();
+      expect(result).toBe('salesforcedx-vscode');
+    });
+
+    it('should return the actual extensionName when it does not start with "salesforcedx-vscode"', () => {
+      telemetryService.extensionName = 'salesforcedx-einstein-gpt';
+      const result = telemetryService.getTelemetryReporterName();
+      expect(result).toBe(telemetryService.extensionName);
+    });
+  });
 });
