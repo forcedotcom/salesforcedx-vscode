@@ -14,7 +14,7 @@ jobs:
           ref: 'develop'
           ssh-strict: false
           token: ${{ secrets.IDEE_GH_TOKEN }}
-          fetch-depth: '0'
+          fetch-depth: '0' # Fetch all tags to prepare for tag retrieval
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -22,10 +22,7 @@ jobs:
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - name: Set NPM at the correct version for Lerna
-        run: npm install -g npm@9.8.1
       - run: npm ci
-      - run: npm install -g shelljs && npm install -g lerna@5.5.4
       - name: Generate CHANGELOG
         run: npm run changelog
       - id: result
