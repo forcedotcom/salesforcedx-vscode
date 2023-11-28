@@ -35,16 +35,7 @@ export function showCLINotInstalledMessage() {
     SFDX_CLI_DOWNLOAD_LINK,
     SFDX_CLI_DOWNLOAD_LINK
   );
-  window.showErrorMessage(showMessage);
-}
-
-export function showCLINotSupportedMessage() {
-  const showMessage = nls.localize(
-    'sfdx_cli_not_supported',
-    SFDX_CLI_DOWNLOAD_LINK,
-    SFDX_CLI_DOWNLOAD_LINK
-  );
-  window.showErrorMessage(showMessage);
+  window.showWarningMessage(showMessage);
 }
 
 export function disableCLITelemetry() {

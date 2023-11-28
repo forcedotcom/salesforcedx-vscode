@@ -67,12 +67,12 @@ describe('SFDX CLI Configuration utility', () => {
   });
 
   describe('showCLINotInstalledMessage', () => {
-    let mShowError: SinonStub;
+    let mShowWarning: SinonStub;
 
     beforeEach(() => {
       sandboxStub = createSandbox();
-      mShowError = sandboxStub
-        .stub(window, 'showErrorMessage')
+      mShowWarning = sandboxStub
+        .stub(window, 'showWarningMessage')
         .returns(Promise.resolve(null));
     });
 
@@ -82,7 +82,7 @@ describe('SFDX CLI Configuration utility', () => {
 
     it('Should show cli install info message', async () => {
       showCLINotInstalledMessage();
-      assert.calledOnce(mShowError);
+      assert.calledOnce(mShowWarning);
     });
   });
 

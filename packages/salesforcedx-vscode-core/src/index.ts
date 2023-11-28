@@ -109,8 +109,10 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setUpOrgExpirationWatcher, showCLINotInstalledMessage, showCLINotSupportedMessage } from './util';
+import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+import { nls } from './messages';
+import { SFDX_CLI_DOWNLOAD_LINK } from './constants';
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
@@ -527,9 +529,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-
   await validateCliInstallationAndVersion();
-
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
@@ -697,17 +697,37 @@ export function deactivate(): Promise<void> {
 export async function validateCliInstallationAndVersion(): Promise<void> {
   // Check that the CLI is installed and that it is a supported version
   // If there is no CLI or it is an unsupported version then the Core extension will not activate
-  const installed = await isCLIInstalled();
-  if (!installed) {
-    showCLINotInstalledMessage();
+  const c = new CheckCliVersion();
+
+  const sfdxCliVersionString = await c.getSfdxCliVersion();
+  const sfCliVersionString = await c.getSfCliVersion();
+
+  const sfdxCliVersionArray = await c.parseSfdxCliVersion(sfdxCliVersionString);
+  const sfCliVersionArray = await c.parseSfCliVersion(sfCliVersionString);
+
+  const cliInstallationResult = await c.validateCliInstallationAndVersion(sfdxCliVersionArray, sfCliVersionArray);
+
+  if (cliInstallationResult === CheckCliEnum.cliNotInstalled) {
+    showPopupMessage('sfdx_cli_not_found', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    throw Error('No Salesforce CLI installed');
+  } else if (cliInstallationResult === CheckCliEnum.onlySFv1) {
+    showPopupMessage('sf_v1_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    throw Error('Only SF v1 installed');
+  } else if (cliInstallationResult === CheckCliEnum.outdatedSFDXVersion) {
+    showPopupMessage('sfdx_cli_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    throw Error('Outdated SFDX CLI version that is no longer supported');
+  } else if (cliInstallationResult === CheckCliEnum.bothSFDXAndSFInstalled) {
+    showPopupMessage('both_sfdx_and_sf', []);
+    throw Error('Both SFDX v7 and SF v2 are installed');
+  } else {
+    // do nothing - this is a valid CLI version that is compatible with the extensions
   }
-  const cliVersion = await new CheckCliVersion().getCliVersion();
-  const cliVersionCheckResult = await new CheckCliVersion().validateCliVersion(cliVersion);
-  if (cliVersionCheckResult === CheckCliEnum.cliNotSupported) {
-    showCLINotSupportedMessage();
-    throw new Error('CLI version is no longer supported');
-  } else if (cliVersionCheckResult === CheckCliEnum.cliNotInstalled) {
-    showCLINotInstalledMessage();
-    throw new Error('Salesforce CLI is not installed');
-  }
+}
+
+export function showPopupMessage(type: string, args: any[]) {
+  const showMessage = nls.localize(
+    type,
+    ...args
+  );
+  vscode.window.showErrorMessage(showMessage);
 }

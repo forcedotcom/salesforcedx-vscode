@@ -291,9 +291,13 @@ export const messages = {
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
-    'Either Salesforce CLI is not installed or only SF v1 is present. Install the latest CLI version from [%s](%s)',
+    'Salesforce CLI is not installed. Install it from [%s](%s)',
   sfdx_cli_not_supported:
     'Your installed CLI version is no longer supported. Please uninstall your CLI and reinstall the latest version from [%s](%s)',
+  sf_v1_not_supported:
+    'Your installed CLI version is incompatible with our extensions. Please uninstall your CLI and reinstall the latest version from [%s](%s)',
+  both_sfdx_and_sf:
+    'You have both SFDX v7 and SF v2 installed. Please uninstall SFDX v7 by running "npm uninstall sfdx-cli --global" in your Terminal.',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
