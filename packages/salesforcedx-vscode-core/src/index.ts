@@ -377,6 +377,8 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
+    forceRenameComponentCmd,
+    forceDiffFolder,
     forceAuthAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
@@ -430,6 +432,8 @@ function registerCommands(
     orgListCleanCmd,
     orgLoginWebCmd,
     orgLoginWebDevHubCmd,
+    orgLogoutAllCmd,
+    orgLogoutDefaultCmd,
     orgOpenCmd
   );
 }
