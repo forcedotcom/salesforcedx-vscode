@@ -99,7 +99,10 @@ export class SfdxCoreSettings {
   }
 
   public getNodeExtraCaCerts(): string {
-    return this.getConfigValue(ENV_NODE_EXTRA_CA_CERTS, '');
+    return this.getConfigValue(
+      ENV_NODE_EXTRA_CA_CERTS,
+      process.env.NODE_EXTRA_CA_CERTS ?? ''
+    );
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
