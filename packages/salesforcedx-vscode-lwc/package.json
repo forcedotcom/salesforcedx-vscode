@@ -26,8 +26,8 @@
   "dependencies": {
     "@salesforce/core": "5.3.18",
     "@salesforce/eslint-config-lwc": "3.5.1",
-    "@salesforce/lightning-lsp-common": "4.7.2",
-    "@salesforce/lwc-language-server": "4.7.2",
+    "@salesforce/lightning-lsp-common": "4.7.3",
+    "@salesforce/lwc-language-server": "4.7.3",
     "@salesforce/salesforcedx-utils-vscode": "59.7.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
@@ -73,7 +73,8 @@
     "which": "1.3.1"
   },
   "extensionDependencies": [
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
     "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --loader:.node=file --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/lwc-language-serve --external:@babel/preset-typescript/package.json --minify",
@@ -116,8 +117,8 @@
         "applicationinsights": "1.0.7",
         "@salesforce/core": "5.3.18",
         "@salesforce/source-tracking": "4.3.0",
-        "@salesforce/lightning-lsp-common": "4.7.2",
-        "@salesforce/lwc-language-server": "4.7.2"
+        "@salesforce/lightning-lsp-common": "4.7.3",
+        "@salesforce/lwc-language-server": "4.7.3"
       },
       "devDependencies": {}
     }
