@@ -31,7 +31,7 @@
   ],
   "rules": {
     "header/header": [
-      "warn",
+      "error",
       "block",
       [
         "",
@@ -141,9 +141,10 @@
       }
     ],
     "@typescript-eslint/typedef": "off",
+    "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/unified-signatures": "error",
     "@typescript-eslint/restrict-template-expressions": [
-      "error",
+      "warn",
       {
         "allowNumber": true,
         "allowBoolean": true,

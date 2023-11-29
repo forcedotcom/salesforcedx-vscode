@@ -78,6 +78,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       stdOut += realData.toString();
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
@@ -106,6 +107,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
         channelService.appendLine(err);
         telemetryService.sendException(
           'force_org_create',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `Error while parsing org create response ${err}`
         );
       }

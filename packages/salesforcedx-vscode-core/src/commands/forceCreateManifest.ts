@@ -34,6 +34,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<string>,
     progress?: vscode.Progress<{
@@ -41,6 +42,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     if (this.sourcePaths) {
       const packageXML = await ComponentSet.fromSource(

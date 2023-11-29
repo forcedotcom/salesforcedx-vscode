@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
-
 import {
   Command,
   SfdxCommandBuilder
@@ -17,6 +15,7 @@ import {
   ParametersGatherer,
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
