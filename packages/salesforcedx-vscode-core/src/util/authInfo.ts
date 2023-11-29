@@ -88,7 +88,7 @@ export class OrgAuthInfo {
         }
         return undefined;
       }
-      return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
+      return JSON.stringify(defaultDevHubUserName).replace(/"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
