@@ -8,11 +8,12 @@
 import { Connection } from '@salesforce/core';
 import {
   OrgUserInfo,
-  WorkspaceContextUtil
+  WorkspaceContextUtil,
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
 import { decorators } from '../decorators';
+import { SfdxProjectConfig } from '../sfdxProject';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -43,12 +44,16 @@ export class WorkspaceContext {
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
+  public async getSfdxNamespace(): Promise<string> {
+    return await SfdxProjectConfig.getValue('namespace');
+  }
+
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
     await workspaceContextUtils
       .setupWorkspaceOrgType(orgInfo.username)
-      .catch(e =>
+      .catch((e) =>
         // error reported by setupWorkspaceOrgType
-        console.error(e)
+        console.error(e),
       );
 
     await decorators.showOrg();
