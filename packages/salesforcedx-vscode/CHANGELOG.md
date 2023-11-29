@@ -1,3 +1,21 @@
+# 59.7.0 - December 1, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We added a new VSCode setting to allow users to change the trace level of Apex LS in VS Code Settings UI. ([PR #5235](https://github.com/forcedotcom/salesforcedx-vscode/pull/5235))
+
+#### salesforcedx-vscode-core
+
+- We added a new command in the command palette to create Apex unit tests: **SFDX: Create Apex Unit Test Class**. ([PR #5237](https://github.com/forcedotcom/salesforcedx-vscode/pull/5237))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5245](https://github.com/forcedotcom/salesforcedx-vscode/pull/5245))
+
 # 59.5.1 - November 16, 2023
 
 ## Added
