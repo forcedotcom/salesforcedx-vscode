@@ -44,8 +44,9 @@ export class WorkspaceContext {
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
-  public async getSfdxNamespace(): Promise<string> {
-    return await SfdxProjectConfig.getValue('namespace');
+  public async getSfdxNamespace(): Promise<string | undefined> {
+    const namespace = await SfdxProjectConfig.getValue('namespace');
+    return typeof namespace === 'string' ? namespace : undefined;
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
