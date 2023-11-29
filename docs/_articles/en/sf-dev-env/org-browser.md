@@ -37,7 +37,7 @@ The Org Browser lists all the metadata types **(4)** in your default org. To vie
 - emails: email(length)
 - lookups: lookup(reference)
 
-Use the icons in the Org Browser, or the `SFDX:Refresh Types` and `SFDX:Refresh Components` commands to refresh metadata at org level, for a metadata type, for folders within a metadata type, or for components within a folder.
+Use the icons in the Org Browser, or the **SFDX:Refresh Types** and **SFDX:Refresh Components** commands to refresh metadata at org level, for a metadata type, for folders within a metadata type, or for components within a folder.
 
 - **(2)** Refresh available metadata types in the org.
 - **(6)** Refresh components for the corresponding metadata type.
