@@ -206,7 +206,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
             label: nls.localize('table_header_project_path')
           }
         ],
-        nls.localize(`table_title_deployed_source`)
+        nls.localize('table_title_deployed_source')
       );
     } else {
       output = table.createTable(
@@ -218,7 +218,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           },
           { key: 'error', label: nls.localize('table_header_errors') }
         ],
-        nls.localize(`table_title_deploy_errors`)
+        nls.localize('table_title_deploy_errors')
       );
     }
 
@@ -264,7 +264,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     if (sourceTrackingEnabled) {
       const status = result?.response?.status;
       if (
-        (status === 'Succeeded' || status === 'SucceededPartial') &&
+        (status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) &&
         this.sourceTracking
       ) {
         await SourceTrackingService.updateSourceTrackingAfterRetrieve(
@@ -331,7 +331,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
             label: nls.localize('table_header_project_path')
           }
         ],
-        nls.localize(`lib_retrieve_result_title`)
+        nls.localize('lib_retrieve_result_title')
       );
     }
 

@@ -143,7 +143,7 @@ export class CodeCoverage {
   public colorizer(editor?: TextEditor) {
     try {
       if (editor && isApexMetadata(editor.document.uri.fsPath)) {
-        const codeCovArray = getCoverageData() as Array<{ name: string }>;
+        const codeCovArray = getCoverageData() as { name: string }[];
         const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
         const codeCovItem = codeCovArray.find(
           covItem => covItem.name === apexMemberName
@@ -156,21 +156,19 @@ export class CodeCoverage {
         }
 
         if (
-          codeCovItem.hasOwnProperty('lines') &&
-          !codeCovItem.hasOwnProperty('uncoveredLines')
+          Reflect.has(codeCovItem, 'lines') &&
+          !Reflect.has(codeCovItem, 'uncoveredLines')
         ) {
           const covItem = codeCovItem as CoverageItem;
           for (const key in covItem.lines) {
-            if (covItem.lines.hasOwnProperty(key)) {
-              if (covItem.lines[key] === 1) {
-                this.coveredLines.push(
-                  getLineRange(editor.document, Number(key))
-                );
-              } else {
-                this.uncoveredLines.push(
-                  getLineRange(editor.document, Number(key))
-                );
-              }
+            if (covItem.lines[key] === 1) {
+              this.coveredLines.push(
+                getLineRange(editor.document, Number(key))
+              );
+            } else {
+              this.uncoveredLines.push(
+                getLineRange(editor.document, Number(key))
+              );
             }
           }
         } else {

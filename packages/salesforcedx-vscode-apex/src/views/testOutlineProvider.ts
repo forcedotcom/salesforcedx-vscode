@@ -17,11 +17,10 @@ import {
 } from '../constants';
 import {
   getApexTests,
-  LanguageClientStatus,
   languageClientUtils
 } from '../languageUtils';
 import { nls } from '../messages';
-import { iconHelpers, IconsEnum } from './icons';
+import { IconsEnum, iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
 // Message
@@ -71,7 +70,7 @@ export class ApexTestOutlineProvider
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+        const languageClientStatus = languageClientUtils.getStatus() ;
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
             vscode.window.showInformationMessage(
@@ -137,7 +136,7 @@ export class ApexTestOutlineProvider
     } else {
       testResultFilePath = path.join(
         apexTestPath,
-        `test-result-${testRunId}.json`
+        `test-result-${testRunId.toString()}.json`
       );
     }
     if (testResultFile === testResultFilePath) {
@@ -182,6 +181,7 @@ export class ApexTestOutlineProvider
           this.apexTestMap.set(test.definingType, apexGroup);
         }
         const apexTest = new ApexTestNode(test.methodName, test.location);
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         apexTest.name = apexGroup.label + '.' + apexTest.label;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
@@ -230,7 +230,7 @@ export class ApexTestOutlineProvider
       if (apexTestNode) {
         apexTestNode.outcome = test.outcome;
         apexTestNode.updateOutcome();
-        if (test.outcome === FAIL_RESULT) {
+        if (test.outcome.toString() === FAIL_RESULT) {
           apexTestNode.errorMessage = test.message || '';
           apexTestNode.stackTrace = test.stackTrace || '';
           apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
@@ -271,6 +271,7 @@ export abstract class TestNode extends vscode.TreeItem {
   };
 
   // TODO: create a ticket to address this particular issue.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   get tooltip(): string {
     return this.description;

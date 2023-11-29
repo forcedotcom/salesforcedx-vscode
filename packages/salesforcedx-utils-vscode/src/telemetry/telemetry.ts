@@ -101,6 +101,7 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const machineId = env ? env.machineId : 'someValue.machineId';
     const isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;

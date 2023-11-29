@@ -66,7 +66,7 @@ export class LogFileSelector
       if (logItem) {
         return {
           type: 'CONTINUE',
-          data: { id: logItem.id, startTime: logItem.startTime! }
+          data: { id: logItem.id, startTime: logItem.startTime }
         };
       }
     } else {
@@ -136,6 +136,7 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function forceApexLogGet(explorerDir?: any) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),

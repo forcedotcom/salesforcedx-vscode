@@ -26,7 +26,7 @@ describe('RootWorkspace utils should', () => {
 
   afterEach(() => {
     if (workspaceStub) {
-      workspaceStub!.restore();
+      workspaceStub.restore();
       workspaceStub = undefined;
     }
   });

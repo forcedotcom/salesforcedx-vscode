@@ -7,8 +7,8 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { DevServerService } from '../../../src/service/devServerService';
 import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConstants';
+import { DevServerService } from '../../../src/service/devServerService';
 
 // tslint:disable:no-unused-expression
 describe('DevServerService', () => {

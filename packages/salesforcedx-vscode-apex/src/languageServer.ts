@@ -27,6 +27,7 @@ const SUSPEND_LANGUAGE_SERVER_STARTUP =
   process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL =
   process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
+// eslint-disable-next-line no-var
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 

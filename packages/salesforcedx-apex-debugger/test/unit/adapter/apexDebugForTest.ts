@@ -216,7 +216,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.variablesRequest(response, args);
   }
 
-  public getIdleTimers(): Array<ReturnType<typeof setTimeout>> {
+  public getIdleTimers(): ReturnType<typeof setTimeout>[] {
     return this.idleTimers;
   }
 }

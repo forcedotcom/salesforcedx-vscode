@@ -6,9 +6,8 @@
  */
 
 import { JsonArray, JsonMap } from '@salesforce/ts-types';
-import { SfdxProjectConfig } from '../sfdxProject';
-
 import * as path from 'path';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { workspaceUtils } from '../util';
 
 export default class SfdxPackageDirectories {

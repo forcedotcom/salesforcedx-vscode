@@ -68,7 +68,7 @@ describe('Start Apex Debug Logging', () => {
     const queryTraceFlagsExecutor = new QueryTraceFlag();
     const updateTraceFlagCmd = queryTraceFlagsExecutor.build('005x00000000123');
     expect(updateTraceFlagCmd.toCommand()).to.equal(
-      `sfdx data:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='005x00000000123' --use-tooling-api --json --loglevel fatal`
+      'sfdx data:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype=\'DEVELOPER_LOG\' AND TracedEntityId=\'005x00000000123\' --use-tooling-api --json --loglevel fatal'
     );
   });
 

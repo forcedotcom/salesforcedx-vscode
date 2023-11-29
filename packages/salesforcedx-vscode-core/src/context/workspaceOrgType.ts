@@ -29,6 +29,7 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
     connection = await workspaceContext.getConnection();
   } catch (error) {
     console.warn(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `An error was encountered while getting the org connection:\n ${error}`
     );
     return OrgType.NonSourceTracked;

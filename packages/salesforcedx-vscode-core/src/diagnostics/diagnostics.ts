@@ -54,7 +54,7 @@ export function handleDiagnosticErrors(
     : sourcePathOrPaths;
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  if (errors.hasOwnProperty('data')) {
+  if (Reflect.has(errors, 'data')) {
     errors.data.forEach(error => {
       const fileUri = getFileUri(
         workspacePath,
@@ -84,7 +84,7 @@ export function handleDiagnosticErrors(
       const fileUri = vscode.Uri.file(file);
       errorCollection.set(fileUri, diagMap);
     });
-  } else if (errors.hasOwnProperty('message')) {
+  } else if (Reflect.has(errors, 'message')) {
     const fileUri = vscode.Uri.file(defaultErrorPath);
     const range = getRange('1', '1');
     const diagnostic = {

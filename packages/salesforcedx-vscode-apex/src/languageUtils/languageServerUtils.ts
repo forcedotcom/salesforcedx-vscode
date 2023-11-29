@@ -31,8 +31,8 @@ function findAndCheckOrphanedProcesses(): ProcessDetail[] {
   }
 
   const cmd = isWindows
-    ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"`
-    : `ps -e -o pid,ppid,command`;
+    ? 'powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"'
+    : 'ps -e -o pid,ppid,command';
 
   const stdout = execSync(cmd).toString();
   const lines = stdout.trim().split(/\r?\n/g);

@@ -9,15 +9,6 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-
-import { DEFAULT_ALIAS } from './authParamsGatherer';
-
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '../util';
-
 import {
   CancelResponse,
   ContinueResponse,
@@ -28,6 +19,12 @@ import * as vscode from 'vscode';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
+import {
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '../util';
+import { DEFAULT_ALIAS } from './authParamsGatherer';
 import {
   ForceAuthDemoModeExecutor,
   OrgLoginWebContainerExecutor

@@ -136,7 +136,7 @@ describe('Fetch sObjects', () => {
       body: JSON.stringify(testBatchReq),
       headers: {
         'User-Agent': 'salesforcedx-extension',
-        'Sforce-Call-Options': `client=sfdx-vscode`
+        'Sforce-Call-Options': 'client=sfdx-vscode'
       }
     });
   });

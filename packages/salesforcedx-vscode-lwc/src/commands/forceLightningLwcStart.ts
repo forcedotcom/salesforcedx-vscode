@@ -27,7 +27,7 @@ import { DevServerService, ServerHandler } from '../service/devServerService';
 import { openBrowser, showError } from './commandUtils';
 
 const logName = 'force_lightning_lwc_start';
-const commandName = nls.localize(`force_lightning_lwc_start_text`);
+const commandName = nls.localize('force_lightning_lwc_start_text');
 
 /**
  * Hints for providing a user-friendly error message / action.
@@ -66,6 +66,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public execute(response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();

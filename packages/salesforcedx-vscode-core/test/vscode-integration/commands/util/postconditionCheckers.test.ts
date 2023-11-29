@@ -235,7 +235,7 @@ describe('Postcondition Checkers', () => {
       it('Should prompt overwrite for EPT components that exist', async () => {
         existsStub.returns(false);
         const data = {
-          fileName: `Test1`,
+          fileName: 'Test1',
           outputdir: 'package/tests',
           type: 'ExperiencePropertyTypeBundle',
           suffix: 'json'
@@ -250,7 +250,7 @@ describe('Postcondition Checkers', () => {
       it('Should prompt overwrite for EPT components that does not exist', async () => {
         existsStub.returns(false);
         const data = {
-          fileName: `Test1`,
+          fileName: 'Test1',
           outputdir: 'package/tests',
           type: 'ExperiencePropertyTypeBundle',
           suffix: 'json'

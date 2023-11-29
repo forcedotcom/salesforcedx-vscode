@@ -54,9 +54,8 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
 // below dependencies must be required for bundling to work properly
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const AsyncLock = require('async-lock');
-/* tslint:enable */
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -283,6 +282,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           );
         }
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
         writeToDebuggerOutputWindow(
           errorMessage,
@@ -372,6 +372,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               if (deleteError) {
                 const errorMessage = `${nls.localize(
                   'cannot_delete_existing_checkpoint'
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 )} : ${deleteError}`;
                 writeToDebuggerOutputWindow(
                   errorMessage,
@@ -463,6 +464,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             title: localizedProgressMessage,
             cancellable: false
           },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           async (progress, token) => {
             writeToDebuggerOutputWindow(
               `${localizedProgressMessage}, ${nls.localize(
@@ -806,7 +808,7 @@ export async function processBreakpointChangedForCheckpoints(
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> {
   for (const bp of breakpointsChangedEvent.removed) {
-    if (bp.condition && bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0) {
+    if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         const breakpointId = bp.id;
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
@@ -818,7 +820,7 @@ export async function processBreakpointChangedForCheckpoints(
     const breakpointId = bp.id;
     if (
       bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
       bp instanceof vscode.SourceBreakpoint
     ) {
       const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
@@ -858,7 +860,7 @@ export async function processBreakpointChangedForCheckpoints(
   for (const bp of breakpointsChangedEvent.added) {
     if (
       bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
       bp instanceof vscode.SourceBreakpoint
     ) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
@@ -988,7 +990,7 @@ export async function sfdxToggleCheckpoint() {
       // If the breakpoint is a checkpoint then remove it and return
       if (
         bp.condition &&
-        bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
+        bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0
       ) {
         bpRemove.push(bp);
         return await vscode.debug.removeBreakpoints(bpRemove);

@@ -48,6 +48,7 @@ export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
     this.flag = flag;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))

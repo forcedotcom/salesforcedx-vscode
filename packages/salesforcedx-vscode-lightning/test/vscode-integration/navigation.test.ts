@@ -71,6 +71,7 @@ async function testDefinitionNavigation(
   const doc = await workspace.openTextDocument(startLocation);
   const editor = await window.showTextDocument(doc);
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const locations = (await commands.executeCommand(
     'vscode.executeDefinitionProvider',
     editor.document.uri,
@@ -79,6 +80,7 @@ async function testDefinitionNavigation(
 
   expect(locations).to.have.lengthOf(1);
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const location = locations![0];
 
   expect(location).to.have.property('uri');

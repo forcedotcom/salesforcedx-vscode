@@ -15,6 +15,7 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
 import { notificationService } from './index';
 
 export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public apply(item: typeof workspace): PredicateResponse {
     if (!hasRootWorkspace()) {
       return PredicateResponse.of(

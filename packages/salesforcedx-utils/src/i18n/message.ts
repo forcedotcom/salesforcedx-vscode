@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { format } from 'util';
 import { MISSING_LABEL_MSG } from '../constants';
 import { LocalizationProvider, MessageBundle } from '../types';
@@ -19,6 +25,7 @@ export class Message implements LocalizationProvider {
       possibleLabel = `${MISSING_LABEL_MSG} ${label}`;
       if (args.length >= 1) {
         args.forEach(arg => {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           possibleLabel += ` (${arg})`;
         });
       }

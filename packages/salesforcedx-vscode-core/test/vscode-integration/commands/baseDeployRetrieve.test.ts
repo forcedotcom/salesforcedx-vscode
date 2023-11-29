@@ -136,6 +136,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const { properties } = executor.telemetryData;
       expect(properties).to.not.equal(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const { metadataCount } = properties!;
       expect(metadataCount).to.not.equal(undefined);
 
@@ -517,7 +518,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`table_title_deployed_source`)
+          nls.localize('table_title_deployed_source')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -560,7 +561,7 @@ describe('Base Deploy Retrieve Commands', () => {
             },
             { key: 'error', label: nls.localize('table_header_errors') }
           ],
-          nls.localize(`table_title_deploy_errors`)
+          nls.localize('table_title_deploy_errors')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -760,7 +761,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`lib_retrieve_result_title`)
+          nls.localize('lib_retrieve_result_title')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });

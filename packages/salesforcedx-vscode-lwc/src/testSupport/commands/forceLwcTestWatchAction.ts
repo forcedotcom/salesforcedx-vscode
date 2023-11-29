@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { testWatcher } from '../testRunner/testWatcher';
 import {
   TestExecutionInfo,
   TestFileInfo,
@@ -12,7 +13,6 @@ import {
   TestType
 } from '../types';
 
-import { testWatcher } from '../testRunner/testWatcher';
 import { isLwcJestTest } from '../utils';
 
 /**

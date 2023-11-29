@@ -8,7 +8,7 @@ export function isInteger(value: string | undefined): boolean {
   return (
     value !== undefined &&
     !/\D/.test(value) &&
-    Number.isSafeInteger(Number.parseInt(value))
+    Number.isSafeInteger(Number.parseInt(value, 10))
   );
 }
 
@@ -19,8 +19,8 @@ export function isIntegerInRange(
   return (
     value !== undefined &&
     isInteger(value) &&
-    Number.parseInt(value) >= range[0] &&
-    Number.parseInt(value) <= range[1]
+    Number.parseInt(value, 10) >= range[0] &&
+    Number.parseInt(value, 10) <= range[1]
   );
 }
 

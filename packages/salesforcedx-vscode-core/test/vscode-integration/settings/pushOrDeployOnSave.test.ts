@@ -90,9 +90,9 @@ describe('Push or Deploy on Save', () => {
       let errorWasThrown = false;
       try {
         await pathIsInPackageDirectory('test-path');
-      } catch (error) {
+      } catch (err) {
         errorWasThrown = true;
-        expect(error.message).to.equal(
+        expect(err.message).to.equal(
           nls.localize('error_no_package_directories_paths_found_text')
         );
       } finally {

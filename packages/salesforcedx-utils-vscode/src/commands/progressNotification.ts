@@ -29,11 +29,11 @@ export class ProgressNotification {
             return resolve(undefined);
           });
 
-          execution.processExitSubject.subscribe(data => {
+          execution.processExitSubject.subscribe(() => {
             return resolve(undefined);
           });
 
-          execution.processErrorSubject.subscribe(data => {
+          execution.processErrorSubject.subscribe(() => {
             return resolve(undefined);
           });
 

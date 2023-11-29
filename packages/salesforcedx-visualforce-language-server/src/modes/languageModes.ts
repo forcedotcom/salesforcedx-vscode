@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -9,6 +10,10 @@ import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import {
+  ColorInformation,
+  ColorPresentation
+} from 'vscode-languageserver-protocol';
 import {
   CompletionItem,
   CompletionList,
@@ -27,10 +32,6 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 
-import {
-  ColorInformation,
-  ColorPresentation
-} from 'vscode-languageserver-protocol';
 
 import {
   getLanguageModelCache,
@@ -122,7 +123,7 @@ export function getLanguageModes(supportedLanguages: {
     document => getDocumentRegions(htmlLanguageService, document)
   );
 
-  let modelCaches: Array<LanguageModelCache<any>> = [];
+  let modelCaches: LanguageModelCache<any>[] = [];
   modelCaches.push(documentRegions);
 
   let modes = {};

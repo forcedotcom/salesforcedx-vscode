@@ -23,13 +23,13 @@ import {
   window,
   workspace
 } from 'vscode';
-import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 import {
   CancellationToken,
   ProvideCompletionItemsSignature
 } from 'vscode-languageclient';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 

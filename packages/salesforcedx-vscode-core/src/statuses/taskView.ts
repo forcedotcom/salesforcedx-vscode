@@ -110,10 +110,10 @@ export class Task extends TreeItem {
   }
 
   public monitor() {
-    this.execution.processExitSubject.subscribe(data => {
+    this.execution.processExitSubject.subscribe(() => {
       this.taskViewProvider.removeTask(this);
     });
-    this.execution.processErrorSubject.subscribe(data => {
+    this.execution.processErrorSubject.subscribe(() => {
       this.taskViewProvider.removeTask(this);
     });
   }

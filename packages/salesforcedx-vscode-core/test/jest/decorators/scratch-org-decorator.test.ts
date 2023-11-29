@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../../../src/constants';
@@ -6,7 +12,7 @@ import { nls } from '../../../src/messages';
 
 describe('scratch org decorator', () => {
   const testUser = 'test@username.com';
-  const browserIcon = `$(browser)`;
+  const browserIcon = '$(browser)';
   const openOrgCommand = ORG_OPEN_COMMAND;
   let createFileSystemWatcherMock: jest.SpyInstance;
   let getDefaultUsernameOrAliasMock: jest.SpyInstance;

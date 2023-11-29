@@ -165,7 +165,7 @@ export class DeclarationGenerator {
             type:
               field.referenceTo && field.referenceTo.length > 1
                 ? 'SObject'
-                : `${field.referenceTo}`
+                : `${field.referenceTo.join()}`
           },
           comment ? { comment } : {}
         )

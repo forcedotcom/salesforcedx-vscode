@@ -18,6 +18,7 @@ import {
 } from './util';
 
 export class OrgListExecutor extends SfdxCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: { choice?: string }): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_list_clean_text'))

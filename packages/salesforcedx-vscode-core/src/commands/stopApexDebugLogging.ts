@@ -17,11 +17,11 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
+import { developerLogTraceFlag } from '.';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -33,6 +33,7 @@ export class StopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
     return deleteTraceFlag();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public execute(response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();

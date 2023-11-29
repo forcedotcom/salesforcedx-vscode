@@ -33,6 +33,7 @@ export class DebugConfigurationProvider
 
   public provideDebugConfigurations(
     folder: vscode.WorkspaceFolder | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig(folder)];
@@ -41,12 +42,13 @@ export class DebugConfigurationProvider
   public resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(folder, config).catch(async err => {
       return vscode.window
         .showErrorMessage(err.message, { modal: true })
-        .then(x => undefined);
+        .then(() => undefined);
     });
   }
 

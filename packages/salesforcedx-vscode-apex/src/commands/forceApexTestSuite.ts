@@ -56,6 +56,7 @@ async function listApexTestSuiteItems(): Promise<ApexTestQuickPickItem[]> {
   const quickPickItems = testSuites.map(testSuite => {
     return {
       label: testSuite.TestSuiteName,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       description: testSuite.Id,
       type: TestType.Suite

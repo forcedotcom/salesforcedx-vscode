@@ -32,6 +32,7 @@ import {
 } from './util';
 
 export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -89,6 +90,7 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
         );
         telemetryService.sendException(
           'force_org_open_container',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an error when parsing the org open response ${error}`
         );
       }
@@ -105,6 +107,7 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
 
 export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))

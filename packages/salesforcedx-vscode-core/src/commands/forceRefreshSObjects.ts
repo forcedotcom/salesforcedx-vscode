@@ -84,6 +84,7 @@ export class SObjectRefreshGatherer
 
 export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
@@ -133,7 +134,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
     const commandName = execution.command.logName;
     try {
-      let result;
       let transformer;
       if (response.data.source === SObjectRefreshSource.StartupMin) {
         transformer = await SObjectTransformerFactory.create(
@@ -150,9 +150,9 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           response.data.source
         );
       }
-      result = await transformer.transform();
+      const result = await transformer.transform();
 
-      console.log('Generate success ' + result.data);
+      console.log('Generate success ' + JSON.stringify(result.data));
       this.logMetric(
         commandName,
         startTime,

@@ -79,12 +79,12 @@ export class MetadataOutlineProvider
 
     switch (element.type) {
       case NodeType.Org:
-        const types = await this.getTypes();
-        element.setTypes(types, NodeType.MetadataType);
+        element.setTypes(await this.getTypes(), NodeType.MetadataType);
         this.toRefresh = false;
         break;
       case NodeType.Folder:
       case NodeType.MetadataType:
+        // eslint-disable-next-line no-case-declarations
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
@@ -95,8 +95,7 @@ export class MetadataOutlineProvider
           nodeType = NodeType.MetadataField;
         }
 
-        const components = await this.getComponents(element);
-        element.setComponents(components, nodeType);
+        element.setComponents(await this.getComponents(element), nodeType);
         element.toRefresh = false;
         break;
     }
@@ -155,7 +154,7 @@ export class MetadataOutlineProvider
   }
 }
 
-export function parseErrors(error: string | any): Error {
+export function parseErrors(error: any): Error {
   try {
     const errMsg = typeof error === 'string' ? error : error.message;
     const e = extractJsonObject(errMsg);
