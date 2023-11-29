@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: create_release_branch
   schedule:
-  - cron: '0 13 * * 1'
+    - cron: '0 13 * * 1'
   workflow_dispatch:
     inputs:
       releaseType:
@@ -75,3 +75,10 @@ jobs:
       type: 'created'
       result: ${{ needs.create_branch.outputs.result }}
       workflow: 'create-release-branch.yml'
+
+  trigger_generate_changelog_workflow:
+    if: ${{ needs.create_branch.result == 'success' }} # Only run this if the previous job was successful
+    needs: create_branch
+    name: 'Trigger Generate Changelog Workflow'
+    uses: ./.github/workflows/generateChangelog.yml
+    secrets: inherit
