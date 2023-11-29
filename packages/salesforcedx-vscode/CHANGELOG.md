@@ -1,4 +1,4 @@
-# 59.7.0 - December 1, 2023
+# 59.7.0 - November 29, 2023
 
 ## Added
 
