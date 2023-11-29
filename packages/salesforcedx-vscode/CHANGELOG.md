@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We added a new setting that allows you to change the trace level of the Apex Language Server. ([PR #5235](https://github.com/forcedotcom/salesforcedx-vscode/pull/5235))
+- We added a new setting that allows you to change the log levels of the Apex Language Server. ([PR #5235](https://github.com/forcedotcom/salesforcedx-vscode/pull/5235))
 
 #### salesforcedx-vscode-core
 
