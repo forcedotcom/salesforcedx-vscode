@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- We added a new VSCode setting to allow users to change the trace level of Apex LS in VS Code Settings UI. ([PR #5235](https://github.com/forcedotcom/salesforcedx-vscode/pull/5235))
+- We added a new setting that allows you to change the trace level of the Apex Language Server. ([PR #5235](https://github.com/forcedotcom/salesforcedx-vscode/pull/5235))
 
 #### salesforcedx-vscode-core
 
-- We added a new command in the command palette to create Apex unit tests: **SFDX: Create Apex Unit Test Class**. ([PR #5237](https://github.com/forcedotcom/salesforcedx-vscode/pull/5237))
+- Use the new `SFDX: Create Apex Unit Test Class` command to quickly create Apex unit tests. ([PR #5237](https://github.com/forcedotcom/salesforcedx-vscode/pull/5237))
 
 ## Fixed
 
