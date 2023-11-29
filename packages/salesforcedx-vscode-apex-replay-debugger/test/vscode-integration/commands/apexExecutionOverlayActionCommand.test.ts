@@ -186,7 +186,7 @@ export function createExpectedXHROptions(
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
       Accept: 'application/json',
-      Authorization: `OAuth 123`,
+      Authorization: 'OAuth 123',
       'Content-Length': requestBody
         ? String(Buffer.byteLength(requestBody, 'utf-8'))
         : '0',

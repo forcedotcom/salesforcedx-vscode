@@ -17,6 +17,7 @@ import { messages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
 function loadMessageBundle(config?: Config): Message {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function resolveFileName(locale: string): string {
     return locale === DEFAULT_LOCALE
       ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`

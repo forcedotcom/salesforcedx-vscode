@@ -41,9 +41,8 @@ import {
   SfdxCommandletExecutor
 } from '../util';
 // below uses require due to bundling restrictions
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
 const AdmZip = require('adm-zip');
-/* tslint:enable */
 
 export interface InstalledPackageInfo {
   id: string;
@@ -72,6 +71,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     INSTALLED_PACKAGES
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     throw new Error('not in use');
   }
@@ -444,10 +444,12 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     return result;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
@@ -539,7 +541,7 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
       return sanitizeFilename(
-        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
     }
     return '';

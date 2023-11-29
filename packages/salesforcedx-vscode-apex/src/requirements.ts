@@ -15,11 +15,10 @@ import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
-// tslint:disable-next-line:no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const expandHomeDir = require('expand-home-dir');
-
-// tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';

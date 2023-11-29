@@ -1,3 +1,21 @@
+# 59.7.0 - November 29, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We added a new setting that allows you to change the log levels of the Apex Language Server. ([PR #5235](https://github.com/forcedotcom/salesforcedx-vscode/pull/5235))
+
+#### salesforcedx-vscode-core
+
+- Use the new `SFDX: Create Apex Unit Test Class` command to quickly create Apex unit tests. ([PR #5237](https://github.com/forcedotcom/salesforcedx-vscode/pull/5237))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5245](https://github.com/forcedotcom/salesforcedx-vscode/pull/5245))
+
 # 59.5.1 - November 16, 2023
 
 ## Added

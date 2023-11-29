@@ -6,15 +6,15 @@
  */
 import * as path from 'path';
 import { ExtensionContext, workspace } from 'vscode';
-import * as codeCompletion from './codeCompletion';
-import * as queryValidation from './queryValidation';
-
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import * as codeCompletion from './codeCompletion';
+import * as queryValidation from './queryValidation';
+
 
 let client: LanguageClient;
 

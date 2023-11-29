@@ -140,7 +140,7 @@ export class NotificationService {
     executionName: string,
     observable: Observable<Error | undefined>
   ) {
-    observable.subscribe(async data => {
+    observable.subscribe(async () => {
       this.showErrorMessage(
         nls.localize('notification_unsuccessful_execution_text', executionName)
       );
