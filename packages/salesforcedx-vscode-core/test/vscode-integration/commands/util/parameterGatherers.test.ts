@@ -209,7 +209,7 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should display error when no files are available for selection', async () => {
-      fileFinderStub.returns(new Array());
+      fileFinderStub.returns([]);
 
       const response = await gatherer.gather();
 
@@ -238,7 +238,7 @@ describe('Parameter Gatherers', () => {
       const gatherer = new DemoModePromptGatherer();
       const result = await gatherer.gather();
       expect(result.type).to.equal('CONTINUE');
-      expect((result as ContinueResponse<{}>).data!).to.eql({});
+      expect((result as ContinueResponse<{}>).data).to.eql({});
     });
 
     it('Should return CANCEL if message is Authorize Org', async () => {

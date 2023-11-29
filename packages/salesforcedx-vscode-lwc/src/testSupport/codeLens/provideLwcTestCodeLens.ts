@@ -25,6 +25,7 @@ import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
  */
 export async function provideLwcTestCodeLens(
   document: TextDocument,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   token: CancellationToken
 ): Promise<CodeLens[]> {
   const fsPath = document.uri.fsPath;
@@ -32,7 +33,7 @@ export async function provideLwcTestCodeLens(
   const { itBlocks } = parseResults;
   return itBlocks
     .map(itBlock => {
-      const { name, nameRange, start, end } = itBlock;
+      const { name, nameRange } = itBlock;
       // VS Code position is zero-based
       const range = new Range(
         new Position(nameRange.start.line - 1, nameRange.start.column - 1),

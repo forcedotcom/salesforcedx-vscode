@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as os from 'os';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -62,7 +68,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: Error | undefined) {
     if (e) {
-      this.stderr.next(`${e}${os.EOL}`);
+      this.stderr.next(`${JSON.stringify(e)}${os.EOL}`);
     }
     this.exitSubject.next(1);
   }

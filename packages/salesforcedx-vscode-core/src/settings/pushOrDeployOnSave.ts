@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
+import { setTimeout } from 'timers';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
@@ -12,9 +15,6 @@ import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 
-import * as path from 'path';
-import { setTimeout } from 'timers';
-import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 
 export class DeployQueue {
@@ -158,7 +158,7 @@ function displayError(message: string) {
   channelService.showChannelOutput();
   telemetryService.sendException(
     'push_deploy_on_save_queue',
-    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+    'DeployOnSaveError: Documents were queued but a deployment was not triggered'
   );
 }
 
