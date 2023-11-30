@@ -48,7 +48,7 @@ function insideApexBindingExpression(
   // (which might have been missed by Apex LSP)
   const rangeAtCursor = document.getWordRangeAtPosition(
     position,
-    /[:(_\.\w)]+/
+    /[:(_.\w)]+/
   );
   const wordAtCursor = rangeAtCursor
     ? document.getText(rangeAtCursor)
@@ -84,6 +84,7 @@ function getSOQLVirtualContent(
 }
 
 export const soqlMiddleware: Middleware = {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);
@@ -93,7 +94,7 @@ export const soqlMiddleware: Middleware = {
 
     const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
       ? (apexCompletionItems as ProtocolCompletionItem[])
-      : ((apexCompletionItems as CompletionList)
+      : ((apexCompletionItems )
         .items as ProtocolCompletionItem[]);
 
     const soqlBlock = insideSOQLBlock(items);

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 export const SETTING_CLEAR_OUTPUT_TAB = 'clearOutputTab';
 export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_CORE_EXTENSION_NAME = 'salesforcedx-vscode-core';

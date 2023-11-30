@@ -52,15 +52,15 @@ function registerCommands(): vscode.Disposable {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
-    async config => {
+    async () => {
       const fileUris:
         | vscode.Uri[]
         | undefined = await vscode.window.showOpenDialog({
-        canSelectFiles: true,
-        canSelectFolders: false,
-        canSelectMany: false,
-        defaultUri: dialogStartingPathUri
-      });
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false,
+          defaultUri: dialogStartingPathUri
+        });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
         return fileUris[0].fsPath;
@@ -96,7 +96,7 @@ function registerCommands(): vscode.Disposable {
 
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.last.logfile',
-    lastLogFileUri => {
+    () => {
       const lastOpenedLog = extContext.workspaceState.get<string>(
         LAST_OPENED_LOG_KEY
       );

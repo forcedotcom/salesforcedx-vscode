@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -41,7 +42,7 @@ describe('HTML Link Detection', () => {
 
   function testLinkDetection(
     value: string,
-    expectedLinks: Array<{ offset: number; target: string }>
+    expectedLinks: { offset: number; target: string }[]
   ): void {
     const document = TextDocument.create(
       'test://test/test.html',

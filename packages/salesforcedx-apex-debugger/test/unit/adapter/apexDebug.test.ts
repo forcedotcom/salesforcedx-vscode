@@ -1756,7 +1756,7 @@ describe('Interactive debugger adapter - unit', () => {
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('foo');
       expect(adapter.getEvents()[1].event).to.equal(SHOW_MESSAGE_EVENT);
-      const showMessageEvent = adapter.getEvents()[1] as DebugProtocol.Event;
+      const showMessageEvent = adapter.getEvents()[1];
       expect(showMessageEvent.body).to.deep.equal({
         type: VscodeDebuggerMessageType.Error,
         message: 'foo'
@@ -2179,7 +2179,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal(SHOW_MESSAGE_EVENT);
-      const showMessageEvent = adapter.getEvents()[1] as DebugProtocol.Event;
+      const showMessageEvent = adapter.getEvents()[1];
       expect(showMessageEvent.body).to.deep.equal({
         type: VscodeDebuggerMessageType.Warning,
         message: 'foo'
@@ -2216,7 +2216,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal(SHOW_MESSAGE_EVENT);
-      const showMessageEvent = adapter.getEvents()[1] as DebugProtocol.Event;
+      const showMessageEvent = adapter.getEvents()[1];
       expect(showMessageEvent.body).to.deep.equal({
         type: VscodeDebuggerMessageType.Error,
         message: 'foo'

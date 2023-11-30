@@ -389,6 +389,7 @@ describe('orgList Tests', () => {
 
       it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
         orgListStub.returns(orgsList);
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');

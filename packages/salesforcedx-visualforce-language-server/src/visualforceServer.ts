@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -5,6 +6,8 @@
 'use strict';
 
 import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import * as path from 'path';
+import * as url from 'url';
 import {
   createConnection,
   Disposable,
@@ -20,18 +23,6 @@ import {
   TextDocuments
 } from 'vscode-languageserver';
 import {
-  Diagnostic,
-  DocumentLink,
-  SymbolInformation,
-  TextDocument
-} from 'vscode-languageserver-types';
-import {
-  getLanguageModes,
-  LanguageModes,
-  Settings
-} from './modes/languageModes';
-
-import {
   ColorInformation,
   ColorPresentationRequest,
   DocumentColorRequest,
@@ -41,18 +32,25 @@ import {
   ConfigurationParams,
   ConfigurationRequest
 } from 'vscode-languageserver-protocol';
-
+import {
+  Diagnostic,
+  DocumentLink,
+  SymbolInformation,
+  TextDocument
+} from 'vscode-languageserver-types';
+import * as nls from 'vscode-nls';
+import uri from 'vscode-uri';
 import { format } from './modes/formatting';
+import {
+  getLanguageModes,
+  LanguageModes,
+  Settings
+} from './modes/languageModes';
+
 import { pushAll } from './utils/arrays';
 
-import * as path from 'path';
-import * as url from 'url';
-import uri from 'vscode-uri';
-
-import * as nls from 'vscode-nls';
 nls.config(process.env['VSCODE_NLS_CONFIG']);
 
-// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
   export const type: RequestType<
     TextDocumentPositionParams,

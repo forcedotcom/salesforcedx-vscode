@@ -1,22 +1,23 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
+import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import * as assert from 'assert';
 import {
   FormattingOptions,
   Range,
   TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
+import { format } from '../../src/modes/formatting';
 import { getLanguageModes } from '../../src/modes/languageModes';
 
-import { format } from '../../src/modes/formatting';
 
 describe('HTML Embedded Formatting', () => {
   beforeAll(() => {
