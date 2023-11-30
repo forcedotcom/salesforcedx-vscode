@@ -77,5 +77,16 @@ describe('workspaceContext', () => {
       expect(getValueMock).toHaveBeenCalledWith('namespace');
       expect(namespace).toEqual(dummyNamespace);
     });
+
+    it('should return undefined if namespace is not a string', async () => {
+      const getValueMock = jest
+        .spyOn(SfdxProjectConfig, 'getValue')
+        .mockResolvedValue(undefined);
+
+      const namespace = await WorkspaceContext.getInstance().getSfdxNamespace();
+
+      expect(getValueMock).toHaveBeenCalledWith('namespace');
+      expect(namespace).toBeUndefined();
+    });
   });
 });
