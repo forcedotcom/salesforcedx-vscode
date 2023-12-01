@@ -21,15 +21,16 @@ import { ChannelService } from './channelService';
 import { notificationService, ProgressNotification } from './index';
 
 export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T> {
+  implements CommandletExecutor<T>
+{
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
-    .onDidFinishExecutionEventEmitter.event;
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> =
+    this.onDidFinishExecutionEventEmitter.event;
 
   constructor(outputChannel?: vscode.OutputChannel) {
     this.outputChannel = outputChannel;
@@ -121,7 +122,8 @@ export abstract class SfdxCommandletExecutor<T>
 }
 
 export abstract class LibraryCommandletExecutor<T>
-  implements CommandletExecutor<T> {
+  implements CommandletExecutor<T>
+{
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
   private readonly executionName: string;
