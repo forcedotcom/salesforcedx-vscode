@@ -6,7 +6,7 @@
  */
 
 import * as util from 'util';
-import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
