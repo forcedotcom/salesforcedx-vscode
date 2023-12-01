@@ -3,14 +3,14 @@ title: Org Browser
 lang: en
 ---
 
-Use the Org Browser to:
+Org Browser makes it easy to retrieve metadata sources by displaying org metadata types and its corresponding components. Access the org browser by clicking the cloud icon in the VS Code Activity Bar. Use the Org Browser to:
 
-- Browse your org metadata
+- Browse your org metadata.
 - View the available metadata types and their corresponding components in your default org.
 - Retrieve metadata source, without using a [manifest file](./en/user-guide/development-models/#create-project-with-manifest).
 - Deploy source and then test the changes in your org.
 
-## Org Browser Overview
+## Overview
 
 ![Org Browser Overview](./images/org_browser_overview.png)
 
