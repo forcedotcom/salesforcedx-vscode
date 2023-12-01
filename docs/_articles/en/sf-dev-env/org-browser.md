@@ -7,7 +7,7 @@ Org Browser makes it easy to retrieve metadata sources by displaying org metadat
 
 - Browse your org metadata.
 - View the available metadata types and their corresponding components in your default org.
-- Retrieve metadata source, without using a [manifest file](./en/user-guide/development-models/#create-project-with-manifest).
+- Retrieve metadata source, without using a [manifest file](./en//deploy-changes/manifestbuilder).
 - Deploy source and then test the changes in your org.
 
 ## Overview
