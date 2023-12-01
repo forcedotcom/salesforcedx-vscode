@@ -63,10 +63,13 @@ export class TelemetryServiceProvider {
   public static getInstance(extensionName?: string): TelemetryService {
     // default if not present
     const name = extensionName || SFDX_CORE_EXTENSION_NAME;
-    if (!TelemetryServiceProvider.instances.has(name)) {
-      TelemetryServiceProvider.instances.set(name, new TelemetryService());
+    let service = TelemetryServiceProvider.instances.get(name);
+    if (!service) {
+      service = new TelemetryService();
+      TelemetryServiceProvider.instances.set(name, service);
     }
-    return TelemetryServiceProvider.instances.get(name)!;
+    return service;
+
   }
 }
 
