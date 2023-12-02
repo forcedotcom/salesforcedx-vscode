@@ -137,7 +137,7 @@ describe('Force Apex Execute', () => {
       expect(result.data.apexCode).to.equal(text);
     });
 
-    it(`should return the currently highlighted 'selection' to execute anonymous apex`, async () => {
+    it('should return the currently highlighted \'selection\' to execute anonymous apex', async () => {
       const mockActiveTextEditor = {
         document: {
           getText: (doc: { isEmpty: boolean; text: string }) => doc.text,
@@ -227,7 +227,7 @@ describe('Force Apex Execute', () => {
           {
             columnNumber: 1,
             lineNumber: 6,
-            compileProblem: `Unexpected token '('.`,
+            compileProblem: 'Unexpected token \'(\'.',
             exceptionMessage: '',
             exceptionStackTrace: ''
           }

@@ -10,24 +10,21 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  hasRootWorkspace,
-  LibraryCommandletExecutor,
-  projectPaths,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
-import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
-import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  LibraryCommandletExecutor,
+  ParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  TraceFlags,
+  getYYYYMMddHHmmssDateFormat,
+  hasRootWorkspace,
+  projectPaths
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 

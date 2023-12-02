@@ -109,7 +109,11 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
+import {
+  isCLIInstalled,
+  setUpOrgExpirationWatcher,
+  setNodeExtraCaCerts
+} from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
@@ -117,6 +121,7 @@ const flagOverwrite: FlagParameter<string> = {
 };
 
 function registerCommands(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
@@ -132,10 +137,12 @@ function registerCommands(
     'sfdx.org.login.web.dev.hub',
     orgLoginWebDevHub
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orgLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.org.logout.all',
     orgLogoutAll
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orgLogoutDefaultCmd = vscode.commands.registerCommand(
     'sfdx.org.logout.default',
     orgLogoutDefault
@@ -357,6 +364,7 @@ function registerCommands(
     forceSourceDiff
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const forceDiffFolder = vscode.commands.registerCommand(
     'sfdx.force.folder.diff',
     forceSourceFolderDiff
@@ -367,12 +375,15 @@ function registerCommands(
     forceRefreshSObjects
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const forceRenameComponentCmd = vscode.commands.registerCommand(
     'sfdx.lightning.rename',
     forceRenameLightningComponent
   );
 
   return vscode.Disposable.from(
+    forceRenameComponentCmd,
+    forceDiffFolder,
     forceAuthAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
@@ -426,11 +437,14 @@ function registerCommands(
     orgListCleanCmd,
     orgLoginWebCmd,
     orgLoginWebDevHubCmd,
+    orgLogoutAllCmd,
+    orgLogoutDefaultCmd,
     orgOpenCmd
   );
 }
 
 function registerInternalDevCommands(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   const forceInternalLightningAppCreateCmd = vscode.commands.registerCommand(
@@ -527,6 +541,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  setNodeExtraCaCerts();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 

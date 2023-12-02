@@ -121,7 +121,7 @@ class TaskService {
     taskName: string,
     taskScope: vscode.WorkspaceFolder | vscode.TaskScope,
     cmd: string,
-    args: Array<string | vscode.ShellQuotedString>
+    args: (string | vscode.ShellQuotedString)[]
   ): SfdxTask {
     const taskDefinition: SfdxTaskDefinition = {
       type: 'sfdxLwcTest',
