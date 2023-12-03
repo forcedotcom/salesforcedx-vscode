@@ -79,3 +79,9 @@ export class SfdxCommandBuilder extends CommandBuilder {
     super('sfdx');
   }
 }
+
+export class SfCommandBuilder extends CommandBuilder {
+  public constructor() {
+    super('sf');
+  }
+}
