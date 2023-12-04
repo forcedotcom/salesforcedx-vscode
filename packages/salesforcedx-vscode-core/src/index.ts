@@ -93,7 +93,8 @@ import {
 } from './conflict';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  ORG_OPEN_COMMAND
+  ORG_OPEN_COMMAND,
+  SFDX_CLI_DOWNLOAD_LINK
 } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import {
@@ -101,6 +102,7 @@ import {
   disposeTraceFlagExpiration,
   showDemoMode
 } from './decorators';
+import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -115,8 +117,6 @@ import {
   setNodeExtraCaCerts
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-import { nls } from './messages';
-import { SFDX_CLI_DOWNLOAD_LINK } from './constants';
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
