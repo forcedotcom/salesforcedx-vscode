@@ -1,3 +1,37 @@
+# 59.8.0 - December 6, 2023
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
+
+#### salesforcedx-vscode-expanded
+
+- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
+
+#### salesforcedx-vscode-lightning
+
+- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
+
+#### salesforcedx-vscode-lwc
+
+- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
+
+#### salesforcedx-vscode-soql
+
+- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Update apex ls for doc symbol changes ([PR #5257](https://github.com/forcedotcom/salesforcedx-vscode/pull/5257))
+
+#### salesforcedx-vscode-core
+
+- Correct structural eslint error ([PR #5243](https://github.com/forcedotcom/salesforcedx-vscode/pull/5243))
+
 # 59.7.0 - November 29, 2023
 
 ## Added
