@@ -537,7 +537,11 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  await validateCliInstallationAndVersion();
+  const platform = process.platform.toLowerCase();
+  const isWindows = platform === 'win32';
+  if (!isWindows) {
+    await validateCliInstallationAndVersion();
+  }
   setNodeExtraCaCerts();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
