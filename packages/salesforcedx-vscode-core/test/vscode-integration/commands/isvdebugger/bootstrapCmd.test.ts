@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
@@ -140,7 +146,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         )
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
-        EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
+        EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
         nls.localize('parameter_gatherer_invalid_forceide_url')

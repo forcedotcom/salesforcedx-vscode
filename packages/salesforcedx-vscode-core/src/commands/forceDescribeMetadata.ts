@@ -25,6 +25,7 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
     super();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withArg('force:mdapi:describemetadata')

@@ -123,6 +123,7 @@ const flagOverwrite: FlagParameter<string> = {
 };
 
 function registerCommands(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
@@ -138,10 +139,12 @@ function registerCommands(
     'sfdx.org.login.web.dev.hub',
     orgLoginWebDevHub
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orgLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.org.logout.all',
     orgLogoutAll
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orgLogoutDefaultCmd = vscode.commands.registerCommand(
     'sfdx.org.logout.default',
     orgLogoutDefault
@@ -363,6 +366,7 @@ function registerCommands(
     forceSourceDiff
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const forceDiffFolder = vscode.commands.registerCommand(
     'sfdx.force.folder.diff',
     forceSourceFolderDiff
@@ -373,6 +377,7 @@ function registerCommands(
     forceRefreshSObjects
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const forceRenameComponentCmd = vscode.commands.registerCommand(
     'sfdx.lightning.rename',
     forceRenameLightningComponent
@@ -441,6 +446,7 @@ function registerCommands(
 }
 
 function registerInternalDevCommands(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   const forceInternalLightningAppCreateCmd = vscode.commands.registerCommand(

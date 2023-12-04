@@ -12,7 +12,6 @@ import {
   ConfigurationTarget,
   Disposable,
   ExtensionContext,
-  Uri,
   workspace,
   WorkspaceConfiguration
 } from 'vscode';
@@ -32,21 +31,6 @@ import {
   shouldActivateLwcTestSupport
 } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
-
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: Uri) {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-}
-
-function protocol2CodeConverter(value: string) {
-  return Uri.parse(value);
-}
 
 export async function activate(extensionContext: ExtensionContext) {
   const extensionHRStart = process.hrtime();
@@ -156,6 +140,7 @@ function getActivationMode(): string {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registerCommands(_extensionContext: ExtensionContext): Disposable {
   return Disposable.from(
     commands.registerCommand(

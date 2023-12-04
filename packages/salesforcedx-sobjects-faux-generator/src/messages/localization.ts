@@ -53,6 +53,7 @@ export class Message implements LocalizationProvider {
       possibleLabel = `${MISSING_LABEL_MSG} ${label}`;
       if (args.length >= 1) {
         args.forEach(arg => {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           possibleLabel += ` (${arg})`;
         });
       }
@@ -69,7 +70,7 @@ export class Message implements LocalizationProvider {
       }
 
       args.unshift(possibleLabel);
-      return util.format.apply(util, args as [any, ...any[]]);
+      return util.format(...args);
     }
 
     return possibleLabel;

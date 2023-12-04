@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+/* eslint-disable prefer-arrow/prefer-arrow-functions */
 
 import { SoqlItemContext } from '@salesforce/soql-language-server';
+import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import { Middleware } from 'vscode-languageclient';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+
 import { telemetryService } from '../telemetry';
 import {
   FileSystemOrgDataSource,
@@ -261,6 +262,7 @@ const expandFunctions: {
             .map(v =>
               newCompletionItem(
                 v.value,
+                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                 "'" + v.value + "'",
                 CompletionItemKind.Value
               )
@@ -326,7 +328,6 @@ function newFieldCompletionItems(
   soqlContext: SoqlItemContext
 ): ProtocolCompletionItem[] {
   const fieldItems = [];
-
   const fieldNameLowercase = field.name.toLowerCase();
   const isPreferredItem = soqlContext.mostLikelyItems?.some(
     f => f.toLowerCase() === fieldNameLowercase
@@ -356,7 +357,7 @@ function newFieldCompletionItems(
         `${field.relationshipName}`,
         field.relationshipName + '.',
         CompletionItemKind.Class,
-        { detail: 'Ref. to ' + field.referenceTo }
+        { detail: 'Ref. to ' + field.referenceTo.join(',') }
       )
     );
   }

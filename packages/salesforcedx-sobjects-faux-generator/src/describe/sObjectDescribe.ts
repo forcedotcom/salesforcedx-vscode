@@ -7,10 +7,10 @@
 
 import { Connection } from '@salesforce/core';
 import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
-import { SObjectShortDescription } from '.';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';
+import { SObjectShortDescription } from '.';
 export const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {
@@ -101,6 +101,7 @@ export class SObjectDescribe {
       batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
           if (sr.result[0].errorCode && sr.result[0].message) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
           }
         } else fetchedObjects.push(toMinimalSObject(sr.result));
@@ -108,7 +109,7 @@ export class SObjectDescribe {
 
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const errorMsg = error.hasOwnProperty('body')
+      const errorMsg = Reflect.has(error, 'body')
         ? error.body
         : error.message;
       return Promise.reject(errorMsg);
