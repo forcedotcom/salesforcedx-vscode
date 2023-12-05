@@ -261,11 +261,11 @@ export const testResults: TestResult = {
         id: '01p3t000003qSzaAAE',
         name: 'tt_UtilControllerTest',
         namespacePrefix: 'trlhdtips',
-        fullName: 'trlhdtips__tt_UtilControllerTest'
+        fullName: 'trlhdtips.tt_UtilControllerTest'
       },
       runTime: 13,
       testTimestamp: '2020-11-09T18:02:51.000+0000',
-      fullName: 'trlhdtips__tt_UtilControllerTest.testGetCurrentUser'
+      fullName: 'trlhdtips.tt_UtilControllerTest.testGetCurrentUser'
     },
     {
       id: '07M3t000003bQwXEAU',
@@ -280,11 +280,11 @@ export const testResults: TestResult = {
         id: '01p3t000003qSzaAAE',
         name: 'tt_UtilControllerTest',
         namespacePrefix: 'trlhdtips',
-        fullName: 'trlhdtips__tt_UtilControllerTest'
+        fullName: 'trlhdtips.tt_UtilControllerTest'
       },
       runTime: 179,
       testTimestamp: '2020-11-09T18:02:51.000+0000',
-      fullName: 'trlhdtips__tt_UtilControllerTest.testResetMyPassword'
+      fullName: 'trlhdtips.tt_UtilControllerTest.testResetMyPassword'
     },
     {
       id: '07M3t000003bQwlEAE',
@@ -358,11 +358,11 @@ export const testResults: TestResult = {
         id: '01p3t000000i4L1AAI',
         name: 'DashboardPalTest',
         namespacePrefix: 'Dashboard_Pal',
-        fullName: 'Dashboard_Pal__DashboardPalTest'
+        fullName: 'Dashboard_Pal.DashboardPalTest'
       },
       runTime: 128,
       testTimestamp: '2020-11-09T18:02:51.000+0000',
-      fullName: 'Dashboard_Pal__DashboardPalTest.testDashboardPal'
+      fullName: 'Dashboard_Pal.DashboardPalTest.testDashboardPal'
     },
     {
       id: '07M3t000003bQx0EAE',
@@ -548,9 +548,9 @@ export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
         <testcase name="testCallout" classname="AwesomeCalculatorTest" time="0.02">
             <failure message=""></failure>
         </testcase>
-        <testcase name="testGetCurrentUser" classname="trlhdtips__tt_UtilControllerTest" time="0.01">
+        <testcase name="testGetCurrentUser" classname="trlhdtips.tt_UtilControllerTest" time="0.01">
         </testcase>
-        <testcase name="testResetMyPassword" classname="trlhdtips__tt_UtilControllerTest" time="0.18">
+        <testcase name="testResetMyPassword" classname="trlhdtips.tt_UtilControllerTest" time="0.18">
         </testcase>
         <testcase name="testGetCallout" classname="AnimalLocatorTest" time="0.02">
         </testcase>
@@ -559,7 +559,7 @@ export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
         </testcase>
         <testcase name="testProcessing" classname="LeadProcessorTest" time="2.26">
         </testcase>
-        <testcase name="testDashboardPal" classname="Dashboard_Pal__DashboardPalTest" time="0.13">
+        <testcase name="testDashboardPal" classname="Dashboard_Pal.DashboardPalTest" time="0.13">
         </testcase>
         <testcase name="testCountContacts" classname="AccountProcessorTest" time="0.24">
             <failure message="System.AssertException: Assertion Failed: Incorrect count: Expected: 3, Actual: 2"><![CDATA[Class.AccountProcessorTest.testCountContacts: line 47, column 1]]></failure>

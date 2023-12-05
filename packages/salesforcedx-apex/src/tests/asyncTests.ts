@@ -359,7 +359,7 @@ export class AsyncTests {
         apexTestClassIdSet.add(item.ApexClass.Id);
         // Can only query the FullName field if a single record is returned, so manually build the field
         item.ApexClass.FullName = item.ApexClass.NamespacePrefix
-          ? `${item.ApexClass.NamespacePrefix}__${item.ApexClass.Name}`
+          ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
           : item.ApexClass.Name;
 
         const diagnostic =
