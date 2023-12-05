@@ -94,7 +94,7 @@ import {
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   ORG_OPEN_COMMAND,
-  SFDX_CLI_DOWNLOAD_LINK
+  SF_CLI_DOWNLOAD_LINK
 } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import {
@@ -727,13 +727,13 @@ export async function validateCliInstallationAndVersion(): Promise<void> {
   const cliInstallationResult = await c.validateCliInstallationAndVersion(sfdxCliVersionArray, sfCliVersionArray);
 
   if (cliInstallationResult === CheckCliEnum.cliNotInstalled) {
-    showErrorNotification('sfdx_cli_not_found', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    showErrorNotification('sfdx_cli_not_found', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
     throw Error('No Salesforce CLI installed');
   } else if (cliInstallationResult === CheckCliEnum.onlySFv1) {
-    showErrorNotification('sf_v1_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    showErrorNotification('sf_v1_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
     throw Error('Only SF v1 installed');
   } else if (cliInstallationResult === CheckCliEnum.outdatedSFDXVersion) {
-    showErrorNotification('sfdx_cli_not_supported', [SFDX_CLI_DOWNLOAD_LINK, SFDX_CLI_DOWNLOAD_LINK]);
+    showErrorNotification('sfdx_cli_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
     throw Error('Outdated SFDX CLI version that is no longer supported');
   } else if (cliInstallationResult === CheckCliEnum.bothSFDXAndSFInstalled) {
     showErrorNotification('both_sfdx_and_sf', []);

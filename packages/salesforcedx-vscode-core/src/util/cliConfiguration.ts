@@ -14,7 +14,7 @@ import { window } from 'vscode';
 import {
   ENV_NODE_EXTRA_CA_CERTS,
   ENV_SF_DISABLE_TELEMETRY,
-  SFDX_CLI_DOWNLOAD_LINK
+  SF_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
@@ -34,8 +34,8 @@ export function isCLIInstalled(): boolean {
 export function showCLINotInstalledMessage() {
   const showMessage = nls.localize(
     'sfdx_cli_not_found',
-    SFDX_CLI_DOWNLOAD_LINK,
-    SFDX_CLI_DOWNLOAD_LINK
+    SF_CLI_DOWNLOAD_LINK,
+    SF_CLI_DOWNLOAD_LINK
   );
   window.showWarningMessage(showMessage);
 }
