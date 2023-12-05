@@ -738,8 +738,6 @@ export async function validateCliInstallationAndVersion(): Promise<void> {
   } else if (cliInstallationResult === CheckCliEnum.bothSFDXAndSFInstalled) {
     showErrorNotification('both_sfdx_and_sf', []);
     throw Error('Both SFDX v7 and SF v2 are installed');
-  } else {
-    // do nothing - this is a valid CLI version that is compatible with the extensions
   }
 }
 
