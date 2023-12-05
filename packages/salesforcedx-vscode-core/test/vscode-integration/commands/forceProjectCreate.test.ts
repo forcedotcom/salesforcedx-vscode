@@ -326,7 +326,6 @@ describe('Force Project Create', () => {
         'triggers'
       ];
       const filestocopy = [
-        '.eslintignore',
         '.forceignore',
         '.gitignore',
         '.prettierignore',
