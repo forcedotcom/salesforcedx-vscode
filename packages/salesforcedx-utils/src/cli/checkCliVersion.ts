@@ -82,7 +82,7 @@ export class CheckCliVersion {
     return [-1];
   }
 
-  public async validateCliInstallationAndVersion(sfdxCliVersionArray: number[], sfCliVersionArray: number[]): Promise<Number> {
+  public async validateCliInstallationAndVersion(sfdxCliVersionArray: number[], sfCliVersionArray: number[]): Promise<number> {
     // The last working version of SFDX is v7.193.2
     const minSFDXVersion = '7.193.2';
     const minSFDXVersionArray = minSFDXVersion.split('.').map(Number);
