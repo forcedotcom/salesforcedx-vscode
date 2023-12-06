@@ -107,12 +107,13 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
+import { SfdxProjectConfig } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
-  setUpOrgExpirationWatcher,
-  setNodeExtraCaCerts
+  setNodeExtraCaCerts,
+  setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
@@ -641,7 +642,8 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     services: {
       ChannelService,
       TelemetryService,
-      WorkspaceContext
+      WorkspaceContext,
+      SfdxProjectConfig
     }
   };
 
