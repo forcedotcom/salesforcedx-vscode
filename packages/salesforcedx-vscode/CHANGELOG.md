@@ -1,5 +1,3 @@
-# 59.8.0 - December 8, 2023
-
 # 59.8.0 - December 6, 2023
 
 ## Added
@@ -65,7 +63,6 @@
 #### docs
 
 - We made updates to our documentation. ([PR #5213](https://github.com/forcedotcom/salesforcedx-vscode/pull/5213), [PR #5218](https://github.com/forcedotcom/salesforcedx-vscode/pull/5218))
-
 
 #### salesforcedx-vscode-apex
 
