@@ -3,34 +3,20 @@
 ## Added
 
 #### salesforcedx-vscode-apex
-
-- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
-
 #### salesforcedx-vscode-expanded
-
-- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
-
 #### salesforcedx-vscode-lightning
-
-- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
-
 #### salesforcedx-vscode-lwc
-
-- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
-
 #### salesforcedx-vscode-soql
 
-- Add ext deps to enable faster activation ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
+
+- We made some changes to the order in which extensions that are part of the Salesforce Extension Pack, are enabled when the extension pack is activated. This update enables faster activation of our Extension Pack. ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
-
-- Update apex ls for doc symbol changes ([PR #5257](https://github.com/forcedotcom/salesforcedx-vscode/pull/5257))
-
 #### salesforcedx-vscode-core
 
-- Correct structural eslint error ([PR #5243](https://github.com/forcedotcom/salesforcedx-vscode/pull/5243))
+- We made some changes under the hood. ([PR #5257](https://github.com/forcedotcom/salesforcedx-vscode/pull/5257), [PR #5243](https://github.com/forcedotcom/salesforcedx-vscode/pull/5243))
 
 # 59.7.0 - November 29, 2023
 
