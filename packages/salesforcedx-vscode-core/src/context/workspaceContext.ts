@@ -12,7 +12,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
-import { SfdxProjectConfig } from '../sfdxProject';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -42,11 +41,6 @@ export class WorkspaceContext {
 
   public async getConnection(): Promise<Connection> {
     return await WorkspaceContextUtil.getInstance().getConnection();
-  }
-
-  public async getSfdxNamespace(): Promise<string | undefined> {
-    const namespace = await SfdxProjectConfig.getValue('namespace');
-    return typeof namespace === 'string' ? namespace : undefined;
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
