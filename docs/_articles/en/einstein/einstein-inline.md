@@ -12,7 +12,7 @@ Use AI-based autocomplete to accept suggestions for repetitive, boilerplate code
 To use inline autocomplete, first activate the feature:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under Einstein for Developers, select **Enable Einstein Auto Completions**.
+2. Under **Einstein for Developers**, select **Enable Einstein Auto Completions**.
 
 ## Receive your First Inline Completions
 
