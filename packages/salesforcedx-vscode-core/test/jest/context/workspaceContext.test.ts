@@ -7,7 +7,6 @@
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
 import { decorators } from '../../../src/decorators';
-import { SfdxProjectConfig } from '../../../src/sfdxProject';
 
 describe('workspaceContext', () => {
   describe('handleCliConfigChange', () => {
@@ -62,31 +61,6 @@ describe('workspaceContext', () => {
 
       expect(getInstanceMock).toHaveBeenCalled();
       expect(orgId).not.toBeNull();
-    });
-  });
-
-  describe('getSfdxNamespace', () => {
-    it('should get the namespace from SfdxProjectConfig', async () => {
-      const dummyNamespace = 'dummyNamespace';
-      const getValueMock = jest
-        .spyOn(SfdxProjectConfig, 'getValue')
-        .mockResolvedValue(dummyNamespace);
-
-      const namespace = await WorkspaceContext.getInstance().getSfdxNamespace();
-
-      expect(getValueMock).toHaveBeenCalledWith('namespace');
-      expect(namespace).toEqual(dummyNamespace);
-    });
-
-    it('should return undefined if namespace is not a string', async () => {
-      const getValueMock = jest
-        .spyOn(SfdxProjectConfig, 'getValue')
-        .mockResolvedValue(undefined);
-
-      const namespace = await WorkspaceContext.getInstance().getSfdxNamespace();
-
-      expect(getValueMock).toHaveBeenCalledWith('namespace');
-      expect(namespace).toBeUndefined();
     });
   });
 });
