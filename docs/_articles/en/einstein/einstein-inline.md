@@ -5,16 +5,18 @@ lang: en
 
 ## Overview
 
+Use AI-based autocomplete to accept suggestions for repetitive, boilerplate code right in your editor.
+
 ## Set Up Inline Autocomplete
 
-To use inline autocomplete, you first activate the feature
+To use inline autocomplete, first activate the feature:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 2. Under Einstein for Developers, select **Enable Einstein Auto Completions**.
 
 ## Receive your First Inline Completions
 
-Einstein for Developers autogenerates inline completions suggestions. To start receiving inline completions:
+Einstein for Developers autogenerates inline code completions suggestions. To start receiving inline completions:
 
 1. In Visual Studio Code, create a new Apex class (\*.cls) file, or open an existing one.
 
