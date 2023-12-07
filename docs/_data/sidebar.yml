@@ -66,9 +66,13 @@
         ja: Set Up Einstein for Developers
       url: /einstein/einstein-setup
     - title:
-        en: Use Einstein for Apex Programming
-        ja: Set Up Einstein for Developers
+        en: Natural Language to Code Generation
+        ja: Natural Language to Code Generation
       url: /einstein/einstein-apex
+    - title:
+        en: Inline Auto Completion
+        ja: Inline Auto Completion
+      url: /einstein/einstein-inline
     - title:
         en: Example Prompts and Responses
         ja: Set Up Einstein for Developers

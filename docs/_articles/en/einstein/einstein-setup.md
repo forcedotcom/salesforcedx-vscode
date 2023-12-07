@@ -80,6 +80,14 @@ The Einstein logo on the activity bar and in the status bar confirms that the ex
 
 ![einstein installed](./images/einstein-installed.png)
 
+## Enable or Disable Einstein For Developers
+
+You can enable or disable Einstein for Developers from within Visual Studio Code. The Einstein for Developers status icon in the bottom panel of the Visual Studio Code window indicates whether Einstein for Developers is enabled or disabled. When enabled, the background color of the icon will match the color of the status bar. When disabled, the background color of the icon is brown. The background color of the icon is red when you're connected to an org that doesn't have Einstein for Developers enabled.
+
+To enable or disable Einstein for Developers, click the status icon in the bottom panel of the Visual Studio Code window and then click **Disable**.
+
+![einstein icon](./images/einstein-icon.png)
+
 ### Use Einstein for Developers in a Scratch Org
 
 Einstein for Developers is only available in scratch org editions that can author Apex:
@@ -110,3 +118,18 @@ Create a scratch org using the `SFDX: Create a Default Scratch Org...` command r
 Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us with feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
 
 ![feedback panel](./images/einstein-feedback.png)
+
+## Keyboard Shortcuts for Einstein for Developers
+
+You can use the default keyboard shortcuts in Visual Studio Code when using Einstein for Developers. You can rebind the shortcuts in the Keyboard Shortcuts editor using your preferred keyboard shortcuts for each specific command. For more information see [Key Bindings for Visual Studio Code](https://code.visualstudio.com/docs/getstarted/keybindings).
+
+You can search for each keyboard shortcut by command name in the Keyboard Shortcuts editor.
+
+| Command                                  | Key Binding |
+| ---------------------------------------- | ----------- |
+| Accept                                   | ⌘Enter      |
+| Accept                                   | Tab         |
+| Clear                                    | Escape      |
+| Einstein:Generate Code                   | ⇧⌘R         |
+| SFDX: Insert Comment for Code Generation | ⌘L          |
+| Trigger Inline Suggestion                | ⌥\          |
