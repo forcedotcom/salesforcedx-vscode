@@ -37,4 +37,4 @@ export const enum StreamingErrors {
   ERROR_UNKNOWN_CLIENT_ID = '403::Unknown client'
 }
 
-export const RetreiveResultsInterval = 60 * 1000;
+export const RetrieveResultsInterval = 60 * 1000;

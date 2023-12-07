@@ -54,14 +54,13 @@ export class CodeCoverage {
       return new Map();
     }
 
-    const perClassCodeCovResults = await this.queryPerClassCodeCov(
-      apexTestClassSet
-    );
+    const perClassCodeCovResults =
+      await this.queryPerClassCodeCov(apexTestClassSet);
 
     const perClassCoverageMap = new Map<string, PerClassCoverage[]>();
 
-    perClassCodeCovResults.forEach(chunk => {
-      chunk.records.forEach(item => {
+    perClassCodeCovResults.forEach((chunk) => {
+      chunk.records.forEach((item) => {
         const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
         const percentage = calculatePercentage(
           item.NumLinesCovered,
@@ -98,9 +97,7 @@ export class CodeCoverage {
    * @param apexClassIdSet Set of ids for Apex classes
    * @returns The aggregate code coverage information for the given set of Apex classes
    */
-  public async getAggregateCodeCoverage(
-    apexClassIdSet: Set<string>
-  ): Promise<{
+  public async getAggregateCodeCoverage(apexClassIdSet: Set<string>): Promise<{
     codeCoverageResults: CodeCoverageResult[];
     totalLines: number;
     coveredLines: number;
@@ -109,18 +106,17 @@ export class CodeCoverage {
       return { codeCoverageResults: [], totalLines: 0, coveredLines: 0 };
     }
 
-    const codeCoverageAggregates = await this.queryAggregateCodeCov(
-      apexClassIdSet
-    );
+    const codeCoverageAggregates =
+      await this.queryAggregateCodeCov(apexClassIdSet);
 
     let totalLinesCovered = 0;
     let totalLinesUncovered = 0;
 
     const totalCodeCoverageResults: CodeCoverageResult[] = [];
 
-    codeCoverageAggregates.forEach(chunk => {
+    codeCoverageAggregates.forEach((chunk) => {
       const codeCoverageResults: CodeCoverageResult[] = chunk.records.map(
-        item => {
+        (item) => {
           totalLinesCovered += item.NumLinesCovered;
           totalLinesUncovered += item.NumLinesUncovered;
           const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
@@ -175,7 +171,7 @@ export class CodeCoverage {
   >(idSet: Set<string>, selectQuery: string): Promise<T[]> {
     const queries = this.createQueries(selectQuery, idSet);
 
-    const queryPromises = queries.map(query => {
+    const queryPromises = queries.map((query) => {
       // The query method returns a type QueryResult from jsforce
       // that has takes a type that extends the jsforce Record.
       // ApexCodeCoverageRecord and ApexCodeCoverageAggregateRecord
@@ -200,7 +196,7 @@ export class CodeCoverage {
     for (let i = 0; i < idArray.length; i += QUERY_RECORD_LIMIT) {
       const recordSet: string[] = idArray
         .slice(i, i + QUERY_RECORD_LIMIT)
-        .map(id => `'${id}'`);
+        .map((id) => `'${id}'`);
 
       const query: string = util.format(selectQuery, recordSet.join(','));
       queries.push(query);

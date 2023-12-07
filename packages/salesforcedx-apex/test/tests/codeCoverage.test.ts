@@ -137,13 +137,10 @@ describe('Get code coverage results', () => {
       records: codeCoverageQueryResult
     } as ApexCodeCoverageAggregate);
     const codeCov = new CodeCoverage(mockConnection);
-    const {
-      codeCoverageResults,
-      totalLines,
-      coveredLines
-    } = await codeCov.getAggregateCodeCoverage(
-      new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
-    );
+    const { codeCoverageResults, totalLines, coveredLines } =
+      await codeCov.getAggregateCodeCoverage(
+        new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
+      );
 
     expect(totalLines).to.equal(24);
     expect(coveredLines).to.equal(18);
@@ -154,11 +151,8 @@ describe('Get code coverage results', () => {
     toolingQueryStub.throws('Error at Row:1;Column:1');
 
     const codeCov = new CodeCoverage(mockConnection);
-    const {
-      codeCoverageResults,
-      totalLines,
-      coveredLines
-    } = await codeCov.getAggregateCodeCoverage(new Set([]));
+    const { codeCoverageResults, totalLines, coveredLines } =
+      await codeCov.getAggregateCodeCoverage(new Set([]));
     expect(codeCoverageResults.length).to.equal(0);
     expect(totalLines).to.equal(0);
     expect(coveredLines).to.equal(0);

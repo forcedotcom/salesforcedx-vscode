@@ -208,11 +208,8 @@ export class AsyncTests {
     const apexTestResults = await this.getAsyncTestResults(
       asyncRunResult.queueItem
     );
-    const {
-      apexTestClassIdSet,
-      testResults,
-      globalTests
-    } = await this.buildAsyncTestResults(apexTestResults);
+    const { apexTestClassIdSet, testResults, globalTests } =
+      await this.buildAsyncTestResults(apexTestResults);
 
     let outcome = testRunSummary.Status;
     if (globalTests.failed > 0) {
@@ -248,16 +245,15 @@ export class AsyncTests {
     };
 
     if (codeCoverage) {
-      const perClassCovMap = await this.codecoverage.getPerClassCodeCoverage(
-        apexTestClassIdSet
-      );
+      const perClassCovMap =
+        await this.codecoverage.getPerClassCodeCoverage(apexTestClassIdSet);
 
-      result.tests.forEach(item => {
+      result.tests.forEach((item) => {
         const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
         const perClassCov = perClassCovMap.get(keyCodeCov);
         // Skipped test is not in coverage map, check to see if perClassCov exists first
         if (perClassCov) {
-          perClassCov.forEach(classCov =>
+          perClassCov.forEach((classCov) =>
             coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
           );
           item.perClassCoverage = perClassCov;
@@ -269,13 +265,8 @@ export class AsyncTests {
         value: 'queryingForAggregateCodeCoverage',
         message: nls.localize('queryingForAggregateCodeCoverage')
       });
-      const {
-        codeCoverageResults,
-        totalLines,
-        coveredLines
-      } = await this.codecoverage.getAggregateCodeCoverage(
-        coveredApexClassIdSet
-      );
+      const { codeCoverageResults, totalLines, coveredLines } =
+        await this.codecoverage.getAggregateCodeCoverage(coveredApexClassIdSet);
       result.codecoverage = codeCoverageResults;
       result.summary.totalLines = totalLines;
       result.summary.coveredLines = coveredLines;
@@ -283,7 +274,8 @@ export class AsyncTests {
         coveredLines,
         totalLines
       );
-      result.summary.orgWideCoverage = await this.codecoverage.getOrgWideCoverage();
+      result.summary.orgWideCoverage =
+        await this.codecoverage.getOrgWideCoverage();
     }
 
     return result;
@@ -299,14 +291,14 @@ export class AsyncTests {
       'ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix ';
     apexTestResultQuery += 'FROM ApexTestResult WHERE QueueItemId IN (%s)';
 
-    const apexResultIds = testQueueResult.records.map(record => record.Id);
+    const apexResultIds = testQueueResult.records.map((record) => record.Id);
 
     // iterate thru ids, create query with id, & compare query length to char limit
     const queries: string[] = [];
     for (let i = 0; i < apexResultIds.length; i += QUERY_RECORD_LIMIT) {
       const recordSet: string[] = apexResultIds
         .slice(i, i + QUERY_RECORD_LIMIT)
-        .map(id => `'${id}'`);
+        .map((id) => `'${id}'`);
       const query: string = util.format(
         apexTestResultQuery,
         recordSet.join(',')
@@ -314,7 +306,7 @@ export class AsyncTests {
       queries.push(query);
     }
 
-    const queryPromises = queries.map(query => {
+    const queryPromises = queries.map((query) => {
       return this.connection.tooling.query<ApexTestResultRecord>(query, {
         autoFetch: true
       });
@@ -342,7 +334,7 @@ export class AsyncTests {
     // Iterate over test results, format and add them as results.tests
     const testResults: ApexTestResultData[] = [];
     for (const result of apexTestResults) {
-      result.records.forEach(item => {
+      result.records.forEach((item) => {
         switch (item.Outcome) {
           case ApexTestResultOutcome.Pass:
             passed++;
@@ -410,11 +402,10 @@ export class AsyncTests {
       testRunId
     });
 
-    const testQueueItems = await this.connection.tooling.query<
-      ApexTestQueueItemRecord
-    >(
-      `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
-    );
+    const testQueueItems =
+      await this.connection.tooling.query<ApexTestQueueItemRecord>(
+        `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
+      );
 
     for (const record of testQueueItems.records) {
       record.Status = ApexTestQueueItemStatus.Aborted;

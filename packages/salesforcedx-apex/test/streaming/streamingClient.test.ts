@@ -385,7 +385,7 @@ describe('Streaming API Client', () => {
           callback: (message: StreamMessage) => void
         ) => Promise<void>;
       }) => {
-        mockFayeIncomingMessage.on('incoming', async message => {
+        mockFayeIncomingMessage.on('incoming', async (message) => {
           await extension.incoming(message, stubCallback);
           deferred.resolve();
         });
@@ -422,7 +422,7 @@ describe('Streaming API Client', () => {
           callback: (message: StreamMessage) => void
         ) => Promise<void>;
       }) => {
-        mockFayeIncomingMessage.on('incoming', async message => {
+        mockFayeIncomingMessage.on('incoming', async (message) => {
           await extension.incoming(message, stubCallback);
           deferred.resolve();
         });
@@ -465,7 +465,7 @@ describe('Streaming API Client', () => {
           callback: (message: StreamMessage) => void
         ) => Promise<void>;
       }) => {
-        mockFayeIncomingMessage.on('incoming', async message => {
+        mockFayeIncomingMessage.on('incoming', async (message) => {
           await extension.incoming(message, stubCallback);
           deferred.resolve();
         });

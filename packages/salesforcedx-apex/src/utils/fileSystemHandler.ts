@@ -40,7 +40,7 @@ function streamPromise(stream: fs.WriteStream): Promise<void> {
     stream.on('end', () => {
       resolve();
     });
-    stream.on('error', error => {
+    stream.on('error', (error) => {
       reject(error);
     });
   });
@@ -53,7 +53,7 @@ function streamPromise(stream: fs.WriteStream): Promise<void> {
 export async function createFiles(
   fileMap: { path: string; content: string }[]
 ): Promise<void> {
-  const writePromises = fileMap.map(file => {
+  const writePromises = fileMap.map((file) => {
     ensureFileExists(file.path);
     const writeStream = fs.createWriteStream(file.path);
     writeStream.write(file.content);

@@ -146,7 +146,7 @@ export class HumanReporter {
         : elem.message;
 
       if (elem.perClassCoverage) {
-        elem.perClassCoverage.forEach(perClassCov => {
+        elem.perClassCoverage.forEach((perClassCov) => {
           testRowArray.push({
             name: elem.fullName,
             coveredClassName: perClassCov.apexClassOrTriggerName,

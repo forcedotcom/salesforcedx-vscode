@@ -74,9 +74,8 @@ export class SyncTests {
     codeCoverage = false
   ): Promise<TestResult> {
     const coveredApexClassIdSet = new Set<string>();
-    const { apexTestClassIdSet, testResults } = this.buildSyncTestResults(
-      apiTestResult
-    );
+    const { apexTestClassIdSet, testResults } =
+      this.buildSyncTestResults(apiTestResult);
 
     const globalTestFailed = apiTestResult.failures.length;
     const globalTestPassed = apiTestResult.successes.length;
@@ -113,16 +112,15 @@ export class SyncTests {
     };
 
     if (codeCoverage) {
-      const perClassCovMap = await this.codecoverage.getPerClassCodeCoverage(
-        apexTestClassIdSet
-      );
+      const perClassCovMap =
+        await this.codecoverage.getPerClassCodeCoverage(apexTestClassIdSet);
 
       if (perClassCovMap.size > 0) {
-        result.tests.forEach(item => {
+        result.tests.forEach((item) => {
           const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
           const perClassCov = perClassCovMap.get(keyCodeCov);
           if (perClassCov) {
-            perClassCov.forEach(classCov =>
+            perClassCov.forEach((classCov) =>
               coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
             );
             item.perClassCoverage = perClassCov;
@@ -130,13 +128,8 @@ export class SyncTests {
         });
       }
 
-      const {
-        codeCoverageResults,
-        totalLines,
-        coveredLines
-      } = await this.codecoverage.getAggregateCodeCoverage(
-        coveredApexClassIdSet
-      );
+      const { codeCoverageResults, totalLines, coveredLines } =
+        await this.codecoverage.getAggregateCodeCoverage(coveredApexClassIdSet);
       result.codecoverage = codeCoverageResults;
       result.summary.totalLines = totalLines;
       result.summary.coveredLines = coveredLines;
@@ -144,21 +137,20 @@ export class SyncTests {
         coveredLines,
         totalLines
       );
-      result.summary.orgWideCoverage = await this.codecoverage.getOrgWideCoverage();
+      result.summary.orgWideCoverage =
+        await this.codecoverage.getOrgWideCoverage();
     }
     return result;
   }
 
-  private buildSyncTestResults(
-    apiTestResult: SyncTestResult
-  ): {
+  private buildSyncTestResults(apiTestResult: SyncTestResult): {
     apexTestClassIdSet: Set<string>;
     testResults: ApexTestResultData[];
   } {
     const testResults: ApexTestResultData[] = [];
     const apexTestClassIdSet = new Set<string>();
 
-    apiTestResult.successes.forEach(item => {
+    apiTestResult.successes.forEach((item) => {
       const nms = item.namespace ? `${item.namespace}.` : '';
       apexTestClassIdSet.add(item.id);
       testResults.push({
@@ -182,7 +174,7 @@ export class SyncTests {
       });
     });
 
-    apiTestResult.failures.forEach(item => {
+    apiTestResult.failures.forEach((item) => {
       const nms = item.namespace ? `${item.namespace}__` : '';
       apexTestClassIdSet.add(item.id);
       const diagnostic =

@@ -164,7 +164,8 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   it('should return formatted test results', async () => {
-    missingTimeTestData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
+    missingTimeTestData.summary.orgId =
+      mockConnection.getAuthInfoFields().orgId;
     missingTimeTestData.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
@@ -1071,7 +1072,7 @@ describe('Run Apex tests asynchronously', () => {
 
   describe('Abort Test Runs', () => {
     it('should send requests to abort test run', async () => {
-      const mockTestQueueItemRecord: ApexTestQueueItem = ({
+      const mockTestQueueItemRecord: ApexTestQueueItem = {
         size: 2,
         totalSize: 2,
         done: true,
@@ -1081,8 +1082,7 @@ describe('Run Apex tests asynchronously', () => {
           {
             attributes: {
               type: 'ApexTestQueueItem',
-              url:
-                '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5mAAG'
+              url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5mAAG'
             },
             Id: testRunId,
             Status: ApexTestQueueItemStatus.Processing
@@ -1090,14 +1090,13 @@ describe('Run Apex tests asynchronously', () => {
           {
             attributes: {
               type: 'ApexTestQueueItem',
-              url:
-                '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5nAAG'
+              url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5nAAG'
             },
             Id: testRunId,
             Status: ApexTestQueueItemStatus.Processing
           }
         ]
-      } as unknown) as ApexTestQueueItem;
+      } as unknown as ApexTestQueueItem;
       sandboxStub
         .stub(mockConnection.tooling, 'query')
         //@ts-ignore
@@ -1111,12 +1110,11 @@ describe('Run Apex tests asynchronously', () => {
       await asyncTestSrv.abortTestRun(testRunId);
 
       sinonAssert.calledOnce(toolingUpdateStub);
-      sinonAssert.calledWith(toolingUpdateStub, 'ApexTestQueueItem', ([
+      sinonAssert.calledWith(toolingUpdateStub, 'ApexTestQueueItem', [
         {
           attributes: {
             type: 'ApexTestQueueItem',
-            url:
-              '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5mAAG'
+            url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5mAAG'
           },
           Id: testRunId,
           Status: ApexTestQueueItemStatus.Aborted
@@ -1124,13 +1122,12 @@ describe('Run Apex tests asynchronously', () => {
         {
           attributes: {
             type: 'ApexTestQueueItem',
-            url:
-              '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5nAAG'
+            url: '/services/data/v51.0/tooling/sobjects/ApexTestQueueItem/7095w000000JR5nAAG'
           },
           Id: testRunId,
           Status: ApexTestQueueItemStatus.Aborted
         }
-      ] as unknown) as ApexTestQueueItemRecord[]);
+      ] as unknown as ApexTestQueueItemRecord[]);
     });
 
     it('should abort test run on cancellation requested', async () => {
@@ -1153,11 +1150,11 @@ describe('Run Apex tests asynchronously', () => {
 
       sandboxStub
         .stub(StreamingClient.prototype, 'subscribe')
-        .callsFake(function() {
+        .callsFake(function () {
           // eslint-disable-next-line
           const that = this;
-          return new Promise(function() {
-            actionf().then(function(id) {
+          return new Promise(function () {
+            actionf().then(function (id) {
               that.subscribedTestRunId = id;
               that.subscribedTestRunIdDeferred.resolve(id);
             });
@@ -1182,7 +1179,7 @@ describe('Run Apex tests asynchronously', () => {
         cancellationTokenSource.token
       );
 
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         // wait for task queue
         setTimeout(async () => {
           await cancellationTokenSource.asyncCancel();

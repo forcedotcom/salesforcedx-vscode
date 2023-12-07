@@ -282,6 +282,7 @@ describe('Apex Test Suites', async () => {
         'TestClass1.method1,namespace.TestClass2.method1,TestClass2.method2';
 
       const testService = new TestService(mockConnection);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (testService as any).buildTestPayload(tests);
       expect(result.tests.toString()).to.equal(testsPayload.tests.toString());
     });

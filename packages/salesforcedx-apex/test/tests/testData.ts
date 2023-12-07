@@ -400,25 +400,7 @@ export const codeCoverageQueryResult: ApexCodeCoverageAggregateRecord[] = [
     NumLinesUncovered: 1,
     Coverage: {
       coveredLines: [
-        3,
-        4,
-        6,
-        7,
-        8,
-        9,
-        15,
-        18,
-        19,
-        22,
-        23,
-        24,
-        27,
-        28,
-        29,
-        30,
-        31,
-        33,
-        34
+        3, 4, 6, 7, 8, 9, 15, 18, 19, 22, 23, 24, 27, 28, 29, 30, 31, 33, 34
       ],
       uncoveredLines: [35]
     }

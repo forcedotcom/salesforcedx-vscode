@@ -45,10 +45,10 @@ export async function queryNamespaces(
   const orgNsPromise = connection.query(orgNsQuery);
 
   const allNamespaces = await Promise.all([installedNsPromise, orgNsPromise]);
-  const installedNamespaces = allNamespaces[0].records.map(record => {
+  const installedNamespaces = allNamespaces[0].records.map((record) => {
     return { installedNs: true, namespace: record.NamespacePrefix };
   });
-  const orgNamespaces = allNamespaces[1].records.map(record => {
+  const orgNamespaces = allNamespaces[1].records.map((record) => {
     return { installedNs: false, namespace: record.NamespacePrefix };
   });
 

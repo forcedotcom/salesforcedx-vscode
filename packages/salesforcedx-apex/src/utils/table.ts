@@ -49,7 +49,7 @@ export class Table {
       table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
     }
 
-    rows.forEach(row => {
+    rows.forEach((row) => {
       let outputRow = '';
       cols.forEach((col, colIndex, colArr) => {
         const cell = row[col.key];
@@ -88,8 +88,8 @@ export class Table {
     cols: Column[]
   ): Map<string, number> {
     const maxColWidths = new Map<string, number>();
-    cols.forEach(col => {
-      rows.forEach(row => {
+    cols.forEach((col) => {
+      rows.forEach((row) => {
         const cell = row[col.key];
         if (cell === undefined) {
           throw Error(`Row is missing the key ${col.key}`);

@@ -7,45 +7,47 @@
   "main": "lib/src/index.js",
   "dependencies": {
     "@salesforce/core": "^5.3.18",
-    "@types/istanbul-reports": "^3.0.1",
+    "@salesforce/kit": "^3.0.15",
+    "@types/istanbul-reports": "^3.0.4",
     "faye": "1.4.0",
-    "glob": "^8.0.3",
-    "istanbul-lib-coverage": "^3.2.0",
+    "glob": "^10.3.10",
+    "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
-    "istanbul-reports": "^3.1.6"
+    "istanbul-reports": "^3.1.6",
+    "jsforce": "^2.0.0-beta.28"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^17.6.7",
-    "@salesforce/ts-sinon": "^1.4.14",
-    "@salesforce/ts-types": "^2.0.6",
-    "@types/chai": "^4.3.5",
+    "@commitlint/config-conventional": "^18.1.0",
+    "@salesforce/ts-sinon": "^1.4.19",
+    "@salesforce/ts-types": "^2.0.9",
+    "@types/chai": "^4.3.10",
     "@types/glob": "^8.1.0",
-    "@types/istanbul-lib-coverage": "^2.0.4",
-    "@types/istanbul-lib-report": "^3.0.0",
-    "@types/mocha": "^10",
-    "@types/node": "^14",
-    "@types/sinon": "^7.5.2",
-    "@typescript-eslint/eslint-plugin": "^5.42.1",
-    "@typescript-eslint/parser": "^5.42.1",
-    "chai": "^4.3.7",
-    "commitlint": "^17.6.7",
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/mocha": "^10.0.4",
+    "@types/node": "^18",
+    "@types/sinon": "^17.0.1",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "chai": "^4.3.10",
+    "commitlint": "^18.2.0",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "^7.1.0",
-    "eslint-config-prettier": "^6.11.0",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-header": "^3.0.0",
-    "eslint-plugin-jsdoc": "^19.1.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "husky": "^4.2.5",
-    "lint-staged": "^10.2.11",
-    "mocha": "^10",
-    "mocha-junit-reporter": "^1.23.3",
-    "nyc": "^14.1.1",
-    "prettier": "1.19.1",
+    "eslint-plugin-jsdoc": "^46.8.2",
+    "eslint-plugin-prettier": "^5.0.1",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.0.2",
+    "mocha": "^10.2.0",
+    "mocha-junit-reporter": "^2.2.1",
+    "nyc": "^15.1.0",
+    "prettier": "^3.0.3",
     "shx": "^0.3.4",
-    "sinon": "^7.3.1",
+    "sinon": "^17.0.1",
     "source-map-support": "^0.5.16",
     "ts-node": "^10.7.0",
-    "typescript": "4.6.4"
+    "typescript": "^5.2.2"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
   "keywords": [
@@ -67,13 +69,8 @@
     "test": "nyc mocha ./test/**/*.test.ts",
     "package": "yarn pack",
     "prettier": "prettier ./**/*.{js,json,ts,md} --write",
-    "format:check": "prettier ./**/*.{js,json,ts,md} --debug-check"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
+    "format:check": "prettier ./**/*.{js,json,ts,md} --debug-check",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "./{src,test}/**/*.{ts,js}": [
@@ -82,7 +79,7 @@
   },
   "license": "BSD-3-Clause",
   "engines": {
-    "node": ">=16.13.0"
+    "node": ">=18.18.2"
   },
   "config": {
     "commitizen": {

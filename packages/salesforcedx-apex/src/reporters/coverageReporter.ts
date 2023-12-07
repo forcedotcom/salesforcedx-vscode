@@ -108,7 +108,7 @@ export class CoverageReporter {
         coverageMap: this.coverageMap
       });
       const formats = this.options?.reportFormats || ['text-summary'];
-      formats.forEach(format => {
+      formats.forEach((format) => {
         const report = reports.create(
           format,
           this.options?.reportOptions[format] || DefaultReportOptions[format]
@@ -125,7 +125,8 @@ export class CoverageReporter {
     const coverageMap = libCoverage.createCoverageMap();
     this.coverage.records.forEach(
       (record: ApexCodeCoverageRecord | ApexCodeCoverageAggregateRecord) => {
-        const fileCoverageData: libCoverage.FileCoverageData = {} as libCoverage.FileCoverageData;
+        const fileCoverageData: libCoverage.FileCoverageData =
+          {} as libCoverage.FileCoverageData;
         const fileRegEx = new RegExp(
           `${record.ApexClassOrTrigger.Name}\.(cls|trigger)`
         );
@@ -133,14 +134,14 @@ export class CoverageReporter {
         fileCoverageData.branchMap = {};
         fileCoverageData.path = path.join(
           this.sourceDir,
-          pathsToFiles.find(file => fileRegEx.test(file)) ||
+          pathsToFiles.find((file) => fileRegEx.test(file)) ||
             record.ApexClassOrTrigger.Name
         );
         fileCoverageData.f = {};
         fileCoverageData.b = {};
         fileCoverageData.s = [
-          ...record.Coverage.coveredLines.map(line => [line, 1]),
-          ...record.Coverage.uncoveredLines.map(line => [line, 0])
+          ...record.Coverage.coveredLines.map((line) => [line, 1]),
+          ...record.Coverage.uncoveredLines.map((line) => [line, 0])
         ]
           .map(([line, covered]) => [Number(line).toString(10), covered])
           .reduce((acc, [line, value]) => {
@@ -159,7 +160,7 @@ export class CoverageReporter {
           ...record.Coverage.uncoveredLines
         ]
           .sort()
-          .map(line => {
+          .map((line) => {
             const statement: libCoverage.Range = {
               start: {
                 line,

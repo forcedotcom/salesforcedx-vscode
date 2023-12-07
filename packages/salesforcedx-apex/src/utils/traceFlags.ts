@@ -197,9 +197,8 @@ export class TraceFlags {
       ORDER BY CreatedDate DESC
       LIMIT 1
     `;
-    const traceFlagResult = await this.connection.tooling.query<
-      TraceFlagRecord
-    >(traceFlagQuery);
+    const traceFlagResult =
+      await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
     if (traceFlagResult.totalSize > 0) {
       return traceFlagResult.records[0];

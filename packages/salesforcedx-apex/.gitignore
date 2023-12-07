@@ -16,6 +16,7 @@ lerna-debug.log*
 test-results.xml
 xunit.xml
 junit-custom.xml
+path
 
 # nyc test coverage
 .nyc_output

@@ -18,14 +18,12 @@ const multipleCoverageAggregate = {
     {
       attributes: {
         type: 'ApexCodeCoverageAggregate',
-        url:
-          '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7kAAA'
+        url: '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7kAAA'
       },
       ApexClassOrTrigger: {
         attributes: {
           type: 'Name',
-          url:
-            '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm6AAF'
+          url: '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm6AAF'
         },
         Id: '01p1100000TqGm6AAF',
         Name: 'PagedResult'
@@ -40,14 +38,12 @@ const multipleCoverageAggregate = {
     {
       attributes: {
         type: 'ApexCodeCoverageAggregate',
-        url:
-          '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7lAAA'
+        url: '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7lAAA'
       },
       ApexClassOrTrigger: {
         attributes: {
           type: 'Name',
-          url:
-            '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm8AAF'
+          url: '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm8AAF'
         },
         Id: '01p1100000TqGm8AAF',
         Name: 'SampleDataController'
@@ -56,40 +52,8 @@ const multipleCoverageAggregate = {
       NumLinesUncovered: 0,
       Coverage: {
         coveredLines: [
-          3,
-          4,
-          5,
-          6,
-          7,
-          9,
-          10,
-          11,
-          14,
-          15,
-          20,
-          21,
-          22,
-          23,
-          25,
-          28,
-          29,
-          34,
-          35,
-          36,
-          37,
-          39,
-          40,
-          43,
-          44,
-          49,
-          50,
-          51,
-          52,
-          54,
-          57,
-          58,
-          59,
-          60
+          3, 4, 5, 6, 7, 9, 10, 11, 14, 15, 20, 21, 22, 23, 25, 28, 29, 34, 35,
+          36, 37, 39, 40, 43, 44, 49, 50, 51, 52, 54, 57, 58, 59, 60
         ],
         uncoveredLines: []
       }
@@ -97,14 +61,12 @@ const multipleCoverageAggregate = {
     {
       attributes: {
         type: 'ApexCodeCoverageAggregate',
-        url:
-          '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7mAAA'
+        url: '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7mAAA'
       },
       ApexClassOrTrigger: {
         attributes: {
           type: 'Name',
-          url:
-            '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm7AAF'
+          url: '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm7AAF'
         },
         Id: '01p1100000TqGm7AAF',
         Name: 'PropertyController'
@@ -113,47 +75,9 @@ const multipleCoverageAggregate = {
       NumLinesUncovered: 3,
       Coverage: {
         coveredLines: [
-          2,
-          3,
-          16,
-          25,
-          27,
-          28,
-          29,
-          30,
-          32,
-          33,
-          35,
-          36,
-          38,
-          39,
-          40,
-          41,
-          45,
-          46,
-          47,
-          48,
-          49,
-          50,
-          52,
-          67,
-          68,
-          69,
-          70,
-          71,
-          72,
-          75,
-          76,
-          87,
-          88,
-          92,
-          97,
-          98,
-          101,
-          103,
-          104,
-          107,
-          110
+          2, 3, 16, 25, 27, 28, 29, 30, 32, 33, 35, 36, 38, 39, 40, 41, 45, 46,
+          47, 48, 49, 50, 52, 67, 68, 69, 70, 71, 72, 75, 76, 87, 88, 92, 97,
+          98, 101, 103, 104, 107, 110
         ],
         uncoveredLines: [26, 31, 78]
       }
@@ -161,14 +85,12 @@ const multipleCoverageAggregate = {
     {
       attributes: {
         type: 'ApexCodeCoverageAggregate',
-        url:
-          '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7nAAA'
+        url: '/services/data/v54.0/tooling/sobjects/ApexCodeCoverageAggregate/71511000006fb7nAAA'
       },
       ApexClassOrTrigger: {
         attributes: {
           type: 'Name',
-          url:
-            '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm4AAF'
+          url: '/services/data/v54.0/tooling/sobjects/ApexClass/01p1100000TqGm4AAF'
         },
         Id: '01p1100000TqGm4AAF',
         Name: 'GeocodingService'
@@ -177,42 +99,8 @@ const multipleCoverageAggregate = {
       NumLinesUncovered: 0,
       Coverage: {
         coveredLines: [
-          5,
-          8,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17,
-          18,
-          19,
-          20,
-          21,
-          22,
-          23,
-          24,
-          25,
-          26,
-          28,
-          29,
-          30,
-          31,
-          32,
-          33,
-          34,
-          35,
-          36,
-          38,
-          39,
-          40,
-          41,
-          42,
-          44,
-          48,
-          50
+          5, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+          26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44, 48, 50
         ],
         uncoveredLines: []
       }

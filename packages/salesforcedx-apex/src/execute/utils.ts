@@ -8,7 +8,7 @@ import { soapTemplate, action, xmlCharMap } from './types';
 import * as util from 'util';
 
 function escapeXml(data: string): string {
-  return data.replace(/[<>&'"]/g, char => {
+  return data.replace(/[<>&'"]/g, (char) => {
     return xmlCharMap[char];
   });
 }

@@ -55,7 +55,7 @@ export class Message implements LocalizationProvider {
       possibleLabel = `${MISSING_LABEL_MSG} ${label}`;
 
       if (Array.isArray(args) && args.length >= 1) {
-        args.forEach(arg => {
+        args.forEach((arg) => {
           possibleLabel += ` (${arg})`;
         });
       }

@@ -56,7 +56,7 @@ export class LogService {
 
     if (typeof options.numberOfLogs === 'number') {
       const logIdRecordList = await this.getLogRecords(options.numberOfLogs);
-      return logIdRecordList.map(logRecord => logRecord.Id);
+      return logIdRecordList.map((logRecord) => logRecord.Id);
     }
     return [options.logId];
   }
@@ -65,7 +65,7 @@ export class LogService {
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
     const logIdList = await this.getLogIds(options);
     const logPaths: string[] = [];
-    const connectionRequests = logIdList.map(async id => {
+    const connectionRequests = logIdList.map(async (id) => {
       const url = `${this.connection.tooling._baseUrl()}/sobjects/ApexLog/${id}/Body`;
       const logRecord = await this.toolingRequest(url);
       if (options.outputDir) {
@@ -85,7 +85,7 @@ export class LogService {
       return logMap;
     }
 
-    return logs.map(log => {
+    return logs.map((log) => {
       return { log };
     });
   }

@@ -17,7 +17,7 @@ export async function refreshAuth(
 }
 
 export function escapeXml(data: string): string {
-  return data.replace(/[<>&'"]/g, char => {
+  return data.replace(/[<>&'"]/g, (char) => {
     return xmlCharMap[char];
   });
 }
