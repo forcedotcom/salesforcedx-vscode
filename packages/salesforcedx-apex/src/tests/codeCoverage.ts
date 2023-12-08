@@ -9,14 +9,12 @@ import { Connection } from '@salesforce/core';
 import {
   ApexCodeCoverage,
   ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
-  ApexCodeCoverageRecord,
   ApexOrgWideCoverage,
   CodeCoverageResult,
   PerClassCoverage
 } from './types';
 import * as util from 'util';
-import { calculatePercentage } from './utils';
+import { calculatePercentage, queryAll } from './utils';
 import { QUERY_RECORD_LIMIT } from './constants';
 
 export class CodeCoverage {
@@ -176,11 +174,7 @@ export class CodeCoverage {
       // that has takes a type that extends the jsforce Record.
       // ApexCodeCoverageRecord and ApexCodeCoverageAggregateRecord
       // are the Records compatible types defined in this project.
-      return this.connection.tooling.query<
-        ApexCodeCoverageRecord | ApexCodeCoverageAggregateRecord
-      >(query, {
-        autoFetch: true
-      });
+      return queryAll(this.connection, query, true);
     });
 
     // Note here the result of the .all call is of type QueryResult<ApexCodeCoverageAggregateRecord | ApexCodeCoverageRecord>[]

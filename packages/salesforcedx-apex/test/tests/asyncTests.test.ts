@@ -710,10 +710,9 @@ describe('Run Apex tests asynchronously', () => {
     };
 
     it('should split into multiple queries if query is longer than char limit', async () => {
-      const mockToolingQuery = sandboxStub.stub(
-        mockConnection.tooling,
-        'query'
-      );
+      const mockToolingQuery = sandboxStub
+        .stub(mockConnection.tooling, 'query')
+        .resolves({ done: true, totalSize: 1, records: [] });
 
       const asyncTestSrv = new AsyncTests(mockConnection);
       const result = await asyncTestSrv.getAsyncTestResults(testQueueItems);
@@ -723,10 +722,9 @@ describe('Run Apex tests asynchronously', () => {
     });
 
     it('should make a single api call if query is under char limit', async () => {
-      const mockToolingQuery = sandboxStub.stub(
-        mockConnection.tooling,
-        'query'
-      );
+      const mockToolingQuery = sandboxStub
+        .stub(mockConnection.tooling, 'query')
+        .resolves({ done: true, totalSize: 1, records: [] });
 
       const asyncTestSrv = new AsyncTests(mockConnection);
       const result = await asyncTestSrv.getAsyncTestResults(pollResponse);
@@ -747,10 +745,9 @@ describe('Run Apex tests asynchronously', () => {
         records: queueItemRecords
       };
 
-      const mockToolingQuery = sandboxStub.stub(
-        mockConnection.tooling,
-        'query'
-      );
+      const mockToolingQuery = sandboxStub
+        .stub(mockConnection.tooling, 'query')
+        .resolves({ done: true, totalSize: 1, records: [] });
 
       const asyncTestSrv = new AsyncTests(mockConnection);
       const result = await asyncTestSrv.getAsyncTestResults(testQueueItems);
@@ -771,10 +768,9 @@ describe('Run Apex tests asynchronously', () => {
         records: queueItemRecords
       };
 
-      const mockToolingQuery = sandboxStub.stub(
-        mockConnection.tooling,
-        'query'
-      );
+      const mockToolingQuery = sandboxStub
+        .stub(mockConnection.tooling, 'query')
+        .resolves({ done: true, totalSize: 1, records: [] });
 
       const asyncTestSrv = new AsyncTests(mockConnection);
       const result = await asyncTestSrv.getAsyncTestResults(testQueueItems);
@@ -792,10 +788,9 @@ describe('Run Apex tests asynchronously', () => {
         'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN ';
       const queryStartSeparatorCount = queryStart.split(',').length - 1;
 
-      const mockToolingQuery = sandboxStub.stub(
-        mockConnection.tooling,
-        'query'
-      );
+      const mockToolingQuery = sandboxStub
+        .stub(mockConnection.tooling, 'query')
+        .resolves({ done: true, totalSize: 1, records: [] });
 
       const queueItemRecord: ApexTestQueueItemRecord[] = [];
 

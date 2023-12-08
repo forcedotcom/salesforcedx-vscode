@@ -19,7 +19,6 @@ import {
   ApexTestResult,
   ApexTestResultData,
   ApexTestResultOutcome,
-  ApexTestResultRecord,
   ApexTestRunResult,
   ApexTestRunResultRecord,
   ApexTestRunResultStatus,
@@ -28,7 +27,7 @@ import {
   TestResult,
   TestRunIdResult
 } from './types';
-import { calculatePercentage, isValidTestRunID } from './utils';
+import { calculatePercentage, isValidTestRunID, queryAll } from './utils';
 import * as util from 'util';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { CodeCoverage } from './codeCoverage';
@@ -307,9 +306,7 @@ export class AsyncTests {
     }
 
     const queryPromises = queries.map((query) => {
-      return this.connection.tooling.query<ApexTestResultRecord>(query, {
-        autoFetch: true
-      });
+      return queryAll(this.connection, query, true);
     });
     const apexTestResults = await Promise.all(queryPromises);
     return apexTestResults as ApexTestResult[];

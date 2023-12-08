@@ -8,6 +8,7 @@
 import { Connection } from '@salesforce/core';
 import { CLASS_ID_PREFIX, TEST_RUN_ID_PREFIX } from './constants';
 import { NamespaceInfo } from './types';
+import { QueryResult } from 'jsforce';
 
 export function isValidTestRunID(testRunId: string): boolean {
   return (
@@ -54,3 +55,24 @@ export async function queryNamespaces(
 
   return [...orgNamespaces, ...installedNamespaces];
 }
+
+export const queryAll = async <T>(
+  connection: Connection,
+  query: string,
+  tooling = false
+): Promise<QueryResult<T>> => {
+  const conn = tooling ? connection.tooling : connection;
+  const allRecords: T[] = [];
+  let result = await conn.query<T>(query);
+  allRecords.push(...result.records);
+  while (!result.done) {
+    result = (await conn.queryMore(result.nextRecordsUrl)) as QueryResult<T>;
+    allRecords.push(...result.records);
+  }
+
+  return {
+    done: true,
+    totalSize: allRecords.length,
+    records: allRecords
+  } as QueryResult<T>;
+};
