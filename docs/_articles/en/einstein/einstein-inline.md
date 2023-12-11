@@ -16,7 +16,7 @@ To use inline autocomplete, first activate the feature:
 
 ## Receive your First Inline Completions
 
-Einstein for Developers autogenerates inline code completions suggestions. To start receiving inline completions:
+Einstein for Developers automatically generates code and suggests completions for you as you type. To start receiving inline completions:
 
 1. In Visual Studio Code, create a new Apex class (\*.cls) file, or open an existing one.
 
