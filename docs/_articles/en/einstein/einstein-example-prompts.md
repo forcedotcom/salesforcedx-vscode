@@ -34,7 +34,7 @@ We’re listing some tips for prompt writing and also providing you with some ex
 For example:
 _Create an Apex batch class named "OpenPositionMatcher"_.
 
-2. **Context Details**: Information about the context you want the AI to use. This includes important context such as org metadata and awareness about the presence of custom objects and fields in your org. Run **SFDX:Refresh SObjects Definitions** to retrieve org metadata into your org. You can then add custom fields to your existing query.
+2. **Context Details**: Information about the context you want the AI to use. This includes important context such as org metadata and awareness about the presence of custom objects and fields in your org. Run **SFDX:Refresh SObjects Definitions** to retrieve org metadata into your project. You can then add custom fields to your existing query.
 
 For example:
 _Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class aims to match these open positions with suitable candidates based on their skills._
