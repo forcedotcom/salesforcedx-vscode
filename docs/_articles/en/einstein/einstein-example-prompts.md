@@ -47,7 +47,7 @@ _Create an Apex batch class named "OpenPositionMatcher" that processes custom ob
 4. **Additional Context**: Any additional information that you want to provide.
 
 For example:
-_Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class aims to match these open positions with suitable candidates based on their skills." Order the results by candidate names in descending order. Make sure the generated code follows security best practices. Separate operators with a new line. The class is used in an LWC component._
+_Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class should match these open positions with suitable candidates based on their skills." Order the results by candidate names in descending order. Make sure the generated code follows security best practices. Separate operators with a new line. The class is used in an LWC component._
 
 The final prompt gives you a response that looks something like this:
 
