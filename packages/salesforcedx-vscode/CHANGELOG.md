@@ -1,3 +1,11 @@
+# 59.9.0 - December 13, 2023
+
+## Fixed
+
+#### docs
+
+- Org browser topic update ([PR #5254](https://github.com/forcedotcom/salesforcedx-vscode/pull/5254))
+
 # 59.8.0 - December 6, 2023
 
 ## Added
