@@ -74,8 +74,8 @@
         ja: Inline Auto Completion
       url: /einstein/einstein-inline
     - title:
-        en: Example Prompts and Responses
-        ja: Set Up Einstein for Developers
+        en: Effective Prompt Writing
+        ja: Effective Prompt Writing
       url: /einstein/einstein-example-prompts
     - title:
         en: Troubleshooting
