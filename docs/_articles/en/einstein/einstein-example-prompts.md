@@ -5,7 +5,7 @@ lang: en
 
 ## Overview
 
-A prompt is natural language text that you craft to communicate with an AI. The response that’s generated depends on the quality of the prompt. Use prompt engineering to define the prompt and then refine it until you get a response that works for you. For E4D responses, prompt quality determines the quality of the boilerplate Apex code that’s generated.
+A prompt is natural language text that you craft to communicate with an AI. The response that’s generated depends on the quality of the prompt. Use prompt engineering to define the prompt and then refine it until you get a response that works for you. For E4D responses, prompt quality determines the quality of the Apex code that’s generated.
 
 ## About Generated Code Quality
 
