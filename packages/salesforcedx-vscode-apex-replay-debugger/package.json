@@ -24,8 +24,8 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "2.1.1",
-    "@salesforce/core": "5.3.18",
+    "@salesforce/apex-node": "2.1.6",
+    "@salesforce/core": "5.3.20",
     "@salesforce/salesforcedx-apex-replay-debugger": "59.9.0",
     "@salesforce/salesforcedx-utils": "59.9.0",
     "@salesforce/salesforcedx-utils-vscode": "59.9.0",
@@ -105,7 +105,7 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "5.3.18",
+        "@salesforce/core": "5.3.20",
         "@salesforce/source-tracking": "4.3.0"
       },
       "devDependencies": {}
