@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilities to interface the SFDX libraries with VS Code",
-  "version": "59.8.0",
+  "version": "59.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
@@ -10,7 +10,7 @@
   ],
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core": "5.3.18",
+    "@salesforce/core": "5.3.20",
     "@salesforce/source-deploy-retrieve": "9.8.4",
     "@salesforce/source-tracking": "4.3.0",
     "applicationinsights": "1.0.7",
