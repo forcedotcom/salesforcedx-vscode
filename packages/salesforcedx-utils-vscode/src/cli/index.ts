@@ -30,7 +30,7 @@ export {
   DiffResultParser,
   DiffSuccessResponse
 } from './diffResultParser';
-export { ForceConfigGet } from './forceConfigGet';
+export { ConfigGet } from './configGet';
 export { LocalCommandExecution } from './localCommandExecutor';
 export {
   OrgCreateErrorResult,
