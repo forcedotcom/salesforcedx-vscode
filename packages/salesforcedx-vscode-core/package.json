@@ -432,7 +432,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.config.list",
+          "command": "sfdx.config.list",
           "when": "sfdx:project_opened"
         },
         {
@@ -743,8 +743,8 @@
         "title": "%debugger_stop_text%"
       },
       {
-        "command": "sfdx.force.config.list",
-        "title": "%force_config_list_text%"
+        "command": "sfdx.config.list",
+        "title": "%config_list_text%"
       },
       {
         "command": "sfdx.alias.list",
@@ -835,8 +835,8 @@
         "title": "%delete_source_this_source_text%"
       },
       {
-        "command": "sfdx.force.set.default.org",
-        "title": "%force_config_set_org_text%"
+        "command": "sfdx.set.default.org",
+        "title": "%config_set_org_text%"
       },
       {
         "command": "sfdx.force.lightning.lwc.create",

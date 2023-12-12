@@ -48,8 +48,8 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ForceConfigList, forceConfigList } from './forceConfigList';
-export { ForceConfigSetExecutor, forceConfigSet } from './forceConfigSet';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { forceCreateManifest } from './forceCreateManifest';
 export {
   ForceDescribeMetadataExecutor,
