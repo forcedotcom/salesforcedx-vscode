@@ -541,10 +541,10 @@
     picocolors "^1.0.0"
     tslib "^2.6.0"
 
-"@salesforce/core@^5.3.20":
-  version "5.3.20"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-5.3.20.tgz#4e934d4551bb70423cb1c4115615bc41cffca41e"
-  integrity sha512-y+O6O2c8OYFDrAy2qsG+pAcNxoyL14nmBXcBRRcYA7Huj8ikK+aLJK84PuVAYdQz+hNwImQF+69IWtDkpK4Irg==
+"@salesforce/core@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-6.1.0.tgz#8ed2775366d8b659efd27717bfb35fa0f223ba05"
+  integrity sha512-KyExbJAGnL87ExbiLkWGDGDGXXJSvANrdFsaEdSV3kTJNeCCcKw8GCtKlULMfNJieSB4VpfxNhKKVRht1SoMdg==
   dependencies:
     "@salesforce/kit" "^3.0.15"
     "@salesforce/schemas" "^1.6.1"
@@ -558,8 +558,8 @@
     jsforce "^2.0.0-beta.28"
     jsonwebtoken "9.0.2"
     jszip "3.10.1"
-    pino "^8.16.0"
-    pino-abstract-transport "^1.0.0"
+    pino "^8.16.1"
+    pino-abstract-transport "^1.1.0"
     pino-pretty "^10.2.3"
     proper-lockfile "^4.1.2"
     semver "^7.5.4"
@@ -3893,7 +3893,7 @@ pidtree@0.6.0:
   resolved "https://registry.yarnpkg.com/pidtree/-/pidtree-0.6.0.tgz#90ad7b6d42d5841e69e0a2419ef38f8883aa057c"
   integrity sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==
 
-pino-abstract-transport@^1.0.0, pino-abstract-transport@v1.1.0:
+pino-abstract-transport@^1.0.0, pino-abstract-transport@^1.1.0, pino-abstract-transport@v1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/pino-abstract-transport/-/pino-abstract-transport-1.1.0.tgz#083d98f966262164504afb989bccd05f665937a8"
   integrity sha512-lsleG3/2a/JIWUtf9Q5gUNErBqwIu1tUKTT3dUzaf5DySw9ra1wcqKjJjLX1VTY64Wk1eEOYsVGSaGfCK85ekA==
@@ -3926,7 +3926,7 @@ pino-std-serializers@^6.0.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-6.2.2.tgz#d9a9b5f2b9a402486a5fc4db0a737570a860aab3"
   integrity sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==
 
-pino@^8.16.0:
+pino@^8.16.1:
   version "8.16.1"
   resolved "https://registry.yarnpkg.com/pino/-/pino-8.16.1.tgz#dcaf82764b1a27f24101317cdd6453e96290f1d9"
   integrity sha512-3bKsVhBmgPjGV9pyn4fO/8RtoVDR8ssW1ev819FsRXlRNgW8gR/9Kx+gCK4UPWd4JjrRDLWpzd/pb1AyWm3MGA==
