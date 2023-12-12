@@ -36,7 +36,7 @@ jobs:
         nodeVersion:
           - 18.11.0
         vscodeVersion:
-          - ${{ inputs.vscodeVersion }}
+          - ${{ inputs.vscodeVersion || '1.61.2' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
