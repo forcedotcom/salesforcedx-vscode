@@ -15,6 +15,7 @@ on:
       testToRun:
         description: 'Run this E2E test'
         required: false
+        default: 'anInitialSuite.e2e.ts'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -23,7 +24,7 @@ on:
       vscodeVersion:
         description: 'VS Code Version'
         required: false
-        default: 'stable'
+        default: '1.61.2'
         type: string
 
 jobs:
@@ -36,7 +37,7 @@ jobs:
         nodeVersion:
           - 18.11.0
         vscodeVersion:
-          - ${{ inputs.vscodeVersion || '1.61.2' }}
+          - ${{ inputs.vscodeVersion }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -101,7 +102,7 @@ jobs:
           working-directory: salesforcedx-vscode-automation-tests
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: 'anInitialSuite.e2e.ts'
+          SPEC_FILES: ${{ inputs.testToRun }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
       - uses: actions/upload-artifact@v3
