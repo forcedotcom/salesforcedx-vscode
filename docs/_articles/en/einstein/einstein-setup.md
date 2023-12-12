@@ -82,7 +82,9 @@ The Einstein logo on the activity bar and in the status bar confirms that the ex
 
 ## Enable or Disable Einstein For Developers
 
-You can enable or disable Einstein for Developers from within Visual Studio Code. The Einstein for Developers status icon in the bottom panel of the Visual Studio Code window indicates whether Einstein for Developers is enabled or disabled. When enabled, the background color of the icon will match the color of the status bar. When disabled, the background color of the icon is brown. The background color of the icon is red when you're connected to an org that doesn't have Einstein for Developers enabled.
+You can enable or disable Einstein for Developers from within Visual Studio Code. The Einstein for Developers status icon in the bottom panel of the Visual Studio Code window indicates whether Einstein for Developers is enabled or disabled. When enabled, the background color of the icon will match the color of the status bar. When disabled, the background color of the icon is brown. The background color of the icon is red when you're connected to an org that doesn't have Einstein for Developers enabled. 
+
+**Note**: Run **Developer:Reload Window** or manually toggle the icon to the correct state if you change the state of the Einstein for Developers preference in your Salesforce org. 
 
 To enable or disable Einstein for Developers, click the status icon in the bottom panel of the Visual Studio Code window and then click **Disable**.
 
