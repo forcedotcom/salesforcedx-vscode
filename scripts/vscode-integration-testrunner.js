@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { runTests } = require('@vscode/test-electron');
 const path = require('path');
+const fs = require('fs');
 
 /**
  * A wrapper utlity for running VS Code integration tests. If a correspondent env variable is specified,
@@ -38,6 +39,11 @@ async function runIntegrationTests({
       '--crash-reporter-directory',
       _vscodeLogDir
     ];
+    const vscodeTestDir = path.join(process.cwd(), '.vscode-test');
+    if (fs.existsSync(vscodeTestDir)) {
+      console.log('### removing vscode-test directory');
+      fs.rmdirSync(vscodeTestDir, { recursive: true, force: true });
+    }
     console.log('### pre runTests', {
       version: _version,
       extensionDevelopmentPath: _extensionDevelopmentPath,
