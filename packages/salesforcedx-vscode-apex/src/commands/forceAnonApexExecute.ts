@@ -254,7 +254,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export async function forceAnonApexExecute() {
+export const forceAnonApexExecute =  async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
@@ -262,9 +262,9 @@ export async function forceAnonApexExecute() {
   );
 
   await commandlet.run();
-}
+};
 
-export async function forceAnonApexDebug() {
+export const forceAnonApexDebug = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
@@ -272,4 +272,4 @@ export async function forceAnonApexDebug() {
   );
 
   await commandlet.run();
-}
+};

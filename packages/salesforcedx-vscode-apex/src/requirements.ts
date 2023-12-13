@@ -31,7 +31,7 @@ export interface RequirementsData {
  * Resolves the requirements needed to run the extension.
  * Returns a promise that will resolve to a RequirementsData if all requirements are resolved.
  */
-export async function resolveRequirements(): Promise<RequirementsData> {
+export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaHome = await checkJavaRuntime();
   const javaMemory: number | null = workspace
     .getConfiguration()
@@ -41,9 +41,9 @@ export async function resolveRequirements(): Promise<RequirementsData> {
     java_home: javaHome,
     java_memory: javaMemory
   });
-}
+};
 
-function checkJavaRuntime(): Promise<string> {
+const checkJavaRuntime = async (): Promise<string> => {
   return new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
@@ -88,18 +88,18 @@ function checkJavaRuntime(): Promise<string> {
       }
     });
   });
-}
+};
 
-function readJavaConfig(): string {
+const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
-}
+};
 
-function isLocal(javaHome: string): boolean {
+const isLocal = (javaHome: string): boolean => {
   return !path.isAbsolute(javaHome);
-}
+};
 
-export function checkJavaVersion(javaHome: string): Promise<boolean> {
+export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     cp.execFile(
       javaHome + '/bin/java',
@@ -117,4 +117,4 @@ export function checkJavaVersion(javaHome: string): Promise<boolean> {
       }
     );
   });
-}
+};
