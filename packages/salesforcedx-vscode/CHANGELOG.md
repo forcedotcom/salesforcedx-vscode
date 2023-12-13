@@ -2,9 +2,13 @@
 
 ## Fixed
 
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5253](https://github.com/forcedotcom/salesforcedx-vscode/pull/5253))
+  
 #### docs
 
-- Org browser topic update ([PR #5254](https://github.com/forcedotcom/salesforcedx-vscode/pull/5254))
+- We made updates to the Org Browser docs topic. ([PR #5254](https://github.com/forcedotcom/salesforcedx-vscode/pull/5254))
 
 # 59.8.0 - December 6, 2023
 
