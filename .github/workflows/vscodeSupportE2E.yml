@@ -34,7 +34,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
         nodeVersion:
-          - 18.11.0
+          - 18.18.2
         vscodeVersion:
           - ${{ inputs.vscodeVersion || '1.61.2'}}
     steps:
