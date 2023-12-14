@@ -46,7 +46,8 @@ export interface ApexTestQuickPickItem extends vscode.QuickPickItem {
   type: TestType;
 }
 export class TestsSelector
-  implements ParametersGatherer<ApexTestQuickPickItem> {
+  implements ParametersGatherer<ApexTestQuickPickItem>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestQuickPickItem>
   > {
@@ -100,22 +101,19 @@ export class TestsSelector
   }
 }
 
-function getTempFolder(): string {
+const getTempFolder = (): string => {
   if (hasRootWorkspace()) {
     const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
-}
+};
 
-export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
-  ApexTestQuickPickItem
-> {
+export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTestQuickPickItem> {
   protected cancellable: boolean = true;
-  public static diagnostics = vscode.languages.createDiagnosticCollection(
-    'apex-errors'
-  );
+  public static diagnostics =
+    vscode.languages.createDiagnosticCollection('apex-errors');
 
   constructor() {
     super(
@@ -205,11 +203,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new TestsSelector();
 
-export async function forceApexTestRun() {
+export const forceApexTestRun = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ApexLibraryTestRunExecutor()
   );
   await commandlet.run();
-}
+};
