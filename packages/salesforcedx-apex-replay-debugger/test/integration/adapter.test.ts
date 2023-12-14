@@ -49,7 +49,7 @@ describe('Replay debugger adapter - integration', () => {
       'apex-replay'
     );
     await dc.start();
-    dc.defaultTimeout = 15000;
+    dc.defaultTimeout = 10000;
   });
 
   afterAll(async () => {
