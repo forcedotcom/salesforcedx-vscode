@@ -137,11 +137,11 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function forceApexLogGet(explorerDir?: any) {
+export const forceApexLogGet = async (explorerDir?: any) => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new LogFileSelector(),
     new ApexLibraryGetLogsExecutor()
   );
   await commandlet.run();
-}
+};

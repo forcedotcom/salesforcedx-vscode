@@ -48,7 +48,7 @@ import { telemetryService } from './telemetry';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-export async function activate(extensionContext: vscode.ExtensionContext) {
+export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   const testOutlineProvider = getTestOutlineProvider();
@@ -101,9 +101,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
-}
+};
 
-function registerCommands(): vscode.Disposable {
+const registerCommands = (): vscode.Disposable => {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
@@ -220,9 +220,9 @@ function registerCommands(): vscode.Disposable {
     forceApexTestSuiteRunCmd,
     forceApexTestSuiteAddCmd
   );
-}
+};
 
-async function registerTestView(): Promise<vscode.Disposable> {
+const registerTestView = (): vscode.Disposable => {
   const testOutlineProvider = getTestOutlineProvider();
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);
@@ -279,17 +279,17 @@ async function registerTestView(): Promise<vscode.Disposable> {
   );
 
   return vscode.Disposable.from(...testViewItems);
-}
+};
 
-export async function deactivate() {
+export const deactivate = async () => {
   await languageClientUtils.getClientInstance()?.stop();
   telemetryService.sendExtensionDeactivationEvent();
-}
+};
 
-async function createLanguageClient(
+const createLanguageClient = async (
   extensionContext: vscode.ExtensionContext,
   languageServerStatusBarItem: ApexLSPStatusBarItem
-): Promise<void> {
+): Promise<void> => {
   // Resolve any found orphan language servers
   void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server
@@ -352,14 +352,14 @@ async function createLanguageClient(
       `${nls.localize('apex_language_server_failed_activate')} - ${eMsg}`
     );
   }
-}
+};
 
 // exported only for test
-export async function indexerDoneHandler(
+export const indexerDoneHandler = async (
   enableSyncInitJobs: boolean,
   languageClient: ApexLanguageClient,
   languageServerStatusBarItem: ApexLSPStatusBarItem
-) {
+) => {
   // Listener is useful only in async mode
   if (!enableSyncInitJobs) {
     // The listener should be set after languageClient is ready
@@ -378,4 +378,4 @@ export async function indexerDoneHandler(
       languageServerStatusBarItem
     );
   }
-}
+};

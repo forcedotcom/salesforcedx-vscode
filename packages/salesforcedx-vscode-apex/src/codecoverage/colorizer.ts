@@ -19,10 +19,10 @@ import { StatusBarToggle } from './statusBarToggle';
 
 export const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
-export function getLineRange(
+export const getLineRange = (
   document: TextDocument,
   lineNumber: number
-): Range {
+): Range => {
   let adjustedLineNumber: number;
   let firstLine: TextLine;
   try {
@@ -38,7 +38,7 @@ export function getLineRange(
     adjustedLineNumber,
     firstLine.range.end.character
   );
-}
+};
 
 export type CoverageTestResult = {
   coverage: {
@@ -53,15 +53,15 @@ export type CoverageItem = {
   lines: { [key: string]: number };
 };
 
-function getTestRunId(): string {
+const getTestRunId = (): string => {
   const testRunIdFile = join(pathToApexTestResultsFolder, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
   return fs.readFileSync(testRunIdFile, 'utf8');
-}
+};
 
-function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
+const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
   const testRunId = getTestRunId();
   const testResultFilePath = join(
     pathToApexTestResultsFolder,
@@ -85,20 +85,20 @@ function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
   }
 
   return testResult.codecoverage || testResult.coverage.coverage;
-}
+};
 
-function isApexMetadata(filePath: string): boolean {
+const isApexMetadata = (filePath: string): boolean => {
   return filePath.endsWith('.cls') || filePath.endsWith('.trigger');
-}
+};
 
-function getApexMemberName(filePath: string): string {
+const getApexMemberName = (filePath: string): string => {
   if (isApexMetadata(filePath)) {
     const filePathWithOutType = filePath.replace(/.cls|.trigger/g, '');
     const indexOfLastFolder = filePathWithOutType.lastIndexOf(sep);
     return filePathWithOutType.substring(indexOfLastFolder + 1);
   }
   return '';
-}
+};
 
 export class CodeCoverage {
   private statusBar: StatusBarToggle;

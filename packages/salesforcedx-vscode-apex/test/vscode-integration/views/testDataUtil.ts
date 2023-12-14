@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 
-export function generateApexTestMethod(namespace?: string): ApexTestMethod[] {
+export const generateApexTestMethod = (namespace?: string): ApexTestMethod[] => {
   const apexTestInfo: ApexTestMethod[] = new Array<ApexTestMethod>();
   // All test methods, has same info as file1, file2, file3, file4
   for (let i = 0; i < 8; i++) {
@@ -31,4 +31,4 @@ export function generateApexTestMethod(namespace?: string): ApexTestMethod[] {
     apexTestInfo.push(testInfo);
   }
   return apexTestInfo;
-}
+};

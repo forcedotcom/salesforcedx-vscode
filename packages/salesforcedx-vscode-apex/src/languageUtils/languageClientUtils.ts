@@ -81,16 +81,16 @@ export class LanguageClientStatus {
   }
 }
 
-export async function getLineBreakpointInfo(): Promise<{}> {
+export const getLineBreakpointInfo = async (): Promise<{}> => {
   let response = {};
   const languageClient = LanguageClientUtils.getInstance().getClientInstance();
   if (languageClient) {
     response = await languageClient.sendRequest(DEBUGGER_LINE_BREAKPOINTS);
   }
   return Promise.resolve(response);
-}
+};
 
-export async function getApexTests(): Promise<ApexTestMethod[]> {
+export const getApexTests = async (): Promise<ApexTestMethod[]> => {
   let response = new Array<LSPApexTestMethod>();
   const ret = new Array<ApexTestMethod>();
   const languageClient = LanguageClientUtils.getInstance().getClientInstance();
@@ -103,13 +103,13 @@ export async function getApexTests(): Promise<ApexTestMethod[]> {
     ret.push(ApexLSPConverter.toApexTestMethod(requestInfo));
   }
   return Promise.resolve(ret);
-}
+};
 
-export async function getExceptionBreakpointInfo(): Promise<{}> {
+export const getExceptionBreakpointInfo = async (): Promise<{}> => {
   let response = {};
   const languageClient = LanguageClientUtils.getInstance().getClientInstance();
   if (languageClient) {
     response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
   }
   return Promise.resolve(response);
-}
+};

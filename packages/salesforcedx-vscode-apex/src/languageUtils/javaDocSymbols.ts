@@ -5,7 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { IndentAction, languages } from 'vscode';
 
-export function enableJavaDocSymbols(): void {
+export const enableJavaDocSymbols = (): void => {
   languages.setLanguageConfiguration('apex', {
     indentationRules: {
       // ^(.*\*/)?\s*\}.*$
@@ -46,4 +46,4 @@ export function enableJavaDocSymbols(): void {
       }
     ]
   });
-}
+};
