@@ -24,7 +24,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
         nodeVersion:
-          - 18.11.0
+          - 18.18.2
         vscodeVersion:
           - stable
     steps:

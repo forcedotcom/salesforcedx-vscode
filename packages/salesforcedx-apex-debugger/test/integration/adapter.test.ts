@@ -64,30 +64,8 @@ describe.skip('Interactive debugger adapter - integration', () => {
       uri: apexClassUri,
       typeref: 'BasicVariables',
       lines: [
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        27,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        36,
-        37,
-        39,
-        40,
-        42
+        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33,
+        34, 36, 37, 39, 40, 42
       ]
     });
     LINE_BREAKPOINT_INFO.push({
