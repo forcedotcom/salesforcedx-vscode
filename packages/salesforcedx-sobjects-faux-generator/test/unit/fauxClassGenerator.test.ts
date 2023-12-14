@@ -13,9 +13,7 @@ import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
-import {
-  FauxClassGenerator
-} from '../../src/generator/fauxClassGenerator';
+import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
 import { minimalCustomSObject } from './sObjectMockData';
@@ -26,9 +24,9 @@ describe('SObject faux class generator', () => {
   let classPath = '';
   const declGenerator = new DeclarationGenerator();
 
-  function getGenerator(): FauxClassGenerator {
+  const getGenerator = (): FauxClassGenerator => {
     return new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
-  }
+  };
 
   afterEach(() => {
     if (classPath) {
@@ -59,9 +57,8 @@ describe('SObject faux class generator', () => {
 
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
-    const customDef = declGenerator.generateSObjectDefinition(
-      minimalCustomSObject
-    );
+    const customDef =
+      declGenerator.generateSObjectDefinition(minimalCustomSObject);
     const classContent = gen.generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
