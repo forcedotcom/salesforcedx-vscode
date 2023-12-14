@@ -1,5 +1,6 @@
 {
   "rules": {
+    "prefer-arrow/prefer-arrow-functions": ["error", {}],    
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",
