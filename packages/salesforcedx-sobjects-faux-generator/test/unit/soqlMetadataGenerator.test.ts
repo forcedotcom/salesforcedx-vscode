@@ -32,11 +32,11 @@ describe('SOQL metadata files generator', () => {
   const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
-  function cleanupMetadata() {
+  const cleanupMetadata = () => {
     if (fs.existsSync(soqlMetadataFolder)) {
       rm('-rf', soqlMetadataFolder);
     }
-  }
+  };
 
   const username = userInfo().username;
   const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
