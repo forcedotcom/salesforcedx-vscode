@@ -29,21 +29,22 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
   }
 });
 
-function insideSOQLBlock(
+const insideSOQLBlock = (
   apexItems: ProtocolCompletionItem[]
-): { queryText: string; location: any } | undefined {
+): { queryText: string; location: any } | undefined => {
   const soqlItem = apexItems.find(
     i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL
   );
   return soqlItem
     ? { queryText: soqlItem.detail as string, location: soqlItem.data }
     : undefined;
-}
-function insideApexBindingExpression(
+};
+
+const insideApexBindingExpression = (
   document: TextDocument,
   soqlQuery: string,
   position: Position
-): boolean {
+): boolean => {
   // Simple heuristic to detect when cursor is on a binding expression
   // (which might have been missed by Apex LSP)
   const rangeAtCursor = document.getWordRangeAtPosition(
@@ -55,13 +56,13 @@ function insideApexBindingExpression(
     : undefined;
 
   return !!wordAtCursor && wordAtCursor.startsWith(':');
-}
+};
 
-function getSOQLVirtualContent(
+const getSOQLVirtualContent = (
   document: TextDocument,
   position: Position,
   soqlBlock: { queryText: string; location: any }
-): string {
+): string => {
   const eol = eolForDocument(document);
   const blankedContent = document
     .getText()
@@ -81,7 +82,7 @@ function getSOQLVirtualContent(
     );
 
   return content;
-}
+};
 
 export const soqlMiddleware: Middleware = {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -117,12 +118,12 @@ export const soqlMiddleware: Middleware = {
   }
 };
 
-async function doSOQLCompletion(
+const doSOQLCompletion = async (
   document: TextDocument,
   position: Position,
   context: any,
   soqlBlock: any
-): Promise<CompletionItem[] | CompletionList<CompletionItem>> {
+): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
   virtualDocumentContents.set(
     originalUri,
@@ -138,13 +139,13 @@ async function doSOQLCompletion(
     context.triggerCharacter
   );
   return soqlCompletions || [];
-}
+};
 
-function eolForDocument(doc: TextDocument) {
+const eolForDocument = (doc: TextDocument) => {
   switch (doc.eol) {
     case EndOfLine.LF:
       return '\n';
     case EndOfLine.CRLF:
       return '\r\n';
   }
-}
+};
