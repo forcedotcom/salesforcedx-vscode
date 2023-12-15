@@ -39,11 +39,10 @@ export class ProgressNotification {
 
           if (progressReporter) {
             progressReporter.subscribe({
-              next(increment) {
+              next: increment => {
                 progress.report({ increment });
               },
-
-              complete() {
+              complete: () => {
                 progress.report({ increment: 100 });
                 resolve(undefined);
               }
