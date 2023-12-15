@@ -28,7 +28,7 @@ let mocha = new Mocha({
   reporter: 'mocha-multi-reporters'
 });
 
-function configure(mochaOpts: any, xmlOutputDirectory: string): void {
+const configure = (mochaOpts: any, xmlOutputDirectory: string): void => {
   if (mochaOpts.reporter == null) {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
     mochaOpts.reporter = 'mocha-multi-reporters';
@@ -58,10 +58,11 @@ function configure(mochaOpts: any, xmlOutputDirectory: string): void {
     };
   }
   mocha = new Mocha(mochaOpts);
-}
+};
+
 exports.configure = configure;
 
-function run(testsRoot: any, clb: any): any {
+const run = (testsRoot: any, clb: any): any => {
   let testGlobPath;
   const testFilePath = process.env.SFDX_TEST_FILE_PATH;
   if (testFilePath) {
@@ -128,5 +129,5 @@ function run(testsRoot: any, clb: any): any {
       }
     }
   );
-}
+};
 exports.run = run;
