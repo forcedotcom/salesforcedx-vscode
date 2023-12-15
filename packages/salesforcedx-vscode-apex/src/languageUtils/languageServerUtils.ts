@@ -21,7 +21,7 @@ export type ProcessDetail = {
   orphaned: boolean;
 };
 
-function findAndCheckOrphanedProcesses(): ProcessDetail[] {
+const findAndCheckOrphanedProcesses = (): ProcessDetail[] => {
   const platform = process.platform.toLowerCase();
   const isWindows = platform === 'win32';
 
@@ -80,13 +80,13 @@ function findAndCheckOrphanedProcesses(): ProcessDetail[] {
     })
     .filter(processInfo => processInfo.orphaned);
   return orphanedProcesses;
-}
+};
 
-async function terminateProcess(pid: number) {
+const terminateProcess = (pid: number) => {
   process.kill(pid, SIGKILL);
-}
+};
 
-function canRunCheck(isWindows: boolean) {
+const canRunCheck = (isWindows: boolean) => {
   if (isWindows) {
     try {
       // where command will return path if found and empty string if not
@@ -105,7 +105,7 @@ function canRunCheck(isWindows: boolean) {
     }
   }
   return true;
-}
+};
 
 export const languageServerUtils = {
   findAndCheckOrphanedProcesses,

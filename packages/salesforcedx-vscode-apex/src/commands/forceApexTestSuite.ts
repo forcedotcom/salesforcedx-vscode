@@ -30,7 +30,7 @@ import {
 
 export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
-async function listApexClassItems(): Promise<ApexTestQuickPickItem[]> {
+const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles('**/*.cls');
   const apexClassItems: ApexTestQuickPickItem[] = [];
 
@@ -46,9 +46,9 @@ async function listApexClassItems(): Promise<ApexTestQuickPickItem[]> {
   });
 
   return apexClassItems;
-}
+};
 
-async function listApexTestSuiteItems(): Promise<ApexTestQuickPickItem[]> {
+const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const connection = await workspaceContext.getConnection();
   const testService = new TestService(connection);
   const testSuites = await testService.retrieveAllSuites();
@@ -63,7 +63,7 @@ async function listApexTestSuiteItems(): Promise<ApexTestQuickPickItem[]> {
     };
   });
   return quickPickItems;
-}
+};
 
 export class TestSuiteSelector
   implements ParametersGatherer<ApexTestQuickPickItem> {
@@ -177,29 +177,29 @@ const testSuiteSelector = new TestSuiteSelector();
 const testSuiteCreator = new TestSuiteCreator();
 const testSuiteBuilder = new TestSuiteBuilder();
 
-export async function forceApexTestSuiteAdd() {
+export const forceApexTestSuiteAdd = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteBuilder,
     new ApexLibraryTestSuiteBuilder()
   );
   await commandlet.run();
-}
+};
 
-export async function forceApexTestSuiteCreate() {
+export const forceApexTestSuiteCreate = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteCreator,
     new ApexLibraryTestSuiteBuilder()
   );
   await commandlet.run();
-}
+};
 
-export async function forceApexTestSuiteRun() {
+export const forceApexTestSuiteRun = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteSelector,
     new ApexLibraryTestRunExecutor()
   );
   await commandlet.run();
-}
+};
