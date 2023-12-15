@@ -49,7 +49,7 @@ namespace TagCloseRequest {
   > = new RequestType('html/tag');
 }
 
-export async function activate(context: ExtensionContext) {
+export const activate = (context: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   const toDispose = context.subscriptions;
 
@@ -105,9 +105,9 @@ export async function activate(context: ExtensionContext) {
     .onReady()
     .then(() => {
       disposable = languages.registerColorProvider(documentSelector, {
-        provideDocumentColors(
+        provideDocumentColors: (
           document: TextDocument
-        ): Thenable<ColorInformation[]> {
+        ): Thenable<ColorInformation[]> => {
           const params: DocumentColorParams = {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
               document
@@ -130,10 +130,10 @@ export async function activate(context: ExtensionContext) {
               });
             });
         },
-        provideColorPresentations(
+        provideColorPresentations: (
           color: Color,
           colorContext: { document: TextDocument; range: Range }
-        ): Thenable<ColorPresentation[]> {
+        ): Thenable<ColorPresentation[]> => {
           const params: ColorPresentationParams = {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
               colorContext.document
@@ -271,9 +271,9 @@ export async function activate(context: ExtensionContext) {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   console.log('SFDX Visualforce Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};
