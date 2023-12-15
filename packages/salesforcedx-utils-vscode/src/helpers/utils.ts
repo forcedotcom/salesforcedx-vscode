@@ -7,15 +7,15 @@
 
 import * as fs from 'fs';
 
-export function isNullOrUndefined(object: any): object is null | undefined {
+export const isNullOrUndefined = (object: any): object is null | undefined => {
   return object === null || object === undefined;
-}
+};
 
-export function extractJsonObject(str: string): any {
+export const extractJsonObject = (str: string): any => {
   const jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
 
   return JSON.parse(jsonString);
-}
+};
 
 // There's a bug in VS Code where, after a file has been renamed,
 // the URI that VS Code passes to the command is stale and is the
@@ -23,7 +23,7 @@ export function extractJsonObject(str: string): any {
 //
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
-export function flushFilePath(filePath: string): string {
+export const flushFilePath = (filePath: string): string => {
   if (filePath === '') {
     return filePath;
   }
@@ -40,24 +40,24 @@ export function flushFilePath(filePath: string): string {
   }
 
   return nativePath;
-}
+};
 
-export function flushFilePaths(filePaths: string[]): string[] {
+export const flushFilePaths = (filePaths: string[]): string[] => {
   for (let i = 0; i < filePaths.length; i++) {
     filePaths[i] = flushFilePath(filePaths[i]);
   }
 
   return filePaths;
-}
+};
 
-export async function asyncFilter<T>(
+export const asyncFilter = async <T>(
   arr: T[],
   callback: (value: T, index: number, array: T[]) => unknown
-) {
+) => {
   const results = await Promise.all(arr.map(callback));
 
   return arr.filter((_v, index) => results[index]);
-}
+};
 
 export const fileUtils = {
   flushFilePaths,
