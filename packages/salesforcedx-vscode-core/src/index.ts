@@ -723,10 +723,10 @@ export async function validateCliInstallationAndVersion(): Promise<void> {
   const sfdxCliVersionString = await c.getSfdxCliVersion();
   const sfCliVersionString = await c.getSfCliVersion();
 
-  const sfdxCliVersionArray = await c.parseSfdxCliVersion(sfdxCliVersionString);
-  const sfCliVersionArray = await c.parseSfCliVersion(sfCliVersionString);
+  const sfdxCliVersionArray = c.parseCliVersion(sfdxCliVersionString);
+  const sfCliVersionArray = c.parseCliVersion(sfCliVersionString);
 
-  const cliInstallationResult = await c.validateCliInstallationAndVersion(sfdxCliVersionArray, sfCliVersionArray);
+  const cliInstallationResult = c.validateCliInstallationAndVersion(sfdxCliVersionArray, sfCliVersionArray);
 
   if (cliInstallationResult === CheckCliEnum.cliNotInstalled) {
     showErrorNotification('sfdx_cli_not_found', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
