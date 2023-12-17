@@ -26,7 +26,7 @@ export class CheckCliVersion {
       return Promise.resolve('No SFDX CLI');
     }
   }
-  public async getSfCliVersion(): Promise<string> {
+  public getSfCliVersion(): Promise<string> {
     try {
       const result = execSync('sf --version');
       return Promise.resolve(result.toString());
