@@ -36,7 +36,7 @@ export class CheckCliVersion {
   }
 
   public parseCliVersion(sfCliVersion: string): string {
-    const pattern = (?:sfdx-cli\/|@salesforce\/cli\/)(\d+\.\d+\.\d+);
+    const pattern = /(?:sfdx-cli\/|@salesforce\/cli\/)(\d+\.\d+\.\d+)/;
     const match = pattern.exec(sfCliVersion);
     // SFDX v7 reports results in match[1], SF v2 reports results in match[2]
     return match ? match[1] : '0.0.0';
@@ -61,7 +61,7 @@ export class CheckCliVersion {
 
     // Case 4: Outdated SFDX CLI version is installed
     const minSFDXVersion = '7.193.2';
-    if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`) && semver.satisfies(sfCliVersionString, '<2.0.0')) {
+    if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`)) && semver.satisfies(sfCliVersionString, '<2.0.0')) {
       return CheckCliEnum.outdatedSFDXVersion;
     }
 
