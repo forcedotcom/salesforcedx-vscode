@@ -6,19 +6,18 @@
  */
 
 import { expect } from 'chai';
-import { Context } from 'mocha';
 import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
 
-async function matchExtensionAsHtml(extension: string) {
+const matchExtensionAsHtml = async (extension: string) => {
   const doc = await vscode.workspace.openTextDocument(
     vscode.Uri.parse(`untitled:fake/path/doc.${extension}`)
   );
   expect(vscode.languages.match({ language: 'html' }, doc)).to.equal(
     PERFECT_MATCH
   );
-}
+};
 
 describe('Lightning file association', () => {
   it('Should support .app association', async () => {
@@ -54,7 +53,7 @@ describe('Test commands', () => {
   let coreExtension: vscode.Extension<any>;
   let auraExtension: vscode.Extension<any>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     if (
       vscode.workspace &&
       vscode.workspace.workspaceFolders &&
@@ -70,13 +69,13 @@ describe('Test commands', () => {
     }
   });
 
-  it('coreExtension activation', async function(this: Context) {
+  it('coreExtension activation', async function() {
     this.timeout(10000);
     await coreExtension.activate();
     expect(coreExtension.isActive);
   });
 
-  it('aura activation', async function(this: Context) {
+  it('aura activation', async function() {
     this.timeout(10000);
     await auraExtension.activate();
     expect(auraExtension.isActive);

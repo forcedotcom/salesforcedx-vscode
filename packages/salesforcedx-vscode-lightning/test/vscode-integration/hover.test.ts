@@ -16,12 +16,14 @@ import {
   workspace
 } from 'vscode';
 
-describe('Aura Hovers', function() {
-  this.timeout(4000);
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+describe('Aura Hovers', function () {
+  // need a function so mocha timeout can be set
+  this.setTimeout(4000);
 
   let auraDir: string;
 
-  beforeEach(async function() {
+  beforeEach(async () => {
     auraDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -33,11 +35,11 @@ describe('Aura Hovers', function() {
     await new Promise(r => setTimeout(r, 1000));
   });
 
-  afterEach(async function() {
+  afterEach(async () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide additional details when hovering over an aura tag', async function() {
+  it('Should provide additional details when hovering over an aura tag', async () => {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -64,7 +66,7 @@ describe('Aura Hovers', function() {
     expect(content!.value).to.include('View in Component Library');
   });
 
-  it('Should provide additional details when hovering over an aura attribute', async function() {
+  it('Should provide additional details when hovering over an aura attribute', async () => {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -100,7 +102,7 @@ describe('Aura Hovers', function() {
  * @param expectedContent - content that is being searched for
  * @returns the first content which includes the expected value || undefined
  */
-function findContentFromInstances(instances: Hover[], expectedContent: string) {
+const findContentFromInstances = (instances: Hover[], expectedContent: string) => {
   for (const instance of instances) {
     // type assertion to prevent using a deprecated type
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -115,4 +117,4 @@ function findContentFromInstances(instances: Hover[], expectedContent: string) {
       return content;
     }
   }
-}
+};
