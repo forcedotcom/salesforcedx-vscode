@@ -11,14 +11,14 @@ import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
 
-async function matchExtensionAsHtml(extension: string) {
+const matchExtensionAsHtml = async (extension: string) => {
   const doc = await vscode.workspace.openTextDocument(
     vscode.Uri.parse(`untitled:fake/path/doc.${extension}`)
   );
   expect(vscode.languages.match({ language: 'html' }, doc)).to.equal(
     PERFECT_MATCH
   );
-}
+};
 
 describe('Lightning file association', () => {
   it('Should support .app association', async () => {

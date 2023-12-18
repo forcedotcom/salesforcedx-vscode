@@ -15,13 +15,13 @@ const checkedPackagePatterns: RegExp[] = [
   /^@salesforce\/salesforcedx/i
 ];
 
-function readJsonFile(jsonFilePath: string) {
+const readJsonFile = (jsonFilePath: string): any => {
   try {
     return JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
   } catch (e) {
     throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
   }
-}
+};
 
 const packageJsonPath = path.join(
   __dirname,
