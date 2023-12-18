@@ -540,7 +540,7 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
-          "command": "sfdx.force.set.default.org",
+          "command": "sfdx.set.default.org",
           "when": "sfdx:project_opened"
         },
         {

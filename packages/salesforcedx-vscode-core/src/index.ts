@@ -486,7 +486,7 @@ function registerInternalDevCommands(
 
 function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
-    'sfdx.force.set.default.org',
+    'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
