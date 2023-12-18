@@ -485,11 +485,11 @@ function registerInternalDevCommands(
 }
 
 function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
-  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
+  const setDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
-  return vscode.Disposable.from(forceSetDefaultOrgCmd);
+  return vscode.Disposable.from(setDefaultOrgCmd);
 }
 
 async function setupOrgBrowser(
