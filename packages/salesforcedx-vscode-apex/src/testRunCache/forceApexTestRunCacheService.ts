@@ -6,13 +6,13 @@
  */
 import * as vscode from 'vscode';
 
-export function isEmpty(value: string): boolean {
+export const isEmpty = (value: string): boolean => {
   return !value || value.length === 0;
-}
+};
 
-function isNotEmpty(value: string): boolean {
+const isNotEmpty = (value: string): boolean => {
   return !isEmpty(value);
-}
+};
 
 // cache last test class and test method values to
 // enable re-running w/o command context via built-in LRU
