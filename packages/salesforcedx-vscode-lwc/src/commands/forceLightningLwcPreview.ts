@@ -108,26 +108,26 @@ const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
-export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
+export const forceLightningLwcPreview = async (sourceUri: vscode.Uri) => {
   const preview = getPreview();
   preview(sourceUri);
-}
+};
 
-export function getPreview() {
+export const getPreview = () => {
   if (isSFContainerMode()) {
     return lwcPreviewContainerMode;
   } else {
     return lwcPreview;
   }
-}
+};
 
-function lwcPreviewContainerMode() {
+const lwcPreviewContainerMode = () => {
   const message = nls.localize('force_lightning_lwc_preview_container_mode');
   vscode.window.showErrorMessage(message);
   return;
-}
+};
 
-export async function lwcPreview(sourceUri: vscode.Uri) {
+export const lwcPreview = async (sourceUri: vscode.Uri) => {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
@@ -177,7 +177,7 @@ export async function lwcPreview(sourceUri: vscode.Uri) {
   }
 
   await executePreview(startTime, componentName, resourcePath);
-}
+};
 
 /**
  * Performs the action of previewing the LWC. It takes care of prompting the user
@@ -189,11 +189,11 @@ export async function lwcPreview(sourceUri: vscode.Uri) {
  * @param componentName name of the lwc
  * @param resourcePath path to the lwc
  */
-async function executePreview(
+const executePreview = async (
   startTime: [number, number],
   componentName: string,
   resourcePath: string
-) {
+) => {
   const commandCancelledMessage = nls.localize(
     'force_lightning_lwc_operation_cancelled'
   );
@@ -249,7 +249,7 @@ async function executePreview(
     componentName,
     startTime
   );
-}
+};
 
 /**
  * Starts the lwc server if it is not already running.
@@ -258,11 +258,11 @@ async function executePreview(
  * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
-async function startServer(
+const startServer = async (
   isDesktop: boolean,
   componentName: string,
   startTime: [number, number]
-) {
+) => {
   if (!DevServerService.instance.isServerHandlerRegistered()) {
     console.log(`${logName}: server was not running, starting...`);
     const preconditionChecker = new SfdxWorkspaceChecker();
@@ -291,19 +291,19 @@ async function startServer(
       showError(e, logName, commandName);
     }
   }
-}
+};
 
 /**
  * Prompts the user to select a platform to preview the LWC on.
  * @returns the selected platform or undefined if no selection was made.
  */
-async function selectPlatform(): Promise<PreviewQuickPickItem | undefined> {
+const selectPlatform = async (): Promise<PreviewQuickPickItem | undefined> => {
   const platformSelection = await vscode.window.showQuickPick(platformOptions, {
     placeHolder: nls.localize('force_lightning_lwc_platform_selection')
   });
 
   return platformSelection;
-}
+};
 
 /**
  * Prompts the user to select a device to preview the LWC on.
@@ -311,9 +311,9 @@ async function selectPlatform(): Promise<PreviewQuickPickItem | undefined> {
  * @param platformSelection the selected platform
  * @returns the name of the selected device or undefined if no selection was made.
  */
-async function selectTargetDevice(
+const selectTargetDevice = async (
   platformSelection: PreviewQuickPickItem
-): Promise<string | undefined> {
+): Promise<string | undefined> => {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
   const lastTarget = PreviewService.instance.getRememberedDevice(
     platformSelection.platformName
@@ -453,7 +453,7 @@ async function selectTargetDevice(
   }
 
   return target;
-}
+};
 
 /**
  * Prompts the user to select an app to preview the LWC on. Defaults to browser.
@@ -462,10 +462,10 @@ async function selectTargetDevice(
  * @param configFile path to a config file
  * @returns the name of the selected device or undefined if user cancels selection.
  */
-async function selectTargetApp(
+const selectTargetApp = async (
   platformSelection: PreviewQuickPickItem,
   configFile: string | undefined
-): Promise<string | undefined> {
+): Promise<string | undefined> => {
   let targetApp: string | undefined = 'browser';
   const items: vscode.QuickPickItem[] = [];
   const browserItem: vscode.QuickPickItem = {
@@ -517,7 +517,7 @@ async function selectTargetApp(
   }
 
   return targetApp;
-}
+};
 
 /**
  * Prompts the user to select a device to preview the LWC on.
@@ -530,7 +530,7 @@ async function selectTargetApp(
  * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
-async function executeMobilePreview(
+const executeMobilePreview = async (
   platformSelection: PreviewQuickPickItem,
   targetDevice: string,
   targetApp: string,
@@ -538,7 +538,7 @@ async function executeMobilePreview(
   configFile: string | undefined,
   componentName: string,
   startTime: [number, number]
-) {
+) => {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
 
   let commandBuilder = new SfdxCommandBuilder()
@@ -607,7 +607,7 @@ async function executeMobilePreview(
       }
     });
   }
-}
+};
 
 /**
  * Given a path, it recursively goes through that directory and upwards, until it finds
@@ -616,7 +616,7 @@ async function executeMobilePreview(
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export function getProjectRootDirectory(startPath: string): string | undefined {
+export const getProjectRootDirectory = (startPath: string): string | undefined => {
   if (!fs.existsSync(startPath)) {
     return undefined;
   }
@@ -636,7 +636,7 @@ export function getProjectRootDirectory(startPath: string): string | undefined {
 
   // couldn't determine the root dir
   return undefined;
-}
+};
 
 /**
  * Given a path to a directory, returns a path that is one level up.
@@ -644,7 +644,7 @@ export function getProjectRootDirectory(startPath: string): string | undefined {
  * @param directory path to a directory
  * @returns path to a directory that is one level up, or undefined if cannot go one level up.
  */
-export function directoryLevelUp(directory: string): string | undefined {
+export const directoryLevelUp = (directory: string): string | undefined => {
   const levelUp = path.dirname(directory);
 
   if (levelUp === directory) {
@@ -653,4 +653,4 @@ export function directoryLevelUp(directory: string): string | undefined {
   }
 
   return levelUp;
-}
+};
