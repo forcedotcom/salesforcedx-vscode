@@ -18,28 +18,28 @@ export enum CheckCliEnum {
 
 export class CheckCliVersion {
 
-  public getSfdxCliVersion(): Promise<string> {
+  public getSfdxCliVersion(): string {
     try {
       const result = execSync('sfdx --version');
-      return Promise.resolve(result.toString());
+      return result.toString();
     } catch {
-      return Promise.resolve('No SFDX CLI');
+      return 'No SFDX CLI';
     }
   }
-  public getSfCliVersion(): Promise<string> {
+  public getSfCliVersion(): string {
     try {
       const result = execSync('sf --version');
-      return Promise.resolve(result.toString());
+      return result.toString();
     } catch {
-      return Promise.resolve('No SF CLI');
+      return 'No SF CLI';
     }
   }
 
   public parseCliVersion(sfCliVersion: string): string {
-    const pattern = /sfdx-cli\/(\d+\.\d+\.\d+)|@salesforce\/cli\/(\d+\.\d+\.\d+)/;
+    const pattern = (?:sfdx-cli\/|@salesforce\/cli\/)(\d+\.\d+\.\d+);
     const match = pattern.exec(sfCliVersion);
     // SFDX v7 reports results in match[1], SF v2 reports results in match[2]
-    return match ? (match[1] ? match[1] : match[2]) : '0.0.0';
+    return match ? match[1] : '0.0.0';
   }
 
   public validateCliInstallationAndVersion(sfdxCliVersionString: string, sfCliVersionString: string): CheckCliEnum {
@@ -61,7 +61,7 @@ export class CheckCliVersion {
 
     // Case 4: Outdated SFDX CLI version is installed
     const minSFDXVersion = '7.193.2';
-    if (semver.satisfies(sfdxCliVersionString, ('<' + minSFDXVersion)) && semver.satisfies(sfCliVersionString, '<2.0.0')) {
+    if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`) && semver.satisfies(sfCliVersionString, '<2.0.0')) {
       return CheckCliEnum.outdatedSFDXVersion;
     }
 
