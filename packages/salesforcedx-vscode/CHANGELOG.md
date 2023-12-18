@@ -1,3 +1,19 @@
+# 59.10.0 - December 20, 2023
+
+## Fixed
+
+#### docs
+
+- Prompts and context ([PR #5264](https://github.com/forcedotcom/salesforcedx-vscode/pull/5264))
+
+#### salesforcedx-vscode-apex
+
+- Refactor to arrow functions ([PR #5274](https://github.com/forcedotcom/salesforcedx-vscode/pull/5274))
+
+#### salesforcedx-vscode-core
+
+- Bump templates to v59 ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
+
 # 59.9.0 - December 13, 2023
 
 ## Fixed
