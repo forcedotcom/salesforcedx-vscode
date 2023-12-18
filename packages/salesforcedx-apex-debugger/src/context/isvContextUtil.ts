@@ -10,8 +10,8 @@ import {
   ENV_SF_TARGET_ORG,
   ConfigGet,
   GlobalCliEnvironment,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
 
 export class IsvContextUtil {
@@ -20,11 +20,11 @@ export class IsvContextUtil {
     if (projectWorkspacePath) {
       const config = await new ConfigGet().getConfig(
         projectWorkspacePath,
-        SFDX_CONFIG_ISV_DEBUGGER_SID,
-        SFDX_CONFIG_ISV_DEBUGGER_URL
+        SF_CONFIG_ISV_DEBUGGER_SID,
+        SF_CONFIG_ISV_DEBUGGER_URL
       );
-      const isvDebuggerSid = config.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-      const isvDebuggerUrl = config.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+      const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
+      const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
 
       if (
         typeof isvDebuggerSid !== 'undefined' &&

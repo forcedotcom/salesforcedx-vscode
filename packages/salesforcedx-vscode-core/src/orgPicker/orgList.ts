@@ -163,10 +163,7 @@ export class OrgList implements vscode.Disposable {
       }
       default: {
         const usernameOrAlias = selection.split(' - ', 1);
-        vscode.commands.executeCommand(
-          'sfdx.force.config.set',
-          usernameOrAlias
-        );
+        vscode.commands.executeCommand('sfdx.config.set', usernameOrAlias);
         return { type: 'CONTINUE', data: {} };
       }
     }

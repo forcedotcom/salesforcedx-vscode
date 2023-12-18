@@ -10,8 +10,8 @@ import {
   ConfigGet,
   OrgDisplay,
   RequestService,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
 import * as os from 'os';
 import { basename } from 'path';
@@ -678,11 +678,11 @@ export class ApexDebug extends LoggingDebugSession {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
         const config = await new ConfigGet().getConfig(
           args.sfdxProject,
-          SFDX_CONFIG_ISV_DEBUGGER_SID,
-          SFDX_CONFIG_ISV_DEBUGGER_URL
+          SF_CONFIG_ISV_DEBUGGER_SID,
+          SF_CONFIG_ISV_DEBUGGER_URL
         );
-        const isvDebuggerSid = config.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = config.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+        const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
+        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
         if (
           typeof isvDebuggerSid === 'undefined' ||
           typeof isvDebuggerUrl === 'undefined'
