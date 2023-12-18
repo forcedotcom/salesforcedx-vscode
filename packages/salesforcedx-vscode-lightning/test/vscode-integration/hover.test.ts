@@ -16,10 +16,8 @@ import {
   workspace
 } from 'vscode';
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-describe('Aura Hovers', function () {
-  // need a function so mocha timeout can be set
-  this.setTimeout(4000);
+describe('Aura Hovers', function() {
+  this.timeout(4000);
 
   let auraDir: string;
 
@@ -39,7 +37,8 @@ describe('Aura Hovers', function () {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide additional details when hovering over an aura tag', async () => {
+  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+  it('Should provide additional details when hovering over an aura tag', async function() {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -66,7 +65,8 @@ describe('Aura Hovers', function () {
     expect(content!.value).to.include('View in Component Library');
   });
 
-  it('Should provide additional details when hovering over an aura attribute', async () => {
+  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+  it('Should provide additional details when hovering over an aura attribute', async function() {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );

@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { Context } from 'mocha';
 import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
@@ -53,7 +54,7 @@ describe('Test commands', () => {
   let coreExtension: vscode.Extension<any>;
   let auraExtension: vscode.Extension<any>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     if (
       vscode.workspace &&
       vscode.workspace.workspaceFolders &&
@@ -69,13 +70,13 @@ describe('Test commands', () => {
     }
   });
 
-  it('coreExtension activation', async function() {
+  it('coreExtension activation', async function(this: Context) {
     this.timeout(10000);
     await coreExtension.activate();
     expect(coreExtension.isActive);
   });
 
-  it('aura activation', async function() {
+  it('aura activation', async function(this: Context) {
     this.timeout(10000);
     await auraExtension.activate();
     expect(auraExtension.isActive);
