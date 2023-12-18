@@ -33,7 +33,7 @@ export function isCLIInstalled(): boolean {
 
 export function showCLINotInstalledMessage() {
   const showMessage = nls.localize(
-    'sfdx_cli_not_found',
+    'salesforce_cli_not_found',
     SF_CLI_DOWNLOAD_LINK,
     SF_CLI_DOWNLOAD_LINK
   );
