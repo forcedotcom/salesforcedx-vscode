@@ -8,17 +8,17 @@
 import { AuthRemover } from '@salesforce/core';
 import {
   Command,
+  ContinueResponse,
+  LibraryCommandletExecutor,
   notificationService,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import { forceConfigSet } from '../forceConfigSet';
+import { configSet } from '../configSet';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -77,7 +77,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
       increment?: number | undefined;
     }>,
     token?: CancellationToken
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     try {
       await removeUsername(response.data);
@@ -113,7 +113,7 @@ export async function orgLogoutDefault() {
 }
 
 async function removeUsername(username: string) {
-  await forceConfigSet('');
+  await configSet('');
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
 }
