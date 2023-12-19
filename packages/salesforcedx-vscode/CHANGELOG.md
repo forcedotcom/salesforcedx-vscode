@@ -8,6 +8,7 @@
 
 #### salesforcedx-vscode-apex
 
+- Update @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
 - Refactor to arrow functions ([PR #5274](https://github.com/forcedotcom/salesforcedx-vscode/pull/5274))
 
 #### salesforcedx-vscode-core
