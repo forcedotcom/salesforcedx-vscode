@@ -12,4 +12,4 @@ export { ForceConfigGet } from './forceConfigGet';
 export { GlobalCliEnvironment } from './globalCliEnvironment';
 export { OrgDisplay } from './orgDisplay';
 export { SfdxCommandBuilder } from './sfdxCommandBuilder';
-export { CheckCliEnum, CheckCliVersion } from './checkCliVersion';
+export { CliStatusEnum, CliVersionStatus } from './cliVersionStatus';

@@ -8,7 +8,7 @@
 import { execSync } from 'child_process';
 import * as semver from 'semver';
 
-export enum CheckCliEnum {
+export enum CliStatusEnum {
   validCli = 1,
   outdatedSFDXVersion = 2,
   onlySFv1 = 3,
@@ -16,7 +16,7 @@ export enum CheckCliEnum {
   bothSFDXAndSFInstalled = 5
 }
 
-export class CheckCliVersion {
+export class CliVersionStatus {
 
   public getSfdxCliVersion(): string {
     try {
@@ -42,30 +42,30 @@ export class CheckCliVersion {
     return match ? match[1] : '0.0.0';
   }
 
-  public validateCliInstallationAndVersion(sfdxCliVersionString: string, sfCliVersionString: string): CheckCliEnum {
+  public validateCliInstallationAndVersion(sfdxCliVersionString: string, sfCliVersionString: string): CliStatusEnum {
 
     // Case 1: Neither SFDX CLI nor SF CLI is installed
     if (semver.satisfies(sfdxCliVersionString, '0.0.0') && semver.satisfies(sfCliVersionString, '0.0.0')) {
-      return CheckCliEnum.cliNotInstalled;
+      return CliStatusEnum.cliNotInstalled;
     }
 
     // Case 2: Only SF CLI (v1) is installed (SF v1 cannot be used because it does not map sf to sfdx)
     if (semver.satisfies(sfdxCliVersionString, '0.0.0') && semver.satisfies(sfCliVersionString, '1.x')) {
-      return CheckCliEnum.onlySFv1;
+      return CliStatusEnum.onlySFv1;
     }
 
     // Case 3: Both SFDX CLI (v7) and SF CLI (v2) are installed at the same time
     if (semver.satisfies(sfCliVersionString, '2.x') && !semver.satisfies(sfdxCliVersionString, sfCliVersionString)) {
-      return CheckCliEnum.bothSFDXAndSFInstalled;
+      return CliStatusEnum.bothSFDXAndSFInstalled;
     }
 
     // Case 4: Outdated SFDX CLI version is installed
     const minSFDXVersion = '7.193.2';
     if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`)) && semver.satisfies(sfCliVersionString, '<2.0.0')) {
-      return CheckCliEnum.outdatedSFDXVersion;
+      return CliStatusEnum.outdatedSFDXVersion;
     }
 
     // Case 5: Valid SFDX v7 version or SF v2 is installed
-    return CheckCliEnum.validCli;
+    return CliStatusEnum.validCli;
   }
 }

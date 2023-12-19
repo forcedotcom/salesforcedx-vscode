@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CheckCliEnum, CheckCliVersion, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import { CliStatusEnum, CliVersionStatus, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ChannelService,
   getRootWorkspacePath,
@@ -715,13 +715,13 @@ export function deactivate(): Promise<void> {
   return turnOffLogging();
 }
 
-export async function validateCliInstallationAndVersion(): Promise<void> {
+export function validateCliInstallationAndVersion(): void {
   // Check that the CLI is installed and that it is a supported version
   // If there is no CLI or it is an unsupported version then the Core extension will not activate
-  const c = new CheckCliVersion();
+  const c = new CliVersionStatus();
 
-  const sfdxCliVersionString = await c.getSfdxCliVersion();
-  const sfCliVersionString = await c.getSfCliVersion();
+  const sfdxCliVersionString = c.getSfdxCliVersion();
+  const sfCliVersionString = c.getSfCliVersion();
 
   const sfdxCliVersionParsed = c.parseCliVersion(sfdxCliVersionString);
   const sfCliVersionParsed = c.parseCliVersion(sfCliVersionString);
@@ -729,19 +729,19 @@ export async function validateCliInstallationAndVersion(): Promise<void> {
   const cliInstallationResult = c.validateCliInstallationAndVersion(sfdxCliVersionParsed, sfCliVersionParsed);
 
   switch(cliInstallationResult) {
-    case CheckCliEnum.cliNotInstalled: {
+    case CliStatusEnum.cliNotInstalled: {
       showErrorNotification('sfdx_cli_not_found', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
       throw Error('No Salesforce CLI installed');
     }
-    case CheckCliEnum.onlySFv1: {
+    case CliStatusEnum.onlySFv1: {
       showErrorNotification('sf_v1_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
       throw Error('Only SF v1 installed');
     }
-    case CheckCliEnum.outdatedSFDXVersion: {
+    case CliStatusEnum.outdatedSFDXVersion: {
       showErrorNotification('sfdx_cli_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
       throw Error('Outdated SFDX CLI version that is no longer supported');
     }
-    case CheckCliEnum.bothSFDXAndSFInstalled: {
+    case CliStatusEnum.bothSFDXAndSFInstalled: {
       showErrorNotification('both_sfdx_and_sf', []);
       throw Error('Both SFDX v7 and SF v2 are installed');
     }

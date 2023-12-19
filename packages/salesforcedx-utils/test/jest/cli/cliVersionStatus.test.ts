@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CheckCliEnum, CheckCliVersion } from '../../../src/cli/checkCliVersion';
+import { CliStatusEnum, CliVersionStatus } from '../../../src/cli/cliVersionStatus';
 
-describe('CheckCliVersion unit tests.', () => {
+describe('CliVersionStatus unit tests.', () => {
 
   const sfV2_string = '@salesforce/cli/2.15.9 darwin-arm64 node-v18.17.1';
   const sfdxV7_valid_string = 'sfdx-cli/7.209.6 win32-x64 node-v18.15.0';
@@ -23,47 +23,42 @@ describe('CheckCliVersion unit tests.', () => {
   const noSFDX_parsed = '0.0.0';
   const noSF_parsed = '0.0.0';
 
-  it('Should create instance.', () => {
-    const c = new CheckCliVersion();
-    expect(c).toBeInstanceOf(CheckCliVersion);
-  });
-
   /*
   Test cases for the parseCliVersion() function
   */
   describe('Test cases for the parseCliVersion() function', () => {
     it('Parse valid SFDX', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.parseCliVersion(sfdxV7_valid_string);
       expect(result).toStrictEqual(sfdxV7_valid_parsed);
     });
 
     it('Parse outdated SFDX', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.parseCliVersion(sfdxV7_outdated_string);
       expect(result).toStrictEqual(sfdxV7_outdated_parsed);
     });
 
     it('Parse valid SF v2', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.parseCliVersion(sfV2_string);
       expect(result).toStrictEqual(sfV2_parsed);
     });
 
     it('Parse SFDX not installed', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.parseCliVersion(noSFDX_string);
       expect(result).toStrictEqual(noSFDX_parsed);
     });
 
     it('Parse SF v1', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.parseCliVersion(sfV1_string);
       expect(result).toStrictEqual(sfV1_parsed);
     });
 
     it('Parse SF not installed', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.parseCliVersion(noSF_string);
       expect(result).toStrictEqual(noSF_parsed);
     });
@@ -74,57 +69,57 @@ describe('CheckCliVersion unit tests.', () => {
   */
   describe('Test cases for the validateCliInstallationAndVersion() function', () => {
     it('Case 1: No Salesforce CLI installed - should fail', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(noSFDX_parsed, noSF_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.cliNotInstalled);
+      expect(result).toStrictEqual(CliStatusEnum.cliNotInstalled);
     });
 
     it('Case 2: Only SF v1 installed - should fail', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(noSFDX_parsed, sfV1_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.onlySFv1);
+      expect(result).toStrictEqual(CliStatusEnum.onlySFv1);
     });
 
     it('Case 3: Both SFDX v7 (outdated) and SF v2 installed - should fail', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_outdated_parsed, sfV2_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.bothSFDXAndSFInstalled);
+      expect(result).toStrictEqual(CliStatusEnum.bothSFDXAndSFInstalled);
     });
 
     it('Case 4: Both SFDX v7 (valid) and SF v2 installed - should fail', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_valid_parsed, sfV2_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.bothSFDXAndSFInstalled);
+      expect(result).toStrictEqual(CliStatusEnum.bothSFDXAndSFInstalled);
     });
 
     it('Case 5: Only SFDX v7 (outdated) installed - should fail', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_outdated_parsed, noSF_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.outdatedSFDXVersion);
+      expect(result).toStrictEqual(CliStatusEnum.outdatedSFDXVersion);
     });
 
     it('Case 6: Only SFDX v7 (valid) installed - should activate Core extension', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_valid_parsed, noSF_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.validCli);
+      expect(result).toStrictEqual(CliStatusEnum.validCli);
     });
 
     it('Case 7: SFDX v7 (outdated) and SF v1 installed - should fail', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_outdated_parsed, sfV1_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.outdatedSFDXVersion);
+      expect(result).toStrictEqual(CliStatusEnum.outdatedSFDXVersion);
     });
 
     it('Case 8: SFDX v7 (valid) and SF v1 installed - should activate Core extension', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_valid_parsed, sfV1_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.validCli);
+      expect(result).toStrictEqual(CliStatusEnum.validCli);
     });
 
     it('Case 9: Only SF v2 installed - should activate Core extension', () => {
-      const c = new CheckCliVersion();
+      const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfV2_parsed, sfV2_parsed);
-      expect(result).toStrictEqual(CheckCliEnum.validCli);
+      expect(result).toStrictEqual(CliStatusEnum.validCli);
     });
   });
 });
