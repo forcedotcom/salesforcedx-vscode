@@ -17,26 +17,26 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceConfigList extends SfdxCommandletExecutor<{}> {
+export class ConfigList extends SfdxCommandletExecutor<{}> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_config_list_text'))
-      .withArg('force:config:list')
-      .withLogName('force_config_list')
+      .withDescription(nls.localize('config_list_text'))
+      .withArg('config:list')
+      .withLogName('config_list')
       .build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceConfigList();
+const executor = new ConfigList();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor
 );
 
-export async function forceConfigList() {
+export async function configList() {
   await commandlet.run();
 }
