@@ -4,16 +4,17 @@
 
 #### docs
 
-- Prompts and context ([PR #5264](https://github.com/forcedotcom/salesforcedx-vscode/pull/5264))
+- We added new information about prompt context and grounding to our docs. Now you can write prompts using context and also better understand grounding. All this to ask the right questions and get back higher quality responses from Einstein for Developers. ([PR #5264](https://github.com/forcedotcom/salesforcedx-vscode/pull/5264))
 
 #### salesforcedx-vscode-apex
 
 - Update @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
-- Refactor to arrow functions ([PR #5274](https://github.com/forcedotcom/salesforcedx-vscode/pull/5274))
+- We made some changes under the hood. ([PR #5274](https://github.com/forcedotcom/salesforcedx-vscode/pull/5274))
 
 #### salesforcedx-vscode-core
 
-- Bump templates to v59 ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
+- We updated @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
+
 
 # 59.9.0 - December 13, 2023
 
