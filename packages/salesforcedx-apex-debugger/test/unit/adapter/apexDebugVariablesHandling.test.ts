@@ -975,11 +975,11 @@ describe('Debugger adapter variable handling - unit', () => {
   });
 });
 
-export function newStringValue(
+export const newStringValue = (
   name: string,
   value = 'value',
   slot?: number
-): Value {
+): Value => {
   const result: any = {
     name,
     declaredTypeRef: 'java/lang/String',
@@ -990,7 +990,7 @@ export function newStringValue(
     result.slot = slot;
   }
   return result;
-}
+};
 
 export class DummyContainer implements VariableContainer {
   public variables: ApexVariable[];
