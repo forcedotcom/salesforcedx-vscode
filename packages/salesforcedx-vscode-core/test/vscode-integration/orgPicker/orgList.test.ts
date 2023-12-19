@@ -393,9 +393,7 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.config.set')).to.equal(
-          true
-        );
+        expect(executeCommandStub.calledWith('sfdx.config.set')).to.equal(true);
       });
     });
   });
