@@ -38,7 +38,6 @@ export class CliVersionStatus {
   public parseCliVersion(sfCliVersion: string): string {
     const pattern = /(?:sfdx-cli\/|@salesforce\/cli\/)(\d+\.\d+\.\d+)/;
     const match = pattern.exec(sfCliVersion);
-    // SFDX v7 reports results in match[1], SF v2 reports results in match[2]
     return match ? match[1] : '0.0.0';
   }
 
