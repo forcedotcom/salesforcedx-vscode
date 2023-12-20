@@ -28,7 +28,7 @@ If any code changes are made between the time the release branch is automaticall
 
 ## Updating the Change Log
 
-The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The automation will push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
+The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The automation will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
 
 The engineer should work with the team and doc writer to update and finalize the contents of the changelog. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
