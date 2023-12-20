@@ -7,11 +7,11 @@
 
 import {
   extractJsonObject,
-  ForceConfigGet,
+  ConfigGet,
   OrgDisplay,
   RequestService,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
 import * as os from 'os';
 import { basename } from 'path';
@@ -272,7 +272,7 @@ export class ScopeContainer implements VariableContainer {
     filter: FilterType,
     start?: number,
     count?: number
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<ApexVariable[]> {
     if (
       !this.frameInfo.locals &&
@@ -303,10 +303,11 @@ export class ScopeContainer implements VariableContainer {
 
     return Promise.all(
       values.map(async value => {
-        const variableReference = await session.resolveApexIdToVariableReference(
-          this.frameInfo.requestId,
-          value.ref
-        );
+        const variableReference =
+          await session.resolveApexIdToVariableReference(
+            this.frameInfo.requestId,
+            value.ref
+          );
         return new ApexVariable(
           value,
           variableKind,
@@ -339,7 +340,7 @@ export class ObjectReferenceContainer implements VariableContainer {
     filter: FilterType,
     start?: number,
     count?: number
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
@@ -348,10 +349,11 @@ export class ObjectReferenceContainer implements VariableContainer {
 
     return Promise.all(
       this.reference.fields.map(async value => {
-        const variableReference = await session.resolveApexIdToVariableReference(
-          this.requestId,
-          value.ref
-        );
+        const variableReference =
+          await session.resolveApexIdToVariableReference(
+            this.requestId,
+            value.ref
+          );
         return new ApexVariable(
           value,
           ApexVariableKind.Field,
@@ -476,7 +478,7 @@ export class MapTupleContainer implements VariableContainer {
     filter: FilterType,
     start?: number,
     count?: number
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
@@ -496,9 +498,9 @@ export class MapTupleContainer implements VariableContainer {
     if (this.tuple.key) {
       const keyVariableReference = this.tuple.key.ref
         ? await session.resolveApexIdToVariableReference(
-          this.requestId,
-          this.tuple.key.ref
-        )
+            this.requestId,
+            this.tuple.key.ref
+          )
         : undefined;
       variables.push(
         new ApexVariable(
@@ -512,9 +514,9 @@ export class MapTupleContainer implements VariableContainer {
     if (this.tuple.value) {
       const valueVariableReference = this.tuple.value.ref
         ? await session.resolveApexIdToVariableReference(
-          this.requestId,
-          this.tuple.value.ref
-        )
+            this.requestId,
+            this.tuple.value.ref
+          )
         : undefined;
       variables.push(
         new ApexVariable(
@@ -569,7 +571,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -595,7 +597,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected attachRequest(
     response: DebugProtocol.AttachResponse,
     args: DebugProtocol.AttachRequestArguments
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): void {
     response.success = false;
     this.sendResponse(response);
@@ -674,13 +676,13 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        const forceConfig = await new ForceConfigGet().getConfig(
+        const config = await new ConfigGet().getConfig(
           args.sfdxProject,
-          SFDX_CONFIG_ISV_DEBUGGER_SID,
-          SFDX_CONFIG_ISV_DEBUGGER_URL
+          SF_CONFIG_ISV_DEBUGGER_SID,
+          SF_CONFIG_ISV_DEBUGGER_URL
         );
-        const isvDebuggerSid = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+        const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
+        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
         if (
           typeof isvDebuggerSid === 'undefined' ||
           typeof isvDebuggerUrl === 'undefined'
@@ -746,10 +748,8 @@ export class ApexDebug extends LoggingDebugSession {
     if (args && args.lineBreakpointInfo) {
       const lineBpInfo: LineBreakpointInfo[] = args.lineBreakpointInfo;
       if (lineBpInfo && lineBpInfo.length > 0) {
-        const lineNumberMapping: Map<
-          string,
-          LineBreakpointsInTyperef[]
-        > = new Map();
+        const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> =
+          new Map();
         const typerefMapping: Map<string, string> = new Map();
         for (const info of lineBpInfo) {
           if (!lineNumberMapping.has(info.uri)) {
@@ -804,7 +804,8 @@ export class ApexDebug extends LoggingDebugSession {
             );
           } else {
             this.errorToDebugConsole(
-              `${nls.localize('command_error_help_text')}:${os.EOL
+              `${nls.localize('command_error_help_text')}:${
+                os.EOL
               }${terminatedSessionId}`
             );
           }
@@ -837,17 +838,18 @@ export class ApexDebug extends LoggingDebugSession {
               TRACE_CATEGORY_BREAKPOINTS,
               `setBreakPointsRequest: uri=${uri}`
             );
-            const knownBps = await this.myBreakpointService.reconcileLineBreakpoints(
-              this.sfdxProject,
-              uri,
-              this.mySessionService.getSessionId(),
-              args.lines!.map(line => this.convertClientLineToDebugger(line))
-            );
+            const knownBps =
+              await this.myBreakpointService.reconcileLineBreakpoints(
+                this.sfdxProject,
+                uri,
+                this.mySessionService.getSessionId(),
+                args.lines!.map(line => this.convertClientLineToDebugger(line))
+              );
             return Promise.resolve(knownBps);
           }
         );
         // tslint:disable-next-line:no-empty
-      } catch (error) { }
+      } catch (error) {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({
@@ -1001,7 +1003,7 @@ export class ApexDebug extends LoggingDebugSession {
             this.log(
               TRACE_CATEGORY_VARIABLES,
               'stackTraceRequest: state=' +
-              JSON.stringify(stateRespObj.stateResponse.state)
+                JSON.stringify(stateRespObj.stateResponse.state)
             );
             if (
               stateRespObj.stateResponse.state.locals &&
@@ -1049,9 +1051,9 @@ export class ApexDebug extends LoggingDebugSession {
               serverFrames[i].fullName,
               sourcePath
                 ? new Source(
-                  basename(sourcePath),
-                  this.convertDebuggerPathToClient(sourcePath)
-                )
+                    basename(sourcePath),
+                    this.convertDebuggerPathToClient(sourcePath)
+                  )
                 : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
@@ -1135,7 +1137,9 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
         response.body = {
-          typerefs: Array.from(this.myBreakpointService.getExceptionBreakpointCache().keys())
+          typerefs: Array.from(
+            this.myBreakpointService.getExceptionBreakpointCache().keys()
+          )
         };
         break;
       default:
@@ -1258,7 +1262,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.log(
         TRACE_CATEGORY_VARIABLES,
         `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
-        JSON.stringify(frameRespObj.frameResponse.frame)
+          JSON.stringify(frameRespObj.frameResponse.frame)
       );
       if (
         frameRespObj.frameResponse.frame.locals &&
@@ -1384,9 +1388,8 @@ export class ApexDebug extends LoggingDebugSession {
         return;
       }
     }
-    const variableReference = this.variableContainerReferenceByApexId.get(
-      apexId
-    );
+    const variableReference =
+      this.variableContainerReferenceByApexId.get(apexId);
     this.log(
       TRACE_CATEGORY_VARIABLES,
       `resolveApexIdToVariableReference: resolved apexId=${apexId} to variableReference=${variableReference}`
@@ -1405,9 +1408,8 @@ export class ApexDebug extends LoggingDebugSession {
     const referencesResponse = await this.myRequestService.execute(
       new ReferencesCommand(requestId, ...apexIds)
     );
-    const referencesResponseObj: DebuggerResponse = JSON.parse(
-      referencesResponse
-    );
+    const referencesResponseObj: DebuggerResponse =
+      JSON.parse(referencesResponse);
     if (
       referencesResponseObj &&
       referencesResponseObj.referencesResponse &&
@@ -1513,7 +1515,8 @@ export class ApexDebug extends LoggingDebugSession {
         }
         if (errorObj.action) {
           this.errorToDebugConsole(
-            `${nls.localize('command_error_help_text')}:${os.EOL}${errorObj.action
+            `${nls.localize('command_error_help_text')}:${os.EOL}${
+              errorObj.action
             }`
           );
         }
@@ -1664,17 +1667,17 @@ export class ApexDebug extends LoggingDebugSession {
       if (matches && matches.length === 3) {
         const possibleClassName = matches[1];
         const possibleClassLine = parseInt(matches[2], 10);
-        const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(
-          possibleClassName
-        );
+        const possibleSourcePath =
+          this.myBreakpointService.getSourcePathFromPartialTyperef(
+            possibleClassName
+          );
         if (possibleSourcePath) {
           eventDescriptionSourceFile = new Source(
             basename(possibleSourcePath),
             this.convertDebuggerPathToClient(possibleSourcePath)
           );
-          eventDescriptionSourceLine = this.convertDebuggerLineToClient(
-            possibleClassLine
-          );
+          eventDescriptionSourceLine =
+            this.convertDebuggerLineToClient(possibleClassLine);
         }
       }
     }
@@ -1778,10 +1781,8 @@ export class ApexDebug extends LoggingDebugSession {
       // if breakpointid is found in exception breakpoint cache
       // set the reason for stopped event to that reason
       if (message.sobject.BreakpointId) {
-        const cache: Map<
-          string,
-          string
-        > = this.myBreakpointService.getExceptionBreakpointCache();
+        const cache: Map<string, string> =
+          this.myBreakpointService.getExceptionBreakpointCache();
         cache.forEach((value, key) => {
           if (value === message.sobject.BreakpointId) {
             // typerefs for exceptions will change based on whether they are custom,

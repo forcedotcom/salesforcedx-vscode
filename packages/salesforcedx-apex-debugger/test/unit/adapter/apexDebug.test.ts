@@ -8,7 +8,7 @@
 // tslint:disable:no-floating-promises
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
-  ForceConfigGet,
+  ConfigGet,
   OrgDisplay,
   OrgInfo,
   RequestService
@@ -177,7 +177,7 @@ describe('Interactive debugger adapter - unit', () => {
         .stub(OrgDisplay.prototype, 'getOrgInfo')
         .returns({} as OrgInfo);
       configGetSpy = sinon
-        .stub(ForceConfigGet.prototype, 'getConfig')
+        .stub(ConfigGet.prototype, 'getConfig')
         .returns({} as Map<string, string>);
       args = {
         sfdxProject: 'project',
@@ -668,10 +668,8 @@ describe('Interactive debugger adapter - unit', () => {
         { uri: 'file:///bar.cls', typeref: 'bar', lines: [1, 2, 3] },
         { uri: 'file:///bar.cls', typeref: 'bar$inner', lines: [4, 5, 6] }
       ];
-      const expectedLineNumberMapping: Map<
-        string,
-        LineBreakpointsInTyperef[]
-      > = new Map();
+      const expectedLineNumberMapping: Map<string, LineBreakpointsInTyperef[]> =
+        new Map();
       const expectedTyperefMapping: Map<string, string> = new Map();
       expectedLineNumberMapping.set('file:///foo.cls', [
         { typeref: 'foo', lines: [1, 2, 3] },
@@ -1554,10 +1552,8 @@ describe('Interactive debugger adapter - unit', () => {
   describe('Logging', () => {
     let breakpointService: BreakpointService;
     let response: DebugProtocol.Response;
-    const lineNumberMapping: Map<
-      string,
-      LineBreakpointsInTyperef[]
-    > = new Map();
+    const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> =
+      new Map();
     const typerefMapping: Map<string, string> = new Map();
     const fooUri = 'file:///foo.cls';
     lineNumberMapping.set(fooUri, [

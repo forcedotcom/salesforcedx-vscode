@@ -6,17 +6,17 @@
  */
 
 import { expect } from 'chai';
-import { ForceConfigList } from '../../../src/commands';
+import { ConfigList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Config List', () => {
+describe('Config List', () => {
   it('Should build the config list command', async () => {
-    const configList = new ForceConfigList();
+    const configList = new ConfigList();
     const configListCommand = configList.build({});
-    expect(configListCommand.toCommand()).to.equal('sfdx force:config:list');
+    expect(configListCommand.toCommand()).to.equal('sfdx config:list');
     expect(configListCommand.description).to.equal(
-      nls.localize('force_config_list_text')
+      nls.localize('config_list_text')
     );
   });
 });

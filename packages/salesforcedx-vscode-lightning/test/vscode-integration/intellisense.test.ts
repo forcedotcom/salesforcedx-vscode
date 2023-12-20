@@ -9,7 +9,7 @@ import { assert, expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-describe('Aura Intellisense Test Suite', function () {
+describe('Aura Intellisense Test Suite', () => {
   let auraDir: string;
 
   beforeEach(async () => {
@@ -159,11 +159,11 @@ describe('Aura Intellisense Test Suite', function () {
 // NOTE: Because the completion providers always returns all possible results and then VSCode
 // does the filtering based on what is typed, we have no good way of testing what vscode is
 // actually displaying to the user based on what we typed
-async function testCompletion(
+const testCompletion = async (
   docUri: vscode.Uri,
   position: vscode.Position,
   expectedCompletionList: vscode.CompletionList
-) {
+) => {
   // Simulate triggering a completion
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const actualCompletionList = (await vscode.commands.executeCommand(
@@ -172,8 +172,8 @@ async function testCompletion(
     position
   )) as vscode.CompletionList;
 
-  expectedCompletionList.items.forEach(function (expectedItem) {
-    const actualItem = actualCompletionList.items.find(function (obj) {
+  expectedCompletionList.items.forEach(expectedItem => {
+    const actualItem = actualCompletionList.items.find(obj => {
       if (obj.label) {
         return obj.label === expectedItem.label;
       }
@@ -211,4 +211,4 @@ async function testCompletion(
       );
     }
   });
-}
+};

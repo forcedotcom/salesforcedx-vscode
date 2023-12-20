@@ -4,7 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigUtil, ContinueResponse, LibraryCommandletExecutor, Row, Table} from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  ContinueResponse,
+  LibraryCommandletExecutor,
+  Row,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
@@ -21,15 +27,17 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
+export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
   private outputTableRow: Row = {};
 
-  constructor(
-    usernameOrAlias: string
-  ) {
-    super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
+  constructor(usernameOrAlias: string) {
+    super(
+      nls.localize(CONFIG_SET_EXECUTOR),
+      CONFIG_SET_EXECUTOR,
+      OUTPUT_CHANNEL
+    );
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
@@ -41,12 +49,14 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       result = true;
       await ConfigUtil.setDefaultUsernameOrAlias(this.usernameOrAlias);
     } catch (error) {
-      message = error instanceof Error
-        ? error.message
-        : String(error);
+      message = error instanceof Error ? error.message : String(error);
       result = false;
     }
-    this.outputTableRow = { name: TARGET_ORG_KEY, val: this.usernameOrAlias, success: String(result) };
+    this.outputTableRow = {
+      name: TARGET_ORG_KEY,
+      val: this.usernameOrAlias,
+      success: String(result)
+    };
     const outputTable = this.formatOutput(this.outputTableRow);
     channelService.appendLine(outputTable);
     if (message) {
@@ -75,11 +85,11 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceConfigSet(usernameOrAlias: string) {
+export async function configSet(usernameOrAlias: string) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceConfigSetExecutor(usernameOrAlias)
+    new ConfigSetExecutor(usernameOrAlias)
   );
   await commandlet.run();
 }
