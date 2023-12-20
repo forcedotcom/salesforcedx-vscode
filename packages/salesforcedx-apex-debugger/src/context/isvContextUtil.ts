@@ -8,23 +8,23 @@
 import {
   ENV_SF_ORG_INSTANCE_URL,
   ENV_SF_TARGET_ORG,
-  ForceConfigGet,
+  ConfigGet,
   GlobalCliEnvironment,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
     let isvDebugProject = false;
     if (projectWorkspacePath) {
-      const forceConfig = await new ForceConfigGet().getConfig(
+      const config = await new ConfigGet().getConfig(
         projectWorkspacePath,
-        SFDX_CONFIG_ISV_DEBUGGER_SID,
-        SFDX_CONFIG_ISV_DEBUGGER_URL
+        SF_CONFIG_ISV_DEBUGGER_SID,
+        SF_CONFIG_ISV_DEBUGGER_URL
       );
-      const isvDebuggerSid = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-      const isvDebuggerUrl = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+      const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
+      const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
 
       if (
         typeof isvDebuggerSid !== 'undefined' &&

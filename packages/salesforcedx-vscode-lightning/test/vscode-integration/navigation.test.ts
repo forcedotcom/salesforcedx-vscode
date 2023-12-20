@@ -10,11 +10,11 @@ import * as path from 'path';
 import { Location, Position, commands, window, workspace } from 'vscode';
 import URI from 'vscode-uri';
 
-describe('Aura Definition Linking', function() {
+describe('Aura Definition Linking', () => {
   let auraDir: string;
   let lwcDir: string;
 
-  beforeEach(async function() {
+  beforeEach(async () => {
     auraDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -34,22 +34,22 @@ describe('Aura Definition Linking', function() {
     await new Promise(r => setTimeout(r, 1500));
   });
 
-  afterEach(async function() {
+  afterEach(async () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide navigation to a selected Aura tag', function() {
+  it('Should provide navigation to a selected Aura tag', async () => {
     // select the 'c:DemoComponent' Aura tag
-    testDefinitionNavigation(
+    await testDefinitionNavigation(
       path.join(auraDir, 'DemoApp', 'DemoApp.app'),
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp'),
       new Position(1, 12)
     );
   });
 
-  it('Should provide navigation to a selected LWC tag', function() {
+  it('Should provide navigation to a selected LWC tag', async () => {
     // select the 'c:contactList' LWC tag
-    testDefinitionNavigation(
+    await testDefinitionNavigation(
       path.join(auraDir, 'auraEmbeddedLWC', 'auraEmbeddedLWC.cmp'),
       path.join(lwcDir, 'contactList', 'contactList.js'),
       new Position(20, 28)
@@ -63,11 +63,11 @@ describe('Aura Definition Linking', function() {
  * @param endLocation - expected definition location given the position
  * @param position - position to initiate the definition lookup
  */
-async function testDefinitionNavigation(
+const testDefinitionNavigation = async (
   startLocation: string,
   endLocation: string,
   position: Position
-) {
+) => {
   const doc = await workspace.openTextDocument(startLocation);
   const editor = await window.showTextDocument(doc);
 
@@ -88,4 +88,4 @@ async function testDefinitionNavigation(
   const expectedURI = URI.file(endLocation);
 
   expect(location.uri.toString()).to.equal(expectedURI.toString());
-}
+};

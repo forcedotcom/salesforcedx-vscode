@@ -16,6 +16,8 @@ import { channelService } from './channels';
 import {
   aliasList,
   checkSObjectsAndRefresh,
+  configList,
+  configSet,
   dataQuery,
   debuggerStop,
   deleteSource,
@@ -24,8 +26,6 @@ import {
   forceApexTriggerCreate,
   forceApexUnitClassCreate,
   forceAuthAccessToken,
-  forceConfigList,
-  forceConfigSet,
   forceCreateManifest,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
@@ -283,9 +283,9 @@ function registerCommands(
     'sfdx.debugger.stop',
     debuggerStop
   );
-  const forceConfigListCmd = vscode.commands.registerCommand(
-    'sfdx.force.config.list',
-    forceConfigList
+  const configListCmd = vscode.commands.registerCommand(
+    'sfdx.config.list',
+    configList
   );
   const forceAliasListCmd = vscode.commands.registerCommand(
     'sfdx.alias.list',
@@ -355,9 +355,9 @@ function registerCommands(
     isvDebugBootstrap
   );
 
-  const forceConfigSetCmd = vscode.commands.registerCommand(
-    'sfdx.force.config.set',
-    forceConfigSet
+  const configSetCmd = vscode.commands.registerCommand(
+    'sfdx.config.set',
+    configSet
   );
 
   const forceDiffFile = vscode.commands.registerCommand(
@@ -423,7 +423,7 @@ function registerCommands(
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
     debuggerStopCmd,
-    forceConfigListCmd,
+    configListCmd,
     forceAliasListCmd,
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
@@ -434,7 +434,7 @@ function registerCommands(
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceConfigSetCmd,
+    configSetCmd,
     orgListCleanCmd,
     orgLoginWebCmd,
     orgLoginWebDevHubCmd,
@@ -485,11 +485,11 @@ function registerInternalDevCommands(
 }
 
 function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
-  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
-    'sfdx.force.set.default.org',
+  const setDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
-  return vscode.Disposable.from(forceSetDefaultOrgCmd);
+  return vscode.Disposable.from(setDefaultOrgCmd);
 }
 
 async function setupOrgBrowser(
