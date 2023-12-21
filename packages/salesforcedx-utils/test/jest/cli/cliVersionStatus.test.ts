@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as child_process from 'child_process';
 import { CliStatusEnum, CliVersionStatus } from '../../../src/cli/cliVersionStatus';
 
 describe('CliVersionStatus unit tests.', () => {
@@ -22,6 +23,62 @@ describe('CliVersionStatus unit tests.', () => {
   const sfdxV7_outdated_parsed = '7.183.1';
   const noSFDX_parsed = '0.0.0';
   const noSF_parsed = '0.0.0';
+
+  describe('Test cases that produce a result for getSfdxCliVersion() and getSfCliVersion()', () => {
+
+    const fakeExecution = Buffer.from('fake result');
+    const fakeResult = 'fake result';
+
+    let executeSpy: jest.SpyInstance;
+    beforeEach(() => {
+      executeSpy = jest
+        .spyOn(child_process, 'execSync')
+        .mockReturnValue(fakeExecution);
+    });
+
+    it('getSfdxCliVersion() - can get a result', async () => {
+      const cliVersionStatus = new CliVersionStatus();
+      const result = cliVersionStatus.getSfdxCliVersion();
+      expect(result).toEqual(fakeResult);
+      expect(executeSpy).toHaveBeenCalled();
+    });
+
+    it('getSfCliVersion() - can get a result', async () => {
+      const cliVersionStatus = new CliVersionStatus();
+      const result = cliVersionStatus.getSfCliVersion();
+      expect(result).toEqual(fakeResult);
+      expect(executeSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Test cases that throw an error for getSfdxCliVersion() and getSfCliVersion()', () => {
+
+    const sfdxNotFound = 'No SFDX CLI';
+    const sfNotFound = 'No SF CLI';
+
+    let executeSpy: jest.SpyInstance;
+    beforeEach(() => {
+      executeSpy = jest
+        .spyOn(child_process, 'execSync')
+        .mockImplementationOnce(() => {
+          throw new Error('simulate exception in execSync()');
+        });
+    });
+
+    it('getSfdxCliVersion() - throws error', async () => {
+      const cliVersionStatus = new CliVersionStatus();
+      const result = cliVersionStatus.getSfdxCliVersion();
+      expect(result).toEqual(sfdxNotFound);
+      expect(executeSpy).toHaveBeenCalled();
+    });
+
+    it('getSfCliVersion() - can get a result', async () => {
+      const cliVersionStatus = new CliVersionStatus();
+      const result = cliVersionStatus.getSfCliVersion();
+      expect(result).toEqual(sfNotFound);
+      expect(executeSpy).toHaveBeenCalled();
+    });
+  });
 
   /*
   Test cases for the parseCliVersion() function
