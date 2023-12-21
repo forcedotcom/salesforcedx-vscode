@@ -37,11 +37,11 @@ export type IExtendedParseResults = Pick<
   itBlocksWithAncestorTitles?: ItBlockWithAncestorTitles[];
 };
 
-function populateAncestorTitlesRecursive(
+const populateAncestorTitlesRecursive = (
   node: ParsedNodeWithAncestorTitles,
   ancestorTitles: string[],
   itBlocksWithAncestorTitles: ItBlockWithAncestorTitles[]
-) {
+) => {
   node.ancestorTitles = ancestorTitles;
   if (node.type === ParsedNodeTypes.it) {
     itBlocksWithAncestorTitles.push(node as ItBlockWithAncestorTitles);
@@ -61,13 +61,13 @@ function populateAncestorTitlesRecursive(
       );
     });
   }
-}
+};
 
 /**
  * Populate ancestor titles for itBlocks
  * @param parsedResult original parse results
  */
-export function populateAncestorTitles(parsedResult: IExtendedParseResults) {
+export const populateAncestorTitles = (parsedResult: IExtendedParseResults) => {
   try {
     const itBlocksWithAncestorTitles: ItBlockWithAncestorTitles[] = [];
     populateAncestorTitlesRecursive(
@@ -80,17 +80,17 @@ export function populateAncestorTitles(parsedResult: IExtendedParseResults) {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * Extract the VS Code position from failure message stacktrace in Jest output.
  * @param testFsPath test file path
  * @param failureMessage failure message from Jest output
  */
-export function extractPositionFromFailureMessage(
+export const extractPositionFromFailureMessage = (
   testFsPath: string,
   failureMessage: string
-) {
+) => {
   try {
     const locationMatcher = new RegExp(
       escapeStrForRegex(testFsPath) + '\\:(\\d+)\\:(\\d+)',
@@ -111,12 +111,12 @@ export function extractPositionFromFailureMessage(
   } catch (error) {
     return undefined;
   }
-}
+};
 
 /**
  * Strip the ANSI color codes from failure message
  * @param failureMessage failure message from Jest output
  */
-export function sanitizeFailureMessage(failureMessage: string) {
+export const sanitizeFailureMessage = (failureMessage: string) => {
   return stripAnsi(failureMessage);
-}
+};

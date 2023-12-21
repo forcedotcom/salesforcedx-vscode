@@ -21,7 +21,7 @@ import { workspace } from '../workspace';
  * Run an LWC Jest test from provided test execution info
  * @param testExecutionInfo test execution info
  */
-export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
+export const forceLwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(
     testExecutionInfo,
     TestRunType.RUN,
@@ -32,34 +32,34 @@ export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 /**
  * Run an individual test case
  * @param data a test explorer node or information provided by code lens
  */
-export function forceLwcTestCaseRun(data: {
+export const forceLwcTestCaseRun = (data: {
   testExecutionInfo: TestExecutionInfo;
-}) {
+}) => {
   const { testExecutionInfo } = data;
   return forceLwcTestRun(testExecutionInfo);
-}
+};
 
 /**
  * Run a test file
  * @param data a test explorer node
  */
-export function forceLwcTestFileRun(data: {
+export const forceLwcTestFileRun = (data: {
   testExecutionInfo: TestExecutionInfo;
-}) {
+}) => {
   const { testExecutionInfo } = data;
   return forceLwcTestRun(testExecutionInfo);
-}
+};
 
 /**
  * Run all tests in the workspace folder
  */
-export function forceLwcTestRunAllTests() {
+export const forceLwcTestRunAllTests = () => {
   const workspaceFolder = workspace.getTestWorkspaceFolder();
   if (workspaceFolder) {
     const testExecutionInfo: TestDirectoryInfo = {
@@ -69,12 +69,12 @@ export function forceLwcTestRunAllTests() {
     };
     return forceLwcTestRun(testExecutionInfo);
   }
-}
+};
 
 /**
  * Run the test of currently focused editor
  */
-export function forceLwcTestRunActiveTextEditorTest() {
+export const forceLwcTestRunActiveTextEditorTest = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -86,4 +86,4 @@ export function forceLwcTestRunActiveTextEditorTest() {
       testExecutionInfo
     });
   }
-}
+};

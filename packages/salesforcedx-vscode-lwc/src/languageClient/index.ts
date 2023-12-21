@@ -14,7 +14,7 @@ import {
 } from 'vscode-languageclient';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: Uri) {
+export const code2ProtocolConverter = (value: Uri) => {
   if (/^win32/.test(process.platform)) {
     // The *first* : is also being encoded which is not the standard for URI on Windows
     // Here we transform it back to the standard way
@@ -22,13 +22,13 @@ export function code2ProtocolConverter(value: Uri) {
   } else {
     return value.toString();
   }
-}
+};
 
-function protocol2CodeConverter(value: string) {
+const protocol2CodeConverter = (value: string) => {
   return Uri.parse(value);
-}
+};
 
-export function createLanguageClient(serverPath: string): LanguageClient {
+export const createLanguageClient = (serverPath: string): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
   // If the extension is launched in debug mode then the debug server options are used
@@ -75,4 +75,4 @@ export function createLanguageClient(serverPath: string): LanguageClient {
     serverOptions,
     clientOptions
   );
-}
+};

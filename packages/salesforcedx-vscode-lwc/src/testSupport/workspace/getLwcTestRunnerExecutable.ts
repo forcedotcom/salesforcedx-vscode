@@ -17,7 +17,7 @@ import { workspaceService } from './workspaceService';
  * @param cwd path to the workspace folder
  * @returns path to LWC Test runner
  */
-export function getLwcTestRunnerExecutable(cwd: string) {
+export const getLwcTestRunnerExecutable = (cwd: string) => {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
   if (workspaceService.isSFDXWorkspace(workspaceType)) {
     const lwcTestRunnerExecutable = path.join(
@@ -59,4 +59,4 @@ export function getLwcTestRunnerExecutable(cwd: string) {
       'Unsupported workspace'
     );
   }
-}
+};

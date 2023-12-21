@@ -45,11 +45,11 @@ export const enum TestInfoKind {
 /**
  * Confirms if the TestExecutionInfo kind is TestCaseInfo
  */
-export function isTestCaseInfo(
+export const isTestCaseInfo = (
   testExecutionInfo: TestExecutionInfo
-): testExecutionInfo is TestCaseInfo {
+): testExecutionInfo is TestCaseInfo => {
   return testExecutionInfo.kind === TestInfoKind.TEST_CASE;
-}
+};
 
 /**
  * Raw Test Results generated from Jest output.

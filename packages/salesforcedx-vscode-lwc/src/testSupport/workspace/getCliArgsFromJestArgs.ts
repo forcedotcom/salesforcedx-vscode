@@ -12,10 +12,10 @@ import { TestRunType } from '../testRunner/testRunner';
  * @param jestArgs jest args
  * @param testRunType test run type
  */
-export function getCliArgsFromJestArgs(
+export const getCliArgsFromJestArgs = (
   jestArgs: string[],
   testRunType: TestRunType
-) {
+) => {
   const cliArgs = ['--', ...jestArgs];
 
   const usePreviewJavaScriptDebugger = workspace
@@ -31,4 +31,4 @@ export function getCliArgsFromJestArgs(
     cliArgs.unshift('--debug');
   }
   return cliArgs;
-}
+};

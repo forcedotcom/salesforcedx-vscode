@@ -22,37 +22,37 @@ import { isLwcJestTest } from '../utils';
  * it will re-run the tests.
  * @param data provided by test watch commands (or test explorer potentially in the future)
  */
-export async function forceLwcTestStartWatching(data: {
+export const forceLwcTestStartWatching = async (data: {
   testExecutionInfo: TestExecutionInfo;
-}) {
+}) => {
   const { testExecutionInfo } = data;
   await testWatcher.watchTest(testExecutionInfo);
-}
+};
 
 /**
  * Stop watching tests using the provided test execution info.
  * It will terminate the test watch task matched by the test URI.
  * @param data provided by test watch commands
  */
-export async function forceLwcTestStopWatching(data: {
+export const forceLwcTestStopWatching = async (data: {
   testExecutionInfo: TestExecutionInfo;
-}) {
+}) => {
   const { testExecutionInfo } = data;
   testWatcher.stopWatchingTest(testExecutionInfo);
-}
+};
 
 /**
  * Stop watching all tests.
  * It will terminate all test watch tasks.
  */
-export function forceLwcTestStopWatchingAllTests() {
+export const forceLwcTestStopWatchingAllTests = () => {
   testWatcher.stopWatchingAllTests();
-}
+};
 
 /**
  * Start watching the test of currently focused editor
  */
-export async function forceLwcTestStartWatchingCurrentFile() {
+export const forceLwcTestStartWatchingCurrentFile = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -64,12 +64,12 @@ export async function forceLwcTestStartWatchingCurrentFile() {
       testExecutionInfo
     });
   }
-}
+};
 
 /**
  * Stop watching the test of currently focused editor
  */
-export function forceLwcTestStopWatchingCurrentFile() {
+export const forceLwcTestStopWatchingCurrentFile = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -81,4 +81,4 @@ export function forceLwcTestStopWatchingCurrentFile() {
       testExecutionInfo
     });
   }
-}
+};

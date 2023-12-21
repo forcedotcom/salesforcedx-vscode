@@ -10,6 +10,6 @@ import { lwcTestIndexer } from '../testIndexer';
  * Refresh the test explorer. This will clear the test results and clear the test index.
  * It will retrigger indexing from test indexer if test explorer view is open.
  */
-export function forceLwcTestRefreshTestExplorer() {
+export const forceLwcTestRefreshTestExplorer = () => {
   lwcTestIndexer.resetIndex();
-}
+};
