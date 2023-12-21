@@ -745,6 +745,9 @@ export function validateCliInstallationAndVersion(): void {
       showErrorNotification('both_sfdx_and_sf', []);
       throw Error('Both SFDX v7 and SF v2 are installed');
     }
+    case CliStatusEnum.SFDXv7Valid: {
+      showWarningNotification('sfdx_v7_deprecation', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
+    }
   }
 }
 
@@ -754,4 +757,12 @@ export function showErrorNotification(type: string, args: any[]) {
     ...args
   );
   vscode.window.showErrorMessage(showMessage);
+}
+
+export function showWarningNotification(type: string, args: any[]) {
+  const showMessage = nls.localize(
+    type,
+    ...args
+  );
+  vscode.window.showWarningMessage(showMessage);
 }

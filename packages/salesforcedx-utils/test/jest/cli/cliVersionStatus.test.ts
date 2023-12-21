@@ -24,6 +24,9 @@ describe('CliVersionStatus unit tests.', () => {
   const noSFDX_parsed = '0.0.0';
   const noSF_parsed = '0.0.0';
 
+  /*
+  Test cases that produce a result for getSfdxCliVersion() and getSfCliVersion()
+  */
   describe('Test cases that produce a result for getSfdxCliVersion() and getSfCliVersion()', () => {
 
     const fakeExecution = Buffer.from('fake result');
@@ -51,6 +54,9 @@ describe('CliVersionStatus unit tests.', () => {
     });
   });
 
+  /*
+  Test cases that throw an error for getSfdxCliVersion() and getSfCliVersion()
+  */
   describe('Test cases that throw an error for getSfdxCliVersion() and getSfCliVersion()', () => {
 
     const sfdxNotFound = 'No SFDX CLI';
@@ -158,7 +164,7 @@ describe('CliVersionStatus unit tests.', () => {
     it('Case 6: Only SFDX v7 (valid) installed - should activate Core extension', () => {
       const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_valid_parsed, noSF_parsed);
-      expect(result).toStrictEqual(CliStatusEnum.validCli);
+      expect(result).toStrictEqual(CliStatusEnum.SFDXv7Valid);
     });
 
     it('Case 7: SFDX v7 (outdated) and SF v1 installed - should fail', () => {
@@ -170,13 +176,13 @@ describe('CliVersionStatus unit tests.', () => {
     it('Case 8: SFDX v7 (valid) and SF v1 installed - should activate Core extension', () => {
       const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfdxV7_valid_parsed, sfV1_parsed);
-      expect(result).toStrictEqual(CliStatusEnum.validCli);
+      expect(result).toStrictEqual(CliStatusEnum.SFDXv7Valid);
     });
 
     it('Case 9: Only SF v2 installed - should activate Core extension', () => {
       const c = new CliVersionStatus();
       const result = c.validateCliInstallationAndVersion(sfV2_parsed, sfV2_parsed);
-      expect(result).toStrictEqual(CliStatusEnum.validCli);
+      expect(result).toStrictEqual(CliStatusEnum.SFv2);
     });
   });
 });

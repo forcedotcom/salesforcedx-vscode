@@ -9,11 +9,12 @@ import { execSync } from 'child_process';
 import * as semver from 'semver';
 
 export enum CliStatusEnum {
-  validCli = 1,
+  SFv2 = 1,
   outdatedSFDXVersion = 2,
   onlySFv1 = 3,
   cliNotInstalled = 4,
-  bothSFDXAndSFInstalled = 5
+  bothSFDXAndSFInstalled = 5,
+  SFDXv7Valid = 6
 }
 
 export class CliVersionStatus {
@@ -58,13 +59,18 @@ export class CliVersionStatus {
       return CliStatusEnum.bothSFDXAndSFInstalled;
     }
 
-    // Case 4: Outdated SFDX CLI version is installed
     const minSFDXVersion = '7.193.2';
-    if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`)) && semver.satisfies(sfCliVersionString, '<2.0.0')) {
-      return CliStatusEnum.outdatedSFDXVersion;
+    if (semver.satisfies(sfCliVersionString, '<2.0.0')) {
+      if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`))) {
+        // Case 4: Outdated SFDX CLI version is installed
+        return CliStatusEnum.outdatedSFDXVersion;
+      } else {
+        // Case 5: Valid SFDX v7 version is installed
+        return CliStatusEnum.SFDXv7Valid;
+      }
     }
 
-    // Case 5: Valid SFDX v7 version or SF v2 is installed
-    return CliStatusEnum.validCli;
+    // Case 6: SF v2 is installed
+    return CliStatusEnum.SFv2;
   }
 }
