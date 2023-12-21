@@ -211,7 +211,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export async function forceLightningLwcStart() {
+export const forceLightningLwcStart = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     const warningMessage = nls.localize(
       'force_lightning_lwc_start_already_running'
@@ -248,4 +248,4 @@ export async function forceLightningLwcStart() {
   );
 
   await commandlet.run();
-}
+};
