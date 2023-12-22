@@ -32,7 +32,7 @@ import {
 } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
-export async function activate(extensionContext: ExtensionContext) {
+export const activate = async (extensionContext: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -125,23 +125,23 @@ export async function activate(extensionContext: ExtensionContext) {
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export async function deactivate() {
+export const deactivate = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     await DevServerService.instance.stopServer();
   }
   log('Lightning Web Components Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};
 
-function getActivationMode(): string {
+const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') || 'autodetect'; // default to autodetect
-}
+};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function registerCommands(_extensionContext: ExtensionContext): Disposable {
+const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
     commands.registerCommand(
       'sfdx.force.lightning.lwc.start',
@@ -160,4 +160,4 @@ function registerCommands(_extensionContext: ExtensionContext): Disposable {
       forceLightningLwcPreview
     )
   );
-}
+};

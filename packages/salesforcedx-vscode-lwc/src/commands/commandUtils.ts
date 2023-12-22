@@ -11,7 +11,7 @@ import { channelService } from '../channel';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
-export function showError(e: Error, logName: string, commandName: string) {
+export const showError = (e: Error, logName: string, commandName: string) => {
   telemetryService.sendException(`${logName}_error`, e.message);
   notificationService.showErrorMessage(e.message);
   notificationService.showErrorMessage(
@@ -19,8 +19,8 @@ export function showError(e: Error, logName: string, commandName: string) {
   );
   channelService.appendLine(`Error: ${e.message}`);
   channelService.showChannelOutput();
-}
+};
 
-export function openBrowser(url: string) {
+export const openBrowser = (url: string) => {
   return env.openExternal(Uri.parse(url));
-}
+};
