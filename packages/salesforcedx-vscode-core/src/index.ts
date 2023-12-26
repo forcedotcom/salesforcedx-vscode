@@ -716,8 +716,8 @@ export function validateCliInstallationAndVersion(): void {
   // If there is no CLI or it is an unsupported version then the Core extension will not activate
   const c = new CliVersionStatus();
 
-  const sfdxCliVersionString = c.getSfdxCliVersion();
-  const sfCliVersionString = c.getSfCliVersion();
+  const sfdxCliVersionString = c.getCliVersion(true);
+  const sfCliVersionString = c.getCliVersion(false);
 
   const sfdxCliVersionParsed = c.parseCliVersion(sfdxCliVersionString);
   const sfCliVersionParsed = c.parseCliVersion(sfCliVersionString);

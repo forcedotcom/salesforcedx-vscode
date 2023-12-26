@@ -14,8 +14,8 @@ describe('CliVersionStatus unit tests.', () => {
   const sfdxV7_valid_string = 'sfdx-cli/7.209.6 win32-x64 node-v18.15.0';
   const sfV1_string = '@salesforce/cli/1.87.0 darwin-arm64 node-v18.17.1';
   const sfdxV7_outdated_string = 'sfdx-cli/7.183.1 darwin-arm64 node-v16.19.1';
-  const noSFDX_string = 'No SFDX CLI';
-  const noSF_string = 'No SF CLI';
+  const noSFDX_string = 'No CLI';
+  const noSF_string = 'No CLI';
 
   const sfV2_parsed = '2.15.9';
   const sfdxV7_valid_parsed = '7.209.6';
@@ -41,14 +41,14 @@ describe('CliVersionStatus unit tests.', () => {
 
     it('getSfdxCliVersion() - can get a result', async () => {
       const cliVersionStatus = new CliVersionStatus();
-      const result = cliVersionStatus.getSfdxCliVersion();
+      const result = cliVersionStatus.getCliVersion(true);
       expect(result).toEqual(fakeResult);
       expect(executeSpy).toHaveBeenCalled();
     });
 
     it('getSfCliVersion() - can get a result', async () => {
       const cliVersionStatus = new CliVersionStatus();
-      const result = cliVersionStatus.getSfCliVersion();
+      const result = cliVersionStatus.getCliVersion(false);
       expect(result).toEqual(fakeResult);
       expect(executeSpy).toHaveBeenCalled();
     });
@@ -59,8 +59,7 @@ describe('CliVersionStatus unit tests.', () => {
   */
   describe('Test cases that throw an error for getSfdxCliVersion() and getSfCliVersion()', () => {
 
-    const sfdxNotFound = 'No SFDX CLI';
-    const sfNotFound = 'No SF CLI';
+    const cliNotFound = 'No CLI';
 
     let executeSpy: jest.SpyInstance;
     beforeEach(() => {
@@ -73,15 +72,15 @@ describe('CliVersionStatus unit tests.', () => {
 
     it('getSfdxCliVersion() - throws error', async () => {
       const cliVersionStatus = new CliVersionStatus();
-      const result = cliVersionStatus.getSfdxCliVersion();
-      expect(result).toEqual(sfdxNotFound);
+      const result = cliVersionStatus.getCliVersion(true);
+      expect(result).toEqual(cliNotFound);
       expect(executeSpy).toHaveBeenCalled();
     });
 
     it('getSfCliVersion() - can get a result', async () => {
       const cliVersionStatus = new CliVersionStatus();
-      const result = cliVersionStatus.getSfCliVersion();
-      expect(result).toEqual(sfNotFound);
+      const result = cliVersionStatus.getCliVersion(false);
+      expect(result).toEqual(cliNotFound);
       expect(executeSpy).toHaveBeenCalled();
     });
   });

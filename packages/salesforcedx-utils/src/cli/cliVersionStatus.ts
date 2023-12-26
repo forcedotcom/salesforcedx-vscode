@@ -19,26 +19,23 @@ export enum CliStatusEnum {
 
 export class CliVersionStatus {
 
-  public getSfdxCliVersion(): string {
+  public getCliVersion(isSfdx: boolean): string {
     try {
-      const result = execSync('sfdx --version');
+      let result;
+      if (isSfdx) {
+        result = execSync('sfdx --version');
+      } else {
+        result = execSync('sf --version');
+      }
       return result.toString();
     } catch {
-      return 'No SFDX CLI';
-    }
-  }
-  public getSfCliVersion(): string {
-    try {
-      const result = execSync('sf --version');
-      return result.toString();
-    } catch {
-      return 'No SF CLI';
+      return 'No CLI';
     }
   }
 
-  public parseCliVersion(sfCliVersion: string): string {
+  public parseCliVersion(cliVersion: string): string {
     const pattern = /(?:sfdx-cli\/|@salesforce\/cli\/)(\d+\.\d+\.\d+)/;
-    const match = pattern.exec(sfCliVersion);
+    const match = pattern.exec(cliVersion);
     return match ? match[1] : '0.0.0';
   }
 
