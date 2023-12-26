@@ -257,7 +257,7 @@ export const messages = {
   both_sfdx_and_sf:
     'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
   sfdx_v7_deprecation:
-    'Our team will remove support for SFDX(v7) of Salesforce CLI in a few months. If you are able, uninstall SFDX(v7) and install SF(v2) from [%s](%s).',
+    'SFDX CLI (v7) is scheduled for deprecation. We recommend transitioning to SF CLI for a seamless and improved experience. To do the transition, uninstall SFDX(v7) and install SF(v2) from [%s](%s).',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
