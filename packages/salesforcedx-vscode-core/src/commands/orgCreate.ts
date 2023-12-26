@@ -40,24 +40,20 @@ import {
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
 
-export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
-  AliasAndFileSelection
-> {
+export class OrgCreateExecutor extends SfdxCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker
       data.file
     );
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_org_create_default_scratch_org_text')
-      )
-      .withArg('force:org:create')
+      .withDescription(nls.localize('org_create_default_scratch_org_text'))
+      .withArg('org:create:scratch')
       .withFlag('-f', `${selectionPath}`)
-      .withFlag('--setalias', data.alias)
-      .withFlag('--durationdays', data.expirationDays)
-      .withArg('--setdefaultusername')
-      .withLogName('force_org_create_default_scratch_org')
+      .withFlag('--alias', data.alias)
+      .withFlag('--duration-days', data.expirationDays)
+      .withArg('--set-default')
+      .withLogName('org_create_default_scratch_org')
       .withJson()
       .build();
   }
@@ -68,7 +64,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
@@ -91,7 +87,8 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
             OrgType.SourceTracked
           );
         } else {
-          const errorResponse = createParser.getResult() as OrgCreateErrorResult;
+          const errorResponse =
+            createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
             channelService.appendLine(errorResponse.message);
             telemetryService.sendException(
@@ -102,11 +99,11 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
         }
       } catch (err) {
         channelService.appendLine(
-          nls.localize('force_org_create_result_parsing_error')
+          nls.localize('org_create_result_parsing_error')
         );
         channelService.appendLine(err);
         telemetryService.sendException(
-          'force_org_create',
+          'org_create_scratch',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `Error while parsing org create response ${err}`
         );
@@ -197,11 +194,11 @@ const parameterGatherer = new CompositeParametersGatherer(
   new AliasGatherer()
 );
 
-export async function forceOrgCreate() {
+export async function orgCreate() {
   const commandlet = new SfdxCommandlet(
     preconditionChecker,
     parameterGatherer,
-    new ForceOrgCreateExecutor()
+    new OrgCreateExecutor()
   );
   await commandlet.run();
 }

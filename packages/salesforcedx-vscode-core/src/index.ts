@@ -39,7 +39,7 @@ import {
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
   forceOpenDocumentation,
-  forceOrgCreate,
+  orgCreate,
   forceOrgDelete,
   forcePackageInstall,
   forceProjectWithManifestCreate,
@@ -152,9 +152,9 @@ function registerCommands(
     'sfdx.force.open.documentation',
     forceOpenDocumentation
   );
-  const forceOrgCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.create',
-    forceOrgCreate
+  const orgCreateCmd = vscode.commands.registerCommand(
+    'sfdx.org.create',
+    orgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
@@ -390,7 +390,7 @@ function registerCommands(
     dataQuerySelectionCmd,
     forceDiffFile,
     forceOpenDocumentationCmd,
-    forceOrgCreateCmd,
+    orgCreateCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,

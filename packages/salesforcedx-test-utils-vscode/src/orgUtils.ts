@@ -42,9 +42,9 @@ export const createScratchOrg = async (
   );
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:org:create')
-      .withFlag('--definitionfile', `${scratchDefFilePath}`)
-      .withArg('--setdefaultusername')
+      .withArg('org:create:scratch')
+      .withFlag('--definition-file', `${scratchDefFilePath}`)
+      .withArg('--set-default')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }

@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { AliasGatherer, ForceOrgCreateExecutor } from '../../../src/commands';
+import { AliasGatherer, OrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { workspaceUtils } from '../../../src/util';
 
@@ -125,17 +125,17 @@ describe('Force Org Create', () => {
       const CONFIG_FILE = 'configFile.txt';
       const TEST_ALIAS = 'testAlias';
       const TEST_ORG_EXPIRATION_DAYS = '7';
-      const forceOrgCreateBuilder = new ForceOrgCreateExecutor();
+      const forceOrgCreateBuilder = new OrgCreateExecutor();
       const createCommand = forceOrgCreateBuilder.build({
         file: path.join(workspaceUtils.getRootWorkspacePath(), CONFIG_FILE),
         alias: TEST_ALIAS,
         expirationDays: TEST_ORG_EXPIRATION_DAYS
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:org:create -f ${CONFIG_FILE} --setalias ${TEST_ALIAS} --durationdays ${TEST_ORG_EXPIRATION_DAYS} --setdefaultusername --json --loglevel fatal`
+        `sfdx org:create:scratch -f ${CONFIG_FILE} --alias ${TEST_ALIAS} --duration-days ${TEST_ORG_EXPIRATION_DAYS} --set-default --json --loglevel fatal`
       );
       expect(createCommand.description).to.equal(
-        nls.localize('force_org_create_default_scratch_org_text')
+        nls.localize('org_create_default_scratch_org_text')
       );
     });
   });
