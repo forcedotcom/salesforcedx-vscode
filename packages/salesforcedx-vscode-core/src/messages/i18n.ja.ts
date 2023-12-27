@@ -158,16 +158,15 @@ export const messages = {
     'SFDX: エディタの内容で匿名 Apex コードを実行',
   force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
-  force_project_create_text: 'SFDX: プロジェクトを作成',
-  force_project_create_open_dialog_create_label: 'プロジェクトを作成',
-  force_project_create_standard_template:
+  project_generate_text: 'SFDX: プロジェクトを作成',
+  project_generate_open_dialog_create_label: 'プロジェクトを作成',
+  project_generate_standard_template:
     '標準のプロジェクトテンプレート (デフォルト)',
-  force_project_create_standard_template_display_text: '標準',
-  force_project_create_empty_template_display_text: '空',
-  force_project_create_analytics_template_display_text: 'Analytics',
-  force_project_create_empty_template: '空のプロジェクトテンプレート',
-  force_project_create_analytics_template:
-    'Analytics のプロジェクトテンプレート',
+  project_generate_standard_template_display_text: '標準',
+  project_generate_empty_template_display_text: '空',
+  project_generate_analytics_template_display_text: 'Analytics',
+  project_generate_empty_template: '空のプロジェクトテンプレート',
+  project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
   force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',

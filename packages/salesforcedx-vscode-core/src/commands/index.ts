@@ -34,6 +34,8 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export {
   DebuggerSessionDetachExecutor,
@@ -48,8 +50,6 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ConfigList, configList } from './configList';
-export { ConfigSetExecutor, configSet } from './configSet';
 export { forceCreateManifest } from './forceCreateManifest';
 export {
   ForceDescribeMetadataExecutor,
@@ -72,17 +72,6 @@ export {
   SelectPackageID,
   forcePackageInstall
 } from './forcePackageInstall';
-export {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  ProjectTemplateItem,
-  SelectProjectFolder,
-  SelectProjectName,
-  SelectProjectTemplate,
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
-  projectTemplateEnum
-} from './forceProjectCreate';
 export {
   ForceRefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
@@ -124,6 +113,17 @@ export {
   orgOpen
 } from './orgOpen';
 export {
+  PathExistsChecker,
+  ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
+  SelectProjectFolder,
+  SelectProjectName,
+  SelectProjectTemplate,
+  projectGenerateWithManifest,
+  projectTemplateEnum,
+  sfProjectGenerate
+} from './projectGenerate';
+export {
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges
@@ -146,8 +146,8 @@ export {
 export {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
-  forceApexUnitClassCreate,
   forceApexTriggerCreate,
+  forceApexUnitClassCreate,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
   forceInternalLightningEventCreate,

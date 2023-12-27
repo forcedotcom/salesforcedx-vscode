@@ -17,11 +17,11 @@ import * as util from 'util';
 import { Uri } from 'vscode';
 
 // Used only for CI purposes. Must call delete if you call create
-export const createSFDXProject = async (projectName: string): Promise<void> => {
+export const generateSFProject = async (projectName: string): Promise<void> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:project:create')
-      .withFlag('--projectname', projectName)
+      .withArg('project:generate')
+      .withFlag('--name', projectName)
       .withJson()
       .build(),
     { cwd: process.cwd() }

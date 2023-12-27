@@ -42,10 +42,8 @@ import {
   forceOrgCreate,
   forceOrgDelete,
   forcePackageInstall,
-  forceProjectWithManifestCreate,
   forceRefreshSObjects,
   forceRenameLightningComponent,
-  forceSfdxProjectCreate,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -66,6 +64,8 @@ import {
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
+  projectGenerateWithManifest,
+  sfProjectGenerate,
   startApexDebugLogging,
   stopApexDebugLogging,
   turnOffLogging,
@@ -321,18 +321,18 @@ function registerCommands(
     'sfdx.data.query.selection',
     dataQuery
   );
-  const forceProjectCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.create',
-    forceSfdxProjectCreate
+  const projectGenerateCmd = vscode.commands.registerCommand(
+    'sfdx.project.generate',
+    sfProjectGenerate
   );
 
   const forcePackageInstallCmd = vscode.commands.registerCommand(
     'sfdx.force.package.install',
     forcePackageInstall
   );
-  const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.with.manifest.create',
-    forceProjectWithManifestCreate
+  const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
+    'sfdx.project.generate.with.manifest',
+    projectGenerateWithManifest
   );
 
   const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
@@ -427,9 +427,9 @@ function registerCommands(
     forceAliasListCmd,
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
-    forceProjectCreateCmd,
+    projectGenerateCmd,
     forcePackageInstallCmd,
-    forceProjectWithManifestCreateCmd,
+    projectGenerateWithManifestCmd,
     forceApexTriggerCreateCmd,
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,

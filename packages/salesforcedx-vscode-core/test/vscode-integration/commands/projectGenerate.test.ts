@@ -18,24 +18,24 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../src/channels';
 import {
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
-  projectTemplateEnum,
   ProjectTemplateItem,
   SelectProjectFolder,
   SelectProjectName,
-  SelectProjectTemplate
+  SelectProjectTemplate,
+  projectGenerateWithManifest,
+  projectTemplateEnum,
+  sfProjectGenerate
 } from '../../../src/commands';
-import { ProjectName } from '../../../src/commands/forceProjectCreate';
+import { ProjectName } from '../../../src/commands/projectGenerate';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { telemetryService } from '../../../src/telemetry';
 import { workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Project Create', () => {
+describe('Project Generate', () => {
   const PROJECT_NAME = 'sfdx-simple';
   const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const PROJECT_NAME_WITH_LEADING_TRAILING_SPACES = `  ${PROJECT_NAME}  `;
@@ -53,8 +53,8 @@ describe('Force Project Create', () => {
         .onCall(2)
         .returns(
           new ProjectTemplateItem(
-            'force_project_create_analytics_template_display_text',
-            'force_project_create_analytics_template'
+            'project_generate_analytics_template_display_text',
+            'project_generate_analytics_template'
           )
         );
     });
@@ -253,7 +253,7 @@ describe('Force Project Create', () => {
     });
   });
 
-  describe('Project Create', () => {
+  describe('Project Generate', () => {
     let showInputBoxStub: SinonStub;
     let quickPickStub: SinonStub;
     let openDialogStub: SinonStub;
@@ -295,22 +295,20 @@ describe('Force Project Create', () => {
       showWarningStub.restore();
     });
 
-    it('Should Create Project', async () => {
+    it('Should Generate Project', async () => {
       // arrange
       const projectPath = path.join(rootWorkspacePath, 'TestProject');
       shell.rm('-rf', projectPath);
       assert.noFile(projectPath);
 
       quickPickStub.returns({
-        label: nls.localize(
-          'force_project_create_standard_template_display_text'
-        )
+        label: nls.localize('project_generate_standard_template_display_text')
       });
       showInputBoxStub.returns('TestProject');
       openDialogStub.returns([vscode.Uri.file(path.join(rootWorkspacePath))]);
 
       // act
-      await forceSfdxProjectCreate();
+      await sfProjectGenerate();
 
       const standardfolderarray = [
         'aura',
@@ -427,22 +425,20 @@ describe('Force Project Create', () => {
       shell.rm('-rf', projectPath);
     });
 
-    it('Should Create Project with manifest', async () => {
+    it('Should Generate Project with manifest', async () => {
       // arrange
       const projectPath = path.join(rootWorkspacePath, 'TestProject');
       shell.rm('-rf', projectPath);
       assert.noFile(projectPath);
 
       quickPickStub.returns({
-        label: nls.localize(
-          'force_project_create_standard_template_display_text'
-        )
+        label: nls.localize('project_generate_standard_template_display_text')
       });
       showInputBoxStub.returns('TestProject');
       openDialogStub.returns([vscode.Uri.file(path.join(rootWorkspacePath))]);
 
       // act
-      await forceProjectWithManifestCreate();
+      await projectGenerateWithManifest();
 
       assert.file([
         path.join(rootWorkspacePath, 'TestProject', 'manifest', 'package.xml')

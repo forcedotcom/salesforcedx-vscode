@@ -31,7 +31,7 @@ export enum projectTemplateEnum {
   analytics = 'analytics'
 }
 
-type forceProjectCreateOptions = {
+type projectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
@@ -44,18 +44,16 @@ export class ProjectTemplateItem implements vscode.QuickPickItem {
   }
 }
 
-export class LibraryForceProjectCreateExecutor extends LibraryBaseTemplateCommand<
-  ProjectNameAndPathAndTemplate
-> {
-  private readonly options: forceProjectCreateOptions;
+export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
+  private readonly options: projectGenerateOptions;
 
   public constructor(options = { isProjectWithManifest: false }) {
     super();
     this.options = options;
   }
 
-  public executionName = nls.localize('force_project_create_text');
-  public telemetryName = 'force_project_create';
+  public executionName = nls.localize('project_generate_text');
+  public telemetryName = 'project_generate';
   public templateType = TemplateType.Project;
   public getOutputFileName(data: ProjectNameAndPathAndTemplate) {
     return data.projectName;
@@ -102,7 +100,8 @@ export interface ProjectTemplate {
 }
 
 export class SelectProjectTemplate
-  implements ParametersGatherer<ProjectTemplate> {
+  implements ParametersGatherer<ProjectTemplate>
+{
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
@@ -114,29 +113,29 @@ export class SelectProjectTemplate
   > {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem(
-        'force_project_create_standard_template_display_text',
-        'force_project_create_standard_template'
+        'project_generate_standard_template_display_text',
+        'project_generate_standard_template'
       ),
       new ProjectTemplateItem(
-        'force_project_create_empty_template_display_text',
-        'force_project_create_empty_template'
+        'project_generate_empty_template_display_text',
+        'project_generate_empty_template'
       ),
       new ProjectTemplateItem(
-        'force_project_create_analytics_template_display_text',
-        'force_project_create_analytics_template'
+        'project_generate_analytics_template_display_text',
+        'project_generate_analytics_template'
       )
     ];
 
     const selection = await vscode.window.showQuickPick(items);
     let projectTemplate: string | undefined;
     switch (selection && selection.label) {
-      case nls.localize('force_project_create_standard_template_display_text'):
+      case nls.localize('project_generate_standard_template_display_text'):
         projectTemplate = projectTemplateEnum.standard;
         break;
-      case nls.localize('force_project_create_empty_template_display_text'):
+      case nls.localize('project_generate_empty_template_display_text'):
         projectTemplate = projectTemplateEnum.empty;
         break;
-      case nls.localize('force_project_create_analytics_template_display_text'):
+      case nls.localize('project_generate_analytics_template_display_text'):
         projectTemplate = projectTemplateEnum.analytics;
         break;
       default:
@@ -179,7 +178,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
       canSelectFiles: false,
       canSelectFolders: true,
       canSelectMany: false,
-      openLabel: nls.localize('force_project_create_open_dialog_create_label')
+      openLabel: nls.localize('project_generate_open_dialog_create_label')
     } as vscode.OpenDialogOptions);
     return projectUri && projectUri.length === 1
       ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
@@ -188,7 +187,8 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
 }
 
 export class PathExistsChecker
-  implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
+  implements PostconditionChecker<ProjectNameAndPathAndTemplate>
+{
   public async check(
     inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
@@ -221,26 +221,26 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 const pathExistsChecker = new PathExistsChecker();
 
-export async function forceSfdxProjectCreate() {
-  const createTemplateExecutor = new LibraryForceProjectCreateExecutor();
-  const sfdxProjectCreateCommandlet = new SfdxCommandlet(
+export async function sfProjectGenerate() {
+  const createTemplateExecutor = new LibraryProjectGenerateExecutor();
+  const sfProjectGenerateCommandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     createTemplateExecutor,
     pathExistsChecker
   );
-  await sfdxProjectCreateCommandlet.run();
+  await sfProjectGenerateCommandlet.run();
 }
 
-export async function forceProjectWithManifestCreate() {
-  const createTemplateExecutor = new LibraryForceProjectCreateExecutor({
+export async function projectGenerateWithManifest() {
+  const createTemplateExecutor = new LibraryProjectGenerateExecutor({
     isProjectWithManifest: true
   });
-  const projectWithManifestCreateCommandlet = new SfdxCommandlet(
+  const projectGenerateWithManifestCommandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     createTemplateExecutor,
     pathExistsChecker
   );
-  await projectWithManifestCreateCommandlet.run();
+  await projectGenerateWithManifestCommandlet.run();
 }

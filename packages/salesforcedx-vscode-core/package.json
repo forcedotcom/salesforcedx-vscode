@@ -130,8 +130,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.force.project.create",
-    "onCommand:sfdx.force.project.with.manifest.create",
+    "onCommand:sfdx.project.generate",
+    "onCommand:sfdx.project.generate.with.manifest",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
@@ -456,11 +456,11 @@
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
-          "command": "sfdx.force.project.create",
+          "command": "sfdx.project.generate",
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.project.with.manifest.create",
+          "command": "sfdx.project.generate.with.manifest",
           "when": "!sfdx:internal_dev"
         },
         {
@@ -779,12 +779,12 @@
         "title": "%data_query_selection_text%"
       },
       {
-        "command": "sfdx.force.project.create",
-        "title": "%force_project_create_text%"
+        "command": "sfdx.project.generate",
+        "title": "%project_generate_text%"
       },
       {
-        "command": "sfdx.force.project.with.manifest.create",
-        "title": "%force_project_with_manifest_create_text%"
+        "command": "sfdx.project.generate.with.manifest",
+        "title": "%project_generate_with_manifest_text%"
       },
       {
         "command": "sfdx.force.apex.trigger.create",

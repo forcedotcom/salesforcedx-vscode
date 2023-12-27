@@ -13,7 +13,7 @@ SSL のサポートを含めてビルドされた Node.js の [Active LTS リリ
 
 ### 新しいプロジェクト
 
-SFDX プロジェクトを、`sfdx force:project:create (SFDX: プロジェクトを作成)` コマンドで作成した場合、そのプロジェクトに含まれる `package.json` ファイルにはすでに ESLint のプラグインが含まれています。
+SFDX プロジェクトを、`sfdx project:generate (SFDX: プロジェクトを作成)` コマンドで作成した場合、そのプロジェクトに含まれる `package.json` ファイルにはすでに ESLint のプラグインが含まれています。
 
 1. ESLint プラグインと他の依存関係をインストールするには、プロジェクトのディレクトリで `npm install` を実行します。
 

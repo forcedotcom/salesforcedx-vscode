@@ -41,7 +41,7 @@ Force.com IDE ではメタデータ形式を使用していたため、VS Code �
 
 1. Git リポジトリの外で一時的な SFDX プロジェクトを作成します。この一時的なプロジェクトには Salesforce のプロジェクトで必要とされるディレクトリ構造や設定ファイルがあります。
 
-   `$ sfdx force:project:create -n tempproj`
+   `$ sfdx project:generate -n tempproj`
 
 2. メタデータ内のプロジェクトを一時的なプロジェクトに変換します。
 
