@@ -17,7 +17,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 
-export async function forceOpenDocumentation() {
+export async function openDocumentation() {
   let docUrl = '';
   const editor = vscode.window.activeTextEditor;
   if (editor) {

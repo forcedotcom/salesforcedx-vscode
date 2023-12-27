@@ -38,7 +38,7 @@ import {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
-  forceOpenDocumentation,
+  openDocumentation,
   forceOrgCreate,
   forceOrgDelete,
   forcePackageInstall,
@@ -55,7 +55,7 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceTaskStop,
+  taskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
@@ -148,9 +148,9 @@ function registerCommands(
     'sfdx.org.logout.default',
     orgLogoutDefault
   );
-  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
-    'sfdx.force.open.documentation',
-    forceOpenDocumentation
+  const openDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.open.documentation',
+    openDocumentation
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -224,9 +224,9 @@ function registerCommands(
     'sfdx.force.source.status.remote',
     viewRemoteChanges
   );
-  const forceTaskStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.task.stop',
-    forceTaskStop
+  const taskStopCmd = vscode.commands.registerCommand(
+    'sfdx.task.stop',
+    taskStop
   );
   const forceApexClassCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.class.create',
@@ -389,7 +389,7 @@ function registerCommands(
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
-    forceOpenDocumentationCmd,
+    openDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
@@ -410,7 +410,7 @@ function registerCommands(
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-    forceTaskStopCmd,
+    taskStopCmd,
     forceApexClassCreateCmd,
     forceApexClassCreateUnitCmd,
     forceAnalyticsTemplateCreateCmd,
@@ -548,7 +548,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.tasks.view',
+    'sfdx.tasks.view',
     taskViewService
   );
   extensionContext.subscriptions.push(treeDataProvider);

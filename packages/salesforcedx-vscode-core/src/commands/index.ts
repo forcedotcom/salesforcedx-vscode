@@ -59,7 +59,7 @@ export {
   ForceListMetadataExecutor,
   forceListMetadata
 } from './forceListMetadata';
-export { forceOpenDocumentation } from './forceOpenDocumentation';
+export { openDocumentation } from './openDocumentation';
 export {
   AliasGatherer,
   ForceOrgCreateExecutor,
@@ -114,7 +114,7 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { forceTaskStop } from './forceTaskStop';
+export { taskStop } from './taskStop';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
