@@ -21,12 +21,7 @@ export class CliVersionStatus {
 
   public getCliVersion(isSfdx: boolean): string {
     try {
-      let result;
-      if (isSfdx) {
-        result = execSync('sfdx --version');
-      } else {
-        result = execSync('sf --version');
-      }
+      const result = execSync(`${isSfdx ? 'sfdx' : 'sf'} --version`);
       return result.toString();
     } catch {
       return 'No CLI';
