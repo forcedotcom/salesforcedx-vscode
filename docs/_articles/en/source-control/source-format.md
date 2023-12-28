@@ -41,7 +41,7 @@ Follow these steps to convert the project from metadata to source format, withou
 
 1. Create a temporary SFDX project outside of the Git repo. This temporary project has the structure and a configuration file as required by a Salesforce project.
 
-   `$ sfdx project:generate -n tempproj`
+   `$ sf project:generate -n tempproj`
 
 1. Convert the project in metadata into a temporary project.
 

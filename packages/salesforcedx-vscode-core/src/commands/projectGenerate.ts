@@ -53,7 +53,7 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
   }
 
   public executionName = nls.localize('project_generate_text');
-  public telemetryName = 'project_generate';
+  public telemetryName = 'force_project_create';
   public templateType = TemplateType.Project;
   public getOutputFileName(data: ProjectNameAndPathAndTemplate) {
     return data.projectName;

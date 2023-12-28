@@ -13,7 +13,7 @@ Linting provides errors about malformed code while you edit. VS Code enforces Sa
 
 ### For a New Project
 
-If you create an SFDX project using the `sfdx project:generate` command, your project contains a `package.json` file with the ESLint plugin already included.
+If you create an SFDX project using the `sf project:generate` command, your project contains a `package.json` file with the ESLint plugin already included.
 
 1. To install the ESLint plugin and other dependencies, run `npm install` in your project directory.
 
