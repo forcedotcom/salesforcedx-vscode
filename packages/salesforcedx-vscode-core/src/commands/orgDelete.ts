@@ -31,7 +31,7 @@ export class OrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: { choice?: string; username?: string }): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('org_delete_default_text'))
-      .withArg('org:scratch')
+      .withArg('org:delete:scratch')
       .withArg('--no-prompt')
       .withLogName('org_delete_default');
 
