@@ -174,11 +174,11 @@ describe('ApexExecutionOverlayAction command', () => {
 });
 
 // Support function to create an XHROptions object to verify call args against
-export function createExpectedXHROptions(
+export const createExpectedXHROptions = (
   requestBody: string | undefined,
   requestUrl: string,
   restHttpMethodEnum: RestHttpMethodEnum
-): XHROptions {
+): XHROptions => {
   return {
     type: restHttpMethodEnum,
     url: requestUrl,
@@ -194,4 +194,4 @@ export function createExpectedXHROptions(
     },
     data: requestBody
   } as XHROptions;
-}
+};

@@ -680,10 +680,10 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
   });
 });
 
-function breakpointsHaveSameUriAndSourceLine(
+const breakpointsHaveSameUriAndSourceLine = (
   bp1: vscode.Breakpoint,
   bp2: vscode.Breakpoint
-): boolean {
+): boolean => {
   // both breakpoints are source breakpoints
   if (
     bp1 instanceof vscode.SourceBreakpoint &&
@@ -698,15 +698,15 @@ function breakpointsHaveSameUriAndSourceLine(
     }
   }
   return false;
-}
+};
 
-async function clearExistingBreakpoints() {
-  await vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
-}
+const clearExistingBreakpoints = () => {
+  vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
+};
 
 // Clean out the checkpoints from the checkpointService (has the added bonus of beating
 // on deleteCheckpointNode)
-function clearOutCheckpoints() {
+const clearOutCheckpoints = () => {
   for (const checkpoint of checkpointService.getChildren()) {
     // While every child here is a CheckpointNode, getChildren returns an
     // array of BaseNode and if we want to get at the methods on an actual
@@ -717,4 +717,4 @@ function clearOutCheckpoints() {
       );
     }
   }
-}
+};
