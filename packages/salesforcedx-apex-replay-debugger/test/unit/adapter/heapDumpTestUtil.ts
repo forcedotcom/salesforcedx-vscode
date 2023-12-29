@@ -11,7 +11,7 @@ import { ApexHeapDump } from '../../../src/core';
 // Rather than duplicate a large heapdump in multiple places just have a common function return it. The
 // heap dump for triggers is ends up bring pretty large but there are only 3 Account records in here.
 // This method contains the elements necessary to test the Trigger variables in the heapdump.
-export function createHeapDumpResultForTriggers(): ApexHeapDump {
+export const createHeapDumpResultForTriggers = (): ApexHeapDump => {
   // This particular heapdump was taken after an insert. The Trigger booleans for isafter and isinsert will
   // be true. isbefore, isdelete, isundelete and isupdate will be false. The Trigger.new and Trigger.newmap
   // will both be populated with 3 Account objects.
@@ -409,10 +409,10 @@ export function createHeapDumpResultForTriggers(): ApexHeapDump {
     }
   } as ApexExecutionOverlayResultCommandSuccess);
   return heapdump;
-}
+};
 
 // HeapDump with no String typename entries entries
-export function createHeapDumpWithNoStringTypes(): ApexHeapDump {
+export const createHeapDumpWithNoStringTypes = (): ApexHeapDump => {
   const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
   heapdump.setOverlaySuccessResult({
     HeapDump: {
@@ -602,10 +602,10 @@ export function createHeapDumpWithNoStringTypes(): ApexHeapDump {
   } as ApexExecutionOverlayResultCommandSuccess);
 
   return heapdump;
-}
+};
 
 // Heapdump with typeName string entries
-export function createHeapDumpWithStrings(): ApexHeapDump {
+export const createHeapDumpWithStrings = (): ApexHeapDump => {
   const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
   heapdump.setOverlaySuccessResult({
     HeapDump: {
@@ -647,11 +647,11 @@ export function createHeapDumpWithStrings(): ApexHeapDump {
     }
   } as ApexExecutionOverlayResultCommandSuccess);
   return heapdump;
-}
+};
 
 // Partial heapdump with a nested reference, used to verify both leaf reference
 // parsing and putting a variable together from the leaves.
-export function createHeapDumpWithNestedRefs(): ApexHeapDump {
+export const createHeapDumpWithNestedRefs = (): ApexHeapDump => {
   const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
   heapdump.setOverlaySuccessResult({
     HeapDump: {
@@ -835,10 +835,10 @@ export function createHeapDumpWithNestedRefs(): ApexHeapDump {
     }
   } as ApexExecutionOverlayResultCommandSuccess);
   return heapdump;
-}
+};
 
 // Partial heapdump with a circular reference
-export function createHeapDumpWithCircularRefs(): ApexHeapDump {
+export const createHeapDumpWithCircularRefs = (): ApexHeapDump => {
   const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
   heapdump.setOverlaySuccessResult({
     HeapDump: {
@@ -910,4 +910,4 @@ export function createHeapDumpWithCircularRefs(): ApexHeapDump {
     }
   } as ApexExecutionOverlayResultCommandSuccess);
   return heapdump;
-}
+};
