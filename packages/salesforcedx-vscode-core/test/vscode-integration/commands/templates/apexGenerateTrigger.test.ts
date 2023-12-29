@@ -1,29 +1,28 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { TemplateService } from '@salesforce/templates';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
-import { forceVisualforcePageCreate } from '../../../../src/commands/templates';
+import { apexGenerateTrigger } from '../../../../src/commands/templates/apexGenerateTrigger';
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Visualforce Page Create', () => {
+describe('Apex Generate Trigger', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
   let showSuccessfulExecutionStub: SinonStub;
   let showFailedExecutionStub: SinonStub;
-  let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
@@ -35,7 +34,6 @@ describe('Force Visualforce Page Create', () => {
     );
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
   });
 
   afterEach(() => {
@@ -44,58 +42,46 @@ describe('Force Visualforce Page Create', () => {
     showSuccessfulExecutionStub.restore();
     showFailedExecutionStub.restore();
     appendLineStub.restore();
-    openTextDocumentStub.restore();
   });
 
-  it('Should create Visualforce Component', async () => {
+  it('Should generate Apex Trigger', async () => {
     // arrange
-    const fileName = 'testVFPage';
-    const outputPath = 'force-app/main/default/components';
-    const vfPagePath = path.join(
+    const outputPath = 'force-app/main/default/triggers';
+    const apexTriggerPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testVFPage.page'
+      'TestApexTrigger.trigger'
     );
-    const vfPageMetaPath = path.join(
+    const apexTriggerMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testVFPage.page-meta.xml'
+      'TestApexTrigger.trigger-meta.xml'
     );
-    shell.rm('-f', path.join(vfPagePath));
-    shell.rm('-f', path.join(vfPageMetaPath));
-    assert.noFile([vfPagePath, vfPageMetaPath]);
-    showInputBoxStub.returns(fileName);
+    shell.rm('-f', apexTriggerPath);
+    shell.rm('-f', apexTriggerMetaPath);
+    assert.noFile([apexTriggerPath, apexTriggerMetaPath]);
+    showInputBoxStub.returns('TestApexTrigger');
     quickPickStub.returns(outputPath);
 
     // act
-    await forceVisualforcePageCreate();
+    await apexGenerateTrigger();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
-    assert.file([vfPagePath, vfPageMetaPath]);
+    assert.file([apexTriggerPath, apexTriggerMetaPath]);
     assert.fileContent(
-      vfPagePath,
-      `<apex:page>
-<!-- Begin Default Content REMOVE THIS -->
-<h1>Congratulations</h1>
-This is your new Page
-<!-- End Default Content REMOVE THIS -->
-</apex:page>`
-    );
-    assert.fileContent(
-      vfPageMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<ApexPage xmlns="http://soap.sforce.com/2006/04/metadata"> \n    <apiVersion>${defaultApiVersion}</apiVersion>
-    <label>testVFPage</label>
-</ApexPage>`
-    );
-    sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, vfPagePath);
+      apexTriggerPath,
+      `trigger TestApexTrigger on SOBJECT (before insert) {
 
-    // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+}`
+    );
+    assert.fileContent(
+      apexTriggerMetaPath,
+      `<?xml version='1.0' encoding='UTF-8'?>
+<ApexTrigger xmlns="http://soap.sforce.com/2006/04/metadata">
+  <apiVersion>${defaultApiVersion}</apiVersion>
+  <status>Active</status>
+</ApexTrigger>`
     );
   });
 });

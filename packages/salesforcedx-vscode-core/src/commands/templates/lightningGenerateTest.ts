@@ -26,7 +26,7 @@ import { SelectLwcComponentDir } from '../util/parameterGatherers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import { LWC_TYPE } from './metadataTypeConstants';
 
-export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
+export class LightningGenerateTestExecutor extends BaseTemplateCommand {
   constructor() {
     super();
   }
@@ -34,8 +34,8 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     this.metadata = LWC_TYPE;
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
-      .withArg('force:lightning:lwc:test:create')
+      .withDescription(nls.localize('lightning_generate_test_text'))
+      .withArg('lightning:generate:test')
       .withFlag(
         '--filepath',
         path.join(
@@ -44,7 +44,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
           data.fileName + '.js'
         )
       )
-      .withLogName('force_lightning_web_component_test_create');
+      .withLogName('lightning_web_component_generate_test');
     return builder.build();
   }
 
@@ -55,14 +55,14 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
 
 const filePathGatherer = new SelectLwcComponentDir();
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
-export async function forceLightningLwcTestCreate() {
+export async function lightningGenerateTest() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       filePathGatherer
     ),
-    new ForceLightningLwcTestCreateExecutor(),
+    new LightningGenerateTestExecutor(),
     new OverwriteComponentPrompt()
   );
   await commandlet.run();

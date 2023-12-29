@@ -4,24 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TemplateService } from '@salesforce/templates';
+
 import * as path from 'path';
 import * as shell from 'shelljs';
-import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceInternalLightningInterfaceCreate,
-  forceLightningInterfaceCreate
-} from '../../../../src/commands/templates/forceLightningInterfaceCreate';
+  internalLightningGenerateApp,
+  lightningGenerateApp
+} from '../../../../src/commands/templates/lightningGenerateApp';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Lightning Interface Create', () => {
+describe('Lightning Generate App', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -54,106 +54,131 @@ describe('Force Lightning Interface Create', () => {
     openTextDocumentStub.restore();
   });
 
-  it('Should create Aura Interface', async () => {
+  it('Should generate Aura App', async () => {
     // arrange
     getInternalDevStub.returns(false);
-    const fileName = 'testInterface';
     const outputPath = 'force-app/main/default/aura';
-    const auraInterfacePath = path.join(
+    const auraAppPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      fileName,
-      'testInterface.intf'
+      'testApp',
+      'testApp.app'
     );
-    const auraInterfaceMetaPath = path.join(
+    const auraAppMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      fileName,
-      'testInterface.intf-meta.xml'
+      'testApp',
+      'testApp.app-meta.xml'
     );
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
     );
-    assert.noFile([auraInterfacePath, auraInterfaceMetaPath]);
-    showInputBoxStub.returns(fileName);
+    assert.noFile([auraAppPath, auraAppMetaPath]);
+    showInputBoxStub.returns('testApp');
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningInterfaceCreate();
+    await lightningGenerateApp();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
-    assert.file([auraInterfacePath, auraInterfaceMetaPath]);
+    const suffixarray = [
+      '.app',
+      '.app-meta.xml',
+      '.auradoc',
+      '.css',
+      'Controller.js',
+      'Helper.js',
+      'Renderer.js',
+      '.svg'
+    ];
+    for (const suffix of suffixarray) {
+      assert.file(
+        path.join(
+          workspaceUtils.getRootWorkspacePath(),
+          outputPath,
+          'testApp',
+          `testApp${suffix}`
+        )
+      );
+    }
     assert.fileContent(
-      auraInterfacePath,
-      `<aura:interface description="Interface template">
-  <aura:attribute name="example" type="String" default="" description="An example attribute."/>
-</aura:interface>`
+      auraAppPath,
+      '<aura:application>\n\n</aura:application>'
     );
     assert.fileContent(
-      auraInterfaceMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <description>A Lightning Interface Bundle</description>
-</AuraDefinitionBundle>`
+      auraAppMetaPath,
+      '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">'
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
+    sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
     );
   });
 
-  it('Should create internal Aura Interface', async () => {
+  it('Should generate internal Aura App', async () => {
     // arrange
     getInternalDevStub.returns(true);
-    const fileName = 'testInterface';
     const outputPath = 'force-app/main/default/aura';
-    const auraInterfacePath = path.join(
+    const auraAppPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      fileName,
-      'testInterface.intf'
+      'testApp',
+      'testApp.app'
     );
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
     );
-    assert.noFile([auraInterfacePath]);
-    showInputBoxStub.returns(fileName);
-    quickPickStub.returns(outputPath);
+    assert.noFile([auraAppPath]);
+    showInputBoxStub.returns('testApp');
 
     // act
     shell.mkdir(
       '-p',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
     );
-    await forceInternalLightningInterfaceCreate(
+    await internalLightningGenerateApp(
       vscode.Uri.file(
         path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
       )
     );
 
     // assert
-    assert.file([auraInterfacePath]);
+    const suffixarray = [
+      '.app',
+      '.auradoc',
+      '.css',
+      'Controller.js',
+      'Helper.js',
+      'Renderer.js',
+      '.svg'
+    ];
+    for (const suffix of suffixarray) {
+      assert.file(
+        path.join(
+          workspaceUtils.getRootWorkspacePath(),
+          outputPath,
+          'testApp',
+          `testApp${suffix}`
+        )
+      );
+    }
     assert.fileContent(
-      auraInterfacePath,
-      `<aura:interface description="Interface template">
-  <aura:attribute name="example" type="String" default="" description="An example attribute."/>
-</aura:interface>`
+      auraAppPath,
+      '<aura:application>\n\n</aura:application>'
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
+    sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
     );
   });
 });

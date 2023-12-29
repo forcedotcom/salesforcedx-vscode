@@ -7,16 +7,16 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import { ForceLightningLwcTestCreateExecutor } from '../../../../src/commands/templates';
+import { LightningGenerateTestExecutor } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
-describe('Force Lightning Web Component Test Create', () => {
+describe('Lightning Web Component Generate Test', () => {
   it('Should build the Lightning Web Component Test create command', async () => {
-    const lightningLWCTestCreate = new ForceLightningLwcTestCreateExecutor();
+    const lightningGenerateTest = new LightningGenerateTestExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'lwc');
     const fileName = 'testing';
-    const lwcCreateTestCommand = lightningLWCTestCreate.build({
+    const lwcCreateTestCommand = lightningGenerateTest.build({
       fileName,
       outputdir: path.join(outputDirPath, 'testing')
     });
@@ -29,15 +29,15 @@ describe('Force Lightning Web Component Test Create', () => {
 
     if (fullFilepath) {
       expect(lwcCreateTestCommand.toCommand()).to.equal(
-        `sfdx force:lightning:lwc:test:create --filepath ${fullFilepath}`
+        `sfdx lightning:generate:test --filepath ${fullFilepath}`
       );
       expect(lwcCreateTestCommand.description).to.equal(
-        nls.localize('force_lightning_lwc_test_create_text')
+        nls.localize('lightning_generate_test_text')
       );
-      expect(lightningLWCTestCreate.getDefaultDirectory()).to.equal('lwc');
-      expect(lightningLWCTestCreate.getFileExtension()).to.equal('.js');
+      expect(lightningGenerateTest.getDefaultDirectory()).to.equal('lwc');
+      expect(lightningGenerateTest.getFileExtension()).to.equal('.js');
       expect(
-        lightningLWCTestCreate
+        lightningGenerateTest
           .getSourcePathStrategy()
           .getPathToSource(path.join(outputDirPath, 'testing'), fileName, '.js')
       ).to.equal(

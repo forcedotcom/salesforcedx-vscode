@@ -15,29 +15,18 @@ import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   aliasList,
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
   checkSObjectsAndRefresh,
   configList,
   configSet,
   dataQuery,
   debuggerStop,
   deleteSource,
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexTriggerCreate,
-  forceApexUnitClassCreate,
   forceAuthAccessToken,
   forceCreateManifest,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
-  forceLightningLwcTestCreate,
   forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
@@ -56,9 +45,18 @@ import {
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
   forceTaskStop,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate,
   initSObjectDefinitions,
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  lightningGenerateTest,
   orgDisplay,
   orgList,
   orgLoginWeb,
@@ -71,7 +69,9 @@ import {
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
-  viewRemoteChanges
+  viewRemoteChanges,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { isvDebugBootstrap } from './commands/isvdebugging';
@@ -228,55 +228,55 @@ function registerCommands(
     'sfdx.force.task.stop',
     forceTaskStop
   );
-  const forceApexClassCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.class.create',
-    forceApexClassCreate
+  const apexGenerateClassCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.class',
+    apexGenerateClass
   );
-  const forceApexClassCreateUnitCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.class.create.unit',
-    forceApexUnitClassCreate
+  const apexGenerateUnitTestClassCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.unit.test.class',
+    apexGenerateUnitTestClass
   );
-  const forceAnalyticsTemplateCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.analytics.template.create',
-    forceAnalyticsTemplateCreate
+  const analyticsGenerateTemplateCmd = vscode.commands.registerCommand(
+    'sfdx.analytics.generate.template',
+    analyticsGenerateTemplate
   );
-  const forceVisualforceComponentCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.visualforce.component.create',
-    forceVisualforceComponentCreate
+  const visualforceGenerateComponentCmd = vscode.commands.registerCommand(
+    'sfdx.visualforce.generate.component',
+    visualforceGenerateComponent
   );
-  const forceVisualforcePageCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.visualforce.page.create',
-    forceVisualforcePageCreate
-  );
-
-  const forceLightningAppCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.app.create',
-    forceLightningAppCreate
+  const visualforceGeneratePageCmd = vscode.commands.registerCommand(
+    'sfdx.visualforce.generate.page',
+    visualforceGeneratePage
   );
 
-  const forceLightningComponentCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.component.create',
-    forceLightningComponentCreate
+  const lightningGenerateAppCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.app',
+    lightningGenerateApp
   );
 
-  const forceLightningEventCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.event.create',
-    forceLightningEventCreate
+  const lightningGenerateAuraComponentCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.aura.component',
+    lightningGenerateAuraComponent
   );
 
-  const forceLightningInterfaceCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.interface.create',
-    forceLightningInterfaceCreate
+  const lightningGenerateEventCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.event',
+    lightningGenerateEvent
   );
 
-  const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.create',
-    forceLightningLwcCreate
+  const lightningGenerateInterfaceCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.interface',
+    lightningGenerateInterface
   );
 
-  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.create',
-    forceLightningLwcTestCreate
+  const lightningGenerateLwcCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.lwc',
+    lightningGenerateLwc
+  );
+
+  const lightningGenerateTestCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.test',
+    lightningGenerateTest
   );
 
   const debuggerStopCmd = vscode.commands.registerCommand(
@@ -335,9 +335,9 @@ function registerCommands(
     forceProjectWithManifestCreate
   );
 
-  const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.trigger.create',
-    forceApexTriggerCreate
+  const apexGenerateTriggerCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.trigger',
+    apexGenerateTrigger
   );
 
   const startApexDebugLoggingCmd = vscode.commands.registerCommand(
@@ -411,17 +411,17 @@ function registerCommands(
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceTaskStopCmd,
-    forceApexClassCreateCmd,
-    forceApexClassCreateUnitCmd,
-    forceAnalyticsTemplateCreateCmd,
-    forceVisualforceComponentCreateCmd,
-    forceVisualforcePageCreateCmd,
-    forceLightningAppCreateCmd,
-    forceLightningComponentCreateCmd,
-    forceLightningEventCreateCmd,
-    forceLightningInterfaceCreateCmd,
-    forceLightningLwcCreateCmd,
-    forceLightningLwcTestCreateCmd,
+    apexGenerateClassCmd,
+    apexGenerateUnitTestClassCmd,
+    analyticsGenerateTemplateCmd,
+    visualforceGenerateComponentCmd,
+    visualforceGeneratePageCmd,
+    lightningGenerateAppCmd,
+    lightningGenerateAuraComponentCmd,
+    lightningGenerateEventCmd,
+    lightningGenerateInterfaceCmd,
+    lightningGenerateLwcCmd,
+    lightningGenerateTestCmd,
     debuggerStopCmd,
     configListCmd,
     forceAliasListCmd,
@@ -430,7 +430,7 @@ function registerCommands(
     forceProjectCreateCmd,
     forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
-    forceApexTriggerCreateCmd,
+    apexGenerateTriggerCmd,
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
@@ -448,39 +448,38 @@ function registerInternalDevCommands(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
-  const forceInternalLightningAppCreateCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.app.create',
-    forceInternalLightningAppCreate
+  const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.app',
+    internalLightningGenerateApp
   );
 
-  const forceInternalLightningComponentCreateCmd =
+  const internalLightningGenerateAuraComponentCmd =
     vscode.commands.registerCommand(
-      'sfdx.internal.lightning.component.create',
-      forceInternalLightningComponentCreate
+      'sfdx.internal.lightning.generate.aura.component',
+      internalLightningGenerateAuraComponent
     );
 
-  const forceInternalLightningEventCreateCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.event.create',
-    forceInternalLightningEventCreate
+  const internalLightningGenerateEventCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.event',
+    internalLightningGenerateEvent
   );
 
-  const forceInternalLightningInterfaceCreateCmd =
-    vscode.commands.registerCommand(
-      'sfdx.internal.lightning.interface.create',
-      forceInternalLightningInterfaceCreate
-    );
+  const internalLightningGenerateInterfaceCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.interface',
+    internalLightningGenerateInterface
+  );
 
-  const forceInternalLightningLwcCreateCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.lwc.create',
-    forceInternalLightningLwcCreate
+  const internalLightningGenerateLwcCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.lwc',
+    internalLightningGenerateLwc
   );
 
   return vscode.Disposable.from(
-    forceInternalLightningComponentCreateCmd,
-    forceInternalLightningLwcCreateCmd,
-    forceInternalLightningAppCreateCmd,
-    forceInternalLightningEventCreateCmd,
-    forceInternalLightningInterfaceCreateCmd
+    internalLightningGenerateAuraComponentCmd,
+    internalLightningGenerateLwcCmd,
+    internalLightningGenerateAppCmd,
+    internalLightningGenerateEventCmd,
+    internalLightningGenerateInterfaceCmd
   );
 }
 

@@ -34,6 +34,8 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export {
   DebuggerSessionDetachExecutor,
@@ -48,8 +50,6 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ConfigList, configList } from './configList';
-export { ConfigSetExecutor, configSet } from './configSet';
 export { forceCreateManifest } from './forceCreateManifest';
 export {
   ForceDescribeMetadataExecutor,
@@ -144,23 +144,23 @@ export {
   turnOffLogging
 } from './stopApexDebugLogging';
 export {
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexUnitClassCreate,
-  forceApexTriggerCreate,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
-  forceLightningLwcTestCreate,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  lightningGenerateTest,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './templates';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

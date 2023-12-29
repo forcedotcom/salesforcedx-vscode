@@ -5,16 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TemplateType } from '@salesforce/templates';
-import { CREATE_UNIT_NAME_KEY, LibraryForceApexUnitClassCreateExecutor, TELEMETRY_NAME } from '../../../../../src/commands/templates/executors/LibraryForceApexUnitClassCreateExecutor';
+import {
+  CREATE_UNIT_NAME_KEY,
+  LibraryApexGenerateUnitTestClassExecutor,
+  TELEMETRY_NAME
+} from '../../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from '../../../../../src/commands/templates/metadataTypeConstants';
 import { nls } from '../../../../../src/messages';
 
-describe('LibraryForceApexUnitClassCreateExecutor Unit Tests.', () => {
-
-  let executor: LibraryForceApexUnitClassCreateExecutor;
+describe('LibraryApexGenerateUnitTestClassExecutor Unit Tests.', () => {
+  let executor: LibraryApexGenerateUnitTestClassExecutor;
 
   beforeEach(() => {
-    executor = new LibraryForceApexUnitClassCreateExecutor();
+    executor = new LibraryApexGenerateUnitTestClassExecutor();
     jest.spyOn(nls, 'localize').mockReturnValue(CREATE_UNIT_NAME_KEY);
   });
   it('Should have correct defaults properties.', () => {

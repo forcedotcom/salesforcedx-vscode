@@ -13,15 +13,15 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceInternalLightningLwcCreate,
-  forceLightningLwcCreate
+  internalLightningGenerateLwc,
+  lightningGenerateLwc
 } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Lightning Web Component Create', () => {
+describe('Generate Lightning Web Component', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -54,7 +54,7 @@ describe('Force Lightning Web Component Create', () => {
     openTextDocumentStub.restore();
   });
 
-  it('Should create LWC Component', async () => {
+  it('Should generate LWC', async () => {
     // arrange
     getInternalDevStub.returns(false);
     const fileName = 'testLwc';
@@ -86,7 +86,7 @@ describe('Force Lightning Web Component Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningLwcCreate();
+    await lightningGenerateLwc();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
@@ -116,7 +116,7 @@ export default class TestLwc extends LightningElement {}`
     );
   });
 
-  it('Should create internal LWC Component', async () => {
+  it('Should generate internal LWC', async () => {
     // arrange
     getInternalDevStub.returns(true);
     const fileName = 'testLwc';
@@ -146,7 +146,7 @@ export default class TestLwc extends LightningElement {}`
       '-p',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
     );
-    await forceInternalLightningLwcCreate(
+    await internalLightningGenerateLwc(
       vscode.Uri.file(
         path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
       )
