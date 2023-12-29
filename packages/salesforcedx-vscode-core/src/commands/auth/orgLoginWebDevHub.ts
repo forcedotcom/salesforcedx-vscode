@@ -108,7 +108,7 @@ export interface AuthDevHubParams {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();
 
-export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
+export const createAuthDevHubExecutor = (): SfdxCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebDevHubContainerExecutor();
@@ -117,13 +117,13 @@ export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
     default:
       return new OrgLoginWebDevHubExecutor();
   }
-}
+};
 
-export async function orgLoginWebDevHub() {
+export const orgLoginWebDevHub = async (): Promise<void> => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     createAuthDevHubExecutor()
   );
   await commandlet.run();
-}
+};

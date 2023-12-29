@@ -85,11 +85,11 @@ export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function configSet(usernameOrAlias: string) {
+export const configSet = async (usernameOrAlias: string): Promise<void> => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ConfigSetExecutor(usernameOrAlias)
   );
   await commandlet.run();
-}
+};

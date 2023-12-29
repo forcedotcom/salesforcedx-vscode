@@ -197,11 +197,11 @@ const parameterGatherer = new CompositeParametersGatherer(
   new AliasGatherer()
 );
 
-export async function forceOrgCreate() {
+export const forceOrgCreate = async (): Promise<void> => {
   const commandlet = new SfdxCommandlet(
     preconditionChecker,
     parameterGatherer,
     new ForceOrgCreateExecutor()
   );
   await commandlet.run();
-}
+};

@@ -29,7 +29,7 @@ let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;
 let outputDirGatherer: ParametersGatherer<any>;
 let metadataTypeGatherer: ParametersGatherer<any>;
-function getGatherers() {
+const getGatherers = () => {
   if (!initialized) {
     initialized = true;
     fileNameGatherer = new SelectFileName(APEX_TRIGGER_NAME_MAX_LENGTH);
@@ -41,9 +41,9 @@ function getGatherers() {
     outputDirGatherer,
     metadataTypeGatherer
   };
-}
+};
 
-export async function forceApexTriggerCreate() {
+export const forceApexTriggerCreate = async (): Promise<void> => {
   const gatherers = getGatherers();
 
   const createTemplateExecutor = new LibraryForceApexTriggerCreateExecutor();
@@ -58,4 +58,4 @@ export async function forceApexTriggerCreate() {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
-}
+};

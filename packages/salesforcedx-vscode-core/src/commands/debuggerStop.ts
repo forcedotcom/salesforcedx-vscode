@@ -103,7 +103,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     });
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -124,22 +124,21 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
           await sessionDetachCommandlet.run();
         }
       } else {
-        notificationService.showInformationMessage(
+        void notificationService.showInformationMessage(
           nls.localize('debugger_stop_none_found_text')
         );
       }
-      // tslint:disable-next-line:no-empty
     } catch (e) {}
 
     return Promise.resolve();
   }
 }
 
-export async function debuggerStop() {
+export const debuggerStop = async (): Promise<void> => {
   const sessionStopCommandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
     new StopActiveDebuggerSessionExecutor()
   );
   await sessionStopCommandlet.run();
-}
+};

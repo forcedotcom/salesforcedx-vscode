@@ -17,7 +17,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 
-export async function forceOpenDocumentation() {
+export const forceOpenDocumentation = async (): Promise<void> => {
   let docUrl = '';
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -45,4 +45,4 @@ export async function forceOpenDocumentation() {
   }
 
   await vscode.env.openExternal(vscode.Uri.parse(docUrl));
-}
+};

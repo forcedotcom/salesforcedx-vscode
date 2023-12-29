@@ -56,7 +56,7 @@ const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
-export async function forceLightningLwcCreate() {
+export const forceLightningLwcCreate = async () => {
   const createTemplateExecutor = new LibraryForceLightningLwcCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -69,9 +69,9 @@ export async function forceLightningLwcCreate() {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
-}
+};
 
-export async function forceInternalLightningLwcCreate(sourceUri: Uri) {
+export const forceInternalLightningLwcCreate = async (sourceUri: Uri) => {
   const createTemplateExecutor = new LibraryForceLightningLwcCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
@@ -82,4 +82,4 @@ export async function forceInternalLightningLwcCreate(sourceUri: Uri) {
     createTemplateExecutor
   );
   await commandlet.run();
-}
+};

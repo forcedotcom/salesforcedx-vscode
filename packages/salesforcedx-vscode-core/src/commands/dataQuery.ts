@@ -106,7 +106,7 @@ export enum ApiType {
 const workspaceChecker = new SfdxWorkspaceChecker();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function dataQuery(explorerDir?: any) {
+export const dataQuery = async (explorerDir?: any): Promise<void> => {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
@@ -114,4 +114,4 @@ export async function dataQuery(explorerDir?: any) {
     new DataQueryExecutor()
   );
   await commandlet.run();
-}
+};

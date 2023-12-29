@@ -54,7 +54,7 @@ export class StopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export async function turnOffLogging(): Promise<void> {
+export const turnOffLogging = async (): Promise<void> => {
   if (developerLogTraceFlag.isActive()) {
     const execution = new CliCommandExecutor(deleteTraceFlag(), {
       cwd: workspaceUtils.getRootWorkspacePath()
@@ -69,9 +69,9 @@ export async function turnOffLogging(): Promise<void> {
       return Promise.reject('Restoring the debug levels failed.');
     }
   }
-}
+};
 
-function deleteTraceFlag(): Command {
+const deleteTraceFlag = (): Command => {
   const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
   return new SfdxCommandBuilder()
     .withDescription(nls.localize('stop_apex_debug_logging'))
@@ -81,7 +81,7 @@ function deleteTraceFlag(): Command {
     .withArg('--use-tooling-api')
     .withLogName('stop_apex_debug_logging')
     .build();
-}
+};
 class ActiveLogging implements ParametersGatherer<{}> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
     if (developerLogTraceFlag.isActive()) {
@@ -99,6 +99,6 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export async function stopApexDebugLogging() {
+export const stopApexDebugLogging =  async (): Promise<void> => {
   await commandlet.run();
-}
+};

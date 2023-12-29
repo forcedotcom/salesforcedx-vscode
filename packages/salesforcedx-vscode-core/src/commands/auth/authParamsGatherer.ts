@@ -31,7 +31,7 @@ export interface AccessTokenParams {
   accessToken: string;
 }
 
-async function inputInstanceUrl() {
+const inputInstanceUrl = async (): Promise<string | undefined> => {
   const instanceUrlInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
     placeHolder: INSTANCE_URL_PLACEHOLDER,
@@ -40,9 +40,9 @@ async function inputInstanceUrl() {
   };
   const instanceUrl = await vscode.window.showInputBox(instanceUrlInputOptions);
   return instanceUrl;
-}
+};
 
-async function inputAlias() {
+const inputAlias = async (): Promise<string | undefined> => {
   const aliasInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
@@ -50,9 +50,9 @@ async function inputAlias() {
   } as vscode.InputBoxOptions;
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
-}
+};
 
-async function inputAccessToken() {
+const inputAccessToken = async (): Promise<string | undefined> => {
   const accessToken = await vscode.window.showInputBox({
     value: '',
     prompt: nls.localize('parameter_gatherer_enter_session_id'),
@@ -70,7 +70,7 @@ async function inputAccessToken() {
     }
   });
   return accessToken;
-}
+};
 
 export class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;

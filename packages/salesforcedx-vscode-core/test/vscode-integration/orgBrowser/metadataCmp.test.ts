@@ -96,9 +96,9 @@ describe('get metadata components path', () => {
     metadataFolderStub.restore();
   });
 
-  function expectedPath(fileName: string) {
+  const expectedPath = (fileName: string) => {
     return path.join(metadataDirectoryPath, fileName + '.json');
-  }
+  };
 
   it('should return the path for a given username and metadata type', async () => {
     const metadataType = 'ApexClass';

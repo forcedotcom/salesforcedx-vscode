@@ -19,7 +19,7 @@ import {
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 
-export function isCLIInstalled(): boolean {
+export const isCLIInstalled = (): boolean => {
   let isInstalled = false;
   try {
     if (which('sfdx')) {
@@ -29,32 +29,32 @@ export function isCLIInstalled(): boolean {
     console.error('An error happened while looking for sfdx cli', e);
   }
   return isInstalled;
-}
+};
 
-export function showCLINotInstalledMessage() {
+export const showCLINotInstalledMessage = () => {
   const showMessage = nls.localize(
     'sfdx_cli_not_found',
     SFDX_CLI_DOWNLOAD_LINK,
     SFDX_CLI_DOWNLOAD_LINK
   );
-  window.showWarningMessage(showMessage);
-}
+  void window.showWarningMessage(showMessage);
+};
 
-export function disableCLITelemetry() {
+export const disableCLITelemetry = () => {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_SF_DISABLE_TELEMETRY,
     'true'
   );
-}
+};
 
-export async function isCLITelemetryAllowed() {
+export const isCLITelemetryAllowed = async () => {
   const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
   return !isTelemetryDisabled;
-}
+};
 
-export function setNodeExtraCaCerts() {
+export const setNodeExtraCaCerts = () => {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_NODE_EXTRA_CA_CERTS,
     sfdxCoreSettings.getNodeExtraCaCerts()
   );
-}
+};

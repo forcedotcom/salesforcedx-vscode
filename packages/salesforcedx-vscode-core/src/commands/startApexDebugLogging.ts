@@ -117,8 +117,9 @@ export class StartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export async function getUserId(projectPath: string): Promise<string> {
-  const defaultUsernameOrAlias = await workspaceContextUtils.getDefaultUsernameOrAlias();
+export const getUserId = async (projectPath: string): Promise<string> => {
+  const defaultUsernameOrAlias =
+    await workspaceContextUtils.getDefaultUsernameOrAlias();
   if (!defaultUsernameOrAlias) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendException('replay_debugger_undefined_username', err);
@@ -144,7 +145,7 @@ export async function getUserId(projectPath: string): Promise<string> {
   } catch (e) {
     return Promise.reject(result);
   }
-}
+};
 
 export class QueryUser extends SfdxCommandletExecutor<{}> {
   private username: string;
@@ -266,7 +267,7 @@ export class QueryTraceFlag extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export async function startApexDebugLogging() {
+export const startApexDebugLogging = async (): Promise<void> => {
   const executor = new StartApexDebugLoggingExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
@@ -274,4 +275,4 @@ export async function startApexDebugLogging() {
     executor
   );
   await commandlet.run();
-}
+};

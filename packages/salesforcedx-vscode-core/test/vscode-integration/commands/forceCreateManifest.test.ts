@@ -246,6 +246,6 @@ describe('Force Create Manifest', () => {
 
 });
 
-function generateRandomSuffix() {
+const generateRandomSuffix = () => {
   return (Date.now() + Math.round(Math.random() * 1000)).toString();
-}
+};

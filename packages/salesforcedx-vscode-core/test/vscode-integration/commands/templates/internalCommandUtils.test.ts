@@ -60,7 +60,7 @@ describe('Internal Command Utilities', () => {
       existsSyncStub.returns(true);
       const testDir = path.join('path', 'to', 'outside', 'dir');
       lstatSyncStub.returns({
-        isDirectory() {
+        isDirectory: () => {
           return true;
         }
       });
@@ -79,7 +79,7 @@ describe('Internal Command Utilities', () => {
       existsSyncStub.returns(true);
       const testDir = Uri.parse('file:///path/to/outside/dir');
       lstatSyncStub.returns({
-        isDirectory() {
+        isDirectory: () => {
           return false;
         }
       });
@@ -93,7 +93,7 @@ describe('Internal Command Utilities', () => {
       existsSyncStub.returns(false);
       const testDir = Uri.parse('file:///path/to/outside/dir');
       lstatSyncStub.returns({
-        isDirectory() {
+        isDirectory: () => {
           return false;
         }
       });

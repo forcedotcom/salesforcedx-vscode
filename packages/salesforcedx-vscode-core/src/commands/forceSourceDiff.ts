@@ -21,7 +21,7 @@ import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceSourceDiff(sourceUri?: vscode.Uri) {
+export const forceSourceDiff = async (sourceUri?: vscode.Uri): Promise<void> => {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -53,9 +53,9 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
     executor
   );
   await commandlet.run();
-}
+};
 
-export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
+export const forceSourceFolderDiff = async (explorerPath: vscode.Uri): Promise<void> => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -87,12 +87,12 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
     )
   );
   await commandlet.run();
-}
+};
 
-export async function handleCacheResults(
+export const handleCacheResults = async (
   username: string,
   cache?: MetadataCacheResult
-): Promise<void> {
+): Promise<void> => {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(
@@ -108,4 +108,4 @@ export async function handleCacheResults(
     notificationService.showErrorMessage(message);
     throw new Error(message);
   }
-}
+};

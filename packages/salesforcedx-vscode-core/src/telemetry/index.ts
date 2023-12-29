@@ -11,7 +11,7 @@ import { nls } from '../messages';
 
 export const telemetryService = TelemetryService.getInstance();
 
-export function showTelemetryMessage(extensionContext: ExtensionContext) {
+export const showTelemetryMessage = (extensionContext: ExtensionContext) => {
   const messageAlreadyPrompted = extensionContext.globalState.get(
     TELEMETRY_GLOBAL_VALUE
   );
@@ -35,4 +35,4 @@ export function showTelemetryMessage(extensionContext: ExtensionContext) {
       });
     extensionContext.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
-}
+};

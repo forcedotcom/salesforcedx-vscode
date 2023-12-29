@@ -47,9 +47,9 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export async function forceDescribeMetadata(
+export const forceDescribeMetadata = async (
   outputFolder: string
-): Promise<string> {
+): Promise<string> => {
   const forceDescribeMetadataExecutor = new ForceDescribeMetadataExecutor();
   const execution = forceDescribeMetadataExecutor.execute();
   if (!fs.existsSync(outputFolder)) {
@@ -61,4 +61,4 @@ export async function forceDescribeMetadata(
   const result = await cmdOutput.getCmdResult(execution);
   fs.writeFileSync(filePath, result);
   return result;
-}
+};

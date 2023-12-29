@@ -51,7 +51,7 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
   }
 }
 
-export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
+export const forceSourceDeployManifest =  async (manifestUri: vscode.Uri): Promise<void> => {
   if (!manifestUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {
@@ -62,7 +62,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
         'force_source_deploy_with_manifest',
         errorMessage
       );
-      notificationService.showErrorMessage(errorMessage);
+      void notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -82,4 +82,4 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     );
     await commandlet.run();
   }
-}
+};

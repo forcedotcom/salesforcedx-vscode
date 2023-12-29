@@ -32,7 +32,7 @@ export class OrgListExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function orgList() {
+export const orgList =  async (): Promise<void> => {
   const parameterGatherer = new PromptConfirmGatherer(
     nls.localize('parameter_gatherer_placeholder_org_list_clean')
   );
@@ -43,4 +43,4 @@ export async function orgList() {
     executor
   );
   await commandlet.run();
-}
+};

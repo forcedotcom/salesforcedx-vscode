@@ -181,7 +181,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceRefreshSObjects(source?: SObjectRefreshSource) {
+export const forceRefreshSObjects = async (source?: SObjectRefreshSource): Promise<void> => {
   const parameterGatherer = new SObjectRefreshGatherer(source);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
@@ -189,11 +189,11 @@ export async function forceRefreshSObjects(source?: SObjectRefreshSource) {
     new ForceRefreshSObjectsExecutor()
   );
   await commandlet.run();
-}
+};
 
-export async function verifyUsernameAndInitSObjectDefinitions(
+export const verifyUsernameAndInitSObjectDefinitions = async (
   projectPath: string
-) {
+): Promise<void> => {
   const hasDefaultUsernameSet =
     (await WorkspaceContext.getInstance().getConnection()).getUsername() !==
     undefined;
@@ -202,9 +202,9 @@ export async function verifyUsernameAndInitSObjectDefinitions(
       telemetryService.sendException(e.name, e.message)
     );
   }
-}
+};
 
-export async function initSObjectDefinitions(projectPath: string) {
+export const initSObjectDefinitions = async (projectPath: string) => {
   if (projectPath) {
     const sobjectFolder = getSObjectsDirectory();
     if (!fs.existsSync(sobjectFolder)) {
@@ -213,26 +213,26 @@ export async function initSObjectDefinitions(projectPath: string) {
         { type: SObjectRefreshSource.Startup },
         undefined
       );
-      forceRefreshSObjects(SObjectRefreshSource.Startup).catch(e => {
+      await forceRefreshSObjects(SObjectRefreshSource.Startup).catch(e => {
         throw e;
       });
     }
   }
-}
+};
 
-function getSObjectsDirectory() {
+const getSObjectsDirectory = (): string => {
   return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
-}
+};
 
-function getStandardSObjectsDirectory() {
+const getStandardSObjectsDirectory = () => {
   return path.join(
     projectPaths.toolsFolder(),
     SOBJECTS_DIR,
     STANDARDOBJECTS_DIR
   );
-}
+};
 
-export async function checkSObjectsAndRefresh(projectPath: string) {
+export const checkSObjectsAndRefresh = async (projectPath: string): Promise<void> => {
   if (projectPath && !fs.existsSync(getStandardSObjectsDirectory())) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',
@@ -246,4 +246,4 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
       throw e;
     }
   }
-}
+};

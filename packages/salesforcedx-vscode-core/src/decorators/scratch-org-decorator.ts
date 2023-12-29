@@ -12,11 +12,11 @@ import { nls } from '../messages';
 
 let statusBarItem: StatusBarItem | undefined;
 
-export async function showOrg() {
+export const showOrg = async () => {
   await displayBrowserIcon();
-}
+};
 
-async function displayBrowserIcon() {
+const displayBrowserIcon = async () => {
   const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
   if (defaultUsernameOrAlias) {
     if (!statusBarItem) {
@@ -30,4 +30,4 @@ async function displayBrowserIcon() {
     statusBarItem.dispose();
     statusBarItem = undefined;
   }
-}
+};

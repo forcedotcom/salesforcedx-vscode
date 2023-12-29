@@ -63,7 +63,7 @@ const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
-export async function forceLightningComponentCreate() {
+export const forceLightningComponentCreate = async (): Promise<void> => {
   const createTemplateExecutor = new LibraryForceLightningComponentCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -76,9 +76,9 @@ export async function forceLightningComponentCreate() {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
-}
+};
 
-export async function forceInternalLightningComponentCreate(sourceUri: Uri) {
+export const forceInternalLightningComponentCreate = async (sourceUri: Uri): Promise<void> => {
   const createTemplateExecutor = new LibraryForceLightningComponentCreateExecutor();
 
   const commandlet = new SfdxCommandlet(
@@ -90,4 +90,4 @@ export async function forceInternalLightningComponentCreate(sourceUri: Uri) {
     createTemplateExecutor
   );
   await commandlet.run();
-}
+};

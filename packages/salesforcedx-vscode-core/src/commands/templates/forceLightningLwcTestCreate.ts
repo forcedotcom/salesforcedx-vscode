@@ -55,7 +55,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
 
 const filePathGatherer = new SelectLwcComponentDir();
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
-export async function forceLightningLwcTestCreate() {
+export const forceLightningLwcTestCreate = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -66,4 +66,4 @@ export async function forceLightningLwcTestCreate() {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
-}
+};

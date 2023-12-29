@@ -99,7 +99,7 @@ export class ConfirmationAndSourcePathGatherer
   }
 }
 
-export async function deleteSource(sourceUri: vscode.Uri) {
+export const deleteSource = async (sourceUri: vscode.Uri): Promise<void> => {
   let isSourceTracked: boolean = false;
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   if (orgType === OrgType.SourceTracked) {
@@ -127,4 +127,4 @@ export async function deleteSource(sourceUri: vscode.Uri) {
     new DeleteSourceExecutor(isSourceTracked)
   );
   await commandlet.run();
-}
+};

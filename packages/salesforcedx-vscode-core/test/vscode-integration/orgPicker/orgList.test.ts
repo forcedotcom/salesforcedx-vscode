@@ -94,9 +94,9 @@ describe('orgList Tests', () => {
         );
       });
 
-      function getFakeOrgAuthorization(
+      const getFakeOrgAuthorization = (
         orgAuth?: Partial<OrgAuthorization>
-      ): OrgAuthorization {
+      ): OrgAuthorization => {
         const fakeOrgAuth: OrgAuthorization = {
           orgId: orgAuth?.orgId ?? '000',
           username: orgAuth?.username ?? 'test-username1@example.com',
@@ -112,7 +112,7 @@ describe('orgList Tests', () => {
           isExpired: orgAuth?.isExpired ?? false
         };
         return fakeOrgAuth;
-      }
+      };
 
       const dummyOrgAuth1 = getFakeOrgAuthorization({
         orgId: '000',

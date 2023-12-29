@@ -61,12 +61,12 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   }
 }
 
-export async function forceListMetadata(
+export const forceListMetadata = async (
   metadataType: string,
   defaultUsernameOrAlias: string,
   outputPath: string,
   folder?: string
-): Promise<string> {
+): Promise<string> => {
   const forceListMetadataExecutor = new ForceListMetadataExecutor(
     metadataType,
     defaultUsernameOrAlias,
@@ -77,4 +77,4 @@ export async function forceListMetadata(
   const result = await cmdOutput.getCmdResult(execution);
   fs.writeFileSync(outputPath, result);
   return result;
-}
+};

@@ -46,14 +46,14 @@ describe('ForceRefreshSObjectsExecutor', () => {
     expect(channelServiceSpy).not.toHaveBeenCalled();
   });
 
-  async function doExecute(
+  const doExecute = async (
     source: SObjectRefreshSource,
     category?: SObjectCategory
-  ) {
+  ) => {
     const executor = new ForceRefreshSObjectsExecutor();
     await executor.execute({
       type: 'CONTINUE',
       data: { category: category || SObjectCategory.ALL, source }
     });
-  }
+  };
 });

@@ -117,20 +117,20 @@ export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export function getExecutor(): SfdxCommandletExecutor<{}> {
+export const getExecutor = (): SfdxCommandletExecutor<{}> => {
   return isSFContainerMode()
     ? new OrgOpenContainerExecutor()
     : new OrgOpenExecutor();
-}
+};
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function orgOpen() {
+export const orgOpen =  async (): Promise<void> => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     getExecutor()
   );
   await commandlet.run();
-}
+};

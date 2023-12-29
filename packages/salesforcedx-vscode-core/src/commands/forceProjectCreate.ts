@@ -221,7 +221,7 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 const pathExistsChecker = new PathExistsChecker();
 
-export async function forceSfdxProjectCreate() {
+export const forceSfdxProjectCreate = async (): Promise<void> => {
   const createTemplateExecutor = new LibraryForceProjectCreateExecutor();
   const sfdxProjectCreateCommandlet = new SfdxCommandlet(
     workspaceChecker,
@@ -230,9 +230,9 @@ export async function forceSfdxProjectCreate() {
     pathExistsChecker
   );
   await sfdxProjectCreateCommandlet.run();
-}
+};
 
-export async function forceProjectWithManifestCreate() {
+export const forceProjectWithManifestCreate = async (): Promise<void> => {
   const createTemplateExecutor = new LibraryForceProjectCreateExecutor({
     isProjectWithManifest: true
   });
@@ -243,4 +243,4 @@ export async function forceProjectWithManifestCreate() {
     pathExistsChecker
   );
   await projectWithManifestCreateCommandlet.run();
-}
+};

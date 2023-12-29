@@ -81,7 +81,7 @@ describe('Retrieve Metadata Describers', () => {
     });
   });
 
-  function generateComponents(count: number): LocalComponent[] {
+  const generateComponents = (count: number): LocalComponent[] => {
     const components = [];
     for (let i = 1; i <= count; i++) {
       for (let j = 1; j <= 2; j++) {
@@ -94,5 +94,5 @@ describe('Retrieve Metadata Describers', () => {
       }
     }
     return components;
-  }
+  };
 });

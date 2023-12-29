@@ -28,9 +28,7 @@ import {
   ANALYTICS_TEMPLATE_TYPE
 } from './metadataTypeConstants';
 
-export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemplateCommand<
-  TemplateAndDir
-> {
+export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
   public executionName = nls.localize('force_analytics_template_create_text');
   public telemetryName = 'force_analytics_template_create';
   public metadataTypeName = ANALYTICS_TEMPLATE_TYPE;
@@ -85,12 +83,13 @@ const parameterGatherer = new CompositeParametersGatherer(
   outputDirGatherer
 );
 
-export async function forceAnalyticsTemplateCreate() {
-  const createTemplateExecutor = new LibraryForceAnalyticsTemplateCreateExecutor();
+export const forceAnalyticsTemplateCreate = async () => {
+  const createTemplateExecutor =
+    new LibraryForceAnalyticsTemplateCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     parameterGatherer,
     createTemplateExecutor
   );
   await commandlet.run();
-}
+};

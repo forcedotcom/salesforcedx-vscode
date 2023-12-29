@@ -558,6 +558,6 @@ const commandlet = new SfdxCommandlet(
   pathExistsChecker
 );
 
-export async function isvDebugBootstrap() {
+export const isvDebugBootstrap = async (): Promise<void> => {
   await commandlet.run();
-}
+};

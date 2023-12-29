@@ -28,9 +28,7 @@ type forcePackageInstallOptions = {
   installationKey: string;
 };
 
-export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
-  PackageIdAndInstallationKey
-> {
+export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<PackageIdAndInstallationKey> {
   private readonly options: forcePackageInstallOptions;
 
   public constructor(options = { packageId: '', installationKey: '' }) {
@@ -83,7 +81,8 @@ export class SelectPackageID implements ParametersGatherer<PackageID> {
 }
 
 export class SelectInstallationKey
-  implements ParametersGatherer<InstallationKey> {
+  implements ParametersGatherer<InstallationKey>
+{
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
@@ -122,6 +121,6 @@ const sfdxPackageInstallCommandlet = new SfdxCommandlet(
   new ForcePackageInstallExecutor()
 );
 
-export async function forcePackageInstall() {
+export const forcePackageInstall = async (): Promise<void> => {
   await sfdxPackageInstallCommandlet.run();
-}
+};

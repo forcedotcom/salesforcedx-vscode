@@ -22,7 +22,7 @@ export enum OrgType {
  * because it has been the most consistently accurate solution here.
  * @returns OrgType (SourceTracked or NonSourceTracked) of the current default org
  */
-export async function getWorkspaceOrgType(): Promise<OrgType> {
+export const getWorkspaceOrgType = async (): Promise<OrgType> => {
   const workspaceContext = WorkspaceContext.getInstance();
   let connection;
   try {
@@ -37,36 +37,36 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
   const org = await Org.create({ connection });
   const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
-}
+};
 
-export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
+export const setWorkspaceOrgTypeWithOrgType = (orgType: OrgType) => {
   setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-}
+};
 
-export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
+export const setupWorkspaceOrgType = async (defaultUsernameOrAlias?: string) => {
   setHasDefaultUsername(!!defaultUsernameOrAlias);
   const orgType = await getWorkspaceOrgType();
   setWorkspaceOrgTypeWithOrgType(orgType);
-}
+};
 
-function setDefaultUsernameHasChangeTracking(val: boolean) {
-  vscode.commands.executeCommand(
+const setDefaultUsernameHasChangeTracking = (val: boolean) => {
+  void vscode.commands.executeCommand(
     'setContext',
     'sfdx:default_username_has_change_tracking',
     val
   );
-}
+};
 
-function setHasDefaultUsername(val: boolean) {
-  vscode.commands.executeCommand(
+const setHasDefaultUsername = (val: boolean) => {
+  void vscode.commands.executeCommand(
     'setContext',
     'sfdx:has_default_username',
     val
   );
-}
+};
 
-export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
+export const getDefaultUsernameOrAlias = async (): Promise<string | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {
     return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
   }
-}
+};

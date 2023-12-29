@@ -58,7 +58,7 @@ const metadataTypeGatherer = new MetadataTypeGatherer(
   VISUALFORCE_COMPONENT_TYPE
 );
 
-export async function forceVisualforceComponentCreate() {
+export const forceVisualforceComponentCreate = async () => {
   const createTemplateExecutor = new LibraryForceVisualForceComponentCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -71,4 +71,4 @@ export async function forceVisualforceComponentCreate() {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
-}
+};

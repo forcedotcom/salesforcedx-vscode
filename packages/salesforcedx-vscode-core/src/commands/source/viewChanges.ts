@@ -13,13 +13,13 @@ import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecut
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-function getCommandletFor(
+const getCommandletFor = (
   executor: SourceTrackingGetStatusExecutor
-): SfdxCommandlet<{}> {
+): SfdxCommandlet<{}> => {
   return new SfdxCommandlet(workspaceChecker, parameterGatherer, executor);
-}
+};
 
-export async function viewAllChanges() {
+export const viewAllChanges = async (): Promise<void> => {
   const executionName = 'force_source_status_text';
   const logName = 'force_source_status';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
@@ -28,9 +28,9 @@ export async function viewAllChanges() {
   });
   const commandlet = getCommandletFor(executor);
   await commandlet.run();
-}
+};
 
-export async function viewLocalChanges() {
+export const viewLocalChanges = async (): Promise<void> => {
   const executionName = 'force_source_status_local_text';
   const logName = 'force_source_status_local';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
@@ -39,9 +39,9 @@ export async function viewLocalChanges() {
   });
   const commandlet = getCommandletFor(executor);
   await commandlet.run();
-}
+};
 
-export async function viewRemoteChanges() {
+export const viewRemoteChanges = async (): Promise<void> => {
   const executionName = 'force_source_status_remote_text';
   const logName = 'force_source_status_remote';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
@@ -50,4 +50,4 @@ export async function viewRemoteChanges() {
   });
   const commandlet = getCommandletFor(executor);
   await commandlet.run();
-}
+};

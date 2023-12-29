@@ -66,11 +66,11 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AccessTokenParamsGatherer();
 
-export async function forceAuthAccessToken() {
+export const forceAuthAccessToken = async (): Promise<void> => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ForceAuthAccessTokenExecutor()
   );
   await commandlet.run();
-}
+};
