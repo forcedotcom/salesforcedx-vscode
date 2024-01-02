@@ -29,25 +29,13 @@ Currently the CodeGen2.5 model can pick up on the following context from your pr
 
 We’re listing some tips for prompt writing and also providing you with some examples that help you craft your prompts. An effective prompt consists of these four parts:
 
-1. **The Action**: The task you want the AI to accomplish.
+**Action**: The task you want the AI to accomplish. For example, "_Create an Apex batch class named "OpenPositionMatcher"_".
 
-For example:
-_Create an Apex batch class named "OpenPositionMatcher"_.
+**Context Details**: Information about the context you want the AI to use. This includes important context such as org metadata and awareness about the presence of custom objects and fields in your org. Run **SFDX:Refresh SObjects Definitions** to retrieve org metadata into your project. You can then add custom fields to your existing query. For example, "_Create an Apex batch class named "OpenPositionMatcher" that processes "Position\_\_c" records created within the past 15 days. The class should match these open positions with suitable candidates based on their skills._".
 
-2. **Context Details**: Information about the context you want the AI to use. This includes important context such as org metadata and awareness about the presence of custom objects and fields in your org. Run **SFDX:Refresh SObjects Definitions** to retrieve org metadata into your project. You can then add custom fields to your existing query.
+**Best Practices**: Details about best practices you want the AI to follow such as security and formatting best practices. For example, "_Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class aims to match these open positions with suitable candidates based on their skills. Order the results by candidate names in descending order. Make sure the generated code follows security best practices. Separate operators with a new line._".
 
-For example:
-_Create an Apex batch class named "OpenPositionMatcher" that processes "Position\_\_c" records created within the past 15 days. The class should match these open positions with suitable candidates based on their skills._
-
-3. **Best Practices**: Details about best practices you want the AI to follow. For example, security and formatting best practices and so on.
-
-For example:
-_Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class aims to match these open positions with suitable candidates based on their skills. Order the results by candidate names in descending order. Make sure the generated code follows security best practices. Separate operators with a new line._
-
-4. **Additional Context**: Any additional information that you want to provide.
-
-For example:
-_Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class should match these open positions with suitable candidates based on their skills." Order the results by candidate names in descending order. Make sure the generated code follows security best practices. Separate operators with a new line. The class is used in an LWC component._
+**Additional Context**: Any additional information that you want to provide. For example, "_Create an Apex batch class named "OpenPositionMatcher" that processes custom objects "Position\_\_c" records created within the past 15 days. The class should match these open positions with suitable candidates based on their skills." Order the results by candidate names in descending order. Make sure the generated code follows security best practices. Separate operators with a new line. The class is used in an LWC component._".
 
 The final prompt gives you a response that looks something like this:
 
