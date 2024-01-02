@@ -31,9 +31,9 @@ import {
  * Register all commands with the extension context
  * @param extensionContext extension context
  */
-export function registerCommands(
+export const registerCommands = (
   extensionContext: ExtensionContext
-): Disposable {
+): Disposable => {
   const forceLwcTestRunAllTestsCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.runAllTests',
     forceLwcTestRunAllTests
@@ -106,4 +106,4 @@ export function registerCommands(
   );
   extensionContext.subscriptions.push(disposables);
   return disposables;
-}
+};

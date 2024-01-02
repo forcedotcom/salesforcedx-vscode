@@ -13,7 +13,7 @@ import { telemetryService } from '../../telemetry';
  * Otherwise, return the first workspace folder if it exists.
  * @param testUri optional testUri
  */
-export function getTestWorkspaceFolder(testUri?: vscode.Uri) {
+export const getTestWorkspaceFolder = (testUri?: vscode.Uri) => {
   let workspaceFolder;
   if (testUri) {
     workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
@@ -33,4 +33,4 @@ export function getTestWorkspaceFolder(testUri?: vscode.Uri) {
       errorMessage
     );
   }
-}
+};
