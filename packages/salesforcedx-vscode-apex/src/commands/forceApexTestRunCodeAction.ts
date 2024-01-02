@@ -37,9 +37,9 @@ import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
-  protected tests: string[];
-  protected codeCoverage: boolean = false;
-  protected outputDir: string;
+  private tests: string[];
+  private codeCoverage: boolean = false;
+  private outputDir: string;
 
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
