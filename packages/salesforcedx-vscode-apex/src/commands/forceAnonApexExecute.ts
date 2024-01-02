@@ -36,13 +36,13 @@ interface ApexExecuteParameters {
 
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters> {
-  public async gather(): Promise<
+  public gather(): Promise<
     CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        return { type: 'CANCEL' };
+        return Promise.resolve({ type: 'CANCEL' });
       }
 
       const document = editor.document;
@@ -51,7 +51,7 @@ export class AnonApexGatherer
         document.isUntitled ||
         document.isDirty
       ) {
-        return {
+        return Promise.resolve({
           type: 'CONTINUE',
           data: {
             apexCode: !editor.selection.isEmpty
@@ -61,12 +61,12 @@ export class AnonApexGatherer
               ? new vscode.Range(editor.selection.start, editor.selection.end)
               : undefined
           }
-        };
+        });
       }
 
-      return { type: 'CONTINUE', data: { fileName: document.uri.fsPath } };
+      return Promise.resolve({ type: 'CONTINUE', data: { fileName: document.uri.fsPath } });
     }
-    return { type: 'CANCEL' };
+    return Promise.resolve({ type: 'CANCEL' });
   }
 }
 

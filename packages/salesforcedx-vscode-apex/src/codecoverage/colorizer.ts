@@ -6,10 +6,12 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import { join, sep } from 'path';
+import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { existsSync, readFileSync } from 'fs';
+import { join, extname, basename } from 'path';
 import { Range, TextDocument, TextEditor, TextLine, window } from 'vscode';
+import { channelService } from '../channels';
+import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import {
   coveredLinesDecorationType,
@@ -55,10 +57,10 @@ export type CoverageItem = {
 
 const getTestRunId = (): string => {
   const testRunIdFile = join(pathToApexTestResultsFolder, 'test-run-id.txt');
-  if (!fs.existsSync(testRunIdFile)) {
+  if (!existsSync(testRunIdFile)) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
-  return fs.readFileSync(testRunIdFile, 'utf8');
+  return readFileSync(testRunIdFile, 'utf8');
 };
 
 const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
@@ -68,12 +70,12 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
     `test-result-${testRunId}.json`
   );
 
-  if (!fs.existsSync(testResultFilePath)) {
+  if (!existsSync(testResultFilePath)) {
     throw new Error(
       nls.localize('colorizer_no_code_coverage_on_test_results', testRunId)
     );
   }
-  const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
+  const testResultOutput = readFileSync(testResultFilePath, 'utf8');
   const testResult = JSON.parse(testResultOutput);
   if (
     testResult.coverage === undefined &&
@@ -88,14 +90,13 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
 };
 
 const isApexMetadata = (filePath: string): boolean => {
-  return filePath.endsWith('.cls') || filePath.endsWith('.trigger');
+  return IS_CLS_OR_TRIGGER.test(filePath);
 };
 
 const getApexMemberName = (filePath: string): string => {
   if (isApexMetadata(filePath)) {
-    const filePathWithOutType = filePath.replace(/.cls|.trigger/g, '');
-    const indexOfLastFolder = filePathWithOutType.lastIndexOf(sep);
-    return filePathWithOutType.substring(indexOfLastFolder + 1);
+    const extension = extname(filePath);
+    return basename(filePath, extension);
   }
   return '';
 };
@@ -142,7 +143,12 @@ export class CodeCoverage {
 
   public colorizer(editor?: TextEditor) {
     try {
-      if (editor && isApexMetadata(editor.document.uri.fsPath)) {
+      if (
+        editor &&
+        !editor.document.uri.fsPath.includes(SFDX_FOLDER) &&
+        isApexMetadata(editor.document.uri.fsPath) &&
+        !IS_TEST_REG_EXP.test(editor.document.getText())
+      ) {
         const codeCovArray = getCoverageData() as { name: string }[];
         const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
         const codeCovItem = codeCovArray.find(
@@ -150,9 +156,10 @@ export class CodeCoverage {
         );
 
         if (!codeCovItem) {
-          throw new Error(
-            nls.localize('colorizer_no_code_coverage_current_file')
+          channelService.appendLine(
+            nls.localize('colorizer_no_code_coverage_current_file', editor.document.uri.fsPath)
           );
+          return;
         }
 
         if (
@@ -189,7 +196,7 @@ export class CodeCoverage {
       }
     } catch (e) {
       // telemetry
-      window.showWarningMessage(e.message);
+      void window.showWarningMessage(e.message);
     }
   }
 }

@@ -19,6 +19,7 @@ import {
   getRootWorkspacePath,
   hasRootWorkspace,
   LibraryCommandletExecutor,
+  SFDX_FOLDER,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -28,10 +29,21 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as vscode from 'vscode';
+import { readFileSync } from 'fs';
+import { basename } from 'path';
+import {
+  languages,
+  workspace,
+  window,
+  CancellationToken,
+  QuickPickItem
+} from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import {
+  APEX_CLASS_EXT,
+  APEX_TESTSUITE_EXT,
+  IS_TEST_REG_EXP
+} from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -42,27 +54,33 @@ export enum TestType {
   Suite,
   Class
 }
-export interface ApexTestQuickPickItem extends vscode.QuickPickItem {
+export interface ApexTestQuickPickItem extends QuickPickItem {
   type: TestType;
 }
+
 export class TestsSelector
   implements ParametersGatherer<ApexTestQuickPickItem>
 {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestQuickPickItem>
   > {
-    const testSuites = await vscode.workspace.findFiles(
-      '**/*.testSuite-meta.xml'
+    const foundFiles = await workspace.findFiles(
+      `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`,
+      SFDX_FOLDER
     );
-    const fileItems = testSuites.map(testSuite => {
-      return {
-        label: path
-          .basename(testSuite.toString())
-          .replace('.testSuite-meta.xml', ''),
-        description: testSuite.fsPath,
-        type: TestType.Suite
-      };
-    });
+    const testSuites = foundFiles.filter(file =>
+      file.path.endsWith('.testSuite-meta.xml')
+    );
+
+    const fileItems = testSuites
+      .map(testSuite => {
+        return {
+          label: basename(testSuite.toString(), '.testSuite-meta.xml'),
+          description: testSuite.fsPath,
+          type: TestType.Suite
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
 
     fileItems.push({
       label: nls.localize('force_apex_test_run_all_local_test_label'),
@@ -80,19 +98,27 @@ export class TestsSelector
       type: TestType.All
     });
 
-    const apexClasses = await vscode.workspace.findFiles('**/*.cls');
-    apexClasses.forEach(apexClass => {
-      const fileContent = fs.readFileSync(apexClass.fsPath).toString();
-      if (fileContent && fileContent.toLowerCase().includes('@istest')) {
-        fileItems.push({
-          label: path.basename(apexClass.toString()).replace('.cls', ''),
-          description: apexClass.fsPath,
-          type: TestType.Class
-        });
-      }
-    });
+    const apexClasses = foundFiles.filter(file =>
+      file.path.endsWith(APEX_CLASS_EXT)
+    );
 
-    const selection = (await vscode.window.showQuickPick(
+    fileItems.push(
+      ...apexClasses
+        .filter(apexClass => {
+          const fileContent = readFileSync(apexClass.fsPath, 'utf-8');
+          return IS_TEST_REG_EXP.test(fileContent);
+        })
+        .map(apexClass => {
+          return {
+            label: basename(apexClass.toString(), APEX_CLASS_EXT),
+            description: apexClass.fsPath,
+            type: TestType.Class
+          };
+        })
+        .sort((a, b) => a.label.localeCompare(b.label))
+    );
+
+    const selection = (await window.showQuickPick(
       fileItems
     )) as ApexTestQuickPickItem;
     return selection
@@ -113,7 +139,7 @@ const getTempFolder = (): string => {
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTestQuickPickItem> {
   protected cancellable: boolean = true;
   public static diagnostics =
-    vscode.languages.createDiagnosticCollection('apex-errors');
+    languages.createDiagnosticCollection('apex-errors');
 
   constructor() {
     super(
@@ -125,11 +151,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
 
   public async run(
     response: ContinueResponse<ApexTestQuickPickItem>,
-    progress?: vscode.Progress<{
+    progress?: Progress<{
       message?: string | undefined;
       increment?: number | undefined;
     }>,
-    token?: vscode.CancellationToken
+    token?: CancellationToken
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
