@@ -115,7 +115,9 @@ export class CodeCoverageHandler {
 
   public onDidChangeActiveTextEditor(editor?: TextEditor) {
     if (editor && this.statusBar.isHighlightingEnabled) {
-      this.colorizer(editor);
+      const coverage = colorizer(editor);
+      this.coveredLines = coverage.coveredLines;
+      this.uncoveredLines = coverage.uncoveredLines;
     }
   }
 
@@ -131,7 +133,7 @@ export class CodeCoverageHandler {
     } else {
       try {
         if (editor) {
-          const coverage = this.colorizer(window.activeTextEditor);
+          const coverage = colorizer(window.activeTextEditor);
           this.coveredLines = coverage.coveredLines;
           this.uncoveredLines = coverage.uncoveredLines;
           this.setCoverageDecorators(editor);
