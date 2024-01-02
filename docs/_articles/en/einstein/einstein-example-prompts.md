@@ -83,28 +83,20 @@ public with sharing class OpenPositionMatcher {
 ```
 ## Example Prompts and Context Descriptions
 
-**Prompt**: Create a class named `OpportunityController`. Create a method called `getNumberofOpportunities`. The method takes `AccountId` as a parameter and returns the number of opportunities for that `AccountId`. I’m working on an LWC component. Make sure the SOQL uses security best practices like user mode data operations.</th>
-
-**Context**:
+**Prompt**: Create a class named `OpportunityController`. Create a method called `getNumberofOpportunities`. The method takes `AccountId` as a parameter and returns the number of opportunities for that `AccountId`. I’m working on an LWC component. Make sure the SOQL uses security best practices like user mode data operations. This prompt contains the following context:
 1. Specific mention of an LWC component.
 2. Specific mention of security best practices.
 
-**Prompt**: Write an Apex class called `VehiclePartInventoryClass` for the custom object `Vehicle__c`, which has a many-to-many relationship with the `Parts__c` custom object. The class includes a method called `getVehiclesByParts` that accepts a Set of Strings. This method retrieves all the vehicle records associated with each part and returns a `Map<String, List<Vehicle__c>>`, where the key is the part name, and the values are lists of vehicles that have the specified part installed.
-
-**Context**:
+**Prompt**: Write an Apex class called `VehiclePartInventoryClass` for the custom object `Vehicle__c`, which has a many-to-many relationship with the `Parts__c` custom object. The class includes a method called `getVehiclesByParts` that accepts a Set of Strings. This method retrieves all the vehicle records associated with each part and returns a `Map<String, List<Vehicle__c>>`, where the key is the part name, and the values are lists of vehicles that have the specified part installed. This prompt contains the following context:
 1. Specify custom object names including `__c`
 2. Specify method input and output types and any logic that you wish to see in the method implementation.
 
 
-**Prompt**: Create a method that takes a `settingName` as input and returns the value of the first record in `Setting__mdt` where `QualifiedApiName` matches the `settingName`; return null if no records are found.
+**Prompt**: Create a method that takes a `settingName` as input and returns the value of the first record in `Setting__mdt` where `QualifiedApiName` matches the `settingName`; return null if no records are found. This prompt contains the following context:
+* Specify any custom metadata.
 
-**Context**: Specify any custom metadata.
 
-
-**Prompt**: Write a method that takes an Id as an argument. It compares the input Id with the value returned by the `getStagingOrgId()` method, and returns a boolean based on whether they match.
-
-**Context**:
-
+**Prompt**: Write a method that takes an Id as an argument. It compares the input Id with the value returned by the `getStagingOrgId()` method, and returns a boolean based on whether they match. This prompt contains the following context:
  1. Specify the relevant method name in the current file.
  2. Specify method input and output types and any logic that you wish to see in the method implementation.
    
