@@ -1,7 +1,5 @@
 # 59.12.0 - January 3, 2024
 
-# 59.10.0 - December 20, 2023
-
 ## Fixed
 
 #### docs
@@ -10,11 +8,12 @@
 
 #### salesforcedx-vscode-apex
 
-- Update @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
+- We updated the @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
 
 #### salesforcedx-vscode-core
 
-- We updated @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
+- We updated the @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
+- We updated the `SFDX: List All Config Variables` and `SFDX: Set a Default Org` commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273))
 
 
 # 59.9.0 - December 13, 2023
