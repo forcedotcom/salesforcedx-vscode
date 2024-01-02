@@ -12,7 +12,7 @@
   "dependencies": {
     "@salesforce/core": "6.4.3",
     "@salesforce/salesforcedx-utils-vscode": "59.12.0",
-    "jsforce": "2.0.0-beta.28",
+    "jsforce": "2.0.0-beta.29",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
