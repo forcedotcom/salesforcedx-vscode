@@ -116,7 +116,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/core": "6.4.3",
-        "@salesforce/source-tracking": "4.3.0",
+        "@salesforce/source-tracking": "5.1.3",
         "@salesforce/lightning-lsp-common": "4.7.3",
         "@salesforce/lwc-language-server": "4.7.3"
       },
