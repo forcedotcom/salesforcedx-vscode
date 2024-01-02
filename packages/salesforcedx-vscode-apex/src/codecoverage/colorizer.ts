@@ -6,7 +6,10 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
-import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  SFDX_FOLDER,
+  projectPaths
+} from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync, readFileSync } from 'fs';
 import { join, extname, basename } from 'path';
 import { Range, TextDocument, TextEditor, TextLine, window } from 'vscode';
@@ -101,16 +104,11 @@ const getApexMemberName = (filePath: string): string => {
   return '';
 };
 
-export class CodeCoverage {
-  private statusBar: StatusBarToggle;
-  public coveredLines: Range[];
-  public uncoveredLines: Range[];
+export class CodeCoverageHandler {
+  public coveredLines: Range[] = [];
+  public uncoveredLines: Range[] = [];
 
-  constructor(statusBar: StatusBarToggle) {
-    this.statusBar = statusBar;
-    this.coveredLines = Array<Range>();
-    this.uncoveredLines = Array<Range>();
-
+  constructor(private statusBar: StatusBarToggle) {
     window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this);
     this.onDidChangeActiveTextEditor(window.activeTextEditor);
   }
@@ -122,81 +120,85 @@ export class CodeCoverage {
   }
 
   public toggleCoverage() {
+    const editor = window.activeTextEditor;
     if (this.statusBar.isHighlightingEnabled) {
       this.statusBar.toggle(false);
       this.coveredLines = [];
       this.uncoveredLines = [];
-
-      const editor = window.activeTextEditor;
       if (editor) {
-        editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
-        editor.setDecorations(
-          uncoveredLinesDecorationType,
-          this.uncoveredLines
-        );
+        this.setCoverageDecorators(editor);
       }
     } else {
-      this.colorizer(window.activeTextEditor);
+      try {
+        if (editor) {
+          const coverage = this.colorizer(window.activeTextEditor);
+          this.coveredLines = coverage.coveredLines;
+          this.uncoveredLines = coverage.uncoveredLines;
+          this.setCoverageDecorators(editor);
+        }
+      } catch (e) {
+        // telemetry
+        void window.showWarningMessage(e.message);
+      }
       this.statusBar.toggle(true);
     }
   }
 
-  public colorizer(editor?: TextEditor) {
-    try {
-      if (
-        editor &&
-        !editor.document.uri.fsPath.includes(SFDX_FOLDER) &&
-        isApexMetadata(editor.document.uri.fsPath) &&
-        !IS_TEST_REG_EXP.test(editor.document.getText())
-      ) {
-        const codeCovArray = getCoverageData() as { name: string }[];
-        const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
-        const codeCovItem = codeCovArray.find(
-          covItem => covItem.name === apexMemberName
+  private setCoverageDecorators(editor: TextEditor) {
+    editor.setDecorations(coveredLinesDecorationType, []);
+    editor.setDecorations(uncoveredLinesDecorationType, []);
+  }
+
+  public colorizer(editor?: TextEditor): {
+    coveredLines: Range[];
+    uncoveredLines: Range[];
+  } {
+    let coveredLines = Array<Range>();
+    let uncoveredLines = Array<Range>();
+    if (
+      editor &&
+      !editor.document.uri.fsPath.includes(SFDX_FOLDER) &&
+      isApexMetadata(editor.document.uri.fsPath) &&
+      !IS_TEST_REG_EXP.test(editor.document.getText())
+    ) {
+      const codeCovArray = getCoverageData() as { name: string }[];
+      const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
+      const codeCovItem = codeCovArray.find(
+        covItem => covItem.name === apexMemberName
+      );
+
+      if (!codeCovItem) {
+        channelService.appendLine(
+          nls.localize(
+            'colorizer_no_code_coverage_current_file',
+            editor.document.uri.fsPath
+          )
         );
+        return { coveredLines: [], uncoveredLines: [] };
+      }
 
-        if (!codeCovItem) {
-          channelService.appendLine(
-            nls.localize('colorizer_no_code_coverage_current_file', editor.document.uri.fsPath)
-          );
-          return;
-        }
-
-        if (
-          Reflect.has(codeCovItem, 'lines') &&
-          !Reflect.has(codeCovItem, 'uncoveredLines')
-        ) {
-          const covItem = codeCovItem as CoverageItem;
-          for (const key in covItem.lines) {
-            if (covItem.lines[key] === 1) {
-              this.coveredLines.push(
-                getLineRange(editor.document, Number(key))
-              );
-            } else {
-              this.uncoveredLines.push(
-                getLineRange(editor.document, Number(key))
-              );
-            }
+      if (
+        Reflect.has(codeCovItem, 'lines') &&
+        !Reflect.has(codeCovItem, 'uncoveredLines')
+      ) {
+        const covItem = codeCovItem as CoverageItem;
+        for (const key in covItem.lines) {
+          if (covItem.lines[key] === 1) {
+            coveredLines.push(getLineRange(editor.document, Number(key)));
+          } else {
+            uncoveredLines.push(getLineRange(editor.document, Number(key)));
           }
-        } else {
-          const covResult = codeCovItem as CodeCoverageResult;
-          this.coveredLines = covResult.coveredLines.map(cov =>
-            getLineRange(editor.document, Number(cov))
-          );
-          this.uncoveredLines = covResult.uncoveredLines.map(uncov =>
-            getLineRange(editor.document, Number(uncov))
-          );
         }
-
-        editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
-        editor.setDecorations(
-          uncoveredLinesDecorationType,
-          this.uncoveredLines
+      } else {
+        const covResult = codeCovItem as CodeCoverageResult;
+        coveredLines = covResult.coveredLines.map(cov =>
+          getLineRange(editor.document, Number(cov))
+        );
+        uncoveredLines = covResult.uncoveredLines.map(uncov =>
+          getLineRange(editor.document, Number(uncov))
         );
       }
-    } catch (e) {
-      // telemetry
-      void window.showWarningMessage(e.message);
     }
+    return { coveredLines, uncoveredLines };
   }
 }
