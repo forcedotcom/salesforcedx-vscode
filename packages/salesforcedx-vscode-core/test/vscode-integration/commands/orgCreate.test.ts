@@ -132,7 +132,7 @@ describe('Force Org Create', () => {
         expirationDays: TEST_ORG_EXPIRATION_DAYS
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx org:create:scratch -f ${CONFIG_FILE} --alias ${TEST_ALIAS} --duration-days ${TEST_ORG_EXPIRATION_DAYS} --set-default --json`
+        `sfdx org:create:scratch --definition-file ${CONFIG_FILE} --alias ${TEST_ALIAS} --duration-days ${TEST_ORG_EXPIRATION_DAYS} --set-default --json`
       );
       expect(createCommand.description).to.equal(
         nls.localize('org_create_default_scratch_org_text')

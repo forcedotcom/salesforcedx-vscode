@@ -49,7 +49,7 @@ export class OrgCreateExecutor extends SfdxCommandletExecutor<AliasAndFileSelect
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_create_default_scratch_org_text'))
       .withArg('org:create:scratch')
-      .withFlag('-f', `${selectionPath}`)
+      .withFlag('--definition-file', `${selectionPath}`)
       .withFlag('--alias', data.alias)
       .withFlag('--duration-days', data.expirationDays)
       .withArg('--set-default')
