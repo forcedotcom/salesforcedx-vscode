@@ -20,7 +20,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -30,15 +30,15 @@ export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
 
   public build(data: { choice?: string; username?: string }): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_org_delete_default_text'))
-      .withArg('force:org:delete')
-      .withArg('--noprompt')
-      .withLogName('force_org_delete_default');
+      .withDescription(nls.localize('org_delete_default_text'))
+      .withArg('org:delete:scratch')
+      .withArg('--no-prompt')
+      .withLogName('org_delete_default');
 
-    if (this.flag === '--targetusername' && data.username) {
+    if (this.flag === '--target-org' && data.username) {
       builder
-        .withDescription(nls.localize('force_org_delete_username_text'))
-        .withLogName('force_org_delete_username')
+        .withDescription(nls.localize('org_delete_username_text'))
+        .withLogName('org_delete_username')
         .withFlag(this.flag, data.username);
     }
     return builder.build();
@@ -47,7 +47,7 @@ export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceOrgDelete(this: FlagParameter<string>) {
+export async function orgDelete(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
 
@@ -62,7 +62,7 @@ export async function forceOrgDelete(this: FlagParameter<string>) {
         nls.localize('parameter_gatherer_placeholder_delete_default_org')
       );
 
-  const executor = new ForceOrgDeleteExecutor(flag);
+  const executor = new OrgDeleteExecutor(flag);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
