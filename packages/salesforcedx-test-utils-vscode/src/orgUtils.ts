@@ -45,7 +45,7 @@ export const createScratchOrg = async (
       .withArg('org:create:scratch')
       .withFlag('--definition-file', `${scratchDefFilePath}`)
       .withArg('--set-default')
-      .withJson()
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
