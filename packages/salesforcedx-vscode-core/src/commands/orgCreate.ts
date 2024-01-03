@@ -54,7 +54,7 @@ export class OrgCreateExecutor extends SfdxCommandletExecutor<AliasAndFileSelect
       .withFlag('--duration-days', data.expirationDays)
       .withArg('--set-default')
       .withLogName('org_create_default_scratch_org')
-      .withJson()
+      .withJson(false)
       .build();
   }
 

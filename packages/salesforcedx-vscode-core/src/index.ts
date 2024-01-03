@@ -113,6 +113,7 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
+  setSfLogLevel,
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -543,6 +544,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
+  setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 

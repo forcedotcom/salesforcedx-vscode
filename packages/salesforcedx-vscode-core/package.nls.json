@@ -75,6 +75,7 @@
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
   "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "node_extra_ca_certs_description": "NODE_EXTRA_CA_CERTS CLI environment variable value",
+  "sf_log_level_description": "SF_LOG_LEVEL CLI environment variable value",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
   "force_launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",
   "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command."
