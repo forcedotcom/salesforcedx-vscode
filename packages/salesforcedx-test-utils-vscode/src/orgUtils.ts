@@ -61,9 +61,9 @@ export const deleteScratchOrg = async (
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:org:delete')
-      .withFlag('--targetusername', username)
-      .withArg('--noprompt')
+      .withArg('org:delete:scratch')
+      .withFlag('--target-org', username)
+      .withArg('--no-prompt')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }

@@ -65,7 +65,7 @@ export {
   ForceOrgCreateExecutor,
   forceOrgCreate
 } from './forceOrgCreate';
-export { forceOrgDelete } from './forceOrgDelete';
+export { orgDelete } from './orgDelete';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,

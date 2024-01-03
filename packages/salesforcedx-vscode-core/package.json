@@ -751,12 +751,12 @@
         "title": "%alias_list_text%"
       },
       {
-        "command": "sfdx.force.org.delete.default",
-        "title": "%force_org_delete_default_text%"
+        "command": "sfdx.org.delete.default",
+        "title": "%org_delete_default_text%"
       },
       {
-        "command": "sfdx.force.org.delete.username",
-        "title": "%force_org_delete_username_text%"
+        "command": "sfdx.org.delete.username",
+        "title": "%org_delete_username_text%"
       },
       {
         "command": "sfdx.org.display.default",
