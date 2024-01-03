@@ -115,7 +115,7 @@ export class CodeCoverageHandler {
 
   public onDidChangeActiveTextEditor(editor?: TextEditor) {
     if (editor && this.statusBar.isHighlightingEnabled) {
-      const coverage = colorizer(editor);
+      const coverage = applyCoverageToSource(editor.document);
       this.coveredLines = coverage.coveredLines;
       this.uncoveredLines = coverage.uncoveredLines;
     }
@@ -132,8 +132,8 @@ export class CodeCoverageHandler {
       }
     } else {
       try {
-        if (editor) {
-          const coverage = colorizer(window.activeTextEditor);
+        if (editor?.document) {
+          const coverage = applyCoverageToSource(editor.document);
           this.coveredLines = coverage.coveredLines;
           this.uncoveredLines = coverage.uncoveredLines;
           this.setCoverageDecorators(editor);
@@ -147,13 +147,13 @@ export class CodeCoverageHandler {
   }
 
   private setCoverageDecorators(editor: TextEditor) {
-    editor.setDecorations(coveredLinesDecorationType, []);
-    editor.setDecorations(uncoveredLinesDecorationType, []);
+    editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
+    editor.setDecorations(uncoveredLinesDecorationType, this.uncoveredLines);
   }
 }
 
-export const colorizer = (
-  editor?: TextEditor
+const applyCoverageToSource = (
+  document?: TextDocument
 ): {
   coveredLines: Range[];
   uncoveredLines: Range[];
@@ -161,13 +161,13 @@ export const colorizer = (
   let coveredLines = Array<Range>();
   let uncoveredLines = Array<Range>();
   if (
-    editor &&
-    !editor.document.uri.fsPath.includes(SFDX_FOLDER) &&
-    isApexMetadata(editor.document.uri.fsPath) &&
-    !IS_TEST_REG_EXP.test(editor.document.getText())
+    document &&
+    !document.uri.fsPath.includes(SFDX_FOLDER) &&
+    isApexMetadata(document.uri.fsPath) &&
+    !IS_TEST_REG_EXP.test(document.getText())
   ) {
     const codeCovArray = getCoverageData() as { name: string }[];
-    const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
+    const apexMemberName = getApexMemberName(document.uri.fsPath);
     const codeCovItem = codeCovArray.find(
       covItem => covItem.name === apexMemberName
     );
@@ -176,7 +176,7 @@ export const colorizer = (
       channelService.appendLine(
         nls.localize(
           'colorizer_no_code_coverage_current_file',
-          editor.document.uri.fsPath
+          document.uri.fsPath
         )
       );
       return { coveredLines: [], uncoveredLines: [] };
@@ -189,20 +189,25 @@ export const colorizer = (
       const covItem = codeCovItem as CoverageItem;
       for (const key in covItem.lines) {
         if (covItem.lines[key] === 1) {
-          coveredLines.push(getLineRange(editor.document, Number(key)));
+          coveredLines.push(getLineRange(document, Number(key)));
         } else {
-          uncoveredLines.push(getLineRange(editor.document, Number(key)));
+          uncoveredLines.push(getLineRange(document, Number(key)));
         }
       }
     } else {
       const covResult = codeCovItem as CodeCoverageResult;
       coveredLines = covResult.coveredLines.map(cov =>
-        getLineRange(editor.document, Number(cov))
+        getLineRange(document, Number(cov))
       );
       uncoveredLines = covResult.uncoveredLines.map(uncov =>
-        getLineRange(editor.document, Number(uncov))
+        getLineRange(document, Number(uncov))
       );
     }
   }
   return { coveredLines, uncoveredLines };
+};
+
+// export is for testing
+export const colorizer = {
+  applyCoverageToSource
 };

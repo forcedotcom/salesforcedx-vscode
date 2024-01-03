@@ -36,7 +36,8 @@ import {
   workspace,
   window,
   CancellationToken,
-  QuickPickItem
+  QuickPickItem,
+  Uri
 } from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
@@ -64,12 +65,23 @@ export class TestsSelector
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestQuickPickItem>
   > {
-    const foundFiles = await workspace.findFiles(
-      `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`,
-      SFDX_FOLDER
-    );
-    const testSuites = foundFiles.filter(file =>
-      file.path.endsWith('.testSuite-meta.xml')
+    const { testSuites, apexClasses } = (
+      await workspace.findFiles(
+        `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`,
+        SFDX_FOLDER
+      )
+    )
+    .sort((a, b) => a.fsPath.localeCompare(b.fsPath))
+    .reduce(
+      (acc: { testSuites: Uri[]; apexClasses: Uri[] }, file) => {
+        if (file.path.endsWith('.cls')) {
+          acc.apexClasses.push(file);
+        } else {
+          acc.testSuites.push(file);
+        }
+        return acc;
+      },
+      { testSuites: [], apexClasses: [] }
     );
 
     const fileItems = testSuites
@@ -79,8 +91,7 @@ export class TestsSelector
           description: testSuite.fsPath,
           type: TestType.Suite
         };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
+      });
 
     fileItems.push({
       label: nls.localize('force_apex_test_run_all_local_test_label'),
@@ -98,10 +109,6 @@ export class TestsSelector
       type: TestType.All
     });
 
-    const apexClasses = foundFiles.filter(file =>
-      file.path.endsWith(APEX_CLASS_EXT)
-    );
-
     fileItems.push(
       ...apexClasses
         .filter(apexClass => {
@@ -115,7 +122,6 @@ export class TestsSelector
             type: TestType.Class
           };
         })
-        .sort((a, b) => a.label.localeCompare(b.label))
     );
 
     const selection = (await window.showQuickPick(
