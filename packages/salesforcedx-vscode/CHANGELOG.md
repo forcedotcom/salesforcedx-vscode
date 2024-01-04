@@ -8,12 +8,12 @@
 - We made some changes under the hood. ([PR #5307](https://github.com/forcedotcom/salesforcedx-vscode/pull/5307))
 
 #### salesforcedx-utils-vscode
-- We fixed an issue where the Apex Replay Debugger produces an error that the logs directory does not exist when users debug anonymous Apex for the first time. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
+- We made some changes under the hood. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
 
 #### salesforcedx-vscode-apex
 
 - We updated the @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
-- We made some changes under the hood. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
+- We fixed an issue where the Apex Replay Debugger produces an error that the logs directory does not exist when users debug anonymous Apex for the first time. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
 
 #### salesforcedx-vscode-core
 
