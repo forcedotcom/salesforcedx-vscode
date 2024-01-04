@@ -123,7 +123,7 @@ export class OrgList implements vscode.Disposable {
     let quickPickList = [
       '$(plus) ' + nls.localize('org_login_web_authorize_org_text'),
       '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'),
-      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text'),
+      '$(plus) ' + nls.localize('org_create_default_scratch_org_text'),
       '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
       '$(plus) ' + nls.localize('org_list_clean_text')
     ];
@@ -147,9 +147,8 @@ export class OrgList implements vscode.Disposable {
         vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' +
-        nls.localize('force_org_create_default_scratch_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.org.create');
+      case '$(plus) ' + nls.localize('org_create_default_scratch_org_text'): {
+        vscode.commands.executeCommand('sfdx.org.create');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +

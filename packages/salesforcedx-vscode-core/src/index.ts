@@ -39,7 +39,6 @@ import {
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
   forceOpenDocumentation,
-  forceOrgCreate,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -58,6 +57,7 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgCreate,
   orgDelete,
   orgDisplay,
   orgList,
@@ -113,6 +113,7 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
+  setSfLogLevel,
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -152,9 +153,9 @@ function registerCommands(
     'sfdx.force.open.documentation',
     forceOpenDocumentation
   );
-  const forceOrgCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.create',
-    forceOrgCreate
+  const orgCreateCmd = vscode.commands.registerCommand(
+    'sfdx.org.create',
+    orgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
@@ -390,7 +391,7 @@ function registerCommands(
     dataQuerySelectionCmd,
     forceDiffFile,
     forceOpenDocumentationCmd,
-    forceOrgCreateCmd,
+    orgCreateCmd,
     orgDeleteDefaultCmd,
     orgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,
@@ -543,6 +544,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
+  setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 

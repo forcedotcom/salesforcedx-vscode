@@ -58,9 +58,11 @@ export class CommandBuilder {
     return this;
   }
 
-  public withJson(): CommandBuilder {
+  public withJson(logLevel: boolean = true): CommandBuilder {
     this.args.push('--json');
-    this.args.push('--loglevel', 'fatal');
+    if (logLevel) {
+      this.args.push('--loglevel', 'fatal');
+    }
     return this;
   }
 

@@ -340,16 +340,14 @@ describe('orgList Tests', () => {
         );
       });
 
-      it('should return Continue and call force:org:create command if SFDX: Create a Default Scratch Org is selected', async () => {
+      it('should return Continue and call org:create:scratch command if SFDX: Create a Default Scratch Org is selected', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
-          '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
+          '$(plus) ' + nls.localize('org_create_default_scratch_org_text')
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.org.create')).to.equal(
-          true
-        );
+        expect(executeCommandStub.calledWith('sfdx.org.create')).to.equal(true);
       });
 
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {

@@ -91,9 +91,8 @@ export const messages = {
   parameter_gatherer_placeholder_delete_default_org:
     'Confirm to continue deleting the default org',
 
-  force_org_create_default_scratch_org_text:
-    'SFDX: Create a Default Scratch Org...',
-  force_org_create_result_parsing_error:
+  org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
+  org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
 
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',

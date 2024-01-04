@@ -60,11 +60,7 @@ export {
   forceListMetadata
 } from './forceListMetadata';
 export { forceOpenDocumentation } from './forceOpenDocumentation';
-export {
-  AliasGatherer,
-  ForceOrgCreateExecutor,
-  forceOrgCreate
-} from './forceOrgCreate';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
 export {
   ForcePackageInstallExecutor,
