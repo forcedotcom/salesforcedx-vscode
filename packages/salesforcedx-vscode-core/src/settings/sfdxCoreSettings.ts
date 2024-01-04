@@ -15,6 +15,7 @@ import {
   ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
   INTERNAL_DEVELOPMENT_FLAG,
   ENV_NODE_EXTRA_CA_CERTS,
+  ENV_SF_LOG_LEVEL,
   PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
@@ -102,6 +103,13 @@ export class SfdxCoreSettings {
     return this.getConfigValue(
       ENV_NODE_EXTRA_CA_CERTS,
       process.env.NODE_EXTRA_CA_CERTS ?? ''
+    );
+  }
+
+  public getSfLogLevel(): string {
+    return this.getConfigValue(
+      ENV_SF_LOG_LEVEL,
+      process.env.SF_LOG_LEVEL ?? ''
     );
   }
 
