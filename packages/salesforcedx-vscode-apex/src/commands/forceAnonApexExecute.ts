@@ -168,6 +168,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       return false;
     }
 
+    fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
     fs.writeFileSync(logFilePath, logs);
 
     return true;
