@@ -10,6 +10,10 @@ export { apexGenerateClass } from './apexGenerateClass';
 export { apexGenerateTrigger } from './apexGenerateTrigger';
 export * from './apexGenerateUnitTestClass';
 export {
+  ForceLightningLwcTestCreateExecutor,
+  forceLightningLwcTestCreate
+} from './forceLightningLwcTestCreate';
+export {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
@@ -33,6 +37,5 @@ export {
   internalLightningGenerateLwc,
   lightningGenerateLwc
 } from './lightningGenerateLwc';
-export { ForceLightningLwcTestCreateExecutor } from './forceLightningLwcTestCreate';
 export { visualforceGenerateComponent } from './visualforceGenerateComponent';
 export { visualforceGeneratePage } from './visualforceGeneratePage';
