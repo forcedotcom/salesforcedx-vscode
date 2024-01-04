@@ -5,26 +5,22 @@ lang: en
 
 ## Overview
 
-Use AI-based autocomplete to accept suggestions for repetitive, boilerplate code right in your editor.
+Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor.
 
-## Set Up Inline Autocomplete
+## Enable or Disable Inline Autocomplete
 
-To use inline autocomplete, first activate the feature:
+Inline autocomplete is enabled by default. To disable the feature:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under **Einstein for Developers**, select **Enable Einstein Auto Completions**.
+2. Under **Einstein for Developers**, deselect **Enable Einstein Auto Completions**.
 
 ## Receive your First Inline Completions
 
-Einstein for Developers automatically generates code and suggests completions for you as you type. To start receiving inline completions:
-
-1. In Visual Studio Code, create a new Apex class (\*.cls) file, or open an existing one.
-
-2. In the Apex file, place your cursor inside a method. Einstein for Developers automatically suggests an entire method body in grayed text, as shown below. The exact suggestion may vary.
+Einstein for Developers automatically generates code and suggests completions for you as you type. When writing apex code, you are often doing things like assigning variable values to an `Sobject` such as `Account.name = abc`, or `Account.type = Business`. Pause the cursor after the variable value and watch Einstein for Developers complete your code for you and fill out the remaining fields.
 
 ![Inline Suggestions](./images/einstein-inline-create-account.png)
 
-To accept the entire suggestion, press Tab. If you have VS Code's **Inline Suggest** enabled, you can accept the next word of the suggestion using one of the following keyboard shortcuts:
+To accept an entire suggestion, press Tab. If you have VS Code's **Inline Suggest** enabled, you can accept the next word of the suggestion using one of the following keyboard shortcuts:
 
 | Operating System | Accept Next Word |
 | ---------------- | ---------------- |
@@ -32,6 +28,4 @@ To accept the entire suggestion, press Tab. If you have VS Code's **Inline Sugge
 | Windows          | ⌥→               |
 | Linux            | ⌥→               |
 
-Note: If you don't see a suggestion, make sure Einstein Auto Completions are enabled.
-
-**_Note_**: Use the Option (⌥)\ hotkeys to manually generate autocomplete suggestions if you don't have the auto completions setting enabled.
+**Note**: If you don't see a suggestion, make sure Einstein Auto Completions are enabled. Also, you can always trigger inline suggestions even if you don't have the Auto Completions enabled using the Option (⌥)\ hotkeys to manually generate autocomplete suggestions.
