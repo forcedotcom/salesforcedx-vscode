@@ -29,7 +29,6 @@ import {
   forceCreateManifest,
   forceOpenDocumentation,
   forceOrgCreate,
-  forceOrgDelete,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -57,6 +56,7 @@ import {
   lightningGenerateInterface,
   lightningGenerateLwc,
   forceLightningLwcTestCreate,
+  orgDelete,
   orgDisplay,
   orgList,
   orgLoginWeb,
@@ -291,14 +291,14 @@ function registerCommands(
     'sfdx.alias.list',
     aliasList
   );
-  const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.default',
-    forceOrgDelete
+  const orgDeleteDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.default',
+    orgDelete
   );
-  const forceOrgDeleteUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.username',
-    forceOrgDelete,
-    { flag: '--targetusername' }
+  const orgDeleteUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.username',
+    orgDelete,
+    { flag: '--target-org' }
   );
   const orgDisplayDefaultCmd = vscode.commands.registerCommand(
     'sfdx.org.display.default',
@@ -391,8 +391,8 @@ function registerCommands(
     forceDiffFile,
     forceOpenDocumentationCmd,
     forceOrgCreateCmd,
-    forceOrgDeleteDefaultCmd,
-    forceOrgDeleteUsernameCmd,
+    orgDeleteDefaultCmd,
+    orgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,
     deleteSourceCmd,
     deleteSourceCurrentFileCmd,
