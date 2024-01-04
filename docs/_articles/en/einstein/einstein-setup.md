@@ -133,5 +133,4 @@ You can search for each keyboard shortcut by command name in the Keyboard Shortc
 | Accept                                   | Tab         |
 | Clear                                    | Escape      |
 | Einstein:Generate Code                   | ⇧⌘R         |
-| SFDX: Insert Comment for Code Generation | ⌘L          |
 | Trigger Inline Suggestion                | ⌥\          |
