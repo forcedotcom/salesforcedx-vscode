@@ -70,9 +70,9 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
-  force_org_create_default_scratch_org_text:
+  org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
-  force_org_create_result_parsing_error:
+  org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
   org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
@@ -142,7 +142,7 @@ export const messages = {
   warning_prompt_other_existing: '%s つの既存コンポーネント',
   warning_prompt_other_not_shown:
     '...表示されていない残り %s つのコンポーネント\n',
-  force_config_list_text: 'SFDX: すべての設定変数を一覧表示',
+  config_list_text: 'SFDX: すべての設定変数を一覧表示',
   alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
   org_display_username_text: 'SFDX: 組織の詳細を表示...',
@@ -245,7 +245,7 @@ export const messages = {
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
-  force_config_set_org_text: 'SFDX: デフォルトの組織を設定',
+  config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:

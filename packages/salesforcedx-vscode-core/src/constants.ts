@@ -23,8 +23,8 @@ export const TELEMETRY_OPT_OUT_LINK =
   'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
 export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 
-export const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
-export const CONFIG_SET_NAME = 'force_config_set_title';
+export const CONFIG_SET_EXECUTOR = 'config_set_org_text';
+export const CONFIG_SET_NAME = 'config_set_title';
 export const TABLE_NAME_COL = 'table_header_name';
 export const TABLE_VAL_COL = 'table_header_value';
 export const TABLE_SUCCESS_COL = 'table_header_success';
@@ -48,6 +48,7 @@ export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE =
   'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
+export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
 export const CLI = {
   ORG_LOGIN_DEVICE: 'org:login:device',
   ORG_LOGIN_WEB: 'org:login:web'

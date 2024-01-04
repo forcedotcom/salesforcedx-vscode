@@ -24,7 +24,7 @@ export class OrgList implements vscode.Disposable {
       vscode.StatusBarAlignment.Left,
       49
     );
-    this.statusBarItem.command = 'sfdx.force.set.default.org';
+    this.statusBarItem.command = 'sfdx.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
@@ -123,7 +123,7 @@ export class OrgList implements vscode.Disposable {
     let quickPickList = [
       '$(plus) ' + nls.localize('org_login_web_authorize_org_text'),
       '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'),
-      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text'),
+      '$(plus) ' + nls.localize('org_create_default_scratch_org_text'),
       '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
       '$(plus) ' + nls.localize('org_list_clean_text')
     ];
@@ -147,26 +147,22 @@ export class OrgList implements vscode.Disposable {
         vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' +
-        nls.localize('force_org_create_default_scratch_org_text'): {
-          vscode.commands.executeCommand('sfdx.force.org.create');
-          return { type: 'CONTINUE', data: {} };
-        }
+      case '$(plus) ' + nls.localize('org_create_default_scratch_org_text'): {
+        vscode.commands.executeCommand('sfdx.org.create');
+        return { type: 'CONTINUE', data: {} };
+      }
       case '$(plus) ' +
         nls.localize('force_auth_access_token_authorize_org_text'): {
-          vscode.commands.executeCommand('sfdx.force.auth.accessToken');
-          return { type: 'CONTINUE', data: {} };
-        }
+        vscode.commands.executeCommand('sfdx.force.auth.accessToken');
+        return { type: 'CONTINUE', data: {} };
+      }
       case '$(plus) ' + nls.localize('org_list_clean_text'): {
         vscode.commands.executeCommand('sfdx.org.list.clean');
         return { type: 'CONTINUE', data: {} };
       }
       default: {
         const usernameOrAlias = selection.split(' - ', 1);
-        vscode.commands.executeCommand(
-          'sfdx.force.config.set',
-          usernameOrAlias
-        );
+        vscode.commands.executeCommand('sfdx.config.set', usernameOrAlias);
         return { type: 'CONTINUE', data: {} };
       }
     }

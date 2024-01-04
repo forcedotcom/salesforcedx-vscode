@@ -1,3 +1,21 @@
+# 59.12.0 - January 3, 2024
+
+## Fixed
+
+#### docs
+
+- We added new information about prompt context and grounding to our docs. Now you can write prompts using context and also better understand grounding. All this to ask the right questions and get back higher quality responses from Einstein for Developers. ([PR #5264](https://github.com/forcedotcom/salesforcedx-vscode/pull/5264))
+
+#### salesforcedx-vscode-apex
+
+- We updated the @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
+
+#### salesforcedx-vscode-core
+
+- We updated the @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
+- We updated the `SFDX: List All Config Variables` and `SFDX: Set a Default Org` commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273))
+
+
 # 59.9.0 - December 13, 2023
 
 ## Fixed

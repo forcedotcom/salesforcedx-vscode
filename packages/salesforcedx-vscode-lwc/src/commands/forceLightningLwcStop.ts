@@ -15,7 +15,7 @@ import { showError } from './commandUtils';
 const logName = 'force_lightning_lwc_stop';
 const commandName = nls.localize('force_lightning_lwc_stop_text');
 
-export async function forceLightningLwcStop() {
+export const forceLightningLwcStop = async () => {
   const startTime = process.hrtime();
 
   try {
@@ -39,4 +39,4 @@ export async function forceLightningLwcStop() {
   } catch (e) {
     showError(e, logName, commandName);
   }
-}
+};

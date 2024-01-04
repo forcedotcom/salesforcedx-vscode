@@ -48,8 +48,8 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ForceConfigList, forceConfigList } from './forceConfigList';
-export { ForceConfigSetExecutor, forceConfigSet } from './forceConfigSet';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { forceCreateManifest } from './forceCreateManifest';
 export {
   ForceDescribeMetadataExecutor,
@@ -60,12 +60,8 @@ export {
   forceListMetadata
 } from './forceListMetadata';
 export { forceOpenDocumentation } from './forceOpenDocumentation';
-export {
-  AliasGatherer,
-  ForceOrgCreateExecutor,
-  forceOrgCreate
-} from './forceOrgCreate';
-export { forceOrgDelete } from './forceOrgDelete';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { orgDelete } from './orgDelete';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,

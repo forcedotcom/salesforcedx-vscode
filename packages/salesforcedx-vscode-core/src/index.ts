@@ -16,6 +16,8 @@ import { channelService } from './channels';
 import {
   aliasList,
   checkSObjectsAndRefresh,
+  configList,
+  configSet,
   dataQuery,
   debuggerStop,
   deleteSource,
@@ -24,8 +26,6 @@ import {
   forceApexTriggerCreate,
   forceApexUnitClassCreate,
   forceAuthAccessToken,
-  forceConfigList,
-  forceConfigSet,
   forceCreateManifest,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
@@ -39,8 +39,6 @@ import {
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
   forceOpenDocumentation,
-  forceOrgCreate,
-  forceOrgDelete,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -59,6 +57,8 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgCreate,
+  orgDelete,
   orgDisplay,
   orgList,
   orgLoginWeb,
@@ -113,6 +113,7 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
+  setSfLogLevel,
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -152,9 +153,9 @@ function registerCommands(
     'sfdx.force.open.documentation',
     forceOpenDocumentation
   );
-  const forceOrgCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.create',
-    forceOrgCreate
+  const orgCreateCmd = vscode.commands.registerCommand(
+    'sfdx.org.create',
+    orgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
@@ -283,22 +284,22 @@ function registerCommands(
     'sfdx.debugger.stop',
     debuggerStop
   );
-  const forceConfigListCmd = vscode.commands.registerCommand(
-    'sfdx.force.config.list',
-    forceConfigList
+  const configListCmd = vscode.commands.registerCommand(
+    'sfdx.config.list',
+    configList
   );
   const forceAliasListCmd = vscode.commands.registerCommand(
     'sfdx.alias.list',
     aliasList
   );
-  const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.default',
-    forceOrgDelete
+  const orgDeleteDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.default',
+    orgDelete
   );
-  const forceOrgDeleteUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.username',
-    forceOrgDelete,
-    { flag: '--targetusername' }
+  const orgDeleteUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.username',
+    orgDelete,
+    { flag: '--target-org' }
   );
   const orgDisplayDefaultCmd = vscode.commands.registerCommand(
     'sfdx.org.display.default',
@@ -355,9 +356,9 @@ function registerCommands(
     isvDebugBootstrap
   );
 
-  const forceConfigSetCmd = vscode.commands.registerCommand(
-    'sfdx.force.config.set',
-    forceConfigSet
+  const configSetCmd = vscode.commands.registerCommand(
+    'sfdx.config.set',
+    configSet
   );
 
   const forceDiffFile = vscode.commands.registerCommand(
@@ -390,9 +391,9 @@ function registerCommands(
     dataQuerySelectionCmd,
     forceDiffFile,
     forceOpenDocumentationCmd,
-    forceOrgCreateCmd,
-    forceOrgDeleteDefaultCmd,
-    forceOrgDeleteUsernameCmd,
+    orgCreateCmd,
+    orgDeleteDefaultCmd,
+    orgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,
     deleteSourceCmd,
     deleteSourceCurrentFileCmd,
@@ -423,7 +424,7 @@ function registerCommands(
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
     debuggerStopCmd,
-    forceConfigListCmd,
+    configListCmd,
     forceAliasListCmd,
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
@@ -434,7 +435,7 @@ function registerCommands(
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceConfigSetCmd,
+    configSetCmd,
     orgListCleanCmd,
     orgLoginWebCmd,
     orgLoginWebDevHubCmd,
@@ -485,11 +486,11 @@ function registerInternalDevCommands(
 }
 
 function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
-  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
-    'sfdx.force.set.default.org',
+  const setDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
-  return vscode.Disposable.from(forceSetDefaultOrgCmd);
+  return vscode.Disposable.from(setDefaultOrgCmd);
 }
 
 async function setupOrgBrowser(
@@ -543,6 +544,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
+  setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 

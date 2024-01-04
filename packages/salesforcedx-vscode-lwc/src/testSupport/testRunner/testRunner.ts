@@ -27,20 +27,20 @@ export const enum TestRunType {
  * @param cwd
  * @param testFsPath
  */
-export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
+export const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
   if (/^win32/.test(process.platform)) {
     return path.relative(cwd, testFsPath);
   }
   return testFsPath;
-}
+};
 
 /**
  * Returns testNamePattern flag and escaped test name
  * @param TestExecutionInfo
  */
-export function getTestNamePatternArgs(testName: string) {
+export const getTestNamePatternArgs = (testName: string) => {
   return ['--testNamePattern', `${escapeStrForRegex(testName)}`];
-}
+};
 
 type JestExecutionInfo = {
   jestArgs: string[];
