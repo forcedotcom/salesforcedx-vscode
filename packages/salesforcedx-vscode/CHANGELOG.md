@@ -1,41 +1,24 @@
-# 59.12.1 - January 6, 2024
-
-## Fixed
-
-#### docs
-
-- Fix bombed table rendering ([PR #5307](https://github.com/forcedotcom/salesforcedx-vscode/pull/5307))
-
-#### salesforcedx-utils-vscode
-
-- Correct log file name formatting error ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
-
-#### salesforcedx-vscode-apex
-
-- Correct log file name formatting error ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
-
-#### salesforcedx-vscode-core
-
-- Org create command to sf style ([PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
-
-- Org delete commands to sf style ([PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294))
-
-# 59.12.0 - January 3, 2024
+# 59.12.1 - January 4, 2024
 
 ## Fixed
 
 #### docs
 
 - We added new information about prompt context and grounding to our docs. Now you can write prompts using context and also better understand grounding. All this to ask the right questions and get back higher quality responses from Einstein for Developers. ([PR #5264](https://github.com/forcedotcom/salesforcedx-vscode/pull/5264))
+- We made some changes under the hood. ([PR #5307](https://github.com/forcedotcom/salesforcedx-vscode/pull/5307))
+
+#### salesforcedx-utils-vscode
+- We made some changes under the hood. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
 
 #### salesforcedx-vscode-apex
 
 - We updated the @salesforce/apex-node dependency to correct an existing bug where Apex test result records were dropped during fetch from org. ([PR #5269](https://github.com/forcedotcom/salesforcedx-vscode/pull/5269))
+- We made some changes under the hood. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
 
 #### salesforcedx-vscode-core
 
 - We updated the @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
-- We updated the `SFDX: List All Config Variables` and `SFDX: Set a Default Org` commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273))
+- We updated several commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
 
 
 # 59.9.0 - December 13, 2023
@@ -45,7 +28,7 @@
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #5253](https://github.com/forcedotcom/salesforcedx-vscode/pull/5253))
-  
+
 #### docs
 
 - We made updates to the Org Browser docs topic. ([PR #5254](https://github.com/forcedotcom/salesforcedx-vscode/pull/5254))
