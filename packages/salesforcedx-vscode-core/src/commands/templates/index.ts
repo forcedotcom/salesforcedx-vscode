@@ -33,9 +33,6 @@ export {
   internalLightningGenerateLwc,
   lightningGenerateLwc
 } from './lightningGenerateLwc';
-export {
-  ForceLightningLwcTestCreateExecutor,
-  forceLightningLwcTestCreate
-} from './forceLightningLwcTestCreate';
+export { ForceLightningLwcTestCreateExecutor } from './forceLightningLwcTestCreate';
 export { visualforceGenerateComponent } from './visualforceGenerateComponent';
 export { visualforceGeneratePage } from './visualforceGeneratePage';
