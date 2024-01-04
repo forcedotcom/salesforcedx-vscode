@@ -8,7 +8,7 @@
 - We made some changes under the hood. ([PR #5307](https://github.com/forcedotcom/salesforcedx-vscode/pull/5307))
 
 #### salesforcedx-utils-vscode
-- We made some changes under the hood. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
+- We fixed an issue where the Apex Replay Debugger produces an error that the logs directory does not exist when users debug anonymous Apex for the first time. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
 
 #### salesforcedx-vscode-apex
 
