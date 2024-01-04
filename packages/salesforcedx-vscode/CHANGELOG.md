@@ -1,3 +1,25 @@
+# 59.12.1 - January 6, 2024
+
+## Fixed
+
+#### docs
+
+- Fix bombed table rendering ([PR #5307](https://github.com/forcedotcom/salesforcedx-vscode/pull/5307))
+
+#### salesforcedx-utils-vscode
+
+- Correct log file name formatting error ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
+
+#### salesforcedx-vscode-apex
+
+- Correct log file name formatting error ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
+
+#### salesforcedx-vscode-core
+
+- Org create command to sf style ([PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
+
+- Org delete commands to sf style ([PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294))
+
 # 59.12.0 - January 3, 2024
 
 ## Fixed
