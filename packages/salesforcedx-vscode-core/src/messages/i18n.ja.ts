@@ -70,9 +70,9 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
-  force_org_create_default_scratch_org_text:
+  org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
-  force_org_create_result_parsing_error:
+  org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
   org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
