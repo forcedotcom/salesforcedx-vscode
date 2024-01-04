@@ -368,7 +368,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.create",
+          "command": "sfdx.org.create",
           "when": "sfdx:project_opened"
         },
         {
@@ -647,8 +647,8 @@
         "title": "%force_open_documentation_text%"
       },
       {
-        "command": "sfdx.force.org.create",
-        "title": "%force_org_create_default_scratch_org_text%"
+        "command": "sfdx.org.create",
+        "title": "%org_create_default_scratch_org_text%"
       },
       {
         "command": "sfdx.org.open",
@@ -973,6 +973,11 @@
           "type": "string",
           "default": null,
           "description": "%node_extra_ca_certs_description%"
+        },
+        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
+          "type": "string",
+          "default": null,
+          "description": "%sf_log_level_description%"
         }
       }
     },
