@@ -21,7 +21,7 @@
   "lightning_generate_event_text": "SFDX: Aura イベントを作成",
   "lightning_generate_interface_text": "SFDX: Aura インターフェースを作成",
   "lightning_generate_lwc_text": "SFDX: Lightning Web コンポーネントを作成",
-  "lightning_generate_test_text": "SFDX: Lightning Web コンポーネントのテストを作成",
+  "force_lightning_lwc_test_create_text": "SFDX: Lightning Web コンポーネントのテストを作成",
   "force_source_status_local_text": "SFDX: ローカルの変更を表示",
   "force_source_status_remote_text": "SFDX: デフォルトのスクラッチ組織内の変更を表示",
   "debugger_stop_text": "SFDX: Apex デバッガセッションを停止",

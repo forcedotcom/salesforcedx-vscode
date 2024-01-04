@@ -548,7 +548,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.lightning.generate.test",
+          "command": "sfdx.force.lightning.lwc.test.create",
           "when": "sfdx:project_opened"
         },
         {
@@ -843,8 +843,8 @@
         "title": "%lightning_generate_lwc_text%"
       },
       {
-        "command": "sfdx.lightning.generate.test",
-        "title": "%lightning_generate_test_text%"
+        "command": "sfdx.force.lightning.lwc.test.create",
+        "title": "%force_lightning_lwc_test_create_text%"
       },
       {
         "command": "sfdx.internal.lightning.generate.lwc",

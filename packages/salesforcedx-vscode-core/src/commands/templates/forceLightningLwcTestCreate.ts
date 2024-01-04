@@ -35,7 +35,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
     this.metadata = LWC_TYPE;
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
-      .withArg('lightning:generate:test')
+      .withArg('force:lightning:lwc:test:create')
       .withFlag(
         '--filepath',
         path.join(
@@ -44,7 +44,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
           data.fileName + '.js'
         )
       )
-      .withLogName('lightning_web_component_generate_test');
+      .withLogName('force_lightning_web_component_test_create');
     return builder.build();
   }
 

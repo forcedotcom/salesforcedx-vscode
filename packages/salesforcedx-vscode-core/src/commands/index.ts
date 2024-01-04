@@ -158,7 +158,7 @@ export {
   lightningGenerateEvent,
   lightningGenerateInterface,
   lightningGenerateLwc,
-  lightningGenerateTest,
+  forceLightningLwcTestCreate,
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';

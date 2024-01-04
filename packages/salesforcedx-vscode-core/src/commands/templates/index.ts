@@ -34,8 +34,8 @@ export {
   lightningGenerateLwc
 } from './lightningGenerateLwc';
 export {
-  LightningGenerateTestExecutor,
-  lightningGenerateTest
-} from './lightningGenerateTest';
+  ForceLightningLwcTestCreateExecutor,
+  forceLightningLwcTestCreate
+} from './forceLightningLwcTestCreate';
 export { visualforceGenerateComponent } from './visualforceGenerateComponent';
 export { visualforceGeneratePage } from './visualforceGeneratePage';

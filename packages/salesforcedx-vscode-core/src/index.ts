@@ -56,7 +56,7 @@ import {
   lightningGenerateEvent,
   lightningGenerateInterface,
   lightningGenerateLwc,
-  lightningGenerateTest,
+  forceLightningLwcTestCreate,
   orgDisplay,
   orgList,
   orgLoginWeb,
@@ -274,9 +274,9 @@ function registerCommands(
     lightningGenerateLwc
   );
 
-  const lightningGenerateTestCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.generate.test',
-    lightningGenerateTest
+  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.create',
+    forceLightningLwcTestCreate
   );
 
   const debuggerStopCmd = vscode.commands.registerCommand(
@@ -421,7 +421,7 @@ function registerCommands(
     lightningGenerateEventCmd,
     lightningGenerateInterfaceCmd,
     lightningGenerateLwcCmd,
-    lightningGenerateTestCmd,
+    forceLightningLwcTestCreateCmd,
     debuggerStopCmd,
     configListCmd,
     forceAliasListCmd,

@@ -7,16 +7,17 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import { LightningGenerateTestExecutor } from '../../../../src/commands/templates';
+import { ForceLightningLwcTestCreateExecutor } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
 describe('Lightning Web Component Generate Test', () => {
   it('Should build the Lightning Web Component Test create command', async () => {
-    const lightningGenerateTest = new LightningGenerateTestExecutor();
+    const forceLightningLwcTestCreate =
+      new ForceLightningLwcTestCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'lwc');
     const fileName = 'testing';
-    const lwcCreateTestCommand = lightningGenerateTest.build({
+    const lwcCreateTestCommand = forceLightningLwcTestCreate.build({
       fileName,
       outputdir: path.join(outputDirPath, 'testing')
     });
@@ -32,12 +33,12 @@ describe('Lightning Web Component Generate Test', () => {
         `sfdx lightning:generate:test --filepath ${fullFilepath}`
       );
       expect(lwcCreateTestCommand.description).to.equal(
-        nls.localize('lightning_generate_test_text')
+        nls.localize('force_lightning_lwc_test_create_text')
       );
-      expect(lightningGenerateTest.getDefaultDirectory()).to.equal('lwc');
-      expect(lightningGenerateTest.getFileExtension()).to.equal('.js');
+      expect(forceLightningLwcTestCreate.getDefaultDirectory()).to.equal('lwc');
+      expect(forceLightningLwcTestCreate.getFileExtension()).to.equal('.js');
       expect(
-        lightningGenerateTest
+        forceLightningLwcTestCreate
           .getSourcePathStrategy()
           .getPathToSource(path.join(outputDirPath, 'testing'), fileName, '.js')
       ).to.equal(

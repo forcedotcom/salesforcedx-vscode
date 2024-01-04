@@ -23,7 +23,7 @@
   "lightning_generate_event_text": "SFDX: Create Aura Event",
   "lightning_generate_interface_text": "SFDX: Create Aura Interface",
   "lightning_generate_lwc_text": "SFDX: Create Lightning Web Component",
-  "lightning_generate_test_text": "SFDX: Create Lightning Web Component Test",
+  "force_lightning_lwc_test_create_text": "SFDX: Create Lightning Web Component Test",
   "force_lightning_rename_component_text": "SFDX: Rename Component",
   "force_source_status_local_text": "SFDX: View Local Changes",
   "force_source_status_remote_text": "SFDX: View Changes in Default Org",
