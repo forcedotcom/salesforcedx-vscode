@@ -35,7 +35,8 @@ interface ApexExecuteParameters {
 }
 
 export class AnonApexGatherer
-  implements ParametersGatherer<ApexExecuteParameters> {
+  implements ParametersGatherer<ApexExecuteParameters>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
@@ -70,12 +71,9 @@ export class AnonApexGatherer
   }
 }
 
-export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
-  ApexExecuteParameters
-> {
-  public static diagnostics = vscode.languages.createDiagnosticCollection(
-    'apex-errors'
-  );
+export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+  public static diagnostics =
+    vscode.languages.createDiagnosticCollection('apex-errors');
 
   private isDebugging: boolean;
 
@@ -168,6 +166,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       return false;
     }
 
+    fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
     fs.writeFileSync(logFilePath, logs);
 
     return true;
@@ -203,12 +202,8 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     AnonApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
-      const {
-        compileProblem,
-        exceptionMessage,
-        lineNumber,
-        columnNumber
-      } = response.diagnostic[0];
+      const { compileProblem, exceptionMessage, lineNumber, columnNumber } =
+        response.diagnostic[0];
       let message;
       if (compileProblem && compileProblem !== '') {
         message = compileProblem;
@@ -254,7 +249,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export const forceAnonApexExecute =  async () => {
+export const forceAnonApexExecute = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
