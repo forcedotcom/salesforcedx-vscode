@@ -34,6 +34,8 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export {
   DebuggerSessionDetachExecutor,
@@ -48,8 +50,6 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ConfigList, configList } from './configList';
-export { ConfigSetExecutor, configSet } from './configSet';
 export { forceCreateManifest } from './forceCreateManifest';
 export {
   ForceDescribeMetadataExecutor,
@@ -59,13 +59,6 @@ export {
   ForceListMetadataExecutor,
   forceListMetadata
 } from './forceListMetadata';
-export { openDocumentation } from './openDocumentation';
-export {
-  AliasGatherer,
-  ForceOrgCreateExecutor,
-  forceOrgCreate
-} from './forceOrgCreate';
-export { forceOrgDelete } from './forceOrgDelete';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
@@ -114,7 +107,9 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { taskStop } from './taskStop';
+export { openDocumentation } from './openDocumentation';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
@@ -143,24 +138,25 @@ export {
   stopApexDebugLogging,
   turnOffLogging
 } from './stopApexDebugLogging';
+export { taskStop } from './taskStop';
 export {
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexUnitClassCreate,
-  forceApexTriggerCreate,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
   forceLightningLwcTestCreate,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './templates';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
