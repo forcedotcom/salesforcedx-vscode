@@ -12,8 +12,14 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync, readFileSync } from 'fs';
 import { join, extname, basename } from 'path';
-import { Range, TextDocument, TextEditor, TextLine, window } from 'vscode';
-import { channelService } from '../channels';
+import {
+  Range,
+  TextDocument,
+  TextEditor,
+  TextLine,
+  window,
+  workspace
+} from 'vscode';
 import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import {
@@ -115,9 +121,14 @@ export class CodeCoverageHandler {
 
   public onDidChangeActiveTextEditor(editor?: TextEditor) {
     if (editor && this.statusBar.isHighlightingEnabled) {
-      const coverage = applyCoverageToSource(editor.document);
-      this.coveredLines = coverage.coveredLines;
-      this.uncoveredLines = coverage.uncoveredLines;
+      try {
+        const coverage = applyCoverageToSource(editor.document);
+        this.coveredLines = coverage.coveredLines;
+        this.uncoveredLines = coverage.uncoveredLines;
+        this.setCoverageDecorators(editor);
+      } catch (e) {
+        void window.showWarningMessage(e.message);
+      }
     }
   }
 
@@ -173,12 +184,20 @@ const applyCoverageToSource = (
     );
 
     if (!codeCovItem) {
-      channelService.appendLine(
-        nls.localize(
-          'colorizer_no_code_coverage_current_file',
-          document.uri.fsPath
-        )
-      );
+      const showWarning: boolean = workspace
+        .getConfiguration()
+        .get<boolean>(
+          'salesforcedx-vscode-apex.disable-warnings-for-missing-coverage',
+          false
+        );
+      if (!showWarning) {
+        throw new Error(
+          nls.localize(
+            'colorizer_no_code_coverage_current_file',
+            document.uri.fsPath
+          )
+        );
+      }
       return { coveredLines: [], uncoveredLines: [] };
     }
 
