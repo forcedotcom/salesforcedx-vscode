@@ -12,3 +12,4 @@ export { ConfigGet } from './configGet';
 export { GlobalCliEnvironment } from './globalCliEnvironment';
 export { OrgDisplay } from './orgDisplay';
 export { SfdxCommandBuilder } from './sfdxCommandBuilder';
+export { CliStatusEnum, CliVersionStatus } from './cliVersionStatus';
