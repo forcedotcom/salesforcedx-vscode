@@ -5,7 +5,7 @@ lang: en
 
 ## Install Extensions from Open VSX Registry
 
-Maximize your productivity in Code Builder by installing additional extensions to your Code Builder environment. [Open VSX](open-vsx.org) is an Eclipse open-source project and alternative to the Visual Studio Marketplace. Extensions available here can be installed in Code Builder. You can browse and install these extensions from within VS Code. Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar or the **View: Extensions** command (⇧⌘X).
+Maximize your productivity in Code Builder by installing additional extensions to your Code Builder environment. [Open VSX](https://open-vsx.org) is an Eclipse open-source project and alternative to the Visual Studio Marketplace. Extensions available here can be installed in Code Builder. You can browse and install these extensions from within VS Code. Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar or the **View: Extensions** command (⇧⌘X).
 
 ## Reset your Code Builder Environment
 
