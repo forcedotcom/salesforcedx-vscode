@@ -15,7 +15,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
-import { forceApexClassCreate } from '../../../../src/commands/templates/forceApexClassCreate';
+import { apexGenerateClass } from '../../../../src/commands/templates/apexGenerateClass';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
@@ -24,7 +24,7 @@ import { workspaceUtils } from '../../../../src/util';
 const sandbox = createSandbox();
 
 // tslint:disable:no-unused-expression
-describe('Force Apex Class Create', () => {
+describe('Apex Generate Class', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -58,7 +58,7 @@ describe('Force Apex Class Create', () => {
     sandbox.restore();
   });
 
-  it('Should create Apex Class', async () => {
+  it('Should generate Apex Class', async () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
@@ -78,7 +78,7 @@ describe('Force Apex Class Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
@@ -122,7 +122,7 @@ describe('Force Apex Class Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const errorMessage = templatesNls.localize('AlphaNumericNameError');
@@ -131,7 +131,7 @@ describe('Force Apex Class Create', () => {
     sinon.assert.calledOnce(showFailedExecutionStub);
     sinon.assert.calledWith(
       showFailedExecutionStub,
-      nls.localize('force_apex_class_create_text')
+      nls.localize('apex_generate_class_text')
     );
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
