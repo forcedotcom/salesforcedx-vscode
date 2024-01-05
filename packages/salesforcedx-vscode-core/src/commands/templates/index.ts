@@ -9,6 +9,7 @@ export { analyticsGenerateTemplate } from './analyticsGenerateTemplate';
 export { apexGenerateClass } from './apexGenerateClass';
 export { apexGenerateTrigger } from './apexGenerateTrigger';
 export * from './apexGenerateUnitTestClass';
+export * from './apexGenerateBasicTestClass';
 export {
   ForceLightningLwcTestCreateExecutor,
   forceLightningLwcTestCreate

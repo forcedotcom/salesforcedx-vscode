@@ -19,6 +19,7 @@ import {
   apexGenerateClass,
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
+  apexGenerateBasicTestClass,
   checkSObjectsAndRefresh,
   configList,
   configSet,
@@ -239,6 +240,10 @@ function registerCommands(
     'sfdx.apex.generate.unit.test.class',
     apexGenerateUnitTestClass
   );
+   const apexGenerateBasicTestClassCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.basic.test.class',
+    apexGenerateBasicTestClass
+  );
   const analyticsGenerateTemplateCmd = vscode.commands.registerCommand(
     'sfdx.analytics.generate.template',
     analyticsGenerateTemplate
@@ -416,6 +421,7 @@ function registerCommands(
     forceTaskStopCmd,
     apexGenerateClassCmd,
     apexGenerateUnitTestClassCmd,
+    apexGenerateBasicTestClassCmd,
     analyticsGenerateTemplateCmd,
     visualforceGenerateComponentCmd,
     visualforceGeneratePageCmd,

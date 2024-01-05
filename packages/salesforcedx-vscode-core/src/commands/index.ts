@@ -144,6 +144,7 @@ export {
   apexGenerateClass,
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
+  apexGenerateBasicTestClass,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,
