@@ -524,11 +524,11 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.org.delete.default",
+          "command": "sfdx.org.delete.default",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.delete.username",
+          "command": "sfdx.org.delete.username",
           "when": "sfdx:project_opened"
         },
         {
