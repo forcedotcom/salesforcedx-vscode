@@ -27,24 +27,15 @@ import {
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import {
-  AURA_COMPONENT_EXTENSION,
-  AURA_DIRECTORY,
-  AURA_TYPE
-} from './metadataTypeConstants';
+import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
-export class LibraryForceLightningComponentCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize('force_lightning_component_create_text');
-  public telemetryName = 'force_lightning_component_create';
-  public metadataTypeName = AURA_TYPE;
+export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+  public executionName = nls.localize('lightning_generate_lwc_text');
+  public telemetryName = 'force_lightning_web_component_create';
+  public metadataTypeName = LWC_TYPE;
   public templateType = TemplateType.LightningComponent;
   public getOutputFileName(data: DirFileNameSelection) {
     return data.fileName;
-  }
-  public getFileExtension() {
-    return AURA_COMPONENT_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
     const internal = sfdxCoreSettings.getInternalDev();
@@ -52,7 +43,7 @@ export class LibraryForceLightningComponentCreateExecutor extends LibraryBaseTem
       outputdir: data.outputdir,
       componentname: data.fileName,
       template: 'default',
-      type: 'aura',
+      type: 'lwc',
       internal
     };
     return templateOptions;
@@ -60,11 +51,11 @@ export class LibraryForceLightningComponentCreateExecutor extends LibraryBaseTem
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
-const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
+const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
+const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
-export async function forceLightningComponentCreate() {
-  const createTemplateExecutor = new LibraryForceLightningComponentCreateExecutor();
+export async function lightningGenerateLwc() {
+  const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -78,12 +69,11 @@ export async function forceLightningComponentCreate() {
   await commandlet.run();
 }
 
-export async function forceInternalLightningComponentCreate(sourceUri: Uri) {
-  const createTemplateExecutor = new LibraryForceLightningComponentCreateExecutor();
-
+export async function internalLightningGenerateLwc(sourceUri: Uri) {
+  const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
+    new CompositeParametersGatherer(
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),

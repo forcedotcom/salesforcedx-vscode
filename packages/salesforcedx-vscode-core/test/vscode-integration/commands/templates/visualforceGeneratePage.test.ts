@@ -12,12 +12,12 @@ import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
-import { forceVisualforceComponentCreate } from '../../../../src/commands/templates';
+import { visualforceGeneratePage } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Visualforce Component Create', () => {
+describe('Visualforce Generate Page', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -47,53 +47,50 @@ describe('Force Visualforce Component Create', () => {
     openTextDocumentStub.restore();
   });
 
-  it('Should create Visualforce Component', async () => {
+  it('Should generate Visualforce Component', async () => {
     // arrange
-    const fileName = 'testVFCmp';
+    const fileName = 'testVFPage';
     const outputPath = 'force-app/main/default/components';
-    const vfCmpPath = path.join(
+    const vfPagePath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testVFCmp.component'
+      'testVFPage.page'
     );
-    const vfCmpMetaPath = path.join(
+    const vfPageMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testVFCmp.component-meta.xml'
+      'testVFPage.page-meta.xml'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
-    assert.noFile([vfCmpPath, vfCmpMetaPath]);
+    shell.rm('-f', path.join(vfPagePath));
+    shell.rm('-f', path.join(vfPageMetaPath));
+    assert.noFile([vfPagePath, vfPageMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    await forceVisualforceComponentCreate();
+    await visualforceGeneratePage();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
-    assert.file([vfCmpPath, vfCmpMetaPath]);
+    assert.file([vfPagePath, vfPageMetaPath]);
     assert.fileContent(
-      vfCmpPath,
-      `<apex:component>
+      vfPagePath,
+      `<apex:page>
 <!-- Begin Default Content REMOVE THIS -->
 <h1>Congratulations</h1>
-This is your new Component
+This is your new Page
 <!-- End Default Content REMOVE THIS -->
-</apex:component>`
+</apex:page>`
     );
     assert.fileContent(
-      vfCmpMetaPath,
+      vfPageMetaPath,
       `<?xml version="1.0" encoding="UTF-8"?>
-<ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <label>testVFCmp</label>
-</ApexComponent>`
+<ApexPage xmlns="http://soap.sforce.com/2006/04/metadata"> \n    <apiVersion>${defaultApiVersion}</apiVersion>
+    <label>testVFPage</label>
+</ApexPage>`
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, vfCmpPath);
+    sinon.assert.calledWith(openTextDocumentStub, vfPagePath);
 
     // clean up
     shell.rm(

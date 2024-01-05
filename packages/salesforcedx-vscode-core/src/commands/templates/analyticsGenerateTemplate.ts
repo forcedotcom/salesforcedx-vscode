@@ -28,10 +28,8 @@ import {
   ANALYTICS_TEMPLATE_TYPE
 } from './metadataTypeConstants';
 
-export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemplateCommand<
-  TemplateAndDir
-> {
-  public executionName = nls.localize('force_analytics_template_create_text');
+export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
+  public executionName = nls.localize('analytics_generate_template_text');
   public telemetryName = 'force_analytics_template_create';
   public metadataTypeName = ANALYTICS_TEMPLATE_TYPE;
   public templateType = TemplateType.AnalyticsTemplate;
@@ -66,7 +64,7 @@ export interface Template {
 export class SelectProjectTemplate implements ParametersGatherer<Template> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Template>> {
     const projectTemplateInputOptions = {
-      prompt: nls.localize('force_analytics_template_name_text')
+      prompt: nls.localize('analytics_template_name_text')
     } as vscode.InputBoxOptions;
     const fileName = await vscode.window.showInputBox(
       projectTemplateInputOptions
@@ -85,8 +83,8 @@ const parameterGatherer = new CompositeParametersGatherer(
   outputDirGatherer
 );
 
-export async function forceAnalyticsTemplateCreate() {
-  const createTemplateExecutor = new LibraryForceAnalyticsTemplateCreateExecutor();
+export async function analyticsGenerateTemplate() {
+  const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     parameterGatherer,
