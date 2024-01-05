@@ -662,19 +662,15 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 });
 
 // Verify that the number passed in is a hex address
-function isHex(inputString: string): boolean {
-  if (inputString.startsWith('0x')) {
-    inputString = inputString.substr(2);
-  }
-  const a = parseInt(inputString, 16);
-  return a.toString(16) === inputString.toLowerCase();
-}
+const isHex = (inputString: string): boolean => {
+  return /^(0x)?[a-f0-9]+$/i.test(inputString);
+};
 
-export function createExpectedXHROptions(
+export const createExpectedXHROptions = (
   requestBody: string | undefined,
   requestUrl: string,
   restHttpMethodEnum: RestHttpMethodEnum
-): XHROptions {
+): XHROptions => {
   return {
     type: restHttpMethodEnum,
     url: requestUrl,
@@ -690,7 +686,7 @@ export function createExpectedXHROptions(
     },
     data: requestBody
   } as XHROptions;
-}
+};
 
 /* The test code used to generate the heap dump. This is important because of the ordering for the verification
    There are comments below where the checkpoints were set and where the various SOQL/Apex ActionScript were executed
