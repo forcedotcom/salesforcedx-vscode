@@ -1,6 +1,4 @@
-# 59.12.2 - January 7, 2024
-
-# 59.12.1 - January 4, 2024
+# 59.12.2 - January 5, 2024
 
 ## Fixed
 
@@ -10,6 +8,7 @@
 - We made some changes under the hood. ([PR #5307](https://github.com/forcedotcom/salesforcedx-vscode/pull/5307))
 
 #### salesforcedx-utils-vscode
+
 - We made some changes under the hood. ([PR #5316](https://github.com/forcedotcom/salesforcedx-vscode/pull/5316))
 
 #### salesforcedx-vscode-apex
@@ -20,8 +19,8 @@
 #### salesforcedx-vscode-core
 
 - We updated the @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
-- We updated several commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
-
+- We updated several commands to the new `sf style` to remove some more pesky warnings. Use the new VSCode setting to set the `SF_LOG_LEVEL` environment variable that is now required for the `SFDX: Create a Default Scratch Org` command. Documentation for Salesforce CLI log levels here: https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_log_messages.htm
+  ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
 
 # 59.9.0 - December 13, 2023
 
@@ -40,17 +39,21 @@
 ## Added
 
 #### salesforcedx-vscode-apex
-#### salesforcedx-vscode-expanded
-#### salesforcedx-vscode-lightning
-#### salesforcedx-vscode-lwc
-#### salesforcedx-vscode-soql
 
+#### salesforcedx-vscode-expanded
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+#### salesforcedx-vscode-soql
 
 - We made some changes to the order in which extensions that are part of the Salesforce Extension Pack, are enabled when the extension pack is activated. This update enables faster activation of our Extension Pack. ([PR #5250](https://github.com/forcedotcom/salesforcedx-vscode/pull/5250))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
+
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #5257](https://github.com/forcedotcom/salesforcedx-vscode/pull/5257), [PR #5243](https://github.com/forcedotcom/salesforcedx-vscode/pull/5243))
