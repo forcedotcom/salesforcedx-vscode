@@ -61,12 +61,6 @@ export {
 } from './forceListMetadata';
 export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
-  AliasGatherer,
-  ForceOrgCreateExecutor,
-  forceOrgCreate
-} from './forceOrgCreate';
-export { forceOrgDelete } from './forceOrgDelete';
-export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
@@ -104,6 +98,8 @@ export {
   forceSourceStatus
 } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
@@ -144,23 +140,23 @@ export {
   turnOffLogging
 } from './stopApexDebugLogging';
 export {
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexTriggerCreate,
-  forceApexUnitClassCreate,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
   forceLightningLwcTestCreate,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './templates';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

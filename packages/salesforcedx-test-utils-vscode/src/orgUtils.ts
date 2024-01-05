@@ -42,10 +42,10 @@ export const createScratchOrg = async (
   );
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:org:create')
-      .withFlag('--definitionfile', `${scratchDefFilePath}`)
-      .withArg('--setdefaultusername')
-      .withJson()
+      .withArg('org:create:scratch')
+      .withFlag('--definition-file', `${scratchDefFilePath}`)
+      .withArg('--set-default')
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
@@ -61,9 +61,9 @@ export const deleteScratchOrg = async (
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:org:delete')
-      .withFlag('--targetusername', username)
-      .withArg('--noprompt')
+      .withArg('org:delete:scratch')
+      .withFlag('--target-org', username)
+      .withArg('--no-prompt')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
