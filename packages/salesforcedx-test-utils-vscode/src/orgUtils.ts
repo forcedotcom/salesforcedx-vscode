@@ -22,7 +22,7 @@ export const generateSFProject = async (projectName: string): Promise<void> => {
     new SfdxCommandBuilder()
       .withArg('project:generate')
       .withFlag('--name', projectName)
-      .withJson()
+      .withJson(false)
       .build(),
     { cwd: process.cwd() }
   ).execute();
