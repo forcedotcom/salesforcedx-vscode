@@ -976,7 +976,7 @@
         },
         "salesforcedx-vscode-core.SF_LOG_LEVEL": {
           "type": "string",
-          "default": null,
+          "default": "fatal",
           "description": "%sf_log_level_description%"
         }
       }
