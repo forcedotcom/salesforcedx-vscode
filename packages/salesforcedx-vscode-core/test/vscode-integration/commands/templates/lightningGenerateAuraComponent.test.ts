@@ -13,15 +13,15 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceInternalLightningAppCreate,
-  forceLightningAppCreate
-} from '../../../../src/commands/templates/forceLightningAppCreate';
+  internalLightningGenerateAuraComponent,
+  lightningGenerateAuraComponent
+} from '../../../../src/commands/templates/lightningGenerateAuraComponent';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Lightning App Create', () => {
+describe('Lightning Generate Component', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -54,95 +54,99 @@ describe('Force Lightning App Create', () => {
     openTextDocumentStub.restore();
   });
 
-  it('Should create Aura App', async () => {
+  it('Should generate Aura Component', async () => {
     // arrange
     getInternalDevStub.returns(false);
+    const fileName = 'testComponent';
     const outputPath = 'force-app/main/default/aura';
-    const auraAppPath = path.join(
+    const auraComponentPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testApp',
-      'testApp.app'
+      'testComponent',
+      'testComponent.cmp'
     );
-    const auraAppMetaPath = path.join(
+    const auraComponentMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testApp',
-      'testApp.app-meta.xml'
+      'testComponent',
+      'testComponent.cmp-meta.xml'
     );
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-    assert.noFile([auraAppPath, auraAppMetaPath]);
-    showInputBoxStub.returns('testApp');
+    assert.noFile([auraComponentPath, auraComponentMetaPath]);
+    showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningAppCreate();
+    await lightningGenerateAuraComponent();
 
     // assert
     const suffixarray = [
-      '.app',
-      '.app-meta.xml',
+      '.cmp',
+      '.cmp-meta.xml',
       '.auradoc',
       '.css',
       'Controller.js',
       'Helper.js',
       'Renderer.js',
-      '.svg'
+      '.svg',
+      '.design'
     ];
     for (const suffix of suffixarray) {
       assert.file(
         path.join(
           workspaceUtils.getRootWorkspacePath(),
           outputPath,
-          'testApp',
-          `testApp${suffix}`
+          fileName,
+          `${fileName}${suffix}`
         )
       );
     }
     assert.fileContent(
-      auraAppPath,
-      '<aura:application>\n\n</aura:application>'
+      auraComponentPath,
+      '<aura:component>\n\n</aura:component>'
     );
     assert.fileContent(
-      auraAppMetaPath,
+      auraComponentMetaPath,
       '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">'
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
+    sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
 
     // clean up
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
   });
 
-  it('Should create internal Aura App', async () => {
+  it('Should generate internal Aura Component', async () => {
     // arrange
     getInternalDevStub.returns(true);
+    const fileName = 'testComponent';
     const outputPath = 'force-app/main/default/aura';
-    const auraAppPath = path.join(
+    const auraComponentPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testApp',
-      'testApp.app'
+      'testComponent',
+      'testComponent.cmp'
     );
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-    assert.noFile([auraAppPath]);
-    showInputBoxStub.returns('testApp');
+    assert.noFile([auraComponentPath]);
+    showInputBoxStub.returns(fileName);
+    quickPickStub.returns(outputPath);
 
     // act
     shell.mkdir(
       '-p',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
     );
-    await forceInternalLightningAppCreate(
+    await internalLightningGenerateAuraComponent(
       vscode.Uri.file(
         path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
       )
@@ -150,35 +154,36 @@ describe('Force Lightning App Create', () => {
 
     // assert
     const suffixarray = [
-      '.app',
+      '.cmp',
       '.auradoc',
       '.css',
       'Controller.js',
       'Helper.js',
       'Renderer.js',
-      '.svg'
+      '.svg',
+      '.design'
     ];
     for (const suffix of suffixarray) {
       assert.file(
         path.join(
           workspaceUtils.getRootWorkspacePath(),
           outputPath,
-          'testApp',
-          `testApp${suffix}`
+          fileName,
+          `${fileName}${suffix}`
         )
       );
     }
     assert.fileContent(
-      auraAppPath,
-      '<aura:application>\n\n</aura:application>'
+      auraComponentPath,
+      '<aura:component>\n\n</aura:component>'
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
+    sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
 
     // clean up
     shell.rm(
       '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
   });
 });

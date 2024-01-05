@@ -9,43 +9,47 @@ import {
   DirFileNameSelection,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
+import { LightningEventOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
+  MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
-import { MetadataTypeGatherer } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
+import {
+  AURA_DIRECTORY,
+  AURA_EVENT_EXTENSION,
+  AURA_TYPE
+} from './metadataTypeConstants';
 
-export class LibraryForceLightningLwcCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize('force_lightning_lwc_create_text');
-  public telemetryName = 'force_lightning_web_component_create';
-  public metadataTypeName = LWC_TYPE;
-  public templateType = TemplateType.LightningComponent;
+export class LibraryLightningGenerateEventExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+  public executionName = nls.localize('lightning_generate_event_text');
+  public telemetryName = 'force_lightning_event_create';
+  public metadataTypeName = AURA_TYPE;
+  public templateType = TemplateType.LightningEvent;
   public getOutputFileName(data: DirFileNameSelection) {
     return data.fileName;
   }
+  public getFileExtension() {
+    return AURA_EVENT_EXTENSION;
+  }
   public constructTemplateOptions(data: DirFileNameSelection) {
     const internal = sfdxCoreSettings.getInternalDev();
-    const templateOptions: LightningComponentOptions = {
+    const templateOptions: LightningEventOptions = {
       outputdir: data.outputdir,
-      componentname: data.fileName,
-      template: 'default',
-      type: 'lwc',
+      eventname: data.fileName,
+      template: 'DefaultLightningEvt',
       internal
     };
     return templateOptions;
@@ -53,11 +57,11 @@ export class LibraryForceLightningLwcCreateExecutor extends LibraryBaseTemplateC
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
-const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
+const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
+const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
-export async function forceLightningLwcCreate() {
-  const createTemplateExecutor = new LibraryForceLightningLwcCreateExecutor();
+export async function lightningGenerateEvent() {
+  const createTemplateExecutor = new LibraryLightningGenerateEventExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -71,8 +75,8 @@ export async function forceLightningLwcCreate() {
   await commandlet.run();
 }
 
-export async function forceInternalLightningLwcCreate(sourceUri: Uri) {
-  const createTemplateExecutor = new LibraryForceLightningLwcCreateExecutor();
+export async function internalLightningGenerateEvent(sourceUri: Uri) {
+  const createTemplateExecutor = new LibraryLightningGenerateEventExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { forceApexUnitClassCreate } from '../../../../src/commands/templates';
-import { LibraryForceApexUnitClassCreateExecutor } from '../../../../src/commands/templates/executors/LibraryForceApexUnitClassCreateExecutor';
+import { apexGenerateUnitTestClass } from '../../../../src/commands/templates';
+import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
@@ -23,7 +23,9 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryForceApexUnitClassCreateExecutor');
+jest.mock(
+  '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor'
+);
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfdxWorkspaceChecker');
@@ -32,8 +34,8 @@ jest.mock('../../../../src/commands/util/timestampConflictChecker');
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
-const libraryForceApexUnitClassCreateExecutorMocked = jest.mocked(
-  LibraryForceApexUnitClassCreateExecutor
+const libraryApexGenerateUnitTestClassExecutorMocked = jest.mocked(
+  LibraryApexGenerateUnitTestClassExecutor
 );
 const sfdxWorkspaceCheckerMocked = jest.mocked(SfdxWorkspaceChecker);
 const compositeParametersGathererMocked = jest.mocked(
@@ -42,7 +44,7 @@ const compositeParametersGathererMocked = jest.mocked(
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 const simpleGathererMocked = jest.mocked(SimpleGatherer);
 
-describe('forceApexUnitClassCreate Unit Tests.', () => {
+describe('apexGenerateUnitTestClass Unit Tests.', () => {
   let runMock: jest.Mock<any, any>;
   let sfdxCommandletMocked: jest.SpyInstance<any, any>;
 
@@ -59,14 +61,14 @@ describe('forceApexUnitClassCreate Unit Tests.', () => {
       });
   });
 
-  it('Should be able to execute forceApexUnitClassCreate.', async () => {
-    await forceApexUnitClassCreate();
+  it('Should be able to execute apexGenerateUnitTestClass.', async () => {
+    await apexGenerateUnitTestClass();
     expect(selectFileNameMocked).toHaveBeenCalledWith(
       APEX_CLASS_NAME_MAX_LENGTH
     );
     expect(selectOutputDirMocked).toHaveBeenCalledWith(APEX_CLASS_DIRECTORY);
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
-    expect(libraryForceApexUnitClassCreateExecutorMocked).toHaveBeenCalled();
+    expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
     expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
@@ -76,14 +78,14 @@ describe('forceApexUnitClassCreate Unit Tests.', () => {
 
   it('Should prompt if the provided params are not valid.', async () => {
     // This happens when the command is executed from the context menu in the explorer on the classes folder.
-    const notAString = {path: 'thing'};
-    const notAString2 = {path: 'thing2'};
-    await (forceApexUnitClassCreate as any)(notAString, notAString2);
+    const notAString = { path: 'thing' };
+    const notAString2 = { path: 'thing2' };
+    await (apexGenerateUnitTestClass as any)(notAString, notAString2);
     // Note there is a bad pattern in the exported getParamGatherers method that uses module state to cache the gatherers.
     // This being the case the selectFileNameMocked check is invalid here when all tests are run.
     expect(simpleGathererMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
-    expect(libraryForceApexUnitClassCreateExecutorMocked).toHaveBeenCalled();
+    expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
     expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
@@ -94,11 +96,11 @@ describe('forceApexUnitClassCreate Unit Tests.', () => {
   it('Should used the passed parameters if provided.', async () => {
     const fileName = 'testFileName';
     const outputDir = 'testOutputDir';
-    await forceApexUnitClassCreate(fileName, outputDir);
+    await apexGenerateUnitTestClass(fileName, outputDir);
     expect(selectFileNameMocked).not.toHaveBeenCalled();
     expect(selectOutputDirMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
-    expect(libraryForceApexUnitClassCreateExecutorMocked).toHaveBeenCalled();
+    expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
     expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();

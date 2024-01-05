@@ -9,7 +9,7 @@ import {
   DirFileNameSelection,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LightningAppOptions, TemplateType } from '@salesforce/templates';
+import { LightningInterfaceOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
@@ -28,30 +28,28 @@ import {
 } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import {
-  AURA_APP_EXTENSION,
   AURA_DIRECTORY,
+  AURA_INTERFACE_EXTENSION,
   AURA_TYPE
 } from './metadataTypeConstants';
 
-export class LibraryForceLightningAppCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize('force_lightning_app_create_text');
-  public telemetryName = 'force_lightning_app_create';
+export class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+  public executionName = nls.localize('lightning_generate_interface_text');
+  public telemetryName = 'force_lightning_interface_create';
   public metadataTypeName = AURA_TYPE;
-  public templateType = TemplateType.LightningApp;
+  public templateType = TemplateType.LightningInterface;
   public getOutputFileName(data: DirFileNameSelection) {
     return data.fileName;
   }
   public getFileExtension() {
-    return AURA_APP_EXTENSION;
+    return AURA_INTERFACE_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
     const internal = sfdxCoreSettings.getInternalDev();
-    const templateOptions: LightningAppOptions = {
+    const templateOptions: LightningInterfaceOptions = {
       outputdir: data.outputdir,
-      appname: data.fileName,
-      template: 'DefaultLightningApp',
+      interfacename: data.fileName,
+      template: 'DefaultLightningIntf',
       internal
     };
     return templateOptions;
@@ -62,8 +60,9 @@ const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
-export async function forceLightningAppCreate() {
-  const createTemplateExecutor = new LibraryForceLightningAppCreateExecutor();
+export async function lightningGenerateInterface() {
+  const createTemplateExecutor =
+    new LibraryLightningGenerateInterfaceExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -77,8 +76,9 @@ export async function forceLightningAppCreate() {
   await commandlet.run();
 }
 
-export async function forceInternalLightningAppCreate(sourceUri: Uri) {
-  const createTemplateExecutor = new LibraryForceLightningAppCreateExecutor();
+export async function internalLightningGenerateInterface(sourceUri: Uri) {
+  const createTemplateExecutor =
+    new LibraryLightningGenerateInterfaceExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { TemplateService } from '@salesforce/templates';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
@@ -13,15 +13,15 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceInternalLightningComponentCreate,
-  forceLightningComponentCreate
-} from '../../../../src/commands/templates/forceLightningComponentCreate';
+  internalLightningGenerateEvent,
+  lightningGenerateEvent
+} from '../../../../src/commands/templates/lightningGenerateEvent';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Lightning Component Create', () => {
+describe('Lightning Generate Event', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -54,66 +54,51 @@ describe('Force Lightning Component Create', () => {
     openTextDocumentStub.restore();
   });
 
-  it('Should create Aura Component', async () => {
+  it('Should generate Aura Event', async () => {
     // arrange
     getInternalDevStub.returns(false);
-    const fileName = 'testComponent';
+    const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
-    const auraComponentPath = path.join(
+    const auraEventPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testComponent',
-      'testComponent.cmp'
+      fileName,
+      'testEvent.evt'
     );
-    const auraComponentMetaPath = path.join(
+    const auraEventMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testComponent',
-      'testComponent.cmp-meta.xml'
+      fileName,
+      'testEvent.evt-meta.xml'
     );
     shell.rm(
       '-rf',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-    assert.noFile([auraComponentPath, auraComponentMetaPath]);
+    assert.noFile([auraEventPath, auraEventMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningComponentCreate();
+    await lightningGenerateEvent();
 
     // assert
-    const suffixarray = [
-      '.cmp',
-      '.cmp-meta.xml',
-      '.auradoc',
-      '.css',
-      'Controller.js',
-      'Helper.js',
-      'Renderer.js',
-      '.svg',
-      '.design'
-    ];
-    for (const suffix of suffixarray) {
-      assert.file(
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          outputPath,
-          fileName,
-          `${fileName}${suffix}`
-        )
-      );
-    }
+    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    assert.file([auraEventPath, auraEventMetaPath]);
     assert.fileContent(
-      auraComponentPath,
-      '<aura:component>\n\n</aura:component>'
+      auraEventPath,
+      '<aura:event type="APPLICATION" description="Event template"/>'
     );
     assert.fileContent(
-      auraComponentMetaPath,
-      '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">'
+      auraEventMetaPath,
+      `<?xml version="1.0" encoding="UTF-8"?>
+<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>${defaultApiVersion}</apiVersion>
+    <description>A Lightning Event Bundle</description>
+</AuraDefinitionBundle>`
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
+    sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
     shell.rm(
@@ -122,22 +107,22 @@ describe('Force Lightning Component Create', () => {
     );
   });
 
-  it('Should create internal Aura Component', async () => {
+  it('Should generate internal Aura Event', async () => {
     // arrange
     getInternalDevStub.returns(true);
-    const fileName = 'testComponent';
+    const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
-    const auraComponentPath = path.join(
+    const auraEventPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'testComponent',
-      'testComponent.cmp'
+      fileName,
+      'testEvent.evt'
     );
     shell.rm(
       '-rf',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-    assert.noFile([auraComponentPath]);
+    assert.noFile([auraEventPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
@@ -146,39 +131,20 @@ describe('Force Lightning Component Create', () => {
       '-p',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
     );
-    await forceInternalLightningComponentCreate(
+    await internalLightningGenerateEvent(
       vscode.Uri.file(
         path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
       )
     );
 
     // assert
-    const suffixarray = [
-      '.cmp',
-      '.auradoc',
-      '.css',
-      'Controller.js',
-      'Helper.js',
-      'Renderer.js',
-      '.svg',
-      '.design'
-    ];
-    for (const suffix of suffixarray) {
-      assert.file(
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          outputPath,
-          fileName,
-          `${fileName}${suffix}`
-        )
-      );
-    }
+    assert.file([auraEventPath]);
     assert.fileContent(
-      auraComponentPath,
-      '<aura:component>\n\n</aura:component>'
+      auraEventPath,
+      '<aura:event type="APPLICATION" description="Event template"/>'
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
+    sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
     shell.rm(

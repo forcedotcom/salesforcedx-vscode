@@ -1,23 +1,22 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TemplateService } from '@salesforce/templates';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
-import { forceApexTriggerCreate } from '../../../../src/commands/templates/forceApexTriggerCreate';
+import { analyticsGenerateTemplate } from '../../../../src/commands/templates/analyticsGenerateTemplate';
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Apex Trigger Create', () => {
+describe('Analytics Generate Template', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -44,44 +43,56 @@ describe('Force Apex Trigger Create', () => {
     appendLineStub.restore();
   });
 
-  it('Should create Apex Class', async () => {
+  it('Should generate Analytics Template', async () => {
     // arrange
-    const outputPath = 'force-app/main/default/classes';
-    const apexTriggerPath = path.join(
+    const outputPath = 'force-app/main/default/waveTemplates';
+    const templateInfoJsonPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'TestApexTrigger.trigger'
+      'TestWave',
+      'template-info.json'
     );
-    const apexTriggerMetaPath = path.join(
+    const templateFolderJsonPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
-      'TestApexTrigger.trigger-meta.xml'
+      'TestWave',
+      'folder.json'
     );
-    shell.rm('-f', apexTriggerPath);
-    shell.rm('-f', apexTriggerMetaPath);
-    assert.noFile([apexTriggerPath, apexTriggerMetaPath]);
-    showInputBoxStub.returns('TestApexTrigger');
+    const templateDashboardPath = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputPath,
+      'TestWave/dashboards',
+      'TestWaveDashboard.json'
+    );
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestWave')
+    );
+    assert.noFile([
+      templateInfoJsonPath,
+      templateFolderJsonPath,
+      templateDashboardPath
+    ]);
+    showInputBoxStub.returns('TestWave');
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexTriggerCreate();
+    await analyticsGenerateTemplate();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
-    assert.file([apexTriggerPath, apexTriggerMetaPath]);
-    assert.fileContent(
-      apexTriggerPath,
-      `trigger TestApexTrigger on SOBJECT (before insert) {
+    assert.file([
+      templateInfoJsonPath,
+      templateFolderJsonPath,
+      templateDashboardPath
+    ]);
+    assert.fileContent(templateInfoJsonPath, '"label": "TestWave"');
+    assert.fileContent(templateFolderJsonPath, '"name": "TestWave"');
+    assert.fileContent(templateDashboardPath, '"name": "TestWaveDashboard_tp"');
 
-}`
-    );
-    assert.fileContent(
-      apexTriggerMetaPath,
-      `<?xml version='1.0' encoding='UTF-8'?>
-<ApexTrigger xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>${defaultApiVersion}</apiVersion>
-  <status>Active</status>
-</ApexTrigger>`
+    // clean up
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
     );
   });
 });

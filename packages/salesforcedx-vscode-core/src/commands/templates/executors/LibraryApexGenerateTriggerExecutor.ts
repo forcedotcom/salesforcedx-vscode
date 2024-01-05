@@ -11,10 +11,8 @@ import { nls } from '../../../messages';
 import { LibraryBaseTemplateCommand } from '../libraryBaseTemplateCommand';
 import { APEX_TRIGGER_TYPE } from '../metadataTypeConstants';
 
-export class LibraryForceApexTriggerCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize('force_apex_trigger_create_text');
+export class LibraryApexGenerateTriggerExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+  public executionName = nls.localize('apex_generate_trigger_text');
   public telemetryName = 'force_apex_trigger_create';
   public metadataTypeName = APEX_TRIGGER_TYPE;
   public templateType = TemplateType.ApexTrigger;

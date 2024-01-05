@@ -29,12 +29,8 @@ import {
   VISUALFORCE_COMPONENT_TYPE
 } from './metadataTypeConstants';
 
-export class LibraryForceVisualForceComponentCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize(
-    'force_visualforce_component_create_text'
-  );
+export class LibraryVisualforceGenerateComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+  public executionName = nls.localize('visualforce_generate_component_text');
   public telemetryName = 'force_visualforce_component_create';
   public metadataTypeName = VISUALFORCE_COMPONENT_TYPE;
   public templateType = TemplateType.VisualforceComponent;
@@ -58,8 +54,9 @@ const metadataTypeGatherer = new MetadataTypeGatherer(
   VISUALFORCE_COMPONENT_TYPE
 );
 
-export async function forceVisualforceComponentCreate() {
-  const createTemplateExecutor = new LibraryForceVisualForceComponentCreateExecutor();
+export async function visualforceGenerateComponent() {
+  const createTemplateExecutor =
+    new LibraryVisualforceGenerateComponentExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(

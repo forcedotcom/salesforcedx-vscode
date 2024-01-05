@@ -18,7 +18,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { LibraryForceApexTriggerCreateExecutor } from './executors/libraryForceApexTriggerCreateExecutor';
+import { LibraryApexGenerateTriggerExecutor } from './executors/LibraryApexGenerateTriggerExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,
   APEX_TRIGGER_NAME_MAX_LENGTH,
@@ -43,10 +43,10 @@ function getGatherers() {
   };
 }
 
-export async function forceApexTriggerCreate() {
+export async function apexGenerateTrigger() {
   const gatherers = getGatherers();
 
-  const createTemplateExecutor = new LibraryForceApexTriggerCreateExecutor();
+  const createTemplateExecutor = new LibraryApexGenerateTriggerExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(

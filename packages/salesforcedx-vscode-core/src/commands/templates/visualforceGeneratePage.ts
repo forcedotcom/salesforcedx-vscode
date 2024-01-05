@@ -26,10 +26,8 @@ import {
   VISUALFORCE_PAGE_TYPE
 } from './metadataTypeConstants';
 
-export class LibraryForceVisualForcePageCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
-> {
-  public executionName = nls.localize('force_visualforce_page_create_text');
+export class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+  public executionName = nls.localize('visualforce_generate_page_text');
   public telemetryName = 'force_visualforce_page_create';
   public metadataTypeName = VISUALFORCE_PAGE_TYPE;
   public templateType = TemplateType.VisualforcePage;
@@ -51,8 +49,8 @@ const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(VISUALFORCE_PAGE_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE);
 
-export async function forceVisualforcePageCreate() {
-  const createTemplateExecutor = new LibraryForceVisualForcePageCreateExecutor();
+export async function visualforceGeneratePage() {
+  const createTemplateExecutor = new LibraryVisualforceGeneratePageExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
