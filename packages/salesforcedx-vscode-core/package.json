@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.11.0",
+  "version": "59.12.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "5.3.20",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "59.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "59.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.12.2",
+    "@salesforce/salesforcedx-utils-vscode": "59.12.2",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "9.8.4",
     "@salesforce/templates": "^59.0.4",
@@ -40,7 +40,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.11.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.12.2",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -368,7 +368,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.create",
+          "command": "sfdx.org.create",
           "when": "sfdx:project_opened"
         },
         {
@@ -524,11 +524,11 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.org.delete.default",
+          "command": "sfdx.org.delete.default",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.delete.username",
+          "command": "sfdx.org.delete.username",
           "when": "sfdx:project_opened"
         },
         {
@@ -647,8 +647,8 @@
         "title": "%force_open_documentation_text%"
       },
       {
-        "command": "sfdx.force.org.create",
-        "title": "%force_org_create_default_scratch_org_text%"
+        "command": "sfdx.org.create",
+        "title": "%org_create_default_scratch_org_text%"
       },
       {
         "command": "sfdx.org.open",
@@ -751,12 +751,12 @@
         "title": "%alias_list_text%"
       },
       {
-        "command": "sfdx.force.org.delete.default",
-        "title": "%force_org_delete_default_text%"
+        "command": "sfdx.org.delete.default",
+        "title": "%org_delete_default_text%"
       },
       {
-        "command": "sfdx.force.org.delete.username",
-        "title": "%force_org_delete_username_text%"
+        "command": "sfdx.org.delete.username",
+        "title": "%org_delete_username_text%"
       },
       {
         "command": "sfdx.org.display.default",
@@ -973,6 +973,11 @@
           "type": "string",
           "default": null,
           "description": "%node_extra_ca_certs_description%"
+        },
+        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
+          "type": "string",
+          "default": "fatal",
+          "description": "%sf_log_level_description%"
         }
       }
     },

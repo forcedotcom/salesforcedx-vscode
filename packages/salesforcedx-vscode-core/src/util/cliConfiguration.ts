@@ -14,6 +14,7 @@ import { window } from 'vscode';
 import {
   ENV_NODE_EXTRA_CA_CERTS,
   ENV_SF_DISABLE_TELEMETRY,
+  ENV_SF_LOG_LEVEL,
   SF_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
@@ -56,5 +57,12 @@ export function setNodeExtraCaCerts() {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_NODE_EXTRA_CA_CERTS,
     sfdxCoreSettings.getNodeExtraCaCerts()
+  );
+}
+
+export function setSfLogLevel() {
+  GlobalCliEnvironment.environmentVariables.set(
+    ENV_SF_LOG_LEVEL,
+    sfdxCoreSettings.getSfLogLevel()
   );
 }

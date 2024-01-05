@@ -48,6 +48,7 @@ export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE =
   'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
+export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
 export const CLI = {
   ORG_LOGIN_DEVICE: 'org:login:device',
   ORG_LOGIN_WEB: 'org:login:web'

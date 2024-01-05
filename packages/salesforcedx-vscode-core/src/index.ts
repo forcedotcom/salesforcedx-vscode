@@ -39,8 +39,6 @@ import {
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
   forceOpenDocumentation,
-  forceOrgCreate,
-  forceOrgDelete,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
@@ -59,6 +57,8 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   initSObjectDefinitions,
+  orgCreate,
+  orgDelete,
   orgDisplay,
   orgList,
   orgLoginWeb,
@@ -115,6 +115,7 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
+  setSfLogLevel,
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -154,9 +155,9 @@ function registerCommands(
     'sfdx.force.open.documentation',
     forceOpenDocumentation
   );
-  const forceOrgCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.create',
-    forceOrgCreate
+  const orgCreateCmd = vscode.commands.registerCommand(
+    'sfdx.org.create',
+    orgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
@@ -293,14 +294,14 @@ function registerCommands(
     'sfdx.alias.list',
     aliasList
   );
-  const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.default',
-    forceOrgDelete
+  const orgDeleteDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.default',
+    orgDelete
   );
-  const forceOrgDeleteUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.username',
-    forceOrgDelete,
-    { flag: '--targetusername' }
+  const orgDeleteUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.username',
+    orgDelete,
+    { flag: '--target-org' }
   );
   const orgDisplayDefaultCmd = vscode.commands.registerCommand(
     'sfdx.org.display.default',
@@ -392,9 +393,9 @@ function registerCommands(
     dataQuerySelectionCmd,
     forceDiffFile,
     forceOpenDocumentationCmd,
-    forceOrgCreateCmd,
-    forceOrgDeleteDefaultCmd,
-    forceOrgDeleteUsernameCmd,
+    orgCreateCmd,
+    orgDeleteDefaultCmd,
+    orgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,
     deleteSourceCmd,
     deleteSourceCurrentFileCmd,
@@ -546,6 +547,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   validateCliInstallationAndVersion();
   setNodeExtraCaCerts();
+  setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 

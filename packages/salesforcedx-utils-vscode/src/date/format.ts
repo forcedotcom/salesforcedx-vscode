@@ -18,7 +18,7 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
 };
 
 export const makeDoubleDigit = (currentDigit: number): string => {
-  return format('%02d', currentDigit);
+  return format('%d', currentDigit).padStart(2, '0');
 };
 
 export const optionYYYYMMddHHmmss: Intl.DateTimeFormatOptions = {

@@ -91,9 +91,8 @@ export const messages = {
   parameter_gatherer_placeholder_delete_default_org:
     'Confirm to continue deleting the default org',
 
-  force_org_create_default_scratch_org_text:
-    'SFDX: Create a Default Scratch Org...',
-  force_org_create_result_parsing_error:
+  org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
+  org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
 
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
@@ -179,8 +178,8 @@ export const messages = {
   warning_prompt_other_not_shown: '...%s other components not shown\n',
   config_list_text: 'SFDX: List All Config Variables',
   alias_list_text: 'SFDX: List All Aliases',
-  force_org_delete_default_text: 'SFDX: Delete Default Org',
-  force_org_delete_username_text: 'SFDX: Delete Org...',
+  org_delete_default_text: 'SFDX: Delete Default Org',
+  org_delete_username_text: 'SFDX: Delete Org...',
   org_display_default_text: 'SFDX: Display Org Details for Default Org',
   org_display_username_text: 'SFDX: Display Org Details...',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
