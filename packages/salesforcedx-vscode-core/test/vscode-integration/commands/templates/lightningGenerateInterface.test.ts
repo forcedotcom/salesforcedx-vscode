@@ -7,21 +7,21 @@
 import { TemplateService } from '@salesforce/templates';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceInternalLightningEventCreate,
-  forceLightningEventCreate
-} from '../../../../src/commands/templates/forceLightningEventCreate';
+  internalLightningGenerateInterface,
+  lightningGenerateInterface
+} from '../../../../src/commands/templates/lightningGenerateInterface';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Lightning Event Create', () => {
+describe('Lightning Generate Interface', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -54,51 +54,53 @@ describe('Force Lightning Event Create', () => {
     openTextDocumentStub.restore();
   });
 
-  it('Should create Aura Event', async () => {
+  it('Should generate Aura Interface', async () => {
     // arrange
     getInternalDevStub.returns(false);
-    const fileName = 'testEvent';
+    const fileName = 'testInterface';
     const outputPath = 'force-app/main/default/aura';
-    const auraEventPath = path.join(
+    const auraInterfacePath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
-      'testEvent.evt'
+      'testInterface.intf'
     );
-    const auraEventMetaPath = path.join(
+    const auraInterfaceMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
-      'testEvent.evt-meta.xml'
+      'testInterface.intf-meta.xml'
     );
     shell.rm(
       '-rf',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-    assert.noFile([auraEventPath, auraEventMetaPath]);
+    assert.noFile([auraInterfacePath, auraInterfaceMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningEventCreate();
+    await lightningGenerateInterface();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
-    assert.file([auraEventPath, auraEventMetaPath]);
+    assert.file([auraInterfacePath, auraInterfaceMetaPath]);
     assert.fileContent(
-      auraEventPath,
-      '<aura:event type="APPLICATION" description="Event template"/>'
+      auraInterfacePath,
+      `<aura:interface description="Interface template">
+  <aura:attribute name="example" type="String" default="" description="An example attribute."/>
+</aura:interface>`
     );
     assert.fileContent(
-      auraEventMetaPath,
+      auraInterfaceMetaPath,
       `<?xml version="1.0" encoding="UTF-8"?>
 <AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>${defaultApiVersion}</apiVersion>
-    <description>A Lightning Event Bundle</description>
+    <description>A Lightning Interface Bundle</description>
 </AuraDefinitionBundle>`
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
+    sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
     shell.rm(
@@ -107,22 +109,22 @@ describe('Force Lightning Event Create', () => {
     );
   });
 
-  it('Should create internal Aura Event', async () => {
+  it('Should generate internal Aura Interface', async () => {
     // arrange
     getInternalDevStub.returns(true);
-    const fileName = 'testEvent';
+    const fileName = 'testInterface';
     const outputPath = 'force-app/main/default/aura';
-    const auraEventPath = path.join(
+    const auraInterfacePath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
-      'testEvent.evt'
+      'testInterface.intf'
     );
     shell.rm(
       '-rf',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-    assert.noFile([auraEventPath]);
+    assert.noFile([auraInterfacePath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
@@ -131,20 +133,22 @@ describe('Force Lightning Event Create', () => {
       '-p',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
     );
-    await forceInternalLightningEventCreate(
+    await internalLightningGenerateInterface(
       vscode.Uri.file(
         path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
       )
     );
 
     // assert
-    assert.file([auraEventPath]);
+    assert.file([auraInterfacePath]);
     assert.fileContent(
-      auraEventPath,
-      '<aura:event type="APPLICATION" description="Event template"/>'
+      auraInterfacePath,
+      `<aura:interface description="Interface template">
+  <aura:attribute name="example" type="String" default="" description="An example attribute."/>
+</aura:interface>`
     );
     sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
+    sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
     shell.rm(

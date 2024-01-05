@@ -18,7 +18,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { LibraryForceApexClassCreateExecutor } from './executors/LibraryForceApexClassCreateExecutor';
+import { LibraryApexGenerateClassExecutor } from './executors/LibraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
@@ -43,10 +43,10 @@ export const getParamGatherers = () => {
   };
 };
 
-export const forceApexClassCreate = async () => {
+export const apexGenerateClass = async () => {
   const gatherers = getParamGatherers();
 
-  const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
+  const createTemplateExecutor = new LibraryApexGenerateClassExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(

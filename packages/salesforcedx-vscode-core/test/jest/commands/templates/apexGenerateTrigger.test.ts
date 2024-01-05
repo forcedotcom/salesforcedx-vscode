@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { forceApexTriggerCreate } from '../../../../src/commands/templates';
-import { LibraryForceApexTriggerCreateExecutor } from '../../../../src/commands/templates/executors/libraryForceApexTriggerCreateExecutor';
+import { apexGenerateTrigger } from '../../../../src/commands/templates';
+import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,
   APEX_TRIGGER_NAME_MAX_LENGTH,
@@ -22,7 +22,9 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/libraryForceApexTriggerCreateExecutor');
+jest.mock(
+  '../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor'
+);
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfdxWorkspaceChecker');
@@ -30,8 +32,8 @@ jest.mock('../../../../src/commands/util/sfdxWorkspaceChecker');
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
-const libraryForceApexTriggerCreateExecutorMocked = jest.mocked(
-  LibraryForceApexTriggerCreateExecutor
+const libraryApexGenerateTriggerExecutorMocked = jest.mocked(
+  LibraryApexGenerateTriggerExecutor
 );
 const sfdxWorkspaceCheckerMocked = jest.mocked(SfdxWorkspaceChecker);
 const compositeParametersGathererMocked = jest.mocked(
@@ -39,7 +41,7 @@ const compositeParametersGathererMocked = jest.mocked(
 );
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 
-describe('forceApexTriggerCreate Unit Tests.', () => {
+describe('apexGenerateTrigger Unit Tests.', () => {
   let runMock: jest.Mock<any, any>;
   let sfdxCommandletMocked: jest.SpyInstance<any, any>;
 
@@ -56,14 +58,14 @@ describe('forceApexTriggerCreate Unit Tests.', () => {
       });
   });
 
-  it('Should be able to execute forceApexTriggerCreate.', async () => {
-    await forceApexTriggerCreate();
+  it('Should be able to execute apexGenerateTrigger.', async () => {
+    await apexGenerateTrigger();
     expect(selectFileNameMocked).toHaveBeenCalledWith(
       APEX_TRIGGER_NAME_MAX_LENGTH
     );
     expect(selectOutputDirMocked).toHaveBeenCalledWith(APEX_TRIGGER_DIRECTORY);
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_TRIGGER_TYPE);
-    expect(libraryForceApexTriggerCreateExecutorMocked).toHaveBeenCalled();
+    expect(libraryApexGenerateTriggerExecutorMocked).toHaveBeenCalled();
     expect(sfdxCommandletMocked).toHaveBeenCalled();
     expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
