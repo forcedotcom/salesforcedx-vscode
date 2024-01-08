@@ -194,14 +194,14 @@ export const messages = {
   force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
-  force_project_create_text: 'SFDX: Create Project',
-  force_project_create_open_dialog_create_label: 'Create Project',
-  force_project_create_standard_template: 'Standard project template (default)',
-  force_project_create_standard_template_display_text: 'Standard',
-  force_project_create_empty_template_display_text: 'Empty',
-  force_project_create_analytics_template_display_text: 'Analytics',
-  force_project_create_empty_template: 'Empty project template',
-  force_project_create_analytics_template: 'Analytics project template',
+  project_generate_text: 'SFDX: Create Project',
+  project_generate_open_dialog_create_label: 'Create Project',
+  project_generate_standard_template: 'Standard project template (default)',
+  project_generate_standard_template_display_text: 'Standard',
+  project_generate_empty_template_display_text: 'Empty',
+  project_generate_analytics_template_display_text: 'Analytics',
+  project_generate_empty_template: 'Empty project template',
+  project_generate_analytics_template: 'Analytics project template',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
   start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
   apex_debug_log_status_bar_text:
@@ -297,7 +297,7 @@ export const messages = {
   both_sfdx_and_sf:
     'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
   sfdx_v7_deprecation:
-    'If you\'re currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you\'ve been running continue to work as before.',
+    "If you're currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you've been running continue to work as before.",
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',

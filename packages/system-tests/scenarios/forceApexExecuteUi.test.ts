@@ -29,7 +29,7 @@ describe(TITLE, () => {
   let username: string;
 
   before(async () => {
-    await util.createSFDXProject(PROJECT_NAME);
+    await util.generateSFProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [PROJECT_DIR]);
     common = new CommonActions(app);

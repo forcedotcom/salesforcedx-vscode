@@ -159,16 +159,15 @@ export const messages = {
     'SFDX: エディタの内容で匿名 Apex コードを実行',
   force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
-  force_project_create_text: 'SFDX: プロジェクトを作成',
-  force_project_create_open_dialog_create_label: 'プロジェクトを作成',
-  force_project_create_standard_template:
+  project_generate_text: 'SFDX: プロジェクトを作成',
+  project_generate_open_dialog_create_label: 'プロジェクトを作成',
+  project_generate_standard_template:
     '標準のプロジェクトテンプレート (デフォルト)',
-  force_project_create_standard_template_display_text: '標準',
-  force_project_create_empty_template_display_text: '空',
-  force_project_create_analytics_template_display_text: 'Analytics',
-  force_project_create_empty_template: '空のプロジェクトテンプレート',
-  force_project_create_analytics_template:
-    'Analytics のプロジェクトテンプレート',
+  project_generate_standard_template_display_text: '標準',
+  project_generate_empty_template_display_text: '空',
+  project_generate_analytics_template_display_text: 'Analytics',
+  project_generate_empty_template: '空のプロジェクトテンプレート',
+  project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
@@ -258,7 +257,7 @@ export const messages = {
   both_sfdx_and_sf:
     'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
   sfdx_v7_deprecation:
-    'If you\'re currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you\'ve been running continue to work as before.',
+    "If you're currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you've been running continue to work as before.",
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',

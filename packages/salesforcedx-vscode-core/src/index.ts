@@ -4,12 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CliStatusEnum, CliVersionStatus, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import {
+  CliStatusEnum,
+  CliVersionStatus,
+  ensureCurrentWorkingDirIsProjectPath
+} from '@salesforce/salesforcedx-utils';
 import {
   ChannelService,
-  getRootWorkspacePath,
   SFDX_CORE_CONFIGURATION_NAME,
-  TelemetryService
+  TelemetryService,
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
@@ -30,10 +34,8 @@ import {
   forceLightningLwcTestCreate,
   forceOpenDocumentation,
   forcePackageInstall,
-  forceProjectWithManifestCreate,
   forceRefreshSObjects,
   forceRenameLightningComponent,
-  forceSfdxProjectCreate,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -64,6 +66,8 @@ import {
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
+  projectGenerateWithManifest,
+  sfProjectGenerate,
   startApexDebugLogging,
   stopApexDebugLogging,
   turnOffLogging,
@@ -104,7 +108,7 @@ import {
 } from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService, ProgressNotification } from './notifications';
+import { ProgressNotification, notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
@@ -324,18 +328,18 @@ function registerCommands(
     'sfdx.data.query.selection',
     dataQuery
   );
-  const forceProjectCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.create',
-    forceSfdxProjectCreate
+  const projectGenerateCmd = vscode.commands.registerCommand(
+    'sfdx.project.generate',
+    sfProjectGenerate
   );
 
   const forcePackageInstallCmd = vscode.commands.registerCommand(
     'sfdx.force.package.install',
     forcePackageInstall
   );
-  const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.with.manifest.create',
-    forceProjectWithManifestCreate
+  const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
+    'sfdx.project.generate.with.manifest',
+    projectGenerateWithManifest
   );
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand(
@@ -430,9 +434,9 @@ function registerCommands(
     forceAliasListCmd,
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
-    forceProjectCreateCmd,
+    projectGenerateCmd,
     forcePackageInstallCmd,
-    forceProjectWithManifestCreateCmd,
+    projectGenerateWithManifestCmd,
     apexGenerateTriggerCmd,
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,
@@ -723,19 +727,31 @@ export function validateCliInstallationAndVersion(): void {
   const sfdxCliVersionParsed = c.parseCliVersion(sfdxCliVersionString);
   const sfCliVersionParsed = c.parseCliVersion(sfCliVersionString);
 
-  const cliInstallationResult = c.validateCliInstallationAndVersion(sfdxCliVersionParsed, sfCliVersionParsed);
+  const cliInstallationResult = c.validateCliInstallationAndVersion(
+    sfdxCliVersionParsed,
+    sfCliVersionParsed
+  );
 
-  switch(cliInstallationResult) {
+  switch (cliInstallationResult) {
     case CliStatusEnum.cliNotInstalled: {
-      showErrorNotification('sfdx_cli_not_found', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
+      showErrorNotification('sfdx_cli_not_found', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
       throw Error('No Salesforce CLI installed');
     }
     case CliStatusEnum.onlySFv1: {
-      showErrorNotification('sf_v1_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
+      showErrorNotification('sf_v1_not_supported', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
       throw Error('Only SF v1 installed');
     }
     case CliStatusEnum.outdatedSFDXVersion: {
-      showErrorNotification('sfdx_cli_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
+      showErrorNotification('sfdx_cli_not_supported', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
       throw Error('Outdated SFDX CLI version that is no longer supported');
     }
     case CliStatusEnum.bothSFDXAndSFInstalled: {
@@ -743,23 +759,20 @@ export function validateCliInstallationAndVersion(): void {
       throw Error('Both SFDX v7 and SF v2 are installed');
     }
     case CliStatusEnum.SFDXv7Valid: {
-      showWarningNotification('sfdx_v7_deprecation', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
+      showWarningNotification('sfdx_v7_deprecation', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
     }
   }
 }
 
 export function showErrorNotification(type: string, args: any[]) {
-  const showMessage = nls.localize(
-    type,
-    ...args
-  );
+  const showMessage = nls.localize(type, ...args);
   vscode.window.showErrorMessage(showMessage);
 }
 
 export function showWarningNotification(type: string, args: any[]) {
-  const showMessage = nls.localize(
-    type,
-    ...args
-  );
+  const showMessage = nls.localize(type, ...args);
   vscode.window.showWarningMessage(showMessage);
 }

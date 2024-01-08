@@ -12,12 +12,12 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { projectTemplateEnum } from '../../../../src/commands/forceProjectCreate';
 import {
   EnterForceIdeUri,
   IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging';
+import { projectTemplateEnum } from '../../../../src/commands/projectGenerate';
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
@@ -156,17 +156,15 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
   describe('CLI Builder', () => {
     it('Verify buildCreateProjectCommand', async () => {
-      const forceProjectCreateBuilder = new IsvDebugBootstrapExecutor();
-      const createCommand = forceProjectCreateBuilder.buildCreateProjectCommand(
-        {
-          loginUrl: LOGIN_URL,
-          sessionId: SESSION_ID,
-          orgName: PROJECT_NAME,
-          projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath,
-          projectTemplate: projectTemplateEnum.standard
-        }
-      );
+      const projectGenerateBuilder = new IsvDebugBootstrapExecutor();
+      const createCommand = projectGenerateBuilder.buildCreateProjectCommand({
+        loginUrl: LOGIN_URL,
+        sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
+      });
       expect(createCommand.toCommand()).to.equal(
         `sfdx project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
       );
@@ -177,16 +175,15 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
     it('Verify buildConfigureProjectCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const configureCommand = forceProjectConfigBuilder.buildConfigureProjectCommand(
-        {
+      const configureCommand =
+        forceProjectConfigBuilder.buildConfigureProjectCommand({
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
-        }
-      );
+        });
       expect(configureCommand.toCommand()).to.equal(
         `sfdx config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
@@ -197,23 +194,20 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
     it('Verify buildQueryForOrgNamespacePrefixCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const command = forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand(
-        {
+      const command =
+        forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand({
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
-        }
-      );
+        });
       expect(command.toCommand()).to.equal(
         `sfdx data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json --loglevel fatal`
       );
       expect(command.description).to.equal(
-        nls.localize(
-          'isv_debug_bootstrap_configure_project_retrieve_namespace'
-        )
+        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       );
     });
 

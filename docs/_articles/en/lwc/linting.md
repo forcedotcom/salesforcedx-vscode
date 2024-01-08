@@ -13,7 +13,7 @@ Linting provides errors about malformed code while you edit. VS Code enforces Sa
 
 ### For a New Project
 
-If you create an SFDX project using the `sfdx force:project:create` command, your project contains a `package.json` file with the ESLint plugin already included.
+If you create an SFDX project using the `sf project:generate` command, your project contains a `package.json` file with the ESLint plugin already included.
 
 1. To install the ESLint plugin and other dependencies, run `npm install` in your project directory.
 
@@ -25,17 +25,17 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 1. Verify that your project has a `package.json` with these configurations. If your `package.json` doesn't have the configurations, run `npm install eslint @salesforce/eslint-config-lwc --save-dev`.
 
-    ```json
-    "scripts": {
-        "lint": "npm run lint:lwc",
-        "lint:lwc": "eslint force-app/main/default/lwc"
-    }
+   ```json
+   "scripts": {
+       "lint": "npm run lint:lwc",
+       "lint:lwc": "eslint force-app/main/default/lwc"
+   }
 
-    "devDependencies" {
-        "@salesforce/eslint-config-lwc": "3.4.0",
-        "eslint": "^5.16.0"
-    }
-    ```
+   "devDependencies" {
+       "@salesforce/eslint-config-lwc": "3.4.0",
+       "eslint": "^5.16.0"
+   }
+   ```
 
 2. If your project doesn't have the [`package.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) file, copy it and add it to your project directory.
 
@@ -51,22 +51,22 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 ESLint includes three configuration levels. The default level is `@salesforce/eslint-config-lwc/recommended`.
 
-To change the configuration level, edit this line in the  `.eslintrc.json`
+To change the configuration level, edit this line in the `.eslintrc.json`
 
 ```json
 {
- "extends": ["@salesforce/eslint-config-lwc/recommended"]
+  "extends": ["@salesforce/eslint-config-lwc/recommended"]
 }
 ```
 
 - `@salesforce/eslint-config-lwc/base`
-This configuration prevents common pitfalls with Lightning Web Components and enforces other Salesforce platform restrictions.
+  This configuration prevents common pitfalls with Lightning Web Components and enforces other Salesforce platform restrictions.
 
 - `@salesforce/eslint-config-lwc/recommended`
-This configuration prevents common Javascript pitfalls and enforces all best practices.
+  This configuration prevents common Javascript pitfalls and enforces all best practices.
 
 - `@salesforce/eslint-config-lwc/extended`
-This configuration restricts the use of some Javascript language features that are sometimes slow in older browsers, such as IE11. To support new Javascript syntax and language features on an older browser, the Lightning Web Components compiler transforms the Lightning Web Components modules.
+  This configuration restricts the use of some Javascript language features that are sometimes slow in older browsers, such as IE11. To support new Javascript syntax and language features on an older browser, the Lightning Web Components compiler transforms the Lightning Web Components modules.
 
 For more details on the linting rules and using them individually, see the [ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) Github repository.
 
