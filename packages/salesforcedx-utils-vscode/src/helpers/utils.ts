@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { TelemetryService } from '..';
 
 export const isNullOrUndefined = (object: any): object is null | undefined => {
   return object === null || object === undefined;
@@ -39,6 +40,19 @@ export const flushFilePath = (filePath: string): string => {
     nativePath = nativePath.charAt(0).toLowerCase() + nativePath.slice(1);
   }
 
+  // check if the native path is the same case insensitive and then case sensitive
+  // so that condition can be reported via telemetry
+  if (
+    filePath.toLowerCase() !== nativePath.toLowerCase() &&
+    filePath !== nativePath
+  ) {
+    const telemetry = TelemetryService.getInstance();
+
+    telemetry.sendEventData('FilePathCaseMismatch', {
+      originalPath: filePath,
+      nativePath
+    });
+  }
   return nativePath;
 };
 
