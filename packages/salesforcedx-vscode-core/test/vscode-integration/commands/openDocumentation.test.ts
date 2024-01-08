@@ -8,12 +8,12 @@
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { forceOpenDocumentation } from '../../../src/commands';
+import { openDocumentation } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 const sb = createSandbox();
 
-describe('forceOpenDocumentation', () => {
+describe('openDocumentation', () => {
   let activeTextEditorStub: SinonStub;
   let openExternalStub: SinonStub;
 
@@ -36,7 +36,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(auraDocUrl);
   });
@@ -50,7 +50,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(apexDocUrl);
   });
@@ -64,7 +64,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(apexDocUrl);
   });
@@ -78,7 +78,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(soqlDocUrl);
   });
@@ -93,7 +93,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(lwcDocUrl);
   });
@@ -107,7 +107,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(
       functionsDocUrl
@@ -123,7 +123,7 @@ describe('forceOpenDocumentation', () => {
       }
     }));
 
-    await forceOpenDocumentation();
+    await openDocumentation();
 
     expect(openExternalStub.getCall(0).args[0].toString()).to.equal(
       defaultDocUrl

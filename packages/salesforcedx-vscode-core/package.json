@@ -153,7 +153,7 @@
     "views": {
       "explorer": [
         {
-          "id": "sfdx.force.tasks.view",
+          "id": "sfdx.tasks.view",
           "name": "%running_tasks_title_text%"
         }
       ],
@@ -182,8 +182,8 @@
       ],
       "view/item/context": [
         {
-          "command": "sfdx.force.task.stop",
-          "when": "view == sfdx.force.tasks.view"
+          "command": "sfdx.task.stop",
+          "when": "view == sfdx.tasks.view"
         },
         {
           "command": "sfdx.force.metadata.view.component.refresh",
@@ -364,7 +364,7 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.open.documentation",
+          "command": "sfdx.open.documentation",
           "when": "sfdx:project_opened"
         },
         {
@@ -404,7 +404,7 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.task.stop",
+          "command": "sfdx.task.stop",
           "when": "sfdx:project_opened"
         },
         {
@@ -643,8 +643,8 @@
         "title": "%org_logout_default_text%"
       },
       {
-        "command": "sfdx.force.open.documentation",
-        "title": "%force_open_documentation_text%"
+        "command": "sfdx.open.documentation",
+        "title": "%open_documentation_text%"
       },
       {
         "command": "sfdx.org.create",
@@ -683,7 +683,7 @@
         "title": "%force_source_status_remote_text%"
       },
       {
-        "command": "sfdx.force.task.stop",
+        "command": "sfdx.task.stop",
         "title": "%cancel_sfdx_command_text%"
       },
       {
