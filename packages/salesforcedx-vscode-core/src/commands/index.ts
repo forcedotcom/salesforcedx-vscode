@@ -66,17 +66,6 @@ export {
   forcePackageInstall
 } from './forcePackageInstall';
 export {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  ProjectTemplateItem,
-  SelectProjectFolder,
-  SelectProjectName,
-  SelectProjectTemplate,
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
-  projectTemplateEnum
-} from './forceProjectCreate';
-export {
   ForceRefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
   forceRefreshSObjects,
@@ -118,6 +107,17 @@ export {
   getExecutor,
   orgOpen
 } from './orgOpen';
+export {
+  PathExistsChecker,
+  ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
+  SelectProjectFolder,
+  SelectProjectName,
+  SelectProjectTemplate,
+  projectGenerateWithManifest,
+  projectTemplateEnum,
+  sfProjectGenerate
+} from './projectGenerate';
 export {
   viewAllChanges,
   viewLocalChanges,

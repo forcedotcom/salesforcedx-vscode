@@ -47,10 +47,10 @@ describe.skip('Interactive debugger adapter - integration', () => {
   let apexClassUri: string;
 
   beforeAll(async () => {
-    // Create SFDX project
+    // Generate SF project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
-    await util.createSFDXProject(PROJECT_NAME);
+    await util.generateSFProject(PROJECT_NAME);
     // Create scratch org with Debug Apex enabled
     util.addFeatureToScratchOrgConfig(PROJECT_NAME, 'DebugApex');
     apexClassUri = Uri.file(
