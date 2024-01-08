@@ -32,7 +32,6 @@ import {
   forceAuthAccessToken,
   forceCreateManifest,
   forceLightningLwcTestCreate,
-  forceOpenDocumentation,
   forcePackageInstall,
   forceRefreshSObjects,
   forceRenameLightningComponent,
@@ -45,7 +44,6 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceTaskStop,
   initSObjectDefinitions,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
@@ -57,6 +55,7 @@ import {
   lightningGenerateEvent,
   lightningGenerateInterface,
   lightningGenerateLwc,
+  openDocumentation,
   orgCreate,
   orgDelete,
   orgDisplay,
@@ -70,6 +69,7 @@ import {
   sfProjectGenerate,
   startApexDebugLogging,
   stopApexDebugLogging,
+  taskStop,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
@@ -155,9 +155,9 @@ function registerCommands(
     'sfdx.org.logout.default',
     orgLogoutDefault
   );
-  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
-    'sfdx.force.open.documentation',
-    forceOpenDocumentation
+  const openDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.open.documentation',
+    openDocumentation
   );
   const orgCreateCmd = vscode.commands.registerCommand(
     'sfdx.org.create',
@@ -231,9 +231,9 @@ function registerCommands(
     'sfdx.force.source.status.remote',
     viewRemoteChanges
   );
-  const forceTaskStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.task.stop',
-    forceTaskStop
+  const taskStopCmd = vscode.commands.registerCommand(
+    'sfdx.task.stop',
+    taskStop
   );
   const apexGenerateClassCmd = vscode.commands.registerCommand(
     'sfdx.apex.generate.class',
@@ -396,7 +396,7 @@ function registerCommands(
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
-    forceOpenDocumentationCmd,
+    openDocumentationCmd,
     orgCreateCmd,
     orgDeleteDefaultCmd,
     orgDeleteUsernameCmd,
@@ -417,7 +417,7 @@ function registerCommands(
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-    forceTaskStopCmd,
+    taskStopCmd,
     apexGenerateClassCmd,
     apexGenerateUnitTestClassCmd,
     analyticsGenerateTemplateCmd,
@@ -556,7 +556,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.tasks.view',
+    'sfdx.tasks.view',
     taskViewService
   );
   extensionContext.subscriptions.push(treeDataProvider);
