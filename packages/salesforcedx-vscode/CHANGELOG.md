@@ -1,3 +1,19 @@
+# 59.13.0 - January 10, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Validate CLI installation and version during activation of CLI Integration extension ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Create commands from sfdx to sf style ([PR #5303](https://github.com/forcedotcom/salesforcedx-vscode/pull/5303))
+
+- Default SF_LOG_LEVEL to fatal ([PR #5318](https://github.com/forcedotcom/salesforcedx-vscode/pull/5318))
+
 # 59.12.2 - January 5, 2024
 
 ## Fixed
