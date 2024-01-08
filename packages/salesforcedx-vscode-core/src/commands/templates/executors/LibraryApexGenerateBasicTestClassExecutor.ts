@@ -22,12 +22,11 @@ export class LibraryApexGenerateBasicTestClassExecutor extends LibraryBaseTempla
   public getOutputFileName(data: DirFileNameSelection) {
     return data.fileName;
   }
-  public constructTemplateOptions(data: DirFileNameSelection) {
-    const templateOptions: ApexClassOptions = {
+  public constructTemplateOptions(data: DirFileNameSelection): ApexClassOptions {
+   return  {
       template: 'BasicUnitTest',
       classname: data.fileName,
       outputdir: data.outputdir
     };
-    return templateOptions;
   }
 }
