@@ -70,9 +70,9 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
-  force_org_create_default_scratch_org_text:
+  org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
-  force_org_create_result_parsing_error:
+  org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
   org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
@@ -116,14 +116,15 @@ export const messages = {
   force_source_status_text:
     'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
-  force_apex_class_create_text: 'SFDX: Apex クラスを作成',
-  force_visualforce_component_create_text:
-    'SFDX: Visualforce コンポーネントを作成',
-  force_visualforce_page_create_text: 'SFDX: Visualforce ページを作成',
-  force_lightning_app_create_text: 'SFDX: Aura アプリケーションを作成',
-  force_lightning_component_create_text: 'SFDX: Aura コンポーネントを作成',
-  force_lightning_event_create_text: 'SFDX: Aura イベントを作成',
-  force_lightning_interface_create_text: 'SFDX: Aura インタフェースを作成',
+  apex_generate_class_text: 'SFDX: Apex クラスを作成',
+  visualforce_generate_component_text: 'SFDX: Visualforce コンポーネントを作成',
+  visualforce_generate_page_text: 'SFDX: Visualforce ページを作成',
+  lightning_generate_app_text: 'SFDX: Aura アプリケーションを作成',
+  lightning_generate_aura_component_text: 'SFDX: Aura コンポーネントを作成',
+  lightning_generate_event_text: 'SFDX: Aura イベントを作成',
+  lightning_generate_interface_text: 'SFDX: Aura インタフェースを作成',
+  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
+  analytics_template_name_text: 'template name',
   force_source_status_local_text: 'SFDX: ローカルの変更を表示',
   force_source_status_remote_text:
     'SFDX: デフォルトのスクラッチ組織の変更を参照',
@@ -168,7 +169,7 @@ export const messages = {
   force_project_create_empty_template: '空のプロジェクトテンプレート',
   force_project_create_analytics_template:
     'Analytics のプロジェクトテンプレート',
-  force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
+  apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
   apex_debug_log_status_bar_text:
@@ -250,6 +251,14 @@ export const messages = {
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
+  sfdx_cli_not_supported:
+    'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
+  sf_v1_not_supported:
+    'Your installed Salesforce CLI version is incompatible with all versions of our extensions. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
+  both_sfdx_and_sf:
+    'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
+  sfdx_v7_deprecation:
+    'If you\'re currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you\'ve been running continue to work as before.',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
@@ -275,7 +284,7 @@ export const messages = {
   visualforce_page_message_name: 'Visualforce ページ',
   aura_bundle_message_name: 'Aura コンポーネントバンドル',
   lwc_message_name: 'Lightning Web コンポーネント',
-  force_lightning_lwc_create_text: 'SFDX: Lightning Web コンポーネントを作成',
+  lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
