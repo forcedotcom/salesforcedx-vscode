@@ -693,7 +693,7 @@
       {
         "command": "sfdx.apex.generate.unit.test.class",
         "title": "%apex_generate_unit_test_class_text%"
-      },    
+      },
       {
         "command": "sfdx.apex.generate.basic.test.class",
         "title": "%apex_generate_basic_test_class_text%"
