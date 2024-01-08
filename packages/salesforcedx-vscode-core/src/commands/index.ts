@@ -59,7 +59,6 @@ export {
   ForceListMetadataExecutor,
   forceListMetadata
 } from './forceListMetadata';
-export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
@@ -97,7 +96,7 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { forceTaskStop } from './forceTaskStop';
+export { openDocumentation } from './openDocumentation';
 export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
@@ -139,6 +138,7 @@ export {
   stopApexDebugLogging,
   turnOffLogging
 } from './stopApexDebugLogging';
+export { taskStop } from './taskStop';
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,
