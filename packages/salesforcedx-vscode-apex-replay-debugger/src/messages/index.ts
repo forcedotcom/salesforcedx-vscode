@@ -18,7 +18,7 @@ import { messages as jaMessages } from './i18n.ja';
 
 const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
 
-function loadMessageBundle(config?: Config): Message {
+const loadMessageBundle = (config?: Config): Message => {
   const base = new Message(enMessages);
 
   const localeConfig = config ? config.locale : DEFAULT_LOCALE;
@@ -32,7 +32,7 @@ function loadMessageBundle(config?: Config): Message {
   }
 
   return base;
-}
+};
 
 export const nls = new Localization(
   loadMessageBundle(

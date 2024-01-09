@@ -15,7 +15,7 @@ import { getJavascriptMode } from '../../src/modes/javascriptMode';
 describe('HTML Javascript Support', () => {
   const htmlLanguageService = getLanguageService();
 
-  function assertCompletions(value: string, expectedProposals: string[]): void {
+  const assertCompletions = (value: string, expectedProposals: string[]): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -45,7 +45,7 @@ describe('HTML Javascript Support', () => {
         'Not found:' + expected + ' is ' + actualLabels.join(', ')
       );
     }
-  }
+  };
 
   beforeAll(() => {
     jest.useFakeTimers();

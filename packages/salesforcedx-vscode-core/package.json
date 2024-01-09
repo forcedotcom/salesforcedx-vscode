@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.12.2",
+  "version": "59.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "5.3.20",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "59.12.2",
-    "@salesforce/salesforcedx-utils-vscode": "59.12.2",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.13.0",
+    "@salesforce/salesforcedx-utils-vscode": "59.13.0",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "9.8.4",
     "@salesforce/templates": "^59.0.4",
@@ -40,7 +40,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.12.2",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.13.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -130,8 +130,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.force.project.create",
-    "onCommand:sfdx.force.project.with.manifest.create",
+    "onCommand:sfdx.project.generate",
+    "onCommand:sfdx.project.generate.with.manifest",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
@@ -153,7 +153,7 @@
     "views": {
       "explorer": [
         {
-          "id": "sfdx.force.tasks.view",
+          "id": "sfdx.tasks.view",
           "name": "%running_tasks_title_text%"
         }
       ],
@@ -182,8 +182,8 @@
       ],
       "view/item/context": [
         {
-          "command": "sfdx.force.task.stop",
-          "when": "view == sfdx.force.tasks.view"
+          "command": "sfdx.task.stop",
+          "when": "view == sfdx.tasks.view"
         },
         {
           "command": "sfdx.force.metadata.view.component.refresh",
@@ -364,7 +364,7 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.open.documentation",
+          "command": "sfdx.open.documentation",
           "when": "sfdx:project_opened"
         },
         {
@@ -404,7 +404,7 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.task.stop",
+          "command": "sfdx.task.stop",
           "when": "sfdx:project_opened"
         },
         {
@@ -456,11 +456,11 @@
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
-          "command": "sfdx.force.project.create",
+          "command": "sfdx.project.generate",
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.project.with.manifest.create",
+          "command": "sfdx.project.generate.with.manifest",
           "when": "!sfdx:internal_dev"
         },
         {
@@ -643,8 +643,8 @@
         "title": "%org_logout_default_text%"
       },
       {
-        "command": "sfdx.force.open.documentation",
-        "title": "%force_open_documentation_text%"
+        "command": "sfdx.open.documentation",
+        "title": "%open_documentation_text%"
       },
       {
         "command": "sfdx.org.create",
@@ -683,7 +683,7 @@
         "title": "%force_source_status_remote_text%"
       },
       {
-        "command": "sfdx.force.task.stop",
+        "command": "sfdx.task.stop",
         "title": "%cancel_sfdx_command_text%"
       },
       {
@@ -779,12 +779,12 @@
         "title": "%data_query_selection_text%"
       },
       {
-        "command": "sfdx.force.project.create",
-        "title": "%force_project_create_text%"
+        "command": "sfdx.project.generate",
+        "title": "%project_generate_text%"
       },
       {
-        "command": "sfdx.force.project.with.manifest.create",
-        "title": "%force_project_with_manifest_create_text%"
+        "command": "sfdx.project.generate.with.manifest",
+        "title": "%project_generate_with_manifest_text%"
       },
       {
         "command": "sfdx.apex.generate.trigger",

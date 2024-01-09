@@ -87,10 +87,10 @@ documents.onDidClose(e => {
   delete documentSettings[e.document.uri];
 });
 
-function getDocumentSettings(
+const getDocumentSettings = (
   textDocument: TextDocument,
   needsDocumentSettings: () => boolean
-): Thenable<Settings> {
+): Thenable<Settings> => {
   if (scopedSettingsSupport && needsDocumentSettings()) {
     let promise = documentSettings[textDocument.uri];
     if (!promise) {
@@ -110,7 +110,7 @@ function getDocumentSettings(
     return promise;
   }
   return Promise.resolve(void 0);
-}
+};
 
 // After the server has started the client sends an initilize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilites
@@ -132,13 +132,13 @@ connection.onInitialize(
       languageModes.dispose();
     });
 
-    function hasClientCapability(...keys: string[]) {
+    const hasClientCapability = (...keys: string[]) => {
       let c = params.capabilities;
       for (let i = 0; c && i < keys.length; i++) {
         c = c[keys[i]];
       }
       return !!c;
-    }
+    };
 
     clientSnippetSupport = hasClientCapability(
       'textDocument',
@@ -231,27 +231,27 @@ documents.onDidClose(event => {
   connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 });
 
-function cleanPendingValidation(textDocument: TextDocument): void {
+const cleanPendingValidation = (textDocument: TextDocument): void => {
   const request = pendingValidationRequests[textDocument.uri];
   if (request) {
     clearTimeout(request);
     delete pendingValidationRequests[textDocument.uri];
   }
-}
+};
 
-function triggerValidation(textDocument: TextDocument): void {
+const triggerValidation = (textDocument: TextDocument): void => {
   cleanPendingValidation(textDocument);
   pendingValidationRequests[textDocument.uri] = setTimeout(() => {
     delete pendingValidationRequests[textDocument.uri];
     // tslint:disable-next-line:no-floating-promises
     validateTextDocument(textDocument);
   }, validationDelayMs);
-}
+};
 
-function isValidationEnabled(
+const isValidationEnabled = (
   languageId: string,
   settings: Settings = globalSettings
-) {
+) => {
   const validationSettings =
     settings && settings.visualforce && settings.visualforce.validate;
   if (validationSettings) {
@@ -261,9 +261,9 @@ function isValidationEnabled(
     );
   }
   return true;
-}
+};
 
-async function validateTextDocument(textDocument: TextDocument) {
+const validateTextDocument = async (textDocument: TextDocument) => {
   const diagnostics: Diagnostic[] = [];
   if (textDocument.languageId === 'html') {
     const modes = languageModes.getAllModesInDocument(textDocument);
@@ -277,7 +277,7 @@ async function validateTextDocument(textDocument: TextDocument) {
     });
   }
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
+};
 
 connection.onCompletion(async textDocumentPosition => {
   const document = documents.get(textDocumentPosition.textDocument.uri);
