@@ -13,9 +13,9 @@ import {
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
 
-export function getDialogStartingPath(
+export const getDialogStartingPath = (
   extContext: vscode.ExtensionContext
-): vscode.Uri | undefined {
+): vscode.Uri | undefined => {
   if (workspaceUtils.hasRootWorkspace()) {
     // If the user has already selected a document through getLogFileName then
     // use that path if it still exists.
@@ -37,21 +37,21 @@ export function getDialogStartingPath(
     const stateFolderUri = getUriFor(pathToStateFolder);
     return stateFolderUri;
   }
-}
+};
 
-function getLastOpenedLogFolder(
+const getLastOpenedLogFolder = (
   extContext: vscode.ExtensionContext
-): string | undefined {
+): string | undefined => {
   const pathToLastOpenedLogFolder = extContext.workspaceState.get<string>(
     LAST_OPENED_LOG_FOLDER_KEY
   );
   return pathToLastOpenedLogFolder;
-}
+};
 
-function folderExists(path: string): boolean {
+const folderExists = (path: string): boolean => {
   return existsSync(path);
-}
+};
 
-function getUriFor(path: string): vscode.Uri {
+const getUriFor = (path: string): vscode.Uri => {
   return vscode.Uri.file(path);
-}
+};
