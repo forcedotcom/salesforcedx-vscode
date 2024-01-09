@@ -11,7 +11,11 @@ import { getLanguageService } from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
 describe('JSON Formatter', () => {
-  function format(unformatted: string, expected: string, insertSpaces = true) {
+  const format = (
+    unformatted: string,
+    expected: string,
+    insertSpaces = true
+  ) => {
     let range: Range = null;
     const uri = 'test://test.html';
 
@@ -37,7 +41,7 @@ describe('JSON Formatter', () => {
     });
     const formatted = applyEdits(document, edits);
     assert.equal(formatted, expected);
-  }
+  };
 
   it('full document', () => {
     const content = ['<div  class = "foo">', '<br>', ' </div>'].join('\n');

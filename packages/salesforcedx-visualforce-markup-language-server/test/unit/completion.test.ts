@@ -46,8 +46,8 @@ describe('HTML Completion', () => {
       matches.length,
       1,
       expected.label +
-      ' should only existing once: Actual: ' +
-      completions.items.map(c => c.label).join(', ')
+        ' should only existing once: Actual: ' +
+        completions.items.map(c => c.label).join(', ')
     );
     const match = matches[0];
     if (expected.documentation) {
@@ -109,7 +109,7 @@ describe('HTML Completion', () => {
     assert.equal(actual, expected);
   };
 
-  function run(tests: PromiseLike<void>[], testDone) {
+  const run = (tests: PromiseLike<void>[], testDone) => {
     // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {
@@ -119,7 +119,7 @@ describe('HTML Completion', () => {
         testDone(error);
       }
     );
-  }
+  };
 
   it('Complete', testDone => {
     run(
@@ -571,7 +571,7 @@ describe('HTML Completion', () => {
   // Visualforce
   //////////////
 
-  function getCompletionSuggestions(value: string): CompletionList {
+  const getCompletionSuggestions = (value: string): CompletionList => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -587,7 +587,7 @@ describe('HTML Completion', () => {
     const vfDoc = ls.parseHTMLDocument(document);
     const list = ls.doComplete(document, position, vfDoc);
     return list;
-  }
+  };
 
   describe('Visualforce Completions', () => {
     // This list is from https://developer.salesforce.com/docs/atlas.en-us.pages.meta/pages/pages_compref_map.htm

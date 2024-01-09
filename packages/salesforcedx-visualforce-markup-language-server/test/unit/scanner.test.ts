@@ -21,7 +21,7 @@ describe('HTML Scanner', () => {
     content?: string;
   }
 
-  function assertTokens(tests: { input: string; tokens: Token[] }[]) {
+  const assertTokens = (tests: { input: string; tokens: Token[] }[]) => {
     let scannerState = ScannerState.WithinContent;
     for (const t of tests) {
       const scanner = createScanner(t.input, 0, scannerState);
@@ -47,7 +47,7 @@ describe('HTML Scanner', () => {
       assert.deepEqual(actual, t.tokens);
       scannerState = scanner.getScannerState();
     }
-  }
+  };
 
   it('Open Start Tag #1', () => {
     assertTokens([
