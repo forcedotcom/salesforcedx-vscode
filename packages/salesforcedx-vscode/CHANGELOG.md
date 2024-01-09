@@ -1,20 +1,10 @@
-# 59.13.0 - January 10, 2024
+# 59.13.0 - January 11, 2024
 
 ## Added
 
 #### salesforcedx-vscode-core
 
 - Validate CLI installation and version during activation of CLI Integration extension ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185))
-
-## Fixed
-
-#### salesforcedx-vscode-core
-
-- Create commands from sfdx to sf style ([PR #5303](https://github.com/forcedotcom/salesforcedx-vscode/pull/5303))
-
-- Default SF_LOG_LEVEL to fatal ([PR #5318](https://github.com/forcedotcom/salesforcedx-vscode/pull/5318))
-
-# 59.12.2 - January 5, 2024
 
 ## Fixed
 
@@ -35,7 +25,8 @@
 #### salesforcedx-vscode-core
 
 - We updated the @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
-- We updated several commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
+- We updated several commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295), [PR #5303](https://github.com/forcedotcom/salesforcedx-vscode/pull/5303))
+- We made some changes under the hood. ([PR #5318](https://github.com/forcedotcom/salesforcedx-vscode/pull/5318))
 
 # 59.9.0 - December 13, 2023
 
