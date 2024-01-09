@@ -10,11 +10,11 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Highlighting', () => {
-  function assertHighlights(
+  const assertHighlights = (
     value: string,
     expectedMatches: number[],
     elementName: string
-  ): void {
+  ): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -45,7 +45,7 @@ describe('HTML Highlighting', () => {
         elementName
       );
     }
-  }
+  };
 
   it('Single', () => {
     assertHighlights('|<html></html>', [], null);
