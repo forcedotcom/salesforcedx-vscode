@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We now validate your CLI version during activation of the CLI Integration extension and let you know if you need to make any updates. The validation ensures that your CLI version is compatible with the rest of our extension pack. We hope this update takes away some of the guesswork around which CLI version you should be on, and helps keep your CLI upto date. ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185))
+- We now validate your CLI version during activation of the CLI Integration extension and let you know if you need to make any updates. The validation ensures that your CLI version is compatible with the rest of our extension pack. We hope this update takes away some of the guesswork around which CLI version you should be on, and helps keep your CLI up to date. ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185))
 
 ## Fixed
 
