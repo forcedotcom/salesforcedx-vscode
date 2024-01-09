@@ -14,9 +14,9 @@ import {
 import { CSS_STYLE_RULE, HTMLDocumentRegions } from './embeddedSupport';
 import { ColorInformation, LanguageMode, Settings } from './languageModes';
 
-export function getCSSMode(
+export const getCSSMode = (
   documentRegions: LanguageModelCache<HTMLDocumentRegions>
-): LanguageMode {
+): LanguageMode => {
   const cssLanguageService = getCSSLanguageService();
   const embeddedCSSDocuments = getLanguageModelCache<TextDocument>(
     10,
@@ -28,13 +28,13 @@ export function getCSSMode(
   );
 
   return {
-    getId() {
+    getId: () => {
       return 'css';
     },
-    configure(options: any) {
+    configure: (options: any) => {
       cssLanguageService.configure(options && options.css);
     },
-    doValidation(document: TextDocument, settings: Settings) {
+    doValidation: (document: TextDocument, settings: Settings) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.doValidation(
         embedded,
@@ -42,7 +42,7 @@ export function getCSSMode(
         settings && settings.css
       );
     },
-    doComplete(document: TextDocument, position: Position) {
+    doComplete: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.doComplete(
         embedded,
@@ -50,7 +50,7 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    doHover(document: TextDocument, position: Position) {
+    doHover: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.doHover(
         embedded,
@@ -58,7 +58,7 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    findDocumentHighlight(document: TextDocument, position: Position) {
+    findDocumentHighlight: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.findDocumentHighlights(
         embedded,
@@ -66,13 +66,13 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    findDocumentSymbols(document: TextDocument) {
+    findDocumentSymbols: (document: TextDocument) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService
         .findDocumentSymbols(embedded, cssStylesheets.get(embedded))
         .filter(s => s.name !== CSS_STYLE_RULE);
     },
-    findDefinition(document: TextDocument, position: Position) {
+    findDefinition: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.findDefinition(
         embedded,
@@ -80,7 +80,7 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    findReferences(document: TextDocument, position: Position) {
+    findReferences: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.findReferences(
         embedded,
@@ -88,14 +88,14 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    findDocumentColors(document: TextDocument) {
+    findDocumentColors: (document: TextDocument) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.findDocumentColors(
         embedded,
         cssStylesheets.get(embedded)
       );
     },
-    getColorPresentations(document: TextDocument, colorInfo: ColorInformation) {
+    getColorPresentations: (document: TextDocument, colorInfo: ColorInformation) => {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.getColorPresentations(
         embedded,
@@ -103,13 +103,13 @@ export function getCSSMode(
         colorInfo
       );
     },
-    onDocumentRemoved(document: TextDocument) {
+    onDocumentRemoved: (document: TextDocument) => {
       embeddedCSSDocuments.onDocumentRemoved(document);
       cssStylesheets.onDocumentRemoved(document);
     },
-    dispose() {
+    dispose: () => {
       embeddedCSSDocuments.dispose();
       cssStylesheets.dispose();
     }
   };
-}
+};

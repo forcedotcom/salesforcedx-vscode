@@ -13,11 +13,11 @@ export interface LanguageModelCache<T> {
   dispose(): void;
 }
 
-export function getLanguageModelCache<T>(
+export const getLanguageModelCache = <T>(
   maxEntries: number,
   cleanupIntervalTimeInSec: number,
   parse: (document: TextDocument) => T
-): LanguageModelCache<T> {
+): LanguageModelCache<T> => {
   let languageModels: {
     [uri: string]: {
       version: number;
@@ -44,7 +44,7 @@ export function getLanguageModelCache<T>(
   }
 
   return {
-    get(document: TextDocument): T {
+    get: (document: TextDocument): T => {
       const version = document.version;
       const languageId = document.languageId;
       const languageModelInfo = languageModels[document.uri];
@@ -85,14 +85,14 @@ export function getLanguageModelCache<T>(
       }
       return languageModel;
     },
-    onDocumentRemoved(document: TextDocument) {
+    onDocumentRemoved: (document: TextDocument) => {
       const uri = document.uri;
       if (languageModels[uri]) {
         delete languageModels[uri];
         nModels--;
       }
     },
-    dispose() {
+    dispose: () => {
       if (typeof cleanupInterval !== 'undefined') {
         clearInterval(cleanupInterval);
         cleanupInterval = void 0;
@@ -101,4 +101,4 @@ export function getLanguageModelCache<T>(
       }
     }
   };
-}
+};
