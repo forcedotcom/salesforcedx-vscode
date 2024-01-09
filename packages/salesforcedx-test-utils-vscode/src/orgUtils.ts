@@ -17,12 +17,12 @@ import * as util from 'util';
 import { Uri } from 'vscode';
 
 // Used only for CI purposes. Must call delete if you call create
-export const createSFDXProject = async (projectName: string): Promise<void> => {
+export const generateSFProject = async (projectName: string): Promise<void> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:project:create')
-      .withFlag('--projectname', projectName)
-      .withJson()
+      .withArg('project:generate')
+      .withFlag('--name', projectName)
+      .withJson(false)
       .build(),
     { cwd: process.cwd() }
   ).execute();
@@ -42,10 +42,10 @@ export const createScratchOrg = async (
   );
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:org:create')
-      .withFlag('--definitionfile', `${scratchDefFilePath}`)
-      .withArg('--setdefaultusername')
-      .withJson()
+      .withArg('org:create:scratch')
+      .withFlag('--definition-file', `${scratchDefFilePath}`)
+      .withArg('--set-default')
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
@@ -61,9 +61,9 @@ export const deleteScratchOrg = async (
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:org:delete')
-      .withFlag('--targetusername', username)
-      .withArg('--noprompt')
+      .withArg('org:delete:scratch')
+      .withFlag('--target-org', username)
+      .withArg('--no-prompt')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }

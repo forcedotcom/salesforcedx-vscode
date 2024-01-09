@@ -4,48 +4,37 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import {
+  CliStatusEnum,
+  CliVersionStatus,
+  ensureCurrentWorkingDirIsProjectPath
+} from '@salesforce/salesforcedx-utils';
 import {
   ChannelService,
-  getRootWorkspacePath,
   SFDX_CORE_CONFIGURATION_NAME,
-  TelemetryService
+  TelemetryService,
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   aliasList,
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
   checkSObjectsAndRefresh,
   configList,
   configSet,
   dataQuery,
   debuggerStop,
   deleteSource,
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexTriggerCreate,
-  forceApexUnitClassCreate,
   forceAuthAccessToken,
   forceCreateManifest,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
   forceLightningLwcTestCreate,
-  forceOpenDocumentation,
-  forceOrgCreate,
-  forceOrgDelete,
   forcePackageInstall,
-  forceProjectWithManifestCreate,
   forceRefreshSObjects,
   forceRenameLightningComponent,
-  forceSfdxProjectCreate,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -55,10 +44,20 @@ import {
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
-  forceTaskStop,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate,
   initSObjectDefinitions,
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  openDocumentation,
+  orgCreate,
+  orgDelete,
   orgDisplay,
   orgList,
   orgLoginWeb,
@@ -66,12 +65,17 @@ import {
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
+  projectGenerateWithManifest,
+  sfProjectGenerate,
   startApexDebugLogging,
   stopApexDebugLogging,
+  taskStop,
   turnOffLogging,
   viewAllChanges,
   viewLocalChanges,
-  viewRemoteChanges
+  viewRemoteChanges,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { isvDebugBootstrap } from './commands/isvdebugging';
@@ -93,7 +97,8 @@ import {
 } from './conflict';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  ORG_OPEN_COMMAND
+  ORG_OPEN_COMMAND,
+  SF_CLI_DOWNLOAD_LINK
 } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import {
@@ -101,8 +106,9 @@ import {
   disposeTraceFlagExpiration,
   showDemoMode
 } from './decorators';
+import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService, ProgressNotification } from './notifications';
+import { ProgressNotification, notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
@@ -113,6 +119,7 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
+  setSfLogLevel,
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -148,13 +155,13 @@ function registerCommands(
     'sfdx.org.logout.default',
     orgLogoutDefault
   );
-  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
-    'sfdx.force.open.documentation',
-    forceOpenDocumentation
+  const openDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.open.documentation',
+    openDocumentation
   );
-  const forceOrgCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.create',
-    forceOrgCreate
+  const orgCreateCmd = vscode.commands.registerCommand(
+    'sfdx.org.create',
+    orgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
@@ -224,54 +231,54 @@ function registerCommands(
     'sfdx.force.source.status.remote',
     viewRemoteChanges
   );
-  const forceTaskStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.task.stop',
-    forceTaskStop
+  const taskStopCmd = vscode.commands.registerCommand(
+    'sfdx.task.stop',
+    taskStop
   );
-  const forceApexClassCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.class.create',
-    forceApexClassCreate
+  const apexGenerateClassCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.class',
+    apexGenerateClass
   );
-  const forceApexClassCreateUnitCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.class.create.unit',
-    forceApexUnitClassCreate
+  const apexGenerateUnitTestClassCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.unit.test.class',
+    apexGenerateUnitTestClass
   );
-  const forceAnalyticsTemplateCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.analytics.template.create',
-    forceAnalyticsTemplateCreate
+  const analyticsGenerateTemplateCmd = vscode.commands.registerCommand(
+    'sfdx.analytics.generate.template',
+    analyticsGenerateTemplate
   );
-  const forceVisualforceComponentCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.visualforce.component.create',
-    forceVisualforceComponentCreate
+  const visualforceGenerateComponentCmd = vscode.commands.registerCommand(
+    'sfdx.visualforce.generate.component',
+    visualforceGenerateComponent
   );
-  const forceVisualforcePageCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.visualforce.page.create',
-    forceVisualforcePageCreate
-  );
-
-  const forceLightningAppCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.app.create',
-    forceLightningAppCreate
+  const visualforceGeneratePageCmd = vscode.commands.registerCommand(
+    'sfdx.visualforce.generate.page',
+    visualforceGeneratePage
   );
 
-  const forceLightningComponentCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.component.create',
-    forceLightningComponentCreate
+  const lightningGenerateAppCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.app',
+    lightningGenerateApp
   );
 
-  const forceLightningEventCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.event.create',
-    forceLightningEventCreate
+  const lightningGenerateAuraComponentCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.aura.component',
+    lightningGenerateAuraComponent
   );
 
-  const forceLightningInterfaceCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.interface.create',
-    forceLightningInterfaceCreate
+  const lightningGenerateEventCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.event',
+    lightningGenerateEvent
   );
 
-  const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.create',
-    forceLightningLwcCreate
+  const lightningGenerateInterfaceCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.interface',
+    lightningGenerateInterface
+  );
+
+  const lightningGenerateLwcCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.generate.lwc',
+    lightningGenerateLwc
   );
 
   const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
@@ -291,14 +298,14 @@ function registerCommands(
     'sfdx.alias.list',
     aliasList
   );
-  const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.default',
-    forceOrgDelete
+  const orgDeleteDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.default',
+    orgDelete
   );
-  const forceOrgDeleteUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.delete.username',
-    forceOrgDelete,
-    { flag: '--targetusername' }
+  const orgDeleteUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.org.delete.username',
+    orgDelete,
+    { flag: '--target-org' }
   );
   const orgDisplayDefaultCmd = vscode.commands.registerCommand(
     'sfdx.org.display.default',
@@ -321,23 +328,23 @@ function registerCommands(
     'sfdx.data.query.selection',
     dataQuery
   );
-  const forceProjectCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.create',
-    forceSfdxProjectCreate
+  const projectGenerateCmd = vscode.commands.registerCommand(
+    'sfdx.project.generate',
+    sfProjectGenerate
   );
 
   const forcePackageInstallCmd = vscode.commands.registerCommand(
     'sfdx.force.package.install',
     forcePackageInstall
   );
-  const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.with.manifest.create',
-    forceProjectWithManifestCreate
+  const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
+    'sfdx.project.generate.with.manifest',
+    projectGenerateWithManifest
   );
 
-  const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.trigger.create',
-    forceApexTriggerCreate
+  const apexGenerateTriggerCmd = vscode.commands.registerCommand(
+    'sfdx.apex.generate.trigger',
+    apexGenerateTrigger
   );
 
   const startApexDebugLoggingCmd = vscode.commands.registerCommand(
@@ -389,10 +396,10 @@ function registerCommands(
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
-    forceOpenDocumentationCmd,
-    forceOrgCreateCmd,
-    forceOrgDeleteDefaultCmd,
-    forceOrgDeleteUsernameCmd,
+    openDocumentationCmd,
+    orgCreateCmd,
+    orgDeleteDefaultCmd,
+    orgDeleteUsernameCmd,
     forceRefreshSObjectsCmd,
     deleteSourceCmd,
     deleteSourceCurrentFileCmd,
@@ -410,27 +417,27 @@ function registerCommands(
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-    forceTaskStopCmd,
-    forceApexClassCreateCmd,
-    forceApexClassCreateUnitCmd,
-    forceAnalyticsTemplateCreateCmd,
-    forceVisualforceComponentCreateCmd,
-    forceVisualforcePageCreateCmd,
-    forceLightningAppCreateCmd,
-    forceLightningComponentCreateCmd,
-    forceLightningEventCreateCmd,
-    forceLightningInterfaceCreateCmd,
-    forceLightningLwcCreateCmd,
+    taskStopCmd,
+    apexGenerateClassCmd,
+    apexGenerateUnitTestClassCmd,
+    analyticsGenerateTemplateCmd,
+    visualforceGenerateComponentCmd,
+    visualforceGeneratePageCmd,
+    lightningGenerateAppCmd,
+    lightningGenerateAuraComponentCmd,
+    lightningGenerateEventCmd,
+    lightningGenerateInterfaceCmd,
+    lightningGenerateLwcCmd,
     forceLightningLwcTestCreateCmd,
     debuggerStopCmd,
     configListCmd,
     forceAliasListCmd,
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
-    forceProjectCreateCmd,
+    projectGenerateCmd,
     forcePackageInstallCmd,
-    forceProjectWithManifestCreateCmd,
-    forceApexTriggerCreateCmd,
+    projectGenerateWithManifestCmd,
+    apexGenerateTriggerCmd,
     startApexDebugLoggingCmd,
     stopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
@@ -448,39 +455,38 @@ function registerInternalDevCommands(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
-  const forceInternalLightningAppCreateCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.app.create',
-    forceInternalLightningAppCreate
+  const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.app',
+    internalLightningGenerateApp
   );
 
-  const forceInternalLightningComponentCreateCmd =
+  const internalLightningGenerateAuraComponentCmd =
     vscode.commands.registerCommand(
-      'sfdx.internal.lightning.component.create',
-      forceInternalLightningComponentCreate
+      'sfdx.internal.lightning.generate.aura.component',
+      internalLightningGenerateAuraComponent
     );
 
-  const forceInternalLightningEventCreateCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.event.create',
-    forceInternalLightningEventCreate
+  const internalLightningGenerateEventCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.event',
+    internalLightningGenerateEvent
   );
 
-  const forceInternalLightningInterfaceCreateCmd =
-    vscode.commands.registerCommand(
-      'sfdx.internal.lightning.interface.create',
-      forceInternalLightningInterfaceCreate
-    );
+  const internalLightningGenerateInterfaceCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.interface',
+    internalLightningGenerateInterface
+  );
 
-  const forceInternalLightningLwcCreateCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.lwc.create',
-    forceInternalLightningLwcCreate
+  const internalLightningGenerateLwcCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.generate.lwc',
+    internalLightningGenerateLwc
   );
 
   return vscode.Disposable.from(
-    forceInternalLightningComponentCreateCmd,
-    forceInternalLightningLwcCreateCmd,
-    forceInternalLightningAppCreateCmd,
-    forceInternalLightningEventCreateCmd,
-    forceInternalLightningInterfaceCreateCmd
+    internalLightningGenerateAuraComponentCmd,
+    internalLightningGenerateLwcCmd,
+    internalLightningGenerateAppCmd,
+    internalLightningGenerateEventCmd,
+    internalLightningGenerateInterfaceCmd
   );
 }
 
@@ -542,13 +548,15 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  validateCliInstallationAndVersion();
   setNodeExtraCaCerts();
+  setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   showTelemetryMessage(extensionContext);
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.tasks.view',
+    'sfdx.tasks.view',
     taskViewService
   );
   extensionContext.subscriptions.push(treeDataProvider);
@@ -706,4 +714,65 @@ export function deactivate(): Promise<void> {
 
   disposeTraceFlagExpiration();
   return turnOffLogging();
+}
+
+export function validateCliInstallationAndVersion(): void {
+  // Check that the CLI is installed and that it is a supported version
+  // If there is no CLI or it is an unsupported version then the Core extension will not activate
+  const c = new CliVersionStatus();
+
+  const sfdxCliVersionString = c.getCliVersion(true);
+  const sfCliVersionString = c.getCliVersion(false);
+
+  const sfdxCliVersionParsed = c.parseCliVersion(sfdxCliVersionString);
+  const sfCliVersionParsed = c.parseCliVersion(sfCliVersionString);
+
+  const cliInstallationResult = c.validateCliInstallationAndVersion(
+    sfdxCliVersionParsed,
+    sfCliVersionParsed
+  );
+
+  switch (cliInstallationResult) {
+    case CliStatusEnum.cliNotInstalled: {
+      showErrorNotification('sfdx_cli_not_found', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
+      throw Error('No Salesforce CLI installed');
+    }
+    case CliStatusEnum.onlySFv1: {
+      showErrorNotification('sf_v1_not_supported', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
+      throw Error('Only SF v1 installed');
+    }
+    case CliStatusEnum.outdatedSFDXVersion: {
+      showErrorNotification('sfdx_cli_not_supported', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
+      throw Error('Outdated SFDX CLI version that is no longer supported');
+    }
+    case CliStatusEnum.bothSFDXAndSFInstalled: {
+      showErrorNotification('both_sfdx_and_sf', []);
+      throw Error('Both SFDX v7 and SF v2 are installed');
+    }
+    case CliStatusEnum.SFDXv7Valid: {
+      showWarningNotification('sfdx_v7_deprecation', [
+        SF_CLI_DOWNLOAD_LINK,
+        SF_CLI_DOWNLOAD_LINK
+      ]);
+    }
+  }
+}
+
+export function showErrorNotification(type: string, args: any[]) {
+  const showMessage = nls.localize(type, ...args);
+  vscode.window.showErrorMessage(showMessage);
+}
+
+export function showWarningNotification(type: string, args: any[]) {
+  const showMessage = nls.localize(type, ...args);
+  vscode.window.showWarningMessage(showMessage);
 }
