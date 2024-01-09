@@ -11,7 +11,7 @@ import * as words from '../../src/utils/strings';
 describe('Words', () => {
   const wordRegex = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
-  function assertWord(value: string, expected: string): void {
+  const assertWord = (value: string, expected: string): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -19,7 +19,7 @@ describe('Words', () => {
     assert(actualRange.start <= offset);
     assert(actualRange.start + actualRange.length >= offset);
     assert.equal(value.substr(actualRange.start, actualRange.length), expected);
-  }
+  };
 
   it('Should handle basic words', () => {
     assertWord('|var x1 = new F<A>(a, b);', 'var');
