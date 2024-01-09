@@ -8,7 +8,7 @@
 import * as assert from 'assert';
 import { TextDocument, TextEdit } from 'vscode-languageserver-types';
 
-export function applyEdits(document: TextDocument, edits: TextEdit[]): string {
+export const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
   const sortedEdits = edits.sort(
     (a, b) =>
@@ -27,4 +27,4 @@ export function applyEdits(document: TextDocument, edits: TextEdit[]): string {
     lastOffset = startOffset;
   });
   return text;
-}
+};
