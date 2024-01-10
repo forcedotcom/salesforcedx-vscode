@@ -13,7 +13,7 @@ Enable Code Builder to provide the permissions needed to install the Code Builde
 
 ## Enable and Install Code Builder
 
-To install Code Builder in a Professional Edition org, the org must have API access. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. Contact your Account Executive to request the API add-on.
+To install Code Builder in a Professional Edition org, the org must have API access. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. To request the API add-on, contact your Account Executive.
 
 **Note**: Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
 
@@ -28,11 +28,11 @@ To install Code Builder in a Professional Edition org, the org must have API acc
 
 5. Approve third-party access and click **Continue**.
 
-Code Builder Dashboard in now available in App Launcher. Be sure to assign the appropriate Code Builder permission sets to team members.
+The code Builder Dashboard in now available in App Launcher. Be sure to assign the appropriate Code Builder permission sets to team members.
 
 ## Confirm Code Builder Package Installation
 
-When installation is complete, you receive a confirmation email. You can confirm the installation on the Installed Packages Setup page.
+When installation is completed, you receive a confirmation email. You can confirm the installation on the Installed Packages Setup page.
 
 From Setup, enter `Installed Packages` in the Quick Find box, then select **Installed Packages**. You see an entry for Code Builder that looks something like this. If you get the message that the app is taking a long time to install, you get automatically redirected to this page after you click **Done**.
 
@@ -40,9 +40,17 @@ From Setup, enter `Installed Packages` in the Quick Find box, then select **Inst
 
 ## Add Team Members as Users in the Code Builder Org
 
-Code Builder works with the [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) or the [Free Limited Access](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/dev_hub_license.htm) license. 
+Code Builder is accessed through a user-based license and works with the [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) or the [Free Limited Access](https://help.salesforce.com/s/articleView?id=release-notes.rn_sfdx_dev_hub.htm&release=218&type=5) licenses.
 
-Add any team members who aren’t already users in the Code Builder org: 
+The number of Code Builder licenses available depends on the Salesforce edition:
+
+| Salesforce Edition | Professional | Enterprise | Unlimited | Trial                                                                              |
+| ------------------ | ------------ | ---------- | --------- | ---------------------------------------------------------------------------------- |
+| Code Builder Users | 10           | 40         | 100       | Users are available if the trial org is for an edition that includes Code Builder. |
+
+**Note**: Additional Code Builder user licenses are available as a part of a scratch org add-on purchase. Each scratch org add-on gives you one Code Builder user license. See [Salesforce Add-on Pricing](https://www.salesforce.com/content/dam/web/en_us/www/documents/pricing/all-add-ons.pdf) for more information.
+
+Add any team members who aren’t already users in the Code Builder org:
 
 1. Log in to the Code Builder org.
 2. From Setup, enter `Users` in the Quick Find box, then select **Users.**
