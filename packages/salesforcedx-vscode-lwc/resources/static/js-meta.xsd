@@ -167,6 +167,11 @@
                 <xs:documentation>Enables a component to be used as a custom property editor in relevant builders</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="lightning__UrlAddressable">
+              <xs:annotation>
+                <xs:documentation>Enables navigation to a component using the standard__component PageReference type. For more information, see the lightning/navigation documentation</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
