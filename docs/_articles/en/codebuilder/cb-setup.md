@@ -50,7 +50,7 @@ The number of Code Builder licenses available depends on the Salesforce edition:
 
 | Salesforce Edition      | Professional      |  Enterprise     |  Unlimited     |   Trial    |
 |  ---  |  ---  |  ---  |  ---  |  ---  |
-|     Code Builder Users  |  10     |  40     |  100     | xxx      |
+|     Code Builder Users  |  10     |  40     |  100     | If trial org edition includes Code Builder.      |
 
 
 
