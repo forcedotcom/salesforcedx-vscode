@@ -59,26 +59,12 @@ export {
   ForceListMetadataExecutor,
   forceListMetadata
 } from './forceListMetadata';
-export { forceOpenDocumentation } from './forceOpenDocumentation';
-export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
-export { orgDelete } from './orgDelete';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
   forcePackageInstall
 } from './forcePackageInstall';
-export {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  ProjectTemplateItem,
-  SelectProjectFolder,
-  SelectProjectName,
-  SelectProjectTemplate,
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
-  projectTemplateEnum
-} from './forceProjectCreate';
 export {
   ForceRefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
@@ -110,7 +96,9 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { forceTaskStop } from './forceTaskStop';
+export { openDocumentation } from './openDocumentation';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
@@ -119,6 +107,17 @@ export {
   getExecutor,
   orgOpen
 } from './orgOpen';
+export {
+  PathExistsChecker,
+  ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
+  SelectProjectFolder,
+  SelectProjectName,
+  SelectProjectTemplate,
+  projectGenerateWithManifest,
+  projectTemplateEnum,
+  sfProjectGenerate
+} from './projectGenerate';
 export {
   viewAllChanges,
   viewLocalChanges,
@@ -139,11 +138,13 @@ export {
   stopApexDebugLogging,
   turnOffLogging
 } from './stopApexDebugLogging';
+export { taskStop } from './taskStop';
 export {
   analyticsGenerateTemplate,
   apexGenerateClass,
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
+  forceLightningLwcTestCreate,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,
@@ -154,7 +155,6 @@ export {
   lightningGenerateEvent,
   lightningGenerateInterface,
   lightningGenerateLwc,
-  forceLightningLwcTestCreate,
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';
