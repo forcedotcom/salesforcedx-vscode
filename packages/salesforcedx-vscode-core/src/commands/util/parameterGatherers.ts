@@ -363,6 +363,12 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   }
 }
 
+export class ApexTestTemplateGatherer extends SimpleGatherer<{ template: string }> {
+  constructor(template: string) {
+    super({ template });
+  }
+}
+
 export class PromptConfirmGatherer
   implements ParametersGatherer<{ choice: string }> {
   private question: string;
