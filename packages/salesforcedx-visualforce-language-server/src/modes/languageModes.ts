@@ -113,9 +113,9 @@ export interface LanguageModeRange extends Range {
   attributeValue?: boolean;
 }
 
-export function getLanguageModes(supportedLanguages: {
+export const getLanguageModes = (supportedLanguages: {
   [languageId: string]: boolean;
-}): LanguageModes {
+}): LanguageModes => {
   const htmlLanguageService = getHTMLLanguageService();
   const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(
     10,
@@ -135,10 +135,10 @@ export function getLanguageModes(supportedLanguages: {
     modes['javascript'] = getJavascriptMode(documentRegions);
   }
   return {
-    getModeAtPosition(
+    getModeAtPosition: (
       document: TextDocument,
       position: Position
-    ): LanguageMode {
+    ): LanguageMode => {
       const languageId = documentRegions
         .get(document)
         .getLanguageAtPosition(position);
@@ -147,7 +147,7 @@ export function getLanguageModes(supportedLanguages: {
       }
       return null;
     },
-    getModesInRange(document: TextDocument, range: Range): LanguageModeRange[] {
+    getModesInRange: (document: TextDocument, range: Range): LanguageModeRange[] => {
       return documentRegions
         .get(document)
         .getLanguageRanges(range)
@@ -160,7 +160,7 @@ export function getLanguageModes(supportedLanguages: {
           };
         });
     },
-    getAllModesInDocument(document: TextDocument): LanguageMode[] {
+    getAllModesInDocument: (document: TextDocument): LanguageMode[] => {
       const result = [];
       for (const languageId of documentRegions
         .get(document)
@@ -172,7 +172,7 @@ export function getLanguageModes(supportedLanguages: {
       }
       return result;
     },
-    getAllModes(): LanguageMode[] {
+    getAllModes: (): LanguageMode[] => {
       const result = [];
       for (const languageId in modes) {
         const mode = modes[languageId];
@@ -182,16 +182,16 @@ export function getLanguageModes(supportedLanguages: {
       }
       return result;
     },
-    getMode(languageId: string): LanguageMode {
+    getMode: (languageId: string): LanguageMode => {
       return modes[languageId];
     },
-    onDocumentRemoved(document: TextDocument) {
+    onDocumentRemoved: (document: TextDocument) => {
       modelCaches.forEach(mc => mc.onDocumentRemoved(document));
       for (const mode in modes) {
         modes[mode].onDocumentRemoved(document);
       }
     },
-    dispose(): void {
+    dispose: (): void => {
       modelCaches.forEach(mc => mc.dispose());
       modelCaches = [];
       for (const mode in modes) {
@@ -200,4 +200,4 @@ export function getLanguageModes(supportedLanguages: {
       modes = {};
     }
   };
-}
+};

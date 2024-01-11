@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
+import { realpathSync } from 'fs';
+import { basename } from 'path';
+import { telemetryService } from '../telemetry';
 
 export const isNullOrUndefined = (object: any): object is null | undefined => {
   return object === null || object === undefined;
@@ -28,7 +30,7 @@ export const flushFilePath = (filePath: string): string => {
     return filePath;
   }
 
-  let nativePath = fs.realpathSync.native(filePath);
+  let nativePath = realpathSync.native(filePath);
   if (/^win32/.test(process.platform)) {
     // The file path on Windows is in the form of "c:\Users\User Name\foo.cls".
     // When called, fs.realpathSync.native() is returning the file path back as
@@ -39,6 +41,17 @@ export const flushFilePath = (filePath: string): string => {
     nativePath = nativePath.charAt(0).toLowerCase() + nativePath.slice(1);
   }
 
+  // check if the native path is the same case insensitive and then case sensitive
+  // so that condition can be reported via telemetry
+  if (
+    filePath !== nativePath &&
+    filePath.toLowerCase() === nativePath.toLowerCase()
+  ) {
+    telemetryService.sendEventData('FilePathCaseMismatch', {
+      originalPath: basename(filePath),
+      nativePath: basename(nativePath)
+    });
+  }
   return nativePath;
 };
 
