@@ -20,6 +20,7 @@ import {
   window,
   workspace
 } from 'vscode';
+import { channelService } from '../channels';
 import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import {
@@ -127,7 +128,7 @@ export class CodeCoverageHandler {
         this.uncoveredLines = coverage.uncoveredLines;
         this.setCoverageDecorators(editor);
       } catch (e) {
-        void window.showWarningMessage(e.message);
+        this.handleCoverageException(e);
       }
     }
   }
@@ -151,9 +152,23 @@ export class CodeCoverageHandler {
         }
       } catch (e) {
         // telemetry
-        void window.showWarningMessage(e.message);
+        this.handleCoverageException(e);
       }
       this.statusBar.toggle(true);
+    }
+  }
+
+  private handleCoverageException(e: Error) {
+    const showWarning: boolean = workspace
+      .getConfiguration()
+      .get<boolean>(
+        'salesforcedx-vscode-apex.disable-warnings-for-missing-coverage',
+        false
+      );
+    if (!showWarning) {
+      void window.showWarningMessage(e.message);
+    } else {
+      channelService.appendLine(e.message);
     }
   }
 
@@ -184,21 +199,12 @@ const applyCoverageToSource = (
     );
 
     if (!codeCovItem) {
-      const showWarning: boolean = workspace
-        .getConfiguration()
-        .get<boolean>(
-          'salesforcedx-vscode-apex.disable-warnings-for-missing-coverage',
-          false
-        );
-      if (!showWarning) {
-        throw new Error(
-          nls.localize(
-            'colorizer_no_code_coverage_current_file',
-            document.uri.fsPath
-          )
-        );
-      }
-      return { coveredLines: [], uncoveredLines: [] };
+      throw new Error(
+        nls.localize(
+          'colorizer_no_code_coverage_current_file',
+          document.uri.fsPath
+        )
+      );
     }
 
     if (
