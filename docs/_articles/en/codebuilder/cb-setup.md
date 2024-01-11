@@ -48,6 +48,13 @@ The number of Code Builder licenses available depends on the Salesforce edition:
 | ------------------ | ------------ | ---------- | --------- | ---------------------------------------------------------------------------------- |
 | Code Builder Users | 10           | 40         | 100       | Users are available if the trial org is for an edition that includes Code Builder. |
 
+| Salesforce Edition      | Professional      |  Enterprise     |  Unlimited     |   Trial    |
+|  ---  |  ---  |  ---  |  ---  |  ---  |
+|     Code Builder Users  |  10     |  40     |  100     | xxx      |
+
+
+
+
 **Note**: Additional Code Builder user licenses are available as a part of a scratch org add-on purchase. Each scratch org add-on gives you one Code Builder user license. See [Salesforce Add-on Pricing](https://www.salesforce.com/content/dam/web/en_us/www/documents/pricing/all-add-ons.pdf) for more information.
 
 Add any team members who aren’t already users in the Code Builder org:
