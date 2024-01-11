@@ -1,4 +1,10 @@
-# 59.12.2 - January 5, 2024
+# 59.13.0 - January 11, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We now validate your CLI version during activation of the CLI Integration extension and let you know if you need to make any updates. The validation ensures that your CLI version is compatible with the rest of our extension pack. We hope this update takes away some of the guesswork around which CLI version you should be on, and helps keep your CLI up to date. ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185))
 
 ## Fixed
 
@@ -19,8 +25,8 @@
 #### salesforcedx-vscode-core
 
 - We updated the @salesforce/templates version so that the latest API version 59.0 is used. ([PR #5260](https://github.com/forcedotcom/salesforcedx-vscode/pull/5260))
-- We updated several commands to the new `sf style` to remove some more pesky warnings. Use the new VSCode setting to set the `SF_LOG_LEVEL` environment variable that is now required for the `SFDX: Create a Default Scratch Org` command. Documentation for Salesforce CLI log levels here: https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_log_messages.htm
-  ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295))
+- We updated several commands to the new `sf style` to remove some more pesky warnings. ([PR #5273](https://github.com/forcedotcom/salesforcedx-vscode/pull/5273), [PR #5294](https://github.com/forcedotcom/salesforcedx-vscode/pull/5294), [PR #5295](https://github.com/forcedotcom/salesforcedx-vscode/pull/5295), [PR #5303](https://github.com/forcedotcom/salesforcedx-vscode/pull/5303))
+- We made some changes under the hood. ([PR #5318](https://github.com/forcedotcom/salesforcedx-vscode/pull/5318))
 
 # 59.9.0 - December 13, 2023
 
