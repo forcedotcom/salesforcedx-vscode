@@ -44,13 +44,10 @@ Code Builder is accessed through a user-based license and works with the [Identi
 
 The number of Code Builder licenses available depends on the Salesforce edition:
 
-| Salesforce Edition | Professional | Enterprise | Unlimited | Trial                                                                              |
-| ------------------ | ------------ | ---------- | --------- | ---------------------------------------------------------------------------------- |
-| Code Builder Users | 10           | 40         | 100       | Users are available if the trial org is for an edition that includes Code Builder. |
 
 | Salesforce Edition      | Professional      |  Enterprise     |  Unlimited     |   Trial    |
 |  ---  |  ---  |  ---  |  ---  |  ---  |
-|     Code Builder Users  |  10     |  40     |  100     | If trial org edition includes Code Builder.      |
+|     Code Builder Users  |  10     |  40     |  100     | If org edition includes Code Builder.|
 
 
 
