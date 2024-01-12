@@ -159,16 +159,16 @@ export class CodeCoverageHandler {
   }
 
   private handleCoverageException(e: Error) {
-    const showWarning: boolean = workspace
+    const disableWarning: boolean = workspace
       .getConfiguration()
       .get<boolean>(
         'salesforcedx-vscode-apex.disable-warnings-for-missing-coverage',
         false
       );
-    if (!showWarning) {
-      void window.showWarningMessage(e.message);
-    } else {
+    if (disableWarning) {
       channelService.appendLine(e.message);
+    } else {
+      void window.showWarningMessage(e.message);
     }
   }
 
