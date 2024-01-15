@@ -1,3 +1,33 @@
+# 59.14.0 - January 17, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Migrate from @salesforce/core v5 -> v6 ([PR #5332](https://github.com/forcedotcom/salesforcedx-vscode/pull/5332))
+
+## Fixed
+
+#### docs
+
+- Add on license information ([PR #5329](https://github.com/forcedotcom/salesforcedx-vscode/pull/5329))
+
+- Sfdx create project (with manifest) to sf ([PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
+
+#### salesforcedx-utils-vscode
+
+- Fix entry not found when launching apex replay debugger from apex class ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
+
+#### salesforcedx-vscode-apex
+
+- Fix entry not found when launching apex replay debugger from apex class ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
+
+#### salesforcedx-vscode-core
+
+- ForceTaskStop and forceOpenDocumentation to sf ([PR #5297](https://github.com/forcedotcom/salesforcedx-vscode/pull/5297))
+
+- Sfdx create project (with manifest) to sf ([PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
+
 # 59.13.0 - January 11, 2024
 
 ## Added
