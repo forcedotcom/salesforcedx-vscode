@@ -27,6 +27,9 @@
   "issueTypeLabels": {
     "feature": "USER STORY",
     "type:bug": "BUG P3",
+    "type:bug-P0": "BUG P0",
+    "type:bug-P1": "BUG P1",
+    "type:bug-P2": "BUG P2",
     "type:security": "BUG P2",
     "type:feedback": "",
     "status:duplicate": "",
