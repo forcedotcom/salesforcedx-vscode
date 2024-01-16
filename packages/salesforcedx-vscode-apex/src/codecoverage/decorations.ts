@@ -18,10 +18,9 @@ export const coveredLinesDecorationType = window.createTextEditorDecorationType(
   }
 );
 
-export const uncoveredLinesDecorationType = window.createTextEditorDecorationType(
-  {
+export const uncoveredLinesDecorationType =
+  window.createTextEditorDecorationType({
     backgroundColor: red(0.5),
     borderRadius: '.2em',
     overviewRulerColor: red(0.5)
-  }
-);
+  });
