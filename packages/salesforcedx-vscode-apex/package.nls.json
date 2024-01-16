@@ -26,5 +26,5 @@
   "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
   "apex_messages_level_trace_description": "Only output high-level messages of notifications and responses received by the client, and requests sent by the server.",
   "apex_off_level_trace_description": "Don't generate any output. Turn off all tracing.",
-  "apex_code_disable-warnings-for-missing-coverage": "Disable UI warning when apex test coverage missing."
+  "apex_code_disable-warnings-for-missing-coverage": "Disable UI warning when Apex test coverage is missing."
 }
