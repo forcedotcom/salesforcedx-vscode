@@ -4,19 +4,19 @@
 
 #### salesforcedx-vscode-core
 
-- We migrated our @salesforce/core dependency from v5 to v6 in order to continue getting the latest updated versions of our shared libraries. ([PR #5332](https://github.com/forcedotcom/salesforcedx-vscode/pull/5332))
+- We made a major upgrade to the version of the `@salesforce/core` library. ([PR #5332](https://github.com/forcedotcom/salesforcedx-vscode/pull/5332))
 
 ## Fixed
 
 #### docs
 
-- We added information about how to buy additional CodeBuilder licenses. ([PR #5329](https://github.com/forcedotcom/salesforcedx-vscode/pull/5329))
+- We added information about purchasing additional Code Builder licenses. ([PR #5329](https://github.com/forcedotcom/salesforcedx-vscode/pull/5329))
 
 #### salesforcedx-utils-vscode
 
 #### salesforcedx-vscode-apex
 
-- We fixed a bug to restore the functionality of allowing Apex Replay Debugger to be run on Apex test files. ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
+- We fixed an issue with the Apex Replay Debugger that was preventing it from being launched from an Apex test files. ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
 
 #### salesforcedx-vscode-core
 
