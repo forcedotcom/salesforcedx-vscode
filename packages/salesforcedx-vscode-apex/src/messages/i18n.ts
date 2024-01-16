@@ -39,7 +39,7 @@ export const messages = {
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
   colorizer_no_code_coverage_current_file:
-    'No code coverage information was found for this file. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
+    'No code coverage information was found for file %s. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',

@@ -54,7 +54,7 @@ export class LogFileSelector
           id: logInfo.Id,
           label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
           startTime: localDateFormatted,
-          detail: localDateFormatted + ' - ' + logInfo.Status.substr(0, 150),
+          detail: localDateFormatted + ' - ' + logInfo.Status.substring(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
@@ -129,7 +129,7 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logPath = logResults[0].logPath;
     if (logPath) {
       const document = await vscode.workspace.openTextDocument(logPath);
-      vscode.window.showTextDocument(document);
+      void vscode.window.showTextDocument(document);
     }
 
     return true;
