@@ -4,29 +4,23 @@
 
 #### salesforcedx-vscode-core
 
-- Migrate from @salesforce/core v5 -> v6 ([PR #5332](https://github.com/forcedotcom/salesforcedx-vscode/pull/5332))
+- We migrated our @salesforce/core dependency from v5 to v6 in order to continue getting the latest updated versions of our shared libraries. ([PR #5332](https://github.com/forcedotcom/salesforcedx-vscode/pull/5332))
 
 ## Fixed
 
 #### docs
 
-- Add on license information ([PR #5329](https://github.com/forcedotcom/salesforcedx-vscode/pull/5329))
-
-- Sfdx create project (with manifest) to sf ([PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
+- We added information about how to buy additional CodeBuilder licenses. ([PR #5329](https://github.com/forcedotcom/salesforcedx-vscode/pull/5329))
 
 #### salesforcedx-utils-vscode
 
-- Fix entry not found when launching apex replay debugger from apex class ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
-
 #### salesforcedx-vscode-apex
 
-- Fix entry not found when launching apex replay debugger from apex class ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
+- We fixed a bug to restore the functionality of allowing Apex Replay Debugger to be run on Apex test files. ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
 
 #### salesforcedx-vscode-core
 
-- ForceTaskStop and forceOpenDocumentation to sf ([PR #5297](https://github.com/forcedotcom/salesforcedx-vscode/pull/5297))
-
-- Sfdx create project (with manifest) to sf ([PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
+- We migrated some more commands to the new `sf style` to get rid of more warnings. ([PR #5297](https://github.com/forcedotcom/salesforcedx-vscode/pull/5297), [PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
 
 # 59.13.0 - January 11, 2024
 
