@@ -255,7 +255,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export const forceAnonApexExecute =  async () => {
+export const forceAnonApexExecute = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
