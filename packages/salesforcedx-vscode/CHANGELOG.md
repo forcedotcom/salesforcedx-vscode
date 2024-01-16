@@ -16,7 +16,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We fixed an issue with the Apex Replay Debugger that was preventing it from being launched from an Apex test files. ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
+- We fixed an issue with the Apex Replay Debugger that was preventing it from being launched from an Apex test file. ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
 
 #### salesforcedx-vscode-core
 
