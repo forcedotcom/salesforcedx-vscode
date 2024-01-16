@@ -1,22 +1,23 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
+import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import * as assert from 'assert';
 import {
   FormattingOptions,
   Range,
   TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
+import { format } from '../../src/modes/formatting';
 import { getLanguageModes } from '../../src/modes/languageModes';
 
-import { format } from '../../src/modes/formatting';
 
 describe('HTML Embedded Formatting', () => {
   beforeAll(() => {
@@ -28,13 +29,13 @@ describe('HTML Embedded Formatting', () => {
     jest.useRealTimers();
   });
 
-  function assertFormat(
+  const assertFormat = (
     value: string,
     expected: string,
     options?: any,
     formatOptions?: FormattingOptions,
     message?: string
-  ): void {
+  ): void => {
     const languageModes = getLanguageModes({ css: true, javascript: true });
     if (options) {
       languageModes.getAllModes().forEach(m => m.configure(options));
@@ -78,14 +79,14 @@ describe('HTML Embedded Formatting', () => {
 
     const actual = applyEdits(document, result);
     assert.equal(actual, expected, message);
-  }
+  };
 
-  function assertFormatWithFixture(
+  const assertFormatWithFixture = (
     fixtureName: string,
     expectedPath: string,
     options?: any,
     formatOptions?: FormattingOptions
-  ): void {
+  ): void  => {
     const input = fs
       .readFileSync(path.join(__dirname, 'fixtures', 'inputs', fixtureName))
       .toString();
@@ -93,7 +94,7 @@ describe('HTML Embedded Formatting', () => {
       .readFileSync(path.join(__dirname, 'fixtures', 'expected', expectedPath))
       .toString();
     assertFormat(input, expected, options, formatOptions, expectedPath);
-  }
+  };
 
   it('Should handle HTML only', () => {
     assertFormat(
@@ -219,7 +220,7 @@ describe('HTML Embedded Formatting', () => {
   });
 });
 
-function applyEdits(document: TextDocument, edits: TextEdit[]): string {
+const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
   const sortedEdits = edits.sort((a, b) => {
     const startDiff =
@@ -242,4 +243,4 @@ function applyEdits(document: TextDocument, edits: TextEdit[]): string {
     lastOffset = startOffset;
   });
   return text;
-}
+};

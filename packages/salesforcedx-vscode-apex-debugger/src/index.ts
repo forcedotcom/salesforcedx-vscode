@@ -34,17 +34,17 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
-export async function getDebuggerType(
+export const getDebuggerType = async (
   session: vscode.DebugSession
-): Promise<string> {
+): Promise<string> => {
   let type = session.type;
   if (type === LIVESHARE_DEBUGGER_TYPE) {
     type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
   }
   return type;
-}
+};
 
-function registerCommands(): vscode.Disposable {
+const registerCommands = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
@@ -89,7 +89,7 @@ function registerCommands(): vscode.Disposable {
     exceptionBreakpointCmd,
     startSessionHandler
   );
-}
+};
 
 export interface ExceptionBreakpointItem extends vscode.QuickPickItem {
   typeref: string;
@@ -114,7 +114,7 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   }
 ];
 
-async function configureExceptionBreakpoint(): Promise<void> {
+const configureExceptionBreakpoint = async (): Promise<void> => {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
@@ -170,12 +170,12 @@ async function configureExceptionBreakpoint(): Promise<void> {
       }
     }
   }
-}
+};
 
-export function mergeExceptionBreakpointInfos(
+export const mergeExceptionBreakpointInfos = (
   breakpointInfos: ExceptionBreakpointItem[],
   enabledBreakpointTyperefs: string[]
-): ExceptionBreakpointItem[] {
+): ExceptionBreakpointItem[] => {
   const processedBreakpointInfos: ExceptionBreakpointItem[] = [];
   if (enabledBreakpointTyperefs.length > 0) {
     for (let i = breakpointInfos.length - 1; i >= 0; i--) {
@@ -190,11 +190,11 @@ export function mergeExceptionBreakpointInfos(
     }
   }
   return processedBreakpointInfos.concat(breakpointInfos);
-}
+};
 
-export function updateExceptionBreakpointCache(
+export const updateExceptionBreakpointCache = (
   selectedException: ExceptionBreakpointItem
-) {
+) => {
   if (
     selectedException.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS &&
     !cachedExceptionBreakpoints.has(selectedException.typeref)
@@ -209,17 +209,18 @@ export function updateExceptionBreakpointCache(
   ) {
     cachedExceptionBreakpoints.delete(selectedException.typeref);
   }
-}
+};
 
-export function getExceptionBreakpointCache(): Map<
+export const getExceptionBreakpointCache = (): Map<
   string,
   ExceptionBreakpointItem
-> {
+> => {
   return cachedExceptionBreakpoints;
-}
+};
 
-function registerFileWatchers(): vscode.Disposable {
+const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
   clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
   clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
@@ -227,16 +228,17 @@ function registerFileWatchers(): vscode.Disposable {
   trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
   trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
   trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   return vscode.Disposable.from(clsWatcher, trgWatcher);
-}
+};
 
-function notifyDebuggerSessionFileChanged(): void {
+const notifyDebuggerSessionFileChanged = (): void => {
   if (vscode.debug.activeDebugSession) {
     vscode.debug.activeDebugSession.customRequest(HOTSWAP_REQUEST);
   }
-}
+};
 
-export async function activate(extensionContext: vscode.ExtensionContext) {
+export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
@@ -274,9 +276,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   console.log('Apex Debugger Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};

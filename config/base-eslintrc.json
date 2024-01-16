@@ -31,13 +31,13 @@
   ],
   "rules": {
     "header/header": [
-      "warn",
+      "error",
       "block",
       [
         "",
         {
           "pattern": " \\* Copyright \\(c\\) \\d{4}, salesforce\\.com, inc\\.",
-          "template": " * Copyright (c) 2023, salesforce.com, inc."
+          "template": " * Copyright (c) 2024, salesforce.com, inc."
         },
         " * All rights reserved.",
         " * Licensed under the BSD 3-Clause license.",
@@ -141,9 +141,10 @@
       }
     ],
     "@typescript-eslint/typedef": "off",
+    "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/unified-signatures": "error",
     "@typescript-eslint/restrict-template-expressions": [
-      "error",
+      "warn",
       {
         "allowNumber": true,
         "allowBoolean": true,

@@ -21,10 +21,10 @@ import { nls } from '../messages';
 import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { forceAnonApexDebug } from './forceAnonApexExecute';
 
-export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
+export const forceLaunchApexReplayDebuggerWithCurrentFile = async () => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
-    notificationService.showErrorMessage(
+    void notificationService.showErrorMessage(
       nls.localize('unable_to_locate_editor')
     );
     return;
@@ -32,7 +32,7 @@ export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
 
   const sourceUri = editor.document.uri;
   if (!sourceUri) {
-    notificationService.showErrorMessage(
+    void notificationService.showErrorMessage(
       nls.localize('unable_to_locate_document')
     );
     return;
@@ -54,60 +54,59 @@ export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
     return;
   }
 
-  notificationService.showErrorMessage(
+  void notificationService.showErrorMessage(
     nls.localize('launch_apex_replay_debugger_unsupported_file')
   );
-}
+};
 
-function isLogFile(sourceUri: vscode.Uri): boolean {
+const isLogFile = (sourceUri: vscode.Uri): boolean => {
   return fileExtensionsMatch(sourceUri, 'log');
-}
+};
 
-function isAnonymousApexFile(sourceUri: vscode.Uri): boolean {
+const isAnonymousApexFile = (sourceUri: vscode.Uri): boolean => {
   return fileExtensionsMatch(sourceUri, 'apex');
-}
+};
 
-async function launchReplayDebuggerLogFile(sourceUri: vscode.Uri) {
+const launchReplayDebuggerLogFile = async (sourceUri: vscode.Uri) => {
   await vscode.commands.executeCommand('sfdx.launch.replay.debugger.logfile', {
     fsPath: sourceUri.fsPath
   });
-}
+};
 
-async function getApexTestClassName(
+const getApexTestClassName = async (
   sourceUri: vscode.Uri
-): Promise<string | undefined> {
+): Promise<string | undefined> => {
   if (!sourceUri) {
     return undefined;
   }
 
   const testOutlineProvider = getTestOutlineProvider();
   await testOutlineProvider.refresh();
-  let testClassName = testOutlineProvider.getTestClassName(sourceUri);
   // This is a little bizarre.  Intellisense is reporting that getTestClassName() returns a string,
   // but it actually it returns string | undefined.  Well, regardless, since flushFilePath() takes
   // a string (and guards against empty strings) using the Non-null assertion operator
   // (https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)
   // fixes the issue.
-  testClassName = fileUtils.flushFilePath(testClassName || '');
+  const flushedUri = vscode.Uri.file(fileUtils.flushFilePath(sourceUri.fsPath));
 
-  return testClassName;
-}
+  return testOutlineProvider.getTestClassName(flushedUri);
+};
 
-async function launchAnonymousApexReplayDebugger() {
+const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
     new ForceAnonApexLaunchReplayDebuggerExecutor()
   );
   await commandlet.run();
-}
+};
 
-async function launchApexReplayDebugger(apexTestClassName: string) {
+const launchApexReplayDebugger = async (apexTestClassName: string) => {
   // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
   await vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
     name: apexTestClassName
   });
-}
+};
 
 export class ForceAnonApexLaunchReplayDebuggerExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {

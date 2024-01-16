@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.6.0",
+  "version": "59.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,11 +24,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "2.1.1",
+    "@salesforce/apex-node": "3.0.1",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core": "5.3.18",
-    "@salesforce/salesforcedx-utils-vscode": "59.6.0",
-    "@salesforce/source-deploy-retrieve": "9.8.4",
+    "@salesforce/core": "6.4.7",
+    "@salesforce/salesforcedx-utils-vscode": "59.14.0",
+    "@salesforce/source-deploy-retrieve": "10.2.9",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "shelljs": "0.8.5",
@@ -36,7 +36,7 @@
     "vscode-languageclient": "8.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.6.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.14.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
@@ -62,6 +62,9 @@
     "typescript": "^5.2.2",
     "vscode-extension-telemetry": "0.0.17"
   },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
@@ -101,9 +104,9 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.4.0",
-        "@salesforce/core": "5.3.18",
-        "@salesforce/templates": "^58.0.1",
-        "@salesforce/source-deploy-retrieve": "9.8.4",
+        "@salesforce/core": "6.4.7",
+        "@salesforce/templates": "^60.1.0",
+        "@salesforce/source-deploy-retrieve": "10.2.9",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
@@ -373,6 +376,11 @@
             "%apex_messages_level_trace_description%",
             "%apex_off_level_trace_description%"
           ]
+        },
+        "salesforcedx-vscode-apex.disable-warnings-for-missing-coverage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_code_disable-warnings-for-missing-coverage%"
         }
       }
     },

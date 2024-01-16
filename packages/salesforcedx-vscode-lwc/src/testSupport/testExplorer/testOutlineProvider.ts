@@ -16,27 +16,27 @@ import {
   TestNode
 } from './testNode';
 
-function getLabelFromTestCaseInfo(testCaseInfo: TestCaseInfo) {
+const getLabelFromTestCaseInfo = (testCaseInfo: TestCaseInfo) => {
   const { testName } = testCaseInfo;
   return testName;
-}
+};
 
-function getLabelFromTestFileInfo(testFileInfo: TestFileInfo) {
+const getLabelFromTestFileInfo = (testFileInfo: TestFileInfo) => {
   const { testUri } = testFileInfo;
   const { fsPath } = testUri;
   const ext = '.test.js';
   const testGroupLabel = path.basename(fsPath, ext);
   return testGroupLabel;
-}
+};
 
 /**
  * Test Explorer Tree Data Provider implementation
  */
 export class SfdxTestOutlineProvider
-  implements vscode.TreeDataProvider<TestNode>, vscode.Disposable {
-  private onDidChangeTestData: vscode.EventEmitter<
-    TestNode | undefined
-  > = new vscode.EventEmitter<TestNode | undefined>();
+  implements vscode.TreeDataProvider<TestNode>, vscode.Disposable
+{
+  private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> =
+    new vscode.EventEmitter<TestNode | undefined>();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
   private disposables: vscode.Disposable[];
 
@@ -127,9 +127,9 @@ export class SfdxTestOutlineProvider
  * Register test explorer with extension context
  * @param extensionContext extension context
  */
-export function registerLwcTestExplorerTreeView(
+export const registerLwcTestExplorerTreeView = (
   extensionContext: vscode.ExtensionContext
-) {
+) => {
   const testOutlineProvider = new SfdxTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(
     'sfdx.force.lightning.lwc.test.view',
@@ -137,4 +137,4 @@ export function registerLwcTestExplorerTreeView(
   );
   extensionContext.subscriptions.push(testOutlineProvider);
   extensionContext.subscriptions.push(testProvider);
-}
+};

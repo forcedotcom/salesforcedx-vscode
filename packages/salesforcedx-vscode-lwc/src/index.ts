@@ -12,7 +12,6 @@ import {
   ConfigurationTarget,
   Disposable,
   ExtensionContext,
-  Uri,
   workspace,
   WorkspaceConfiguration
 } from 'vscode';
@@ -33,22 +32,7 @@ import {
 } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: Uri) {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-}
-
-function protocol2CodeConverter(value: string) {
-  return Uri.parse(value);
-}
-
-export async function activate(extensionContext: ExtensionContext) {
+export const activate = async (extensionContext: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -141,22 +125,23 @@ export async function activate(extensionContext: ExtensionContext) {
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export async function deactivate() {
+export const deactivate = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     await DevServerService.instance.stopServer();
   }
   log('Lightning Web Components Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};
 
-function getActivationMode(): string {
+const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') || 'autodetect'; // default to autodetect
-}
+};
 
-function registerCommands(_extensionContext: ExtensionContext): Disposable {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
     commands.registerCommand(
       'sfdx.force.lightning.lwc.start',
@@ -175,4 +160,4 @@ function registerCommands(_extensionContext: ExtensionContext): Disposable {
       forceLightningLwcPreview
     )
   );
-}
+};

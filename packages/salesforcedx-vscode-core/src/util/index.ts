@@ -10,6 +10,8 @@ export {
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
+  setNodeExtraCaCerts,
+  setSfLogLevel,
   showCLINotInstalledMessage
 } from './cliConfiguration';
 export { workspaceUtils } from './rootWorkspace';

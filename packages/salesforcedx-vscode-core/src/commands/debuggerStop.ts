@@ -73,6 +73,7 @@ export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
 }
 
 export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withArg('data:query')

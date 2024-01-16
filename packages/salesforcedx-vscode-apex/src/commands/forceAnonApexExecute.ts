@@ -10,24 +10,21 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  hasRootWorkspace,
-  LibraryCommandletExecutor,
-  projectPaths,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
-import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
-import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  LibraryCommandletExecutor,
+  ParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  TraceFlags,
+  getYYYYMMddHHmmssDateFormat,
+  hasRootWorkspace,
+  projectPaths
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
@@ -39,13 +36,13 @@ interface ApexExecuteParameters {
 
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters> {
-  public async gather(): Promise<
+  public gather(): Promise<
     CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        return { type: 'CANCEL' };
+        return Promise.resolve({ type: 'CANCEL' });
       }
 
       const document = editor.document;
@@ -54,7 +51,7 @@ export class AnonApexGatherer
         document.isUntitled ||
         document.isDirty
       ) {
-        return {
+        return Promise.resolve({
           type: 'CONTINUE',
           data: {
             apexCode: !editor.selection.isEmpty
@@ -64,12 +61,12 @@ export class AnonApexGatherer
               ? new vscode.Range(editor.selection.start, editor.selection.end)
               : undefined
           }
-        };
+        });
       }
 
-      return { type: 'CONTINUE', data: { fileName: document.uri.fsPath } };
+      return Promise.resolve({ type: 'CONTINUE', data: { fileName: document.uri.fsPath } });
     }
-    return { type: 'CANCEL' };
+    return Promise.resolve({ type: 'CANCEL' });
   }
 }
 
@@ -171,6 +168,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       return false;
     }
 
+    fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
     fs.writeFileSync(logFilePath, logs);
 
     return true;
@@ -257,7 +255,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export async function forceAnonApexExecute() {
+export const forceAnonApexExecute = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
@@ -265,9 +263,9 @@ export async function forceAnonApexExecute() {
   );
 
   await commandlet.run();
-}
+};
 
-export async function forceAnonApexDebug() {
+export const forceAnonApexDebug = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
@@ -275,4 +273,4 @@ export async function forceAnonApexDebug() {
   );
 
   await commandlet.run();
-}
+};

@@ -1,6 +1,6 @@
-{ "rules": 
 {
-  "@typescript-eslint/array-type": "warn",
-  "@typescript-eslint/no-floating-promises": "warn"
-}
+  "rules": {
+    "prefer-arrow/prefer-arrow-functions": ["error", {}],
+    "@typescript-eslint/no-floating-promises": "warn"
+  }
 }

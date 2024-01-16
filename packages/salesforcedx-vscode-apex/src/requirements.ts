@@ -15,11 +15,10 @@ import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
-// tslint:disable-next-line:no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const expandHomeDir = require('expand-home-dir');
-
-// tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
@@ -32,7 +31,7 @@ export interface RequirementsData {
  * Resolves the requirements needed to run the extension.
  * Returns a promise that will resolve to a RequirementsData if all requirements are resolved.
  */
-export async function resolveRequirements(): Promise<RequirementsData> {
+export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaHome = await checkJavaRuntime();
   const javaMemory: number | null = workspace
     .getConfiguration()
@@ -42,9 +41,9 @@ export async function resolveRequirements(): Promise<RequirementsData> {
     java_home: javaHome,
     java_memory: javaMemory
   });
-}
+};
 
-function checkJavaRuntime(): Promise<string> {
+const checkJavaRuntime = async (): Promise<string> => {
   return new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
@@ -89,18 +88,18 @@ function checkJavaRuntime(): Promise<string> {
       }
     });
   });
-}
+};
 
-function readJavaConfig(): string {
+const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
-}
+};
 
-function isLocal(javaHome: string): boolean {
+const isLocal = (javaHome: string): boolean => {
   return !path.isAbsolute(javaHome);
-}
+};
 
-export function checkJavaVersion(javaHome: string): Promise<boolean> {
+export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     cp.execFile(
       javaHome + '/bin/java',
@@ -118,4 +117,4 @@ export function checkJavaVersion(javaHome: string): Promise<boolean> {
       }
     );
   });
-}
+};

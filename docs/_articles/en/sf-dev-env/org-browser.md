@@ -3,16 +3,13 @@ title: Org Browser
 lang: en
 ---
 
-Use the Org Browser to view the available metadata types and their corresponding components in your default org. You can also retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest) using the Org Browser. You can also use it to deploy source and then test you the changes in your org.
+Org Browser makes it easy to retrieve metadata sources by displaying org metadata types and their corresponding components. Access the org browser by clicking the cloud icon in the VS Code Activity Bar. Use the Org Browser to:
 
-## Create Project and Open the Org Browser
+- Browse your org metadata.
+- View the available metadata types and their corresponding components in your default org.
+- Retrieve metadata source, without using a [manifest file](./en//deploy-changes/manifestbuilder).
 
-1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project**.
-2. In the code editor's status bar, click Org Picker to open the Command Palette. Select a command to authorize an org, Dev Hub, or create a scratch org, or select from the list of authorized orgs.
-3. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox. Log in to your org in the browser window and then return to the VS Code window.
-4. Navigate to the Org Browser to displays the available metadata types and their corresponding components in your default org.
-
-## Org Browser Overview
+## Overview
 
 ![Org Browser Overview](./images/org_browser_overview.png)
 
@@ -39,12 +36,12 @@ The Org Browser lists all the metadata types **(4)** in your default org. To vie
 - emails: email(length)
 - lookups: lookup(reference)
 
-You can refresh metadata at org level, for a type, for folders in a type, and for components in a folder. Click refresh icon next to:
+Use the icons in the Org Browser, or the **SFDX:Refresh Types** and **SFDX:Refresh Components** commands to refresh metadata at org level, for a metadata type, for folders within a metadata type, or for components within a folder.
 
-- Org Browser **(2)** to refresh available metadata types in the org
-- Metadata type **(6)** to get an updated list of components for the type
-- Folder metadata type to update the folders in the type, but not the components in the folder
-- Folder in a metadata type to refresh the components in it
+- **(2)** Refresh available metadata types in the org.
+- **(6)** Refresh components for the corresponding metadata type.
+- **(10)** Refresh to only update the folders within the metadata type.
+- **(11)** Refresh components within a Folder.
 
 ![Metadata type with folders](./images/org_browser_folder_ret.png)
 

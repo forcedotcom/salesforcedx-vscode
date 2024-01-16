@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -26,9 +27,6 @@ import {
   TextDocumentPositionParams,
   TransportKind
 } from 'vscode-languageclient';
-import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
-import { activateTagClosing } from './tagClosing';
-
 import { ConfigurationFeature } from 'vscode-languageclient/lib/configuration';
 import {
   ColorPresentationParams,
@@ -36,6 +34,9 @@ import {
   DocumentColorParams,
   DocumentColorRequest
 } from 'vscode-languageserver-protocol';
+import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
+import { activateTagClosing } from './tagClosing';
+
 import { telemetryService } from './telemetry';
 
 // tslint:disable-next-line:no-namespace
@@ -48,7 +49,7 @@ namespace TagCloseRequest {
   > = new RequestType('html/tag');
 }
 
-export async function activate(context: ExtensionContext) {
+export const activate = (context: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   const toDispose = context.subscriptions;
 
@@ -104,9 +105,9 @@ export async function activate(context: ExtensionContext) {
     .onReady()
     .then(() => {
       disposable = languages.registerColorProvider(documentSelector, {
-        provideDocumentColors(
+        provideDocumentColors: (
           document: TextDocument
-        ): Thenable<ColorInformation[]> {
+        ): Thenable<ColorInformation[]> => {
           const params: DocumentColorParams = {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
               document
@@ -129,10 +130,10 @@ export async function activate(context: ExtensionContext) {
               });
             });
         },
-        provideColorPresentations(
+        provideColorPresentations: (
           color: Color,
           colorContext: { document: TextDocument; range: Range }
-        ): Thenable<ColorPresentation[]> {
+        ): Thenable<ColorPresentation[]> => {
           const params: ColorPresentationParams = {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
               colorContext.document
@@ -180,10 +181,10 @@ export async function activate(context: ExtensionContext) {
     });
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
-      increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_\.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
-      decreaseIndentPattern: /^\s*(<\/(?!html)[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/
+      increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
+      decreaseIndentPattern: /^\s*(<\/(?!html)[-_.A-Za-z0-9]+\b[^>]*>|-->|\})/
     },
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+[{\]}\\|;:'",.<>/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
@@ -208,7 +209,7 @@ export async function activate(context: ExtensionContext) {
   });
 
   languages.setLanguageConfiguration('handlebars', {
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+[{\]}\\|;:'",.<>/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
@@ -233,7 +234,7 @@ export async function activate(context: ExtensionContext) {
   });
 
   languages.setLanguageConfiguration('razor', {
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
+    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()-=+[{\]}\\|;:'",.<>/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
@@ -270,9 +271,9 @@ export async function activate(context: ExtensionContext) {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   console.log('SFDX Visualforce Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};

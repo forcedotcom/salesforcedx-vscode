@@ -48,19 +48,18 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
-function registerCommands(): vscode.Disposable {
+const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
-    async config => {
-      const fileUris:
-        | vscode.Uri[]
-        | undefined = await vscode.window.showOpenDialog({
-        canSelectFiles: true,
-        canSelectFolders: false,
-        canSelectMany: false,
-        defaultUri: dialogStartingPathUri
-      });
+    async () => {
+      const fileUris: vscode.Uri[] | undefined =
+        await vscode.window.showOpenDialog({
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false,
+          defaultUri: dialogStartingPathUri
+        });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
         return fileUris[0].fsPath;
@@ -96,10 +95,9 @@ function registerCommands(): vscode.Disposable {
 
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.last.logfile',
-    lastLogFileUri => {
-      const lastOpenedLog = extContext.workspaceState.get<string>(
-        LAST_OPENED_LOG_KEY
-      );
+    () => {
+      const lastOpenedLog =
+        extContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
       return launchFromLogFile(lastOpenedLog);
     }
   );
@@ -121,30 +119,30 @@ function registerCommands(): vscode.Disposable {
     sfdxCreateCheckpointsCmd,
     sfdxToggleCheckpointCmd
   );
-}
+};
 
-export function updateLastOpened(
+export const updateLastOpened = (
   extensionContext: vscode.ExtensionContext,
   logPath: string
-) {
+) => {
   extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
   extensionContext.workspaceState.update(
     LAST_OPENED_LOG_FOLDER_KEY,
     path.dirname(logPath)
   );
-}
+};
 
-export async function getDebuggerType(
+export const getDebuggerType = async (
   session: vscode.DebugSession
-): Promise<string> {
+): Promise<string> => {
   let type = session.type;
   if (type === LIVESHARE_DEBUGGER_TYPE) {
     type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
   }
   return type;
-}
+};
 
-function registerDebugHandlers(): vscode.Disposable {
+const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
@@ -171,9 +169,9 @@ function registerDebugHandlers(): vscode.Disposable {
   );
 
   return vscode.Disposable.from(customEventHandler);
-}
+};
 
-export async function activate(extensionContext: vscode.ExtensionContext) {
+export const activate = async (extensionContext: vscode.ExtensionContext) => {
   console.log('Apex Replay Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
 
@@ -231,9 +229,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export async function retrieveLineBreakpointInfo(): Promise<boolean> {
+export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
@@ -289,17 +287,17 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
     writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
     return false;
   }
-}
+};
 
-function imposeSlightDelay(ms = 0) {
+const imposeSlightDelay = (ms = 0) => {
   return new Promise(r => setTimeout(r, ms));
-}
+};
 
-export function writeToDebuggerOutputWindow(
+export const writeToDebuggerOutputWindow = (
   output: string,
   showVSCodeWindow?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum
-) {
+) => {
   channelService.appendLine(output);
   channelService.showChannelOutput();
   if (showVSCodeWindow && vsCodeWindowType) {
@@ -318,9 +316,9 @@ export function writeToDebuggerOutputWindow(
       }
     }
   }
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   console.log('Apex Replay Debugger Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};

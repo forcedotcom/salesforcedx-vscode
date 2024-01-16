@@ -8,17 +8,17 @@
 import { AuthRemover } from '@salesforce/core';
 import {
   Command,
+  ContinueResponse,
+  LibraryCommandletExecutor,
   notificationService,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import { forceConfigSet } from '../forceConfigSet';
+import { configSet } from '../configSet';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -35,6 +35,7 @@ export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
     return instance;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
@@ -68,6 +69,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     );
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<string>,
     progress?: Progress<{
@@ -75,6 +77,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
       increment?: number | undefined;
     }>,
     token?: CancellationToken
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     try {
       await removeUsername(response.data);
@@ -110,7 +113,7 @@ export async function orgLogoutDefault() {
 }
 
 async function removeUsername(username: string) {
-  await forceConfigSet('');
+  await configSet('');
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
 }

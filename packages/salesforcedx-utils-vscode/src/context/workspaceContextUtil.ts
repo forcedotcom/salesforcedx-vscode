@@ -103,6 +103,7 @@ export class WorkspaceContextUtil {
       } catch (error) {
         this._orgId = '';
         console.log(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an problem getting the orgId of the default org: ${error}`
         );
       }

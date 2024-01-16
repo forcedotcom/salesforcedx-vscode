@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -12,7 +13,7 @@ import * as embeddedSupport from '../../src/modes/embeddedSupport';
 describe('HTML Embedded Support', () => {
   const htmlLanguageService = getLanguageService();
 
-  function assertLanguageId(value: string, expectedLanguageId: string): void {
+  const assertLanguageId = (value: string, expectedLanguageId: string): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -32,13 +33,13 @@ describe('HTML Embedded Support', () => {
     const languageId = docRegions.getLanguageAtPosition(position);
 
     assert.equal(languageId, expectedLanguageId);
-  }
+  };
 
-  function assertEmbeddedLanguageContent(
+  const assertEmbeddedLanguageContent = (
     value: string,
     languageId: string,
     expectedContent: string
-  ): void {
+  ): void => {
     const document = TextDocument.create(
       'test://test/test.html',
       'html',
@@ -52,7 +53,7 @@ describe('HTML Embedded Support', () => {
     );
     const content = docRegions.getEmbeddedDocument(languageId);
     assert.equal(content.getText(), expectedContent);
-  }
+  };
 
   it('Should handle styles tag', () => {
     assertLanguageId('|<html><style>foo { }</style></html>', 'html');
