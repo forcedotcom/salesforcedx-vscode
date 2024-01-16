@@ -376,6 +376,11 @@
             "%apex_messages_level_trace_description%",
             "%apex_off_level_trace_description%"
           ]
+        },
+        "salesforcedx-vscode-apex.disable-warnings-for-missing-coverage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_code_disable-warnings-for-missing-coverage%"
         }
       }
     },
