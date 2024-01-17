@@ -45,7 +45,7 @@ export const xmlCharMap: { [index: string]: string } = {
 
 export interface SoapResponse {
   [soapEnv]?: {
-    [soapHeader]: { DebuggingInfo: DebuggingInfo };
+    [soapHeader]?: { DebuggingInfo: DebuggingInfo };
     [soapBody]: {
       executeAnonymousResponse: { result: ExecAnonApiResponse };
     };

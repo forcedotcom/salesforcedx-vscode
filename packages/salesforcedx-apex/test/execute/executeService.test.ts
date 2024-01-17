@@ -82,6 +82,39 @@ describe('Apex Execute Tests', async () => {
     expect(response).to.eql(expectedResult);
   });
 
+  it('should execute and display successful result when no DebuggingInfo header', async () => {
+    const apexExecute = new ExecuteService(mockConnection);
+    const execAnonResult = {
+      column: -1,
+      line: -1,
+      compiled: 'true',
+      compileProblem: '',
+      exceptionMessage: '',
+      exceptionStackTrace: '',
+      success: 'true'
+    };
+    const soapResponse: SoapResponse = {
+      'soapenv:Envelope': {
+        'soapenv:Body': {
+          executeAnonymousResponse: { result: execAnonResult }
+        }
+      }
+    };
+    const expectedResult: ExecuteAnonymousResponse = {
+      compiled: true,
+      success: true,
+      logs: undefined
+    };
+    sandboxStub
+      .stub(ExecuteService.prototype, 'connectionRequest')
+      .resolves(soapResponse);
+    const response = await apexExecute.executeAnonymous({
+      apexFilePath: 'filepath/to/anonApex/file'
+    });
+
+    expect(response).to.eql(expectedResult);
+  });
+
   it('should execute and display runtime issue in correct format', async () => {
     const apexExecute = new ExecuteService(mockConnection);
     const log =

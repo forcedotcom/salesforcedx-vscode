@@ -132,7 +132,7 @@ export class ExecuteService {
     const formattedResponse: ExecuteAnonymousResponse = {
       compiled: execAnonResponse.compiled === 'true',
       success: execAnonResponse.success === 'true',
-      logs: soapResponse[soapEnv][soapHeader].DebuggingInfo.debugLog
+      logs: soapResponse[soapEnv][soapHeader]?.DebuggingInfo.debugLog
     };
 
     if (!formattedResponse.success) {
