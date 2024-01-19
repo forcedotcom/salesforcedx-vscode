@@ -45,11 +45,19 @@ describe('Telemetry', () => {
     telemetryService.sendExtensionActivationEvent([0, 330]);
     assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger',
-      startupTime: match.string
+    const expectedProps = {
+      extensionName: 'salesforcedx-vscode-apex-replay-debugger'
     };
-    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
+
+    const expectedMeasures = {
+      startupTime: match.number
+    };
+    assert.calledWith(
+      sendEvent,
+      'activationEvent',
+      expectedProps,
+      match(expectedMeasures)
+    );
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
