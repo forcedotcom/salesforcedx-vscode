@@ -6,6 +6,7 @@
  */
 
 import { apexGenerateUnitTestClass } from '../../../../src/commands/templates';
+import { getParamGatherers } from '../../../../src/commands/templates/apexGenerateClass';
 import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
@@ -106,5 +107,24 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
+    expect(simpleGathererMocked).toHaveBeenCalledTimes(2);
+  });
+
+  it('Should used the passed parameters if provided, and correct template', async () => {
+    const fileName = 'testFileName';
+    const outputDir = 'testOutputDir';
+    await apexGenerateUnitTestClass(fileName, outputDir, 'BasicUnitTest');
+    expect(selectFileNameMocked).not.toHaveBeenCalled();
+    expect(selectOutputDirMocked).not.toHaveBeenCalled();
+    expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
+    expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
+    expect(sfdxCommandletMocked).toHaveBeenCalled();
+    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
+    expect(compositeParametersGathererMocked).toHaveBeenCalled();
+    expect(overwriteComponentPromptMocked).toHaveBeenCalled();
+    expect(runMock).toHaveBeenCalled();
+    expect(simpleGathererMocked).toHaveBeenCalled();
+    expect(simpleGathererMocked).toHaveBeenCalledTimes(3);
+    expect(simpleGathererMocked.mock.calls[2]).toEqual([{template: 'BasicUnitTest'}]);
   });
 });

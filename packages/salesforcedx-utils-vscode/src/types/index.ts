@@ -71,6 +71,11 @@ export type DirFileNameSelection = {
    * Relative workspace path to save the component
    */
   outputdir: string;
+
+  /**
+   * used for selecting the different apex unit test templates
+   */
+  template?: 'ApexUnitTest'|'BasicUnitTest';
 };
 
 /**

@@ -24,7 +24,7 @@ export class LibraryApexGenerateUnitTestClassExecutor extends LibraryBaseTemplat
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
     const templateOptions: ApexClassOptions = {
-      template: 'ApexUnitTest',
+      template: data.template ?? 'ApexUnitTest',
       classname: data.fileName,
       outputdir: data.outputdir
     };

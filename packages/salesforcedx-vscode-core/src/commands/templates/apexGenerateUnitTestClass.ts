@@ -22,7 +22,8 @@ import { APEX_CLASS_TYPE } from './metadataTypeConstants';
 
 export const apexGenerateUnitTestClass = async (
   unitFileToCreate?: string,
-  unitFileDirectory?: string
+  unitFileDirectory?: string,
+  template?: 'BasicUnitTest' | 'ApexUnitTest'
 ) => {
   const gatherers = getParamGatherers();
 
@@ -45,13 +46,23 @@ export const apexGenerateUnitTestClass = async (
     outputDirGatherer = gatherers.outputDirGatherer;
   }
 
+  let templateTypeGatherer: ParametersGatherer<any>;
+  if (template && typeof template === 'string') {
+    templateTypeGatherer = new SimpleGatherer<{ template: string }>({
+      template: template ?? 'ApexUnitTest'
+    });
+  } else {
+    templateTypeGatherer = gatherers.templateGatherer;
+  }
+
   const createTemplateExecutor = new LibraryApexGenerateUnitTestClassExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       new MetadataTypeGatherer(APEX_CLASS_TYPE),
       fileNameGatherer,
-      outputDirGatherer
+      outputDirGatherer,
+      templateTypeGatherer
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
