@@ -1,3 +1,21 @@
+# 59.15.0 - January 24, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Exclude source-tracking from apex ext bundle ([PR #5342](https://github.com/forcedotcom/salesforcedx-vscode/pull/5342))
+
+- Move no coverage warning to to console ([PR #5320](https://github.com/forcedotcom/salesforcedx-vscode/pull/5320))
+
+#### salesforcedx-vscode-apex-debugger
+
+- StartupTime telemetry metrics for apex debugger & replay debugger ([PR #5341](https://github.com/forcedotcom/salesforcedx-vscode/pull/5341))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- StartupTime telemetry metrics for apex debugger & replay debugger ([PR #5341](https://github.com/forcedotcom/salesforcedx-vscode/pull/5341))
+
 # 59.14.0 - January 17, 2024
 
 ## Added
