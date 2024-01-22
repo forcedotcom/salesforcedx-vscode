@@ -18,28 +18,34 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
+import { ApexTestTemplateGatherer } from '../util/parameterGatherers';
 import { LibraryApexGenerateClassExecutor } from './executors/LibraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
-  APEX_CLASS_TYPE
+  APEX_CLASS_TYPE,
+  APEX_TEST_TEMPLATE
 } from './metadataTypeConstants';
 
 let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;
 let outputDirGatherer: ParametersGatherer<any>;
 let metadataTypeGatherer: ParametersGatherer<any>;
+let templateGatherer: ParametersGatherer<any>;
+
 export const getParamGatherers = () => {
   if (!initialized) {
     fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
     outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
     metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
+    templateGatherer = new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);
     initialized = true;
   }
   return {
     fileNameGatherer,
     outputDirGatherer,
-    metadataTypeGatherer
+    metadataTypeGatherer,
+    templateGatherer
   };
 };
 
