@@ -66,7 +66,9 @@ Install Einstein for Developers:
 
 - If you are using Code Builder, click the Extensions icon in the Activity Bar in Code Builder, search for “Einstein for Developers” and click **Install**.
 
-**Note**: To use Einstein for Developers locally, you must have the [Salesforce Extensions pack]() installed in your VS Code for desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
+- If you have any other "competing" AI-enabled extensions such as GitHub Copilot installed, click the Extensions icon in the Activity Bar, search for the extension by name and click **Disable** in the extension's marketplace page. Do this for all installed AI-enabled extensions.
+
+**Note**: To use Einstein for Developers on your desktop, you must have the [Salesforce Extensions pack]() installed in your VS Code desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
 
 ## Connect to an Org
 
