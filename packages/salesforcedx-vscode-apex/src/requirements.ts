@@ -102,7 +102,7 @@ const isLocal = (javaHome: string): boolean => {
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     cp.execFile(
-      javaHome + '/bin/javax',
+      javaHome + '/bin/java',
       ['-XshowSettings:properties', '-version'],
       {},
       (error, stdout, stderr) => {
