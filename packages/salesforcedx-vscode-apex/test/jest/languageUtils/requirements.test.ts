@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as cp from 'child_process';
@@ -32,12 +31,9 @@ describe('Java Requirements Test', () => {
   beforeEach(() => {
     sandbox = createSandbox();
     settingStub = sandbox.stub();
-    sandbox
-      .stub(vscode.workspace, 'getConfiguration')
-      .withArgs()
-      .returns({
-        get: settingStub
-      });
+    sandbox.stub(vscode.workspace, 'getConfiguration').withArgs().returns({
+      get: settingStub
+    });
     pathExistsStub = sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
@@ -108,6 +104,18 @@ describe('Java Requirements Test', () => {
     } catch (err) {
       expect(err).to.equal(
         nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
+      );
+    }
+  });
+
+  it('Should reject java version check when execFile fails', async () => {
+    execFileStub.yields({message: 'its broken'}, '', '');
+    try {
+      await checkJavaVersion('~/java_home');
+      fail('Should have thrown when the Java version is not supported');
+    } catch (err) {
+      expect(err).to.equal(
+        nls.localize('java_version_check_command_failed', '~/java_home/bin/java -XshowSettings:properties -version', 'its broken')
       );
     }
   });

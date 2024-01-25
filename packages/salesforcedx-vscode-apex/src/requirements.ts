@@ -100,12 +100,16 @@ const isLocal = (javaHome: string): boolean => {
 };
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
+  const cmdFile = path.join(javaHome, 'bin', 'java');
+  const commandOptions = ['-XshowSettings:properties', '-version'];
   return new Promise((resolve, reject) => {
-    cp.execFile(
-      javaHome + '/bin/java',
-      ['-XshowSettings:properties', '-version'],
+    cp.execFile(cmdFile,
+      commandOptions,
       {},
       (error, stdout, stderr) => {
+        if (error) {
+          reject(nls.localize('java_version_check_command_failed', `${cmdFile} ${commandOptions.join(' ')}`, error.message));
+        }
         if (!/java\.version\s*=\s*(?:11|17)/g.test(stderr)) {
           reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
         } else {
