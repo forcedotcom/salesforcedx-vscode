@@ -66,10 +66,10 @@ Install Einstein for Developers:
 
 - If you are using Code Builder, click the Extensions icon in the Activity Bar in Code Builder, search for “Einstein for Developers” and click **Install**.
 
-- You may run into some odd generated code outcomes if you have multiple AI-enabled extensions installed in VS Code. We recommend you disable all other AI-enabled extensions when working with Einstein for Developers:
+- You may run into some unexpected generated code outcomes if you have multiple AI-enabled extensions installed in VS Code. We recommend you disable all other AI-enabled extensions when working with Einstein for Developers:
   1. Click the Extensions icon in the Activity Bar, search for the extension to disable by name.
   2. Click **Disable** in the extension's marketplace page.
-  3. Repeat for all installed AI-enabled extensions you have installed.
+  3. Repeat for all installed AI-enabled extensions.
  
 
 **Note**: To use Einstein for Developers on your desktop, you must have the [Salesforce Extension Pack]() installed in your VS Code desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
