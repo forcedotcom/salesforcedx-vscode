@@ -9,6 +9,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
@@ -109,13 +110,17 @@ describe('Java Requirements Test', () => {
   });
 
   it('Should reject java version check when execFile fails', async () => {
-    execFileStub.yields({message: 'its broken'}, '', '');
+    execFileStub.yields({ message: 'its broken' }, '', '');
     try {
-      await checkJavaVersion('~/java_home');
+      await checkJavaVersion(path.join('~', 'java_home'));
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
       expect(err).to.equal(
-        nls.localize('java_version_check_command_failed', '~/java_home/bin/java -XshowSettings:properties -version', 'its broken')
+        nls.localize(
+          'java_version_check_command_failed',
+          `${path.join('~', 'java_home', 'bin', 'java')} -XshowSettings:properties -version`,
+          'its broken'
+        )
       );
     }
   });
