@@ -26,7 +26,7 @@
 
 - We migrated some more commands to the new `sf style` to get rid of more warnings. ([PR #5297](https://github.com/forcedotcom/salesforcedx-vscode/pull/5297), [PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
 
-- We disabled the Verify CLI Version on Startup feature. ([PR #5343](https://github.com/forcedotcom/salesforcedx-vscode/pull/5343))
+- We reverted CLI version validation ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185)) to resolve issues for users who were affected by it. ([PR #5343](https://github.com/forcedotcom/salesforcedx-vscode/pull/5343))
 
 #### salesforcedx-vscode-apex-debugger
 
