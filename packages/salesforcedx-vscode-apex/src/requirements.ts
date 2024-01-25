@@ -102,14 +102,11 @@ const isLocal = (javaHome: string): boolean => {
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     cp.execFile(
-      javaHome + '/bin/java',
-      ['-version'],
+      javaHome + '/bin/javax',
+      ['-XshowSettings:properties', '-version'],
       {},
       (error, stdout, stderr) => {
-        if (
-          stderr.indexOf('build 11.') < 0 &&
-          stderr.indexOf('build 17.') < 0
-        ) {
+        if (!/java\.version\s*=\s*(?:11|17)/g.test(stderr)) {
           reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
         } else {
           resolve(true);

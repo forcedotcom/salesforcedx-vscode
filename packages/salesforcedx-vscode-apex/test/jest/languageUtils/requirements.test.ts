@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:no-unused-expression
 
 import { fail } from 'assert';
 import { expect } from 'chai';
@@ -13,18 +12,16 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { SET_JAVA_DOC_LINK } from '../../src/constants';
-import { nls } from '../../src/messages';
+import { SET_JAVA_DOC_LINK } from '../../../src/constants';
+import { nls } from '../../../src/messages';
 import {
   checkJavaVersion,
   JAVA_HOME_KEY,
   resolveRequirements
-} from '../../src/requirements';
+} from '../../../src/requirements';
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = `~/java_home/real/jdk/${jdk}`;
-
-// TODO: Move this to a new unit test directory
 
 describe('Java Requirements Test', () => {
   let sandbox: SinonSandbox;
@@ -62,13 +59,13 @@ describe('Java Requirements Test', () => {
 
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-    execFileStub.yields('', '', 'build 11.0.0');
+    execFileStub.yields('', '', 'java.version = 11.0.0');
     const requirements = await resolveRequirements();
     expect(requirements.java_home).contains(jdk);
   });
 
   it('Should not support Java 8', async () => {
-    execFileStub.yields('', '', 'build 1.8.0');
+    execFileStub.yields('', '', 'java.version = 1.8.0');
     try {
       await checkJavaVersion('~/java_home');
       fail('Should have thrown when the Java version is not supported');
@@ -80,7 +77,7 @@ describe('Java Requirements Test', () => {
   });
 
   it('Should support Java 11', async () => {
-    execFileStub.yields('', '', 'build 11.0.0');
+    execFileStub.yields('', '', 'java.version = 11.0.0');
     try {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
@@ -92,7 +89,7 @@ describe('Java Requirements Test', () => {
   });
 
   it('Should support Java 17', async () => {
-    execFileStub.yields('', '', 'build 17.2.3');
+    execFileStub.yields('', '', 'java.version = 17.2.3');
     try {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
@@ -104,7 +101,7 @@ describe('Java Requirements Test', () => {
   });
 
   it('Should not support Java 20', async () => {
-    execFileStub.yields('', '', 'build 20.0.0');
+    execFileStub.yields('', '', 'java.version = 20.0.0');
     try {
       await checkJavaVersion('~/java_home');
       fail('Should have thrown when the Java version is not supported');
