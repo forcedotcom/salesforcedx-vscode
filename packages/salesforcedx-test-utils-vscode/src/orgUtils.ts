@@ -88,7 +88,7 @@ export const pushSource = async (
   cp('-R', sourceFolder, targetFolder);
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:source:push')
+      .withArg('project:deploy:start')
       .withFlag('--targetusername', username)
       .withJson()
       .build(),
@@ -96,7 +96,7 @@ export const pushSource = async (
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pushedSource;
+  const source = JSON.parse(result).result.files;
   return Promise.resolve(source);
 };
 

@@ -23,10 +23,12 @@ describe('Force Source Push', () => {
   });
 
   it('Should build the source push command with overwrite flag', async () => {
-    const sourcePushOverwrite = new ForceSourcePushExecutor('--forceoverwrite');
+    const sourcePushOverwrite = new ForceSourcePushExecutor(
+      '--ignore-conflicts'
+    );
     const pushCommand = sourcePushOverwrite.build({});
     expect(pushCommand.toCommand()).to.equal(
-      `sfdx ${sourcePushOverwrite.params.command} ${commonParams} --forceoverwrite`
+      `sfdx ${sourcePushOverwrite.params.command} ${commonParams} --ignore-conflicts`
     );
     expect(pushCommand.description).to.equal(
       nls.localize('force_source_push_force_default_org_text')

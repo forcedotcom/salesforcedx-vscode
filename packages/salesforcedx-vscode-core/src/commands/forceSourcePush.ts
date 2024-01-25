@@ -41,10 +41,10 @@ export enum DeployType {
 }
 
 export const pushCommand: CommandParams = {
-  command: 'force:source:push',
+  command: 'project:deploy:start',
   description: {
     default: 'force_source_push_default_org_text',
-    forceoverwrite: 'force_source_push_force_default_org_text'
+    ignoreConflicts: 'force_source_push_force_default_org_text'
   },
   logName: { default: 'force_source_push_default_scratch_org' }
 };
@@ -68,12 +68,12 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
-      .withJson()
+      .withJson(false)
       .withLogName(this.params.logName.default);
-    if (this.flag === '--forceoverwrite') {
+    if (this.flag === '--ignore-conflicts') {
       builder.withArg(this.flag);
       builder.withDescription(
-        nls.localize(this.params.description.forceoverwrite)
+        nls.localize(this.params.description.ignoreConflicts)
       );
     }
     return builder.build();
@@ -122,7 +122,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     startTime: [number, number],
     cancellationToken: vscode.CancellationToken | undefined,
     cancellationTokenSource: vscode.CancellationTokenSource
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<void> {
     if (execution.command.logName === FORCE_SOURCE_PUSH_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);
@@ -177,7 +177,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
    * @param pushResult that comes from stdOut after cli push operation
    */
   protected updateCache(pushResult: any): void {
-    const pushedSource = pushResult.result.pushedSource;
+    const pushedSource = pushResult.result.files;
 
     const instance = PersistentStorageService.getInstance();
     instance.setPropertiesForFilesPushPull(pushedSource);
@@ -189,7 +189,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 
     const successes = parser.getSuccesses();
     const errors = parser.getErrors();
-    const pushedSource = successes ? successes.result.pushedSource : undefined;
+    const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
       const rows = pushedSource || (errors && errors.data);
       const title = !parser.hasConflicts()
@@ -215,7 +215,9 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
         console.log(
-          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(errors)}`
+          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(
+            errors
+          )}`
         );
       }
     }
@@ -227,7 +229,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
-      (rows as unknown) as Row[],
+      rows as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -241,7 +243,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getErrorTable(table: Table, result: unknown, titleType: string) {
     const outputTable = table.createTable(
-      (result ) as Row[],
+      result as Row[],
       [
         {
           key: 'filePath',

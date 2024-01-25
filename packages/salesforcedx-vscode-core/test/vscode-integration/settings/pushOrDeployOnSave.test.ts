@@ -210,7 +210,7 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call force:source:push --forceoverwrite when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
+    it('should call force:source:push --ignore-conflicts when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(

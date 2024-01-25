@@ -125,7 +125,7 @@ import {
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
-  flag: '--forceoverwrite'
+  flag: '--ignore-conflicts'
 };
 
 function registerCommands(

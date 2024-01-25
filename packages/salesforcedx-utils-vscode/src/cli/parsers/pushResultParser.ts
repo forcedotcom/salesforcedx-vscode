@@ -31,7 +31,7 @@ export interface ForceSourcePushErrorResponse {
 export interface ForceSourcePushSuccessResponse {
   status: number;
   result: {
-    pushedSource: PushResult[];
+    files: PushResult[];
   };
 }
 
@@ -59,12 +59,12 @@ export class ForcePushResultParser {
     if (status === 0) {
       const { pushedSource } = result;
       if (pushedSource) {
-        return { status, result: { pushedSource } };
+        return { status, result: { files: pushedSource } };
       }
       return this.response as ForceSourcePushSuccessResponse;
     }
     if (partialSuccess) {
-      return { status, result: { pushedSource: partialSuccess } };
+      return { status, result: { files: partialSuccess } };
     }
   }
 

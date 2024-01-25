@@ -35,7 +35,7 @@ const pushCommand: CommandParams = {
   command: 'force:source:push',
   description: {
     default: 'force_source_push_default_org_text',
-    forceoverwrite: 'force_source_push_force_default_org_text'
+    ignoreConflicts: 'force_source_push_force_default_org_text'
   },
   logName: { default: 'force_source_push_default_scratch_org' }
 };

@@ -39,7 +39,7 @@ describe('ForceSourcePushExecutor', () => {
         command: 'force:source:push',
         description: {
           default: 'force_source_push_default_org_text',
-          forceoverwrite: 'force_source_push_force_default_org_text'
+          ignoreConflicts: 'force_source_push_force_default_org_text'
         },
         logName: { default: 'force_source_push_default_scratch_org' }
       };
@@ -94,7 +94,7 @@ describe('ForceSourcePushExecutor', () => {
       (pushExecutor as any).updateCache(dummyPushResult);
 
       expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(
-        dummyPushResult.result.pushedSource
+        dummyPushResult.result.files
       );
     });
   });

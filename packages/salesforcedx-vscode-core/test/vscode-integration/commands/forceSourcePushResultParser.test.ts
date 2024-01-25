@@ -37,7 +37,7 @@ describe('Correctly output deploy results', () => {
     deploySuccess = {
       status: 0,
       result: {
-        pushedSource: [
+        files: [
           {
             state: 'Add',
             type: 'ApexClass',
@@ -76,7 +76,7 @@ describe('Correctly output deploy results', () => {
     executor.outputResult(new ForcePushResultParser('{}'));
 
     const successTable = table.createTable(
-      (deploySuccess.result.pushedSource as unknown) as Row[],
+      deploySuccess.result.files as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -89,7 +89,7 @@ describe('Correctly output deploy results', () => {
   });
 
   it('Should show no results found for source:push operation with no new source', () => {
-    successesStub.returns({ status: 0, result: { pushedSource: [] } });
+    successesStub.returns({ status: 0, result: { files: [] } });
     errorsStub.returns(undefined);
 
     const executor = new ForceSourcePushExecutor();
@@ -140,7 +140,7 @@ describe('Correctly output deploy results', () => {
     ];
     errorsStub.returns(deployError);
     const conflictsTable = table.createTable(
-      (deployError.data as unknown) as Row[],
+      deployError.data as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
