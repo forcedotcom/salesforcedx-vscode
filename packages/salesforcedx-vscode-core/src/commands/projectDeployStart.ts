@@ -10,8 +10,8 @@ import {
   CliCommandExecutor,
   Command,
   ContinueResponse,
-  ForcePushResultParser,
-  PushResult,
+  ProjectDeployStartResultParser,
+  ProjectDeployStartResult,
   Row,
   SfdxCommandBuilder,
   Table,
@@ -43,13 +43,13 @@ export enum DeployType {
 export const pushCommand: CommandParams = {
   command: 'project:deploy:start',
   description: {
-    default: 'force_source_push_default_org_text',
-    ignoreConflicts: 'force_source_push_force_default_org_text'
+    default: 'project_deploy_start_default_org_text',
+    ignoreConflicts: 'project_deploy_start_ignore_conflicts_default_org_text'
   },
-  logName: { default: 'force_source_push_default_scratch_org' }
+  logName: { default: 'project_deploy_start_default_scratch_org' }
 };
 
-export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
+export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
   public constructor(
     flag?: string,
@@ -88,7 +88,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
     channelService.streamCommandStartStop(execution);
 
@@ -136,7 +136,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         SfdxCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
         if (stdOut) {
-          const pushParser = new ForcePushResultParser(stdOut);
+          const pushParser = new ProjectDeployStartResultParser(stdOut);
           const errors = pushParser.getErrors();
           if (errors && !pushParser.hasConflicts()) {
             channelService.showChannelOutput();
@@ -154,7 +154,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       } catch (e) {
         SfdxCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
-        if (e.name !== 'PushParserFail') {
+        if (e.name !== 'ProjectDeployStartParserFail') {
           e.message =
             'Error while creating diagnostics for vscode problem view.';
         }
@@ -183,7 +183,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     instance.setPropertiesForFilesPushPull(pushedSource);
   }
 
-  public outputResult(parser: ForcePushResultParser) {
+  public outputResult(parser: ProjectDeployStartResultParser) {
     const table = new Table();
     const titleType = this.getDeployType();
 
@@ -225,7 +225,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getOutputTable(
     table: Table,
-    rows: PushResult[] | undefined,
+    rows: ProjectDeployStartResult[] | undefined,
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
@@ -260,9 +260,9 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePush(this: FlagParameter<string>) {
+export async function projectDeployStart(this: FlagParameter<string>) {
   const { flag } = this || {};
-  const executor = new ForceSourcePushExecutor(flag, pushCommand);
+  const executor = new ProjectDeployStartExecutor(flag, pushCommand);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

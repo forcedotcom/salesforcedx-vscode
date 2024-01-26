@@ -191,7 +191,7 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
     });
 
-    it('should call force:source:push when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
+    it('should call project:deploy:start when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
@@ -204,13 +204,13 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.push'
+        'sfdx.project.deploy.start'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call force:source:push --ignore-conflicts when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
+    it('should call project:deploy:start --ignore-conflicts when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
@@ -223,7 +223,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.push.force'
+        'sfdx.project.deploy.start.ignore.conflicts'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;

@@ -65,4 +65,4 @@ export const ORG_OPEN_COMMAND = 'sfdx.org.open';
 export const FORCE_SOURCE_PULL_LOG_NAME =
   'force_source_pull_default_scratch_org';
 export const FORCE_SOURCE_PUSH_LOG_NAME =
-  'force_source_push_default_scratch_org';
+  'project_deploy_start_default_scratch_org';

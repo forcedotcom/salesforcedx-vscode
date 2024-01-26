@@ -40,7 +40,7 @@ import {
   forceSourceDiff,
   forceSourceFolderDiff,
   forceSourcePull,
-  forceSourcePush,
+  projectDeployStart,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -125,6 +125,10 @@ import {
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite'
+};
+
+const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
 };
 
@@ -198,14 +202,14 @@ function registerCommands(
     forceSourcePull,
     flagOverwrite
   );
-  const forceSourcePushCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.push',
-    forceSourcePush
+  const projectDeployStartCmd = vscode.commands.registerCommand(
+    'sfdx.project.deploy.start',
+    projectDeployStart
   );
-  const forceSourcePushForceCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.push.force',
-    forceSourcePush,
-    flagOverwrite
+  const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
+    'sfdx.project.deploy.start.ignore.conflicts',
+    projectDeployStart,
+    flagIgnoreConflicts
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
@@ -409,8 +413,8 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
-    forceSourcePushCmd,
-    forceSourcePushForceCmd,
+    projectDeployStartCmd,
+    projectDeployStartIgnoreConflictsCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,

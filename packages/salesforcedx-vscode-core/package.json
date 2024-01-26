@@ -384,11 +384,11 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.push",
+          "command": "sfdx.project.deploy.start",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.push.force",
+          "command": "sfdx.project.deploy.start.ignore.conflicts",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
@@ -663,12 +663,12 @@
         "title": "%force_source_pull_force_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.push",
-        "title": "%force_source_push_default_org_text%"
+        "command": "sfdx.project.deploy.start",
+        "title": "%project_deploy_start_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.push.force",
-        "title": "%force_source_push_force_default_org_text%"
+        "command": "sfdx.project.deploy.start.ignore.conflicts",
+        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
       },
       {
         "command": "sfdx.force.source.status",

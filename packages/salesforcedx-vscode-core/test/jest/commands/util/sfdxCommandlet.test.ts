@@ -12,9 +12,9 @@ import {
 import { channelService } from '../../../../src/channels';
 import {
   ForceSourcePullExecutor,
-  ForceSourcePushExecutor
+  ProjectDeployStartExecutor
 } from '../../../../src/commands';
-import { DeployType } from '../../../../src/commands/forceSourcePush';
+import { DeployType } from '../../../../src/commands/projectDeployStart';
 import { CommandParams } from '../../../../src/commands/util';
 import { PersistentStorageService } from '../../../../src/conflict';
 import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
@@ -32,12 +32,12 @@ const pullCommand: CommandParams = {
 };
 
 const pushCommand: CommandParams = {
-  command: 'force:source:push',
+  command: 'project:deploy:start',
   description: {
-    default: 'force_source_push_default_org_text',
-    ignoreConflicts: 'force_source_push_force_default_org_text'
+    default: 'project_deploy_start_default_org_text',
+    ignoreConflicts: 'project_deploy_start_ignore_conflicts_default_org_text'
   },
-  logName: { default: 'force_source_push_default_scratch_org' }
+  logName: { default: 'project_deploy_start_default_scratch_org' }
 };
 
 const flag = '';
@@ -101,7 +101,7 @@ describe('SfdxCommandletExecutor', () => {
 
     it('should parse well formatted response and return JSON', () => {
       // Arrange
-      const executor = new ForceSourcePushExecutor(flag, pushCommand);
+      const executor = new ProjectDeployStartExecutor(flag, pushCommand);
 
       // Act
       const parsed = (executor as any).parseOutput(dummyStdOut);
@@ -112,7 +112,7 @@ describe('SfdxCommandletExecutor', () => {
 
     it('should show a message to the User if there is a parsing error', async () => {
       // Arrange
-      const executor = new ForceSourcePushExecutor(flag, pushCommand);
+      const executor = new ProjectDeployStartExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
       const executorAsAny = executor as any;
       executorAsAny.updateCache = updateCacheMock;

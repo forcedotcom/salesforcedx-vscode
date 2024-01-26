@@ -89,8 +89,8 @@ export const pushSource = async (
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
       .withArg('project:deploy:start')
-      .withFlag('--targetusername', username)
-      .withJson()
+      .withFlag('--target-org', username)
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
