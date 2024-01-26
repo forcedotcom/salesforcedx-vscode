@@ -191,12 +191,12 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
     });
 
-    it('should call project:deploy:start when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
+    it('should call project:deploy:start when getPushOrDeployOnSaveIgnoreConflicts is false', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
           SfdxCoreSettings.prototype,
-          'getPushOrDeployOnSaveOverrideConflicts'
+          'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(false);
 
@@ -210,12 +210,12 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call project:deploy:start --ignore-conflicts when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
+    it('should call project:deploy:start --ignore-conflicts when getPushOrDeployOnSaveIgnoreConflicts is true', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
           SfdxCoreSettings.prototype,
-          'getPushOrDeployOnSaveOverrideConflicts'
+          'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(true);
 

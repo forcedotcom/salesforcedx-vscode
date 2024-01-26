@@ -75,7 +75,7 @@ export class DeployQueue {
 
   private async executePushCommand() {
     const ignoreConflictsCommand =
-      sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
+      sfdxCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
         ? '.ignore.conflicts'
         : '';
     const command = `sfdx.project.deploy.start${ignoreConflictsCommand}`;
