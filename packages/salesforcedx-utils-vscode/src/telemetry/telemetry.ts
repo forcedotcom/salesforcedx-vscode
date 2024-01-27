@@ -4,8 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { appendFileSync } from 'fs';
 import * as util from 'util';
+import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,
@@ -238,6 +239,7 @@ export class TelemetryService {
         );
       }
     });
+    LocalTelemetryLogger.maybeLogCommandEventToLocalFile(commandName || '', properties || {});
   }
 
   public sendException(name: string, message: string) {
@@ -284,4 +286,35 @@ export class TelemetryService {
         .catch(err => console.error(err));
     }
   }
+}
+
+export class LocalTelemetryLogger {
+  public static maybeLogCommandEventToLocalFile(command: string, data: Properties) {
+    if (startedInDebugMode() && isLocalTelemetryLoggingEnabled()) {
+      const timestamp = new Date().toISOString();
+      appendFileSync('telemetry.json', JSON.stringify({ timestamp, command, data }, null, 2));
+    }
+  }
+}
+
+// tmp: copied from vscode-extensions (could be imported via api)
+function startedInDebugMode(): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const args = (process as any).execArgv;
+  if (args) {
+    return args.some(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (arg: any) =>
+        /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect=?/.test(arg) || /^--inspect-brk=?/.test(arg)
+    );
+  }
+  return false;
+}
+
+function isLocalTelemetryLoggingEnabled(): boolean {
+  const isLocalTelemetryLoggingEnabled = vscode.workspace
+    .getConfiguration()
+    .get<string>('salesforcedx-vscode-core.advanced.enableLocalTelemetryLogging');
+  const booleanVal = isLocalTelemetryLoggingEnabled === 'true';
+  return booleanVal;
 }
