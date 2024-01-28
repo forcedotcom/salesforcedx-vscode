@@ -13,4 +13,13 @@ export class SfdxSettingsService {
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(SETTING_CLEAR_OUTPUT_TAB, false);
   }
+
+  public static isLocalTelemetryLoggingEnabled(): boolean {
+    const isLocalTelemetryLoggingEnabled = vscode.workspace
+      .getConfiguration()
+      .get<string>('salesforcedx-vscode-core.advanced.enableLocalTelemetryLogging');
+      // if the setting doesn't exist, false will be returned
+    const booleanVal = isLocalTelemetryLoggingEnabled === 'true';
+    return booleanVal;
+  }
 }

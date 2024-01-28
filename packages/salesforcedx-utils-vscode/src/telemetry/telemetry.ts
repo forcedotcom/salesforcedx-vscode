@@ -6,7 +6,6 @@
  */
 import { appendFileSync } from 'fs';
 import * as util from 'util';
-import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,
@@ -14,6 +13,7 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
+import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -191,8 +191,8 @@ export class TelemetryService {
   }
 
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
+    const startupTime = this.getEndHRTime(hrstart);
     this.validateTelemetry(() => {
-      const startupTime = this.getEndHRTime(hrstart);
       this.reporter!.sendTelemetryEvent(
         'activationEvent',
         {
@@ -201,6 +201,7 @@ export class TelemetryService {
         { startupTime }
       );
     });
+    LocalTelemetryFile.maybeWrite('activationEvent', { extensionName: this.extensionName, startupTime });
   }
 
   public sendExtensionDeactivationEvent(): void {
@@ -209,6 +210,7 @@ export class TelemetryService {
         extensionName: this.extensionName
       });
     });
+    LocalTelemetryFile.maybeWrite('deactivationEvent', { extensionName: this.extensionName });
   }
 
   public sendCommandEvent(
@@ -239,13 +241,14 @@ export class TelemetryService {
         );
       }
     });
-    LocalTelemetryLogger.maybeLogCommandEventToLocalFile(commandName || '', properties || {});
+    LocalTelemetryFile.maybeWrite(commandName || '', { ...properties, ...measurements });
   }
 
   public sendException(name: string, message: string) {
     this.validateTelemetry(() => {
       this.reporter!.sendExceptionEvent(name, message);
     });
+    LocalTelemetryFile.maybeWrite(name || '', { message });
   }
 
   public sendEventData(
@@ -256,6 +259,7 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent(eventName, properties, measures);
     });
+    LocalTelemetryFile.maybeWrite(eventName || '', { ...properties, ...measures });
   }
 
   public dispose(): void {
@@ -288,9 +292,11 @@ export class TelemetryService {
   }
 }
 
-export class LocalTelemetryLogger {
-  public static maybeLogCommandEventToLocalFile(command: string, data: Properties) {
-    if (startedInDebugMode() && isLocalTelemetryLoggingEnabled()) {
+export class LocalTelemetryFile {
+  public static maybeWrite(command: string, data: {
+    [key: string]: string | number;
+  }) {
+    if (startedInDebugMode() && SfdxSettingsService.isLocalTelemetryLoggingEnabled()) {
       const timestamp = new Date().toISOString();
       appendFileSync('telemetry.json', JSON.stringify({ timestamp, command, data }, null, 2));
     }
@@ -311,10 +317,3 @@ function startedInDebugMode(): boolean {
   return false;
 }
 
-function isLocalTelemetryLoggingEnabled(): boolean {
-  const isLocalTelemetryLoggingEnabled = vscode.workspace
-    .getConfiguration()
-    .get<string>('salesforcedx-vscode-core.advanced.enableLocalTelemetryLogging');
-  const booleanVal = isLocalTelemetryLoggingEnabled === 'true';
-  return booleanVal;
-}
