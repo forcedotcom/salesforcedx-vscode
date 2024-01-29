@@ -70,8 +70,7 @@ export const forceSourceDeploySourcePaths = async (
       // passed in (sourceUri) is actually an array and not a single URI.
       uris = sourceUri;
     } else {
-      uris = [];
-      uris.push(sourceUri);
+      uris = [sourceUri];
     }
   }
 
