@@ -21,7 +21,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
-import { FORCE_SOURCE_PUSH_LOG_NAME } from '../constants';
+import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
@@ -124,7 +124,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
     cancellationTokenSource: vscode.CancellationTokenSource
     /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<void> {
-    if (execution.command.logName === FORCE_SOURCE_PUSH_LOG_NAME) {
+    if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);
       if (exitCode === 0) {
         this.updateCache(pushResult);

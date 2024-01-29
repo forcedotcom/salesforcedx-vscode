@@ -19,7 +19,7 @@ export interface PullResult {
   type: string;
 }
 
-export interface ForceSourcePullErrorResponse {
+export interface ProjectRetrieveStartErrorResponse {
   message: string;
   name: string;
   data: PullResult[];
@@ -28,14 +28,14 @@ export interface ForceSourcePullErrorResponse {
   warnings: any[];
 }
 
-export interface ForceSourcePullSuccessResponse {
+export interface ProjectRetrieveStartSuccessResponse {
   status: number;
   result: {
-    pulledSource: PullResult[];
+    files: PullResult[];
   };
 }
 
-export class ForcePullResultParser {
+export class ProjectRetrieveStartResultParser {
   private response: any;
 
   constructor(stdout: string) {
@@ -43,28 +43,28 @@ export class ForcePullResultParser {
       this.response = extractJsonObject(stdout);
     } catch (e) {
       const err = new Error('Error parsing pull result');
-      err.name = 'PullParserFail';
+      err.name = 'ProjectRetrieveStartParserFail';
       throw err;
     }
   }
 
-  public getErrors(): ForceSourcePullErrorResponse | undefined {
+  public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
     if (this.response.status === 1) {
-      return this.response as ForceSourcePullErrorResponse;
+      return this.response as ProjectRetrieveStartErrorResponse;
     }
   }
 
-  public getSuccesses(): ForceSourcePullSuccessResponse | undefined {
+  public getSuccesses(): ProjectRetrieveStartSuccessResponse | undefined {
     const { status, result, partialSuccess } = this.response;
     if (status === 0) {
       const { pulledSource } = result;
       if (pulledSource) {
-        return { status, result: { pulledSource } };
+        return { status, result: { files: pulledSource } };
       }
-      return this.response as ForceSourcePullSuccessResponse;
+      return this.response as ProjectRetrieveStartSuccessResponse;
     }
     if (partialSuccess) {
-      return { status, result: { pulledSource: partialSuccess } };
+      return { status, result: { files: partialSuccess } };
     }
   }
 

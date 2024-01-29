@@ -100,8 +100,8 @@ export const messages = {
     'There was an unexpected error when processing the org open response.',
   org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
-  force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
-  force_source_pull_force_default_org_text:
+  project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
+  project_retrieve_start_ignore_conflicts_default_org_text:
     'SFDX: Pull Source from Default Org and Override Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
   project_deploy_start_ignore_conflicts_default_org_text:

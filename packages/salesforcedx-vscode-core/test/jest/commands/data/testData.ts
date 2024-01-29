@@ -8,7 +8,7 @@
 export const dummyPullResult = {
   status: 0,
   result: {
-    pulledSource: [
+    files: [
       {
         state: 'Created',
         fullName: 'F9',

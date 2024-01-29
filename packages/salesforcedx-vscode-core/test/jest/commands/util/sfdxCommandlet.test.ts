@@ -4,31 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ForcePullResultParser } from '@salesforce/salesforcedx-utils-vscode';
+import { ProjectRetrieveStartResultParser } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  ForceSourcePullErrorResponse,
-  ForceSourcePullSuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode/src/cli/parsers/pullResultParser';
+  ProjectRetrieveStartErrorResponse,
+  ProjectRetrieveStartSuccessResponse
+} from '@salesforce/salesforcedx-utils-vscode/src/cli/parsers/projectRetrieveStartResultParser';
 import { channelService } from '../../../../src/channels';
 import {
-  ForceSourcePullExecutor,
-  ProjectDeployStartExecutor
+  ProjectDeployStartExecutor,
+  ProjectRetrieveStartExecutor
 } from '../../../../src/commands';
 import { DeployType } from '../../../../src/commands/projectDeployStart';
 import { CommandParams } from '../../../../src/commands/util';
 import { PersistentStorageService } from '../../../../src/conflict';
-import { FORCE_SOURCE_PULL_LOG_NAME } from '../../../../src/constants';
+import { PROJECT_RETRIEVE_START_LOG_NAME } from '../../../../src/constants';
 import { notificationService } from '../../../../src/notifications';
 import { dummyStdOut } from '../data/testData';
 import { dummyOutputPull } from './data/testData';
 
 const pullCommand: CommandParams = {
-  command: 'force:source:pull',
+  command: 'project:retrieve:start',
   description: {
-    default: 'force_source_pull_default_org_text',
-    forceoverwrite: 'force_source_pull_force_default_org_text'
+    default: 'project_retrieve_start_default_org_text',
+    ignoreConflicts: 'project_retrieve_start_ignore_conflicts_default_org_text'
   },
-  logName: { default: FORCE_SOURCE_PULL_LOG_NAME }
+  logName: { default: PROJECT_RETRIEVE_START_LOG_NAME }
 };
 
 const pushCommand: CommandParams = {
@@ -63,7 +63,7 @@ describe('SfdxCommandletExecutor', () => {
     });
 
     it('should update the local cache for the components that were retrieved after a pull', () => {
-      const executor = new ForceSourcePullExecutor(undefined, pullCommand);
+      const executor = new ProjectRetrieveStartExecutor(undefined, pullCommand);
       const updateCacheAfterPushPullMock = jest.spyOn(
         executor as any,
         'updateCache'
@@ -72,7 +72,7 @@ describe('SfdxCommandletExecutor', () => {
 
       (executor as any).exitProcessHandlerPull(
         0,
-        { command: { logName: FORCE_SOURCE_PULL_LOG_NAME } },
+        { command: { logName: PROJECT_RETRIEVE_START_LOG_NAME } },
         '',
         '',
         dummyOutputPull
@@ -134,15 +134,15 @@ describe('SfdxCommandletExecutor', () => {
   describe('outputResultPull', () => {
     it('should output a message to the channel when there are errors and no data', () => {
       // Arrange
-      const executor = new ForceSourcePullExecutor(undefined, pullCommand);
+      const executor = new ProjectRetrieveStartExecutor(undefined, pullCommand);
       (executor as any).channel = {
         appendLine: appendLineMock
       };
       const dummyMsg = 'a message';
       const dummyName = 'a test name';
 
-      class TestParser extends ForcePullResultParser {
-        public getErrors(): ForceSourcePullErrorResponse | undefined {
+      class TestParser extends ProjectRetrieveStartResultParser {
+        public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
           return {
             message: dummyMsg,
             name: dummyName,
@@ -152,7 +152,7 @@ describe('SfdxCommandletExecutor', () => {
             warnings: []
           } as any;
         }
-        public getSuccesses(): ForceSourcePullSuccessResponse | undefined {
+        public getSuccesses(): ProjectRetrieveStartSuccessResponse | undefined {
           return undefined;
         }
       }
@@ -169,7 +169,7 @@ describe('SfdxCommandletExecutor', () => {
 
     it('should output at least something to the console when there are errors and no data and the response is missing information', () => {
       // Arrange
-      const executor = new ForceSourcePullExecutor(undefined, pullCommand);
+      const executor = new ProjectRetrieveStartExecutor(undefined, pullCommand);
       (executor as any).channel = {
         appendLine: appendLineMock
       };
@@ -177,8 +177,8 @@ describe('SfdxCommandletExecutor', () => {
       const dummyName = undefined;
       const consoleLogMock = jest.spyOn(console, 'log');
 
-      class TestParser extends ForcePullResultParser {
-        public getErrors(): ForceSourcePullErrorResponse | undefined {
+      class TestParser extends ProjectRetrieveStartResultParser {
+        public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
           return {
             message: dummyMsg,
             name: dummyName,
@@ -188,7 +188,7 @@ describe('SfdxCommandletExecutor', () => {
             warnings: []
           } as any;
         }
-        public getSuccesses(): ForceSourcePullSuccessResponse | undefined {
+        public getSuccesses(): ProjectRetrieveStartSuccessResponse | undefined {
           return undefined;
         }
       }

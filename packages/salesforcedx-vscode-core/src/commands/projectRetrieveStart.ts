@@ -10,7 +10,7 @@ import {
   CliCommandExecutor,
   Command,
   ContinueResponse,
-  ForcePullResultParser,
+  ProjectRetrieveStartResultParser,
   PullResult,
   Row,
   SfdxCommandBuilder,
@@ -19,7 +19,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
-import { FORCE_SOURCE_PULL_LOG_NAME } from '../constants';
+import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { nls } from '../messages';
 import {
   CommandParams,
@@ -31,15 +31,15 @@ import {
 } from './util';
 
 export const pullCommand: CommandParams = {
-  command: 'force:source:pull',
+  command: 'project:retrieve:start',
   description: {
-    default: 'force_source_pull_default_org_text',
-    forceoverwrite: 'force_source_pull_force_default_org_text'
+    default: 'project_retrieve_start_default_org_text',
+    ignoreConflicts: 'project_retrieve_start_ignore_conflicts_default_org_text'
   },
-  logName: { default: FORCE_SOURCE_PULL_LOG_NAME }
+  logName: { default: PROJECT_RETRIEVE_START_LOG_NAME }
 };
 
-export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
+export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(
@@ -55,13 +55,13 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
-      .withJson()
+      .withJson(false)
       .withLogName(this.params.logName.default);
 
-    if (this.flag === '--forceoverwrite') {
+    if (this.flag === '--ignore-conflicts') {
       builder
         .withArg(this.flag)
-        .withDescription(nls.localize(this.params.description.forceoverwrite));
+        .withDescription(nls.localize(this.params.description.ignoreConflicts));
     }
     return builder.build();
   }
@@ -72,7 +72,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
     channelService.streamCommandStartStop(execution);
 
@@ -101,12 +101,12 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     startTime: [number, number],
     output: string
   ): void {
-    if (execution.command.logName === FORCE_SOURCE_PULL_LOG_NAME) {
+    if (execution.command.logName === PROJECT_RETRIEVE_START_LOG_NAME) {
       const pullResult = this.parseOutput(output);
       if (exitCode === 0) {
         this.updateCache(pullResult);
       }
-      const pullParser = new ForcePullResultParser(output);
+      const pullParser = new ProjectRetrieveStartResultParser(output);
       const errors = pullParser.getErrors();
       if (errors) {
         channelService.showChannelOutput();
@@ -141,19 +141,19 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
    * @param pullResult that comes from stdOut after cli pull operation
    */
   protected updateCache(pullResult: any): void {
-    const pulledSource = pullResult.result.pulledSource;
+    const pulledSource = pullResult.result.files;
 
     const instance = PersistentStorageService.getInstance();
     instance.setPropertiesForFilesPushPull(pulledSource);
   }
 
-  public outputResultPull(parser: ForcePullResultParser) {
+  public outputResultPull(parser: ProjectRetrieveStartResultParser) {
     const table = new Table();
     const titleType = 'pull';
 
     const successes = parser.getSuccesses();
     const errors = parser.getErrors();
-    const pulledSource = successes ? successes?.result.pulledSource : undefined;
+    const pulledSource = successes ? successes?.result.files : undefined;
     if (pulledSource || parser.hasConflicts()) {
       const rows = pulledSource || errors?.data;
       const tableTitle = !parser.hasConflicts()
@@ -179,7 +179,9 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
         console.log(
-          `There were errors parsing the pull operation response.  Raw response: ${JSON.stringify(errors)}`
+          `There were errors parsing the pull operation response.  Raw response: ${JSON.stringify(
+            errors
+          )}`
         );
       }
     }
@@ -191,7 +193,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
-      (rows as unknown) as Row[],
+      rows as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -205,7 +207,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getErrorTable(table: Table, result: unknown, titleType: string) {
     const outputTable = table.createTable(
-      (result ) as Row[],
+      result as Row[],
       [
         {
           key: 'filePath',
@@ -222,9 +224,9 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePull(this: FlagParameter<string>) {
+export async function projectRetrieveStart(this: FlagParameter<string>) {
   const { flag } = this || {};
-  const executor = new ForceSourcePullExecutor(flag, pullCommand);
+  const executor = new ProjectRetrieveStartExecutor(flag, pullCommand);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

@@ -106,15 +106,15 @@ export const pullSource = async (
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:source:pull')
-      .withFlag('--targetusername', username)
-      .withJson()
+      .withArg('project:retrieve:start')
+      .withFlag('--target-org', username)
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pulledSource;
+  const source = JSON.parse(result).result.files;
   return Promise.resolve(source);
 };
 

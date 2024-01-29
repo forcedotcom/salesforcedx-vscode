@@ -62,7 +62,7 @@ export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
 export const ORG_OPEN_COMMAND = 'sfdx.org.open';
-export const FORCE_SOURCE_PULL_LOG_NAME =
-  'force_source_pull_default_scratch_org';
-export const FORCE_SOURCE_PUSH_LOG_NAME =
+export const PROJECT_RETRIEVE_START_LOG_NAME =
+  'project_retrieve_start_default_scratch_org';
+export const PROJECT_DEPLOY_START_LOG_NAME =
   'project_deploy_start_default_scratch_org';

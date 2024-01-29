@@ -81,9 +81,9 @@ export const messages = {
   org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
-  force_source_pull_default_org_text:
+  project_retrieve_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプル',
-  force_source_pull_force_default_org_text:
+  project_retrieve_start_ignore_conflicts_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
 
   project_deploy_start_default_org_text:
