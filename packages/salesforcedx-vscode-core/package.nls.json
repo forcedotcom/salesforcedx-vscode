@@ -34,7 +34,7 @@
   "force_source_pull_default_org_text": "SFDX: Pull Source from Default Org",
   "force_source_pull_force_default_org_text": "SFDX: Pull Source from Default Org and Override Conflicts",
   "project_deploy_start_default_org_text": "SFDX: Push Source to Default Org",
-  "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Override Conflicts",
+  "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts",
   "force_source_retrieve_and_open_display_text": "Retrieve and Open Source",
   "force_source_retrieve_display_text": "Retrieve Source from Org",
   "force_source_retrieve_in_manifest_text": "SFDX: Retrieve Source in Manifest from Org",
