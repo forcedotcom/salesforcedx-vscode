@@ -46,8 +46,8 @@ export {
 export { ForcePullResultParser, PullResult } from './parsers/pullResultParser';
 export {
   CONFLICT_ERROR_NAME,
-  ForcePushResultParser,
-  ForceSourcePushErrorResponse,
-  ForceSourcePushSuccessResponse,
-  PushResult
-} from './parsers/pushResultParser';
+  ProjectDeployStartResultParser,
+  ProjectDeployStartErrorResponse,
+  ProjectDeployStartSuccessResponse,
+  ProjectDeployStartResult
+} from './parsers/projectDeployStartResultParser';
