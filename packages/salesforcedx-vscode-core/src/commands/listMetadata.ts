@@ -13,10 +13,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
-import { SfdxCommandletExecutor } from '../commands/util';
 import { workspaceUtils } from '../util';
+import { SfdxCommandletExecutor } from './util';
 
-export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
+export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
   private metadataType: string;
   private defaultUsernameOrAlias: string;
   private folder?: string;
@@ -35,9 +35,9 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
-      .withArg('force:mdapi:listmetadata')
+      .withArg('org:list:metadata')
       .withFlag('-m', this.metadataType)
-      .withFlag('-u', this.defaultUsernameOrAlias)
+      .withFlag('-o', this.defaultUsernameOrAlias)
       .withLogName('force_mdapi_listmetadata')
       .withJson();
 
@@ -61,20 +61,20 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   }
 }
 
-export async function forceListMetadata(
+export const forceListMetadata = async (
   metadataType: string,
   defaultUsernameOrAlias: string,
   outputPath: string,
   folder?: string
-): Promise<string> {
-  const forceListMetadataExecutor = new ForceListMetadataExecutor(
+): Promise<string> => {
+  const listMetadataExecutor = new ListMetadataExecutor(
     metadataType,
     defaultUsernameOrAlias,
     folder
   );
-  const execution = forceListMetadataExecutor.execute();
+  const execution = listMetadataExecutor.execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   fs.writeFileSync(outputPath, result);
   return result;
-}
+};

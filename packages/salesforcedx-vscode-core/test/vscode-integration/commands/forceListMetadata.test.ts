@@ -10,20 +10,20 @@ import * as fs from 'fs';
 import * as sinon from 'sinon';
 import {
   forceListMetadata,
-  ForceListMetadataExecutor
+  ListMetadataExecutor
 } from '../../../src/commands';
 
 describe('Force List Metadata', () => {
   it('Should build list metadata command', async () => {
     const metadataType = 'ApexClass';
     const defaultUsername = 'test-username1@example.com';
-    const forceListMetadataExec = new ForceListMetadataExecutor(
+    const forceListMetadataExec = new ListMetadataExecutor(
       metadataType,
       defaultUsername
     );
     const forceListMetadataCmd = forceListMetadataExec.build({});
     expect(forceListMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal`
+      `sfdx org:list:metadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal`
     );
   });
 
@@ -31,14 +31,14 @@ describe('Force List Metadata', () => {
     const metadataType = 'Report';
     const defaultUsername = 'test-username1@example.com';
     const folder = 'SampleFolder';
-    const forceListMetadataExec = new ForceListMetadataExecutor(
+    const forceListMetadataExec = new ListMetadataExecutor(
       metadataType,
       defaultUsername,
       folder
     );
     const forceDescribeMetadataCmd = forceListMetadataExec.build({});
     expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal --folder ${folder}`
+      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json --loglevel fatal --folder ${folder}`
     );
   });
 
@@ -51,7 +51,7 @@ describe('Force List Metadata', () => {
     const cmdOutputStub = sinon
       .stub(CommandOutput.prototype, 'getCmdResult')
       .returns(resultData);
-    const execStub = sinon.stub(ForceListMetadataExecutor.prototype, 'execute');
+    const execStub = sinon.stub(ListMetadataExecutor.prototype, 'execute');
     const result = await forceListMetadata(
       metadataType,
       defaultUsername,
