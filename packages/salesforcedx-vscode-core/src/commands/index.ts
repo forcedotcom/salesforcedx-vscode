@@ -52,7 +52,7 @@ export {
 } from './deleteSource';
 export { forceCreateManifest } from './forceCreateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
-export { ListMetadataExecutor, forceListMetadata } from './listMetadata';
+export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,

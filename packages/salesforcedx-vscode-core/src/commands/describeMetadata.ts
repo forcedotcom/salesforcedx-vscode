@@ -28,7 +28,7 @@ export class DescribeMetadataExecutor extends SfdxCommandletExecutor<string> {
     return new SfdxCommandBuilder()
       .withArg('org:list:metadata-types')
       .withJson()
-      .withLogName('force_mdapi_describemetadata')
+      .withLogName('describe_metadata_types')
       .build();
   }
 

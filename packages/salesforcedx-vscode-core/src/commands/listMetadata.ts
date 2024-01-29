@@ -38,7 +38,7 @@ export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
       .withArg('org:list:metadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-o', this.defaultUsernameOrAlias)
-      .withLogName('force_mdapi_listmetadata')
+      .withLogName('list_metadata')
       .withJson();
 
     if (this.folder) {
@@ -61,7 +61,7 @@ export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
   }
 }
 
-export const forceListMetadata = async (
+export const listMetadata = async (
   metadataType: string,
   defaultUsernameOrAlias: string,
   outputPath: string,

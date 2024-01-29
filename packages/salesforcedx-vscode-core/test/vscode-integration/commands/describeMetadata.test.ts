@@ -14,11 +14,11 @@ import {
 } from '../../../src/commands';
 
 // tslint:disable:no-unused-expression
-describe('Force Describe Metadata', () => {
+describe('Describe Metadata', () => {
   it('Should build describe metadata command', async () => {
-    const forceDescribeMetadataExec = new DescribeMetadataExecutor();
-    const forceDescribeMetadataCmd = forceDescribeMetadataExec.build({});
-    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
+    const describeMetadataExec = new DescribeMetadataExecutor();
+    const describeMetadataCmd = describeMetadataExec.build({});
+    expect(describeMetadataCmd.toCommand()).to.equal(
       'sfdx org:list:metadata-types --json --loglevel fatal'
     );
   });
