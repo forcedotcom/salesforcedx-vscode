@@ -1,3 +1,11 @@
+# 59.16.0 - January 31, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Check java version was criteria was ambiguous ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363))
+
 # 59.15.0 - January 26, 2024
 
 ## Added
