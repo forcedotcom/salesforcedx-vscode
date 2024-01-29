@@ -164,14 +164,14 @@ export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   }
 }
 
-export async function setupAndDebugTests(
+export const setupAndDebugTests =  async (
   className: string,
   methodName?: string
-): Promise<void> {
+): Promise<void> => {
   const executor = new TestDebuggerExecutor();
   const response = {
     type: 'CONTINUE',
     data: [className, methodName]
   } as ContinueResponse<string[]>;
   await executor.execute(response);
-}
+};

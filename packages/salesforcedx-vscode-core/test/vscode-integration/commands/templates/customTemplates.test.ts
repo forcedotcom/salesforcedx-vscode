@@ -16,8 +16,8 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceApexClassCreate,
-  forceLightningLwcCreate
+  apexGenerateClass,
+  lightningGenerateLwc
 } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
@@ -90,7 +90,7 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();
@@ -148,7 +148,7 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const errorMessage = templatesNls.localize(
@@ -160,7 +160,7 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(showFailedExecutionStub);
     sinon.assert.calledWith(
       showFailedExecutionStub,
-      nls.localize('force_apex_class_create_text')
+      nls.localize('apex_generate_class_text')
     );
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
@@ -191,7 +191,7 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const errorMessage = templatesNls.localize(
@@ -203,7 +203,7 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(showFailedExecutionStub);
     sinon.assert.calledWith(
       showFailedExecutionStub,
-      nls.localize('force_apex_class_create_text')
+      nls.localize('apex_generate_class_text')
     );
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
@@ -245,7 +245,7 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningLwcCreate();
+    await lightningGenerateLwc();
 
     // assert
     const defaultApiVersion = TemplateService.getDefaultApiVersion();

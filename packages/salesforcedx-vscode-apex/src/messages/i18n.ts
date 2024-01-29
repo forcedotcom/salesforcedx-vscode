@@ -39,7 +39,7 @@ export const messages = {
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
   colorizer_no_code_coverage_current_file:
-    'No code coverage information was found for this file. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
+    'No code coverage information was found for file %s. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
@@ -80,6 +80,7 @@ export const messages = {
     'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) or [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) to run the extensions. For more information, see [Set Your Java Version](%s).',
   wrong_java_version_short:
     'Unsupported Java version',
+  java_version_check_command_failed: 'Running java command %s failed with error: %s',
   force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',

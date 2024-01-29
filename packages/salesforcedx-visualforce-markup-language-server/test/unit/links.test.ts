@@ -11,9 +11,9 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Link Detection', () => {
-  function getDocumentContext(
+  const getDocumentContext = (
     documentUrl: string
-  ): htmlLanguageService.DocumentContext {
+  ): htmlLanguageService.DocumentContext => {
     return {
       resolveReference: (ref, base) => {
         if (base) {
@@ -22,13 +22,13 @@ describe('HTML Link Detection', () => {
         return url.resolve(documentUrl, ref);
       }
     };
-  }
+  };
 
-  function testLinkCreation(
+  const testLinkCreation = (
     modelUrl: string,
     tokenContent: string,
     expected: string
-  ): void {
+  ): void => {
     const document = TextDocument.create(
       modelUrl,
       'html',
@@ -38,12 +38,12 @@ describe('HTML Link Detection', () => {
     const ls = htmlLanguageService.getLanguageService();
     const links = ls.findDocumentLinks(document, getDocumentContext(modelUrl));
     assert.equal(links[0] && links[0].target, expected);
-  }
+  };
 
-  function testLinkDetection(
+  const testLinkDetection = (
     value: string,
     expectedLinks: { offset: number; target: string }[]
-  ): void {
+  ): void => {
     const document = TextDocument.create(
       'test://test/test.html',
       'html',
@@ -59,7 +59,7 @@ describe('HTML Link Detection', () => {
       links.map(l => ({ offset: l.range.start.character, target: l.target })),
       expectedLinks
     );
-  }
+  };
 
   it('Link creation', () => {
     testLinkCreation('http://model/1', 'javascript:void;', null);

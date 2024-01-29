@@ -34,6 +34,8 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export {
   DebuggerSessionDetachExecutor,
@@ -48,8 +50,6 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ConfigList, configList } from './configList';
-export { ConfigSetExecutor, configSet } from './configSet';
 export { forceCreateManifest } from './forceCreateManifest';
 export {
   ForceDescribeMetadataExecutor,
@@ -59,26 +59,12 @@ export {
   ForceListMetadataExecutor,
   forceListMetadata
 } from './forceListMetadata';
-export { forceOpenDocumentation } from './forceOpenDocumentation';
-export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
-export { orgDelete } from './orgDelete';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
   forcePackageInstall
 } from './forcePackageInstall';
-export {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  ProjectTemplateItem,
-  SelectProjectFolder,
-  SelectProjectName,
-  SelectProjectTemplate,
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
-  projectTemplateEnum
-} from './forceProjectCreate';
 export {
   ForceRefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
@@ -110,7 +96,9 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { forceTaskStop } from './forceTaskStop';
+export { openDocumentation } from './openDocumentation';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
@@ -119,6 +107,17 @@ export {
   getExecutor,
   orgOpen
 } from './orgOpen';
+export {
+  PathExistsChecker,
+  ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
+  SelectProjectFolder,
+  SelectProjectName,
+  SelectProjectTemplate,
+  projectGenerateWithManifest,
+  projectTemplateEnum,
+  sfProjectGenerate
+} from './projectGenerate';
 export {
   viewAllChanges,
   viewLocalChanges,
@@ -139,24 +138,25 @@ export {
   stopApexDebugLogging,
   turnOffLogging
 } from './stopApexDebugLogging';
+export { taskStop } from './taskStop';
 export {
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexUnitClassCreate,
-  forceApexTriggerCreate,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
   forceLightningLwcTestCreate,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './templates';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
