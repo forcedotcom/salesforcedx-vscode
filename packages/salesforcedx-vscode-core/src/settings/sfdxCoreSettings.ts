@@ -18,7 +18,7 @@ import {
   ENV_SF_LOG_LEVEL,
   PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
-  PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
+  PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -65,9 +65,9 @@ export class SfdxCoreSettings {
     return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
   }
 
-  public getPushOrDeployOnSaveOverrideConflicts(): boolean {
+  public getPushOrDeployOnSaveIgnoreConflicts(): boolean {
     return this.getConfigValue<boolean>(
-      PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
+      PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
       false
     );
   }

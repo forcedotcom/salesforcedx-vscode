@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourcePushErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ProjectDeployStartErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
@@ -17,7 +17,7 @@ import {
 } from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
-  let pushErrorResult: ForceSourcePushErrorResponse;
+  let pushErrorResult: ProjectDeployStartErrorResponse;
   const workspacePath = 'local/workspace/path';
   const sourcePath = 'source/file/path';
   let errorCollection: DiagnosticCollection;
@@ -77,9 +77,7 @@ describe('Diagnostics', () => {
       Uri.file(path.join(workspacePath, resultItem.filePath))
     );
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem.type);
@@ -123,9 +121,7 @@ describe('Diagnostics', () => {
       Uri.file(path.join(workspacePath, resultItem1.filePath))
     );
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem1.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem1.type);
@@ -141,9 +137,7 @@ describe('Diagnostics', () => {
       Uri.file(path.join(workspacePath, resultItem2.filePath))
     );
 
-    expect(testDiagnostics1)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics1).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics1[0].message).to.be.equals(resultItem2.error);
     expect(testDiagnostics1[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics1[0].source).to.be.equals(resultItem2.type);
@@ -175,9 +169,7 @@ describe('Diagnostics', () => {
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem.type);
@@ -213,9 +205,7 @@ describe('Diagnostics', () => {
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(2);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(2);
     expect(testDiagnostics[0].message).to.be.equals(resultItem1.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem1.type);

@@ -88,15 +88,15 @@ export const pushSource = async (
   cp('-R', sourceFolder, targetFolder);
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:source:push')
-      .withFlag('--targetusername', username)
-      .withJson()
+      .withArg('project:deploy:start')
+      .withFlag('--target-org', username)
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pushedSource;
+  const source = JSON.parse(result).result.files;
   return Promise.resolve(source);
 };
 

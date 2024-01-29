@@ -28,17 +28,17 @@ import { workspaceUtils } from '../../util';
 import { CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T> {
-  public static errorCollection = vscode.languages.createDiagnosticCollection(
-    'push-errors'
-  );
+  implements CommandletExecutor<T>
+{
+  public static errorCollection =
+    vscode.languages.createDiagnosticCollection('push-errors');
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
-    .onDidFinishExecutionEventEmitter.event;
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> =
+    this.onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
@@ -148,14 +148,14 @@ export abstract class SfdxCommandletExecutor<T>
     success: boolean,
     response: ContinueResponse<T>,
     output: string
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }
 
   /**
    * Base method (no-op) that is overridden by sub-classes
-   * forceSourcePush and forceSourcePull to update the local cache's
+   * projectDeployStart and forceSourcePull to update the local cache's
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */

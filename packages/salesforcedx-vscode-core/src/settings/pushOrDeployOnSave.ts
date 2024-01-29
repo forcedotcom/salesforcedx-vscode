@@ -74,10 +74,11 @@ export class DeployQueue {
   }
 
   private async executePushCommand() {
-    const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
-      ? '.force'
-      : '';
-    const command = `sfdx.force.source.push${forceCommand}`;
+    const ignoreConflictsCommand =
+      sfdxCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
+        ? '.ignore.conflicts'
+        : '';
+    const command = `sfdx.project.deploy.start${ignoreConflictsCommand}`;
     vscode.commands.executeCommand(command);
   }
 
@@ -88,7 +89,8 @@ export class DeployQueue {
       this.queue.clear();
       let deployType: string = '';
       try {
-        const preferDeployOnSaveEnabled = sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+        const preferDeployOnSaveEnabled =
+          sfdxCoreSettings.getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
           await this.executeDeployCommand(toDeploy);
           deployType = 'Deploy';

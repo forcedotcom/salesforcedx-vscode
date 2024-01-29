@@ -7,16 +7,16 @@
 
 import {
   CONFLICT_ERROR_NAME,
-  ForcePushResultParser,
-  ForceSourcePushErrorResponse,
-  ForceSourcePushSuccessResponse,
-  PushResult
+  ProjectDeployStartResultParser,
+  ProjectDeployStartErrorResponse,
+  ProjectDeployStartSuccessResponse,
+  ProjectDeployStartResult
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';
-import { ForceSourcePushExecutor } from '../../../src/commands';
+import { ProjectDeployStartExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Correctly output deploy results', () => {
@@ -25,19 +25,22 @@ describe('Correctly output deploy results', () => {
   let channelServiceStub: sinon.SinonStub;
   let output = '';
   const table = new Table();
-  let deploySuccess: ForceSourcePushSuccessResponse;
-  let deployError: ForceSourcePushErrorResponse;
+  let deploySuccess: ProjectDeployStartSuccessResponse;
+  let deployError: ProjectDeployStartErrorResponse;
 
   beforeEach(() => {
     output = '';
-    errorsStub = stub(ForcePushResultParser.prototype, 'getErrors');
-    successesStub = stub(ForcePushResultParser.prototype, 'getSuccesses');
+    errorsStub = stub(ProjectDeployStartResultParser.prototype, 'getErrors');
+    successesStub = stub(
+      ProjectDeployStartResultParser.prototype,
+      'getSuccesses'
+    );
     channelServiceStub = stub(channelService, 'appendLine');
     channelServiceStub.callsFake(line => (output += line + '\n'));
     deploySuccess = {
       status: 0,
       result: {
-        pushedSource: [
+        files: [
           {
             state: 'Add',
             type: 'ApexClass',
@@ -57,7 +60,7 @@ describe('Correctly output deploy results', () => {
         {
           filePath: 'src/classes/MyClass2.cls',
           error: 'Some Error'
-        } as PushResult
+        } as ProjectDeployStartResult
       ]
     };
   });
@@ -68,32 +71,32 @@ describe('Correctly output deploy results', () => {
     channelServiceStub.restore();
   });
 
-  it('Should show correct heading for source:push operation', () => {
+  it('Should show correct heading for project:deploy:start operation', () => {
     successesStub.returns(deploySuccess);
     errorsStub.returns(undefined);
 
-    const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForcePushResultParser('{}'));
+    const executor = new ProjectDeployStartExecutor();
+    executor.outputResult(new ProjectDeployStartResultParser('{}'));
 
     const successTable = table.createTable(
-      (deploySuccess.result.pushedSource as unknown) as Row[],
+      deploySuccess.result.files as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
         { key: 'type', label: nls.localize('table_header_type') },
         { key: 'filePath', label: nls.localize('table_header_project_path') }
       ],
-      nls.localize('table_title_pushed_source')
+      nls.localize('table_title_deployed_source')
     );
     expect(output).to.be.equal(`${successTable}\n`);
   });
 
-  it('Should show no results found for source:push operation with no new source', () => {
-    successesStub.returns({ status: 0, result: { pushedSource: [] } });
+  it('Should show no results found for project:deploy:start operation with no new source', () => {
+    successesStub.returns({ status: 0, result: { files: [] } });
     errorsStub.returns(undefined);
 
-    const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForcePushResultParser('{}'));
+    const executor = new ProjectDeployStartExecutor();
+    executor.outputResult(new ProjectDeployStartResultParser('{}'));
 
     const successTable = table.createTable(
       [],
@@ -103,7 +106,7 @@ describe('Correctly output deploy results', () => {
         { key: 'type', label: nls.localize('table_header_type') },
         { key: 'filePath', label: nls.localize('table_header_project_path') }
       ],
-      nls.localize('table_title_pushed_source')
+      nls.localize('table_title_deployed_source')
     );
     const expectedOutput = `${successTable}\n${nls.localize(
       'table_no_results_found'
@@ -119,14 +122,14 @@ describe('Correctly output deploy results', () => {
       message: 'An error has occurred'
     });
 
-    const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForcePushResultParser('{}'));
+    const executor = new ProjectDeployStartExecutor();
+    executor.outputResult(new ProjectDeployStartResultParser('{}'));
     expect(output).to.be.equal('Deploy Failed: An error has occurred\n\n');
   });
 
   it('Should show deploy conflicts correctly', () => {
     const hasConflictsStub = stub(
-      ForcePushResultParser.prototype,
+      ProjectDeployStartResultParser.prototype,
       'hasConflicts'
     ).returns(true);
     deployError.name = CONFLICT_ERROR_NAME;
@@ -140,7 +143,7 @@ describe('Correctly output deploy results', () => {
     ];
     errorsStub.returns(deployError);
     const conflictsTable = table.createTable(
-      (deployError.data as unknown) as Row[],
+      deployError.data as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -151,8 +154,8 @@ describe('Correctly output deploy results', () => {
     const expectedOutput = `${nls.localize(
       'push_conflicts_error'
     )}\n\n${conflictsTable}\n`;
-    const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForcePushResultParser('{}'));
+    const executor = new ProjectDeployStartExecutor();
+    executor.outputResult(new ProjectDeployStartResultParser('{}'));
 
     expect(output).to.be.equal(expectedOutput);
 
