@@ -70,7 +70,6 @@ export class TelemetryServiceProvider {
       TelemetryServiceProvider.instances.set(name, service);
     }
     return service;
-
   }
 }
 
@@ -79,6 +78,7 @@ export class TelemetryService {
   private reporter: TelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
+  private isLocalLoggingEnabled: boolean = false;
   /**
    * Retrieve Telemetry Service according to the extension name.
    * If no extension name provided, return the instance for core extension by default
@@ -112,6 +112,10 @@ export class TelemetryService {
     this.extensionName = name;
     this.version = version;
     this.aiKey = aiKey || this.aiKey;
+    this.isLocalLoggingEnabled =
+      SfdxSettingsService.isAdvancedLocalTelemetryLoggingEnabled(
+        this.extensionName
+      );
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
@@ -201,7 +205,10 @@ export class TelemetryService {
         { startupTime }
       );
     });
-    LocalTelemetryFile.maybeWrite('activationEvent', { extensionName: this.extensionName, startupTime });
+    this.maybeWriteToLocalFile('activationEvent', {
+      extensionName: this.extensionName,
+      startupTime
+    });
   }
 
   public sendExtensionDeactivationEvent(): void {
@@ -210,7 +217,9 @@ export class TelemetryService {
         extensionName: this.extensionName
       });
     });
-    LocalTelemetryFile.maybeWrite('deactivationEvent', { extensionName: this.extensionName });
+    this.maybeWriteToLocalFile('deactivationEvent', {
+      extensionName: this.extensionName
+    });
   }
 
   public sendCommandEvent(
@@ -241,14 +250,17 @@ export class TelemetryService {
         );
       }
     });
-    LocalTelemetryFile.maybeWrite(commandName || '', { ...properties, ...measurements });
+    this.maybeWriteToLocalFile(commandName || '', {
+      ...properties,
+      ...measurements
+    });
   }
 
   public sendException(name: string, message: string) {
     this.validateTelemetry(() => {
       this.reporter!.sendExceptionEvent(name, message);
     });
-    LocalTelemetryFile.maybeWrite(name || '', { message });
+    this.maybeWriteToLocalFile(name || '', { message });
   }
 
   public sendEventData(
@@ -259,7 +271,10 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent(eventName, properties, measures);
     });
-    LocalTelemetryFile.maybeWrite(eventName || '', { ...properties, ...measures });
+    this.maybeWriteToLocalFile(eventName || '', {
+      ...properties,
+      ...measures
+    });
   }
 
   public dispose(): void {
@@ -290,30 +305,19 @@ export class TelemetryService {
         .catch(err => console.error(err));
     }
   }
-}
 
-export class LocalTelemetryFile {
-  public static maybeWrite(command: string, data: {
-    [key: string]: string | number;
-  }) {
-    if (startedInDebugMode() && SfdxSettingsService.isLocalTelemetryLoggingEnabled()) {
+  private maybeWriteToLocalFile(
+    command: string,
+    data: {
+      [key: string]: string | number;
+    }
+  ) {
+    if (ExtensionMode.Development && this.isLocalLoggingEnabled) {
       const timestamp = new Date().toISOString();
-      appendFileSync('telemetry.json', JSON.stringify({ timestamp, command, data }, null, 2));
+      appendFileSync(
+        'telemetry.json',
+        JSON.stringify({ timestamp, command, data }, null, 2)
+      );
     }
   }
 }
-
-// tmp: copied from vscode-extensions (could be imported via api)
-function startedInDebugMode(): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const args = (process as any).execArgv;
-  if (args) {
-    return args.some(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (arg: any) =>
-        /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect=?/.test(arg) || /^--inspect-brk=?/.test(arg)
-    );
-  }
-  return false;
-}
-
