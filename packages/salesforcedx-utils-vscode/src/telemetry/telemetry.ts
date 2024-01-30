@@ -79,7 +79,7 @@ export class TelemetryService {
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   private isLocalLoggingEnabled: boolean = false;
-  private isDebugMode: boolean = false;
+  private isDevMode: boolean = false;
   /**
    * Retrieve Telemetry Service according to the extension name.
    * If no extension name provided, return the instance for core extension by default
@@ -117,8 +117,6 @@ export class TelemetryService {
       SfdxSettingsService.isAdvancedLocalTelemetryLoggingEnabled(
         this.extensionName
       );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.isDebugMode = this.startedInDebugMode();
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
@@ -130,14 +128,14 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const isDevMode =
+    this.isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
       (await this.isTelemetryEnabled()) &&
-      !isDevMode
+      !this.isDevMode
     ) {
       this.reporter = new TelemetryReporter(
         this.getTelemetryReporterName(),
@@ -315,33 +313,12 @@ export class TelemetryService {
       [key: string]: string | number;
     }
   ) {
-    if (this.isDebugMode && this.isLocalLoggingEnabled) {
+    if (this.isLocalLoggingEnabled && this.isDevMode) {
       const timestamp = new Date().toISOString();
       appendFileSync(
         'telemetry.json',
         JSON.stringify({ timestamp, command, data }, null, 2)
       );
     }
-  }
-
-  private startedInDebugMode(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const args = (process as any).execArgv;
-    if (args) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      return args.some(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (arg: any) =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          /^--debug=?/.test(arg) ||
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          /^--debug-brk=?/.test(arg) ||
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          /^--inspect=?/.test(arg) ||
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          /^--inspect-brk=?/.test(arg)
-      );
-    }
-    return false;
   }
 }
