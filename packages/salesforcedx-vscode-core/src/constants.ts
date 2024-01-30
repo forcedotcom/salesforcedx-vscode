@@ -36,8 +36,8 @@ export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const PREFER_DEPLOY_ON_SAVE_ENABLED =
   'push-or-deploy-on-save.preferDeployOnSave';
-export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS =
-  'push-or-deploy-on-save.overrideConflictsOnPush';
+export const PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS =
+  'push-or-deploy-on-save.ignoreConflictsOnPush';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
@@ -65,4 +65,4 @@ export const ORG_OPEN_COMMAND = 'sfdx.org.open';
 export const FORCE_SOURCE_PULL_LOG_NAME =
   'force_source_pull_default_scratch_org';
 export const FORCE_SOURCE_PUSH_LOG_NAME =
-  'force_source_push_default_scratch_org';
+  'project_deploy_start_default_scratch_org';

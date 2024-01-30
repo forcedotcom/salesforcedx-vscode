@@ -10,8 +10,8 @@ import {
   CliCommandExecutor,
   Command,
   ContinueResponse,
-  ForcePushResultParser,
-  PushResult,
+  ProjectDeployStartResultParser,
+  ProjectDeployStartResult,
   Row,
   SfdxCommandBuilder,
   Table,
@@ -41,15 +41,15 @@ export enum DeployType {
 }
 
 export const pushCommand: CommandParams = {
-  command: 'force:source:push',
+  command: 'project:deploy:start',
   description: {
-    default: 'force_source_push_default_org_text',
-    forceoverwrite: 'force_source_push_force_default_org_text'
+    default: 'project_deploy_start_default_org_text',
+    ignoreConflicts: 'project_deploy_start_ignore_conflicts_default_org_text'
   },
-  logName: { default: 'force_source_push_default_scratch_org' }
+  logName: { default: 'project_deploy_start_default_scratch_org' }
 };
 
-export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
+export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
   public constructor(
     flag?: string,
@@ -68,12 +68,12 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
-      .withJson()
+      .withJson(false)
       .withLogName(this.params.logName.default);
-    if (this.flag === '--forceoverwrite') {
+    if (this.flag === '--ignore-conflicts') {
       builder.withArg(this.flag);
       builder.withDescription(
-        nls.localize(this.params.description.forceoverwrite)
+        nls.localize(this.params.description.ignoreConflicts)
       );
     }
     return builder.build();
@@ -88,7 +88,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
     channelService.streamCommandStartStop(execution);
 
@@ -122,7 +122,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
     startTime: [number, number],
     cancellationToken: vscode.CancellationToken | undefined,
     cancellationTokenSource: vscode.CancellationTokenSource
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<void> {
     if (execution.command.logName === FORCE_SOURCE_PUSH_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);
@@ -136,7 +136,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         SfdxCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
         if (stdOut) {
-          const pushParser = new ForcePushResultParser(stdOut);
+          const pushParser = new ProjectDeployStartResultParser(stdOut);
           const errors = pushParser.getErrors();
           if (errors && !pushParser.hasConflicts()) {
             channelService.showChannelOutput();
@@ -154,7 +154,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       } catch (e) {
         SfdxCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
-        if (e.name !== 'PushParserFail') {
+        if (e.name !== 'ProjectDeployStartParserFail') {
           e.message =
             'Error while creating diagnostics for vscode problem view.';
         }
@@ -177,19 +177,19 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
    * @param pushResult that comes from stdOut after cli push operation
    */
   protected updateCache(pushResult: any): void {
-    const pushedSource = pushResult.result.pushedSource;
+    const pushedSource = pushResult.result.files;
 
     const instance = PersistentStorageService.getInstance();
     instance.setPropertiesForFilesPushPull(pushedSource);
   }
 
-  public outputResult(parser: ForcePushResultParser) {
+  public outputResult(parser: ProjectDeployStartResultParser) {
     const table = new Table();
     const titleType = this.getDeployType();
 
     const successes = parser.getSuccesses();
     const errors = parser.getErrors();
-    const pushedSource = successes ? successes.result.pushedSource : undefined;
+    const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
       const rows = pushedSource || (errors && errors.data);
       const title = !parser.hasConflicts()
@@ -215,7 +215,9 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
         console.log(
-          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(errors)}`
+          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(
+            errors
+          )}`
         );
       }
     }
@@ -223,11 +225,11 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getOutputTable(
     table: Table,
-    rows: PushResult[] | undefined,
+    rows: ProjectDeployStartResult[] | undefined,
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
-      (rows as unknown) as Row[],
+      rows as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -241,7 +243,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getErrorTable(table: Table, result: unknown, titleType: string) {
     const outputTable = table.createTable(
-      (result ) as Row[],
+      result as Row[],
       [
         {
           key: 'filePath',
@@ -258,9 +260,9 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePush(this: FlagParameter<string>) {
+export async function projectDeployStart(this: FlagParameter<string>) {
   const { flag } = this || {};
-  const executor = new ForceSourcePushExecutor(flag, pushCommand);
+  const executor = new ProjectDeployStartExecutor(flag, pushCommand);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

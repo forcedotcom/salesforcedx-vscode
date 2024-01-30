@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "59.15.0",
+  "version": "59.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "6.4.7",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "59.15.0",
-    "@salesforce/salesforcedx-utils-vscode": "59.15.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "59.16.0",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "10.2.9",
     "@salesforce/templates": "^60.1.0",
@@ -40,7 +40,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "59.15.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.16.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -384,11 +384,11 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.push",
+          "command": "sfdx.project.deploy.start",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.push.force",
+          "command": "sfdx.project.deploy.start.ignore.conflicts",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
@@ -663,12 +663,12 @@
         "title": "%force_source_pull_force_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.push",
-        "title": "%force_source_push_default_org_text%"
+        "command": "sfdx.project.deploy.start",
+        "title": "%project_deploy_start_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.push.force",
-        "title": "%force_source_push_force_default_org_text%"
+        "command": "sfdx.project.deploy.start.ignore.conflicts",
+        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
       },
       {
         "command": "sfdx.force.source.status",
@@ -924,10 +924,10 @@
           "default": false,
           "description": "%setting_clear_output_tab_description%"
         },
-        "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": {
           "type": "boolean",
           "default": false,
-          "description": "%override_conflicts_on_push_description%"
+          "description": "%ignore_conflicts_on_push_description%"
         },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
