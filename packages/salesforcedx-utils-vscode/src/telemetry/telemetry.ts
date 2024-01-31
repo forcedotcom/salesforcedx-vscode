@@ -143,7 +143,7 @@ export class TelemetryService {
 
     if (isDevMode) {
       const isLocalLoggingEnabled =
-        SfdxSettingsService.isAdvancedLocalTelemetryLoggingEnabled(
+        SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
           this.extensionName
         );
 

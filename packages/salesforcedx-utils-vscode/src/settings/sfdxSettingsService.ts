@@ -17,7 +17,7 @@ export class SfdxSettingsService {
       .get<boolean>(SETTING_CLEAR_OUTPUT_TAB, false);
   }
 
-  public static isAdvancedLocalTelemetryLoggingEnabled(
+  public static isLocalTelemetryLoggingEnabledFor(
     extensionName: string
   ): boolean {
     const isLocalTelemetryLoggingEnabled = vscode.workspace
