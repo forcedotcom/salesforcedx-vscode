@@ -7,6 +7,7 @@
 
 import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { ActivationInfo } from '..';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -69,7 +70,6 @@ export class TelemetryServiceProvider {
       TelemetryServiceProvider.instances.set(name, service);
     }
     return service;
-
   }
 }
 
@@ -189,15 +189,38 @@ export class TelemetryService {
     }
   }
 
-  public sendExtensionActivationEvent(hrstart: [number, number]): void {
+  public sendActivationEventInfo(activationInfo: ActivationInfo) {
+    this.sendExtensionActivationEvent(
+      activationInfo.startActivateHrTime,
+      activationInfo.activateStartDate,
+      activationInfo.loadStartDate,
+      activationInfo.activactionTime
+    );
+  }
+
+  public sendExtensionActivationEvent(
+    hrstart: [number, number],
+    activateStartDate?: Date,
+    loadStartDate?: Date,
+    activactionTime?: number
+  ): void {
     this.validateTelemetry(() => {
       const startupTime = this.getEndHRTime(hrstart);
       this.reporter!.sendTelemetryEvent(
         'activationEvent',
         {
-          extensionName: this.extensionName
+          extensionName: this.extensionName,
+          ...(activateStartDate
+            ? { activationStartDate: activateStartDate.toISOString() }
+            : {}),
+          ...(loadStartDate
+            ? { loadStartDate: loadStartDate.toISOString() }
+            : {})
         },
-        { startupTime }
+        {
+          startupTime,
+          ...(activactionTime === undefined ? {} : { activactionTime })
+        }
       );
     });
   }

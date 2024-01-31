@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  getTestResultsFolder,
+  getExtensionInfo,
+  markActivationStart,
+  markActivationStop
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
@@ -49,7 +54,8 @@ import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  const extensionHRStart = process.hrtime();
+  let activationInfo = await markActivationStart(extensionContext);
+
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
@@ -59,9 +65,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     );
 
     const testResultOutput = path.join(apexDirPath, '*.json');
-    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(
-      testResultOutput
-    );
+    const testResultFileWatcher =
+      vscode.workspace.createFileSystemWatcher(testResultOutput);
     testResultFileWatcher.onDidCreate(uri =>
       testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
     );
@@ -90,7 +95,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const commands = registerCommands();
   extensionContext.subscriptions.push(commands);
 
-  extensionContext.subscriptions.push(await registerTestView());
+  extensionContext.subscriptions.push(registerTestView());
 
   const exportedApi = {
     getLineBreakpointInfo,
@@ -99,7 +104,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     languageClientUtils
   };
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  activationInfo = markActivationStop(activationInfo);
+  telemetryService.sendActivationEventInfo(activationInfo);
+
   return exportedApi;
 };
 
@@ -192,10 +199,11 @@ const registerCommands = (): vscode.Disposable => {
     'sfdx.force.anon.apex.execute.selection',
     forceAnonApexExecute
   );
-  const forceLaunchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.launch.apex.replay.debugger.with.current.file',
-    forceLaunchApexReplayDebuggerWithCurrentFile
-  );
+  const forceLaunchApexReplayDebuggerWithCurrentFileCmd =
+    vscode.commands.registerCommand(
+      'sfdx.force.launch.apex.replay.debugger.with.current.file',
+      forceLaunchApexReplayDebuggerWithCurrentFile
+    );
 
   return vscode.Disposable.from(
     forceApexDebugClassRunDelegateCmd,
@@ -295,9 +303,9 @@ const createLanguageClient = async (
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
-    languageClientUtils.setClientInstance(await languageServer.createLanguageServer(
-      extensionContext
-    ));
+    languageClientUtils.setClientInstance(
+      await languageServer.createLanguageServer(extensionContext)
+    );
 
     const languageClient = languageClientUtils.getClientInstance();
 
@@ -331,11 +339,20 @@ const createLanguageClient = async (
         languageClient,
         languageServerStatusBarItem
       );
-      extensionContext.subscriptions.push(languageClientUtils.getClientInstance()!);
+      extensionContext.subscriptions.push(
+        languageClientUtils.getClientInstance()!
+      );
     } else {
-      languageClientUtils.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`);
+      languageClientUtils.setStatus(
+        ClientStatus.Error,
+        `${nls.localize(
+          'apex_language_server_failed_activate'
+        )} - ${nls.localize('unknown')}`
+      );
       languageServerStatusBarItem.error(
-        `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
+        `${nls.localize(
+          'apex_language_server_failed_activate'
+        )} - ${nls.localize('unknown')}`
       );
     }
   } catch (e) {

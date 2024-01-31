@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { from } from 'rxjs/observable/from';
+
 export {
   TOOLS,
   ensureDirectoryExists,
@@ -30,3 +32,14 @@ export {
   isRecordIdFormat
 } from './validations';
 export { isSFContainerMode } from './env';
+export {
+  ActivationInfo,
+  getExtensionHostLogActivationRecords,
+  ExtensionInfo,
+  ExtensionsInfo,
+  getExtensionInfo,
+  getExtensionsInfo,
+  getSalesforceExtensions,
+  markActivationStart,
+  markActivationStop
+} from './extHostLogs';

@@ -70,5 +70,19 @@ describe('Telemetry Reporter', () => {
         dummyOrgId
       );
     });
+
+    it('should send "tag" to sendTelemetryEvent', () => {
+      // Arrange
+      process.env.SF_VSCODE_TELEMETRY_TAG = 'a tag';
+      // Act
+      telemetryReporter.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
+
+      // Assert
+      // Assert
+      expect(trackEventMock).toHaveBeenCalledTimes(1);
+      expect(trackEventMock.mock.calls[0][0].properties.orgId).toEqual(
+        dummyOrgId
+      );
+    });
   });
 });

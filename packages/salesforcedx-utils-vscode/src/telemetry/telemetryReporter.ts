@@ -43,9 +43,7 @@ export class TelemetryReporter extends Disposable {
         autoClose: true
       });
     }
-    if (enableUniqueMetrics) {
-      this.uniqueUserMetrics = true;
-    }
+    this.uniqueUserMetrics = enableUniqueMetrics ?? false;
     this.updateUserOptIn(key);
     this.toDispose.push(
       workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
