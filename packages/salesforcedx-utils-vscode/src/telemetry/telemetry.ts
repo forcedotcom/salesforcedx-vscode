@@ -307,6 +307,11 @@ export class TelemetryService {
     }
   }
 
+  /**
+   * Writes telemetry data to a local file if local logging is enabled and the extension is in development mode.
+   * @param command - The command associated with the telemetry data.
+   * @param data - The telemetry data to be written.
+   */
   private maybeWriteToLocalFile(
     command: string,
     data: {
