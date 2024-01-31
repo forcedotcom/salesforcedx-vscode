@@ -1,3 +1,12 @@
+# 59.16.0 - January 31, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood to make the java version validation more reliable. Thank you [Saranchuk Viktor](https://github.com/Blackbackroom) for creating the issue.
+ ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363), [ISSUE #5358](https://github.com/forcedotcom/salesforcedx-vscode/issues/5358))
+
 # 59.15.0 - January 26, 2024
 
 ## Added
