@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { appendFileSync } from 'fs';
 import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
@@ -15,6 +14,7 @@ import {
 } from '../constants';
 import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
+import { LocalTelemetryReporter } from './localTelemetryReporter';
 import { TelemetryReporter } from './telemetryReporter';
 
 interface CommandMetric {
@@ -76,10 +76,9 @@ export class TelemetryServiceProvider {
 export class TelemetryService {
   private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
+  private localReporter: LocalTelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
-  private isLocalLoggingEnabled: boolean = false;
-  private isDevMode: boolean = false;
   /**
    * Retrieve Telemetry Service according to the extension name.
    * If no extension name provided, return the instance for core extension by default
@@ -113,10 +112,6 @@ export class TelemetryService {
     this.extensionName = name;
     this.version = version;
     this.aiKey = aiKey || this.aiKey;
-    this.isLocalLoggingEnabled =
-      SfdxSettingsService.isAdvancedLocalTelemetryLoggingEnabled(
-        this.extensionName
-      );
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
@@ -128,14 +123,14 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    this.isDevMode =
+    const isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
       (await this.isTelemetryEnabled()) &&
-      !this.isDevMode
+      !isDevMode
     ) {
       this.reporter = new TelemetryReporter(
         this.getTelemetryReporterName(),
@@ -144,6 +139,17 @@ export class TelemetryService {
         true
       );
       this.extensionContext.subscriptions.push(this.reporter);
+    }
+
+    if (isDevMode) {
+      const isLocalLoggingEnabled =
+        SfdxSettingsService.isAdvancedLocalTelemetryLoggingEnabled(
+          this.extensionName
+        );
+
+      if (isLocalLoggingEnabled) {
+        this.localReporter = new LocalTelemetryReporter();
+      }
     }
   }
 
@@ -206,7 +212,7 @@ export class TelemetryService {
         { startupTime }
       );
     });
-    this.maybeWriteToLocalFile('activationEvent', {
+    this.localReporter!.writeToFile('activationEvent', {
       extensionName: this.extensionName,
       startupTime
     });
@@ -218,7 +224,7 @@ export class TelemetryService {
         extensionName: this.extensionName
       });
     });
-    this.maybeWriteToLocalFile('deactivationEvent', {
+    this.localReporter!.writeToFile('deactivationEvent', {
       extensionName: this.extensionName
     });
   }
@@ -251,7 +257,7 @@ export class TelemetryService {
         );
       }
     });
-    this.maybeWriteToLocalFile(commandName || '', {
+    this.localReporter!.writeToFile(commandName || '', {
       ...properties,
       ...measurements
     });
@@ -261,7 +267,7 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendExceptionEvent(name, message);
     });
-    this.maybeWriteToLocalFile(name || '', { message });
+    this.localReporter!.writeToFile(name, { message });
   }
 
   public sendEventData(
@@ -272,7 +278,7 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent(eventName, properties, measures);
     });
-    this.maybeWriteToLocalFile(eventName || '', {
+    this.localReporter!.writeToFile(eventName, {
       ...properties,
       ...measures
     });
@@ -304,26 +310,6 @@ export class TelemetryService {
       this.isTelemetryEnabled()
         .then(enabled => (enabled ? callback() : undefined))
         .catch(err => console.error(err));
-    }
-  }
-
-  /**
-   * Writes telemetry data to a local file if local logging is enabled and the extension is in development mode.
-   * @param command - The command associated with the telemetry data.
-   * @param data - The telemetry data to be written.
-   */
-  private maybeWriteToLocalFile(
-    command: string,
-    data: {
-      [key: string]: string | number;
-    }
-  ) {
-    if (this.isLocalLoggingEnabled && this.isDevMode) {
-      const timestamp = new Date().toISOString();
-      appendFileSync(
-        'telemetry.json',
-        JSON.stringify({ timestamp, command, data }, null, 2)
-      );
     }
   }
 }
