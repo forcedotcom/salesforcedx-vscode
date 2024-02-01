@@ -212,7 +212,7 @@ export class TelemetryService {
         { startupTime }
       );
     });
-    this.localReporter!.writeToFile('activationEvent', {
+    this.maybeWriteToLocalFile('activationEvent', {
       extensionName: this.extensionName,
       startupTime
     });
@@ -224,7 +224,7 @@ export class TelemetryService {
         extensionName: this.extensionName
       });
     });
-    this.localReporter!.writeToFile('deactivationEvent', {
+    this.maybeWriteToLocalFile('deactivationEvent', {
       extensionName: this.extensionName
     });
   }
@@ -257,7 +257,7 @@ export class TelemetryService {
         );
       }
     });
-    this.localReporter!.writeToFile(commandName || '', {
+    this.maybeWriteToLocalFile(commandName || '', {
       ...properties,
       ...measurements
     });
@@ -267,7 +267,18 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendExceptionEvent(name, message);
     });
-    this.localReporter!.writeToFile(name, { message });
+    this.maybeWriteToLocalFile(name, { message });
+  }
+
+  private maybeWriteToLocalFile(
+    eventName: string,
+    properties: { [key: string]: string | number }
+  ) {
+    if (this.localReporter) {
+      this.localReporter.writeToFile(eventName, {
+        ...properties
+      });
+    }
   }
 
   public sendEventData(
@@ -278,10 +289,7 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent(eventName, properties, measures);
     });
-    this.localReporter!.writeToFile(eventName, {
-      ...properties,
-      ...measures
-    });
+    this.maybeWriteToLocalFile(eventName, { ...properties, ...measures });
   }
 
   public dispose(): void {
