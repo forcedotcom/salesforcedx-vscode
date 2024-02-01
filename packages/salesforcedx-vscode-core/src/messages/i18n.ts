@@ -102,7 +102,7 @@ export const messages = {
     'Access org %s as user %s with the following URL: %s',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text:
-    'SFDX: Pull Source from Default Org and Override Conflicts',
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',

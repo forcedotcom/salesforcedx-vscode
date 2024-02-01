@@ -84,12 +84,12 @@ export const messages = {
   project_retrieve_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプル',
   project_retrieve_start_ignore_conflicts_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
 
   project_deploy_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送',
   project_deploy_start_ignore_conflicts_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織へソースを転送して競合を上書き',
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
 
   force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
   force_source_deploy_select_file_or_directory:
