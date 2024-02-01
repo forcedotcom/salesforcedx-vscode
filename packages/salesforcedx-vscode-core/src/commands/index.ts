@@ -77,7 +77,10 @@ export {
   handleCacheResults
 } from './forceSourceDiff';
 export { ForceSourcePullExecutor, forceSourcePull } from './forceSourcePull';
-export { ForceSourcePushExecutor, forceSourcePush } from './forceSourcePush';
+export {
+  ProjectDeployStartExecutor,
+  projectDeployStart
+} from './projectDeployStart';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {

@@ -7,9 +7,9 @@
 
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
-import { ForceSourcePushExecutor } from '../../../src/commands';
+import { ProjectDeployStartExecutor } from '../../../src/commands';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
-import { DeployType } from '../../../src/commands/forceSourcePush';
+import { DeployType } from '../../../src/commands/projectDeployStart';
 import {
   CommandParams,
   SfdxCommandletExecutor
@@ -17,7 +17,7 @@ import {
 import { PersistentStorageService } from '../../../src/conflict';
 import { dummyPushResult, dummyStdOut } from './data/testData';
 
-describe('ForceSourcePushExecutor', () => {
+describe('ProjectDeployStartExecutor', () => {
   describe('exitProcessHandlerPush', () => {
     class MockErrorCollection {
       public static clear(): void {
@@ -27,24 +27,25 @@ describe('ForceSourcePushExecutor', () => {
     beforeEach(() => {
       jest.spyOn(ChannelService, 'getInstance').mockReturnValue({} as any);
       jest.spyOn(nls, 'localize').mockReturnValue('');
-      (ForceSourcePushExecutor as any).logMetric = jest.fn();
+      (ProjectDeployStartExecutor as any).logMetric = jest.fn();
       jest
-        .spyOn(ForceSourcePushExecutor.prototype, 'logMetric')
+        .spyOn(ProjectDeployStartExecutor.prototype, 'logMetric')
         .mockImplementation(jest.fn());
     });
 
     it('should update the local cache for the components that were deployed after a push', async () => {
       // Arrange
       const pushCommand: CommandParams = {
-        command: 'force:source:push',
+        command: 'project:deploy:start',
         description: {
-          default: 'force_source_push_default_org_text',
-          forceoverwrite: 'force_source_push_force_default_org_text'
+          default: 'project_deploy_start_default_org_text',
+          ignoreConflicts:
+            'project_deploy_start_ignore_conflicts_default_org_text'
         },
-        logName: { default: 'force_source_push_default_scratch_org' }
+        logName: { default: 'project_deploy_start_default_scratch_org' }
       };
       const flag = '';
-      const executor = new ForceSourcePushExecutor(flag, pushCommand);
+      const executor = new ProjectDeployStartExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
       const executorAsAny = executor as any;
       SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
@@ -67,7 +68,7 @@ describe('ForceSourcePushExecutor', () => {
         dummyStdOut,
         '',
         '',
-        { command: { logName: 'force_source_push_default_scratch_org' } },
+        { command: { logName: 'project_deploy_start_default_scratch_org' } },
         [1, 2],
         undefined
       );
@@ -89,12 +90,12 @@ describe('ForceSourcePushExecutor', () => {
     });
 
     it('should update the local cache for the pulled source components after push', async () => {
-      const pushExecutor = new ForceSourcePushExecutor();
+      const pushExecutor = new ProjectDeployStartExecutor();
 
       (pushExecutor as any).updateCache(dummyPushResult);
 
       expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(
-        dummyPushResult.result.pushedSource
+        dummyPushResult.result.files
       );
     });
   });

@@ -103,9 +103,9 @@ export const messages = {
   force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_org_text:
     'SFDX: Pull Source from Default Org and Override Conflicts',
-  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
-  force_source_push_force_default_org_text:
-    'SFDX: Push Source to Default Org and Override Conflicts',
+  project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
   force_source_status_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
