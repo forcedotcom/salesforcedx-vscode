@@ -38,7 +38,7 @@ describe('List Metadata', () => {
     );
     const describeMetadataCmd = listMetadataExec.build({});
     expect(describeMetadataCmd.toCommand()).to.equal(
-      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json --loglevel fatal --folder ${folder}`
+      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json --folder ${folder}`
     );
   });
 
