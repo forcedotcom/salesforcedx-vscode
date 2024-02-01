@@ -37,9 +37,8 @@ export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
     const builder = new SfdxCommandBuilder()
       .withArg('org:list:metadata')
       .withFlag('-m', this.metadataType)
-      .withFlag('-o', this.defaultUsernameOrAlias)
       .withLogName('list_metadata')
-      .withJson();
+      .withJson(false);
 
     if (this.folder) {
       builder.withFlag('--folder', this.folder);

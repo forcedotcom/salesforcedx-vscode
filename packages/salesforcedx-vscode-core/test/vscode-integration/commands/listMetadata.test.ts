@@ -13,7 +13,7 @@ import {
   ListMetadataExecutor
 } from '../../../src/commands';
 
-describe('Force List Metadata', () => {
+describe('List Metadata', () => {
   it('Should build list metadata command', async () => {
     const metadataType = 'ApexClass';
     const defaultUsername = 'test-username1@example.com';
@@ -23,7 +23,7 @@ describe('Force List Metadata', () => {
     );
     const listMetadataCmd = listMetadataExec.build({});
     expect(listMetadataCmd.toCommand()).to.equal(
-      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json --loglevel fatal`
+      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json`
     );
   });
 

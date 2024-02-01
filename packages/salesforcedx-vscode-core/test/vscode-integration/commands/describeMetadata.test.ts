@@ -19,7 +19,7 @@ describe('Describe Metadata', () => {
     const describeMetadataExec = new DescribeMetadataExecutor();
     const describeMetadataCmd = describeMetadataExec.build({});
     expect(describeMetadataCmd.toCommand()).to.equal(
-      'sfdx org:list:metadata-types --json --loglevel fatal'
+      'sfdx org:list:metadata-types --json'
     );
   });
 
