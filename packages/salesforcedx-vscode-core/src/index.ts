@@ -115,7 +115,6 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { SfdxProjectConfig } from './sfdxProject';
 import { taskViewService } from './statuses';
-import { collectSalesforceExtensionActivationStats } from './statuses/extensionPackStatus';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import {
   isCLIInstalled,
@@ -129,10 +128,10 @@ const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
 
-const registerCommands = (
+function registerCommands(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
-): vscode.Disposable => {
+): vscode.Disposable {
   // Customer-facing commands
   const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.accessToken',
@@ -450,12 +449,12 @@ const registerCommands = (
     orgLogoutDefaultCmd,
     orgOpenCmd
   );
-};
+}
 
-const registerInternalDevCommands = (
+function registerInternalDevCommands(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
-): vscode.Disposable => {
+): vscode.Disposable {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
     'sfdx.internal.lightning.generate.app',
     internalLightningGenerateApp
@@ -489,21 +488,19 @@ const registerInternalDevCommands = (
     internalLightningGenerateEventCmd,
     internalLightningGenerateInterfaceCmd
   );
-};
+}
 
-const registerOrgPickerCommands = (
-  orgListParam: OrgList
-): vscode.Disposable => {
+function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
   const setDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(setDefaultOrgCmd);
-};
+}
 
-const setupOrgBrowser = async (
+async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext
-): Promise<void> => {
+): Promise<void> {
   await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
@@ -535,9 +532,9 @@ const setupOrgBrowser = async (
   );
 
   vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
-};
+}
 
-export const activate = async (extensionContext: vscode.ExtensionContext) => {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -680,11 +677,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       ).catch(e => telemetryService.sendException(e.name, e.message));
     }
   }
-  void collectSalesforceExtensionActivationStats(extensionContext);
-  return api;
-};
 
-const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
+  return api;
+}
+
+async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Register org picker commands
@@ -706,9 +703,9 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   if (isDemoMode()) {
     showDemoMode();
   }
-};
+}
 
-export const deactivate = (): Promise<void> => {
+export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
 
   // Send metric data.
@@ -717,9 +714,9 @@ export const deactivate = (): Promise<void> => {
 
   disposeTraceFlagExpiration();
   return turnOffLogging();
-};
+}
 
-export const validateCliInstallationAndVersion = (): void => {
+export function validateCliInstallationAndVersion(): void {
   // Check that the CLI is installed and that it is a supported version
   // If there is no CLI or it is an unsupported version then the Core extension will not activate
   const c = new CliVersionStatus();
@@ -768,14 +765,14 @@ export const validateCliInstallationAndVersion = (): void => {
       ]);
     }
   }
-};
+}
 
-export const showErrorNotification = (type: string, args: any[]) => {
+export function showErrorNotification(type: string, args: any[]) {
   const showMessage = nls.localize(type, ...args);
-  void vscode.window.showErrorMessage(showMessage);
-};
+  vscode.window.showErrorMessage(showMessage);
+}
 
-export const showWarningNotification = (type: string, args: any[]) => {
+export function showWarningNotification(type: string, args: any[]) {
   const showMessage = nls.localize(type, ...args);
-  void vscode.window.showWarningMessage(showMessage);
-};
+  vscode.window.showWarningMessage(showMessage);
+}
