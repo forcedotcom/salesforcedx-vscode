@@ -102,7 +102,7 @@
       "main": "dist/index.js",
       "languageServerDir": "dist",
       "dependencies": {
-        "applicationinsights": "1.0.7",
+        "applicationinsights": "2.9.2",
         "@salesforce/apex-tmlanguage": "1.4.0",
         "@salesforce/core": "6.4.7",
         "@salesforce/templates": "^60.1.0",

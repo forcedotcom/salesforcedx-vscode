@@ -6,6 +6,7 @@
  */
 
 import * as util from 'util';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ActivationInfo } from '..';
 import {
@@ -122,13 +123,14 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const isDevMode =
-      extensionContext.extensionMode !== ExtensionMode.Production;
+    const isDevMode = false;
+      // extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
+    const tmEnabled = await this.isTelemetryEnabled();
     if (
       this.reporter === undefined &&
-      (await this.isTelemetryEnabled()) &&
+      tmEnabled &&
       !isDevMode
     ) {
       this.reporter = new TelemetryReporter(

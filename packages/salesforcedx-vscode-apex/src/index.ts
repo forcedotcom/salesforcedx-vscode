@@ -7,7 +7,6 @@
 
 import {
   getTestResultsFolder,
-  getExtensionInfo,
   markActivationStart,
   markActivationStop
 } from '@salesforce/salesforcedx-utils-vscode';
