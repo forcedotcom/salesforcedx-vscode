@@ -10,6 +10,7 @@ import {
   ensureCurrentWorkingDirIsProjectPath
 } from '@salesforce/salesforcedx-utils';
 import {
+  ActivationTracker,
   ChannelService,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
@@ -132,10 +133,10 @@ const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
 };
 
-function registerCommands(
+const registerCommands = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
-): vscode.Disposable {
+): vscode.Disposable => {
   // Customer-facing commands
   const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.accessToken',
@@ -453,12 +454,12 @@ function registerCommands(
     orgLogoutDefaultCmd,
     orgOpenCmd
   );
-}
+};
 
-function registerInternalDevCommands(
+const registerInternalDevCommands = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
-): vscode.Disposable {
+): vscode.Disposable => {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
     'sfdx.internal.lightning.generate.app',
     internalLightningGenerateApp
@@ -492,19 +493,19 @@ function registerInternalDevCommands(
     internalLightningGenerateEventCmd,
     internalLightningGenerateInterfaceCmd
   );
-}
+};
 
-function registerOrgPickerCommands(orgListParam: OrgList): vscode.Disposable {
+const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => {
   const setDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(setDefaultOrgCmd);
-}
+};
 
-async function setupOrgBrowser(
+const setupOrgBrowser = async (
   extensionContext: vscode.ExtensionContext
-): Promise<void> {
+): Promise<void> => {
   await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
@@ -536,10 +537,11 @@ async function setupOrgBrowser(
   );
 
   vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
-}
+};
 
-export async function activate(extensionContext: vscode.ExtensionContext) {
-  const extensionHRStart = process.hrtime();
+export const activate = async (extensionContext: vscode.ExtensionContext) => {
+  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
@@ -568,7 +570,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // Set internal dev context
   const internalDev = sfdxCoreSettings.getInternalDev();
 
-  vscode.commands.executeCommand(
+  void vscode.commands.executeCommand(
     'setContext',
     'sfdx:internal_dev',
     internalDev
@@ -594,7 +596,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       telemetryService
     };
 
-    telemetryService.sendExtensionActivationEvent(extensionHRStart);
+    telemetryService.sendExtensionActivationEvent(activateTracker.activationInfo.startActivateHrTime);
     console.log('SFDX CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
@@ -611,13 +613,13 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   ) {
     replayDebuggerExtensionInstalled = true;
   }
-  vscode.commands.executeCommand(
+  void vscode.commands.executeCommand(
     'setContext',
     'sfdx:replay_debugger_extension',
     replayDebuggerExtensionInstalled
   );
 
-  vscode.commands.executeCommand(
+  void vscode.commands.executeCommand(
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
@@ -659,7 +661,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     }
   };
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  void activateTracker.markActivationStop();
   console.log('SFDX CLI Extension Activated');
 
   if (
@@ -683,9 +685,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   return api;
-}
+};
 
-async function initializeProject(extensionContext: vscode.ExtensionContext) {
+const initializeProject =async (extensionContext: vscode.ExtensionContext) => {
   await WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Register org picker commands
@@ -707,9 +709,9 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   if (isDemoMode()) {
     showDemoMode();
   }
-}
+};
 
-export function deactivate(): Promise<void> {
+export const deactivate = (): Promise<void> => {
   console.log('SFDX CLI Extension Deactivated');
 
   // Send metric data.
@@ -718,9 +720,9 @@ export function deactivate(): Promise<void> {
 
   disposeTraceFlagExpiration();
   return turnOffLogging();
-}
+};
 
-export function validateCliInstallationAndVersion(): void {
+export const validateCliInstallationAndVersion = (): void => {
   // Check that the CLI is installed and that it is a supported version
   // If there is no CLI or it is an unsupported version then the Core extension will not activate
   const c = new CliVersionStatus();
@@ -769,14 +771,14 @@ export function validateCliInstallationAndVersion(): void {
       ]);
     }
   }
-}
+};
 
-export function showErrorNotification(type: string, args: any[]) {
+export const showErrorNotification = (type: string, args: any[]) => {
   const showMessage = nls.localize(type, ...args);
-  vscode.window.showErrorMessage(showMessage);
-}
+  void vscode.window.showErrorMessage(showMessage);
+};
 
-export function showWarningNotification(type: string, args: any[]) {
+export const showWarningNotification = (type: string, args: any[]) => {
   const showMessage = nls.localize(type, ...args);
-  vscode.window.showWarningMessage(showMessage);
-}
+  void vscode.window.showWarningMessage(showMessage);
+};

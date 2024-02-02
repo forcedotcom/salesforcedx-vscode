@@ -101,7 +101,7 @@ export class TelemetryService {
   public async initializeService(
     extensionContext: ExtensionContext
   ): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON;
+    const { name, version, aiKey } = extensionContext.extension.packageJSON as Record<string, string>;
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
@@ -113,8 +113,8 @@ export class TelemetryService {
     this.version = version;
     this.aiKey = aiKey || this.aiKey;
 
-    this.checkCliTelemetry()
-      .then(async cliEnabled => {
+    await this.checkCliTelemetry()
+      .then(cliEnabled => {
         this.setCliTelemetryEnabled(
           this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
         );
@@ -192,7 +192,7 @@ export class TelemetryService {
       activationInfo.startActivateHrTime,
       activationInfo.activateStartDate,
       activationInfo.loadStartDate,
-      activationInfo.activactionTime
+      activationInfo.activationTime
     );
   }
 
@@ -204,21 +204,23 @@ export class TelemetryService {
   ): void {
     this.validateTelemetry(() => {
       const startupTime = this.getEndHRTime(hrstart);
+      const properties = {
+        extensionName: this.extensionName,
+        ...(activateStartDate
+          ? { activateStartDate: activateStartDate.toISOString() }
+          : {}),
+        ...(loadStartDate
+          ? { loadStartDate: loadStartDate.toISOString() }
+          : {})
+      };
+      const measurements = {
+        startupTime,
+        ...(activactionTime === undefined ? {} : { activactionTime })
+      };
       this.reporter!.sendTelemetryEvent(
         'activationEvent',
-        {
-          extensionName: this.extensionName,
-          ...(activateStartDate
-            ? { activationStartDate: activateStartDate.toISOString() }
-            : {}),
-          ...(loadStartDate
-            ? { loadStartDate: loadStartDate.toISOString() }
-            : {})
-        },
-        {
-          startupTime,
-          ...(activactionTime === undefined ? {} : { activactionTime })
-        }
+        properties,
+        measurements
       );
     });
   }

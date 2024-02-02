@@ -32,12 +32,11 @@ export {
 export { isSFContainerMode } from './env';
 export {
   ActivationInfo,
+  ActivationTracker,
   getExtensionHostLogActivationRecords,
   ExtensionInfo,
   ExtensionsInfo,
   getExtensionInfo,
   getExtensionsInfo,
-  getSalesforceExtensions,
-  markActivationStart,
-  markActivationStop
+  getSalesforceExtensions
 } from './extHostLogs';

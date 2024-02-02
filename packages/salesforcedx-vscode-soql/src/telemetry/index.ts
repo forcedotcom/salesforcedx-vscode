@@ -6,21 +6,8 @@
  */
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { JsonMap } from '@salesforce/ts-types';
-import * as vscode from 'vscode';
 
 export const telemetryService = TelemetryService.getInstance();
-
-export async function startTelemetry(
-  extensionContext: vscode.ExtensionContext,
-  hrtime: [number, number]
-): Promise<void> {
-  await telemetryService.initializeService(extensionContext);
-  telemetryService.sendExtensionActivationEvent(hrtime);
-}
-
-export async function stopTelemetry(): Promise<void> {
-  telemetryService.sendExtensionDeactivationEvent();
-}
 
 export interface TelemetryModelJson extends JsonMap {
   fields: number;

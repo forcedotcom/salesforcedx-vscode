@@ -19,17 +19,19 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
+import {
+  registerIsvAuthWatcher,
+  setupGlobalDefaultUserIsvAuth
+} from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
-const cachedExceptionBreakpoints: Map<
-  string,
-  ExceptionBreakpointItem
-> = new Map();
+const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> =
+  new Map();
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
@@ -119,7 +121,8 @@ const configureExceptionBreakpoint = async (): Promise<void> => {
     'salesforce.salesforcedx-vscode-apex'
   );
   if (sfdxApex && sfdxApex.exports) {
-    const exceptionBreakpointInfos: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
+    const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
+      await sfdxApex.exports.getExceptionBreakpointInfo();
     console.log('Retrieved exception breakpoint info from language server');
     let enabledExceptionBreakpointTyperefs: string[] = [];
     if (vscode.debug.activeDebugSession) {
@@ -238,9 +241,15 @@ const notifyDebuggerSessionFileChanged = (): void => {
   }
 };
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+export const activate = async (
+  extensionContext: vscode.ExtensionContext
+): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
-  const extensionHRStart = process.hrtime();
+  const activationTracker = new ActivationTracker(
+    extensionContext,
+    telemetryService
+  );
+
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
   extensionContext.subscriptions.push(commands, fileWatchers);
@@ -262,20 +271,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
         await setupGlobalDefaultUserIsvAuth();
       } catch (e) {
         console.error(e);
-        vscode.window.showWarningMessage(
+        void vscode.window.showWarningMessage(
           nls.localize('isv_debug_config_environment_error')
         );
       }
     }
-
-    // Telemetry
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
   }
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  void activationTracker.markActivationStop();
 };
 
 export const deactivate = () => {

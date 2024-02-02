@@ -9,6 +9,7 @@ import { readFile } from 'fs/promises';
 import { EOL } from 'os';
 import { join, sep } from 'path';
 import { extensions, ExtensionContext, ExtensionKind, Uri } from 'vscode';
+import { TelemetryService } from '..';
 
 export type ExtensionInfo = {
   isActive: boolean;
@@ -25,7 +26,7 @@ export type ExtensionsInfo = {
 export type ActivationInfo = Partial<ExtensionInfo> & {
   startActivateHrTime: [number, number];
   activateStartDate: Date;
-  activactionTime: number;
+  activationTime: number;
 };
 
 type ParsedLog = {
@@ -185,13 +186,29 @@ export const getExtensionsInfo = async (
  * @returns instance of ExtensionInfo or undefined if not found
  */
 export const getExtensionInfo = async (
-  extensionContext: ExtensionContext
+  extensionContext: ExtensionContext,
+  timeout = 5000,
+  retryInterval = 500
 ): Promise<ExtensionInfo | undefined> => {
-  const extensionsInfo = await getExtensionsInfo(extensionContext);
-  if (!extensionsInfo) {
-    return undefined;
+  const endTime = Date.now() + timeout;
+
+  while (Date.now() < endTime) {
+    const extensionsInfo = await getExtensionsInfo(extensionContext);
+    if (extensionsInfo) {
+      const extensionInfo = Reflect.get(
+        extensionsInfo,
+        extensionContext.extension.id
+      );
+      if (extensionInfo) {
+        return extensionInfo;
+      }
+    }
+    // Wait before retrying
+    await new Promise(resolve => setTimeout(resolve, retryInterval));
   }
-  return Reflect.get(extensionsInfo, extensionContext.extension.id);
+
+  // If the timeout is reached and the extension info is still not available, return undefined
+  return undefined;
 };
 
 // Filter extensions that are part of the extension pack
@@ -214,28 +231,40 @@ export const getSalesforceExtensions = () => {
   return x;
 };
 
-export const markActivationStart = async (
-  extensionContext: ExtensionContext
-): Promise<ActivationInfo> => {
-  const extensionInfo = await getExtensionInfo(extensionContext);
-  const activatationInfo = {
-    ...extensionInfo,
-    startActivateHrTime: process.hrtime(),
-    activateStartDate: new Date(),
-    activactionTime: 0
-  };
-  return activatationInfo;
-};
+export class ActivationTracker {
+  private extensionContext: ExtensionContext;
+  private telemetryService: TelemetryService;
+  private _activationInfo: ActivationInfo;
 
-export const markActivationStop = (
-  activationInfo: ActivationInfo
-): ActivationInfo => {
-  // subtract Date.now from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
-  const activationTime = activationInfo.loadStartDate
-    ? (Date.now() - activationInfo.loadStartDate.getTime())
-    : -1;
-  return {
-    ...activationInfo,
-    activactionTime: activationTime
-  };
-};
+  constructor(
+    extensionContext: ExtensionContext,
+    telemetryService: TelemetryService
+  ) {
+    this.extensionContext = extensionContext;
+    this.telemetryService = telemetryService;
+    this._activationInfo = {
+      startActivateHrTime: process.hrtime(),
+      activateStartDate: new Date(),
+      activationTime: 0
+    };
+  }
+
+  async markActivationStop(): Promise<void> {
+    const extensionInfo = await getExtensionInfo(this.extensionContext);
+    // subtract Date.now from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
+    const activationTime = extensionInfo?.loadStartDate
+      ? Date.now() - extensionInfo.loadStartDate.getTime()
+      : -1;
+
+    this._activationInfo = {
+      ...this._activationInfo,
+      ...extensionInfo,
+      activationTime
+    };
+    this.telemetryService.sendActivationEventInfo(this.activationInfo);
+  }
+
+  public get activationInfo(): ActivationInfo {
+    return this._activationInfo;
+  }
+}

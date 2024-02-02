@@ -29,7 +29,7 @@ export class TelemetryReporter extends Disposable {
     key: string,
     enableUniqueMetrics?: boolean
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     let logFilePath = process.env['VSCODE_LOGS'] || '';
     if (
       logFilePath &&
@@ -65,8 +65,7 @@ export class TelemetryReporter extends Disposable {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        // tslint:disable-next-line:no-floating-promises
-        this.dispose();
+        void this.dispose();
       }
     }
   }
@@ -150,9 +149,7 @@ export class TelemetryReporter extends Disposable {
       }
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        // tslint:disable-next-line:object-literal-shorthand
         properties,
-        // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
 

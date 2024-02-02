@@ -7,8 +7,7 @@
 
 import {
   getTestResultsFolder,
-  markActivationStart,
-  markActivationStop
+  ActivationTracker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -53,9 +52,10 @@ import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  let activationInfo = await markActivationStart(extensionContext);
+  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
 
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
+  console.debug(`tname: ${telemetryService.extensionName}`);
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(
@@ -103,9 +103,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     languageClientUtils
   };
 
-  activationInfo = markActivationStop(activationInfo);
-  telemetryService.sendActivationEventInfo(activationInfo);
-
+  void activationTracker.markActivationStop();
   return exportedApi;
 };
 
