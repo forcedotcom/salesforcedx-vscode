@@ -26,8 +26,8 @@
   "dependencies": {
     "@salesforce/core": "6.4.7",
     "@salesforce/eslint-config-lwc": "3.5.1",
-    "@salesforce/lightning-lsp-common": "4.7.3",
-    "@salesforce/lwc-language-server": "4.7.3",
+    "@salesforce/lightning-lsp-common": "4.7.4",
+    "@salesforce/lwc-language-server": "4.7.4",
     "@salesforce/salesforcedx-utils-vscode": "59.16.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
@@ -117,8 +117,8 @@
         "applicationinsights": "1.0.7",
         "@salesforce/core": "6.4.7",
         "@salesforce/source-tracking": "5.1.3",
-        "@salesforce/lightning-lsp-common": "4.7.3",
-        "@salesforce/lwc-language-server": "4.7.3"
+        "@salesforce/lightning-lsp-common": "4.7.4",
+        "@salesforce/lwc-language-server": "4.7.4"
       },
       "devDependencies": {}
     }
