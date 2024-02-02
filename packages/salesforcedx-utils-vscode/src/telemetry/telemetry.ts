@@ -149,6 +149,9 @@ export class TelemetryService {
 
       if (isLocalLoggingEnabled) {
         this.localReporter = new LocalTelemetryReporter();
+        console.log(
+          'Local Telemetry Logging enabled for: ' + this.extensionName
+        );
       }
     }
   }
