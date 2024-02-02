@@ -86,10 +86,7 @@ export const dummyPushResult = {
       }
     ]
   },
-  warnings: [
-    'We plan to deprecate this command in the future. Try using the "project deploy start" command instead.',
-    'The loglevel flag is no longer in use on this command. You may use it without error, but it will be ignored.\nSet the log level using the `SFDX_LOG_LEVEL` environment variable.'
-  ]
+  warnings: []
 };
 
 export const dummyStdOut =
