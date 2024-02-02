@@ -54,14 +54,15 @@ describe('Correctly output deploy results', () => {
       status: 1,
       name: 'Deploy Failed',
       message: 'There was a failure',
-      stack: 'A stack',
       warnings: ['A warning'],
-      data: [
-        {
-          filePath: 'src/classes/MyClass2.cls',
-          error: 'Some Error'
-        } as ProjectDeployStartResult
-      ]
+      result: {
+        files: [
+          {
+            filePath: 'src/classes/MyClass2.cls',
+            error: 'Some Error'
+          } as ProjectDeployStartResult
+        ]
+      }
     };
   });
 
@@ -133,7 +134,7 @@ describe('Correctly output deploy results', () => {
       'hasConflicts'
     ).returns(true);
     deployError.name = CONFLICT_ERROR_NAME;
-    deployError.data = [
+    deployError.result.files = [
       {
         state: 'Conflict',
         fullName: 'SomeClass',
@@ -143,7 +144,7 @@ describe('Correctly output deploy results', () => {
     ];
     errorsStub.returns(deployError);
     const conflictsTable = table.createTable(
-      deployError.data as unknown as Row[],
+      deployError.result.files as unknown as Row[],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },

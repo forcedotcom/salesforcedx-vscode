@@ -13,7 +13,7 @@ import {
   getAbsoluteFilePath,
   getFileUri,
   getRange,
-  handleDiagnosticErrors
+  handlePushDiagnosticErrors
 } from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
@@ -27,10 +27,11 @@ describe('Diagnostics', () => {
     pushErrorResult = {
       message: 'Push failed.',
       name: 'PushFailed',
-      stack: '123',
       status: 1,
       warnings: [],
-      data: []
+      result: {
+        files: []
+      }
     };
   });
 
@@ -64,9 +65,9 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    pushErrorResult.data.push(resultItem);
+    pushErrorResult.result.files.push(resultItem);
 
-    handleDiagnosticErrors(
+    handlePushDiagnosticErrors(
       pushErrorResult,
       workspacePath,
       sourcePath,
@@ -107,10 +108,10 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    pushErrorResult.data.push(resultItem1);
-    pushErrorResult.data.push(resultItem2);
+    pushErrorResult.result.files.push(resultItem1);
+    pushErrorResult.result.files.push(resultItem2);
 
-    handleDiagnosticErrors(
+    handlePushDiagnosticErrors(
       pushErrorResult,
       workspacePath,
       sourcePath,
@@ -159,8 +160,8 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    pushErrorResult.data.push(resultItem);
-    handleDiagnosticErrors(
+    pushErrorResult.result.files.push(resultItem);
+    handlePushDiagnosticErrors(
       pushErrorResult,
       workspacePath,
       sourcePath,
@@ -194,9 +195,9 @@ describe('Diagnostics', () => {
       filePath: 'N/A'
     };
 
-    pushErrorResult.data.push(resultItem1);
-    pushErrorResult.data.push(resultItem2);
-    handleDiagnosticErrors(
+    pushErrorResult.result.files.push(resultItem1);
+    pushErrorResult.result.files.push(resultItem2);
+    handlePushDiagnosticErrors(
       pushErrorResult,
       workspacePath,
       sourcePath,
@@ -204,7 +205,6 @@ describe('Diagnostics', () => {
     );
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
-
     expect(testDiagnostics).to.be.an('array').to.have.lengthOf(2);
     expect(testDiagnostics[0].message).to.be.equals(resultItem1.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0

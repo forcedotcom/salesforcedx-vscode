@@ -22,9 +22,10 @@ export interface ProjectDeployStartResult {
 export interface ProjectDeployStartErrorResponse {
   message: string;
   name: string;
-  data: ProjectDeployStartResult[];
-  stack: string;
   status: number;
+  result: {
+    files: ProjectDeployStartResult[];
+  };
   warnings: any[];
 }
 
@@ -50,7 +51,12 @@ export class ProjectDeployStartResultParser {
 
   public getErrors(): ProjectDeployStartErrorResponse | undefined {
     if (this.response.status === 1) {
-      return this.response as ProjectDeployStartErrorResponse;
+      return {
+        message: 'Push failed. ',
+        name: 'DeployFailed',
+        status: this.response.status,
+        result: this.response.result
+      } as ProjectDeployStartErrorResponse;
     }
   }
 
@@ -70,6 +76,7 @@ export class ProjectDeployStartResultParser {
 
   public hasConflicts(): boolean {
     return (
+      //TO DO: Need to add the name of the error to the parser
       this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
     );
   }

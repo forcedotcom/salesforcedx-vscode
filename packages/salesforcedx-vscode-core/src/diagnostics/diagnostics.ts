@@ -16,34 +16,34 @@ import { SfdxCommandletExecutor } from '../commands/util';
 
 const notApplicable = 'N/A';
 
-export function getFileUri(
+export const getFileUri = (
   workspacePath: string,
   filePath: string,
   defaultErrorPath: string
-): string {
+): string => {
   const resolvedFilePath = filePath.includes(workspacePath)
     ? filePath
     : path.join(workspacePath, filePath);
   // source:deploy sometimes returns N/A as filePath
   return filePath === notApplicable ? defaultErrorPath : resolvedFilePath;
-}
+};
 
-export function getRange(
+export const getRange = (
   lineNumber: string,
   columnNumber: string
-): vscode.Range {
+): vscode.Range => {
   const ln = Number(lineNumber);
   const col = Number(columnNumber);
   const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
   return new vscode.Range(pos, pos);
-}
+};
 
-export function handleDiagnosticErrors(
+export const handlePushDiagnosticErrors = (
   errors: ProjectDeployStartErrorResponse,
   workspacePath: string,
   sourcePathOrPaths: string,
   errorCollection: vscode.DiagnosticCollection
-): vscode.DiagnosticCollection {
+): vscode.DiagnosticCollection => {
   errorCollection.clear();
 
   // In the case that we have deployed multiple source paths,
@@ -54,8 +54,8 @@ export function handleDiagnosticErrors(
     : sourcePathOrPaths;
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  if (Reflect.has(errors, 'data')) {
-    errors.data.forEach(error => {
+  if (Reflect.has(errors, 'result') && Reflect.has(errors.result, 'files')) {
+    errors.result.files.forEach(error => {
       const fileUri = getFileUri(
         workspacePath,
         error.filePath,
@@ -84,7 +84,7 @@ export function handleDiagnosticErrors(
       const fileUri = vscode.Uri.file(file);
       errorCollection.set(fileUri, diagMap);
     });
-  } else if (Reflect.has(errors, 'message')) {
+  } else if (Reflect.has(errors, 'status')) {
     const fileUri = vscode.Uri.file(defaultErrorPath);
     const range = getRange('1', '1');
     const diagnostic = {
@@ -98,12 +98,12 @@ export function handleDiagnosticErrors(
   }
 
   return errorCollection;
-}
+};
 
-export function handleDeployDiagnostics(
+export const handleDeployDiagnostics = (
   deployResult: DeployResult,
   errorCollection: vscode.DiagnosticCollection
-): vscode.DiagnosticCollection {
+): vscode.DiagnosticCollection => {
   errorCollection.clear();
   SfdxCommandletExecutor.errorCollection.clear();
 
@@ -144,13 +144,13 @@ export function handleDeployDiagnostics(
   );
 
   return errorCollection;
-}
+};
 
 // TODO: move to some type of file service or utility
-export function getAbsoluteFilePath(
+export const getAbsoluteFilePath = (
   filePath: string | undefined,
   workspacePath: string = getRootWorkspacePath()
-): string {
+): string => {
   let absoluteFilePath = filePath ?? workspacePath;
   if (!absoluteFilePath.includes(workspacePath)) {
     // Build the absolute filePath so that errors in the Problems
@@ -158,4 +158,4 @@ export function getAbsoluteFilePath(
     absoluteFilePath = [workspacePath, filePath].join('/');
   }
   return absoluteFilePath;
-}
+};
