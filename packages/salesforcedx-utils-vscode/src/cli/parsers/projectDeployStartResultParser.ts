@@ -52,8 +52,8 @@ export class ProjectDeployStartResultParser {
   public getErrors(): ProjectDeployStartErrorResponse | undefined {
     if (this.response.status === 1) {
       return {
-        message: 'Push failed. ',
-        name: 'DeployFailed',
+        message: this.response.message ?? 'Push failed. ',
+        name: this.response.name ?? 'DeployFailed',
         status: this.response.status,
         result: this.response.result
       } as ProjectDeployStartErrorResponse;
@@ -76,8 +76,9 @@ export class ProjectDeployStartResultParser {
 
   public hasConflicts(): boolean {
     return (
-      //TO DO: Need to add the name of the error to the parser
-      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
+      this.response.status === 1 &&
+      this.response.name &&
+      this.response.name === CONFLICT_ERROR_NAME
     );
   }
 }
