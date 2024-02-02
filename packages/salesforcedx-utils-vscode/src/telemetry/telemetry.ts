@@ -275,9 +275,16 @@ export class TelemetryService {
     properties: { [key: string]: string | number }
   ) {
     if (this.localReporter) {
-      this.localReporter.writeToFile(eventName, {
-        ...properties
-      });
+      try {
+        this.localReporter.writeToFile(eventName, {
+          ...properties
+        });
+      } catch (error) {
+        console.log(
+          'An error occurred when attempting to write to local telemetry file: ' +
+            error
+        );
+      }
     }
   }
 
