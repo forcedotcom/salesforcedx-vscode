@@ -28,7 +28,7 @@
     "@salesforce/core": "6.4.7",
     "@salesforce/lightning-lsp-common": "4.7.3",
     "@salesforce/salesforcedx-utils-vscode": "59.16.0",
-    "applicationinsights": "2.9.2",
+    "applicationinsights": "1.0.7",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
   },
@@ -117,7 +117,7 @@
         "server.js"
       ],
       "dependencies": {
-        "applicationinsights": "2.9.2",
+        "applicationinsights": "1.0.7",
         "@salesforce/core": "6.4.7",
         "@salesforce/source-tracking": "5.1.3",
         "@salesforce/aura-language-server": "4.7.3",

@@ -95,7 +95,7 @@
     "packageUpdates": {
       "main": "dist/index.js",
       "dependencies": {
-        "applicationinsights": "2.9.2",
+        "applicationinsights": "1.0.7",
         "@salesforce/core": "6.4.7",
         "@salesforce/source-tracking": "5.1.3"
       },

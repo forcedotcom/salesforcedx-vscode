@@ -56,7 +56,7 @@
     "@types/vscode": "^1.61.2",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
-    "applicationinsights": "2.9.2",
+    "applicationinsights": "1.0.7",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "debounce": "^1.2.0",
@@ -137,7 +137,7 @@
         "server.js"
       ],
       "dependencies": {
-        "applicationinsights": "2.9.2",
+        "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
         "@salesforce/core": "6.4.7",
         "@salesforce/source-tracking": "5.1.3",
