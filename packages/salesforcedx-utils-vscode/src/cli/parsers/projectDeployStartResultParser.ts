@@ -7,7 +7,7 @@
 
 import { extractJsonObject } from '../../helpers';
 
-export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
+export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
 export interface ProjectDeployStartResult {
   columnNumber?: string;
@@ -23,9 +23,7 @@ export interface ProjectDeployStartErrorResponse {
   message: string;
   name: string;
   status: number;
-  result: {
-    files: ProjectDeployStartResult[];
-  };
+  files: ProjectDeployStartResult[];
   warnings: any[];
 }
 
@@ -55,7 +53,7 @@ export class ProjectDeployStartResultParser {
         message: this.response.message ?? 'Push failed. ',
         name: this.response.name ?? 'DeployFailed',
         status: this.response.status,
-        result: this.response.result
+        files: this.response.data ?? this.response.result.files
       } as ProjectDeployStartErrorResponse;
     }
   }
@@ -76,9 +74,7 @@ export class ProjectDeployStartResultParser {
 
   public hasConflicts(): boolean {
     return (
-      this.response.status === 1 &&
-      this.response.name &&
-      this.response.name === CONFLICT_ERROR_NAME
+      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
     );
   }
 }

@@ -29,9 +29,7 @@ describe('Diagnostics', () => {
       name: 'PushFailed',
       status: 1,
       warnings: [],
-      result: {
-        files: []
-      }
+      files: []
     };
   });
 
@@ -65,7 +63,7 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    pushErrorResult.result.files.push(resultItem);
+    pushErrorResult.files.push(resultItem);
 
     handlePushDiagnosticErrors(
       pushErrorResult,
@@ -108,8 +106,8 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    pushErrorResult.result.files.push(resultItem1);
-    pushErrorResult.result.files.push(resultItem2);
+    pushErrorResult.files.push(resultItem1);
+    pushErrorResult.files.push(resultItem2);
 
     handlePushDiagnosticErrors(
       pushErrorResult,
@@ -160,7 +158,7 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    pushErrorResult.result.files.push(resultItem);
+    pushErrorResult.files.push(resultItem);
     handlePushDiagnosticErrors(
       pushErrorResult,
       workspacePath,
@@ -195,8 +193,8 @@ describe('Diagnostics', () => {
       filePath: 'N/A'
     };
 
-    pushErrorResult.result.files.push(resultItem1);
-    pushErrorResult.result.files.push(resultItem2);
+    pushErrorResult.files.push(resultItem1);
+    pushErrorResult.files.push(resultItem2);
     handlePushDiagnosticErrors(
       pushErrorResult,
       workspacePath,

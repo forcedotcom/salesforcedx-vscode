@@ -191,7 +191,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.result.files);
+      const rows = pushedSource || (errors && errors.files);
       const title = !parser.hasConflicts()
         ? nls.localize(`table_title_${titleType}ed_source`)
         : undefined;
@@ -208,7 +208,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
 
     if (errors && !parser.hasConflicts()) {
       const { name, message } = errors;
-      const files = errors.result.files;
+      const files = errors.files;
       if (files) {
         const outputTable = this.getErrorTable(table, files, titleType);
         channelService.appendLine(outputTable);

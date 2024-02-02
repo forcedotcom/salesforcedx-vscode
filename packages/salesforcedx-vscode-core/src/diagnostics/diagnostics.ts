@@ -54,8 +54,8 @@ export const handlePushDiagnosticErrors = (
     : sourcePathOrPaths;
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  if (Reflect.has(errors, 'result') && Reflect.has(errors.result, 'files')) {
-    errors.result.files.forEach(error => {
+  if (Reflect.has(errors, 'files')) {
+    errors.files.forEach(error => {
       const fileUri = getFileUri(
         workspacePath,
         error.filePath,
