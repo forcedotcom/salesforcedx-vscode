@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { appendFileSync } from 'fs';
+import { appendFile } from 'fs';
+import { LOCAL_TELEMETRY_FILE } from '../constants';
 
 export class LocalTelemetryReporter {
   /**
@@ -19,9 +20,13 @@ export class LocalTelemetryReporter {
     }
   ) {
     const timestamp = new Date().toISOString();
-    appendFileSync(
-      'telemetry.json',
-      JSON.stringify({ timestamp, command, data }, null, 2)
+    appendFile(
+      LOCAL_TELEMETRY_FILE,
+      JSON.stringify({ timestamp, command, data }, null, 2) + ',',
+      err => {
+        if (err) throw err;
+        console.log('Telemetry data appended to file!');
+      }
     );
   }
 }

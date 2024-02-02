@@ -6,8 +6,11 @@
  */
 import * as vscode from 'vscode';
 import {
+  ADVANCED,
+  ENABLE_LOCAL_TELEMETRY_LOGGING,
   SETTING_CLEAR_OUTPUT_TAB,
-  SFDX_CORE_CONFIGURATION_NAME
+  SFDX_CORE_CONFIGURATION_NAME,
+  TRUE
 } from '../constants';
 
 export class SfdxSettingsService {
@@ -22,9 +25,11 @@ export class SfdxSettingsService {
   ): boolean {
     const isLocalTelemetryLoggingEnabled = vscode.workspace
       .getConfiguration()
-      .get<string>(`${extensionName}.advanced.enableLocalTelemetryLogging`);
+      .get<string>(
+        `${extensionName}.${ADVANCED}.${ENABLE_LOCAL_TELEMETRY_LOGGING}`
+      );
     // if the setting doesn't exist for this extension, false will be returned
-    const booleanVal = isLocalTelemetryLoggingEnabled === 'true';
+    const booleanVal = isLocalTelemetryLoggingEnabled === TRUE;
     return booleanVal;
   }
 }
