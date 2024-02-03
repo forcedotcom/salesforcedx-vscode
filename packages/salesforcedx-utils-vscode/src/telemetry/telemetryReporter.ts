@@ -11,8 +11,12 @@ import * as os from 'os';
 import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { TelemetryReporterInterface } from './TelemetryReporterInterface';
 
-export class TelemetryReporter extends Disposable {
+export class TelemetryReporter
+  extends Disposable
+  implements TelemetryReporterInterface
+{
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];

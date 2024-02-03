@@ -6,8 +6,33 @@
  */
 import { appendFile } from 'fs';
 import { LOCAL_TELEMETRY_FILE } from '../constants';
+import { TelemetryReporterInterface } from './TelemetryReporterInterface';
 
-export class LocalTelemetryReporter {
+export class LocalTelemetryReporter implements TelemetryReporterInterface {
+  appInsightsClient: undefined;
+  userOptIn: undefined;
+  logStream: undefined;
+
+  sendTelemetryEvent(
+    eventName: string,
+    properties?: { [key: string]: string } | undefined,
+    measurements?: { [key: string]: number } | undefined
+  ): void {
+    this.writeToFile(eventName, { ...properties, ...measurements });
+  }
+
+  sendExceptionEvent(
+    exceptionName: string,
+    exceptionMessage: string,
+    measurements?: { [key: string]: number } | undefined
+  ): void {
+    this.writeToFile(exceptionName, { exceptionMessage, ...measurements });
+  }
+
+  dispose() {
+    console.log('dispose called on Local Telemetry Logger.');
+  }
+
   /**
    * Writes telemetry data to a local file.
    * @param command - The command associated with the telemetry data.
@@ -21,7 +46,7 @@ export class LocalTelemetryReporter {
   ) {
     const timestamp = new Date().toISOString();
     appendFile(
-      LOCAL_TELEMETRY_FILE,
+      LOCAL_TELEMETRY_FILE as string,
       JSON.stringify({ timestamp, command, data }, null, 2) + ',',
       err => {
         if (err) throw err;
