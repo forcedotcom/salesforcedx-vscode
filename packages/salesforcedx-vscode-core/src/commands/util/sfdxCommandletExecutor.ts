@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import {
   FORCE_SOURCE_PULL_LOG_NAME,
-  FORCE_SOURCE_PUSH_LOG_NAME
+  PROJECT_DEPLOY_START_LOG_NAME
 } from '../../constants';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
@@ -51,7 +51,7 @@ export abstract class SfdxCommandletExecutor<T>
     if (
       !(
         commandLogName === FORCE_SOURCE_PULL_LOG_NAME ||
-        commandLogName === FORCE_SOURCE_PUSH_LOG_NAME
+        commandLogName === PROJECT_DEPLOY_START_LOG_NAME
       )
     ) {
       channelService.streamCommandOutput(execution);

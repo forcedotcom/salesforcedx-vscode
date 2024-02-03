@@ -96,7 +96,7 @@ export const pushSource = async (
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.files;
+  const source = JSON.parse(result).files;
   return Promise.resolve(source);
 };
 
