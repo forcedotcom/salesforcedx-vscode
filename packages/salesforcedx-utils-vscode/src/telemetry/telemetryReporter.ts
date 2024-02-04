@@ -12,7 +12,7 @@ import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { TelemetryReporterInterface } from './TelemetryReporterInterface';
 
-export class TelemetryReporter
+export class AppInsightsReporter
   extends Disposable
   implements TelemetryReporterInterface
 {
@@ -50,14 +50,14 @@ export class TelemetryReporter
 
   private updateUserOptIn(key: string): void {
     const config = workspace.getConfiguration(
-      TelemetryReporter.TELEMETRY_CONFIG_ID
+      AppInsightsReporter.TELEMETRY_CONFIG_ID
     );
     if (
       this.userOptIn !==
-      config.get<boolean>(TelemetryReporter.TELEMETRY_CONFIG_ENABLED_ID, true)
+      config.get<boolean>(AppInsightsReporter.TELEMETRY_CONFIG_ENABLED_ID, true)
     ) {
       this.userOptIn = config.get<boolean>(
-        TelemetryReporter.TELEMETRY_CONFIG_ENABLED_ID,
+        AppInsightsReporter.TELEMETRY_CONFIG_ENABLED_ID,
         true
       );
       if (this.userOptIn) {

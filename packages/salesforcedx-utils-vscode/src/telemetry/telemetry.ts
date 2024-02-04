@@ -15,7 +15,7 @@ import {
 import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryLogger } from './telemetryLogger';
-import { TelemetryReporter } from './telemetryReporter';
+import { AppInsightsReporter } from './telemetryReporter';
 import { TelemetryReporterInterface } from './TelemetryReporterInterface';
 
 interface CommandMetric {
@@ -129,7 +129,7 @@ export class TelemetryService {
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (this.reporter === undefined && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
-        this.reporter = new TelemetryReporter(
+        this.reporter = new AppInsightsReporter(
           this.getTelemetryReporterName(),
           this.version,
           this.aiKey,

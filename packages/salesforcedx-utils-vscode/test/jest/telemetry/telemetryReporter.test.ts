@@ -5,19 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { workspace } from 'vscode';
-import { TelemetryReporter, WorkspaceContextUtil } from '../../../src';
+import { WorkspaceContextUtil } from '../../../src';
+import { AppInsightsReporter } from '../../../src/telemetry/telemetryReporter';
 
-describe('Telemetry Reporter', () => {
+describe('AppInsightsReporter', () => {
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
     let getInstanceMock: jest.SpyInstance;
     const dummyOrgId = '000dummyOrgId';
     const getMock = jest.fn().mockReturnValueOnce(true);
     const fakeConfig: any = { get: getMock };
 
-    let telemetryReporter: TelemetryReporter;
+    let appInsightsReporter: AppInsightsReporter;
     const trackExceptionMock = jest.fn();
     const trackEventMock = jest.fn();
-    const writeMock = jest.fn();
 
     beforeEach(() => {
       // Arrange
@@ -29,42 +29,35 @@ describe('Telemetry Reporter', () => {
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
 
-      telemetryReporter = new TelemetryReporter('', '', '');
-      (telemetryReporter as any).userOptIn = true;
-      (telemetryReporter as any).appInsightsClient = {
+      appInsightsReporter = new AppInsightsReporter('', '', '');
+      (appInsightsReporter as any).userOptIn = true;
+      (appInsightsReporter as any).appInsightsClient = {
         trackException: trackExceptionMock,
         trackEvent: trackEventMock
       };
-      (telemetryReporter as any).logStream = {
-        write: writeMock
-      };
     });
 
-    afterEach(() => {
-      // Shared assertions
-      expect(writeMock).toHaveBeenCalledTimes(1);
-      expect(writeMock.mock.calls[0][0].includes(dummyOrgId)).toEqual(true);
-    });
-
-    it('should send orgId to appInsightsClient.trackEvent and logStream.write', () => {
+    it('should send orgId to appInsightsClient.trackEvent', () => {
       // Act
-      telemetryReporter.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
+      appInsightsReporter.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
+      expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock.mock.calls[0][0].properties.orgId).toEqual(
         dummyOrgId
       );
     });
 
-    it('should send orgId to appInsightsClient.trackException and logStream.write', () => {
+    it('should send orgId to appInsightsClient.trackException', () => {
       // Act
-      telemetryReporter.sendExceptionEvent(
+      appInsightsReporter.sendExceptionEvent(
         'Dummy Exception',
         'a dummy exception occurred'
       );
 
       // Assert
+      expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0].properties.orgId).toEqual(
         dummyOrgId
