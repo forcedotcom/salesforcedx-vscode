@@ -12,7 +12,7 @@ import { getRootWorkspacePath } from '../..';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { TelemetryReporter } from './telemetryReporter';
 
-export class TelemetryLogger extends Disposable implements TelemetryReporter {
+export class LogStreamReporter extends Disposable implements TelemetryReporter {
   private toDispose: Disposable[] = [];
 
   private logStream: fs.WriteStream | undefined;

@@ -15,7 +15,7 @@ import {
 import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { AppInsights } from './reporters/appInsightsReporter';
-import { TelemetryLogger } from './reporters/telemetryLogger';
+import { LogStreamReporter } from './reporters/telemetryLogger';
 import { TelemetryReporter } from './reporters/telemetryReporter';
 
 interface CommandMetric {
@@ -145,7 +145,7 @@ export class TelemetryService {
           'Local Telemetry Logging enabled for: ' + this.extensionName
         );
         if (isLocalLoggingEnabled) {
-          this.reporter = new TelemetryLogger(
+          this.reporter = new LogStreamReporter(
             this.getTelemetryReporterName(),
             false
           );
