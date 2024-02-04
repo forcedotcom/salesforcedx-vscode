@@ -14,10 +14,9 @@ import {
 } from '../constants';
 import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
-import { LocalTelemetryReporter } from './localTelemetryReporter';
+import { TelemetryLogger } from './telemetryLogger';
 import { TelemetryReporter } from './telemetryReporter';
 import { TelemetryReporterInterface } from './TelemetryReporterInterface';
-import { TelemetryLogger } from './telemetryLogger';
 
 interface CommandMetric {
   extensionName: string;
