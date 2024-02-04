@@ -6,7 +6,6 @@
 'use strict';
 
 import * as appInsights from 'applicationinsights';
-import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
@@ -25,8 +24,6 @@ export class TelemetryReporter
   private static TELEMETRY_CONFIG_ID = 'telemetry';
   private static TELEMETRY_CONFIG_ENABLED_ID = 'enableTelemetry';
 
-  private logStream: fs.WriteStream | undefined;
-
   constructor(
     private extensionId: string,
     private extensionVersion: string,
@@ -41,11 +38,6 @@ export class TelemetryReporter
       process.env['VSCODE_LOG_LEVEL'] === 'trace'
     ) {
       logFilePath = path.join(logFilePath, `${extensionId}.txt`);
-      this.logStream = fs.createWriteStream(logFilePath, {
-        flags: 'a',
-        encoding: 'utf8',
-        autoClose: true
-      });
     }
     if (enableUniqueMetrics) {
       this.uniqueUserMetrics = true;
@@ -161,15 +153,6 @@ export class TelemetryReporter
         // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
-
-      if (this.logStream) {
-        this.logStream.write(
-          `telemetry/${eventName} ${JSON.stringify({
-            properties,
-            measurements
-          })}\n`
-        );
-      }
     }
   }
 
@@ -191,27 +174,10 @@ export class TelemetryReporter
         properties,
         measurements
       });
-
-      if (this.logStream) {
-        this.logStream.write(
-          `telemetry/${exceptionName} ${JSON.stringify({
-            properties,
-            measurements
-          })}\n`
-        );
-      }
     }
   }
 
   public dispose(): Promise<any> {
-    const flushEventsToLogger = new Promise<any>(resolve => {
-      if (!this.logStream) {
-        return resolve(void 0);
-      }
-      this.logStream.on('finish', resolve);
-      this.logStream.end();
-    });
-
     const flushEventsToAI = new Promise<any>(resolve => {
       if (this.appInsightsClient) {
         this.appInsightsClient.flush({
@@ -225,6 +191,6 @@ export class TelemetryReporter
         resolve(void 0);
       }
     });
-    return Promise.all([flushEventsToAI, flushEventsToLogger]);
+    return Promise.all([flushEventsToAI]);
   }
 }
