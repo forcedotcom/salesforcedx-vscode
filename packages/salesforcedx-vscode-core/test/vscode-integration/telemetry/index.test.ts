@@ -49,7 +49,8 @@ describe('Telemetry', () => {
 
       await telemetryService.initializeService(mockExtensionContext);
 
-      const telemetryReporter = telemetryService.getReporter();
+      const telemetryReporter =
+        telemetryService.getReporters() as TelemetryReporter[];
 
       expect(typeof telemetryReporter).to.eql('undefined');
       expect(teleStub.firstCall.args).to.eql([true]);

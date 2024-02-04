@@ -8,7 +8,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Disposable, workspace } from 'vscode';
-import { getRootWorkspacePath } from '../..';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { TelemetryReporter } from '../interfaces';
 
@@ -19,23 +18,15 @@ export class LogStreamReporter extends Disposable implements TelemetryReporter {
 
   constructor(
     private extensionId: string,
-    enableUniqueMetrics?: boolean
+    logFilePath: string
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
-    // let logFilePath = process.env['VSCODE_LOGS'] || '';
-    // let logFilePath = '/Users/kenneth.lewis/dev/salesforcedx-vscode';
-    const workspacePath = getRootWorkspacePath();
-    let logFilePath = process.env['VSCODE_LOGS'] || workspacePath;
-    if (logFilePath && extensionId) {
-      logFilePath = path.join(logFilePath, `${extensionId}.txt`);
-      this.logStream = fs.createWriteStream(logFilePath, {
-        flags: 'a',
-        encoding: 'utf8',
-        autoClose: true
-      });
-    }
-    if (enableUniqueMetrics) {
-    }
+    logFilePath = path.join(logFilePath, `${this.extensionId}.txt`);
+    this.logStream = fs.createWriteStream(logFilePath, {
+      flags: 'a',
+      encoding: 'utf8',
+      autoClose: true
+    });
     this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
   }
 
@@ -93,9 +84,6 @@ export class LogStreamReporter extends Disposable implements TelemetryReporter {
       this.logStream.end();
     });
 
-    const flushEventsToAI = new Promise<any>(resolve => {
-      resolve(void 0);
-    });
-    return Promise.all([flushEventsToAI, flushEventsToLogger]);
+    return Promise.all([flushEventsToLogger]);
   }
 }

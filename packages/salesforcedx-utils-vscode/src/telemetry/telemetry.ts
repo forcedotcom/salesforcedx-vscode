@@ -17,6 +17,7 @@ import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './interfaces/telemetryReporter';
 import { AppInsights } from './reporters/appInsightsReporter';
 import { LogStreamReporter } from './reporters/logStreamReporter';
+import { TelemetryFileReporter } from './reporters/telemetryFileReporter';
 
 interface CommandMetric {
   extensionName: string;
@@ -76,7 +77,7 @@ export class TelemetryServiceProvider {
 
 export class TelemetryService {
   private extensionContext: ExtensionContext | undefined;
-  private reporter: TelemetryReporter | undefined;
+  private reporters: TelemetryReporter[] = [];
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   /**
@@ -127,35 +128,60 @@ export class TelemetryService {
       extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (this.reporter === undefined && (await this.isTelemetryEnabled())) {
+    if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
-        this.reporter = new AppInsights(
-          this.getTelemetryReporterName(),
-          this.version,
-          this.aiKey,
-          true
+        this.reporters.push(
+          new AppInsights(
+            this.getTelemetryReporterName(),
+            this.version,
+            this.aiKey,
+            true
+          )
         );
-        this.extensionContext.subscriptions.push(this.reporter);
+
+        // Assuming this fs streaming is more efficient than the appendFile technique that
+        // the new TelemetryFile reporter uses, I am keeping the logic in place for which
+        // reporter is used when.  The original log stream functionality only worked under
+        // the same conditions as the AppInsights capabilities, but with additional configuration.
+        const logFilePath = process.env['VSCODE_LOGS'] || '';
+        if (this.isLogStreamReporterEnabled(logFilePath)) {
+          console.log(
+            'Telemetry Log Stream enabled for: ' +
+              this.extensionName +
+              '. Telemetry events will be logged at: ' +
+              logFilePath +
+              '.'
+          );
+
+          this.reporters.push(
+            new LogStreamReporter(this.getTelemetryReporterName(), logFilePath)
+          );
+        }
       } else {
+        // The new TelemetryFile reporter can (only) be run in Dev mode, and only
+        // requires the advanced setting to be set re: configuration.
         const isLocalLoggingEnabled =
           SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
             this.extensionName
           );
         console.log(
-          'Local Telemetry Logging enabled for: ' + this.extensionName
+          'Local Telemetry File Logging enabled for: ' + this.extensionName
         );
         if (isLocalLoggingEnabled) {
-          this.reporter = new LogStreamReporter(
-            this.getTelemetryReporterName(),
-            false
-          );
+          this.reporters.push(new TelemetryFileReporter());
         }
       }
-
-      this.extensionContext.subscriptions.push(
-        this.reporter as TelemetryReporter
-      );
     }
+
+    this.extensionContext.subscriptions.push(...this.reporters);
+  }
+
+  private isLogStreamReporterEnabled(logFilePath: string) {
+    return (
+      logFilePath &&
+      this.extensionName &&
+      process.env['VSCODE_LOG_LEVEL'] === 'trace'
+    );
   }
 
   /**
@@ -170,8 +196,8 @@ export class TelemetryService {
       : this.extensionName;
   }
 
-  public getReporter(): TelemetryReporter | undefined {
-    return this.reporter;
+  public getReporters(): TelemetryReporter[] {
+    return this.reporters;
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
@@ -209,20 +235,24 @@ export class TelemetryService {
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
     const startupTime = this.getEndHRTime(hrstart);
     this.validateTelemetry(() => {
-      this.reporter!.sendTelemetryEvent(
-        'activationEvent',
-        {
-          extensionName: this.extensionName
-        },
-        { startupTime }
-      );
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent(
+          'activationEvent',
+          {
+            extensionName: this.extensionName
+          },
+          { startupTime }
+        );
+      });
     });
   }
 
   public sendExtensionDeactivationEvent(): void {
     this.validateTelemetry(() => {
-      this.reporter!.sendTelemetryEvent('deactivationEvent', {
-        extensionName: this.extensionName
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('deactivationEvent', {
+          extensionName: this.extensionName
+        });
       });
     });
   }
@@ -248,18 +278,22 @@ export class TelemetryService {
             aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
           }
         }
-        this.reporter!.sendTelemetryEvent(
-          'commandExecution',
-          aggregatedProps,
-          aggregatedMeasurements
-        );
+        this.reporters.forEach(reporter => {
+          reporter.sendTelemetryEvent(
+            'commandExecution',
+            aggregatedProps,
+            aggregatedMeasurements
+          );
+        });
       }
     });
   }
 
   public sendException(name: string, message: string) {
     this.validateTelemetry(() => {
-      this.reporter!.sendExceptionEvent(name, message);
+      this.reporters.forEach(reporter => {
+        reporter.sendExceptionEvent(name, message);
+      });
     });
   }
 
@@ -269,14 +303,16 @@ export class TelemetryService {
     measures?: { [key: string]: number }
   ): void {
     this.validateTelemetry(() => {
-      this.reporter!.sendTelemetryEvent(eventName, properties, measures);
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent(eventName, properties, measures);
+      });
     });
   }
 
   public dispose(): void {
-    if (this.reporter !== undefined) {
-      this.reporter.dispose().catch(err => console.log(err));
-    }
+    this.reporters.forEach(reporter => {
+      reporter.dispose().catch(err => console.log(err));
+    });
   }
 
   public getEndHRTime(hrstart: [number, number]): number {
@@ -295,7 +331,7 @@ export class TelemetryService {
    * @param callback function to call if telemetry is enabled
    */
   private validateTelemetry(callback: () => void): void {
-    if (this.reporter !== undefined) {
+    if (this.reporters.length > 0) {
       this.isTelemetryEnabled()
         .then(enabled => (enabled ? callback() : undefined))
         .catch(err => console.error(err));

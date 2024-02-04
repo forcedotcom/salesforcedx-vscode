@@ -46,9 +46,10 @@ describe('Telemetry', () => {
 
       await telemetryService.initializeService(mockExtensionContext);
 
-      const telemetryReporter = telemetryService.getReporter();
+      const telemetryReporters =
+        telemetryService.getReporters() as TelemetryReporter[];
 
-      expect(typeof telemetryReporter).toEqual('undefined');
+      expect(telemetryReporters.length).toEqual(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
@@ -161,9 +162,9 @@ describe('Telemetry', () => {
 
       await telemetryService.initializeService(mockExtensionContext);
 
-      const telemetryReporter = telemetryService.getReporter() as TelemetryReporter;
+      const telemetryReporters = telemetryService.getReporters();
 
-      expect(typeof telemetryReporter).not.toEqual('undefined');
+      expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
   });
