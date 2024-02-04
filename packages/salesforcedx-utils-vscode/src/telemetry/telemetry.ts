@@ -13,9 +13,9 @@ import {
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
 import { SfdxSettingsService } from '../settings';
+import { AppInsights } from './appInsightsReporter';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryLogger } from './telemetryLogger';
-import { AppInsights } from './appInsightsReporter';
 import { TelemetryReporter } from './TelemetryReporterInterface';
 
 interface CommandMetric {
