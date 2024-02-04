@@ -6,7 +6,7 @@
  */
 import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../src';
-import { AppInsightsReporter } from '../../../src/telemetry/telemetryReporter';
+import { AppInsightsReporter } from '../../../src/telemetry/appInsightsReporter';
 
 describe('AppInsightsReporter', () => {
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
