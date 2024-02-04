@@ -6,7 +6,7 @@
  */
 import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../src';
-import { AppInsightsReporter } from '../../../src/telemetry/appInsightsReporter';
+import { AppInsights } from '../../../src/telemetry/appInsightsReporter';
 
 describe('AppInsightsReporter', () => {
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
@@ -15,7 +15,7 @@ describe('AppInsightsReporter', () => {
     const getMock = jest.fn().mockReturnValueOnce(true);
     const fakeConfig: any = { get: getMock };
 
-    let appInsightsReporter: AppInsightsReporter;
+    let appInsightsReporter: AppInsights;
     const trackExceptionMock = jest.fn();
     const trackEventMock = jest.fn();
 
@@ -29,7 +29,7 @@ describe('AppInsightsReporter', () => {
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
 
-      appInsightsReporter = new AppInsightsReporter('', '', '');
+      appInsightsReporter = new AppInsights('', '', '');
       (appInsightsReporter as any).userOptIn = true;
       (appInsightsReporter as any).appInsightsClient = {
         trackException: trackExceptionMock,

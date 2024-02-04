@@ -12,10 +12,7 @@ import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { TelemetryReporter } from './TelemetryReporterInterface';
 
-export class AppInsightsReporter
-  extends Disposable
-  implements TelemetryReporter
-{
+export class AppInsights extends Disposable implements TelemetryReporter {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];
@@ -49,15 +46,13 @@ export class AppInsightsReporter
   }
 
   private updateUserOptIn(key: string): void {
-    const config = workspace.getConfiguration(
-      AppInsightsReporter.TELEMETRY_CONFIG_ID
-    );
+    const config = workspace.getConfiguration(AppInsights.TELEMETRY_CONFIG_ID);
     if (
       this.userOptIn !==
-      config.get<boolean>(AppInsightsReporter.TELEMETRY_CONFIG_ENABLED_ID, true)
+      config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)
     ) {
       this.userOptIn = config.get<boolean>(
-        AppInsightsReporter.TELEMETRY_CONFIG_ENABLED_ID,
+        AppInsights.TELEMETRY_CONFIG_ENABLED_ID,
         true
       );
       if (this.userOptIn) {
