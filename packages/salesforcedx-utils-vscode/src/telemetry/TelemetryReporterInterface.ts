@@ -4,7 +4,7 @@
  *--------------------------------------------------------*/
 'use strict';
 
-export interface TelemetryReporterInterface {
+export interface TelemetryReporter {
   sendTelemetryEvent(
     eventName: string,
     properties?: { [key: string]: string },

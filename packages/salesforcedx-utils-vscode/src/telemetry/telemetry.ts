@@ -16,7 +16,7 @@ import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryLogger } from './telemetryLogger';
 import { AppInsightsReporter } from './appInsightsReporter';
-import { TelemetryReporterInterface } from './TelemetryReporterInterface';
+import { TelemetryReporter } from './TelemetryReporterInterface';
 
 interface CommandMetric {
   extensionName: string;
@@ -76,7 +76,7 @@ export class TelemetryServiceProvider {
 
 export class TelemetryService {
   private extensionContext: ExtensionContext | undefined;
-  private reporter: TelemetryReporterInterface | undefined;
+  private reporter: TelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   /**
@@ -153,7 +153,7 @@ export class TelemetryService {
       }
 
       this.extensionContext.subscriptions.push(
-        this.reporter as TelemetryReporterInterface
+        this.reporter as TelemetryReporter
       );
     }
   }
@@ -170,7 +170,7 @@ export class TelemetryService {
       : this.extensionName;
   }
 
-  public getReporter(): TelemetryReporterInterface | undefined {
+  public getReporter(): TelemetryReporter | undefined {
     return this.reporter;
   }
 

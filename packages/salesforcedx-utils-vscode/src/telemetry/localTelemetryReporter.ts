@@ -6,9 +6,9 @@
  */
 import { appendFile } from 'fs';
 import { LOCAL_TELEMETRY_FILE } from '../constants';
-import { TelemetryReporterInterface } from './TelemetryReporterInterface';
+import { TelemetryReporter } from './TelemetryReporterInterface';
 
-export class LocalTelemetryReporter implements TelemetryReporterInterface {
+export class LocalTelemetryReporter implements TelemetryReporter {
   appInsightsClient: undefined;
   userOptIn: undefined;
   logStream: undefined;
