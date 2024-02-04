@@ -10,7 +10,7 @@ import * as path from 'path';
 import { Disposable, workspace } from 'vscode';
 import { getRootWorkspacePath } from '../..';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
-import { TelemetryReporter } from './telemetryReporter';
+import { TelemetryReporter } from '../interfaces';
 
 export class LogStreamReporter extends Disposable implements TelemetryReporter {
   private toDispose: Disposable[] = [];
