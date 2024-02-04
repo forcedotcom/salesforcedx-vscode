@@ -16,6 +16,8 @@ import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { LocalTelemetryReporter } from './localTelemetryReporter';
 import { TelemetryReporter } from './telemetryReporter';
+import { TelemetryReporterInterface } from './TelemetryReporterInterface';
+import { TelemetryLogger } from './telemetryLogger';
 
 interface CommandMetric {
   extensionName: string;
@@ -75,8 +77,7 @@ export class TelemetryServiceProvider {
 
 export class TelemetryService {
   private extensionContext: ExtensionContext | undefined;
-  private reporter: TelemetryReporter | undefined;
-  private localReporter: LocalTelemetryReporter | undefined;
+  private reporter: TelemetryReporterInterface | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   /**
@@ -127,32 +128,34 @@ export class TelemetryService {
       extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (
-      this.reporter === undefined &&
-      (await this.isTelemetryEnabled()) &&
-      !isDevMode
-    ) {
-      this.reporter = new TelemetryReporter(
-        this.getTelemetryReporterName(),
-        this.version,
-        this.aiKey,
-        true
-      );
-      this.extensionContext.subscriptions.push(this.reporter);
-    }
-
-    if (isDevMode) {
-      const isLocalLoggingEnabled =
-        SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
-          this.extensionName
+    if (this.reporter === undefined && (await this.isTelemetryEnabled())) {
+      if (!isDevMode) {
+        this.reporter = new TelemetryReporter(
+          this.getTelemetryReporterName(),
+          this.version,
+          this.aiKey,
+          true
         );
-
-      if (isLocalLoggingEnabled) {
-        this.localReporter = new LocalTelemetryReporter();
+        this.extensionContext.subscriptions.push(this.reporter);
+      } else {
+        const isLocalLoggingEnabled =
+          SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
+            this.extensionName
+          );
         console.log(
           'Local Telemetry Logging enabled for: ' + this.extensionName
         );
+        if (isLocalLoggingEnabled) {
+          this.reporter = new TelemetryLogger(
+            this.getTelemetryReporterName(),
+            false
+          );
+        }
       }
+
+      this.extensionContext.subscriptions.push(
+        this.reporter as TelemetryReporterInterface
+      );
     }
   }
 
@@ -168,7 +171,7 @@ export class TelemetryService {
       : this.extensionName;
   }
 
-  public getReporter(): TelemetryReporter | undefined {
+  public getReporter(): TelemetryReporterInterface | undefined {
     return this.reporter;
   }
 
@@ -215,10 +218,6 @@ export class TelemetryService {
         { startupTime }
       );
     });
-    this.maybeWriteToLocalFile('activationEvent', {
-      extensionName: this.extensionName,
-      startupTime
-    });
   }
 
   public sendExtensionDeactivationEvent(): void {
@@ -226,9 +225,6 @@ export class TelemetryService {
       this.reporter!.sendTelemetryEvent('deactivationEvent', {
         extensionName: this.extensionName
       });
-    });
-    this.maybeWriteToLocalFile('deactivationEvent', {
-      extensionName: this.extensionName
     });
   }
 
@@ -260,35 +256,12 @@ export class TelemetryService {
         );
       }
     });
-    this.maybeWriteToLocalFile(commandName || '', {
-      ...properties,
-      ...measurements
-    });
   }
 
   public sendException(name: string, message: string) {
     this.validateTelemetry(() => {
       this.reporter!.sendExceptionEvent(name, message);
     });
-    this.maybeWriteToLocalFile(name, { message });
-  }
-
-  private maybeWriteToLocalFile(
-    eventName: string,
-    properties: { [key: string]: string | number }
-  ) {
-    if (this.localReporter) {
-      try {
-        this.localReporter.writeToFile(eventName, {
-          ...properties
-        });
-      } catch (error) {
-        console.log(
-          'An error occurred when attempting to write to local telemetry file: ' +
-            error
-        );
-      }
-    }
   }
 
   public sendEventData(
@@ -299,7 +272,6 @@ export class TelemetryService {
     this.validateTelemetry(() => {
       this.reporter!.sendTelemetryEvent(eventName, properties, measures);
     });
-    this.maybeWriteToLocalFile(eventName, { ...properties, ...measures });
   }
 
   public dispose(): void {

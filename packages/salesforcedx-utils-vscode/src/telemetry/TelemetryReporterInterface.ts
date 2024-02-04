@@ -17,5 +17,5 @@ export interface TelemetryReporterInterface {
     measurements?: { [key: string]: number }
   ): void;
 
-  dispose(): Promise<any> | void;
+  dispose(): Promise<any>;
 }

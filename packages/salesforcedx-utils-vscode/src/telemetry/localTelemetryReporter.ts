@@ -29,8 +29,15 @@ export class LocalTelemetryReporter implements TelemetryReporterInterface {
     this.writeToFile(exceptionName, { exceptionMessage, ...measurements });
   }
 
-  dispose() {
-    console.log('dispose called on Local Telemetry Logger.');
+  dispose(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('dispose called on Local Telemetry Logger.');
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   /**
