@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../../../src';
-import { AppInsights } from '../../../src/telemetry/reporters/appInsightsReporter';
+import { WorkspaceContextUtil } from '../../../../src';
+import { AppInsights } from '../../../../src/telemetry/reporters/appInsightsReporter';
 
 describe('AppInsightsReporter', () => {
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
