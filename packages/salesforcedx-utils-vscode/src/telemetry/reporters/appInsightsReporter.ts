@@ -9,8 +9,8 @@ import * as appInsights from 'applicationinsights';
 import * as os from 'os';
 import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
-import { TelemetryReporter } from './TelemetryReporterInterface';
+import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
+import { TelemetryReporter } from './telemetryReporter';
 
 export class AppInsights extends Disposable implements TelemetryReporter {
   private appInsightsClient: appInsights.TelemetryClient | undefined;

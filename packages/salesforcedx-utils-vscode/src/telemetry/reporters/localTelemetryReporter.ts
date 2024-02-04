@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { appendFile } from 'fs';
-import { LOCAL_TELEMETRY_FILE } from '../constants';
-import { TelemetryReporter } from './TelemetryReporterInterface';
+import { LOCAL_TELEMETRY_FILE } from '../../constants';
+import { TelemetryReporter } from './telemetryReporter';
 
 export class LocalTelemetryReporter implements TelemetryReporter {
   appInsightsClient: undefined;
