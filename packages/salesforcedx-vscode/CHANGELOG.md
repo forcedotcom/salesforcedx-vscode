@@ -1,3 +1,25 @@
+# 59.17.0 - February 7, 2024
+
+## Fixed
+
+#### docs
+
+- Push source commands from sfdx to sf style ([PR #5362](https://github.com/forcedotcom/salesforcedx-vscode/pull/5362))
+
+#### salesforcedx-vscode-core
+
+- Push error handling ([PR #5392](https://github.com/forcedotcom/salesforcedx-vscode/pull/5392))
+
+- Push source commands from sfdx to sf style ([PR #5362](https://github.com/forcedotcom/salesforcedx-vscode/pull/5362))
+
+#### salesforcedx-vscode-lightning
+
+- Bump lls ([PR #5393](https://github.com/forcedotcom/salesforcedx-vscode/pull/5393))
+
+#### salesforcedx-vscode-lwc
+
+- Bump lls ([PR #5393](https://github.com/forcedotcom/salesforcedx-vscode/pull/5393))
+
 # 59.16.0 - January 31, 2024
 
 ## Fixed
