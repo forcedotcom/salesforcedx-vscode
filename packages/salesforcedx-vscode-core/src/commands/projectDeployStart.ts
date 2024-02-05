@@ -22,7 +22,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
-import { handleDiagnosticErrors } from '../diagnostics';
+import { handlePushDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
@@ -140,7 +140,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
           const errors = pushParser.getErrors();
           if (errors && !pushParser.hasConflicts()) {
             channelService.showChannelOutput();
-            handleDiagnosticErrors(
+            handlePushDiagnosticErrors(
               errors,
               workspacePath,
               execFilePathOrPaths,
@@ -191,7 +191,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.data);
+      const rows = pushedSource || (errors && errors.files);
       const title = !parser.hasConflicts()
         ? nls.localize(`table_title_${titleType}ed_source`)
         : undefined;
@@ -207,9 +207,10 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
     }
 
     if (errors && !parser.hasConflicts()) {
-      const { name, message, data } = errors;
-      if (data) {
-        const outputTable = this.getErrorTable(table, data, titleType);
+      const { name, message } = errors;
+      const files = errors.files;
+      if (files) {
+        const outputTable = this.getErrorTable(table, files, titleType);
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
