@@ -14,9 +14,12 @@ export const isNullOrUndefined = (object: any): object is null | undefined => {
 };
 
 export const extractJsonObject = (str: string): any => {
-  const jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
+  const isPlainText = str.includes('{') ? false : true;
+  const jsonString = isPlainText
+    ? str
+    : str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
 
-  return JSON.parse(jsonString);
+  return isPlainText ? jsonString : JSON.parse(jsonString);
 };
 
 // There's a bug in VS Code where, after a file has been renamed,
