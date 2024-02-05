@@ -7,7 +7,7 @@
 
 import { extractJsonObject } from '../../helpers';
 
-export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
+export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
 export interface PullResult {
   columnNumber?: string;
