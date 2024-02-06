@@ -8,7 +8,7 @@ export class LogStreamConfig {
   public static logFilePath() {
     return process.env['VSCODE_LOGS'] || '';
   }
-  public static isEnabled(extensionName: string) {
+  public static isEnabledFor(extensionName: string) {
     return (
       LogStreamConfig.logFilePath() &&
       extensionName &&

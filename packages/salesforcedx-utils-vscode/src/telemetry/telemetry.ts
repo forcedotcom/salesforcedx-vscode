@@ -12,13 +12,13 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './interfaces/telemetryReporter';
 import { AppInsights } from './reporters/appInsights';
 import { LogStream as LogStream } from './reporters/logStream';
-import { TelemetryFileReporter } from './reporters/telemetryFileReporter';
-import { LogStreamConfig } from './logStreamConfig';
+import { LogStreamConfig } from './reporters/logStreamConfig';
+import { TelemetryFile } from './reporters/telemetryFile';
+import { TelemetryFileConfig } from './reporters/telemetryFileConfig';
 
 interface CommandMetric {
   extensionName: string;
@@ -144,7 +144,7 @@ export class TelemetryService {
         // the new TelemetryFile reporter uses, I am keeping the logic in place for which
         // reporter is used when.  The original log stream functionality only worked under
         // the same conditions as the AppInsights capabilities, but with additional configuration.
-        if (LogStreamConfig.isEnabled(this.extensionName)) {
+        if (LogStreamConfig.isEnabledFor(this.extensionName)) {
           console.log(
             'Telemetry Log Stream enabled for: ' +
               this.extensionName +
@@ -161,17 +161,15 @@ export class TelemetryService {
           );
         }
       } else {
-        // The new TelemetryFile reporter can (only) be run in Dev mode, and only
+        // Dev Mode
+        //
+        // The new TelemetryFile reporter is run in Dev mode, and only
         // requires the advanced setting to be set re: configuration.
-        const isLocalLoggingEnabled =
-          SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
-            this.extensionName
+        if (TelemetryFileConfig.isEnabledFor(this.extensionName)) {
+          console.log(
+            'Local Telemetry File Logging enabled for: ' + this.extensionName
           );
-        console.log(
-          'Local Telemetry File Logging enabled for: ' + this.extensionName
-        );
-        if (isLocalLoggingEnabled) {
-          this.reporters.push(new TelemetryFileReporter());
+          this.reporters.push(new TelemetryFile());
         }
       }
     }
