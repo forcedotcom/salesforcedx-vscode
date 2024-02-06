@@ -16,9 +16,9 @@ import { SfdxSettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './interfaces/telemetryReporter';
 import { AppInsights } from './reporters/appInsightsReporter';
-import { LogStreamReporter } from './reporters/logStreamReporter';
+import { LogStream as LogStream } from './reporters/logStream';
 import { TelemetryFileReporter } from './reporters/telemetryFileReporter';
-import { LogStreamConfig } from './logStream';
+import { LogStreamConfig } from './logStreamConfig';
 
 interface CommandMetric {
   extensionName: string;
@@ -154,7 +154,7 @@ export class TelemetryService {
           );
 
           this.reporters.push(
-            new LogStreamReporter(
+            new LogStream(
               this.getTelemetryReporterName(),
               LogStreamConfig.logFilePath()
             )

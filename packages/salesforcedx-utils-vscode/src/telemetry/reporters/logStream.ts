@@ -11,7 +11,7 @@ import { Disposable, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { TelemetryReporter } from '../interfaces';
 
-export class LogStreamReporter extends Disposable implements TelemetryReporter {
+export class LogStream extends Disposable implements TelemetryReporter {
   private toDispose: Disposable[] = [];
 
   private logStream: fs.WriteStream | undefined;
