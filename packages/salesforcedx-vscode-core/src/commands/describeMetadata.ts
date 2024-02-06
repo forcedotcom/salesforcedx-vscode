@@ -15,12 +15,10 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
-import { SfdxCommandletExecutor } from '../commands/util';
 import { workspaceUtils } from '../util';
+import { SfdxCommandletExecutor } from './util';
 
-export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
-  string
-> {
+export class DescribeMetadataExecutor extends SfdxCommandletExecutor<string> {
   public constructor() {
     super();
   }
@@ -28,9 +26,9 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:mdapi:describemetadata')
-      .withJson()
-      .withLogName('force_mdapi_describemetadata')
+      .withArg('org:list:metadata-types')
+      .withJson(false)
+      .withLogName('describe_metadata_types')
       .build();
   }
 
@@ -47,11 +45,11 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export async function forceDescribeMetadata(
+export const describeMetadata = async (
   outputFolder: string
-): Promise<string> {
-  const forceDescribeMetadataExecutor = new ForceDescribeMetadataExecutor();
-  const execution = forceDescribeMetadataExecutor.execute();
+): Promise<string> => {
+  const describeMetadataExecutor = new DescribeMetadataExecutor();
+  const execution = describeMetadataExecutor.execute();
   if (!fs.existsSync(outputFolder)) {
     mkdir('-p', outputFolder);
   }
@@ -61,4 +59,4 @@ export async function forceDescribeMetadata(
   const result = await cmdOutput.getCmdResult(execution);
   fs.writeFileSync(filePath, result);
   return result;
-}
+};
