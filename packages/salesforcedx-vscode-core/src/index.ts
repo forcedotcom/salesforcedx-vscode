@@ -509,14 +509,14 @@ const setupOrgBrowser = async (
   await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
-    'sfdx.force.metadata.view.type.refresh',
+    'sfdx.metadata.view.type.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.force.metadata.view.component.refresh',
+    'sfdx.metadata.view.component.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
