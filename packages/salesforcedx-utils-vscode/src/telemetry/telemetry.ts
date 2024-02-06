@@ -12,14 +12,13 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
+import { AdvancedSettings, SettingsService } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './interfaces/telemetryReporter';
 import { AppInsights } from './reporters/appInsights';
 import { LogStream as LogStream } from './reporters/logStream';
 import { LogStreamConfig } from './reporters/logStreamConfig';
 import { TelemetryFile } from './reporters/telemetryFile';
-import { TelemetryFileConfig } from './reporters/telemetryFileConfig';
-import { SfdxSettingsService } from '../settings';
 
 interface CommandMetric {
   extensionName: string;
@@ -167,8 +166,9 @@ export class TelemetryService {
         // The new TelemetryFile reporter is run in Dev mode, and only
         // requires the advanced setting to be set re: configuration.
         if (
-          SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
-            this.extensionName
+          SettingsService.isAdvancedSettingEnabledFor(
+            this.extensionName,
+            AdvancedSettings.ENABLE_LOCAL_TELEMETRY_LOGGING
           )
         ) {
           console.log(

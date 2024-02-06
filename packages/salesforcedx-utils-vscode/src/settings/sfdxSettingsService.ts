@@ -7,29 +7,31 @@
 import * as vscode from 'vscode';
 import {
   ADVANCED,
-  ENABLE_LOCAL_TELEMETRY_LOGGING,
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
   TRUE
 } from '../constants';
 
-export class SfdxSettingsService {
+export enum AdvancedSettings {
+  ENABLE_LOCAL_TELEMETRY_LOGGING = 'enableLocalTelemetryLogging'
+}
+
+export class SettingsService {
   public static getEnableClearOutputBeforeEachCommand(): boolean {
     return vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(SETTING_CLEAR_OUTPUT_TAB, false);
   }
 
-  public static isLocalTelemetryLoggingEnabledFor(
-    extensionName: string
+  public static isAdvancedSettingEnabledFor(
+    extensionName: string,
+    advancedSetting: AdvancedSettings
   ): boolean {
-    const isLocalTelemetryLoggingEnabled = vscode.workspace
+    const isAdvancedSettingEnabled = vscode.workspace
       .getConfiguration()
-      .get<string>(
-        `${extensionName}.${ADVANCED}.${ENABLE_LOCAL_TELEMETRY_LOGGING}`
-      );
+      .get<string>(`${extensionName}.${ADVANCED}.${advancedSetting}`);
     // if the setting doesn't exist for this extension, false will be returned
-    const booleanVal = isLocalTelemetryLoggingEnabled === TRUE;
+    const booleanVal = isAdvancedSettingEnabled === TRUE;
     return booleanVal;
   }
 }

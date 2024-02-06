@@ -6,7 +6,6 @@
  */
 export const ADVANCED = 'advanced';
 export const DEFAULT_AIKEY = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
-export const ENABLE_LOCAL_TELEMETRY_LOGGING = 'enableLocalTelemetryLogging';
 export const LOCAL_TELEMETRY_FILE = 'telemetry.json';
 export const SETTING_CLEAR_OUTPUT_TAB = 'clearOutputTab';
 export const SF_CONFIG_DISABLE_TELEMETRY = 'disable-telemetry';
