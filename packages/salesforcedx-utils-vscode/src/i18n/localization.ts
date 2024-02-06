@@ -29,6 +29,7 @@ export class Localization implements LocalizationProvider {
   }
 
   public localize(label: string, ...args: any[]): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.delegate.localize(label, ...args);
   }
 }
@@ -71,6 +72,7 @@ export class Message implements LocalizationProvider {
       }
 
       args.unshift(possibleLabel);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return util.format(...args);
     }
 
