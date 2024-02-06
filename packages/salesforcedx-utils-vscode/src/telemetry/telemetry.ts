@@ -12,7 +12,7 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import { AdvancedSettings, SettingsService } from '../settings';
+import * as Settings from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './interfaces/telemetryReporter';
 import { AppInsights } from './reporters/appInsights';
@@ -166,9 +166,9 @@ export class TelemetryService {
         // The new TelemetryFile reporter is run in Dev mode, and only
         // requires the advanced setting to be set re: configuration.
         if (
-          SettingsService.isAdvancedSettingEnabledFor(
+          Settings.SettingsService.isAdvancedSettingEnabledFor(
             this.extensionName,
-            AdvancedSettings.ENABLE_LOCAL_TELEMETRY_LOGGING
+            Settings.AdvancedSettings.ENABLE_LOCAL_TELEMETRY_LOGGING
           )
         ) {
           console.log(
@@ -290,7 +290,19 @@ export class TelemetryService {
   public sendException(name: string, message: string) {
     this.validateTelemetry(() => {
       this.reporters.forEach(reporter => {
-        reporter.sendExceptionEvent(name, message);
+        try {
+          reporter.sendExceptionEvent(name, message);
+        } catch (error) {
+          console.log(
+            'There was an error sending an exception report to: ' +
+              typeof reporter +
+              ' ' +
+              'name: ' +
+              name +
+              ' message: ' +
+              message
+          );
+        }
       });
     });
   }

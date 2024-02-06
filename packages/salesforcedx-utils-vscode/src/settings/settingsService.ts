@@ -11,7 +11,10 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   TRUE
 } from '../constants';
-import { AdvancedSettings } from './AdvancedSettings';
+
+export enum AdvancedSettings {
+  ENABLE_LOCAL_TELEMETRY_LOGGING = 'enableLocalTelemetryLogging'
+}
 
 export class SettingsService {
   public static getEnableClearOutputBeforeEachCommand(): boolean {
