@@ -6,9 +6,9 @@
  */
 import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
-import { AppInsights } from '../../../../src/telemetry/reporters/appInsightsReporter';
+import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 
-describe('AppInsightsReporter', () => {
+describe('AppInsights', () => {
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
     let getInstanceMock: jest.SpyInstance;
     const dummyOrgId = '000dummyOrgId';
