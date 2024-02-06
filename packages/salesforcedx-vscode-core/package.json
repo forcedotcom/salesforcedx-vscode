@@ -978,6 +978,11 @@
           "type": "string",
           "default": "fatal",
           "description": "%sf_log_level_description%"
+        },
+        "salesforcedx-vscode-core.telemetry-tag": {
+          "type": "string",
+          "default": null,
+          "description": "%telemetry_tag_description%"
         }
       }
     },

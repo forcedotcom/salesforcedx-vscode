@@ -5,20 +5,32 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { readFile } from 'fs/promises';
-import { ExtensionContext, Uri } from 'vscode';
+import { ExtensionContext, Uri, extensions } from 'vscode';
 import {
   readExtensionHostLog,
   getExtensionHostLogLocation,
-  getExtensionHostLogActivationRecords
-} from '../../../src/helpers/extHostLogs';
+  getExtensionHostLogActivationRecords,
+  getExtensionsInfo
+} from '../../../src/helpers/activationTracker';
 
-describe.skip('readExtensionHostLog', () => {
-  beforeEach(() => {
-    jest.mock('fs/promises');
-  });
+jest.mock('fs/promises', () => ({
+  readFile: jest.fn()
+}));
 
+jest.mock(
+  'vscode',
+  () => ({
+    Uri: {
+      file: jest.fn(path => ({ fsPath: path }))
+    }
+  }),
+  { virtual: true }
+);
+
+describe('readExtensionHostLog', () => {
   it('should return log lines', async () => {
     (readFile as jest.Mock).mockResolvedValue('line1\nline2\nline3\n');
+    (Uri.file as jest.Mock).mockReturnValue({ fsPath: '/path/to/log' });
     const logUri = Uri.file('/path/to/log');
     const result = await readExtensionHostLog(logUri);
     expect(result).toEqual(['line1', 'line2', 'line3']);
@@ -26,14 +38,18 @@ describe.skip('readExtensionHostLog', () => {
 
   it('should return empty array if readFile throws', async () => {
     (readFile as jest.Mock).mockRejectedValue(new Error('File not found'));
+    (Uri.file as jest.Mock).mockReturnValue({ fsPath: '/path/to/log' });
     const logUri = Uri.file('/path/to/log');
     const result = await readExtensionHostLog(logUri);
     expect(result).toEqual([]);
   });
 });
 
-describe.skip('getExtensionHostLogLocation', () => {
+describe('getExtensionHostLogLocation', () => {
   it('should return log location', () => {
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: '/path/to/exthost/window1/a/b/c/some-ext.log'
+    });
     const logUri = Uri.file('/path/to/exthost/window1/a/b/c/some-ext.log');
     const context = {
       logUri
@@ -43,6 +59,7 @@ describe.skip('getExtensionHostLogLocation', () => {
   });
 
   it('should return undefined if exthost directory not found', () => {
+    (Uri.file as jest.Mock).mockReturnValue({ fsPath: '/path/to/log' });
     const logUri = Uri.file('/path/to/log');
     const context = {
       logUri
@@ -52,11 +69,12 @@ describe.skip('getExtensionHostLogLocation', () => {
   });
 });
 
-describe.skip('getExtensionHostLogActivationRecords', () => {
+describe('getExtensionHostLogActivationRecords', () => {
   it('should return activation records', async () => {
     (readFile as jest.Mock).mockResolvedValue(
       "2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'\n"
     );
+    (Uri.file as jest.Mock).mockReturnValue({ fsPath: '/path/to/exthost/log' });
     const logUri = Uri.file('/path/to/exthost/log');
     const context = {
       logUri

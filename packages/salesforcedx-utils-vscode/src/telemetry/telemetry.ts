@@ -6,7 +6,6 @@
  */
 
 import * as util from 'util';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ActivationInfo } from '..';
 import {
@@ -101,7 +100,8 @@ export class TelemetryService {
   public async initializeService(
     extensionContext: ExtensionContext
   ): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON as Record<string, string>;
+    const { name, version, aiKey } = extensionContext.extension
+      .packageJSON as Record<string, string>;
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
@@ -209,9 +209,7 @@ export class TelemetryService {
         ...(activateStartDate
           ? { activateStartDate: activateStartDate.toISOString() }
           : {}),
-        ...(loadStartDate
-          ? { loadStartDate: loadStartDate.toISOString() }
-          : {})
+        ...(loadStartDate ? { loadStartDate: loadStartDate.toISOString() } : {})
       };
       const measurements = {
         startupTime,

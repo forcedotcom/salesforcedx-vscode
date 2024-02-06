@@ -39,4 +39,4 @@ export {
   getExtensionInfo,
   getExtensionsInfo,
   getSalesforceExtensions
-} from './extHostLogs';
+} from './activationTracker';

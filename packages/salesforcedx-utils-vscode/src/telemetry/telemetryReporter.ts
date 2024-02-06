@@ -22,6 +22,7 @@ export class TelemetryReporter extends Disposable {
   private static TELEMETRY_CONFIG_ENABLED_ID = 'enableTelemetry';
 
   private logStream: fs.WriteStream | undefined;
+  private telemetryTag: string | undefined;
 
   constructor(
     private extensionId: string,
@@ -45,6 +46,7 @@ export class TelemetryReporter extends Disposable {
     }
     this.uniqueUserMetrics = enableUniqueMetrics ?? false;
     this.updateUserOptIn(key);
+    this.getTelemetryTag();
     this.toDispose.push(
       workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
     );
@@ -142,21 +144,19 @@ export class TelemetryReporter extends Disposable {
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       const orgId = WorkspaceContextUtil.getInstance().orgId;
-      if (orgId && properties) {
-        properties.orgId = orgId;
-      } else if (orgId) {
-        properties = { orgId };
-      }
+      let props = properties ? properties : {};
+      props = this.applyTelemetryTag(orgId ? { ...props, orgId } : props);
+
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        properties,
+        properties: props,
         measurements
       });
 
       if (this.logStream) {
         this.logStream.write(
           `telemetry/${eventName} ${JSON.stringify({
-            properties,
+            properties: props,
             measurements
           })}\n`
         );
@@ -176,7 +176,7 @@ export class TelemetryReporter extends Disposable {
       error.stack = 'DEPRECATED';
 
       const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const properties = { orgId };
+      const properties = this.applyTelemetryTag({ orgId });
       this.appInsightsClient.trackException({
         exception: error,
         properties,
@@ -217,5 +217,30 @@ export class TelemetryReporter extends Disposable {
       }
     });
     return Promise.all([flushEventsToAI, flushEventsToLogger]);
+  }
+
+  /**
+   * Helper to set reporter's telemetryTag from setting salesforcedx-vscode-core.telemetry-tag
+   * @returns string | undefined
+   */
+  private getTelemetryTag(): void {
+    const config = workspace.getConfiguration();
+    this.telemetryTag =
+      config.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
+  }
+
+  /**
+   * Helper to include telemetryTag in properties if it exists
+   * if not, return properties as is
+   *
+   * @param properties
+   * @returns
+   */
+  private applyTelemetryTag(properties: { [key: string]: string }): {
+    [key: string]: string;
+  } {
+    return this.telemetryTag
+      ? { ...properties, telemetryTag: this.telemetryTag }
+      : properties;
   }
 }
