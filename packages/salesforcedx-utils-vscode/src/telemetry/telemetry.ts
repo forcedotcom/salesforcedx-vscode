@@ -18,6 +18,7 @@ import { TelemetryReporter } from './interfaces/telemetryReporter';
 import { AppInsights } from './reporters/appInsightsReporter';
 import { LogStreamReporter } from './reporters/logStreamReporter';
 import { TelemetryFileReporter } from './reporters/telemetryFileReporter';
+import { LogStreamConfig } from './logStream';
 
 interface CommandMetric {
   extensionName: string;
@@ -143,18 +144,20 @@ export class TelemetryService {
         // the new TelemetryFile reporter uses, I am keeping the logic in place for which
         // reporter is used when.  The original log stream functionality only worked under
         // the same conditions as the AppInsights capabilities, but with additional configuration.
-        const logFilePath = process.env['VSCODE_LOGS'] || '';
-        if (this.isLogStreamReporterEnabled(logFilePath)) {
+        if (LogStreamConfig.isEnabled(this.extensionName)) {
           console.log(
             'Telemetry Log Stream enabled for: ' +
               this.extensionName +
               '. Telemetry events will be logged at: ' +
-              logFilePath +
+              LogStreamConfig.logFilePath() +
               '.'
           );
 
           this.reporters.push(
-            new LogStreamReporter(this.getTelemetryReporterName(), logFilePath)
+            new LogStreamReporter(
+              this.getTelemetryReporterName(),
+              LogStreamConfig.logFilePath()
+            )
           );
         }
       } else {
@@ -174,14 +177,6 @@ export class TelemetryService {
     }
 
     this.extensionContext.subscriptions.push(...this.reporters);
-  }
-
-  private isLogStreamReporterEnabled(logFilePath: string) {
-    return (
-      logFilePath &&
-      this.extensionName &&
-      process.env['VSCODE_LOG_LEVEL'] === 'trace'
-    );
   }
 
   /**
