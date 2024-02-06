@@ -15,7 +15,7 @@ describe('AppInsights', () => {
     const getMock = jest.fn().mockReturnValueOnce(true);
     const fakeConfig: any = { get: getMock };
 
-    let appInsightsReporter: AppInsights;
+    let appInsights: AppInsights;
     const trackExceptionMock = jest.fn();
     const trackEventMock = jest.fn();
 
@@ -29,9 +29,9 @@ describe('AppInsights', () => {
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
 
-      appInsightsReporter = new AppInsights('', '', '');
-      (appInsightsReporter as any).userOptIn = true;
-      (appInsightsReporter as any).appInsightsClient = {
+      appInsights = new AppInsights('', '', '');
+      (appInsights as any).userOptIn = true;
+      (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
         trackEvent: trackEventMock
       };
@@ -39,7 +39,7 @@ describe('AppInsights', () => {
 
     it('should send orgId to appInsightsClient.trackEvent', () => {
       // Act
-      appInsightsReporter.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
+      appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
       expect(getInstanceMock).toHaveBeenCalledTimes(1);
@@ -51,7 +51,7 @@ describe('AppInsights', () => {
 
     it('should send orgId to appInsightsClient.trackException', () => {
       // Act
-      appInsightsReporter.sendExceptionEvent(
+      appInsights.sendExceptionEvent(
         'Dummy Exception',
         'a dummy exception occurred'
       );
