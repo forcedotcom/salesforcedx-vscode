@@ -19,6 +19,7 @@ import { LogStream as LogStream } from './reporters/logStream';
 import { LogStreamConfig } from './reporters/logStreamConfig';
 import { TelemetryFile } from './reporters/telemetryFile';
 import { TelemetryFileConfig } from './reporters/telemetryFileConfig';
+import { SfdxSettingsService } from '../settings';
 
 interface CommandMetric {
   extensionName: string;
@@ -165,7 +166,11 @@ export class TelemetryService {
         //
         // The new TelemetryFile reporter is run in Dev mode, and only
         // requires the advanced setting to be set re: configuration.
-        if (TelemetryFileConfig.isEnabledFor(this.extensionName)) {
+        if (
+          SfdxSettingsService.isLocalTelemetryLoggingEnabledFor(
+            this.extensionName
+          )
+        ) {
           console.log(
             'Local Telemetry File Logging enabled for: ' + this.extensionName
           );
