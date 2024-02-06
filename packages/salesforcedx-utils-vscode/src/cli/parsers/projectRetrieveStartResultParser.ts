@@ -9,7 +9,7 @@ import { extractJsonObject } from '../../helpers';
 
 export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
-export interface PullResult {
+export interface ProjectRetrieveStartResult {
   columnNumber?: string;
   error?: string;
   filePath: string;
@@ -22,16 +22,15 @@ export interface PullResult {
 export interface ProjectRetrieveStartErrorResponse {
   message: string;
   name: string;
-  data: PullResult[];
-  stack: string;
   status: number;
+  files: ProjectRetrieveStartResult[];
   warnings: any[];
 }
 
 export interface ProjectRetrieveStartSuccessResponse {
   status: number;
   result: {
-    files: PullResult[];
+    files: ProjectRetrieveStartResult[];
   };
 }
 
@@ -50,7 +49,12 @@ export class ProjectRetrieveStartResultParser {
 
   public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
     if (this.response.status === 1) {
-      return this.response as ProjectRetrieveStartErrorResponse;
+      return {
+        message: this.response.message ?? 'Pull failed. ',
+        name: this.response.name ?? 'RetrieveFailed',
+        status: this.response.status,
+        files: this.response.data ?? this.response.result.files
+      } as ProjectRetrieveStartErrorResponse;
     }
   }
 

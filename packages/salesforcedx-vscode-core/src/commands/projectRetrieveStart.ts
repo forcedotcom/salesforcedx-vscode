@@ -11,7 +11,7 @@ import {
   Command,
   ContinueResponse,
   ProjectRetrieveStartResultParser,
-  PullResult,
+  ProjectRetrieveStartResult,
   Row,
   SfdxCommandBuilder,
   Table
@@ -155,7 +155,7 @@ export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pulledSource = successes ? successes?.result.files : undefined;
     if (pulledSource || parser.hasConflicts()) {
-      const rows = pulledSource || errors?.data;
+      const rows = pulledSource || errors?.files;
       const tableTitle = !parser.hasConflicts()
         ? nls.localize(`table_title_${titleType}ed_source`)
         : undefined;
@@ -171,9 +171,9 @@ export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
     }
 
     if (errors && !parser.hasConflicts()) {
-      const { name, message, data } = errors;
-      if (data) {
-        const outputTable = this.getErrorTable(table, data, titleType);
+      const { name, message, files } = errors;
+      if (files) {
+        const outputTable = this.getErrorTable(table, files, titleType);
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
@@ -189,7 +189,7 @@ export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
 
   protected getOutputTable(
     table: Table,
-    rows: PullResult[] | undefined,
+    rows: ProjectRetrieveStartResult[] | undefined,
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(

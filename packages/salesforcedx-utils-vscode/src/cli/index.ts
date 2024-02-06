@@ -45,7 +45,7 @@ export {
 } from './orgOpenContainerResultParser';
 export {
   ProjectRetrieveStartResultParser,
-  PullResult
+  ProjectRetrieveStartResult
 } from './parsers/projectRetrieveStartResultParser';
 export {
   CONFLICT_ERROR_NAME,
