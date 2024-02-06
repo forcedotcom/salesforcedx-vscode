@@ -9,23 +9,23 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import {
-  forceDescribeMetadata,
-  ForceDescribeMetadataExecutor
+  describeMetadata,
+  DescribeMetadataExecutor
 } from '../../../src/commands';
 
 // tslint:disable:no-unused-expression
-describe('Force Describe Metadata', () => {
+describe('Describe Metadata', () => {
   it('Should build describe metadata command', async () => {
-    const forceDescribeMetadataExec = new ForceDescribeMetadataExecutor();
-    const forceDescribeMetadataCmd = forceDescribeMetadataExec.build({});
-    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      'sfdx force:mdapi:describemetadata --json --loglevel fatal'
+    const describeMetadataExec = new DescribeMetadataExecutor();
+    const describeMetadataCmd = describeMetadataExec.build({});
+    expect(describeMetadataCmd.toCommand()).to.equal(
+      'sfdx org:list:metadata-types --json'
     );
   });
 
   it('Should write a file with metadata describe output', async () => {
     const execStub = sinon.stub(
-      ForceDescribeMetadataExecutor.prototype,
+      DescribeMetadataExecutor.prototype,
       'execute'
     );
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
@@ -36,7 +36,7 @@ describe('Force Describe Metadata', () => {
       .stub(CommandOutput.prototype, 'getCmdResult')
       .returns(resultData);
 
-    const result = await forceDescribeMetadata(outputFolder);
+    const result = await describeMetadata(outputFolder);
     expect(writeFileStub.calledOnce).to.equal(true);
     expect(result).to.equal(resultData);
 
