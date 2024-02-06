@@ -51,14 +51,8 @@ export {
   deleteSource
 } from './deleteSource';
 export { forceCreateManifest } from './forceCreateManifest';
-export {
-  ForceDescribeMetadataExecutor,
-  forceDescribeMetadata
-} from './forceDescribeMetadata';
-export {
-  ForceListMetadataExecutor,
-  forceListMetadata
-} from './forceListMetadata';
+export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
+export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,

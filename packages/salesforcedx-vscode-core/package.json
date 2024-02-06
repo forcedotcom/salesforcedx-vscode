@@ -175,7 +175,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "sfdx.force.metadata.view.type.refresh",
+          "command": "sfdx.metadata.view.type.refresh",
           "when": "view == metadata",
           "group": "navigation"
         }
@@ -186,7 +186,7 @@
           "when": "view == sfdx.tasks.view"
         },
         {
-          "command": "sfdx.force.metadata.view.component.refresh",
+          "command": "sfdx.metadata.view.component.refresh",
           "when": "view == metadata && viewItem =~ /(folder|type)/",
           "group": "inline"
         },
@@ -608,11 +608,11 @@
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         },
         {
-          "command": "sfdx.force.metadata.view.type.refresh",
+          "command": "sfdx.metadata.view.type.refresh",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.metadata.view.component.refresh",
+          "command": "sfdx.metadata.view.component.refresh",
           "when": "sfdx:project_opened"
         }
       ]
@@ -851,7 +851,7 @@
         "title": "%lightning_generate_lwc_text%"
       },
       {
-        "command": "sfdx.force.metadata.view.type.refresh",
+        "command": "sfdx.metadata.view.type.refresh",
         "title": "%refresh_types_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -859,7 +859,7 @@
         }
       },
       {
-        "command": "sfdx.force.metadata.view.component.refresh",
+        "command": "sfdx.metadata.view.component.refresh",
         "title": "%refresh_components_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
