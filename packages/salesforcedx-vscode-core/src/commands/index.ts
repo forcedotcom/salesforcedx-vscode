@@ -76,11 +76,6 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
-export { ForceSourcePullExecutor, forceSourcePull } from './forceSourcePull';
-export {
-  ProjectDeployStartExecutor,
-  projectDeployStart
-} from './projectDeployStart';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
@@ -105,6 +100,10 @@ export {
   orgOpen
 } from './orgOpen';
 export {
+  ProjectDeployStartExecutor,
+  projectDeployStart
+} from './projectDeployStart';
+export {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
   ProjectTemplateItem,
@@ -115,6 +114,10 @@ export {
   projectTemplateEnum,
   sfProjectGenerate
 } from './projectGenerate';
+export {
+  ProjectRetrieveStartExecutor,
+  projectRetrieveStart
+} from './projectRetrieveStart';
 export {
   viewAllChanges,
   viewLocalChanges,
