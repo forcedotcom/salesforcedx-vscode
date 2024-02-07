@@ -19,7 +19,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryService } from '../telemetry/telemetry';
+import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {
   Local,

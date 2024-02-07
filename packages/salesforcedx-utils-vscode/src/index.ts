@@ -36,7 +36,7 @@ export {
   TelemetryData,
   Properties,
   Measurements
-} from './telemetry/telemetry';
+} from './services/telemetry';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
 export { AppInsights as TelemetryReporter } from './telemetry/reporters/appInsights';

@@ -13,7 +13,7 @@ import {
 } from '../constants';
 
 export enum AdvancedSettings {
-  ENABLE_LOCAL_TELEMETRY_LOGGING = 'enableLocalTelemetryLogging'
+  LOCAL_TELEMETRY_LOGGING = 'localTelemetryLogging'
 }
 
 export class SettingsService {
@@ -27,10 +27,10 @@ export class SettingsService {
     extensionName: string,
     advancedSetting: AdvancedSettings
   ): boolean {
-return vscode.workspace
-      .getConfiguration()
-      .get<string>(
-        `${extensionName}.${ADVANCED}.${ENABLE_LOCAL_TELEMETRY_LOGGING}`
-      ) === TRUE;
+    return (
+      vscode.workspace
+        .getConfiguration()
+        .get<string>(`${extensionName}.${ADVANCED}.${advancedSetting}`) === TRUE
+    );
   }
 }

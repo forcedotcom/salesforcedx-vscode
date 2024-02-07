@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export class LogStreamConfig {
-  public static logFilePath() {
-    return process.env['VSCODE_LOGS'] || '';
+  public static logFilePath(): string {
+    return process.env['VSCODE_LOGS'] ?? '';
   }
-  public static isEnabledFor(extensionName: string) {
+  public static isEnabledFor(extensionName: string): boolean | '' {
     return (
       LogStreamConfig.logFilePath() &&
       extensionName &&
