@@ -186,6 +186,6 @@ export class AppInsights extends Disposable implements TelemetryReporter {
         resolve(void 0);
       }
     });
-    return Promise.all([flushEventsToAI]);
+    return flushEventsToAI;
   }
 }
