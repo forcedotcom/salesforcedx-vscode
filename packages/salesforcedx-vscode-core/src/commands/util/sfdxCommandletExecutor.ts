@@ -17,7 +17,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import {
-  FORCE_SOURCE_PULL_LOG_NAME,
+  PROJECT_RETRIEVE_START_LOG_NAME,
   PROJECT_DEPLOY_START_LOG_NAME
 } from '../../constants';
 import { nls } from '../../messages';
@@ -50,7 +50,7 @@ export abstract class SfdxCommandletExecutor<T>
     // generated later using a parser.
     if (
       !(
-        commandLogName === FORCE_SOURCE_PULL_LOG_NAME ||
+        commandLogName === PROJECT_RETRIEVE_START_LOG_NAME ||
         commandLogName === PROJECT_DEPLOY_START_LOG_NAME
       )
     ) {
@@ -155,7 +155,7 @@ export abstract class SfdxCommandletExecutor<T>
 
   /**
    * Base method (no-op) that is overridden by sub-classes
-   * projectDeployStart and forceSourcePull to update the local cache's
+   * projectDeployStart and projectRetrieveStart to update the local cache's
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */

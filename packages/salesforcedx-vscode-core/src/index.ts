@@ -40,8 +40,6 @@ import {
   forceSourceDeploySourcePaths,
   forceSourceDiff,
   forceSourceFolderDiff,
-  forceSourcePull,
-  projectDeployStart,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -66,7 +64,9 @@ import {
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
+  projectDeployStart,
   projectGenerateWithManifest,
+  projectRetrieveStart,
   sfProjectGenerate,
   startApexDebugLogging,
   stopApexDebugLogging,
@@ -124,10 +124,6 @@ import {
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-
-const flagOverwrite: FlagParameter<string> = {
-  flag: '--forceoverwrite'
-};
 
 const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
@@ -194,19 +190,20 @@ const registerCommands = (
     'sfdx.force.source.deploy.source.path',
     forceSourceDeploySourcePaths
   );
-  const forceSourcePullCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.pull',
-    forceSourcePull
-  );
-  const forceSourcePullForceCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.pull.force',
-    forceSourcePull,
-    flagOverwrite
+  const projectRetrieveStartCmd = vscode.commands.registerCommand(
+    'sfdx.project.retrieve.start',
+    projectRetrieveStart
   );
   const projectDeployStartCmd = vscode.commands.registerCommand(
     'sfdx.project.deploy.start',
     projectDeployStart
   );
+  const projectRetrieveStartIgnoreConflictsCmd =
+    vscode.commands.registerCommand(
+      'sfdx.project.retrieve.start.ignore.conflicts',
+      projectRetrieveStart,
+      flagIgnoreConflicts
+    );
   const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sfdx.project.deploy.start.ignore.conflicts',
     projectDeployStart,
@@ -412,10 +409,10 @@ const registerCommands = (
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,
     forceSourceDeploySourcePathCmd,
-    forceSourcePullCmd,
-    forceSourcePullForceCmd,
     projectDeployStartCmd,
     projectDeployStartIgnoreConflictsCmd,
+    projectRetrieveStartCmd,
+    projectRetrieveStartIgnoreConflictsCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
