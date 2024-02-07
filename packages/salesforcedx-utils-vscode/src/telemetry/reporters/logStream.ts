@@ -84,6 +84,6 @@ export class LogStream extends Disposable implements TelemetryReporter {
       this.logStream.end();
     });
 
-    return Promise.all([flushEventsToLogger]);
+    return flushEventsToLogger;
   }
 }
