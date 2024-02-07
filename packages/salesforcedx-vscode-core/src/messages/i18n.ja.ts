@@ -86,9 +86,9 @@ export const messages = {
   force_source_pull_force_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
 
-  force_source_push_default_org_text:
+  project_deploy_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送',
-  force_source_push_force_default_org_text:
+  project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送して競合を上書き',
 
   force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
@@ -295,7 +295,7 @@ export const messages = {
     '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',

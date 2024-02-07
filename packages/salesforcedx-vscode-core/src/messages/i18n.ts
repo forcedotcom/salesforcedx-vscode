@@ -103,9 +103,9 @@ export const messages = {
   force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_org_text:
     'SFDX: Pull Source from Default Org and Override Conflicts',
-  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
-  force_source_push_force_default_org_text:
-    'SFDX: Push Source to Default Org and Override Conflicts',
+  project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
   force_source_status_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
@@ -346,7 +346,7 @@ export const messages = {
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',

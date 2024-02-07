@@ -40,7 +40,7 @@ import {
   forceSourceDiff,
   forceSourceFolderDiff,
   forceSourcePull,
-  forceSourcePush,
+  projectDeployStart,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -128,6 +128,10 @@ const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
 
+const flagIgnoreConflicts: FlagParameter<string> = {
+  flag: '--ignore-conflicts'
+};
+
 function registerCommands(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
@@ -198,14 +202,14 @@ function registerCommands(
     forceSourcePull,
     flagOverwrite
   );
-  const forceSourcePushCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.push',
-    forceSourcePush
+  const projectDeployStartCmd = vscode.commands.registerCommand(
+    'sfdx.project.deploy.start',
+    projectDeployStart
   );
-  const forceSourcePushForceCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.push.force',
-    forceSourcePush,
-    flagOverwrite
+  const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
+    'sfdx.project.deploy.start.ignore.conflicts',
+    projectDeployStart,
+    flagIgnoreConflicts
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
@@ -409,8 +413,8 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
-    forceSourcePushCmd,
-    forceSourcePushForceCmd,
+    projectDeployStartCmd,
+    projectDeployStartIgnoreConflictsCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
@@ -504,14 +508,14 @@ async function setupOrgBrowser(
   await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
-    'sfdx.force.metadata.view.type.refresh',
+    'sfdx.metadata.view.type.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.force.metadata.view.component.refresh',
+    'sfdx.metadata.view.component.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
