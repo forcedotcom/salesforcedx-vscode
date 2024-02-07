@@ -22,8 +22,10 @@ export enum NodeType {
   Folder = 'folder'
 }
 
-export class BrowserNode extends vscode.TreeItem
-  implements RetrieveMetadataTrigger {
+export class BrowserNode
+  extends vscode.TreeItem
+  implements RetrieveMetadataTrigger
+{
   public toRefresh: boolean = false;
   public readonly fullName: string;
   public suffix?: string;
@@ -76,9 +78,12 @@ export class BrowserNode extends vscode.TreeItem
     }
 
     fullNames.forEach(fullName => {
+      const hasNamespacePrefix = fullName.includes('__');
       const label =
         this.type === NodeType.Folder
-          ? fullName.substr(fullName.indexOf('/') + 1)
+          ? fullName.substring(fullName.indexOf('/') + 1)
+          : hasNamespacePrefix
+          ? fullName.substring(fullName.indexOf('_') + 2)
           : fullName;
       const child = new BrowserNode(label, type, fullName);
       child._parent = this;
