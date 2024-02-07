@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { readFile } from 'fs/promises';
-import { ExtensionContext, Uri, extensions } from 'vscode';
+import { ExtensionContext, Uri } from 'vscode';
 import {
-  readExtensionHostLog,
-  getExtensionHostLogLocation,
   getExtensionHostLogActivationRecords,
-  getExtensionsInfo
-} from '../../../src/helpers/activationTracker';
+  getExtensionHostLogLocation,
+  readExtensionHostLog
+} from '../../../src/helpers/activationTrackerUtils';
 
 jest.mock('fs/promises', () => ({
   readFile: jest.fn()

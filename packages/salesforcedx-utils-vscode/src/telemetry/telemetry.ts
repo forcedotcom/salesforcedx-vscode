@@ -127,8 +127,11 @@ export class TelemetryService {
       extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    const tmEnabled = await this.isTelemetryEnabled();
-    if (this.reporter === undefined && tmEnabled && !isDevMode) {
+    if (
+      !isDevMode &&
+      this.reporter === undefined &&
+      (await this.isTelemetryEnabled())
+    ) {
       this.reporter = new TelemetryReporter(
         this.getTelemetryReporterName(),
         this.version,
