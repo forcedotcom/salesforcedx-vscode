@@ -10,8 +10,6 @@
 
 #### salesforcedx-vscode-lightning
 
-- We made some changes under the hood. ([PR #5393](https://github.com/forcedotcom/salesforcedx-vscode/pull/5393))
-
 #### salesforcedx-vscode-lwc
 
 - We made some changes under the hood. ([PR #5393](https://github.com/forcedotcom/salesforcedx-vscode/pull/5393))
