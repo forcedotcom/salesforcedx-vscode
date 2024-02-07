@@ -6,7 +6,7 @@
  */
 import {
   getRootWorkspacePath,
-  PullResult,
+  ProjectRetrieveStartResult,
   ProjectDeployStartResult
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -80,7 +80,7 @@ export class PersistentStorageService {
   }
 
   public setPropertiesForFilesPushPull(
-    pushOrPullResults: ProjectDeployStartResult[] | PullResult[]
+    pushOrPullResults: ProjectDeployStartResult[] | ProjectRetrieveStartResult[]
   ) {
     const afterPushPullTimestamp = new Date().toISOString();
     for (const file of pushOrPullResults) {

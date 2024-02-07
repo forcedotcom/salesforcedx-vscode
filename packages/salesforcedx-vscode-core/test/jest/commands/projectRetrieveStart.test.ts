@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourcePullExecutor } from '../../../src/commands/forceSourcePull';
+import { ProjectRetrieveStartExecutor } from '../../../src/commands/projectRetrieveStart';
 import { PersistentStorageService } from '../../../src/conflict';
 import { dummyPullResult } from './data/testData';
 
-describe('ForceSourcePullExecutor', () => {
+describe('ProjectRetrieveStartExecutor', () => {
   describe('updateCache', () => {
     const setPropertiesForFilesPushPullMock = jest.fn();
 
@@ -20,12 +20,12 @@ describe('ForceSourcePullExecutor', () => {
     });
 
     it('should update the local cache for the pulled source components after pull', async () => {
-      const pullExecutor = new ForceSourcePullExecutor();
+      const pullExecutor = new ProjectRetrieveStartExecutor();
 
       (pullExecutor as any).updateCache(dummyPullResult);
 
       expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(
-        dummyPullResult.result.pulledSource
+        dummyPullResult.result.files
       );
     });
   });
