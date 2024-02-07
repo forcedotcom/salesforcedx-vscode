@@ -78,7 +78,8 @@ export class BrowserNode
     }
 
     fullNames.forEach(fullName => {
-      const hasNamespacePrefix = fullName.includes('__');
+      const regex = /^([a-zA-Z0-9]+)__([a-zA-Z0-9]+)__c$/;
+      const hasNamespacePrefix = regex.test(fullName);
       const label =
         this.type === NodeType.Folder
           ? fullName.substring(fullName.indexOf('/') + 1)
