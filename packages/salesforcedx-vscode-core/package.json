@@ -24,11 +24,11 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "6.4.7",
+    "@salesforce/core": "6.5.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "59.17.0",
     "@salesforce/salesforcedx-utils-vscode": "59.17.0",
     "@salesforce/schemas": "^1.6.1",
-    "@salesforce/source-deploy-retrieve": "10.2.9",
+    "@salesforce/source-deploy-retrieve": "10.3.3",
     "@salesforce/templates": "^60.1.0",
     "@salesforce/ts-types": "2.0.9",
     "adm-zip": "0.5.10",
@@ -97,10 +97,10 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "6.4.7",
-        "@salesforce/source-tracking": "5.1.3",
+        "@salesforce/core": "6.5.2",
+        "@salesforce/source-tracking": "5.1.11",
         "@salesforce/templates": "^60.1.0",
-        "@salesforce/source-deploy-retrieve": "10.2.9",
+        "@salesforce/source-deploy-retrieve": "10.3.3",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
@@ -175,7 +175,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "sfdx.force.metadata.view.type.refresh",
+          "command": "sfdx.metadata.view.type.refresh",
           "when": "view == metadata",
           "group": "navigation"
         }
@@ -186,7 +186,7 @@
           "when": "view == sfdx.tasks.view"
         },
         {
-          "command": "sfdx.force.metadata.view.component.refresh",
+          "command": "sfdx.metadata.view.component.refresh",
           "when": "view == metadata && viewItem =~ /(folder|type)/",
           "group": "inline"
         },
@@ -608,11 +608,11 @@
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         },
         {
-          "command": "sfdx.force.metadata.view.type.refresh",
+          "command": "sfdx.metadata.view.type.refresh",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.metadata.view.component.refresh",
+          "command": "sfdx.metadata.view.component.refresh",
           "when": "sfdx:project_opened"
         }
       ]
@@ -851,7 +851,7 @@
         "title": "%lightning_generate_lwc_text%"
       },
       {
-        "command": "sfdx.force.metadata.view.type.refresh",
+        "command": "sfdx.metadata.view.type.refresh",
         "title": "%refresh_types_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -859,7 +859,7 @@
         }
       },
       {
-        "command": "sfdx.force.metadata.view.component.refresh",
+        "command": "sfdx.metadata.view.component.refresh",
         "title": "%refresh_components_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
