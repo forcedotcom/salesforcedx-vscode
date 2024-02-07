@@ -9,27 +9,23 @@ import { LOCAL_TELEMETRY_FILE } from '../../constants';
 import { TelemetryReporter } from '../interfaces';
 
 export class TelemetryFile implements TelemetryReporter {
-  appInsightsClient: undefined;
-  userOptIn: undefined;
-  logStream: undefined;
-
-  sendTelemetryEvent(
+  public sendTelemetryEvent(
     eventName: string,
-    properties?: { [key: string]: string } | undefined,
-    measurements?: { [key: string]: number } | undefined
+    properties?: { [key: string]: string },
+    measurements?: { [key: string]: number }
   ): void {
     this.writeToFile(eventName, { ...properties, ...measurements });
   }
 
-  sendExceptionEvent(
+  public sendExceptionEvent(
     exceptionName: string,
     exceptionMessage: string,
-    measurements?: { [key: string]: number } | undefined
+    measurements?: { [key: string]: number }
   ): void {
     this.writeToFile(exceptionName, { exceptionMessage, ...measurements });
   }
 
-  dispose(): Promise<void> {
+  public dispose(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         console.log('dispose called on Local Telemetry Logger.');
@@ -45,7 +41,7 @@ export class TelemetryFile implements TelemetryReporter {
    * @param command - The command associated with the telemetry data.
    * @param data - The telemetry data to be written.
    */
-  public writeToFile(
+  private writeToFile(
     command: string,
     data: {
       [key: string]: string | number;
