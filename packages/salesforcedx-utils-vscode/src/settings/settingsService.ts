@@ -27,11 +27,10 @@ export class SettingsService {
     extensionName: string,
     advancedSetting: AdvancedSettings
   ): boolean {
-    const isAdvancedSettingEnabled = vscode.workspace
+return vscode.workspace
       .getConfiguration()
-      .get<string>(`${extensionName}.${ADVANCED}.${advancedSetting}`);
-    // if the setting doesn't exist for this extension, false will be returned
-    const booleanVal = isAdvancedSettingEnabled === TRUE;
-    return booleanVal;
+      .get<string>(
+        `${extensionName}.${ADVANCED}.${ENABLE_LOCAL_TELEMETRY_LOGGING}`
+      ) === TRUE;
   }
 }
