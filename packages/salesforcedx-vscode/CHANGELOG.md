@@ -1,3 +1,19 @@
+# 59.17.0 - February 7, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the `SFDX:Deploy this Source to Org` command not throwing an error when the command failed. ([PR #5392](https://github.com/forcedotcom/salesforcedx-vscode/pull/5392))
+
+- We migrated some more commands to the new `sf style`. ([PR #5362](https://github.com/forcedotcom/salesforcedx-vscode/pull/5362))
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #5393](https://github.com/forcedotcom/salesforcedx-vscode/pull/5393))
+
 # 59.16.0 - January 31, 2024
 
 ## Fixed
