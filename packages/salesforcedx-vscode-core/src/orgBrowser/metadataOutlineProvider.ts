@@ -156,7 +156,7 @@ export class MetadataOutlineProvider
 
 export const parseErrors = (error: any): Error => {
   try {
-    const errMsg = typeof error === 'string' ? error : error.message;
+    const errMsg = typeof error === 'string' ? error : JSON.stringify(error);
     const e = extractJsonObject(errMsg);
 
     let message: string;
