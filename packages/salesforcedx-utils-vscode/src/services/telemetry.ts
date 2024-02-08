@@ -19,7 +19,7 @@ import {
 } from '../telemetry/cliConfiguration';
 import { TelemetryReporter } from '../telemetry/interfaces/telemetryReporter';
 import { AppInsights } from '../telemetry/reporters/appInsights';
-import { LogStream as LogStream } from '../telemetry/reporters/logStream';
+import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
 
@@ -147,7 +147,7 @@ export class TelemetryService {
         // the new TelemetryFile reporter uses, I am keeping the logic in place for which
         // reporter is used when.  The original log stream functionality only worked under
         // the same conditions as the AppInsights capabilities, but with additional configuration.
-        if (LogStreamConfig.isEnabledFor(this.extensionName)) {
+        if (LogStreamConfig.isEnabled()) {
           this.reporters.push(
             new LogStream(
               this.getTelemetryReporterName(),
