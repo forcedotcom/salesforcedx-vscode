@@ -11,7 +11,18 @@ import { LOCAL_TELEMETRY_FILE } from '../../constants';
 import { TelemetryReporter } from '../interfaces';
 
 export class TelemetryFile implements TelemetryReporter {
-  constructor(private extensionId: string) {}
+  private filePath: string;
+
+  constructor(extensionId: string) {
+    this.filePath = this.logFilePathFor(extensionId);
+    console.log(
+      'Local telemetry event logging enabled for: ' +
+        extensionId +
+        '. Telemetry events will be appended to the file at: ' +
+        this.filePath +
+        '.'
+    );
+  }
 
   public sendTelemetryEvent(
     eventName: string,
@@ -54,15 +65,15 @@ export class TelemetryFile implements TelemetryReporter {
     const timestamp = new Date().toISOString();
 
     await fs.promises.appendFile(
-      this.logFilePath(),
+      this.filePath,
       JSON.stringify({ timestamp, command, data }, null, 2) + ','
     );
   }
 
-  private logFilePath(): fs.PathLike | fs.promises.FileHandle {
+  private logFilePathFor(extensionId: string): string {
     return path.join(
       getRootWorkspacePath(),
-      `${this.extensionId}-${LOCAL_TELEMETRY_FILE}`
+      `${extensionId}-${LOCAL_TELEMETRY_FILE}`
     );
   }
 }
