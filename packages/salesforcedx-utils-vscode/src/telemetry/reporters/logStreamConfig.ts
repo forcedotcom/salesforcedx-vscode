@@ -6,13 +6,23 @@
  */
 export class LogStreamConfig {
   public static logFilePath(): string {
-    return process.env['VSCODE_LOGS'] ?? '';
+    const vsCodeLogsPath = process.env['VSCODE_LOGS'] ?? '';
+    console.log(
+      '🚀 ~ LogStreamConfig ~ logFilePath ~ vsCodeLogsPath:',
+      vsCodeLogsPath
+    );
+    return vsCodeLogsPath;
   }
   public static isEnabledFor(extensionName: string): boolean | '' {
-    return (
+    const vsCodeLogLevelTrace = process.env['VSCODE_LOG_LEVEL'] === 'trace';
+    console.log(
+      '🚀 ~ LogStreamConfig ~ isEnabledFor ~ vsCodeLogLevelTrace:',
+      vsCodeLogLevelTrace
+    );
+    return !!(
       LogStreamConfig.logFilePath() &&
       extensionName &&
-      process.env['VSCODE_LOG_LEVEL'] === 'trace'
+      vsCodeLogLevelTrace
     );
   }
 }

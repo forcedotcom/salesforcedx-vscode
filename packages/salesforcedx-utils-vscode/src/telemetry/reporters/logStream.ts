@@ -30,7 +30,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
     });
     this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
     console.log(
-      'Local telemetry event logging enabled for: ' +
+      'Local LogStream telemetry event logging enabled for: ' +
         this.extensionId +
         '. Telemetry events will be written via write stream to: ' +
         this.logFilePath +

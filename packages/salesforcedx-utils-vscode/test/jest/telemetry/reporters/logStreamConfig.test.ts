@@ -27,19 +27,19 @@ describe('LogStreamConfig', () => {
   describe('isEnabled', () => {
     it('should return false if VSCODE_LOGS is not set', () => {
       delete process.env[VSCODE_LOGS];
-      expect(LogStreamConfig.isEnabled()).toBe(false);
+      expect(LogStreamConfig.isEnabledFor('dummyExtension')).toBe(false);
     });
 
     it('should return false if VSCODE_LOG_LEVEL is not set to trace', () => {
       process.env[VSCODE_LOGS] = fakePath;
       process.env[VSCODE_LOG_LEVEL] = 'info';
-      expect(LogStreamConfig.isEnabled()).toBe(false);
+      expect(LogStreamConfig.isEnabledFor('dummyExtension')).toBe(false);
     });
 
     it('should return true if VSCODE_LOGS is provided and VSCODE_LOG_LEVEL is set to trace', () => {
       process.env[VSCODE_LOGS] = fakePath;
       process.env[VSCODE_LOG_LEVEL] = 'trace';
-      expect(LogStreamConfig.isEnabled()).toBe(true);
+      expect(LogStreamConfig.isEnabledFor('dummyExtension')).toBe(true);
     });
   });
 });
