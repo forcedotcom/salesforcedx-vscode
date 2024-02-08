@@ -65,13 +65,11 @@ export class LogStream extends Disposable implements TelemetryReporter {
     exceptionMessage: string,
     measurements?: { [key: string]: number }
   ): void {
-    const error = new Error();
-    error.name = `${this.extensionId}/${exceptionName}`;
-    error.message = exceptionMessage;
-    error.stack = 'DEPRECATED';
-
     const orgId = WorkspaceContextUtil.getInstance().orgId || '';
     const properties = { orgId };
+    console.log(
+      'LogStream.sendExceptionEvent - exceptionMessage: ' + exceptionMessage
+    );
 
     if (this.logStream) {
       this.logStream.write(
