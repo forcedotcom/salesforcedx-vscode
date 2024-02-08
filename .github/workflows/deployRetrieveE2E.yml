@@ -1,4 +1,4 @@
-name: Core End to End Tests
+name: Deploy and Retrieve End to End Tests
 
 on:
   workflow_dispatch:
@@ -8,28 +8,28 @@ on:
         required: false
         default: "develop"
         type: string
-      anInitialSuite:
-        description: "Verify Extensions"
+      deployAndRetrieve:
+        description: "Deploy and Retrieve"
         required: false
         default: true
         type: boolean
-      authentication:
-        description: "Authentication"
-        required: false
-        default: true
-        type: boolean
-      miscellaneous:
-        description: "Miscellaneous Commands"
+      diffAndConflictDetection:
+        description: "Diff and Conflict Detection"
         required: false
         default: false
         type: boolean
-      sObjectsDefinitions:
-        description: "sObjects Definitions"
+      manifestBuilder:
+        description: "Manifest Builder"
         required: false
         default: true
         type: boolean
-      templates:
-        description: "Templates"
+      orgBrowser:
+        description: "Org Browser"
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: "Push and Pull"
         required: false
         default: true
         type: boolean
@@ -50,28 +50,28 @@ on:
         required: false
         default: "develop"
         type: string
-      anInitialSuite:
-        description: "Verify Extensions"
+      deployAndRetrieve:
+        description: "Deploy and Retrieve"
         required: false
         default: true
         type: boolean
-      authentication:
-        description: "Authentication"
-        required: false
-        default: true
-        type: boolean
-      miscellaneous:
-        description: "Miscellaneous Commands"
+      diffAndConflictDetection:
+        description: "Diff and Conflict Detection"
         required: false
         default: false
         type: boolean
-      sObjectsDefinitions:
-        description: "sObjects Definitions"
+      manifestBuilder:
+        description: "Manifest Builder"
         required: false
         default: true
         type: boolean
-      templates:
-        description: "Templates"
+      orgBrowser:
+        description: "Org Browser"
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: "Push and Pull"
         required: false
         default: true
         type: boolean
@@ -86,53 +86,53 @@ on:
         type: string
 
 jobs:
-  anInitialSuite:
-    if: ${{ inputs.anInitialSuite }}
+  deployAndRetrieve:
+    if: ${{ inputs.deployAndRetrieve }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "anInitialSuite.e2e.ts"
+      testToRun: "deployAndRetrieve.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  authentication:
-    if: ${{ inputs.authentication }}
+  diffAndConflictDetection:
+    if: ${{ inputs.diffAndConflictDetection }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "authentication.e2e.ts"
+      testToRun: "diffAndConflictDetection.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  miscellaneous:
-    if: ${{ inputs.miscellaneous }}
+  manifestBuilder:
+    if: ${{ inputs.manifestBuilder }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "miscellaneous.e2e.ts"
+      testToRun: "manifestBuilder.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  sObjectsDefinitions:
-    if: ${{ inputs.sObjectsDefinitions }}
+  orgBrowser:
+    if: ${{ inputs.orgBrowser }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "sObjectsDefinitions.e2e.ts"
+      testToRun: "orgBrowser.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  templates:
-    if: ${{ inputs.templates }}
+  pushAndPull:
+    if: ${{ inputs.pushAndPull }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "templates.e2e.ts"
+      testToRun: "pushAndPull.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
@@ -140,18 +140,18 @@ jobs:
     if: ${{ success() }}
     needs:
       [
-        anInitialSuite,
-        authentication,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
+        deployAndRetrieve,
+        diffAndConflictDetection,
+        manifestBuilder,
+        orgBrowser,
+        pushAndPull,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Core E2E Tests"
+      title: "Deploy and Retrieve E2E Tests"
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: "All the tests passed."
       workflow: "actions/runs/${{ github.run_id }}"
       type: "e2e"
@@ -160,18 +160,18 @@ jobs:
     if: ${{ failure()}}
     needs:
       [
-        anInitialSuite,
-        authentication,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
+        deployAndRetrieve,
+        diffAndConflictDetection,
+        manifestBuilder,
+        orgBrowser,
+        pushAndPull,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Core E2E Tests"
+      title: "Deploy and Retrieve E2E Tests"
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: "Not all the tests passed."
       workflow: "actions/runs/${{ github.run_id }}"
       type: "e2e"
@@ -180,18 +180,18 @@ jobs:
     if: ${{ cancelled() }}
     needs:
       [
-        anInitialSuite,
-        authentication,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
+        deployAndRetrieve,
+        diffAndConflictDetection,
+        manifestBuilder,
+        orgBrowser,
+        pushAndPull,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Core E2E Tests"
+      title: "Deploy and Retrieve E2E Tests"
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: "The workflow was cancelled."
       workflow: "actions/runs/${{ github.run_id }}"
       type: "e2e"

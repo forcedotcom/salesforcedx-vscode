@@ -23,6 +23,11 @@ on:
         required: false
         default: true
         type: boolean
+      deployAndRetrieveE2ETests:
+        description: "Deploy and Retrieve E2E Tests"
+        required: false
+        default: true
+        type: boolean
       lspE2ETests:
         description: "LSP E2E Tests"
         required: false
@@ -51,6 +56,15 @@ jobs:
   Core_E2E_tests:
     if: ${{ inputs.coreE2ETests || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/coreE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'develop' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  DeployAndRetrieve_E2E_tests:
+    if: ${{ inputs.deployAndRetrieveE2ETests || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/deployAndRetrieveE2E.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop' }}
