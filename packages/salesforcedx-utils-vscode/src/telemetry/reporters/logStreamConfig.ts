@@ -8,9 +8,10 @@ export class LogStreamConfig {
   public static logFilePath(): string {
     return process.env['VSCODE_LOGS'] ?? '';
   }
-  public static isEnabled(): boolean {
-    return !!(
+  public static isEnabledFor(extensionName: string): boolean | '' {
+    return (
       LogStreamConfig.logFilePath() &&
+      extensionName &&
       process.env['VSCODE_LOG_LEVEL'] === 'trace'
     );
   }
