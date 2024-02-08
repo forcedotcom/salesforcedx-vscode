@@ -148,14 +148,6 @@ export class TelemetryService {
         // reporter is used when.  The original log stream functionality only worked under
         // the same conditions as the AppInsights capabilities, but with additional configuration.
         if (LogStreamConfig.isEnabledFor(this.extensionName)) {
-          console.log(
-            'Telemetry Log Stream enabled for: ' +
-              this.extensionName +
-              '. Telemetry events will be logged at: ' +
-              LogStreamConfig.logFilePath() +
-              '.'
-          );
-
           this.reporters.push(
             new LogStream(
               this.getTelemetryReporterName(),
@@ -177,7 +169,7 @@ export class TelemetryService {
           console.log(
             'Local Telemetry File Logging enabled for: ' + this.extensionName
           );
-          this.reporters.push(new TelemetryFile());
+          this.reporters.push(new TelemetryFile(this.extensionName));
         }
       }
     }

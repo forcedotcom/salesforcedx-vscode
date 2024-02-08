@@ -1,8 +1,9 @@
-/* eslint-disable header/header */
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
+/*
+ * Copyright (c) 2024, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 'use strict';
 
 import * as fs from 'fs';
@@ -18,7 +19,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
 
   constructor(
     private extensionId: string,
-    logFilePath: string
+    private logFilePath: string
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
     logFilePath = path.join(logFilePath, `${this.extensionId}.txt`);
@@ -28,6 +29,13 @@ export class LogStream extends Disposable implements TelemetryReporter {
       autoClose: true
     });
     this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
+    console.log(
+      'Local telemetry event logging enabled for: ' +
+        this.extensionId +
+        '. Telemetry events will be written via write stream to: ' +
+        this.logFilePath +
+        '.'
+    );
   }
 
   public sendTelemetryEvent(

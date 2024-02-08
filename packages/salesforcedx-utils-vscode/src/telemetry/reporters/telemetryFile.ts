@@ -4,17 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { appendFile } from 'fs';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
 import { TelemetryReporter } from '../interfaces';
 
 export class TelemetryFile implements TelemetryReporter {
+  constructor(private extensionId: string) {}
+
   public sendTelemetryEvent(
     eventName: string,
     properties?: { [key: string]: string },
     measurements?: { [key: string]: number }
   ): void {
-    this.writeToFile(eventName, { ...properties, ...measurements });
+    void this.writeToFile(eventName, { ...properties, ...measurements });
   }
 
   public sendExceptionEvent(
@@ -22,7 +26,7 @@ export class TelemetryFile implements TelemetryReporter {
     exceptionMessage: string,
     measurements?: { [key: string]: number }
   ): void {
-    this.writeToFile(exceptionName, { exceptionMessage, ...measurements });
+    void this.writeToFile(exceptionName, { exceptionMessage, ...measurements });
   }
 
   public dispose(): Promise<void> {
@@ -41,20 +45,24 @@ export class TelemetryFile implements TelemetryReporter {
    * @param command - The command associated with the telemetry data.
    * @param data - The telemetry data to be written.
    */
-  private writeToFile(
+  private async writeToFile(
     command: string,
     data: {
       [key: string]: string | number;
     }
   ) {
     const timestamp = new Date().toISOString();
-    appendFile(
-      LOCAL_TELEMETRY_FILE as string,
-      JSON.stringify({ timestamp, command, data }, null, 2) + ',',
-      err => {
-        if (err) throw err;
-        console.log('Telemetry data appended to file!');
-      }
+
+    await fs.promises.appendFile(
+      this.logFilePath(),
+      JSON.stringify({ timestamp, command, data }, null, 2) + ','
+    );
+  }
+
+  private logFilePath(): fs.PathLike | fs.promises.FileHandle {
+    return path.join(
+      getRootWorkspacePath(),
+      `${this.extensionId}-${LOCAL_TELEMETRY_FILE}`
     );
   }
 }
