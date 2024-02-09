@@ -29,7 +29,7 @@ on:
         default: true
         type: boolean
       templates:
-        description: "Templates"
+        description: "Create Commands"
         required: false
         default: true
         type: boolean
@@ -71,7 +71,7 @@ on:
         default: true
         type: boolean
       templates:
-        description: "Templates"
+        description: "Create Commands"
         required: false
         default: true
         type: boolean

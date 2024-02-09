@@ -1,0 +1,164 @@
+name: Base E2E Test Suite for Minimum VSCode Version
+
+on:
+  workflow_run:
+    workflows:
+      - Nightly Build Develop
+      - Test, Build, and Release
+    types:
+      - completed
+
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: "Set the branch to use for automation tests"
+        required: false
+        default: "develop"
+        type: string
+      anInitialSuite:
+        description: "Verify Extensions"
+        required: false
+        default: true
+        type: boolean
+      authentication:
+        description: "Authentication"
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: "Create Commands"
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieve:
+        description: "Deploy and Retrieve"
+        required: false
+        default: true
+        type: boolean
+      apexLsp:
+        description: "Apex LSP"
+        required: false
+        default: true
+        type: boolean
+      runApexTests:
+        description: "Run Apex Tests"
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: "VSCode Version"
+        required: false
+        default: "1.82.3"
+        type: string
+      runId:
+        description: "Run ID of the workflow run that created the vsixes"
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: "Set the branch to use for automation tests"
+        required: false
+        default: "develop"
+        type: string
+      anInitialSuite:
+        description: "Verify Extensions"
+        required: false
+        default: true
+        type: boolean
+      authentication:
+        description: "Authentication"
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: "Create Commands"
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieve:
+        description: "Deploy and Retrieve"
+        required: false
+        default: true
+        type: boolean
+      apexLsp:
+        description: "Apex LSP"
+        required: false
+        default: true
+        type: boolean
+      runApexTests:
+        description: "Run Apex Tests"
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: "VSCode Version"
+        required: false
+        default: "1.82.3"
+        type: string
+      runId:
+        description: "Run ID of the workflow run that created the vsixes"
+        required: true
+        type: string
+
+jobs:
+  anInitialSuite:
+    if: ${{ inputs.anInitialSuite || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || github.event_name == 'workflow_run' }}
+      testToRun: "anInitialSuite.e2e.ts"
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      runId: ${{ inputs.runId }}
+
+  authentication:
+    if: ${{ inputs.authentication || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: "authentication.e2e.ts"
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      runId: ${{ inputs.runId }}
+
+  templates:
+    if: ${{ inputs.templates || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: "templates.e2e.ts"
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      runId: ${{ inputs.runId }}
+
+  deployAndRetrieve:
+    if: ${{ inputs.deployAndRetrieve || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: "deployAndRetrieve.e2e.ts"
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      runId: ${{ inputs.runId }}
+
+  apexLSP:
+    if: ${{ inputs.apexLsp || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: "apexLsp.e2e.ts"
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      runId: ${{ inputs.runId }}
+
+  runApexTests:
+    if: ${{ inputs.runApexTests || github.event_name == 'workflow_run' }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: "runApexTests.e2e.ts"
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      runId: ${{ inputs.runId }}
