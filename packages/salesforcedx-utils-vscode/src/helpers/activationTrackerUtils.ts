@@ -140,7 +140,7 @@ export const getExtensionsInfo = async (
 
   const keys = Object.keys(activationRecords);
   return keys.reduce((ei, key) => {
-    const activationRecord = Reflect.get(activationRecords, key);
+    const activationRecord = activationRecords[key];
     if (!activationRecord) {
       return {};
     }
@@ -177,10 +177,7 @@ export const getExtensionInfo = async (
   while (Date.now() < endTime) {
     const extensionsInfo = await getExtensionsInfo(extensionContext);
     if (extensionsInfo) {
-      const extensionInfo = Reflect.get(
-        extensionsInfo,
-        extensionContext.extension.id
-      );
+      const extensionInfo = extensionsInfo[extensionContext.extension.id];
       if (extensionInfo) {
         return extensionInfo;
       }

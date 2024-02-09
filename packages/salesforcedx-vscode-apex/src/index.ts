@@ -55,7 +55,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const activationTracker = new ActivationTracker(extensionContext, telemetryService);
 
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-  console.debug(`tname: ${telemetryService.extensionName}`);
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(

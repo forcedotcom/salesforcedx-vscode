@@ -203,7 +203,7 @@ export class TelemetryService {
     hrstart: [number, number],
     activateStartDate?: Date,
     loadStartDate?: Date,
-    activactionTime?: number
+    activationTime?: number
   ): void {
     this.validateTelemetry(() => {
       const startupTime = this.getEndHRTime(hrstart);
@@ -216,7 +216,7 @@ export class TelemetryService {
       };
       const measurements = {
         startupTime,
-        ...(activactionTime === undefined ? {} : { activactionTime })
+        ...(activationTime === undefined ? {} : { activationTime })
       };
       this.reporter!.sendTelemetryEvent(
         'activationEvent',
