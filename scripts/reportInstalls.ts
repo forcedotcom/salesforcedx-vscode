@@ -37,6 +37,7 @@ type TelemetryData = InstallTelemetryData | InstallTelemetryDataMS;
 // Set to true for local development
 const DRY_RUN = false;
 const extensionsToTrack = [
+  'salesforcedx-einstein-gpt',
   'salesforcedx-vscode-core',
   'salesforcedx-vscode-apex',
   'salesforcedx-vscode-apex-debugger',
@@ -45,8 +46,7 @@ const extensionsToTrack = [
   'salesforcedx-vscode-lwc',
   'salesforcedx-vscode-visualforce',
   'salesforcedx-vscode',
-  'salesforcedx-vscode-expanded',
-  'salesforcedx-einstein-gpt'
+  'salesforcedx-vscode-expanded'
 ];
 const eventName = 'installStats';
 const marketPlaces = { MICROSOFT: 'MS', OPENVSX: 'OPENVSX' } as const;
@@ -141,15 +141,31 @@ const execute = async () => {
   logger('Report Installs Script Running...');
 
   for (const extension of extensionsToTrack) {
-    logger('Report VSCode Marketplace Installs...');
-    await reportVSCodeMarketplaceInstalls(extension);
+    try {
+      logger('Report VSCode Marketplace Installs...');
+      await reportVSCodeMarketplaceInstalls(extension);
 
-    logger('Report OpenVSX Installs...');
-    await reportOpenVSXInstalls(extension);
+      logger('Report OpenVSX Installs...');
+      await reportOpenVSXInstalls(extension);
+    } catch (err: unknown) {
+      logger(`Error reporting installs for ${extension}`, err);
+    }
   }
 };
 
 execute()
+  .then(() => {
+    return new Promise<void>(onFulfilled => {
+      // ensure we report all the metrics
+      appInsightsClient.flush({
+        isAppCrashing: false,
+        callback: () => {
+          logger('AppInsights flush complete');
+          onFulfilled();
+        }
+      });
+    });
+  })
   .then(() => {
     logger('reportInstalls script completed successfully');
     process.exit(0);
