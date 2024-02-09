@@ -6,7 +6,7 @@
  */
 import { realpathSync } from 'fs';
 import { TelemetryService } from '../../../src';
-import { flushFilePath } from '../../../src/helpers/utils';
+import { extractJsonObject, flushFilePath } from '../../../src/helpers/utils';
 
 describe('flushFilePath', () => {
   let teleSpy: jest.SpyInstance;
@@ -36,5 +36,34 @@ describe('flushFilePath', () => {
     const r = flushFilePath(originalPath);
     expect(r).toEqual(alteredPath);
     expect(teleSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('extractJsonObject unit tests', () => {
+  const initialValue = {
+    how: 'does',
+    it: true,
+    get: 5,
+    handled: false
+  };
+  const jsonString = JSON.stringify(initialValue);
+
+  it('Should be able to parse a json string.', () => {
+    const result = extractJsonObject(jsonString);
+    expect(result).toStrictEqual(initialValue);
+  });
+
+  it('Should throw error if argument is a simple text', () => {
+    const invalidJson = initialValue.how;
+    expect(() => extractJsonObject(invalidJson)).toThrow(
+      'The string "does" is not a valid JSON string.'
+    );
+  });
+
+  it('Should throw error if argument is invalid JSON string', () => {
+    const invalidJson = jsonString.substring(10);
+    expect(() => extractJsonObject(invalidJson)).toThrow(
+      `The string "${invalidJson}" is not a valid JSON string.`
+    );
   });
 });

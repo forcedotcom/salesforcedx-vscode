@@ -67,12 +67,14 @@ export class ComponentUtils {
       if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
-          const { fullName, manageableState } = cmp;
+          const { fullName, manageableState, namespacePrefix } = cmp;
           if (
             !isNullOrUndefined(fullName) &&
             validManageableStates.has(manageableState)
           ) {
-            components.push(fullName);
+            components.push(
+              namespacePrefix ? `${namespacePrefix}__${fullName}` : fullName
+            );
           }
         }
       }
@@ -128,9 +130,8 @@ export class ComponentUtils {
     if (folderName) {
       metadataQuery.folder = folderName;
     }
-    const metadataFileProperties = await connection.metadata.list(
-      metadataQuery
-    );
+    const metadataFileProperties =
+      await connection.metadata.list(metadataQuery);
     const result = { status: 0, result: metadataFileProperties };
     const jsonResult = JSON.stringify(result, null, 2);
     fs.writeFileSync(componentsPath, jsonResult);
