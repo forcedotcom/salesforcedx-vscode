@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
+import { setTimeout } from 'timers';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
@@ -12,9 +15,6 @@ import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 
-import * as path from 'path';
-import { setTimeout } from 'timers';
-import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 
 export class DeployQueue {
@@ -23,7 +23,7 @@ export class DeployQueue {
   private static instance: DeployQueue;
 
   private readonly queue = new Set<vscode.Uri>();
-  private timer: NodeJS.Timer | undefined;
+  private timer: ReturnType<typeof setTimeout> | undefined;
   private locked = false;
   private deployWaitStart?: [number, number];
 
@@ -74,10 +74,11 @@ export class DeployQueue {
   }
 
   private async executePushCommand() {
-    const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
-      ? '.force'
-      : '';
-    const command = `sfdx.force.source.push${forceCommand}`;
+    const ignoreConflictsCommand =
+      sfdxCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
+        ? '.ignore.conflicts'
+        : '';
+    const command = `sfdx.project.deploy.start${ignoreConflictsCommand}`;
     vscode.commands.executeCommand(command);
   }
 
@@ -88,7 +89,8 @@ export class DeployQueue {
       this.queue.clear();
       let deployType: string = '';
       try {
-        const preferDeployOnSaveEnabled = sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+        const preferDeployOnSaveEnabled =
+          sfdxCoreSettings.getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
           await this.executeDeployCommand(toDeploy);
           deployType = 'Deploy';
@@ -158,7 +160,7 @@ function displayError(message: string) {
   channelService.showChannelOutput();
   telemetryService.sendException(
     'push_deploy_on_save_queue',
-    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+    'DeployOnSaveError: Documents were queued but a deployment was not triggered'
   );
 }
 

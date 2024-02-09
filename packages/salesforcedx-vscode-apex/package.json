@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "58.15.0",
+  "version": "59.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,48 +24,60 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "1.6.2",
-    "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "4.3.11",
-    "@salesforce/salesforcedx-utils-vscode": "58.15.0",
-    "@salesforce/source-deploy-retrieve": "9.7.0",
+    "@salesforce/apex-node": "3.0.1",
+    "@salesforce/apex-tmlanguage": "1.8.0",
+    "@salesforce/core": "6.5.2",
+    "@salesforce/salesforcedx-utils-vscode": "59.17.0",
+    "@salesforce/source-deploy-retrieve": "10.3.3",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
-    "path-exists": "3.0.0",
     "shelljs": "0.8.5",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "5.1.1"
+    "vscode-languageclient": "8.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "58.15.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.17.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
-    "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
-    "@types/node": "12.0.12",
-    "@types/path-exists": "^1.0.29",
+    "@types/node": "^18.11.9",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.61.2",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-jest": "27.5.0",
+    "eslint-plugin-jest-formatting": "3.1.0",
+    "eslint-plugin-jsdoc": "46.8.2",
+    "eslint-plugin-prefer-arrow": "1.2.3",
     "mocha": "^10",
+    "prettier": "3.0.3",
     "sinon": "^13.0.1",
-    "typescript": "^4.7.4",
+    "typescript": "^5.2.2",
     "vscode-extension-telemetry": "0.0.17"
   },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve --minify",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve --external:@salesforce/source-tracking --minify",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
     "test": "npm run test:vscode-integration",
     "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
@@ -79,6 +91,7 @@
       "README.md",
       ".vscodeignore",
       "OSSREADME.json",
+      "grammars",
       "resources",
       "snippets",
       "syntaxes",
@@ -91,9 +104,10 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.4.0",
-        "@salesforce/core": "4.3.11",
-        "@salesforce/templates": "^58.0.1",
-        "@salesforce/source-deploy-retrieve": "9.7.0",
+        "@salesforce/core": "6.5.2",
+        "@salesforce/templates": "^60.1.0",
+        "@salesforce/source-deploy-retrieve": "10.3.3",
+        "@salesforce/source-tracking": "5.1.11",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
@@ -353,6 +367,26 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_code_completion_stats_description%"
+        },
+        "apex.trace.server": {
+          "type": "string",
+          "enum": [
+            "verbose",
+            "messages",
+            "off"
+          ],
+          "default": "off",
+          "description": "%apex_trace_server_description%",
+          "enumDescriptions": [
+            "%apex_verbose_level_trace_description%",
+            "%apex_messages_level_trace_description%",
+            "%apex_off_level_trace_description%"
+          ]
+        },
+        "salesforcedx-vscode-apex.disable-warnings-for-missing-coverage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_code_disable-warnings-for-missing-coverage%"
         }
       }
     },
@@ -385,12 +419,12 @@
       {
         "language": "apex",
         "scopeName": "source.apex",
-        "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       },
       {
         "language": "apex-anon",
         "scopeName": "source.apex",
-        "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+        "path": "./grammars/apex.tmLanguage"
       }
     ],
     "snippets": [

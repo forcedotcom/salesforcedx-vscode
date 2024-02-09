@@ -1,14 +1,20 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 'use strict';
 
 import * as glob from 'glob';
 import * as paths from 'path';
 
-// tslint:disable:no-var-requires
-// tslint:disable-next-line:variable-name
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Mocha = require('mocha');
 
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
 // Since we are not running in a tty environment, we just implementt he method statically
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const tty = require('tty');
 if (!tty.getWindowSize) {
   tty.getWindowSize = (): number[] => {
@@ -22,7 +28,7 @@ let mocha = new Mocha({
   reporter: 'mocha-multi-reporters'
 });
 
-function configure(mochaOpts: any, xmlOutputDirectory: string): void {
+const configure = (mochaOpts: any, xmlOutputDirectory: string): void => {
   if (mochaOpts.reporter == null) {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
     mochaOpts.reporter = 'mocha-multi-reporters';
@@ -52,10 +58,11 @@ function configure(mochaOpts: any, xmlOutputDirectory: string): void {
     };
   }
   mocha = new Mocha(mochaOpts);
-}
+};
+
 exports.configure = configure;
 
-function run(testsRoot: any, clb: any): any {
+const run = (testsRoot: any, clb: any): any => {
   let testGlobPath;
   const testFilePath = process.env.SFDX_TEST_FILE_PATH;
   if (testFilePath) {
@@ -75,6 +82,7 @@ function run(testsRoot: any, clb: any): any {
   }
 
   // Enable source map support
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('source-map-support').install();
 
   // Glob test files
@@ -83,7 +91,8 @@ function run(testsRoot: any, clb: any): any {
     { cwd: testsRoot },
     (error, files): any => {
       if (error) {
-        console.error('An error occured: ' + error);
+        const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+        console.error(msg);
         return clb(error);
       }
       try {
@@ -106,6 +115,7 @@ function run(testsRoot: any, clb: any): any {
             });
           })
           .on('fail', (test: any, err: any): void => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Failure in test '${test}': ${err}`);
             failureCount++;
           })
@@ -113,25 +123,11 @@ function run(testsRoot: any, clb: any): any {
             console.log(`Tests ended with ${failureCount} failure(s)`);
             clb(undefined, failureCount);
           });
-      } catch (error) {
-        console.error('An error occured: ' + error);
-        return clb(error);
+      } catch (err) {
+        console.error('An error occured: ' + err);
+        return clb(err);
       }
     }
   );
-}
-exports.run = run;
-
-interface ITestRunnerOptions {
-  enabled?: boolean;
-  relativeCoverageDir: string;
-  relativeSourcePath: string;
-  ignorePatterns: string[];
-  includePid?: boolean;
-  reports?: string[];
-  verbose?: boolean;
-}
-
-declare var global: {
-  [key: string]: any; // missing index defintion
 };
+exports.run = run;

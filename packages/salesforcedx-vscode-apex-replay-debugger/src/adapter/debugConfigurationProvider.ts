@@ -28,22 +28,26 @@ export class DebugConfigurationProvider
     } as vscode.DebugConfiguration;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public provideDebugConfigurations(
     folder: vscode.WorkspaceFolder | undefined,
     token?: vscode.CancellationToken
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig()];
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(config).catch(async err => {
       return vscode.window
         .showErrorMessage(err.message, { modal: true })
-        .then(x => undefined);
+        .then(() => undefined);
     });
   }
 

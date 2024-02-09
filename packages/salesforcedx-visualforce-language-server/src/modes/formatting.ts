@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -16,14 +17,14 @@ import { applyEdits } from '../utils/edits';
 import { isEOL } from '../utils/strings';
 import { LanguageModes, Settings } from './languageModes';
 
-export function format(
+export const format = (
   languageModes: LanguageModes,
   document: TextDocument,
   formatRange: Range,
   formattingOptions: FormattingOptions,
   settings: Settings,
   enabledModes: { [mode: string]: boolean }
-) {
+) => {
   const result: TextEdit[] = [];
 
   const endPos = formatRange.end;
@@ -142,4 +143,4 @@ export function format(
   } finally {
     languageModes.onDocumentRemoved(newDocument);
   }
-}
+};

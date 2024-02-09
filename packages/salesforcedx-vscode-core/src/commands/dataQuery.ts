@@ -63,14 +63,14 @@ export class GetQueryAndApiInputs
         query = document.getText(editor.selection);
       }
     }
-    query = query!
-      .replace('[', '')
-      .replace(']', '')
-      .replace(/(\r\n|\n)/g, ' ');
-
     if (!query) {
       return { type: 'CANCEL' };
     }
+
+    query = query
+      .replace('[', '')
+      .replace(']', '')
+      .replace(/(\r\n|\n)/g, ' ');
 
     const restApi = {
       api: ApiType.REST,
@@ -105,6 +105,7 @@ export enum ApiType {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function dataQuery(explorerDir?: any) {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfdxCommandlet(

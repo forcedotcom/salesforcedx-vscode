@@ -7,6 +7,7 @@
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import * as sinon from 'sinon';
 import {
   DebuggerSessionDetachExecutor,
@@ -20,9 +21,9 @@ import {
 } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import childProcess = require('child_process');
 
 describe('Debugger stop command', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mockSpawn = require('mock-spawn');
 
   describe('Session query', () => {
@@ -38,7 +39,7 @@ describe('Debugger stop command', () => {
     beforeEach(() => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       workspaceCheckerStub = sinon
         .stub(SfdxWorkspaceChecker.prototype, 'check')
         .returns(true);
@@ -55,7 +56,7 @@ describe('Debugger stop command', () => {
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       workspaceCheckerStub.restore();
       idGathererStub.restore();
       detachExecutorSpy.restore();

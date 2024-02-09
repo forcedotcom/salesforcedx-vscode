@@ -14,12 +14,11 @@ import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
 // Below two dependancies are not structured correcly for import unless require is used.
-/* tslint:disable */
-const kill = require('tree-kill');
-const cross_spawn = require('cross-spawn');
-/* tslint:enable */
-
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { Command } from './';
+const cross_spawn = require('cross-spawn');
+const kill = require('tree-kill');
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -70,9 +69,9 @@ export class CliCommandExecutor {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
       ? CliCommandExecutor.patchEnv(
-          options,
-          GlobalCliEnvironment.environmentVariables
-        )
+        options,
+        GlobalCliEnvironment.environmentVariables
+      )
       : options;
   }
 
@@ -146,7 +145,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async next => {
+      timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
             this.exitSubject.next();
@@ -156,13 +155,13 @@ export class CompositeCliCommandExecution implements CommandExecution {
         }
       });
     }
-    this.processErrorSubject.subscribe(next => {
+    this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
 
-    this.processExitSubject.subscribe(next => {
+    this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -175,6 +174,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: {}) {
     if (e) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
       this.stderr.next(`${e}${os.EOL}`);
     }
     this.exitSubject.next(1);
@@ -198,6 +198,11 @@ export class CliCommandExecution implements CommandExecution {
   ) {
     this.command = command;
     this.cancellationToken = cancellationToken;
+
+    if (childProcess.pid === undefined) {
+      // TODO: Gordon should we throw here or what?
+      throw new Error('CLI Command process failed to start');
+    }
     this.childProcessPid = childProcess.pid;
 
     let timerSubscriber: Subscription | null;
@@ -206,8 +211,8 @@ export class CliCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) as Observable<number | undefined>;
-    this.processExitSubject.subscribe(next => {
+    );
+    this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -215,8 +220,8 @@ export class CliCommandExecution implements CommandExecution {
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
-    ) as Observable<Error | undefined>;
-    this.processErrorSubject.subscribe(next => {
+    );
+    this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
@@ -229,7 +234,7 @@ export class CliCommandExecution implements CommandExecution {
     // Cancellation watcher
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async next => {
+      timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
             await this.killExecution();
@@ -251,10 +256,13 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-async function killPromise(processId: number, signal: string): Promise<void> {
+const killPromise = (processId: number, signal: string): Promise<void> => {
   return new Promise<void>((resolve, reject) => {
     kill(processId, signal, (err: {}) => {
-      err ? reject(err) : resolve();
+      if (err) {
+        reject(err);
+      }
+      resolve();
     });
   });
-}
+};

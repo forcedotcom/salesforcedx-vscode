@@ -24,7 +24,7 @@ import {
 import { nls } from './messages';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: Uri): string {
+export const code2ProtocolConverter = (value: Uri): string => {
   if (/^win32/.test(process.platform)) {
     // The *first* : is also being encoded which is not the standard for URI on Windows
     // Here we transform it back to the standard way
@@ -32,18 +32,18 @@ export function code2ProtocolConverter(value: Uri): string {
   } else {
     return value.toString();
   }
-}
+};
 
-function protocol2CodeConverter(value: string): Uri {
+const protocol2CodeConverter = (value: string): Uri => {
   return Uri.parse(value);
-}
+};
 
-function getActivationMode(): string {
+const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') || 'autodetect'; // default to autodetect
-}
+};
 
-export async function activate(extensionContext: ExtensionContext) {
+export const activate = async (extensionContext: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -89,14 +89,9 @@ export async function activate(extensionContext: ExtensionContext) {
   // Start the Aura Language Server
 
   // Setup the language server
+  const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
-    path.join(
-      'node_modules',
-      '@salesforce',
-      'aura-language-server',
-      'lib',
-      'server.js'
-    )
+    path.join(...serverPath)
   );
 
   // The debug options for the server
@@ -184,23 +179,22 @@ export async function activate(extensionContext: ExtensionContext) {
 
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
 let indexingResolve: any;
 
-function startIndexing(): void {
+const startIndexing = (): void => {
   const indexingPromise: Promise<void> = new Promise(resolve => {
     indexingResolve = resolve;
   });
-  reportIndexing(indexingPromise);
-}
+  void reportIndexing(indexingPromise);
+};
 
-function endIndexing(): void {
+const endIndexing = (): void => {
   indexingResolve(undefined);
-}
-
-function reportIndexing(indexingPromise: Promise<void>) {
-  window.withProgress(
+};
+const reportIndexing = async (indexingPromise: Promise<void>) => {
+  void window.withProgress(
     {
       location: ProgressLocation.Window,
       title: nls.localize('index_components_text'),
@@ -210,9 +204,9 @@ function reportIndexing(indexingPromise: Promise<void>) {
       return indexingPromise;
     }
   );
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   console.log('Aura Components Extension Deactivated');
   TelemetryService.getInstance().sendExtensionDeactivationEvent();
-}
+};

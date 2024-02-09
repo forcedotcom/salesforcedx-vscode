@@ -10,7 +10,7 @@ import {
   ClientStatus,
   LanguageClientStatus,
   LanguageClientUtils
-} from '../../../src/languageClientUtils/languageClientUtils';
+} from '../../../src/languageUtils/languageClientUtils';
 
 describe('LanguageClientUtils', () => {
   let languageClientUtils: LanguageClientUtils;
@@ -20,7 +20,7 @@ describe('LanguageClientUtils', () => {
   });
 
   it('Should return correct initial status', async () => {
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(false);
@@ -30,7 +30,7 @@ describe('LanguageClientUtils', () => {
 
   it('Should return ready status', async () => {
     languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(true);
     expect(clientStatus.isIndexing()).to.equal(false);
@@ -43,7 +43,7 @@ describe('LanguageClientUtils', () => {
       ClientStatus.Indexing,
       'Apex client is indexing'
     );
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(true);
@@ -56,7 +56,7 @@ describe('LanguageClientUtils', () => {
       ClientStatus.Error,
       'Java version is misconfigured'
     );
-    const clientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const clientStatus = languageClientUtils.getStatus() ;
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(false);

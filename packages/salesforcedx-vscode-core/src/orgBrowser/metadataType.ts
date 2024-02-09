@@ -12,10 +12,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { forceDescribeMetadata } from '../commands';
+import { describeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { workspaceUtils } from '../util';
 
 export type MetadataObject = {
   directoryName: string;
@@ -97,7 +97,7 @@ export class TypeUtils {
 
     let typesList: MetadataObject[];
     if (forceRefresh || !fs.existsSync(typesPath)) {
-      const result = await forceDescribeMetadata(typesFolder);
+      const result = await describeMetadata(typesFolder);
       typesList = this.buildTypesList(result, undefined);
     } else {
       typesList = this.buildTypesList(undefined, typesPath);

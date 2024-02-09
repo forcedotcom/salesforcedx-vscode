@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
@@ -152,9 +153,9 @@ export class TelemetryReporter extends Disposable {
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
         // tslint:disable-next-line:object-literal-shorthand
-        properties: properties,
+        properties,
         // tslint:disable-next-line:object-literal-shorthand
-        measurements: measurements
+        measurements
       });
 
       if (this.logStream) {

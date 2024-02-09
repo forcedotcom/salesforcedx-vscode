@@ -20,6 +20,7 @@ import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
+import sanitizeFilename from 'sanitize-filename';
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
@@ -32,18 +33,16 @@ import {
   ProjectNameAndPathAndTemplate,
   SelectProjectFolder,
   SelectProjectName
-} from '../forceProjectCreate';
+} from '../projectGenerate';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from '../util';
-import sanitizeFilename = require('sanitize-filename');
 // below uses require due to bundling restrictions
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
 const AdmZip = require('adm-zip');
-/* tslint:enable */
 
 export interface InstalledPackageInfo {
   id: string;
@@ -72,6 +71,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     INSTALLED_PACKAGES
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     throw new Error('not in use');
   }
@@ -89,9 +89,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_configure_project')
-      )
+      .withDescription(nls.localize('isv_debug_bootstrap_configure_project'))
       .withArg('config:set')
       .withArg(`org-isv-debugger-sid=${data.sessionId}`)
       .withArg(`org-isv-debugger-url=${data.loginUrl}`)
@@ -105,9 +103,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_configure_project_retrieve_namespace'
-        )
+        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       )
       .withArg('data:query')
       .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
@@ -135,9 +131,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildRetrieveOrgSourceCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_retrieve_org_source')
-      )
+      .withDescription(nls.localize('isv_debug_bootstrap_retrieve_org_source'))
       .withArg('project:retrieve:start')
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
       .withFlag('--target-org', data.sessionId)
@@ -165,10 +159,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_retrieve_package_source',
-          packageName
-        )
+        nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
       )
       .withArg('project:retrieve:start')
       .withFlag('--package-name', packageName)
@@ -321,10 +312,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // TODO: what if packageNames.length is 0?
     for (const packageName of packageNames) {
       await this.executeCommand(
-        this.buildRetrievePackageSourceCommand(
-          response.data,
-          packageName
-        ),
+        this.buildRetrievePackageSourceCommand(response.data, packageName),
         { cwd: projectPath },
         cancellationTokenSource,
         cancellationToken
@@ -444,16 +432,18 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     return result;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     notificationService.reportExecutionError(
       execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
+      execution.stderrSubject as any as Observable<Error | undefined>
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
@@ -539,7 +529,7 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
       return sanitizeFilename(
-        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
     }
     return '';

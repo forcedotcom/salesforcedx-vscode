@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "58.15.0",
+  "version": "59.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,51 +24,60 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.7.0",
-    "@salesforce/core": "4.3.11",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "58.15.0",
-    "@salesforce/salesforcedx-utils-vscode": "58.15.0",
-    "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "9.7.0",
-    "@salesforce/templates": "^58.0.1",
-    "@salesforce/ts-types": "1.5.21",
+    "@salesforce/core": "6.5.2",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "59.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "59.17.0",
+    "@salesforce/schemas": "^1.6.1",
+    "@salesforce/source-deploy-retrieve": "10.3.3",
+    "@salesforce/templates": "^60.1.0",
+    "@salesforce/ts-types": "2.0.9",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
-    "jsforce": "2.0.0-beta.27",
+    "jsforce": "2.0.0-beta.29",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "58.15.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "59.17.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
-    "@types/jest": "28.1.7",
-    "@types/mkdirp": "0.5.2",
+    "@types/jest": "^29.5.5",
     "@types/mocha": "^5",
-    "@types/node": "12.0.12",
+    "@types/node": "^18.11.9",
     "@types/proxyquire": "1.3.28",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.61.2",
     "@types/yeoman-assert": "^3.1.1",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "jest": "28.1.3",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-jest": "27.5.0",
+    "eslint-plugin-jest-formatting": "3.1.0",
+    "eslint-plugin-jsdoc": "46.8.2",
+    "eslint-plugin-prefer-arrow": "1.2.3",
+    "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
     "mock-spawn": "0.2.6",
     "nyc": "^15",
+    "prettier": "3.0.3",
     "proxyquire": "2.1.3",
     "sinon": "^13.0.1",
-    "ts-jest": "28.0.8",
-    "typescript": "^4.7.4",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2",
     "yeoman-assert": "^3.1.1"
   },
   "packaging": {
@@ -88,24 +97,23 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@heroku/functions-core": "0.7.0",
-        "@salesforce/core": "4.3.11",
-        "@salesforce/source-tracking": "4.1.3",
-        "@salesforce/templates": "^58.0.1",
-        "@salesforce/source-deploy-retrieve": "9.7.0",
+        "@salesforce/core": "6.5.2",
+        "@salesforce/source-tracking": "5.1.11",
+        "@salesforce/templates": "^60.1.0",
+        "@salesforce/source-deploy-retrieve": "10.3.3",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
@@ -122,8 +130,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.force.project.create",
-    "onCommand:sfdx.force.project.with.manifest.create",
+    "onCommand:sfdx.project.generate",
+    "onCommand:sfdx.project.generate.with.manifest",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
@@ -145,7 +153,7 @@
     "views": {
       "explorer": [
         {
-          "id": "sfdx.force.tasks.view",
+          "id": "sfdx.tasks.view",
           "name": "%running_tasks_title_text%"
         }
       ],
@@ -167,18 +175,18 @@
     "menus": {
       "view/title": [
         {
-          "command": "sfdx.force.metadata.view.type.refresh",
+          "command": "sfdx.metadata.view.type.refresh",
           "when": "view == metadata",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "sfdx.force.task.stop",
-          "when": "view == sfdx.force.tasks.view"
+          "command": "sfdx.task.stop",
+          "when": "view == sfdx.tasks.view"
         },
         {
-          "command": "sfdx.force.metadata.view.component.refresh",
+          "command": "sfdx.metadata.view.component.refresh",
           "when": "view == metadata && viewItem =~ /(folder|type)/",
           "group": "inline"
         },
@@ -199,10 +207,6 @@
         }
       ],
       "editor/context": [
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
-        },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
@@ -234,15 +238,19 @@
       ],
       "explorer/context": [
         {
-          "command": "sfdx.force.lightning.lwc.create",
+          "command": "sfdx.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.lwc.create",
+          "command": "sfdx.internal.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.apex.class.create",
+          "command": "sfdx.apex.generate.class",
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.apex.generate.unit.test.class",
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
         },
         {
@@ -250,51 +258,51 @@
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.analytics.template.create",
+          "command": "sfdx.analytics.generate.template",
           "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.visualforce.component.create",
+          "command": "sfdx.visualforce.generate.component",
           "when": "explorerResourceIsFolder && resourceFilename == components && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.visualforce.page.create",
+          "command": "sfdx.visualforce.generate.page",
           "when": "explorerResourceIsFolder && resourceFilename == pages && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.lightning.app.create",
+          "command": "sfdx.lightning.generate.app",
           "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.app.create",
+          "command": "sfdx.internal.lightning.generate.app",
           "when": "explorerResourceIsFolder && sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.lightning.component.create",
+          "command": "sfdx.lightning.generate.aura.component",
           "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.component.create",
+          "command": "sfdx.internal.lightning.generate.aura.component",
           "when": "explorerResourceIsFolder && sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.lightning.event.create",
+          "command": "sfdx.lightning.generate.event",
           "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.event.create",
+          "command": "sfdx.internal.lightning.generate.event",
           "when": "explorerResourceIsFolder && sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.lightning.interface.create",
+          "command": "sfdx.lightning.generate.interface",
           "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.interface.create",
+          "command": "sfdx.internal.lightning.generate.interface",
           "when": "explorerResourceIsFolder && sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.apex.trigger.create",
+          "command": "sfdx.apex.generate.trigger",
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
         },
         {
@@ -320,10 +328,6 @@
         {
           "command": "sfdx.delete.source",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
-        },
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.create.manifest",
@@ -360,11 +364,11 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.open.documentation",
+          "command": "sfdx.open.documentation",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.create",
+          "command": "sfdx.org.create",
           "when": "sfdx:project_opened"
         },
         {
@@ -372,19 +376,19 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.pull",
+          "command": "sfdx.project.retrieve.start",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.pull.force",
+          "command": "sfdx.project.retrieve.start.ignore.conflicts",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.push",
+          "command": "sfdx.project.deploy.start",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.push.force",
+          "command": "sfdx.project.deploy.start.ignore.conflicts",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
@@ -400,23 +404,27 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.task.stop",
+          "command": "sfdx.task.stop",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.apex.class.create",
+          "command": "sfdx.apex.generate.class",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.analytics.template.create",
+          "command": "sfdx.apex.generate.unit.test.class",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.visualforce.component.create",
+          "command": "sfdx.analytics.generate.template",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.visualforce.page.create",
+          "command": "sfdx.visualforce.generate.component",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.visualforce.generate.page",
           "when": "sfdx:project_opened"
         },
         {
@@ -424,11 +432,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.config.list",
+          "command": "sfdx.config.list",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.alias.list",
+          "command": "sfdx.alias.list",
           "when": "sfdx:project_opened"
         },
         {
@@ -448,11 +456,11 @@
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
-          "command": "sfdx.force.project.create",
+          "command": "sfdx.project.generate",
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.project.with.manifest.create",
+          "command": "sfdx.project.generate.with.manifest",
           "when": "!sfdx:internal_dev"
         },
         {
@@ -464,7 +472,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.apex.trigger.create",
+          "command": "sfdx.apex.generate.trigger",
           "when": "sfdx:project_opened"
         },
         {
@@ -516,11 +524,11 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.org.delete.default",
+          "command": "sfdx.org.delete.default",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.org.delete.username",
+          "command": "sfdx.org.delete.username",
           "when": "sfdx:project_opened"
         },
         {
@@ -532,11 +540,11 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
-          "command": "sfdx.force.set.default.org",
+          "command": "sfdx.set.default.org",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.lightning.lwc.create",
+          "command": "sfdx.lightning.generate.lwc",
           "when": "sfdx:project_opened"
         },
         {
@@ -544,39 +552,39 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.lwc.create",
+          "command": "sfdx.internal.lightning.generate.lwc",
           "when": "false"
         },
         {
-          "command": "sfdx.force.lightning.app.create",
+          "command": "sfdx.lightning.generate.app",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.app.create",
+          "command": "sfdx.internal.lightning.generate.app",
           "when": "false"
         },
         {
-          "command": "sfdx.force.lightning.component.create",
+          "command": "sfdx.lightning.generate.aura.component",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.component.create",
+          "command": "sfdx.internal.lightning.generate.aura.component",
           "when": "false"
         },
         {
-          "command": "sfdx.force.lightning.event.create",
+          "command": "sfdx.lightning.generate.event",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.event.create",
+          "command": "sfdx.internal.lightning.generate.event",
           "when": "false"
         },
         {
-          "command": "sfdx.force.lightning.interface.create",
+          "command": "sfdx.lightning.generate.interface",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.internal.lightning.interface.create",
+          "command": "sfdx.internal.lightning.generate.interface",
           "when": "false"
         },
         {
@@ -592,32 +600,20 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.function.create",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.function.containerless.start",
-          "when": "sfdx:project_opened && resource =~ /.*\\/functions\\/.*\\/[^\\/]+(\\/[^\\/]+\\.(ts|js|java|json|toml))?$/"
-        },
-        {
-          "command": "sfdx.force.function.invoke",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.debugInvoke",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.function.stop",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+        },
+        {
+          "command": "sfdx.metadata.view.type.refresh",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.metadata.view.component.refresh",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -647,32 +643,32 @@
         "title": "%org_logout_default_text%"
       },
       {
-        "command": "sfdx.force.open.documentation",
-        "title": "%force_open_documentation_text%"
+        "command": "sfdx.open.documentation",
+        "title": "%open_documentation_text%"
       },
       {
-        "command": "sfdx.force.org.create",
-        "title": "%force_org_create_default_scratch_org_text%"
+        "command": "sfdx.org.create",
+        "title": "%org_create_default_scratch_org_text%"
       },
       {
         "command": "sfdx.org.open",
         "title": "%org_open_default_scratch_org_text%"
       },
       {
-        "command": "sfdx.force.source.pull",
-        "title": "%force_source_pull_default_org_text%"
+        "command": "sfdx.project.retrieve.start",
+        "title": "%project_retrieve_start_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.pull.force",
-        "title": "%force_source_pull_force_default_org_text%"
+        "command": "sfdx.project.retrieve.start.ignore.conflicts",
+        "title": "%project_retrieve_start_ignore_conflicts_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.push",
-        "title": "%force_source_push_default_org_text%"
+        "command": "sfdx.project.deploy.start",
+        "title": "%project_deploy_start_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.push.force",
-        "title": "%force_source_push_force_default_org_text%"
+        "command": "sfdx.project.deploy.start.ignore.conflicts",
+        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
       },
       {
         "command": "sfdx.force.source.status",
@@ -687,76 +683,80 @@
         "title": "%force_source_status_remote_text%"
       },
       {
-        "command": "sfdx.force.task.stop",
+        "command": "sfdx.task.stop",
         "title": "%cancel_sfdx_command_text%"
       },
       {
-        "command": "sfdx.force.apex.class.create",
-        "title": "%force_apex_class_create_text%"
+        "command": "sfdx.apex.generate.class",
+        "title": "%apex_generate_class_text%"
       },
       {
-        "command": "sfdx.force.analytics.template.create",
-        "title": "%force_analytics_template_create_text%"
+        "command": "sfdx.apex.generate.unit.test.class",
+        "title": "%apex_generate_unit_test_class_text%"
       },
       {
-        "command": "sfdx.force.visualforce.component.create",
-        "title": "%force_visualforce_component_create_text%"
+        "command": "sfdx.analytics.generate.template",
+        "title": "%analytics_generate_template_text%"
       },
       {
-        "command": "sfdx.force.visualforce.page.create",
-        "title": "%force_visualforce_page_create_text%"
+        "command": "sfdx.visualforce.generate.component",
+        "title": "%visualforce_generate_component_text%"
       },
       {
-        "command": "sfdx.force.lightning.app.create",
-        "title": "%force_lightning_app_create_text%"
+        "command": "sfdx.visualforce.generate.page",
+        "title": "%visualforce_generate_page_text%"
       },
       {
-        "command": "sfdx.internal.lightning.app.create",
-        "title": "%force_lightning_app_create_text%"
+        "command": "sfdx.lightning.generate.app",
+        "title": "%lightning_generate_app_text%"
       },
       {
-        "command": "sfdx.force.lightning.component.create",
-        "title": "%force_lightning_component_create_text%"
+        "command": "sfdx.internal.lightning.generate.app",
+        "title": "%lightning_generate_app_text%"
       },
       {
-        "command": "sfdx.internal.lightning.component.create",
-        "title": "%force_lightning_component_create_text%"
+        "command": "sfdx.lightning.generate.aura.component",
+        "title": "%lightning_generate_aura_component_text%"
       },
       {
-        "command": "sfdx.force.lightning.event.create",
-        "title": "%force_lightning_event_create_text%"
+        "command": "sfdx.internal.lightning.generate.aura.component",
+        "title": "%lightning_generate_aura_component_text%"
       },
       {
-        "command": "sfdx.internal.lightning.event.create",
-        "title": "%force_lightning_event_create_text%"
+        "command": "sfdx.lightning.generate.event",
+        "title": "%lightning_generate_event_text%"
       },
       {
-        "command": "sfdx.force.lightning.interface.create",
-        "title": "%force_lightning_interface_create_text%"
+        "command": "sfdx.internal.lightning.generate.event",
+        "title": "%lightning_generate_event_text%"
       },
       {
-        "command": "sfdx.internal.lightning.interface.create",
-        "title": "%force_lightning_interface_create_text%"
+        "command": "sfdx.lightning.generate.interface",
+        "title": "%lightning_generate_interface_text%"
+      },
+      {
+        "command": "sfdx.internal.lightning.generate.interface",
+        "title": "%lightning_generate_interface_text%"
       },
       {
         "command": "sfdx.debugger.stop",
         "title": "%debugger_stop_text%"
       },
       {
-        "command": "sfdx.force.config.list",
-        "title": "%force_config_list_text%"
+        "command": "sfdx.config.list",
+        "title": "%config_list_text%"
       },
       {
-        "command": "sfdx.force.alias.list",
-        "title": "%force_alias_list_text%"
+        "command": "sfdx.alias.list",
+        "title": "%alias_list_text%"
       },
       {
-        "command": "sfdx.force.org.delete.default",
-        "title": "%force_org_delete_default_text%"
+        "command": "sfdx.org.delete.default",
+        "title": "%org_delete_default_text%"
       },
       {
-        "command": "sfdx.force.org.delete.username",
-        "title": "%force_org_delete_username_text%"
+        "command": "sfdx.org.delete.username",
+        "title": "%org_delete_username_text%"
       },
       {
         "command": "sfdx.org.display.default",
@@ -779,16 +779,16 @@
         "title": "%data_query_selection_text%"
       },
       {
-        "command": "sfdx.force.project.create",
-        "title": "%force_project_create_text%"
+        "command": "sfdx.project.generate",
+        "title": "%project_generate_text%"
       },
       {
-        "command": "sfdx.force.project.with.manifest.create",
-        "title": "%force_project_with_manifest_create_text%"
+        "command": "sfdx.project.generate.with.manifest",
+        "title": "%project_generate_with_manifest_text%"
       },
       {
-        "command": "sfdx.force.apex.trigger.create",
-        "title": "%force_apex_trigger_create_text%"
+        "command": "sfdx.apex.generate.trigger",
+        "title": "%apex_generate_trigger_text%"
       },
       {
         "command": "sfdx.start.apex.debug.logging",
@@ -835,23 +835,23 @@
         "title": "%delete_source_this_source_text%"
       },
       {
-        "command": "sfdx.force.set.default.org",
-        "title": "%force_config_set_org_text%"
+        "command": "sfdx.set.default.org",
+        "title": "%config_set_org_text%"
       },
       {
-        "command": "sfdx.force.lightning.lwc.create",
-        "title": "%force_lightning_lwc_create_text%"
+        "command": "sfdx.lightning.generate.lwc",
+        "title": "%lightning_generate_lwc_text%"
       },
       {
         "command": "sfdx.force.lightning.lwc.test.create",
         "title": "%force_lightning_lwc_test_create_text%"
       },
       {
-        "command": "sfdx.internal.lightning.lwc.create",
-        "title": "%force_lightning_lwc_create_text%"
+        "command": "sfdx.internal.lightning.generate.lwc",
+        "title": "%lightning_generate_lwc_text%"
       },
       {
-        "command": "sfdx.force.metadata.view.type.refresh",
+        "command": "sfdx.metadata.view.type.refresh",
         "title": "%refresh_types_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -859,7 +859,7 @@
         }
       },
       {
-        "command": "sfdx.force.metadata.view.component.refresh",
+        "command": "sfdx.metadata.view.component.refresh",
         "title": "%refresh_components_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -903,26 +903,6 @@
         }
       },
       {
-        "command": "sfdx.force.function.create",
-        "title": "%force_function_create%"
-      },
-      {
-        "command": "sfdx.force.function.containerless.start",
-        "title": "%force_function_start%"
-      },
-      {
-        "command": "sfdx.force.function.invoke",
-        "title": "%force_function_invoke%"
-      },
-      {
-        "command": "sfdx.force.function.debugInvoke",
-        "title": "%force_function_debug_invoke%"
-      },
-      {
-        "command": "sfdx.force.function.stop",
-        "title": "%force_function_stop%"
-      },
-      {
         "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_sobjects_refresh%"
       },
@@ -944,10 +924,10 @@
           "default": false,
           "description": "%setting_clear_output_tab_description%"
         },
-        "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": {
           "type": "boolean",
           "default": false,
-          "description": "%override_conflicts_on_push_description%"
+          "description": "%ignore_conflicts_on_push_description%"
         },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
@@ -988,6 +968,16 @@
           "type": "boolean",
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
+        },
+        "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
+          "type": "string",
+          "default": null,
+          "description": "%node_extra_ca_certs_description%"
+        },
+        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
+          "type": "string",
+          "default": "fatal",
+          "description": "%sf_log_level_description%"
         }
       }
     },

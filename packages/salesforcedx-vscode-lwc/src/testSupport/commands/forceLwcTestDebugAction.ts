@@ -6,6 +6,7 @@
  */
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
+import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestCaseInfo,
@@ -17,7 +18,6 @@ import {
 import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
-import { telemetryService } from '../../telemetry';
 import { workspaceService } from '../workspace/workspaceService';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();
@@ -28,11 +28,11 @@ const debugSessionStartTimes = new Map<string, [number, number]>();
  * @param args CLI arguments
  * @param cwd current working directory
  */
-export function getDebugConfiguration(
+export const getDebugConfiguration = (
   command: string,
   args: string[],
   cwd: string
-): vscode.DebugConfiguration {
+): vscode.DebugConfiguration => {
   const sfdxDebugSessionId = uuid.v4();
   const debugConfiguration: vscode.DebugConfiguration = {
     sfdxDebugSessionId,
@@ -49,13 +49,13 @@ export function getDebugConfiguration(
     disableOptimisticBPs: true
   };
   return debugConfiguration;
-}
+};
 
 /**
  * Start a debug session with provided test execution information
  * @param testExecutionInfo test execution information
  */
-export async function forceLwcTestDebug(testExecutionInfo: TestExecutionInfo) {
+export const forceLwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
   const shellExecutionInfo = testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {
@@ -73,34 +73,34 @@ export async function forceLwcTestDebug(testExecutionInfo: TestExecutionInfo) {
     );
     await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
   }
-}
+};
 
 /**
  * Debug an individual test case
  * @param data a test explorer node or information provided by code lens
  */
-export async function forceLwcTestCaseDebug(data: {
+export const forceLwcTestCaseDebug = async (data: {
   testExecutionInfo: TestCaseInfo;
-}) {
+}) => {
   const { testExecutionInfo } = data;
   await forceLwcTestDebug(testExecutionInfo);
-}
+};
 
 /**
  * Debug a test file
  * @param data a test explorer node
  */
-export async function forceLwcTestFileDebug(data: {
+export const  forceLwcTestFileDebug = async (data: {
   testExecutionInfo: TestExecutionInfo;
-}) {
+}) => {
   const { testExecutionInfo } = data;
   await forceLwcTestDebug(testExecutionInfo);
-}
+};
 
 /**
  * Debug the test of currently focused editor
  */
-export async function forceLwcTestDebugActiveTextEditorTest() {
+export const forceLwcTestDebugActiveTextEditorTest = async () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -110,24 +110,24 @@ export async function forceLwcTestDebugActiveTextEditorTest() {
     };
     await forceLwcTestFileDebug({ testExecutionInfo });
   }
-}
+};
 
 /**
  * Log the start time of debug session
  * @param session debug session
  */
-export function handleDidStartDebugSession(session: vscode.DebugSession) {
+export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfdxDebugSessionId } = configuration;
   const startTime = process.hrtime();
   debugSessionStartTimes.set(sfdxDebugSessionId, startTime);
-}
+};
 
 /**
  * Send telemetry event if applicable when debug session ends
  * @param session debug session
  */
-export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
+export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const startTime = debugSessionStartTimes.get(
     configuration.sfdxDebugSessionId
@@ -141,4 +141,4 @@ export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
       }
     );
   }
-}
+};

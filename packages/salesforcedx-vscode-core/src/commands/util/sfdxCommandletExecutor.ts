@@ -17,8 +17,8 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import {
-  FORCE_SOURCE_PULL_LOG_NAME,
-  FORCE_SOURCE_PUSH_LOG_NAME
+  PROJECT_RETRIEVE_START_LOG_NAME,
+  PROJECT_DEPLOY_START_LOG_NAME
 } from '../../constants';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
@@ -28,17 +28,17 @@ import { workspaceUtils } from '../../util';
 import { CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T> {
-  public static errorCollection = vscode.languages.createDiagnosticCollection(
-    'push-errors'
-  );
+  implements CommandletExecutor<T>
+{
+  public static errorCollection =
+    vscode.languages.createDiagnosticCollection('push-errors');
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
-    .onDidFinishExecutionEventEmitter.event;
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> =
+    this.onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
@@ -50,8 +50,8 @@ export abstract class SfdxCommandletExecutor<T>
     // generated later using a parser.
     if (
       !(
-        commandLogName === FORCE_SOURCE_PULL_LOG_NAME ||
-        commandLogName === FORCE_SOURCE_PUSH_LOG_NAME
+        commandLogName === PROJECT_RETRIEVE_START_LOG_NAME ||
+        commandLogName === PROJECT_DEPLOY_START_LOG_NAME
       )
     ) {
       channelService.streamCommandOutput(execution);
@@ -143,20 +143,23 @@ export abstract class SfdxCommandletExecutor<T>
     return parsed;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected getTelemetryData(
     success: boolean,
     response: ContinueResponse<T>,
     output: string
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }
 
   /**
    * Base method (no-op) that is overridden by sub-classes
-   * forceSourcePush and forceSourcePull to update the local cache's
+   * projectDeployStart and projectRetrieveStart to update the local cache's
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;

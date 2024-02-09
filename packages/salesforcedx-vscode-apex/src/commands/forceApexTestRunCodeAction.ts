@@ -156,7 +156,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-async function forceApexTestRunCodeAction(tests: string[]) {
+const forceApexTestRunCodeAction = async (tests: string[]) => {
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -164,9 +164,9 @@ async function forceApexTestRunCodeAction(tests: string[]) {
     testRunExecutor
   );
   await commandlet.run();
-}
+};
 
-function getTempFolder(): string {
+const getTempFolder = (): string => {
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDir = getTestResultsFolder(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
@@ -176,30 +176,30 @@ function getTempFolder(): string {
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
-}
+};
 
 //   T E S T   C L A S S
 
 // redirects to run-all-tests cmd
-export async function forceApexTestClassRunCodeActionDelegate(
+export const forceApexTestClassRunCodeActionDelegate = (
   testClass: string
-) {
-  vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
-}
+) => {
+  void vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
+};
 
-export async function forceApexDebugClassRunCodeActionDelegate(
+export const forceApexDebugClassRunCodeActionDelegate = (
   testClass: string
-) {
-  vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+) => {
+  void vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
     name: testClass
   });
-}
+};
 
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
-export async function resolveTestClassParam(
+export const resolveTestClassParam = async (
   testClass: string
-): Promise<string> {
+): Promise<string> => {
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -210,43 +210,43 @@ export async function resolveTestClassParam(
     await forceApexTestRunCacheService.setCachedClassTestParam(testClass);
   }
   return testClass;
-}
+};
 
 // invokes apex test run on all tests in a class
-export async function forceApexTestClassRunCodeAction(testClass: string) {
+export const forceApexTestClassRunCodeAction = async (testClass: string) => {
   testClass = await resolveTestClassParam(testClass);
   if (isEmpty(testClass)) {
     // test param not provided: show error and terminate
-    notificationService.showErrorMessage(
+    void notificationService.showErrorMessage(
       nls.localize('force_apex_test_run_codeAction_no_class_test_param_text')
     );
     return;
   }
 
   await forceApexTestRunCodeAction([testClass]);
-}
+};
 
 //   T E S T   M E T H O D
 
 // redirects to run-test-method cmd
-export async function forceApexTestMethodRunCodeActionDelegate(
+export const forceApexTestMethodRunCodeActionDelegate = (
   testMethod: string
-) {
-  vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
-}
-export async function forceApexDebugMethodRunCodeActionDelegate(
+) => {
+  void vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
+};
+export const forceApexDebugMethodRunCodeActionDelegate = (
   testMethod: string
-) {
-  vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
+) => {
+  void vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
     name: testMethod
   });
-}
+};
 
 // evaluate test method param: if not provided, apply cached value
 // exported for testability
-export async function resolveTestMethodParam(
+export const resolveTestMethodParam = async (
   testMethod: string
-): Promise<string> {
+): Promise<string> => {
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -258,18 +258,18 @@ export async function resolveTestMethodParam(
   }
 
   return testMethod;
-}
+};
 
 // invokes apex test run on a test method
-export async function forceApexTestMethodRunCodeAction(testMethod: string) {
+export const forceApexTestMethodRunCodeAction = async (testMethod: string) => {
   testMethod = await resolveTestMethodParam(testMethod);
   if (isEmpty(testMethod)) {
     // test param not provided: show error and terminate
-    notificationService.showErrorMessage(
+    void notificationService.showErrorMessage(
       nls.localize('force_apex_test_run_codeAction_no_method_test_param_text')
     );
     return;
   }
 
   await forceApexTestRunCodeAction([testMethod]);
-}
+};

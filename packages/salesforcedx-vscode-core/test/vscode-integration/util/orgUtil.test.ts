@@ -6,15 +6,14 @@
  */
 
 // Imports for testing
+import { AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
+import { before } from 'mocha';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { checkForExpiredOrgs } from '../../../src/util';
-
-// Imports from the target source file
-import { AuthInfo } from '@salesforce/core';
 import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
+import { checkForExpiredOrgs } from '../../../src/util';
 
 describe('orgUtil tests', () => {
   let sb: SinonSandbox;

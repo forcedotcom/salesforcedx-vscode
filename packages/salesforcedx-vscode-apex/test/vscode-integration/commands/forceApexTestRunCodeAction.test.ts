@@ -34,10 +34,11 @@ import {
 import { workspaceContext } from '../../../src/context';
 
 // return undefined: used to get around strict checks
-function getUndefined(): any {
+const getUndefined = (): any => {
   return undefined;
-}
+};
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 describe('Force Apex Test Run - Code Action', () => {
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
@@ -228,8 +229,7 @@ describe('Force Apex Test Run - Code Action', () => {
     ]
   };
   const sb = createSandbox();
-  // tslint:disable:no-unused-expression
-  describe('Apex Library Test Run Executor', async () => {
+  describe('Apex Library Test Run Executor', () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
     let writeResultFilesStub: SinonStub;
@@ -244,7 +244,7 @@ describe('Force Apex Test Run - Code Action', () => {
     let progress: Progress<unknown>;
     let cancellationTokenEventEmitter;
     let cancellationToken: CancellationToken;
-    beforeEach(async () => {
+    beforeEach(() => {
       runTestStub = sb
         .stub(TestService.prototype, 'runTestAsynchronous')
         .resolves(passingResult);
@@ -276,7 +276,7 @@ describe('Force Apex Test Run - Code Action', () => {
         onCancellationRequested: cancellationTokenEventEmitter.event
       };
     });
-    afterEach(async () => {
+    afterEach(() => {
       sb.restore();
     });
 
@@ -426,6 +426,7 @@ describe('Force Apex Test Run - Code Action', () => {
         false
       );
       runTestStub.callsFake(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (payload, codecoverage, exitEarly, progressReporter, token) => {
           progressReporter.report({
             type: 'StreamingClientProgress',
@@ -503,7 +504,7 @@ describe('Force Apex Test Run - Code Action', () => {
       'default',
       'TestClass.cls'
     );
-    const diagnostics = testResult.tests.map(test => {
+    const diagnostics = testResult.tests.map(() => {
       const {
         exceptionMessage,
         exceptionStackTrace

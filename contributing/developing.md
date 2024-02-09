@@ -5,9 +5,9 @@
 1.  We are requiring Node 16 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
     1. npm v6 is declared as a dependency in the workspace root and gets used by vsce packaging due to [issues with vsce packaging and npm v7/8](https://github.com/forcedotcom/salesforcedx-vscode/pull/4092)
     1. npm v8 that comes installed with node 16 would be used when npm is invoked via npm run scripts or manually via shell. Hence the new lock file format of npm v8 with workspaces support is used by `npm install`.
-1.  This repository uses [Lerna](https://lernajs.io/) to manage it as a
+1.  This repository uses [Lerna](https://lerna.js.org) to manage it as a
     _monorepo_. Please install Lerna globally using `npm install --global lerna`.
-1.  We use `tslint` so please install it using `npm install --global tslint`.
+1.  We use `eslint` so please install it using `npm install --global eslint`.
 1.  It is preferred, though not required, that you use the Insiders version of VS
     Code from [here](https://code.visualstudio.com/insiders).
 1.  There is a list of recommended extensions for this workspace in
@@ -81,9 +81,9 @@ to run and debug extensions.
 
 When you are ready to commit
 
-1.  Run `npm run lint` to run tslint in more thorough mode to identify any
+1.  Run `npm run lint` to run eslint in more thorough mode to identify any
     errors.
-1.  Some of the items can be fixed using `tslint --project . fix`. Some you
+1.  Some of the items can be fixed using `eslint . --fix`. Some you
     might need to fix them manually.
 
 This linting steps should be done later as part of the continuous integration
@@ -176,12 +176,12 @@ And, only one instance of that can be running at a single time.
 ### `npm run lint`
 
 This runs `npm lint` on each of the packages. If there are no errors/warnings
-from tslint, then you get a clean output. But, if they are errors from tslint,
-you will see a long error that can be confusing – just focus on the tslint
-errors. The results of this is deeper than what the tslint extension in VS Code
+from eslint, then you get a clean output. But, if they are errors from eslint,
+you will see a long error that can be confusing – just focus on the eslint
+errors. The results of this is deeper than what the eslint extension in VS Code
 does because of [semantic lint
-rules](https://palantir.github.io/tslint/usage/type-checking/) which requires a
-tsconfig.json to be passed to tslint.
+rules](https://typescript-eslint.io/linting/typed-linting/) which requires a
+tsconfig.json to be passed to eslint.
 
 ### `npm run check:links`
 

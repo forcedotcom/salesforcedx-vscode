@@ -8,8 +8,14 @@
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
-export function retrieveTestCodeCoverage(): boolean {
+export const retrieveTestCodeCoverage = (): boolean => {
   return vscode.workspace
     .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
     .get<boolean>('retrieve-test-code-coverage', false);
-}
+};
+
+export const retrieveEnableSyncInitJobs = (): boolean => {
+  return vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
+};

@@ -14,7 +14,7 @@ import { openBrowser, showError } from './commandUtils';
 const logName = 'force_lightning_lwc_open';
 const commandName = nls.localize('force_lightning_lwc_open_text');
 
-export async function forceLightningLwcOpen() {
+export const forceLightningLwcOpen = async () => {
   const startTime = process.hrtime();
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
@@ -29,4 +29,4 @@ export async function forceLightningLwcOpen() {
     await vscode.commands.executeCommand('sfdx.force.lightning.lwc.start');
     telemetryService.sendCommandEvent(logName, startTime);
   }
-}
+};

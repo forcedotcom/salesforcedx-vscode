@@ -14,9 +14,11 @@ import {
   CONFLICT_DETECTION_ENABLED,
   ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
   INTERNAL_DEVELOPMENT_FLAG,
+  ENV_NODE_EXTRA_CA_CERTS,
+  ENV_SF_LOG_LEVEL,
   PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
-  PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
+  PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -63,9 +65,9 @@ export class SfdxCoreSettings {
     return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
   }
 
-  public getPushOrDeployOnSaveOverrideConflicts(): boolean {
+  public getPushOrDeployOnSaveIgnoreConflicts(): boolean {
     return this.getConfigValue<boolean>(
-      PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
+      PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
       false
     );
   }
@@ -75,7 +77,10 @@ export class SfdxCoreSettings {
   }
 
   public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
-    return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
+    return this.getConfigValue(
+      ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
+      true
+    );
   }
 
   public getRetrieveTestCodeCoverage(): boolean {
@@ -92,6 +97,20 @@ export class SfdxCoreSettings {
 
   public getEnableClearOutputBeforeEachCommand(): boolean {
     return this.getConfigValue(SETTING_CLEAR_OUTPUT_TAB, false);
+  }
+
+  public getNodeExtraCaCerts(): string {
+    return this.getConfigValue(
+      ENV_NODE_EXTRA_CA_CERTS,
+      process.env.NODE_EXTRA_CA_CERTS ?? ''
+    );
+  }
+
+  public getSfLogLevel(): string {
+    return this.getConfigValue(
+      ENV_SF_LOG_LEVEL,
+      process.env.SF_LOG_LEVEL ?? ''
+    );
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

@@ -47,10 +47,10 @@ describe.skip('Interactive debugger adapter - integration', () => {
   let apexClassUri: string;
 
   beforeAll(async () => {
-    // Create SFDX project
+    // Generate SF project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
-    await util.createSFDXProject(PROJECT_NAME);
+    await util.generateSFProject(PROJECT_NAME);
     // Create scratch org with Debug Apex enabled
     util.addFeatureToScratchOrgConfig(PROJECT_NAME, 'DebugApex');
     apexClassUri = Uri.file(
@@ -64,30 +64,8 @@ describe.skip('Interactive debugger adapter - integration', () => {
       uri: apexClassUri,
       typeref: 'BasicVariables',
       lines: [
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        27,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        36,
-        37,
-        39,
-        40,
-        42
+        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33,
+        34, 36, 37, 39, 40, 42
       ]
     });
     LINE_BREAKPOINT_INFO.push({
@@ -218,10 +196,10 @@ describe.skip('Interactive debugger adapter - integration', () => {
   });
 });
 
-function execApexNoWait(
+const execApexNoWait = (
   apexExecFilePath: string,
   userName: string
-): CommandExecution {
+): CommandExecution => {
   return new CliCommandExecutor(
     new SfdxCommandBuilder()
       .withArg('force:apex:execute')
@@ -231,4 +209,4 @@ function execApexNoWait(
       .build(),
     { cwd: process.cwd() }
   ).execute();
-}
+};

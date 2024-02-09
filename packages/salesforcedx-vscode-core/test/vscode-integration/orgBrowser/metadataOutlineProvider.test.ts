@@ -522,7 +522,7 @@ describe('load folder node when folder-type metadata type is selected', () => {
 function compareNodes(actual: BrowserNode[], expected: any[]) {
   expected.forEach((node, index) => {
     Object.keys(node).forEach(key => {
-      expect((actual[index] as any)[key]).to.equal((node as any)[key]);
+      expect((actual[index] as any)[key]).to.equal((node )[key]);
     });
   });
 }

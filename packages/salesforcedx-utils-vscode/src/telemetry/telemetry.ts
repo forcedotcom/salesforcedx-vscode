@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import * as util from 'util';
-import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { DEFAULT_AIKEY, SFDX_CORE_CONFIGURATION_NAME } from '../constants';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import {
+  DEFAULT_AIKEY,
+  SFDX_CORE_CONFIGURATION_NAME,
+  SFDX_CORE_EXTENSION_NAME,
+  SFDX_EXTENSION_PACK_NAME
+} from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -52,24 +57,40 @@ export class TelemetryBuilder {
   }
 }
 
+// export only for unit test
+export class TelemetryServiceProvider {
+  public static instances = new Map<string, TelemetryService>(); // public only for unit test
+  public static getInstance(extensionName?: string): TelemetryService {
+    // default if not present
+    const name = extensionName || SFDX_CORE_EXTENSION_NAME;
+    let service = TelemetryServiceProvider.instances.get(name);
+    if (!service) {
+      service = new TelemetryService();
+      TelemetryServiceProvider.instances.set(name, service);
+    }
+    return service;
+
+  }
+}
+
 export class TelemetryService {
-  private static instance: TelemetryService;
   private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
   /**
+   * Retrieve Telemetry Service according to the extension name.
+   * If no extension name provided, return the instance for core extension by default
+   * @param extensionName extension name
+   */
+  public static getInstance(extensionName?: string) {
+    return TelemetryServiceProvider.getInstance(extensionName);
+  }
+  /**
    * Cached promise to check if CLI telemetry config is enabled
    */
   private cliAllowsTelemetryPromise?: Promise<boolean> = undefined;
   public extensionName: string = 'unknown';
-
-  public static getInstance() {
-    if (!TelemetryService.instance) {
-      TelemetryService.instance = new TelemetryService();
-    }
-    return TelemetryService.instance;
-  }
 
   /**
    * Initialize Telemetry Service during extension activation.
@@ -101,7 +122,6 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const machineId = env ? env.machineId : 'someValue.machineId';
     const isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;
 
@@ -112,13 +132,25 @@ export class TelemetryService {
       !isDevMode
     ) {
       this.reporter = new TelemetryReporter(
-        'salesforcedx-vscode',
+        this.getTelemetryReporterName(),
         this.version,
         this.aiKey,
         true
       );
       this.extensionContext.subscriptions.push(this.reporter);
     }
+  }
+
+  /**
+   * Helper to get the name for telemetryReporter
+   * if the extension from extension pack, use salesforcedx-vscode
+   * otherwise use the extension name
+   * exported only for unit test
+   */
+  public getTelemetryReporterName(): string {
+    return this.extensionName.startsWith(SFDX_EXTENSION_PACK_NAME)
+      ? SFDX_EXTENSION_PACK_NAME
+      : this.extensionName;
   }
 
   public getReporter(): TelemetryReporter | undefined {

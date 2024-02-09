@@ -26,7 +26,7 @@ export const messages = {
   apex_language_server_failed_activate:
     'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting:
-    'Apex Language Server has stopped. Restarting… $N of 5',
+    'Apex Language Server has stopped. Restarting… %d of 5',
   apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
@@ -39,7 +39,7 @@ export const messages = {
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
   colorizer_no_code_coverage_current_file:
-    'No code coverage information was found for this file. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
+    'No code coverage information was found for file %s. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
@@ -80,10 +80,27 @@ export const messages = {
     'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) or [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) to run the extensions. For more information, see [Set Your Java Version](%s).',
   wrong_java_version_short:
     'Unsupported Java version',
+  java_version_check_command_failed: 'Running java command %s failed with error: %s',
   force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
-  unknown_error: 'Unknown error'
+  terminate_orphaned_language_server_instances:
+    'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
+  terminate_processes: 'Terminate Processes',
+  terminate_show_processes: 'Show Processes',
+  terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
+  terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
+  terminated_orphaned_processes: 'Terminated %d orphaned processes.',
+  unknown_error: 'Unknown error',
+  process_id: 'Process ID',
+  parent_process_id: 'Parent Process ID',
+  process_command: 'Process Command',
+  terminate_processes_confirm: 'Terminate %d Orphaned Processes',
+  yes: 'Yes',
+  cancel: 'Cancel',
+  terminate_processes_title: 'Terminate Orphaned Processes',
+  orphan_process_advice: "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
+  unknown: 'Unknown'
 };

@@ -35,7 +35,7 @@ export const messages = {
 
   task_view_running_message: '[実行しています] %s',
 
-  status_bar_text: `$(x) %s`,
+  status_bar_text: '$(x) %s',
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
@@ -70,9 +70,9 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
-  force_org_create_default_scratch_org_text:
+  org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
-  force_org_create_result_parsing_error:
+  org_create_result_parsing_error:
     '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
   org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
@@ -81,15 +81,15 @@ export const messages = {
   org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
-  force_source_pull_default_org_text:
+  project_retrieve_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプル',
-  force_source_pull_force_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
+  project_retrieve_start_ignore_conflicts_default_org_text:
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
 
-  force_source_push_default_org_text:
+  project_deploy_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送',
-  force_source_push_force_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織へソースを転送して競合を上書き',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
 
   force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
   force_source_deploy_select_file_or_directory:
@@ -116,14 +116,15 @@ export const messages = {
   force_source_status_text:
     'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
-  force_apex_class_create_text: 'SFDX: Apex クラスを作成',
-  force_visualforce_component_create_text:
-    'SFDX: Visualforce コンポーネントを作成',
-  force_visualforce_page_create_text: 'SFDX: Visualforce ページを作成',
-  force_lightning_app_create_text: 'SFDX: Aura アプリケーションを作成',
-  force_lightning_component_create_text: 'SFDX: Aura コンポーネントを作成',
-  force_lightning_event_create_text: 'SFDX: Aura イベントを作成',
-  force_lightning_interface_create_text: 'SFDX: Aura インタフェースを作成',
+  apex_generate_class_text: 'SFDX: Apex クラスを作成',
+  visualforce_generate_component_text: 'SFDX: Visualforce コンポーネントを作成',
+  visualforce_generate_page_text: 'SFDX: Visualforce ページを作成',
+  lightning_generate_app_text: 'SFDX: Aura アプリケーションを作成',
+  lightning_generate_aura_component_text: 'SFDX: Aura コンポーネントを作成',
+  lightning_generate_event_text: 'SFDX: Aura イベントを作成',
+  lightning_generate_interface_text: 'SFDX: Aura インタフェースを作成',
+  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
+  analytics_template_name_text: 'template name',
   force_source_status_local_text: 'SFDX: ローカルの変更を表示',
   force_source_status_remote_text:
     'SFDX: デフォルトのスクラッチ組織の変更を参照',
@@ -142,8 +143,8 @@ export const messages = {
   warning_prompt_other_existing: '%s つの既存コンポーネント',
   warning_prompt_other_not_shown:
     '...表示されていない残り %s つのコンポーネント\n',
-  force_config_list_text: 'SFDX: すべての設定変数を一覧表示',
-  force_alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
+  config_list_text: 'SFDX: すべての設定変数を一覧表示',
+  alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
   org_display_username_text: 'SFDX: 組織の詳細を表示...',
   debugger_query_session_text: 'Apex デバッガセッションをクエリ',
@@ -158,17 +159,16 @@ export const messages = {
     'SFDX: エディタの内容で匿名 Apex コードを実行',
   force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
-  force_project_create_text: 'SFDX: プロジェクトを作成',
-  force_project_create_open_dialog_create_label: 'プロジェクトを作成',
-  force_project_create_standard_template:
+  project_generate_text: 'SFDX: プロジェクトを作成',
+  project_generate_open_dialog_create_label: 'プロジェクトを作成',
+  project_generate_standard_template:
     '標準のプロジェクトテンプレート (デフォルト)',
-  force_project_create_standard_template_display_text: '標準',
-  force_project_create_empty_template_display_text: '空',
-  force_project_create_analytics_template_display_text: 'Analytics',
-  force_project_create_empty_template: '空のプロジェクトテンプレート',
-  force_project_create_analytics_template:
-    'Analytics のプロジェクトテンプレート',
-  force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
+  project_generate_standard_template_display_text: '標準',
+  project_generate_empty_template_display_text: '空',
+  project_generate_analytics_template_display_text: 'Analytics',
+  project_generate_empty_template: '空のプロジェクトテンプレート',
+  project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
+  apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
   apex_debug_log_status_bar_text:
@@ -203,7 +203,7 @@ export const messages = {
     'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
-  demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
+  demo_mode_status_text: '$(gist-secret) SFDX DEMO',
   demo_mode_status_tooltip:
     'VS Code のSalesforce 拡張機能をデモモードで実行しています。本番環境に接続するときに確認を求められます。',
   demo_mode_prompt:
@@ -245,11 +245,19 @@ export const messages = {
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
-  force_config_set_org_text: 'SFDX: デフォルトの組織を設定',
+  config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
+  sfdx_cli_not_supported:
+    'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
+  sf_v1_not_supported:
+    'Your installed Salesforce CLI version is incompatible with all versions of our extensions. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
+  both_sfdx_and_sf:
+    'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
+  sfdx_v7_deprecation:
+    "If you're currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you've been running continue to work as before.",
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
@@ -261,7 +269,9 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    '競合のためソースをプッシュできませんでした。組織のメタデータをローカルファイルで上書きしても良い場合は、 "SFDX: ソースをデフォルトのスクラッチ組織にプッシュし競合を上書き" を実行してください。',
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
+  pull_conflicts_error:
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_default_username:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
   error_no_default_devhubusername:
@@ -275,7 +285,7 @@ export const messages = {
   visualforce_page_message_name: 'Visualforce ページ',
   aura_bundle_message_name: 'Aura コンポーネントバンドル',
   lwc_message_name: 'Lightning Web コンポーネント',
-  force_lightning_lwc_create_text: 'SFDX: Lightning Web コンポーネントを作成',
+  lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
@@ -287,7 +297,7 @@ export const messages = {
     '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
@@ -522,5 +532,7 @@ export const messages = {
     'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
   parameter_gatherer_file_name_max_length_validation_error_message:
-    'ファイル名は {0} 文字を超えることはできません'
+    'ファイル名は {0} 文字を超えることはできません',
+  predicates_no_folder_opened_text:
+    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
 };

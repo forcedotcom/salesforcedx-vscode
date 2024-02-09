@@ -5,34 +5,37 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export { analyticsGenerateTemplate } from './analyticsGenerateTemplate';
+export { apexGenerateClass } from './apexGenerateClass';
+export { apexGenerateTrigger } from './apexGenerateTrigger';
+export * from './apexGenerateUnitTestClass';
 export {
-  forceLightningLwcCreate,
-  forceInternalLightningLwcCreate
-} from './forceLightningLwcCreate';
-export { forceLightningLwcTestCreate } from './forceLightningLwcTestCreate';
-export {
-  forceLightningAppCreate,
-  forceInternalLightningAppCreate
-} from './forceLightningAppCreate';
-export {
-  forceLightningComponentCreate,
-  forceInternalLightningComponentCreate
-} from './forceLightningComponentCreate';
-export {
-  forceLightningEventCreate,
-  forceInternalLightningEventCreate
-} from './forceLightningEventCreate';
-export {
-  forceLightningInterfaceCreate,
-  forceInternalLightningInterfaceCreate
-} from './forceLightningInterfaceCreate';
-export { forceVisualforceComponentCreate } from './forceVisualforceComponentCreate';
-export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
-export { forceApexTriggerCreate } from './forceApexTriggerCreate';
-export { forceApexClassCreate } from './forceApexClassCreate';
-export { forceAnalyticsTemplateCreate } from './forceAnalyticsTemplateCreate';
-export { ForceLightningLwcTestCreateExecutor } from './forceLightningLwcTestCreate';
+  ForceLightningLwcTestCreateExecutor,
+  forceLightningLwcTestCreate
+} from './forceLightningLwcTestCreate';
 export {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
+export {
+  internalLightningGenerateApp,
+  lightningGenerateApp
+} from './lightningGenerateApp';
+export {
+  internalLightningGenerateAuraComponent,
+  lightningGenerateAuraComponent
+} from './lightningGenerateAuraComponent';
+export {
+  internalLightningGenerateEvent,
+  lightningGenerateEvent
+} from './lightningGenerateEvent';
+export {
+  internalLightningGenerateInterface,
+  lightningGenerateInterface
+} from './lightningGenerateInterface';
+export {
+  internalLightningGenerateLwc,
+  lightningGenerateLwc
+} from './lightningGenerateLwc';
+export { visualforceGenerateComponent } from './visualforceGenerateComponent';
+export { visualforceGeneratePage } from './visualforceGeneratePage';

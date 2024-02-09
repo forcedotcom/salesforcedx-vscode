@@ -87,9 +87,9 @@ export class SfdxTestGroupNode extends TestNode {
  * @param node1 first test node
  * @param node2 second test node
  */
-export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
-  const label1 = node1!.label;
-  const label2 = node2!.label;
+export const sortTestNodeByLabel = (node1: TestNode, node2: TestNode) => {
+  const label1 = node1.label;
+  const label2 = node2.label;
   if (!label1) {
     return -1;
   }
@@ -99,4 +99,4 @@ export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
   const label1String = String(label1);
   const label2String = String(label2);
   return label1String.localeCompare(label2String);
-}
+};

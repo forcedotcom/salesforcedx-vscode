@@ -32,11 +32,11 @@ describe('SOQL metadata files generator', () => {
   const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
-  function cleanupMetadata() {
+  const cleanupMetadata = () => {
     if (fs.existsSync(soqlMetadataFolder)) {
       rm('-rf', soqlMetadataFolder);
     }
-  }
+  };
 
   const username = userInfo().username;
   const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
@@ -55,7 +55,7 @@ describe('SOQL metadata files generator', () => {
   });
 
   it('Should generate metadata files from "minimal" object set', async () => {
-    const MINS_SOBJECTS_COUNT = 16;
+    const MINS_SOBJECTS_COUNT = 19;
     const retrieve = new MinObjectRetriever();
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await retrieve.retrieve(output);
@@ -98,7 +98,7 @@ class TestSObjectRefreshOutput implements SObjectRefreshOutput {
   private custom: SObject[] = [];
   public error: { message?: string; stack?: string } = {};
 
-  public constructor(public sfdxPath: string) {}
+  public constructor(public sfdxPath: string) { }
 
   public addTypeNames(sobjShort: SObjectShortDescription[]): void {
     this.typeNames.push(...sobjShort);

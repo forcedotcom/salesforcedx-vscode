@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+export { AliasList, aliasList } from './aliasList';
 export {
   AccessTokenParamsGatherer,
   AuthParams,
@@ -33,6 +34,8 @@ export {
   orgLoginWebDevHub
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { ConfigList, configList } from './configList';
+export { ConfigSetExecutor, configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export {
   DebuggerSessionDetachExecutor,
@@ -47,42 +50,15 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { ForceAliasList, forceAliasList } from './forceAliasList';
-export { ForceConfigList, forceConfigList } from './forceConfigList';
-export { ForceConfigSetExecutor, forceConfigSet } from './forceConfigSet';
 export { forceCreateManifest } from './forceCreateManifest';
-export {
-  ForceDescribeMetadataExecutor,
-  forceDescribeMetadata
-} from './forceDescribeMetadata';
-export {
-  ForceListMetadataExecutor,
-  forceListMetadata
-} from './forceListMetadata';
-export { forceOpenDocumentation } from './forceOpenDocumentation';
-export {
-  AliasGatherer,
-  ForceOrgCreateExecutor,
-  forceOrgCreate
-} from './forceOrgCreate';
-export { forceOrgDelete } from './forceOrgDelete';
+export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
+export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
   forcePackageInstall
 } from './forcePackageInstall';
-export {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  ProjectTemplateItem,
-  SelectProjectFolder,
-  SelectProjectName,
-  SelectProjectTemplate,
-  forceProjectWithManifestCreate,
-  forceSfdxProjectCreate,
-  projectTemplateEnum
-} from './forceProjectCreate';
 export {
   ForceRefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
@@ -100,8 +76,6 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
-export { ForceSourcePullExecutor, forceSourcePull } from './forceSourcePull';
-export { ForceSourcePushExecutor, forceSourcePush } from './forceSourcePush';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
@@ -114,14 +88,9 @@ export {
   SourceStatusFlags,
   forceSourceStatus
 } from './forceSourceStatus';
-export { forceTaskStop } from './forceTaskStop';
-export {
-  forceFunctionContainerlessStartCommand,
-  forceFunctionDebugInvoke,
-  forceFunctionInvoke,
-  forceFunctionStop,
-  registerFunctionInvokeCodeLensProvider
-} from './functions';
+export { openDocumentation } from './openDocumentation';
+export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
@@ -130,6 +99,25 @@ export {
   getExecutor,
   orgOpen
 } from './orgOpen';
+export {
+  ProjectDeployStartExecutor,
+  projectDeployStart
+} from './projectDeployStart';
+export {
+  PathExistsChecker,
+  ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
+  SelectProjectFolder,
+  SelectProjectName,
+  SelectProjectTemplate,
+  projectGenerateWithManifest,
+  projectTemplateEnum,
+  sfProjectGenerate
+} from './projectGenerate';
+export {
+  ProjectRetrieveStartExecutor,
+  projectRetrieveStart
+} from './projectRetrieveStart';
 export {
   viewAllChanges,
   viewLocalChanges,
@@ -150,24 +138,25 @@ export {
   stopApexDebugLogging,
   turnOffLogging
 } from './stopApexDebugLogging';
+export { taskStop } from './taskStop';
 export {
-  forceAnalyticsTemplateCreate,
-  forceApexClassCreate,
-  forceApexTriggerCreate,
-  forceInternalLightningAppCreate,
-  forceInternalLightningComponentCreate,
-  forceInternalLightningEventCreate,
-  forceInternalLightningInterfaceCreate,
-  forceInternalLightningLwcCreate,
-  forceLightningAppCreate,
-  forceLightningComponentCreate,
-  forceLightningEventCreate,
-  forceLightningInterfaceCreate,
-  forceLightningLwcCreate,
+  analyticsGenerateTemplate,
+  apexGenerateClass,
+  apexGenerateTrigger,
+  apexGenerateUnitTestClass,
   forceLightningLwcTestCreate,
-  forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  internalLightningGenerateApp,
+  internalLightningGenerateAuraComponent,
+  internalLightningGenerateEvent,
+  internalLightningGenerateInterface,
+  internalLightningGenerateLwc,
+  lightningGenerateApp,
+  lightningGenerateAuraComponent,
+  lightningGenerateEvent,
+  lightningGenerateInterface,
+  lightningGenerateLwc,
+  visualforceGenerateComponent,
+  visualforceGeneratePage
 } from './templates';
-export { forceFunctionCreate } from './templates/forceFunctionCreate';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

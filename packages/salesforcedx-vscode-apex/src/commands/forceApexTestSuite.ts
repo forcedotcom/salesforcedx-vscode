@@ -8,10 +8,9 @@
 import { TestService } from '@salesforce/apex-node';
 import {
   LibraryCommandletExecutor,
+  SFDX_FOLDER,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
+  SfdxWorkspaceChecker,
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
@@ -20,6 +19,7 @@ import { readFileSync } from 'fs';
 import { basename } from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
+import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import {
@@ -30,25 +30,26 @@ import {
 
 export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
-async function listApexClassItems(): Promise<ApexTestQuickPickItem[]> {
-  const apexClasses = await vscode.workspace.findFiles('**/*.cls');
-  const apexClassItems: ApexTestQuickPickItem[] = [];
-
-  apexClasses.forEach(apexClass => {
-    const fileContent = readFileSync(apexClass.fsPath).toString();
-    if (fileContent && fileContent.toLowerCase().includes('@istest')) {
-      apexClassItems.push({
-        label: basename(apexClass.toString()).replace('.cls', ''),
+const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
+  const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
+  const apexClassItems = apexClasses
+    .filter(apexClass => {
+      const fileContent = readFileSync(apexClass.fsPath).toString();
+      return IS_TEST_REG_EXP.test(fileContent);
+    })
+    .map(apexClass => {
+      return {
+        label: basename(apexClass.toString(), APEX_CLASS_EXT),
         description: apexClass.fsPath,
         type: TestType.Class
-      });
-    }
-  });
+      };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   return apexClassItems;
-}
+};
 
-async function listApexTestSuiteItems(): Promise<ApexTestQuickPickItem[]> {
+const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const connection = await workspaceContext.getConnection();
   const testService = new TestService(connection);
   const testSuites = await testService.retrieveAllSuites();
@@ -56,16 +57,16 @@ async function listApexTestSuiteItems(): Promise<ApexTestQuickPickItem[]> {
   const quickPickItems = testSuites.map(testSuite => {
     return {
       label: testSuite.TestSuiteName,
-      // @ts-ignore
-      description: testSuite.Id,
+      description: testSuite.id,
       type: TestType.Suite
     };
   });
   return quickPickItems;
-}
+};
 
 export class TestSuiteSelector
-  implements ParametersGatherer<ApexTestQuickPickItem> {
+  implements ParametersGatherer<ApexTestQuickPickItem>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestQuickPickItem>
   > {
@@ -82,7 +83,8 @@ export class TestSuiteSelector
 }
 
 export class TestSuiteBuilder
-  implements ParametersGatherer<ApexTestSuiteOptions> {
+  implements ParametersGatherer<ApexTestSuiteOptions>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestSuiteOptions>
   > {
@@ -115,7 +117,8 @@ export class TestSuiteBuilder
 }
 
 export class TestSuiteCreator
-  implements ParametersGatherer<ApexTestSuiteOptions> {
+  implements ParametersGatherer<ApexTestSuiteOptions>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestSuiteOptions>
   > {
@@ -146,12 +149,9 @@ export class TestSuiteCreator
   }
 }
 
-export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<
-  ApexTestSuiteOptions
-> {
-  public static diagnostics = vscode.languages.createDiagnosticCollection(
-    'apex-errors'
-  );
+export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
+  public static diagnostics =
+    vscode.languages.createDiagnosticCollection('apex-errors');
 
   constructor() {
     super(
@@ -176,29 +176,29 @@ const testSuiteSelector = new TestSuiteSelector();
 const testSuiteCreator = new TestSuiteCreator();
 const testSuiteBuilder = new TestSuiteBuilder();
 
-export async function forceApexTestSuiteAdd() {
+export const forceApexTestSuiteAdd = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteBuilder,
     new ApexLibraryTestSuiteBuilder()
   );
   await commandlet.run();
-}
+};
 
-export async function forceApexTestSuiteCreate() {
+export const forceApexTestSuiteCreate = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteCreator,
     new ApexLibraryTestSuiteBuilder()
   );
   await commandlet.run();
-}
+};
 
-export async function forceApexTestSuiteRun() {
+export const forceApexTestSuiteRun = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteSelector,
     new ApexLibraryTestRunExecutor()
   );
   await commandlet.run();
-}
+};

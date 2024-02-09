@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -5,6 +6,8 @@
 'use strict';
 
 import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import * as path from 'path';
+import * as url from 'url';
 import {
   createConnection,
   Disposable,
@@ -20,18 +23,6 @@ import {
   TextDocuments
 } from 'vscode-languageserver';
 import {
-  Diagnostic,
-  DocumentLink,
-  SymbolInformation,
-  TextDocument
-} from 'vscode-languageserver-types';
-import {
-  getLanguageModes,
-  LanguageModes,
-  Settings
-} from './modes/languageModes';
-
-import {
   ColorInformation,
   ColorPresentationRequest,
   DocumentColorRequest,
@@ -41,18 +32,25 @@ import {
   ConfigurationParams,
   ConfigurationRequest
 } from 'vscode-languageserver-protocol';
-
+import {
+  Diagnostic,
+  DocumentLink,
+  SymbolInformation,
+  TextDocument
+} from 'vscode-languageserver-types';
+import * as nls from 'vscode-nls';
+import uri from 'vscode-uri';
 import { format } from './modes/formatting';
+import {
+  getLanguageModes,
+  LanguageModes,
+  Settings
+} from './modes/languageModes';
+
 import { pushAll } from './utils/arrays';
 
-import * as path from 'path';
-import * as url from 'url';
-import uri from 'vscode-uri';
-
-import * as nls from 'vscode-nls';
 nls.config(process.env['VSCODE_NLS_CONFIG']);
 
-// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
   export const type: RequestType<
     TextDocumentPositionParams,
@@ -89,10 +87,10 @@ documents.onDidClose(e => {
   delete documentSettings[e.document.uri];
 });
 
-function getDocumentSettings(
+const getDocumentSettings = (
   textDocument: TextDocument,
   needsDocumentSettings: () => boolean
-): Thenable<Settings> {
+): Thenable<Settings> => {
   if (scopedSettingsSupport && needsDocumentSettings()) {
     let promise = documentSettings[textDocument.uri];
     if (!promise) {
@@ -112,7 +110,7 @@ function getDocumentSettings(
     return promise;
   }
   return Promise.resolve(void 0);
-}
+};
 
 // After the server has started the client sends an initilize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilites
@@ -134,13 +132,13 @@ connection.onInitialize(
       languageModes.dispose();
     });
 
-    function hasClientCapability(...keys: string[]) {
+    const hasClientCapability = (...keys: string[]) => {
       let c = params.capabilities;
       for (let i = 0; c && i < keys.length; i++) {
         c = c[keys[i]];
       }
       return !!c;
-    }
+    };
 
     clientSnippetSupport = hasClientCapability(
       'textDocument',
@@ -216,7 +214,9 @@ connection.onDidChangeConfiguration(change => {
   }
 });
 
-const pendingValidationRequests: { [uri: string]: NodeJS.Timer } = {};
+const pendingValidationRequests: {
+  [uri: string]: ReturnType<typeof setTimeout>;
+} = {};
 const validationDelayMs = 200;
 
 // The content of a text document has changed. This event is emitted
@@ -231,27 +231,27 @@ documents.onDidClose(event => {
   connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 });
 
-function cleanPendingValidation(textDocument: TextDocument): void {
+const cleanPendingValidation = (textDocument: TextDocument): void => {
   const request = pendingValidationRequests[textDocument.uri];
   if (request) {
     clearTimeout(request);
     delete pendingValidationRequests[textDocument.uri];
   }
-}
+};
 
-function triggerValidation(textDocument: TextDocument): void {
+const triggerValidation = (textDocument: TextDocument): void => {
   cleanPendingValidation(textDocument);
   pendingValidationRequests[textDocument.uri] = setTimeout(() => {
     delete pendingValidationRequests[textDocument.uri];
     // tslint:disable-next-line:no-floating-promises
     validateTextDocument(textDocument);
   }, validationDelayMs);
-}
+};
 
-function isValidationEnabled(
+const isValidationEnabled = (
   languageId: string,
   settings: Settings = globalSettings
-) {
+) => {
   const validationSettings =
     settings && settings.visualforce && settings.visualforce.validate;
   if (validationSettings) {
@@ -261,9 +261,9 @@ function isValidationEnabled(
     );
   }
   return true;
-}
+};
 
-async function validateTextDocument(textDocument: TextDocument) {
+const validateTextDocument = async (textDocument: TextDocument) => {
   const diagnostics: Diagnostic[] = [];
   if (textDocument.languageId === 'html') {
     const modes = languageModes.getAllModesInDocument(textDocument);
@@ -277,7 +277,7 @@ async function validateTextDocument(textDocument: TextDocument) {
     });
   }
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
+};
 
 connection.onCompletion(async textDocumentPosition => {
   const document = documents.get(textDocumentPosition.textDocument.uri);

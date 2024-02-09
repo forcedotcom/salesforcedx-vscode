@@ -11,8 +11,8 @@ export {
   SFDX_PROJECT_FILE,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL,
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL,
   TARGET_ORG_KEY,
   DEFAULT_CONNECTION_TIMEOUT_MS,
   CLIENT_ID
@@ -71,6 +71,11 @@ export type DirFileNameSelection = {
    * Relative workspace path to save the component
    */
   outputdir: string;
+
+  /**
+   * used for selecting the different apex unit test templates
+   */
+  template?: 'ApexUnitTest'|'BasicUnitTest';
 };
 
 /**
@@ -86,9 +91,4 @@ export type LocalComponent = DirFileNameSelection & {
    * Optional suffix to overwrite in case metadata dictionary does not have it
    */
   suffix?: string;
-};
-
-export type FunctionInfo = {
-  fileName: string;
-  language: string;
 };

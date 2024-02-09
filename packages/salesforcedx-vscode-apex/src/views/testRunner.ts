@@ -8,17 +8,16 @@
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
 import {
-  LanguageClientStatus,
   languageClientUtils
-} from '../languageClientUtils';
+} from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { forceApexTestRunCacheService } from '../testRunCache';
@@ -123,7 +122,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const languageClientStatus = languageClientUtils.getStatus() ;
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
         vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());

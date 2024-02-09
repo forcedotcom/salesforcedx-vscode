@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -14,7 +15,7 @@ import { getJavascriptMode } from '../../src/modes/javascriptMode';
 describe('HTML Javascript Support', () => {
   const htmlLanguageService = getLanguageService();
 
-  function assertCompletions(value: string, expectedProposals: string[]): void {
+  const assertCompletions = (value: string, expectedProposals: string[]): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -44,10 +45,18 @@ describe('HTML Javascript Support', () => {
         'Not found:' + expected + ' is ' + actualLabels.join(', ')
       );
     }
-  }
+  };
 
-  it('Should display completions', function() {
-    this.timeout(30000);
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('Should display completions', () => {
     assertCompletions('<html><script>window.|</script></html>', ['location']);
   });
 });

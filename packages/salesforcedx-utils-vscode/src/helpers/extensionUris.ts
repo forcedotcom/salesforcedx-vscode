@@ -7,18 +7,18 @@
 
 import * as vscode from 'vscode';
 
-function extensionUri(extensionName: string) {
+const extensionUri = (extensionName: string) => {
   const extensionRef = vscode.extensions.getExtension(extensionName);
 
   if (extensionRef) {
     return extensionRef.extensionUri;
   }
   throw new Error(`Unable to find extension ${extensionName}`);
-}
+};
 
-function join(baseUri: vscode.Uri, relativePath: string) {
+const join = (baseUri: vscode.Uri, relativePath: string) => {
   return vscode.Uri.joinPath(baseUri, relativePath);
-}
+};
 
 export const extensionUris = {
   extensionUri,

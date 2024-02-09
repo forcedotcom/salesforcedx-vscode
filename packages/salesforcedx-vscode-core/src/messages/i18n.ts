@@ -35,7 +35,7 @@ export const messages = {
 
   task_view_running_message: '[Running] %s',
 
-  status_bar_text: `$(x) %s`,
+  status_bar_text: '$(x) %s',
   status_bar_tooltip: 'Click to cancel the command',
   status_bar_open_org_tooltip: 'Open Org',
   status_bar_org_picker_tooltip: 'Change Default Org',
@@ -91,9 +91,8 @@ export const messages = {
   parameter_gatherer_placeholder_delete_default_org:
     'Confirm to continue deleting the default org',
 
-  force_org_create_default_scratch_org_text:
-    'SFDX: Create a Default Scratch Org...',
-  force_org_create_result_parsing_error:
+  org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
+  org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
 
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
@@ -101,12 +100,12 @@ export const messages = {
     'There was an unexpected error when processing the org open response.',
   org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
-  force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
-  force_source_pull_force_default_org_text:
-    'SFDX: Pull Source from Default Org and Override Conflicts',
-  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
-  force_source_push_force_default_org_text:
-    'SFDX: Push Source to Default Org and Override Conflicts',
+  project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
+  project_retrieve_start_ignore_conflicts_default_org_text:
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
+  project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
   force_source_status_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
@@ -129,16 +128,16 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-  force_analytics_template_create_text:
-    'SFDX: Create Sample Analytics Template',
-  force_analytics_template_name_text: 'template name',
-  force_apex_class_create_text: 'SFDX: Create Apex Class',
-  force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
-  force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
-  force_lightning_app_create_text: 'SFDX: Create Aura App',
-  force_lightning_component_create_text: 'SFDX: Create Aura Component',
-  force_lightning_event_create_text: 'SFDX: Create Aura Event',
-  force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
+  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
+  analytics_template_name_text: 'template name',
+  apex_generate_class_text: 'SFDX: Create Apex Class',
+  apex_generate_unit_test_class_text: 'SFDX: Create Apex Unit Test Class',
+  visualforce_generate_component_text: 'SFDX: Create Visualforce Component',
+  visualforce_generate_page_text: 'SFDX: Create Visualforce Page',
+  lightning_generate_app_text: 'SFDX: Create Aura App',
+  lightning_generate_aura_component_text: 'SFDX: Create Aura Component',
+  lightning_generate_event_text: 'SFDX: Create Aura Event',
+  lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
   force_create_manifest: 'SFDX: Generate Manifest File',
@@ -176,10 +175,10 @@ export const messages = {
   warning_prompt_skip_all: 'Skip All',
   warning_prompt_other_existing: '%s other existing components',
   warning_prompt_other_not_shown: '...%s other components not shown\n',
-  force_config_list_text: 'SFDX: List All Config Variables',
-  force_alias_list_text: 'SFDX: List All Aliases',
-  force_org_delete_default_text: 'SFDX: Delete Default Org',
-  force_org_delete_username_text: 'SFDX: Delete Org...',
+  config_list_text: 'SFDX: List All Config Variables',
+  alias_list_text: 'SFDX: List All Aliases',
+  org_delete_default_text: 'SFDX: Delete Default Org',
+  org_delete_username_text: 'SFDX: Delete Org...',
   org_display_default_text: 'SFDX: Display Org Details for Default Org',
   org_display_username_text: 'SFDX: Display Org Details...',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
@@ -195,15 +194,15 @@ export const messages = {
   force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
-  force_project_create_text: 'SFDX: Create Project',
-  force_project_create_open_dialog_create_label: 'Create Project',
-  force_project_create_standard_template: 'Standard project template (default)',
-  force_project_create_standard_template_display_text: 'Standard',
-  force_project_create_empty_template_display_text: 'Empty',
-  force_project_create_analytics_template_display_text: 'Analytics',
-  force_project_create_empty_template: 'Empty project template',
-  force_project_create_analytics_template: 'Analytics project template',
-  force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
+  project_generate_text: 'SFDX: Create Project',
+  project_generate_open_dialog_create_label: 'Create Project',
+  project_generate_standard_template: 'Standard project template (default)',
+  project_generate_standard_template_display_text: 'Standard',
+  project_generate_empty_template_display_text: 'Empty',
+  project_generate_analytics_template_display_text: 'Analytics',
+  project_generate_empty_template: 'Empty project template',
+  project_generate_analytics_template: 'Analytics project template',
+  apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
   start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
   apex_debug_log_status_bar_text:
     '$(file-text) Recording detailed logs until %s',
@@ -234,7 +233,7 @@ export const messages = {
     'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
 
-  demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
+  demo_mode_status_text: '$(gist-secret) SFDX DEMO',
   demo_mode_status_tooltip:
     'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
   demo_mode_prompt:
@@ -282,8 +281,8 @@ export const messages = {
   org_select_text: 'Select an org to set as default',
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
-  force_config_set_org_text: 'SFDX: Set a Default Org',
-  force_config_set_title: 'Set Config',
+  config_set_org_text: 'SFDX: Set a Default Org',
+  config_set_title: 'Set Config',
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',
@@ -291,6 +290,14 @@ export const messages = {
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
     'Salesforce CLI is not installed. Install it from [%s](%s)',
+  sfdx_cli_not_supported:
+    'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
+  sf_v1_not_supported:
+    'Your installed Salesforce CLI version is incompatible with all versions of our extensions. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
+  both_sfdx_and_sf:
+    'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
+  sfdx_v7_deprecation:
+    "If you're currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you've been running continue to work as before.",
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
@@ -306,9 +313,9 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
   pull_conflicts_error:
-    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Override Conflicts".',
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
@@ -322,7 +329,7 @@ export const messages = {
   visualforce_page_message_name: 'Visualforce Page',
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
-  force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component',
+  lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
   force_lightning_lwc_test_create_text:
     'SFDX: Create Lightning Web Component Test',
   empty_components: 'No components available',
@@ -339,7 +346,7 @@ export const messages = {
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
@@ -681,5 +688,13 @@ export const messages = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message:
     'File name cannot exceed {0} characters',
-  source_status: 'Source Status'
+  source_status: 'Source Status',
+  ProcessFlowMigration: 'ProcessFlowMigration',
+  SkillType: 'SkillType',
+  TimeSheetTemplate: 'TimeSheetTemplate',
+  MessagingChannel: 'MessagingChannel',
+  SchedulingObjective: 'SchedulingObjective',
+  SchedulingRule: 'SchedulingRule',
+  predicates_no_folder_opened_text:
+    'No folder opened. Open a Salesforce DX project in VS Code.'
 };

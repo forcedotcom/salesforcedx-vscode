@@ -53,7 +53,7 @@
       "  enabled-icon-src=\"${3:enabledSrc}\"",
       "  enabled-alternative-text=\"${4:enabled state description}\"",
       "  disabled-icon-src=\"${5:disabledSrc}\"",
-      "  disabled-alternative-text=\"${6:disabed state description}\"",
+      "  disabled-alternative-text=\"${6:disabled state description}\"",
       "  icon-size=\"medium\"",
       "  scanner-options={${7:barcodeScannerConfig}}",
       "></lightning-barcode-scanner>"
@@ -1578,7 +1578,7 @@
   "lwc-relative-date-time": {
     "body": [
       "<lightning-relative-date-time ",
-      "  value={${dateTime}}",
+      "  value={${0:dateTime}}",
       "></lightning-relative-date-time>"
     ],
     "description": "Relative Date Time - Displays the relative time difference between the source date-time and the provided date-time.",
