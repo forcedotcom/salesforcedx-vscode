@@ -14,6 +14,8 @@ Want to develop locally? Already using VS Code? Install Salesforce Extensions an
 
 <span>Download using the links below, or read the [installation instructions](./en/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
+**Note**: The minimum Visual Studio Code version required to run Salesforce Extension Pack version 59.15.0 and later is 1.82. 
+
 ### Code Builder
 
 Code Builder is a browser-based version of the desktop experience, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. See [Code Builder Overview](https://developer.salesforce.com/tools/vscode/en/codebuilder/about) for more information.
