@@ -348,7 +348,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.accessToken",
+          "command": "sfdx.org.login.access.token",
           "when": "sfdx:project_opened"
         },
         {
@@ -631,8 +631,8 @@
         "title": "%org_login_web_authorize_org_text%"
       },
       {
-        "command": "sfdx.force.auth.accessToken",
-        "title": "%force_auth_access_token_authorize_org_text%"
+        "command": "sfdx.org.login.access.token",
+        "title": "%org_login_access_token_text%"
       },
       {
         "command": "sfdx.org.logout.all",

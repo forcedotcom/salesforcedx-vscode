@@ -40,9 +40,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
   org_login_web_authorize_org_text: 'SFDX: 組織を認証',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:

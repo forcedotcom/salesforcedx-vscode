@@ -15,7 +15,7 @@ export {
   PRODUCTION_URL,
   SANDBOX_URL
 } from './auth/authParamsGatherer';
-export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export {
   DeviceCodeResponse,
   OrgLoginWebContainerExecutor,

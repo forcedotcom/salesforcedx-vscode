@@ -29,7 +29,7 @@ import {
   dataQuery,
   debuggerStop,
   deleteSource,
-  forceAuthAccessToken,
+  orgLoginAccessToken,
   forceCreateManifest,
   forceLightningLwcTestCreate,
   forcePackageInstall,
@@ -133,9 +133,9 @@ function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
-  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.accessToken',
-    forceAuthAccessToken
+  const orgLoginAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.access.token',
+    orgLoginAccessToken
   );
   const orgLoginWebCmd = vscode.commands.registerCommand(
     'sfdx.org.login.web',
@@ -393,7 +393,7 @@ function registerCommands(
   return vscode.Disposable.from(
     forceRenameComponentCmd,
     forceDiffFolder,
-    forceAuthAccessTokenCmd,
+    orgLoginAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,

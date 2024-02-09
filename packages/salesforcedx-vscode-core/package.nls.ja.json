@@ -16,7 +16,7 @@
   "delete_source_text": "SFDX: プロジェクトおよび組織から削除",
   "delete_source_this_source_text": "SFDX: このソースをプロジェクトと組織から削除",
   "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",
-  "force_auth_access_token_authorize_org_text": "SFDX: Authorize an Org using Session ID",
+  "org_login_access_token_text": "SFDX: Authorize an Org using Session ID",
   "force_diff_against_org": "SFDX: ファイルと組織の差分を表示",
   "force_diff_folder_against_org": "SFDX: フォルダと組織の差分を表示",
   "force_lightning_lwc_test_create_text": "SFDX: Lightning Web コンポーネントのテストを作成",

@@ -42,9 +42,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   org_login_device_code_parse_error:
     'There was an unexpected error authorizing to your org in a container environment.',

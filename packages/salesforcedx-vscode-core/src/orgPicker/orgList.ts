@@ -124,7 +124,7 @@ export class OrgList implements vscode.Disposable {
       '$(plus) ' + nls.localize('org_login_web_authorize_org_text'),
       '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'),
       '$(plus) ' + nls.localize('org_create_default_scratch_org_text'),
-      '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
+      '$(plus) ' + nls.localize('org_login_access_token_text'),
       '$(plus) ' + nls.localize('org_list_clean_text')
     ];
 
@@ -151,9 +151,8 @@ export class OrgList implements vscode.Disposable {
         vscode.commands.executeCommand('sfdx.org.create');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' +
-        nls.localize('force_auth_access_token_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.auth.accessToken');
+      case '$(plus) ' + nls.localize('org_login_access_token_text'): {
+        vscode.commands.executeCommand('sfdx.org.login.access.token');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' + nls.localize('org_list_clean_text'): {
