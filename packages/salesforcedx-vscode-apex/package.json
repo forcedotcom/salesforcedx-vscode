@@ -173,19 +173,19 @@
       "commandPalette": [
         {
           "command": "sfdx.force.anon.apex.execute.selection",
-          "when": "sfdx:project_opened && editorHasSelection"
+          "when": "sfdx:project_opened && editorHasSelection && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.anon.apex.execute.document",
-          "when": "sfdx:project_opened && !editorHasSelection"
+          "when": "sfdx:project_opened && !editorHasSelection && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.log.get",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.test.last.class.run",
-          "when": "sfdx:project_opened && sfdx:has_cached_test_class"
+          "when": "sfdx:project_opened && sfdx:has_cached_test_class && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.test.class.run",
@@ -197,23 +197,23 @@
         },
         {
           "command": "sfdx.force.apex.test.last.method.run",
-          "when": "sfdx:project_opened && sfdx:has_cached_test_method"
+          "when": "sfdx:project_opened && sfdx:has_cached_test_method && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.test.run",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.test.suite.run",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.test.suite.create",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.apex.test.suite.add",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.test.view.runClassTests",
