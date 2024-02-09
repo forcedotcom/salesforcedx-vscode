@@ -115,10 +115,6 @@ export class TelemetryService {
     }
     this.extensionContext = extensionContext;
     this.extensionName = name;
-    console.log(
-      '🚀 ~ TelemetryService initializeService ~ extensionName:',
-      name
-    );
     this.version = version;
     this.aiKey = aiKey || this.aiKey;
 
@@ -134,10 +130,6 @@ export class TelemetryService {
 
     const isDevMode =
       extensionContext.extensionMode !== ExtensionMode.Production;
-    console.log(
-      '🚀 ~ TelemetryService initializeService ~ isDevMode:',
-      isDevMode
-    );
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
@@ -176,9 +168,6 @@ export class TelemetryService {
             Settings.AdvancedSettings.LOCAL_TELEMETRY_LOGGING
           )
         ) {
-          console.log(
-            'Local TelemetryFile Logging enabled for: ' + this.extensionName
-          );
           this.reporters.push(new TelemetryFile(this.extensionName));
         }
       }
