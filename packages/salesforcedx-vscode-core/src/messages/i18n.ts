@@ -106,7 +106,7 @@ export const messages = {
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',
-  force_source_status_text: 'View All Changes (Local and in Default Org)',
+  view_all_changes_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
     'You can run SFDX: Deploy Source to Org only on a source file or directory.',
@@ -159,8 +159,8 @@ export const messages = {
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
-  force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
+  view_local_changes_text: 'SFDX: View Local Changes',
+  view_remote_changes_text: 'SFDX: View Changes in Default Org',
   warning_prompt_file_overwrite:
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:

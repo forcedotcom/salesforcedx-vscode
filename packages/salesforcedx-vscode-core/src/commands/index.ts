@@ -83,11 +83,6 @@ export {
   SourcePathChecker,
   forceSourceRetrieveSourcePaths
 } from './forceSourceRetrieveSourcePath';
-export {
-  ForceSourceStatusExecutor,
-  SourceStatusFlags,
-  forceSourceStatus
-} from './forceSourceStatus';
 export { openDocumentation } from './openDocumentation';
 export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
