@@ -139,7 +139,7 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
-  force_create_manifest: 'SFDX: Generate Manifest File',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:

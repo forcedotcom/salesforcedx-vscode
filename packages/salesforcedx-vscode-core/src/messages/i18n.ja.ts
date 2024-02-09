@@ -165,6 +165,7 @@ export const messages = {
   project_generate_analytics_template_display_text: 'Analytics',
   project_generate_empty_template: '空のプロジェクトテンプレート',
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',

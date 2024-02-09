@@ -19,7 +19,7 @@
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
   "enable_source_tracking_for_deploy_and_retrieve": "Specifies whether source-tracking is enabled for deploy or retrieve operations in a source-tracked org. Disable source-tracking if you are experiencing performance issues using deploy or retrieve commands on your source-tracked orgs.",
   "org_login_access_token_text": "SFDX: Authorize an Org using Session ID",
-  "force_create_manifest": "SFDX: Generate Manifest File",
+  "project_generate_manifest": "SFDX: Generate Manifest File",
   "force_diff_against_org": "SFDX: Diff File Against Org",
   "force_diff_folder_against_org": "SFDX: Diff Folder Against Org",
   "force_launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",

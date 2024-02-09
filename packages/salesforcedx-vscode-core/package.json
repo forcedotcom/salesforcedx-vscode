@@ -330,7 +330,7 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.create.manifest",
+          "command": "sfdx.project.generate.manifest",
           "when": "sfdx:project_opened"
         },
         {
@@ -464,7 +464,7 @@
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.create.manifest",
+          "command": "sfdx.project.generate.manifest",
           "when": "false"
         },
         {
@@ -883,8 +883,8 @@
         }
       },
       {
-        "command": "sfdx.create.manifest",
-        "title": "%force_create_manifest%"
+        "command": "sfdx.project.generate.manifest",
+        "title": "%project_generate_manifest%"
       },
       {
         "command": "sfdx.force.diff",

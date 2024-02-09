@@ -50,7 +50,7 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { forceCreateManifest } from './forceCreateManifest';
+export { projectGenerateManifest } from './projectGenerateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
 export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {

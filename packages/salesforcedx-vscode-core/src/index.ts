@@ -30,7 +30,7 @@ import {
   debuggerStop,
   deleteSource,
   orgLoginAccessToken,
-  forceCreateManifest,
+  projectGenerateManifest,
   forceLightningLwcTestCreate,
   forcePackageInstall,
   forceRefreshSObjects,
@@ -532,7 +532,10 @@ async function setupOrgBrowser(
     }
   );
 
-  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
+  vscode.commands.registerCommand(
+    'sfdx.project.generate.manifest',
+    projectGenerateManifest
+  );
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {

@@ -55,6 +55,7 @@
   "org_open_default_scratch_org_text": "SFDX: デフォルトの組織を開く",
   "project_deploy_start_default_org_text": "SFDX: デフォルトのスクラッチ組織へソースをプッシュ",
   "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts",
+  "project_generate_manifest": "SFDX: Generate Manifest File",
   "project_generate_text": "SFDX: プロジェクトを作成",
   "project_generate_with_manifest_text": "SFDX: マニフェストファイルを使用してプロジェクトを作成",
   "project_retrieve_start_default_org_text": "SFDX: デフォルトのスクラッチ組織からソースをプル",
