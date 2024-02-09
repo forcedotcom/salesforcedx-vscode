@@ -392,15 +392,15 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.status",
+          "command": "sfdx.view.all.changes",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.status.local",
+          "command": "sfdx.view.local.changes",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.source.status.remote",
+          "command": "sfdx.view.remote.changes",
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
@@ -671,16 +671,16 @@
         "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
       },
       {
-        "command": "sfdx.force.source.status",
-        "title": "%force_source_status_text%"
+        "command": "sfdx.view.all.changes",
+        "title": "%view_all_changes_text%"
       },
       {
-        "command": "sfdx.force.source.status.local",
-        "title": "%force_source_status_local_text%"
+        "command": "sfdx.view.local.changes",
+        "title": "%view_local_changes_text%"
       },
       {
-        "command": "sfdx.force.source.status.remote",
-        "title": "%force_source_status_remote_text%"
+        "command": "sfdx.view.remote.changes",
+        "title": "%view_remote_changes_text%"
       },
       {
         "command": "sfdx.task.stop",
