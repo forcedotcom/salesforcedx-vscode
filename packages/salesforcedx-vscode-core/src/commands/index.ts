@@ -65,7 +65,7 @@ export {
   forceRefreshSObjects,
   initSObjectDefinitions
 } from './forceRefreshSObjects';
-export { forceRenameLightningComponent } from './forceRenameLightningComponent';
+export { renameLightningComponent } from './renameLightningComponent';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   LibraryDeploySourcePathExecutor,

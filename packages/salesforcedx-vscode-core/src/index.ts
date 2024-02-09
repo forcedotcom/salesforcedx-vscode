@@ -34,7 +34,7 @@ import {
   forceLightningLwcTestCreate,
   forcePackageInstall,
   forceRefreshSObjects,
-  forceRenameLightningComponent,
+  renameLightningComponent,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -385,13 +385,13 @@ function registerCommands(
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const forceRenameComponentCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.rename',
-    forceRenameLightningComponent
+  const renameLightningComponentCmd = vscode.commands.registerCommand(
+    'sfdx.rename.lightning.component',
+    renameLightningComponent
   );
 
   return vscode.Disposable.from(
-    forceRenameComponentCmd,
+    renameLightningComponentCmd,
     forceDiffFolder,
     orgLoginAccessTokenCmd,
     dataQueryInputCmd,

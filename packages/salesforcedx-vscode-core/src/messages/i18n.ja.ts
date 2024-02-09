@@ -111,7 +111,7 @@ export const messages = {
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
-
+  rename_lightning_component: 'SFDX: Rename Component',
   view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
   apex_generate_class_text: 'SFDX: Apex クラスを作成',
