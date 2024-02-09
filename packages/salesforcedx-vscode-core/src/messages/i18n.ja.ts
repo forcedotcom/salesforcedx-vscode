@@ -113,8 +113,7 @@ export const messages = {
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
 
-  force_source_status_text:
-    'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
+  view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
   apex_generate_class_text: 'SFDX: Apex クラスを作成',
   visualforce_generate_component_text: 'SFDX: Visualforce コンポーネントを作成',
@@ -125,9 +124,8 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Aura インタフェースを作成',
   analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
   analytics_template_name_text: 'template name',
-  force_source_status_local_text: 'SFDX: ローカルの変更を表示',
-  force_source_status_remote_text:
-    'SFDX: デフォルトのスクラッチ組織の変更を参照',
+  view_local_changes_text: 'SFDX: ローカルの変更を表示',
+  view_remote_changes_text: 'SFDX: デフォルトのスクラッチ組織の変更を参照',
   warning_prompt_file_overwrite:
     '指定されたパスを使用した 1 つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_dir_overwrite:

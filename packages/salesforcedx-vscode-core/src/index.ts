@@ -221,15 +221,15 @@ function registerCommands(
     forceSourceRetrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status',
+    'sfdx.view.all.changes',
     viewAllChanges
   );
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.local',
+    'sfdx.view.local.changes',
     viewLocalChanges
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.remote',
+    'sfdx.view.remote.changes',
     viewRemoteChanges
   );
   const taskStopCmd = vscode.commands.registerCommand(
