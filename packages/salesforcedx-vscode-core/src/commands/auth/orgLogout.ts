@@ -113,7 +113,7 @@ export async function orgLogoutDefault() {
 }
 
 async function removeUsername(username: string) {
-  await ConfigUtil.unsetTargetOrg(username);
+  await ConfigUtil.unsetTargetOrg();
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
 }

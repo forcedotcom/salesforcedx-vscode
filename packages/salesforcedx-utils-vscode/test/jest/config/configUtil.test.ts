@@ -95,7 +95,6 @@ describe('testing unsetTargetOrg', () => {
   let workspacePathStub: jest.SpyInstance;
   let originalDirectoryStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
-  let orgStub: jest.SpyInstance;
   let chdirStub: jest.SpyInstance;
   let unsetMock: jest.SpyInstance;
   let writeMock: jest.SpyInstance;
@@ -116,7 +115,6 @@ describe('testing unsetTargetOrg', () => {
     writeMock = jest.fn();
     configStub = jest.spyOn(Config, 'create');
     configStub.mockResolvedValue({ unset: unsetMock, write: writeMock });
-    orgStub = jest.spyOn(Org, 'create').mockResolvedValue(undefined as any);
     chdirStub = jest.spyOn(process, 'chdir').mockReturnValue();
     mockConfigAggregatorProvider = jest
       .spyOn(ConfigAggregatorProvider, 'getInstance')
@@ -128,9 +126,7 @@ describe('testing unsetTargetOrg', () => {
   });
 
   it('should unset provided username or alias', async () => {
-    const username = 'vscodeOrgs';
-    await ConfigUtil.unsetTargetOrg(username);
-    expect(orgStub).toHaveBeenCalled();
+    await ConfigUtil.unsetTargetOrg();
     expect(unsetMock).toHaveBeenCalledWith(TARGET_ORG_KEY);
     expect(writeMock).toHaveBeenCalled();
     expect(mockConfigAggregatorProvider).toHaveBeenCalled();
@@ -141,8 +137,7 @@ describe('testing unsetTargetOrg', () => {
   });
 
   it('should change the current working directory to the original working directory', async () => {
-    const username = 'vscodeO';
-    await ConfigUtil.unsetTargetOrg(username);
+    await ConfigUtil.unsetTargetOrg();
     expect(workspacePathStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
