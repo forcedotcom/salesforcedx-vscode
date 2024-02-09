@@ -8,6 +8,7 @@
 import { AuthRemover } from '@salesforce/core';
 import {
   Command,
+  ConfigUtil,
   ContinueResponse,
   LibraryCommandletExecutor,
   notificationService,
@@ -18,7 +19,6 @@ import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import { configSet } from '../configSet';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -113,7 +113,7 @@ export async function orgLogoutDefault() {
 }
 
 async function removeUsername(username: string) {
-  await configSet('');
+  await ConfigUtil.setDefaultUsernameOrAlias('');
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
 }
