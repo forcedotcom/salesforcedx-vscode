@@ -4,6 +4,7 @@
   "test_view_name": "Apex テスト",
   "run_tests_title": "テストを実行",
   "refresh_test_title": "テストを更新",
+  "collapse_all_tests_title": "Collapse Tests",
   "run_single_test_title": "1 つのテストを実行",
   "show_error_title": "エラーを表示",
   "go_to_definition_title": "定義に移動",

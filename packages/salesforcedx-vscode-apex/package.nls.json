@@ -4,6 +4,7 @@
   "test_view_name": "Apex Tests",
   "run_tests_title": "Run Tests",
   "refresh_test_title": "Refresh Tests",
+  "collapse_all_tests_title": "Collapse Tests",
   "run_single_test_title": "Run Single Test",
   "show_error_title": "Display Error",
   "go_to_definition_title": "Go to Definition",

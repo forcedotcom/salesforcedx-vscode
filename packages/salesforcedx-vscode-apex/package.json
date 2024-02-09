@@ -150,7 +150,7 @@
           "group": "navigation"
         },
         {
-          "command": "workbench.files.action.collapseExplorerFolders",
+          "command": "sfdx.force.test.view.collapseAll",
           "when": "view == sfdx.force.test.view",
           "group": "navigation"
         }
@@ -243,6 +243,10 @@
         {
           "command": "sfdx.force.test.view.refresh",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.collapseAll",
+          "when": "false"
         }
       ]
     },
@@ -286,6 +290,14 @@
       {
         "command": "sfdx.force.test.view.refresh",
         "title": "%refresh_test_title%",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.collapseAll",
+        "title": "%collapse_all_tests_title%",
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
