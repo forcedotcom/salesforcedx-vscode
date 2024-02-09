@@ -14,7 +14,7 @@ Want to develop locally? Already using VS Code? Install Salesforce Extensions an
 
 <span>Download using the links below, or read the [installation instructions](./en/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
-**Note**: We recommend that you use Salesforce Extension Pack version 59.15.0 or earlier if you aren't able to update your version of VS Code. Note that we aren't able to support fixes for versions of the Salesforce Extension Pack earlier than 59.15.0. 
+**Note**: We recommend that you use Salesforce Extension Pack versions earlier than 59.15.0 if you aren't able to update your version of VS Code. Note that we aren't able to support fixes for these earlier versions. 
 
 ### Code Builder
 
