@@ -6,6 +6,10 @@
 
 - Bump SDR to 10.3.3 ([PR #5400](https://github.com/forcedotcom/salesforcedx-vscode/pull/5400))
 
+#### salesforcedx-vscode-apex
+
+- We updated the Apex Language Server to include new and modified class. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385))
+
 ## Fixed
 
 #### salesforcedx-vscode-core
