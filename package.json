@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "node": "^18.11.0",
-    "npm": "^9",
+    "npm": "^10.2.2",
     "ts-node": "10.9.1"
   },
   "devDependencies": {
