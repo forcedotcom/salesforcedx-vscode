@@ -60,22 +60,18 @@ export {
   forcePackageInstall
 } from './forcePackageInstall';
 export {
-  ForceRefreshSObjectsExecutor,
+  RefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
-  forceRefreshSObjects,
+  refreshSObjects,
   initSObjectDefinitions
-} from './forceRefreshSObjects';
+} from './refreshSObjects';
 export { forceRenameLightningComponent } from './forceRenameLightningComponent';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   LibraryDeploySourcePathExecutor,
   forceSourceDeploySourcePaths
 } from './forceSourceDeploySourcePath';
-export {
-  forceSourceDiff,
-  forceSourceFolderDiff,
-  handleCacheResults
-} from './forceSourceDiff';
+export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {

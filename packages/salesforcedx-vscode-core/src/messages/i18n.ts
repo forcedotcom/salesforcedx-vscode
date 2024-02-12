@@ -624,13 +624,13 @@ export const messages = {
   conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
   conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
-  force_source_diff_text: 'SFDX: Diff File Against Org',
-  force_source_diff_components_not_in_org:
+  source_diff_text: 'SFDX: Diff File Against Org',
+  source_diff_components_not_in_org:
     'Selected components are not available in the org',
-  force_source_diff_unsupported_type:
+  source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',
-  force_source_diff_title: '%s//%s ↔ local//%s',
-  force_source_diff_folder_title: '%s - File Diffs',
+  source_diff_title: '%s//%s ↔ local//%s',
+  source_diff_folder_title: '%s - File Diffs',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
@@ -652,7 +652,7 @@ export const messages = {
   sobjects_refresh_needed:
     "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',

@@ -514,12 +514,12 @@ export const messages = {
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'ファイルを比較',
 
-  force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
-  force_source_diff_components_not_in_org:
+  source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
+  source_diff_components_not_in_org:
     'Selected components are not available in the org',
-  force_source_diff_unsupported_type:
+  source_diff_unsupported_type:
     'このメタデータ型に対する差分は現在サポートされていません。',
-  force_source_diff_title: '%s//%s ↔ ローカル //%s',
+  source_diff_title: '%s//%s ↔ ローカル //%s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
