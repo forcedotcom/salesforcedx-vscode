@@ -54,6 +54,10 @@ on:
         description: "Run ID of the workflow run that created the vsixes"
         required: true
         type: string
+      os:
+        description: "Operating System(s) to run the E2E tests on"
+        required: false
+        type: string
 
   workflow_call:
     inputs:
@@ -101,6 +105,11 @@ on:
         description: "Run ID of the workflow run that created the vsixes"
         required: true
         type: string
+      os:
+        description: "Operating System(s) to run the E2E tests on"
+        required: false
+        default: "[ubuntu-latest]"
+        type: string
 
 jobs:
   anInitialSuite:
@@ -112,6 +121,7 @@ jobs:
       testToRun: "anInitialSuite.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
+      os: ${{ inputs.os }}
 
   authentication:
     if: ${{ inputs.authentication || github.event_name == 'workflow_run' }}
@@ -122,6 +132,7 @@ jobs:
       testToRun: "authentication.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
+      os: ${{ inputs.os }}
 
   templates:
     if: ${{ inputs.templates || github.event_name == 'workflow_run' }}
@@ -132,6 +143,7 @@ jobs:
       testToRun: "templates.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
+      os: ${{ inputs.os }}
 
   deployAndRetrieve:
     if: ${{ inputs.deployAndRetrieve || github.event_name == 'workflow_run' }}
@@ -142,6 +154,7 @@ jobs:
       testToRun: "deployAndRetrieve.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
+      os: ${{ inputs.os }}
 
   apexLSP:
     if: ${{ inputs.apexLsp || github.event_name == 'workflow_run' }}
@@ -152,6 +165,7 @@ jobs:
       testToRun: "apexLsp.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
+      os: ${{ inputs.os }}
 
   runApexTests:
     if: ${{ inputs.runApexTests || github.event_name == 'workflow_run' }}
@@ -162,3 +176,4 @@ jobs:
       testToRun: "runApexTests.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
+      os: ${{ inputs.os }}
