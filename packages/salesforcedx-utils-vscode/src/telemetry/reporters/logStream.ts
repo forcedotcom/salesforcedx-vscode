@@ -12,10 +12,13 @@ import { Disposable, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { TelemetryReporter } from '../interfaces';
 
+/**
+ * Represents a telemetry reporter that logs telemetry events to a file.
+ */
 export class LogStream extends Disposable implements TelemetryReporter {
   private toDispose: Disposable[] = [];
 
-  private logStream: fs.WriteStream | undefined;
+  private stream: fs.WriteStream | undefined;
 
   constructor(
     private extensionId: string,
@@ -23,7 +26,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
     logFilePath = path.join(logFilePath, `${this.extensionId}.txt`);
-    this.logStream = fs.createWriteStream(logFilePath, {
+    this.stream = fs.createWriteStream(logFilePath, {
       flags: 'a',
       encoding: 'utf8',
       autoClose: true
@@ -50,8 +53,8 @@ export class LogStream extends Disposable implements TelemetryReporter {
       properties = { orgId };
     }
 
-    if (this.logStream) {
-      this.logStream.write(
+    if (this.stream) {
+      this.stream.write(
         `telemetry/${eventName} ${JSON.stringify({
           properties,
           measurements
@@ -71,8 +74,8 @@ export class LogStream extends Disposable implements TelemetryReporter {
       'LogStream.sendExceptionEvent - exceptionMessage: ' + exceptionMessage
     );
 
-    if (this.logStream) {
-      this.logStream.write(
+    if (this.stream) {
+      this.stream.write(
         `telemetry/${exceptionName} ${JSON.stringify({
           properties,
           measurements
@@ -83,11 +86,11 @@ export class LogStream extends Disposable implements TelemetryReporter {
 
   public dispose(): Promise<any> {
     const flushEventsToLogger = new Promise<any>(resolve => {
-      if (!this.logStream) {
+      if (!this.stream) {
         return resolve(void 0);
       }
-      this.logStream.on('finish', resolve);
-      this.logStream.end();
+      this.stream.on('finish', resolve);
+      this.stream.end();
     });
 
     return flushEventsToLogger;
