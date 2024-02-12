@@ -54,7 +54,7 @@ let renameStub: sinon.SinonStub;
 let statStub: sinon.SinonStub;
 let readdirStub: sinon.SinonStub;
 
-describe('Lightning Component', () => {
+describe('Rename Lightning Component', () => {
   describe('Happy Path Unit Test', () => {
     beforeEach(() => {
       renameStub = env.stub(fs.promises, 'rename').resolves(undefined);
