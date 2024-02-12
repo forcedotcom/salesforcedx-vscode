@@ -4,21 +4,20 @@
 
 #### salesforcedx-vscode-core
 
-- Bump sdr to catch new expression sets ([PR #5400](https://github.com/forcedotcom/salesforcedx-vscode/pull/5400))
+- Bump SDR to 10.3.3 ([PR #5400](https://github.com/forcedotcom/salesforcedx-vscode/pull/5400))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Logging out from default org only shows 1 notif ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
+- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience.  ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
 
-- Org Browser refresh works for custom objects with a namespace ([PR #5403](https://github.com/forcedotcom/salesforcedx-vscode/pull/5403))
+- We fixed an issue with the Org Browser so that custom objects with a namespace can now be refreshed. ([PR #5403](https://github.com/forcedotcom/salesforcedx-vscode/pull/5403))
 
-- Hide commands that require a default org when no default org is set ([PR #5406](https://github.com/forcedotcom/salesforcedx-vscode/pull/5406))
+- We no longer show you commands that require a default org when no default org is set. ([PR #5406](https://github.com/forcedotcom/salesforcedx-vscode/pull/5406))
 
-- Update pull commands to sf style ([PR #5388](https://github.com/forcedotcom/salesforcedx-vscode/pull/5388))
+- We migrated some more commands to the new `sf style`. ([PR #5379](https://github.com/forcedotcom/salesforcedx-vscode/pull/5379), [PR #5388](https://github.com/forcedotcom/salesforcedx-vscode/pull/5388))
 
-- Migrate org browser cmds from sfdx to sf ([PR #5379](https://github.com/forcedotcom/salesforcedx-vscode/pull/5379))
 
 # 59.17.0 - February 7, 2024
 
