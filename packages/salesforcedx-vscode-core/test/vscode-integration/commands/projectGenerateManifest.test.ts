@@ -13,7 +13,7 @@ import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
 import * as util from 'util';
 import * as vscode from 'vscode';
-import { ManifestCreateExecutor } from '../../../src/commands/forceCreateManifest';
+import { GenerateManifestExecutor } from '../../../src/commands/projectGenerateManifest';
 import { nls } from '../../../src/messages';
 
 const classPath = '/force-app/main/default/classes/';
@@ -26,7 +26,9 @@ const EMPTY_MANIFEST = `<?xml version="1.0" encoding="UTF-8"?>
   %s
   <version>53.0</version>
 </Package>`;
-const APEX_MANIFEST = util.format(EMPTY_MANIFEST, `
+const APEX_MANIFEST = util.format(
+  EMPTY_MANIFEST,
+  `
 <types>
   %s
   <name>ApexClass</name>
@@ -36,9 +38,8 @@ const APEX_MANIFEST = util.format(EMPTY_MANIFEST, `
 const env = createSandbox();
 let openTextDocumentSpy: sinon.SinonSpy;
 
-describe('Force Create Manifest', () => {
+describe('Project Generate Manifest', () => {
   describe('Happy Path Unit Tests', () => {
-
     beforeEach(() => {
       openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
     });
@@ -48,7 +49,10 @@ describe('Force Create Manifest', () => {
     });
 
     it('Should create first manifest from single sourceUri', async () => {
-      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>`);
+      const packageXML = util.format(
+        APEX_MANIFEST,
+        `<member>${CLASS_1}</member>`
+      );
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
           return packageXML;
@@ -58,7 +62,10 @@ describe('Force Create Manifest', () => {
       env.stub(fs, 'mkdirSync').returns(undefined);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
-      const executor = new ManifestCreateExecutor([URI_1.fsPath], packageName);
+      const executor = new GenerateManifestExecutor(
+        [URI_1.fsPath],
+        packageName
+      );
       await executor.run({
         type: 'CONTINUE',
         data: ''
@@ -68,20 +75,27 @@ describe('Force Create Manifest', () => {
     });
 
     it('Should create manifest from list of uris', async () => {
-      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`);
+      const packageXML = util.format(
+        APEX_MANIFEST,
+        `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`
+      );
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
           return packageXML;
         }
       });
-      env.stub(fs, 'existsSync')
+      env
+        .stub(fs, 'existsSync')
         .onFirstCall()
         .returns(true)
         .onSecondCall()
         .returns(false);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
-      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], packageName);
+      const executor = new GenerateManifestExecutor(
+        [URI_1.fsPath, URI_2.fsPath],
+        packageName
+      );
       await executor.run({
         type: 'CONTINUE',
         data: ''
@@ -92,18 +106,25 @@ describe('Force Create Manifest', () => {
 
     it('Should create but not save manifest if cancelled', async () => {
       const writeFileSpy = env.spy(fs, 'writeFileSync');
-      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`);
+      const packageXML = util.format(
+        APEX_MANIFEST,
+        `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`
+      );
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
           return packageXML;
         }
       });
-      env.stub(fs, 'existsSync')
+      env
+        .stub(fs, 'existsSync')
         .onFirstCall()
         .returns(true)
         .onSecondCall()
         .returns(false);
-      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], undefined);
+      const executor = new GenerateManifestExecutor(
+        [URI_1.fsPath, URI_2.fsPath],
+        undefined
+      );
       await executor.run({
         type: 'CONTINUE',
         data: ''
@@ -114,19 +135,26 @@ describe('Force Create Manifest', () => {
     });
 
     it('Should use default manifest name if none is supplied', async () => {
-      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`);
+      const packageXML = util.format(
+        APEX_MANIFEST,
+        `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`
+      );
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
           return packageXML;
         }
       });
-      env.stub(fs, 'existsSync')
+      env
+        .stub(fs, 'existsSync')
         .onFirstCall()
         .returns(true)
         .onSecondCall()
         .returns(false);
       env.stub(fs, 'writeFileSync').returns(undefined);
-      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], '');
+      const executor = new GenerateManifestExecutor(
+        [URI_1.fsPath, URI_2.fsPath],
+        ''
+      );
       await executor.run({
         type: 'CONTINUE',
         data: ''
@@ -138,13 +166,17 @@ describe('Force Create Manifest', () => {
     });
 
     it('Should append correct extension', async () => {
-      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`);
+      const packageXML = util.format(
+        APEX_MANIFEST,
+        `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`
+      );
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
           return packageXML;
         }
       });
-      env.stub(fs, 'existsSync')
+      env
+        .stub(fs, 'existsSync')
         .onFirstCall()
         .returns(true)
         .onSecondCall()
@@ -152,7 +184,10 @@ describe('Force Create Manifest', () => {
       env.stub(fs, 'writeFileSync').returns(undefined);
       const randomSuffix = generateRandomSuffix();
       const packageName = 'package' + randomSuffix + '.txt';
-      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], packageName);
+      const executor = new GenerateManifestExecutor(
+        [URI_1.fsPath, URI_2.fsPath],
+        packageName
+      );
       await executor.run({
         type: 'CONTINUE',
         data: ''
@@ -170,12 +205,16 @@ describe('Force Create Manifest', () => {
           return packageXML;
         }
       });
-      env.stub(fs, 'existsSync')
+      env
+        .stub(fs, 'existsSync')
         .onFirstCall()
         .returns(true)
         .onSecondCall()
         .returns(false);
-      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], undefined);
+      const executor = new GenerateManifestExecutor(
+        [URI_1.fsPath, URI_2.fsPath],
+        undefined
+      );
       await executor.run({
         type: 'CONTINUE',
         data: ''
@@ -183,11 +222,9 @@ describe('Force Create Manifest', () => {
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
-
   });
 
   describe('Exception Handling Unit Tests', () => {
-
     beforeEach(() => {
       openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
     });
@@ -197,12 +234,15 @@ describe('Force Create Manifest', () => {
     });
 
     it('Should handle exception while creating component set', async () => {
-      env.stub(ComponentSet, 'fromSource').throws(
-        new Error(nls.localize('error_creating_packagexml'))
-      );
+      env
+        .stub(ComponentSet, 'fromSource')
+        .throws(new Error(nls.localize('error_creating_packagexml')));
       let exceptionThrown = false;
       try {
-        const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], '');
+        const executor = new GenerateManifestExecutor(
+          [URI_1.fsPath, URI_2.fsPath],
+          ''
+        );
         await executor.run({
           type: 'CONTINUE',
           data: ''
@@ -218,7 +258,10 @@ describe('Force Create Manifest', () => {
     });
 
     it('Should enforce unique manifest names', async () => {
-      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>`);
+      const packageXML = util.format(
+        APEX_MANIFEST,
+        `<member>${CLASS_1}</member>`
+      );
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
           return packageXML;
@@ -229,12 +272,11 @@ describe('Force Create Manifest', () => {
 
       let exceptionThrown = false;
       try {
-        const executor = new ManifestCreateExecutor([URI_1.fsPath], fileName);
+        const executor = new GenerateManifestExecutor([URI_1.fsPath], fileName);
         await executor.run({
           type: 'CONTINUE',
           data: ''
         });
-
       } catch (e) {
         exceptionThrown = true;
         expect(e.message).to.contain(fileName);
@@ -243,7 +285,6 @@ describe('Force Create Manifest', () => {
       expect(openTextDocumentSpy.called).to.equal(false);
     });
   });
-
 });
 
 function generateRandomSuffix() {

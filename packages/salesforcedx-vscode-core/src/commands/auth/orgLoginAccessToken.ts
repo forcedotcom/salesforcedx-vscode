@@ -17,13 +17,11 @@ import {
   AccessTokenParamsGatherer
 } from './authParamsGatherer';
 
-export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
-  AccessTokenParams
-> {
+export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
   constructor() {
     super(
-      nls.localize('force_auth_access_token_authorize_org_text'),
-      'force_auth_access_token',
+      nls.localize('org_login_access_token_text'),
+      'org_login_access_token',
       OUTPUT_CHANNEL
     );
   }
@@ -36,7 +34,7 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
     try {
@@ -53,7 +51,7 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
       if (error.message && error.message.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
         channelService.appendLine(
-          nls.localize('force_auth_access_token_login_bad_oauth_token_message')
+          nls.localize('org_login_access_token_bad_oauth_token_message')
         );
       }
       throw error;
@@ -66,11 +64,11 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AccessTokenParamsGatherer();
 
-export async function forceAuthAccessToken() {
+export async function orgLoginAccessToken() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceAuthAccessTokenExecutor()
+    new OrgLoginAccessTokenExecutor()
   );
   await commandlet.run();
 }

@@ -15,7 +15,7 @@ export {
   PRODUCTION_URL,
   SANDBOX_URL
 } from './auth/authParamsGatherer';
-export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export {
   DeviceCodeResponse,
   OrgLoginWebContainerExecutor,
@@ -50,7 +50,7 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { forceCreateManifest } from './forceCreateManifest';
+export { projectGenerateManifest } from './projectGenerateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
 export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
@@ -65,7 +65,7 @@ export {
   forceRefreshSObjects,
   initSObjectDefinitions
 } from './forceRefreshSObjects';
-export { forceRenameLightningComponent } from './forceRenameLightningComponent';
+export { renameLightningComponent } from './renameLightningComponent';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   LibraryDeploySourcePathExecutor,

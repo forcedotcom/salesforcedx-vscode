@@ -17,18 +17,18 @@ import { nls } from '../messages';
 import { workspaceUtils } from '../util';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
-const CREATE_MANIFEST_EXECUTOR = 'force_create_manifest';
+const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
 const DEFAULT_MANIFEST = 'package.xml';
 const MANIFEST_SAVE_PLACEHOLDER = 'manifest_input_save_placeholder';
 const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
-export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
+export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
   constructor(sourcePaths: string[], responseText: string | undefined) {
     super(
-      nls.localize(CREATE_MANIFEST_EXECUTOR),
-      CREATE_MANIFEST_EXECUTOR,
+      nls.localize(GENERATE_MANIFEST_EXECUTOR),
+      GENERATE_MANIFEST_EXECUTOR,
       OUTPUT_CHANNEL
     );
     this.sourcePaths = sourcePaths;
@@ -42,7 +42,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     if (this.sourcePaths) {
       const packageXML = await ComponentSet.fromSource(
@@ -60,7 +60,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
   }
 }
 
-export async function forceCreateManifest(
+export async function projectGenerateManifest(
   sourceUri: vscode.Uri,
   uris: vscode.Uri[] | undefined
 ) {
@@ -78,7 +78,7 @@ export async function forceCreateManifest(
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       new FilePathGatherer(sourceUri),
-      new ManifestCreateExecutor(sourcePaths, responseText)
+      new GenerateManifestExecutor(sourcePaths, responseText)
     );
     await commandlet.run();
   }

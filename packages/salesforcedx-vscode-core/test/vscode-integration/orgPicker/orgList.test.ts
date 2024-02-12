@@ -365,13 +365,12 @@ describe('orgList Tests', () => {
       it('should return Continue and call sfdx:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
-          '$(plus) ' +
-            nls.localize('force_auth_access_token_authorize_org_text')
+          '$(plus) ' + nls.localize('org_login_access_token_text')
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(
-          executeCommandStub.calledWith('sfdx.force.auth.accessToken')
+          executeCommandStub.calledWith('sfdx.org.login.access.token')
         ).to.equal(true);
       });
 

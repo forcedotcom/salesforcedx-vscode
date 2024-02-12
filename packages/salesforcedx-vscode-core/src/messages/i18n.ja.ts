@@ -40,9 +40,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
   org_login_web_authorize_org_text: 'SFDX: 組織を認証',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
@@ -112,7 +111,7 @@ export const messages = {
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
-
+  rename_lightning_component: 'SFDX: Rename Component',
   view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
   apex_generate_class_text: 'SFDX: Apex クラスを作成',
@@ -166,6 +165,7 @@ export const messages = {
   project_generate_analytics_template_display_text: 'Analytics',
   project_generate_empty_template: '空のプロジェクトテンプレート',
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
