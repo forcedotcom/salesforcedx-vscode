@@ -15,7 +15,7 @@ import {
   inputGuard,
   isNameMatch,
   RenameLwcComponentExecutor
-} from '../../../src/commands/forceRenameLightningComponent';
+} from '../../../src/commands/renameLightningComponent';
 import { nls } from '../../../src/messages';
 
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
@@ -25,8 +25,27 @@ const lwcPath = vscode.Uri.parse('/force-app/main/default/lwc');
 const auraPath = vscode.Uri.parse('/force-app/main/default/aura/');
 const lwcComponent = 'hero';
 const auraComponent = 'page';
-const itemsInHero = ['hero.css', 'hero.html', 'hero.js', 'hero.js-meta.xml', 'templateOne.html'];
-const itemsInPage = ['page.auradoc', 'page.cmp', 'page.cmp-meta.xml', 'page.css', 'page.design', 'page.svg', 'pageController.js', 'pageHelper.js', 'pageRenderer.js', 'page.evt', 'page.evt-meta.xml', 'templateOne.css'];
+const itemsInHero = [
+  'hero.css',
+  'hero.html',
+  'hero.js',
+  'hero.js-meta.xml',
+  'templateOne.html'
+];
+const itemsInPage = [
+  'page.auradoc',
+  'page.cmp',
+  'page.cmp-meta.xml',
+  'page.css',
+  'page.design',
+  'page.svg',
+  'pageController.js',
+  'pageHelper.js',
+  'pageRenderer.js',
+  'page.evt',
+  'page.evt-meta.xml',
+  'templateOne.css'
+];
 const testFolder = '__tests__';
 const testFiles = ['hero.test.js', 'example.test.js'];
 
@@ -35,7 +54,7 @@ let renameStub: sinon.SinonStub;
 let statStub: sinon.SinonStub;
 let readdirStub: sinon.SinonStub;
 
-describe('Force Rename Lightning Component', () => {
+describe('Rename Lightning Component', () => {
   describe('Happy Path Unit Test', () => {
     beforeEach(() => {
       renameStub = env.stub(fs.promises, 'rename').resolves(undefined);
@@ -346,27 +365,57 @@ describe('Force Rename Lightning Component', () => {
     it('should return true of file name and component name match for essential Aura files', () => {
       const componentName = 'page';
       const componentPath = path.join(auraPath.fsPath, auraComponent);
-      expect(isNameMatch(itemsInPage[0], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[1], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[2], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[3], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[4], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[5], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[6], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[7], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[8], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[9], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[10], componentName, componentPath)).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[0], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[1], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[2], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[3], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[4], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[5], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[6], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[7], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[8], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[9], componentName, componentPath)
+      ).to.equal(true);
+      expect(
+        isNameMatch(itemsInPage[10], componentName, componentPath)
+      ).to.equal(true);
     });
 
     it('should return false if file type is not in LWC or Aura or file name and component name do not match', () => {
       const lwcComponentPath = path.join(lwcPath.fsPath, lwcComponent);
       const auraComponentPath = path.join(auraPath.fsPath, auraComponent);
       expect(isNameMatch('hero.jpg', 'hero', lwcComponentPath)).to.equal(false);
-      expect(isNameMatch('hero1.css', 'hero', lwcComponentPath)).to.equal(false);
-      expect(isNameMatch('page.jpg', 'page', auraComponentPath)).to.equal(false);
-      expect(isNameMatch('page1.css', 'hero', auraComponentPath)).to.equal(false);
-      expect(isNameMatch('pageEvt.js', 'page', auraComponentPath)).to.equal(false);
+      expect(isNameMatch('hero1.css', 'hero', lwcComponentPath)).to.equal(
+        false
+      );
+      expect(isNameMatch('page.jpg', 'page', auraComponentPath)).to.equal(
+        false
+      );
+      expect(isNameMatch('page1.css', 'hero', auraComponentPath)).to.equal(
+        false
+      );
+      expect(isNameMatch('pageEvt.js', 'page', auraComponentPath)).to.equal(
+        false
+      );
     });
   });
 

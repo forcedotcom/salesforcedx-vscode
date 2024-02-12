@@ -21,7 +21,7 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
-const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
+const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
 const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
@@ -33,9 +33,7 @@ const LWC = 'lwc';
 const AURA = 'aura';
 const TEST_FOLDER = '__tests__';
 
-export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<
-  ComponentName
-> {
+export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
     super(
@@ -65,7 +63,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export async function forceRenameLightningComponent(sourceUri: vscode.Uri) {
+export async function renameLightningComponent(sourceUri: vscode.Uri) {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
     const commandlet = new SfdxCommandlet(
@@ -243,7 +241,9 @@ export function isNameMatch(
       `${componentName}\\.(html|js|js-meta.xml|css|svg|test.js)`
     );
   } else {
-    regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`);
+    regularExp = new RegExp(
+      `${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`
+    );
   }
   return Boolean(item.match(regularExp));
 }

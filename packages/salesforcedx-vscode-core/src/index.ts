@@ -29,12 +29,12 @@ import {
   dataQuery,
   debuggerStop,
   deleteSource,
-  forceAuthAccessToken,
-  forceCreateManifest,
+  orgLoginAccessToken,
+  projectGenerateManifest,
   forceLightningLwcTestCreate,
   forcePackageInstall,
   forceRefreshSObjects,
-  forceRenameLightningComponent,
+  renameLightningComponent,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -133,9 +133,9 @@ function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
-  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.accessToken',
-    forceAuthAccessToken
+  const orgLoginAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.access.token',
+    orgLoginAccessToken
   );
   const orgLoginWebCmd = vscode.commands.registerCommand(
     'sfdx.org.login.web',
@@ -385,15 +385,15 @@ function registerCommands(
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const forceRenameComponentCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.rename',
-    forceRenameLightningComponent
+  const renameLightningComponentCmd = vscode.commands.registerCommand(
+    'sfdx.rename.lightning.component',
+    renameLightningComponent
   );
 
   return vscode.Disposable.from(
-    forceRenameComponentCmd,
+    renameLightningComponentCmd,
     forceDiffFolder,
-    forceAuthAccessTokenCmd,
+    orgLoginAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
@@ -532,7 +532,10 @@ async function setupOrgBrowser(
     }
   );
 
-  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
+  vscode.commands.registerCommand(
+    'sfdx.project.generate.manifest',
+    projectGenerateManifest
+  );
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
