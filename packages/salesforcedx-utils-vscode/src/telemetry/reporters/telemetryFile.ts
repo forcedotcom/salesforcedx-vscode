@@ -10,6 +10,9 @@ import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
 import { TelemetryReporter } from '../interfaces';
 
+/**
+ * Represents a telemetry file that logs telemetry events by appending to a local file.
+ */
 export class TelemetryFile implements TelemetryReporter {
   private filePath: string;
 
