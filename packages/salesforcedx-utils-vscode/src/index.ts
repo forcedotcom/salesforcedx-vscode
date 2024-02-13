@@ -39,7 +39,7 @@ export {
 } from './services/telemetry';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
-export { AppInsights as TelemetryReporter } from './telemetry/reporters/appInsights';
+export { AppInsights } from './telemetry/reporters/appInsights';
 export {
   hasRootWorkspace,
   getRootWorkspace,

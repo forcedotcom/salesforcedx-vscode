@@ -19,7 +19,7 @@ import {
 } from '../telemetry/cliConfiguration';
 import { TelemetryReporter } from '../telemetry/interfaces/telemetryReporter';
 import { AppInsights } from '../telemetry/reporters/appInsights';
-import { LogStream as LogStream } from '../telemetry/reporters/logStream';
+import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
 
