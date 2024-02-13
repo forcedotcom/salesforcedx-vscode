@@ -57,6 +57,7 @@ on:
       os:
         description: "Operating System(s) to run the E2E tests on"
         required: false
+        default: '["ubuntu-latest"]'
         type: string
 
   workflow_call:
@@ -108,7 +109,7 @@ on:
       os:
         description: "Operating System(s) to run the E2E tests on"
         required: false
-        default: "[ubuntu-latest]"
+        default: '["ubuntu-latest"]'
         type: string
 
 jobs:
