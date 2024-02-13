@@ -1,3 +1,28 @@
+# 60.0.0 - February 14, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Bump SDR to 10.3.3 ([PR #5400](https://github.com/forcedotcom/salesforcedx-vscode/pull/5400))
+
+#### salesforcedx-vscode-apex
+
+- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)). 
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience.  ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
+
+- We fixed an issue with the Org Browser so that custom objects with a namespace can now be refreshed. ([PR #5403](https://github.com/forcedotcom/salesforcedx-vscode/pull/5403))
+
+- We no longer show you commands that require a default org when no default org is set. ([PR #5406](https://github.com/forcedotcom/salesforcedx-vscode/pull/5406))
+
+- We migrated some more commands to the new `sf style`. ([PR #5379](https://github.com/forcedotcom/salesforcedx-vscode/pull/5379), [PR #5388](https://github.com/forcedotcom/salesforcedx-vscode/pull/5388))
+
+
 # 59.17.0 - February 7, 2024
 
 ## Fixed
