@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We updated the Apex Language Server to include new and modified class. We now support Null Coalescing Operator. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384))
+- We updated the Apex Language Server to support the Null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)). 
 
 ## Fixed
 
