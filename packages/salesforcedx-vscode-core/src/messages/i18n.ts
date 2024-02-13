@@ -42,9 +42,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   org_login_device_code_parse_error:
     'There was an unexpected error authorizing to your org in a container environment.',
@@ -106,7 +105,7 @@ export const messages = {
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',
-  force_source_status_text: 'View All Changes (Local and in Default Org)',
+  view_all_changes_text: 'View All Changes (Local and in Default Org)',
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
     'You can run SFDX: Deploy Source to Org only on a source file or directory.',
@@ -140,7 +139,7 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
-  force_create_manifest: 'SFDX: Generate Manifest File',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
@@ -159,8 +158,8 @@ export const messages = {
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
-  force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
+  view_local_changes_text: 'SFDX: View Local Changes',
+  view_remote_changes_text: 'SFDX: View Changes in Default Org',
   warning_prompt_file_overwrite:
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
@@ -658,7 +657,7 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   force_sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
-  force_rename_lightning_component: 'SFDX: Rename Component',
+  rename_lightning_component: 'SFDX: Rename Component',
   rename_component_input_dup_error:
     'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:

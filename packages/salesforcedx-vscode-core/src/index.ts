@@ -30,12 +30,12 @@ import {
   dataQuery,
   debuggerStop,
   deleteSource,
-  forceAuthAccessToken,
-  forceCreateManifest,
+  orgLoginAccessToken,
+  projectGenerateManifest,
   forceLightningLwcTestCreate,
   forcePackageInstall,
   forceRefreshSObjects,
-  forceRenameLightningComponent,
+  renameLightningComponent,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   forceSourceDiff,
@@ -134,9 +134,9 @@ const registerCommands = (
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable => {
   // Customer-facing commands
-  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.accessToken',
-    forceAuthAccessToken
+  const orgLoginAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.access.token',
+    orgLoginAccessToken
   );
   const orgLoginWebCmd = vscode.commands.registerCommand(
     'sfdx.org.login.web',
@@ -222,15 +222,15 @@ const registerCommands = (
     forceSourceRetrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status',
+    'sfdx.view.all.changes',
     viewAllChanges
   );
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.local',
+    'sfdx.view.local.changes',
     viewLocalChanges
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.remote',
+    'sfdx.view.remote.changes',
     viewRemoteChanges
   );
   const taskStopCmd = vscode.commands.registerCommand(
@@ -386,15 +386,15 @@ const registerCommands = (
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const forceRenameComponentCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.rename',
-    forceRenameLightningComponent
+  const renameLightningComponentCmd = vscode.commands.registerCommand(
+    'sfdx.rename.lightning.component',
+    renameLightningComponent
   );
 
   return vscode.Disposable.from(
-    forceRenameComponentCmd,
+    renameLightningComponentCmd,
     forceDiffFolder,
-    forceAuthAccessTokenCmd,
+    orgLoginAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     forceDiffFile,
