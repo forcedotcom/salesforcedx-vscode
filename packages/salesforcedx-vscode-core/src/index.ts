@@ -29,12 +29,12 @@ import {
   dataQuery,
   debuggerStop,
   deleteSource,
-  forceAuthAccessToken,
-  forceCreateManifest,
+  orgLoginAccessToken,
+  projectGenerateManifest,
   forceLightningLwcTestCreate,
   forcePackageInstall,
   refreshSObjects,
-  forceRenameLightningComponent,
+  renameLightningComponent,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
   sourceDiff,
@@ -133,9 +133,9 @@ function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
-  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
-    'sfdx.force.auth.accessToken',
-    forceAuthAccessToken
+  const orgLoginAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.org.login.access.token',
+    orgLoginAccessToken
   );
   const orgLoginWebCmd = vscode.commands.registerCommand(
     'sfdx.org.login.web',
@@ -221,15 +221,15 @@ function registerCommands(
     forceSourceRetrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status',
+    'sfdx.view.all.changes',
     viewAllChanges
   );
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.local',
+    'sfdx.view.local.changes',
     viewLocalChanges
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.remote',
+    'sfdx.view.remote.changes',
     viewRemoteChanges
   );
   const taskStopCmd = vscode.commands.registerCommand(
@@ -382,15 +382,15 @@ function registerCommands(
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const forceRenameComponentCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.rename',
-    forceRenameLightningComponent
+  const renameLightningComponentCmd = vscode.commands.registerCommand(
+    'sfdx.rename.lightning.component',
+    renameLightningComponent
   );
 
   return vscode.Disposable.from(
-    forceRenameComponentCmd,
+    renameLightningComponentCmd,
     diffFolder,
-    forceAuthAccessTokenCmd,
+    orgLoginAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
     diffFile,
@@ -529,7 +529,10 @@ async function setupOrgBrowser(
     }
   );
 
-  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
+  vscode.commands.registerCommand(
+    'sfdx.project.generate.manifest',
+    projectGenerateManifest
+  );
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {

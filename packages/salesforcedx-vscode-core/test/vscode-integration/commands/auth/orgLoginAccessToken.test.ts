@@ -10,14 +10,14 @@ import { assert, createSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../../src/channels/index';
 import {
   AccessTokenParamsGatherer,
-  forceAuthAccessToken
+  orgLoginAccessToken
 } from '../../../../src/commands';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 
 const sandbox = createSandbox();
 
-describe('Force Auth Access Token Login', () => {
+describe('Org Login Access Token', () => {
   let workspaceCheckerStub: SinonStub;
   let accessTokenParamsGathererStub: SinonStub;
   let authInfoCreateStub: SinonStub;
@@ -64,7 +64,7 @@ describe('Force Auth Access Token Login', () => {
   });
 
   it('Should create and save auth info', async () => {
-    await forceAuthAccessToken();
+    await orgLoginAccessToken();
     assert.calledOnce(authInfoCreateStub);
     assert.calledWith(authInfoCreateStub, {
       accessTokenOptions: {
@@ -87,12 +87,12 @@ describe('Force Auth Access Token Login', () => {
       );
     });
 
-    await forceAuthAccessToken();
+    await orgLoginAccessToken();
 
     assert.calledOnce(channelServiceStub);
     assert.calledWith(
       channelServiceStub,
-      nls.localize('force_auth_access_token_login_bad_oauth_token_message')
+      nls.localize('org_login_access_token_bad_oauth_token_message')
     );
     assert.notCalled(handleAliasAndDefaultSettingsStub);
   });

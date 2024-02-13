@@ -14,9 +14,13 @@ export const isNullOrUndefined = (object: any): object is null | undefined => {
 };
 
 export const extractJsonObject = (str: string): any => {
-  const jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
-
-  return JSON.parse(jsonString);
+  const isJsonString = str.indexOf('{') !== -1 && str.lastIndexOf('}') !== -1;
+  let jsonString;
+  if (isJsonString) {
+    jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
+    return JSON.parse(jsonString);
+  }
+  throw new Error(`The string "${str}" is not a valid JSON string.`);
 };
 
 // There's a bug in VS Code where, after a file has been renamed,
