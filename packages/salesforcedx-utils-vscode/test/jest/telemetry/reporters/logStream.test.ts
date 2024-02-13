@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as fs from 'fs';
+import * as path from 'path';
 import { WorkspaceContextUtil } from '../../../../src';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 
@@ -45,7 +46,10 @@ describe('LogStream', () => {
 
     logStream.sendTelemetryEvent(eventName, properties, measurements);
 
-    expect(fsMocked.createWriteStream.mock.calls[0][0]).toMatchSnapshot();
+    expect(fsMocked.createWriteStream).toHaveBeenCalledWith(
+      `${path.join(fakeLogFilePath, fakeExtensionId)}.txt`,
+      expect.any(Object)
+    );
     expect((logStream as any).stream).toBeDefined();
     expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
     expect(mockWrite.mock.calls[0][0]).toMatchSnapshot();

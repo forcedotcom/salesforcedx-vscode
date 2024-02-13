@@ -5,9 +5,7 @@ exports[`LogStream should write the exception event to the file 1`] = `
 "
 `;
 
-exports[`LogStream should write the telemetry event to the file 1`] = `"/path/to/logs/myExtension.txt"`;
-
-exports[`LogStream should write the telemetry event to the file 2`] = `
+exports[`LogStream should write the telemetry event to the file 1`] = `
 "telemetry/myEvent {"properties":{"key":"value"},"measurements":{"count":1}}
 "
 `;
