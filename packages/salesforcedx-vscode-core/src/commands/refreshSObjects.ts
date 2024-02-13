@@ -99,7 +99,7 @@ export class RefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   ): Promise<void> {
     if (RefreshSObjectsExecutor.isActive) {
       await vscode.window.showErrorMessage(
-        nls.localize('force_sobjects_no_refresh_if_already_active_error_text')
+        nls.localize('sobjects_no_refresh_if_already_active_error_text')
       );
       return;
     }
@@ -127,7 +127,7 @@ export class RefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     if (response.data.source !== SObjectRefreshSource.Manual) {
       progressLocation = vscode.ProgressLocation.Window;
     }
-    await ProgressNotification.show(
+    ProgressNotification.show(
       execution,
       cancellationTokenSource,
       progressLocation
