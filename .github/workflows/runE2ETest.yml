@@ -23,6 +23,7 @@ on:
       os:
         description: "Operating System(s) to run the E2E tests on"
         required: false
+        default: "[macos-latest, ubuntu-latest, windows-latest]"
         type: string
 
 jobs:
@@ -31,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ inputs.os || '[macos-latest, ubuntu-latest, windows-latest]' }}
+        os: ${{ fromJson(inputs.os) }}
         nodeVersion:
           - 18.18.2
         # We are using VSCode version 1.85.2 instead of the latest version because of a WDIO bug. Starting from Chromedriver v115, the JSON endpoint was moved to a new URL, but WDIO is still trying to find the endpoint only at the old URL. VSCode 1.85.2 is the last supported version of VSCode because it uses Chromedriver v114, which is the last Chromedriver version that can be found using the old URL. VSCode 1.86.0 uses Chromedriver v118, which has an endpoint that can be found only at the new URL.
