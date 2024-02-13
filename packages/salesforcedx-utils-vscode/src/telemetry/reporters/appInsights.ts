@@ -7,7 +7,6 @@
 
 import * as appInsights from 'applicationinsights';
 import * as os from 'os';
-import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { TelemetryReporter } from '../interfaces';
@@ -28,14 +27,6 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
-    let logFilePath = process.env['VSCODE_LOGS'] || '';
-    if (
-      logFilePath &&
-      extensionId &&
-      process.env['VSCODE_LOG_LEVEL'] === 'trace'
-    ) {
-      logFilePath = path.join(logFilePath, `${extensionId}.txt`);
-    }
     if (enableUniqueMetrics) {
       this.uniqueUserMetrics = true;
     }
