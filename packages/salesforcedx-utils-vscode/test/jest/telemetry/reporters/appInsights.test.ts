@@ -9,6 +9,9 @@ import { WorkspaceContextUtil } from '../../../../src';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 
 describe('AppInsights', () => {
+  const fakeExtensionId = 'anExtensionId';
+  const fakeExtensionVersion = '0.10.0';
+
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
     let getInstanceMock: jest.SpyInstance;
     const dummyOrgId = '000dummyOrgId';
@@ -28,25 +31,26 @@ describe('AppInsights', () => {
         } as any);
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
+      jest
+        .spyOn(AppInsights.prototype as any, 'updateUserOptIn')
+        .mockReturnValue('');
+    });
 
-      appInsights = new AppInsights('', '', '');
+    it('should send telemetry data to appInsightsClient.trackEvent', () => {
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '');
       (appInsights as any).userOptIn = true;
       (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
         trackEvent: trackEventMock
       };
-    });
 
-    it('should send orgId to appInsightsClient.trackEvent', () => {
       // Act
       appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
       expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
-      expect(trackEventMock.mock.calls[0][0].properties.orgId).toEqual(
-        dummyOrgId
-      );
+      expect(trackEventMock.mock.calls[0][0]).toMatchSnapshot();
     });
 
     it('should send orgId to appInsightsClient.trackException', () => {
@@ -59,9 +63,42 @@ describe('AppInsights', () => {
       // Assert
       expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
-      expect(trackExceptionMock.mock.calls[0][0].properties.orgId).toEqual(
-        dummyOrgId
+      expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
+    });
+  });
+
+  describe('dispose', () => {
+    let appInsights: AppInsights;
+    const flushMock = jest.fn();
+    const appInsightsClientMock = {
+      flush: flushMock
+    };
+
+    beforeEach(() => {
+      appInsights = new AppInsights(
+        fakeExtensionId,
+        fakeExtensionVersion,
+        'aKey'
       );
+      (appInsights as any).appInsightsClient = appInsightsClientMock;
+    });
+
+    it('should flush events to appInsightsClient and resolve', () => {
+      const expectedPromiseResult = Promise.resolve();
+
+      const disposePromise = appInsights.dispose();
+
+      expect(flushMock).toHaveBeenCalledTimes(1);
+      expect(disposePromise).toEqual(expectedPromiseResult);
+    });
+
+    it('should resolve immediately if appInsightsClient is undefined', () => {
+      (appInsights as any).appInsightsClient = undefined;
+      const expectedPromiseResult = Promise.resolve();
+
+      const disposePromise = appInsights.dispose();
+
+      expect(disposePromise).toEqual(expectedPromiseResult);
     });
   });
 });
