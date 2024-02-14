@@ -122,7 +122,7 @@ jobs:
       testToRun: "anInitialSuite.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
-      os: ${{ inputs.os }}
+      os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   authentication:
     if: ${{ inputs.authentication || github.event_name == 'workflow_run' }}
@@ -133,7 +133,7 @@ jobs:
       testToRun: "authentication.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
-      os: ${{ inputs.os }}
+      os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   templates:
     if: ${{ inputs.templates || github.event_name == 'workflow_run' }}
@@ -144,7 +144,7 @@ jobs:
       testToRun: "templates.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
-      os: ${{ inputs.os }}
+      os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   deployAndRetrieve:
     if: ${{ inputs.deployAndRetrieve || github.event_name == 'workflow_run' }}
@@ -155,7 +155,7 @@ jobs:
       testToRun: "deployAndRetrieve.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
-      os: ${{ inputs.os }}
+      os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   apexLSP:
     if: ${{ inputs.apexLsp || github.event_name == 'workflow_run' }}
@@ -166,7 +166,7 @@ jobs:
       testToRun: "apexLsp.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
-      os: ${{ inputs.os }}
+      os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   runApexTests:
     if: ${{ inputs.runApexTests || github.event_name == 'workflow_run' }}
@@ -177,4 +177,67 @@ jobs:
       testToRun: "runApexTests.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
-      os: ${{ inputs.os }}
+      os: ${{ inputs.os || '["ubuntu-latest"]' }}
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs:
+      [
+        anInitialSuite,
+        authentication,
+        templates,
+        deployAndRetrieve,
+        apexLSP,
+        runApexTests,
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Base E2E Test Suite"
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      result: "All the tests passed."
+      workflow: "actions/runs/${{ github.run_id }}"
+      type: "e2e"
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    needs:
+      [
+        anInitialSuite,
+        authentication,
+        templates,
+        deployAndRetrieve,
+        apexLSP,
+        runApexTests,
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Base E2E Test Suite"
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      result: "Not all the tests passed."
+      workflow: "actions/runs/${{ github.run_id }}"
+      type: "e2e"
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs:
+      [
+        anInitialSuite,
+        authentication,
+        templates,
+        deployAndRetrieve,
+        apexLSP,
+        runApexTests,
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Base E2E Test Suite"
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      result: "The workflow was cancelled."
+      workflow: "actions/runs/${{ github.run_id }}"
+      type: "e2e"
