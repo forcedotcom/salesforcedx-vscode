@@ -24,7 +24,9 @@ export type ExtensionsInfo = {
 export type ActivationInfo = Partial<ExtensionInfo> & {
   startActivateHrTime: [number, number];
   activateStartDate: Date;
-  activationTime: number;
+  activateEndDate?: Date;
+  extensionActivationTime: number;
+  markEndTime?: number;
 };
 
 export class ActivationTracker {
@@ -41,21 +43,29 @@ export class ActivationTracker {
     this._activationInfo = {
       startActivateHrTime: process.hrtime(),
       activateStartDate: new Date(),
-      activationTime: 0
+      extensionActivationTime: 0
     };
   }
 
-  async markActivationStop(): Promise<void> {
+  async markActivationStop(activationEndDate?: Date): Promise<void> {
+    // capture date and elapsed HR time
+    const activateEndDate = activationEndDate ?? new Date();
+    const hrEnd = this.telemetryService.getEndHRTime(this._activationInfo.startActivateHrTime);
+    // getting extension info. This may take up to 10 seconds, as log record creation might be lagging from
+    // this code. All needed data have been captured for telementry, so a wait here should have no effect
+    // on quaility of telemetry data
     const extensionInfo = await getExtensionInfo(this.extensionContext);
-    // subtract Date.now from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
-    const activationTime = extensionInfo?.loadStartDate
-      ? Date.now() - extensionInfo.loadStartDate.getTime()
+    // subtract activateEndDate from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
+    const extensionActivationTime = extensionInfo?.loadStartDate
+      ? activateEndDate.getTime() - extensionInfo.loadStartDate.getTime()
       : -1;
 
     this._activationInfo = {
       ...this._activationInfo,
       ...extensionInfo,
-      activationTime
+      extensionActivationTime,
+      activateEndDate,
+      markEndTime: hrEnd
     };
     this.telemetryService.sendActivationEventInfo(this.activationInfo);
   }

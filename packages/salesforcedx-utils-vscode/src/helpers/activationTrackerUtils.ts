@@ -29,8 +29,21 @@ type RegexGroups = {
 // capturing group regex for parsing activation records
 // 2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'"
 const activationRecordRegExp =
-  /(?<dateTimeStr>\S+?\s?\S+?)\s?\[(?<level>\S+?)\]\s?(?<eventName>\S+?)\s(?<extensionId>\S+?),\s+?(?<properties>.*)/g;
+  /(?<dateTimeStr>\S+?\s?\S+?)\s?\[(?<level>\S+?)\]\s?(?<eventName>\S+?)\s(?<extensionId>\S+?),\s+?(?<properties>.*)/;
 
+// capturing group regex for parsing current session log starrt records
+// 2024-01-16 15:18:17.014 [info] Extension host with pid 3574 started
+const sessionStartRecordRegExp =
+  /.*?Extension host with pid\s?(?<pid>[0-9]+?)\s+?started/;
+
+export const isProcessAlive = (pid: string): boolean => {
+  try {
+    process.kill(parseInt(pid, 10), 0);
+    return true; // Process is active
+  } catch (error) {
+    return false; // Process is not active
+  }
+};
 /**
  * given an log Uri, this function will return the exthost.log file contents
  * @param logUri - URI to the extension host log
@@ -85,12 +98,39 @@ export const getExtensionHostLogActivationRecords = async (
   }
 
   const extHostLogLines = await readExtensionHostLog(exthostDir);
-  const filtered = extHostLogLines.filter(log => {
+  // find the last entry for the beginning of extensions being loaded due to the
+  // same extension host log file being used across sessions.
+  const lastExtensionLoadStart = extHostLogLines.reduce(
+    (lastIndex, log, currentIndex) =>
+      sessionStartRecordRegExp.test(log) ? currentIndex : lastIndex,
+    -1
+  );
+  if (lastExtensionLoadStart === -1) {
+    return undefined;
+  }
+
+  const sessionStartMatches = sessionStartRecordRegExp.exec(
+    extHostLogLines[lastExtensionLoadStart]
+  )!;
+
+  const { pid } = sessionStartMatches.groups as {
+    pid: string;
+  };
+
+  if (!pid) {
+    return undefined;
+  }
+
+  if (!isProcessAlive(pid)) {
+    return undefined;
+  }
+
+  const filtered = extHostLogLines.slice(lastExtensionLoadStart).filter(log => {
     return log.includes('ExtensionService#_doActivateExtension');
   });
   const reduced = filtered.reduce(
     (result: Record<string, ParsedLog>, log: string) => {
-      const matches = activationRecordRegExp.exec(log);
+      const matches = activationRecordRegExp.exec(log.trim());
       if (!matches) {
         return result;
       }
@@ -169,8 +209,8 @@ export const getExtensionsInfo = async (
  */
 export const getExtensionInfo = async (
   extensionContext: ExtensionContext,
-  timeout = 5000,
-  retryInterval = 500
+  timeout = 120_000,
+  retryInterval = 10_000
 ): Promise<ExtensionInfo | undefined> => {
   const endTime = Date.now() + timeout;
 

@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionContext, ExtensionKind, Uri } from 'vscode';
-import { ActivationTracker } from '../../../src/helpers/activationTracker';
+import {
+  ActivationInfo,
+  ActivationTracker
+} from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 
@@ -36,7 +39,8 @@ describe('ActivationTracker', () => {
     } as unknown as ExtensionContext;
 
     telemetryService = {
-      sendActivationEventInfo: jest.fn()
+      sendActivationEventInfo: jest.fn(),
+      getEndHRTime: jest.fn(() => 3.141)
     } as unknown as TelemetryService;
   });
 
@@ -54,16 +58,19 @@ describe('ActivationTracker', () => {
       loadStartDate: new Date()
     };
 
-    (getExtensionInfo as jest.Mock).mockResolvedValue(
-      mockExtensionInfo
-    );
+    (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);
     tracker = new ActivationTracker(extensionContext, telemetryService);
     await tracker.markActivationStop();
 
     expect(tracker.activationInfo).toEqual({
-      startActivateHrTime: expect.arrayContaining([expect.any(Number), expect.any(Number)]),
+      startActivateHrTime: expect.arrayContaining([
+        expect.any(Number),
+        expect.any(Number)
+      ]),
       activateStartDate: expect.any(Date),
-      activationTime: expect.any(Number),
+      activateEndDate: expect.any(Date),
+      extensionActivationTime: expect.any(Number),
+      markEndTime: expect.any(Number),
       ...mockExtensionInfo
     });
 

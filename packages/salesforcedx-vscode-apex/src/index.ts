@@ -52,7 +52,10 @@ import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+  const activationTracker = new ActivationTracker(
+    extensionContext,
+    telemetryService
+  );
 
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   const testOutlineProvider = getTestOutlineProvider();
@@ -102,7 +105,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     languageClientUtils
   };
 
-  void activationTracker.markActivationStop();
+  void activationTracker.markActivationStop(new Date());
   return exportedApi;
 };
 

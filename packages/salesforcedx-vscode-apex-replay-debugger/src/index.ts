@@ -220,14 +220,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     debugTest
   );
 
-  // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
 };
 

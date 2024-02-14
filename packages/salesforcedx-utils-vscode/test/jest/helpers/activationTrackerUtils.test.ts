@@ -34,8 +34,12 @@ const fixPath = (fsPath: string): string => {
 
 describe('readExtensionHostLog', () => {
   it('should return log lines', async () => {
-    (readFile as jest.Mock).mockResolvedValue(['line1', 'line2', 'line3'].join(EOL));
-    (Uri.file as jest.Mock).mockReturnValue({ fsPath: fixPath('/path/to/log') });
+    (readFile as jest.Mock).mockResolvedValue(
+      ['line1', 'line2', 'line3'].join(EOL)
+    );
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: fixPath('/path/to/log')
+    });
     const logUri = Uri.file(fixPath('/path/to/log'));
     const result = await readExtensionHostLog(logUri);
     expect(result).toEqual(['line1', 'line2', 'line3']);
@@ -43,7 +47,9 @@ describe('readExtensionHostLog', () => {
 
   it('should return empty array if readFile throws', async () => {
     (readFile as jest.Mock).mockRejectedValue(new Error('File not found'));
-    (Uri.file as jest.Mock).mockReturnValue({ fsPath: fixPath('/path/to/log') });
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: fixPath('/path/to/log')
+    });
     const logUri = Uri.file(fixPath('/path/to/log'));
     const result = await readExtensionHostLog(logUri);
     expect(result).toEqual([]);
@@ -55,7 +61,9 @@ describe('getExtensionHostLogLocation', () => {
     (Uri.file as jest.Mock).mockReturnValue({
       fsPath: fixPath('/path/to/exthost/window1/a/b/c/some-ext.log')
     });
-    const logUri = Uri.file(fixPath('/path/to/exthost/window1/a/b/c/some-ext.log'));
+    const logUri = Uri.file(
+      fixPath('/path/to/exthost/window1/a/b/c/some-ext.log')
+    );
     const context = {
       logUri
     } as unknown as ExtensionContext;
@@ -64,7 +72,9 @@ describe('getExtensionHostLogLocation', () => {
   });
 
   it('should return undefined if exthost directory not found', () => {
-    (Uri.file as jest.Mock).mockReturnValue({ fsPath: fixPath('/path/to/log') });
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: fixPath('/path/to/log')
+    });
     const logUri = Uri.file(fixPath('/path/to/log'));
     const context = {
       logUri
@@ -76,10 +86,18 @@ describe('getExtensionHostLogLocation', () => {
 
 describe('getExtensionHostLogActivationRecords', () => {
   it('should return activation records', async () => {
+    // Replace process.kill with the mock function
+    jest.spyOn(process, 'kill').mockImplementation(jest.fn());
+
     (readFile as jest.Mock).mockResolvedValue(
-      "2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'\n"
+      [
+        '2024-01-26 15:18:17.014 [info] Extension host with pid 3574 started',
+        "2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'"
+      ].join(EOL)
     );
-    (Uri.file as jest.Mock).mockReturnValue({ fsPath: fixPath('/path/to/exthost/log') });
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: fixPath('/path/to/exthost/log')
+    });
     const logUri = Uri.file(fixPath('/path/to/exthost/log'));
     const context = {
       logUri
@@ -96,5 +114,63 @@ describe('getExtensionHostLogActivationRecords', () => {
         }
       }
     });
+  });
+
+  it('should return activation records for second block in log file', async () => {
+    // Replace process.kill with the mock function
+    const mockKill = jest.spyOn(process, 'kill').mockImplementation(jest.fn());
+
+    (readFile as jest.Mock).mockResolvedValue(
+      [
+        '2024-01-25 15:18:17.014 [info] Extension host with pid 3574 started',
+        "2024-01-25 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'",
+        '2024-01-26 15:18:17.014 [info] Extension host with pid 42 started',
+        "2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'"
+      ].join(EOL)
+    );
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: fixPath('/path/to/exthost/log')
+    });
+    const logUri = Uri.file(fixPath('/path/to/exthost/log'));
+    const context = {
+      logUri
+    } as unknown as ExtensionContext;
+    const result = await getExtensionHostLogActivationRecords(context);
+    expect(mockKill).toHaveBeenCalledTimes(1);
+    expect(mockKill).toHaveBeenCalledWith(42, 0);
+    expect(result).toEqual({
+      'salesforce.salesforcedx-vscode-lightning': {
+        dateTime: new Date('2024-01-26 15:15:38.303'),
+        level: 'info',
+        eventName: 'ExtensionService#_doActivateExtension',
+        properties: {
+          startup: 'true',
+          activationEvent: "'workspaceContains:sfdx-project.json'"
+        }
+      }
+    });
+  });
+
+  it('should return undefined when PID is not active', async () => {
+    // Replace process.kill with the mock function
+    jest.spyOn(process, 'kill').mockImplementation(() => {
+      throw new Error('test pid not active');
+    });
+
+    (readFile as jest.Mock).mockResolvedValue(
+      [
+        '2024-01-16 15:18:17.014 [info] Extension host with pid 3574 started',
+        "2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'"
+      ].join(EOL)
+    );
+    (Uri.file as jest.Mock).mockReturnValue({
+      fsPath: fixPath('/path/to/exthost/log')
+    });
+    const logUri = Uri.file(fixPath('/path/to/exthost/log'));
+    const context = {
+      logUri
+    } as unknown as ExtensionContext;
+    const result = await getExtensionHostLogActivationRecords(context);
+    expect(result).toBeUndefined();
   });
 });

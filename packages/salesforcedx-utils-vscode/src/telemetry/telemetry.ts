@@ -193,30 +193,39 @@ export class TelemetryService {
   public sendActivationEventInfo(activationInfo: ActivationInfo) {
     this.sendExtensionActivationEvent(
       activationInfo.startActivateHrTime,
+      activationInfo.markEndTime,
       activationInfo.activateStartDate,
       activationInfo.loadStartDate,
-      activationInfo.activationTime
+      activationInfo.activateEndDate,
+      activationInfo.extensionActivationTime
     );
   }
 
   public sendExtensionActivationEvent(
     hrstart: [number, number],
+    markEndTime?: number,
     activateStartDate?: Date,
     loadStartDate?: Date,
-    activationTime?: number
+    activateEndDate?: Date,
+    extensionActivationTime?: number
   ): void {
     this.validateTelemetry(() => {
-      const startupTime = this.getEndHRTime(hrstart);
+      const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
       const properties = {
         extensionName: this.extensionName,
         ...(activateStartDate
           ? { activateStartDate: activateStartDate.toISOString() }
           : {}),
+          ...(activateEndDate
+          ? { activateEndDate: activateEndDate.toISOString() }
+          : {}),
         ...(loadStartDate ? { loadStartDate: loadStartDate.toISOString() } : {})
       };
       const measurements = {
         startupTime,
-        ...(activationTime === undefined ? {} : { activationTime })
+        ...(extensionActivationTime === undefined
+          ? {}
+          : { extensionActivationTime })
       };
       this.reporter!.sendTelemetryEvent(
         'activationEvent',
@@ -288,11 +297,11 @@ export class TelemetryService {
 
   public getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
-    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
+    return this.hrTimeToMilliseconds(hrend);
   }
 
   public hrTimeToMilliseconds(hrtime: [number, number]): number {
-    return hrtime[0] * 1000 + hrtime[1] / 1000000;
+    return hrtime[0] * 1000 + hrtime[1] / 1_000_000;
   }
 
   /**
