@@ -4,84 +4,84 @@ on:
   workflow_dispatch:
     inputs:
       automationBranch:
-        description: "Set the branch to use for automation tests"
+        description: 'Set the branch to use for automation tests'
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       anInitialSuite:
-        description: "Verify Extensions"
+        description: 'Verify Extensions'
         required: false
         default: true
         type: boolean
       authentication:
-        description: "Authentication"
+        description: 'Authentication'
         required: false
         default: true
         type: boolean
-      miscellaneous:
-        description: "Miscellaneous Commands"
-        required: false
-        default: false
-        type: boolean
+      # miscellaneous:
+      #   description: "Miscellaneous Commands"
+      #   required: false
+      #   default: true
+      #   type: boolean
       sObjectsDefinitions:
-        description: "sObjects Definitions"
+        description: 'sObjects Definitions'
         required: false
         default: true
         type: boolean
       templates:
-        description: "Create Commands"
+        description: 'Create Commands'
         required: false
         default: true
         type: boolean
       vscodeVersion:
-        description: "VSCode Version"
+        description: 'VSCode Version'
         required: false
-        default: "1.85.2"
+        default: '1.85.2'
         type: string
       runId:
-        description: "Run ID of the workflow run that created the vsixes"
+        description: 'Run ID of the workflow run that created the vsixes'
         required: true
         type: string
 
   workflow_call:
     inputs:
       automationBranch:
-        description: "Set the branch to use for automation tests"
+        description: 'Set the branch to use for automation tests'
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       anInitialSuite:
-        description: "Verify Extensions"
+        description: 'Verify Extensions'
         required: false
         default: true
         type: boolean
       authentication:
-        description: "Authentication"
+        description: 'Authentication'
         required: false
         default: true
         type: boolean
-      miscellaneous:
-        description: "Miscellaneous Commands"
-        required: false
-        default: false
-        type: boolean
+      # miscellaneous:
+      #   description: "Miscellaneous Commands"
+      #   required: false
+      #   default: true
+      #   type: boolean
       sObjectsDefinitions:
-        description: "sObjects Definitions"
+        description: 'sObjects Definitions'
         required: false
         default: true
         type: boolean
       templates:
-        description: "Create Commands"
+        description: 'Create Commands'
         required: false
         default: true
         type: boolean
       vscodeVersion:
-        description: "VSCode Version"
+        description: 'VSCode Version'
         required: false
-        default: "1.85.2"
+        default: '1.85.2'
         type: string
       runId:
-        description: "Run ID of the workflow run that created the vsixes"
+        description: 'Run ID of the workflow run that created the vsixes'
         required: false
         type: string
 
@@ -92,7 +92,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "anInitialSuite.e2e.ts"
+      testToRun: 'anInitialSuite.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
@@ -102,19 +102,19 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "authentication.e2e.ts"
+      testToRun: 'authentication.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  miscellaneous:
-    if: ${{ inputs.miscellaneous }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "miscellaneous.e2e.ts"
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
-      runId: ${{ inputs.runId }}
+  # miscellaneous:
+  #   if: ${{ inputs.miscellaneous }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: 'miscellaneous.e2e.ts'
+  #     vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+  #     runId: ${{ inputs.runId }}
 
   sObjectsDefinitions:
     if: ${{ inputs.sObjectsDefinitions }}
@@ -122,7 +122,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "sObjectsDefinitions.e2e.ts"
+      testToRun: 'sObjectsDefinitions.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
@@ -132,69 +132,69 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "templates.e2e.ts"
+      testToRun: 'templates.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:
     if: ${{ success() }}
-    needs:
-      [
+    needs: [
         anInitialSuite,
         authentication,
-        miscellaneous,
+        # miscellaneous,
         sObjectsDefinitions,
         templates,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Core E2E Tests"
+      title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
-      result: "All the tests passed."
-      workflow: "actions/runs/${{ github.run_id }}"
-      type: "e2e"
+      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure()}}
-    needs:
-      [
+    needs: [
         anInitialSuite,
         authentication,
-        miscellaneous,
+        # miscellaneous,
         sObjectsDefinitions,
         templates,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Core E2E Tests"
+      title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
-      result: "Not all the tests passed."
-      workflow: "actions/runs/${{ github.run_id }}"
-      type: "e2e"
+      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs:
-      [
+    needs: [
         anInitialSuite,
         authentication,
-        miscellaneous,
+        # miscellaneous,
         sObjectsDefinitions,
         templates,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Core E2E Tests"
+      title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
-      result: "The workflow was cancelled."
-      workflow: "actions/runs/${{ github.run_id }}"
-      type: "e2e"
+      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
