@@ -178,3 +178,66 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs:
+      [
+        anInitialSuite,
+        authentication,
+        templates,
+        deployAndRetrieve,
+        apexLSP,
+        runApexTests,
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Base E2E Test Suite"
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      result: "All the tests passed."
+      workflow: "actions/runs/${{ github.run_id }}"
+      type: "e2e"
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    needs:
+      [
+        anInitialSuite,
+        authentication,
+        templates,
+        deployAndRetrieve,
+        apexLSP,
+        runApexTests,
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Base E2E Test Suite"
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      result: "Not all the tests passed."
+      workflow: "actions/runs/${{ github.run_id }}"
+      type: "e2e"
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs:
+      [
+        anInitialSuite,
+        authentication,
+        templates,
+        deployAndRetrieve,
+        apexLSP,
+        runApexTests,
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Base E2E Test Suite"
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      result: "The workflow was cancelled."
+      workflow: "actions/runs/${{ github.run_id }}"
+      type: "e2e"
