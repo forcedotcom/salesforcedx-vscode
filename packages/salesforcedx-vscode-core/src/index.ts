@@ -96,7 +96,10 @@ import {
   setupConflictView
 } from './conflict';
 import {
+  BASE_EXTENSION,
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  EXPANDED_EXTENSION,
+  EXT_PACK_STATUS,
   ORG_OPEN_COMMAND,
   SF_CLI_DOWNLOAD_LINK
 } from './constants';
@@ -126,6 +129,13 @@ import { OrgAuthInfo } from './util/authInfo';
 
 const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
+};
+
+const enum EXT_PACK_TYPES {
+  BASE = 'BASE',
+  EXPANDED = 'EXPANDED',
+  BOTH = 'BOTH',
+  NONE = 'NONE'
 };
 
 function registerCommands(
@@ -592,6 +602,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     };
 
     telemetryService.sendExtensionActivationEvent(extensionHRStart);
+    reportExtensionPackStatus();
     console.log('SFDX CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
@@ -657,6 +668,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  reportExtensionPackStatus();
   console.log('SFDX CLI Extension Activated');
 
   if (
@@ -777,3 +789,33 @@ export function showWarningNotification(type: string, args: any[]) {
   const showMessage = nls.localize(type, ...args);
   vscode.window.showWarningMessage(showMessage);
 }
+
+export const reportExtensionPackStatus = () => {
+  const extensionPackStatus = getExtensionPackStatus();
+
+  telemetryService.sendEventData(
+    EXT_PACK_STATUS,
+    { extpack: extensionPackStatus }
+  );
+};
+
+const getExtensionPackStatus = () => {
+  const hasBasePack = isExtensionInstalled(BASE_EXTENSION);
+  const hasExpandedPack = isExtensionInstalled(EXPANDED_EXTENSION);
+
+  let status = EXT_PACK_TYPES.NONE;
+
+  if (hasBasePack && hasExpandedPack) {
+    status = EXT_PACK_TYPES.BOTH;
+  } else if (hasBasePack) {
+    status = EXT_PACK_TYPES.BASE;
+  } else if (hasExpandedPack) {
+    status = EXT_PACK_TYPES.EXPANDED;
+  }
+  return status;
+};
+
+const isExtensionInstalled = (extensionName: string) => {
+  const extension = vscode.extensions.getExtension(extensionName);
+  return extension !== undefined;
+};

@@ -22,6 +22,9 @@ export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK =
   'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
 export const TELEMETRY_METADATA_COUNT = 'metadataCount';
+export const BASE_EXTENSION = 'salesforce.salesforcedx-vscode';
+export const EXPANDED_EXTENSION = 'salesforce.salesforcedx-vscode-expanded';
+export const EXT_PACK_STATUS = 'extensionPackStatus';
 
 export const CONFIG_SET_EXECUTOR = 'config_set_org_text';
 export const CONFIG_SET_NAME = 'config_set_title';
