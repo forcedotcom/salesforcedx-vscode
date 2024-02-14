@@ -44,9 +44,6 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
 
 const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);

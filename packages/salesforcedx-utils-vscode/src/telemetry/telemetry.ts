@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ActivationInfo } from '..';
 import {
@@ -216,7 +215,7 @@ export class TelemetryService {
         ...(activateStartDate
           ? { activateStartDate: activateStartDate.toISOString() }
           : {}),
-          ...(activateEndDate
+        ...(activateEndDate
           ? { activateEndDate: activateEndDate.toISOString() }
           : {}),
         ...(loadStartDate ? { loadStartDate: loadStartDate.toISOString() } : {})

@@ -533,7 +533,7 @@ const setupOrgBrowser = async (
     }
   );
 
-  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
+  vscode.commands.registerCommand('sfdx.create.manifest', projectGenerateManifest);
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {

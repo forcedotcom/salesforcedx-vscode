@@ -12,6 +12,10 @@ export class ReplayDebuggerTelemetryService extends TelemetryService {
     super();
   }
 
+  public static getInstance(extensionName?: string | undefined): ReplayDebuggerTelemetryService {
+    return TelemetryService.getInstance(extensionName) as ReplayDebuggerTelemetryService;
+  }
+
   public sendLaunchEvent(logSizeStr: string, errorMsg: string): void {
     this.sendEventData('launchDebuggerSession', {
       logSize: logSizeStr,

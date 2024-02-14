@@ -6,4 +6,4 @@
  */
 import { ReplayDebuggerTelemetryService } from './telemetry';
 
-export const telemetryService = ReplayDebuggerTelemetryService.getInstance();
+export const telemetryService: ReplayDebuggerTelemetryService = ReplayDebuggerTelemetryService.getInstance();
