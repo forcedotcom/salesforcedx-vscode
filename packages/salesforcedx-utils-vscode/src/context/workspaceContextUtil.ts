@@ -103,7 +103,7 @@ export class WorkspaceContextUtil {
         this._orgId = connection?.getAuthInfoFields().orgId;
       } catch (error: unknown) {
         this._orgId = '';
-        if(error instanceof Error) {
+        if (error instanceof Error) {
           console.log(
             'There was an problem getting the orgId of the default org: '
             , error
