@@ -1,4 +1,4 @@
-name: Apex End to End Tests
+name: Deploy and Retrieve End to End Tests
 
 on:
   workflow_dispatch:
@@ -8,28 +8,28 @@ on:
         required: false
         default: "develop"
         type: string
-      apexLsp:
-        description: "Apex LSP"
+      deployAndRetrieve:
+        description: "Deploy and Retrieve"
         required: false
         default: true
         type: boolean
-      apexReplayDebugger:
-        description: "Apex Replay Debugger"
+      diffAndConflictDetection:
+        description: "Diff and Conflict Detection"
+        required: false
+        default: false
+        type: boolean
+      manifestBuilder:
+        description: "Manifest Builder"
         required: false
         default: true
         type: boolean
-      debugApexTests:
-        description: "Debug Apex Tests"
+      orgBrowser:
+        description: "Org Browser"
         required: false
         default: true
         type: boolean
-      runApexTests:
-        description: "Run Apex Tests"
-        required: false
-        default: true
-        type: boolean
-      trailApexReplayDebugger:
-        description: "Trail Apex Replay Debugger"
+      pushAndPull:
+        description: "Push and Pull"
         required: false
         default: true
         type: boolean
@@ -50,28 +50,28 @@ on:
         required: false
         default: "develop"
         type: string
-      apexLsp:
-        description: "Apex LSP"
+      deployAndRetrieve:
+        description: "Deploy and Retrieve"
         required: false
         default: true
         type: boolean
-      apexReplayDebugger:
-        description: "Apex Replay Debugger"
+      diffAndConflictDetection:
+        description: "Diff and Conflict Detection"
+        required: false
+        default: false
+        type: boolean
+      manifestBuilder:
+        description: "Manifest Builder"
         required: false
         default: true
         type: boolean
-      debugApexTests:
-        description: "Debug Apex Tests"
+      orgBrowser:
+        description: "Org Browser"
         required: false
         default: true
         type: boolean
-      runApexTests:
-        description: "Run Apex Tests"
-        required: false
-        default: true
-        type: boolean
-      trailApexReplayDebugger:
-        description: "Trail Apex Replay Debugger"
+      pushAndPull:
+        description: "Push and Pull"
         required: false
         default: true
         type: boolean
@@ -82,57 +82,57 @@ on:
         type: string
       runId:
         description: "Run ID of the workflow run that created the vsixes"
-        required: true
+        required: false
         type: string
 
 jobs:
-  apexLSP:
-    if: ${{ inputs.apexLsp }}
+  deployAndRetrieve:
+    if: ${{ inputs.deployAndRetrieve }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "apexLsp.e2e.ts"
+      testToRun: "deployAndRetrieve.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  apexReplayDebugger:
-    if: ${{ inputs.apexReplayDebugger }}
+  diffAndConflictDetection:
+    if: ${{ inputs.diffAndConflictDetection }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "apexReplayDebugger.e2e.ts"
+      testToRun: "diffAndConflictDetection.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  debugApexTests:
-    if: ${{ inputs.debugApexTests }}
+  manifestBuilder:
+    if: ${{ inputs.manifestBuilder }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "debugApexTests.e2e.ts"
+      testToRun: "manifestBuilder.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  runApexTests:
-    if: ${{ inputs.runApexTests }}
+  orgBrowser:
+    if: ${{ inputs.orgBrowser }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "runApexTests.e2e.ts"
+      testToRun: "orgBrowser.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  trailApexReplayDebugger:
-    if: ${{ inputs.trailApexReplayDebugger }}
+  pushAndPull:
+    if: ${{ inputs.pushAndPull }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "trailApexReplayDebugger.e2e.ts"
+      testToRun: "pushAndPull.e2e.ts"
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
@@ -140,38 +140,38 @@ jobs:
     if: ${{ success() }}
     needs:
       [
-        apexLSP,
-        apexReplayDebugger,
-        debugApexTests,
-        runApexTests,
-        trailApexReplayDebugger,
+        deployAndRetrieve,
+        diffAndConflictDetection,
+        manifestBuilder,
+        orgBrowser,
+        pushAndPull,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Apex E2E Tests"
+      title: "Deploy and Retrieve E2E Tests"
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: "All the tests passed."
       workflow: "actions/runs/${{ github.run_id }}"
       type: "e2e"
 
   slack_failure_notification:
-    if: ${{ failure() }}
+    if: ${{ failure()}}
     needs:
       [
-        apexLSP,
-        apexReplayDebugger,
-        debugApexTests,
-        runApexTests,
-        trailApexReplayDebugger,
+        deployAndRetrieve,
+        diffAndConflictDetection,
+        manifestBuilder,
+        orgBrowser,
+        pushAndPull,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Apex E2E Tests"
+      title: "Deploy and Retrieve E2E Tests"
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: "Not all the tests passed."
       workflow: "actions/runs/${{ github.run_id }}"
       type: "e2e"
@@ -180,18 +180,18 @@ jobs:
     if: ${{ cancelled() }}
     needs:
       [
-        apexLSP,
-        apexReplayDebugger,
-        debugApexTests,
-        runApexTests,
-        trailApexReplayDebugger,
+        deployAndRetrieve,
+        diffAndConflictDetection,
+        manifestBuilder,
+        orgBrowser,
+        pushAndPull,
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Apex E2E Tests"
+      title: "Deploy and Retrieve E2E Tests"
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: "The workflow was cancelled."
       workflow: "actions/runs/${{ github.run_id }}"
       type: "e2e"
