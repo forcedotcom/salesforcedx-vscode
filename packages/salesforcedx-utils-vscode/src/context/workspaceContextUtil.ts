@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider } from '..';
+import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
@@ -16,6 +16,7 @@ export interface OrgUserInfo {
   alias?: string;
 }
 
+export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
  */
@@ -100,12 +101,15 @@ export class WorkspaceContextUtil {
       try {
         const connection = await this.getConnection();
         this._orgId = connection?.getAuthInfoFields().orgId;
-      } catch (error) {
+      } catch (error: unknown) {
         this._orgId = '';
-        console.log(
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          `There was an problem getting the orgId of the default org: ${error}`
-        );
+        if(error instanceof Error) {
+          console.log(
+            'There was an problem getting the orgId of the default org: '
+            , error
+          );
+          TelemetryService.getInstance().sendException(WORKSPACE_CONTEXT_ORG_ID_ERROR, `name: ${error.name}, message: ${error.message}`);
+        }
       }
     } else {
       this._username = undefined;
