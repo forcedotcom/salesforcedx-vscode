@@ -25,8 +25,8 @@ on:
         required: false
         default: true
         type: boolean
-      templates:
-        description: 'Create Commands'
+      lwcLSP:
+        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
@@ -77,8 +77,8 @@ on:
         required: false
         default: true
         type: boolean
-      templates:
-        description: 'Create Commands'
+      lwcLSP:
+        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
@@ -135,13 +135,13 @@ jobs:
       runId: ${{ inputs.runId }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
-  templates:
+  lwcLSP:
     if: ${{ inputs.templates || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'templates.e2e.ts'
+      testToRun: 'lwcLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
@@ -185,7 +185,7 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        templates,
+        lwcLSP,
         deployAndRetrieve,
         apexLSP,
         runApexTests,
@@ -195,7 +195,7 @@ jobs:
     with:
       title: 'Base E2E Test Suite'
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -206,7 +206,7 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        templates,
+        lwcLSP,
         deployAndRetrieve,
         apexLSP,
         runApexTests,
@@ -216,7 +216,7 @@ jobs:
     with:
       title: 'Base E2E Test Suite'
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -227,7 +227,7 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        templates,
+        lwcLSP,
         deployAndRetrieve,
         apexLSP,
         runApexTests,
@@ -237,7 +237,7 @@ jobs:
     with:
       title: 'Base E2E Test Suite'
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Templates: ${{ needs.templates.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
