@@ -7,8 +7,9 @@
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
+import { ConfigAggregatorProvider, TelemetryService, WorkspaceContextUtil } from '../../../src';
 import { ConfigUtil } from '../../../src/config/configUtil';
+import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages';
 jest.mock('@salesforce/core');
 jest.mock('../../../src/config/configUtil');
@@ -16,6 +17,8 @@ jest.mock('../../../src/config/configUtil');
 const authInfoMock = jest.mocked(AuthInfo);
 const connectionMock = jest.mocked(Connection);
 const configUtilMock = jest.mocked(ConfigUtil);
+
+const mockedVSCode = jest.mocked(vscode);
 
 describe('WorkspaceContextUtil', () => {
   const testUser = 'test@test.com';
@@ -36,6 +39,7 @@ describe('WorkspaceContextUtil', () => {
   let mockFileSystemWatcher: jest.SpyInstance;
   let reloadConfigAggregatorsMock: jest.SpyInstance;
   let stateAggregatorClearInstanceMock: jest.SpyInstance;
+  let sendExceptionMock: jest.SpyInstance;
 
   beforeEach(async () => {
     mockWatcher = {
@@ -52,15 +56,17 @@ describe('WorkspaceContextUtil', () => {
       'clearInstance'
     );
 
-    mockFileSystemWatcher = (vscode.workspace
-      .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    mockFileSystemWatcher = mockedVSCode.workspace
+      .createFileSystemWatcher.mockReturnValue(mockWatcher as any);
 
-    getUsernameOrAliasStub = (configUtilMock.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
-    getUsernameStub = (configUtilMock.getUsernameFor as any).mockReturnValue(testUser);
+    getUsernameOrAliasStub = configUtilMock.getDefaultUsernameOrAlias.mockResolvedValue(testAlias);
+    getUsernameStub = configUtilMock.getUsernameFor.mockResolvedValue(testUser);
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
     getConnectionMock = jest.spyOn(workspaceContextUtil, 'getConnection');
+
+    sendExceptionMock = jest.spyOn(TelemetryService.prototype, 'sendException').mockReturnValue(undefined);
 
     await workspaceContextUtil.initialize(context);
     (workspaceContextUtil )._username = testUser;
@@ -73,6 +79,7 @@ describe('WorkspaceContextUtil', () => {
       'cliConfigWatcher',
       mockWatcher
     );
+    expect(mockFileSystemWatcher).toHaveBeenCalled();
   });
 
   it('should return workspace context util instance', () => {
@@ -112,7 +119,8 @@ describe('WorkspaceContextUtil', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
     expect(workspaceContextUtil.orgId).toEqual('');
-    expect(logMock.mock.calls[0][0].includes(dummyErrorMessage)).toBe(true);
+    expect(logMock).toHaveBeenCalled();
+    expect(sendExceptionMock).toHaveBeenCalledWith(WORKSPACE_CONTEXT_ORG_ID_ERROR, `name: Error, message: ${dummyErrorMessage}`);
   });
 
   it('should update default username, alias, and orgId and clear the cache of the core types upon config change', async () => {
