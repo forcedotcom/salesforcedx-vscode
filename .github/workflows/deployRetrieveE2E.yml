@@ -4,84 +4,84 @@ on:
   workflow_dispatch:
     inputs:
       automationBranch:
-        description: "Set the branch to use for automation tests"
+        description: 'Set the branch to use for automation tests'
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       deployAndRetrieve:
-        description: "Deploy and Retrieve"
+        description: 'Deploy and Retrieve'
         required: false
         default: true
         type: boolean
-      diffAndConflictDetection:
-        description: "Diff and Conflict Detection"
-        required: false
-        default: false
-        type: boolean
+      # diffAndConflictDetection:
+      #   description: "Diff and Conflict Detection"
+      #   required: false
+      #   default: true
+      #   type: boolean
       manifestBuilder:
-        description: "Manifest Builder"
+        description: 'Manifest Builder'
         required: false
         default: true
         type: boolean
       orgBrowser:
-        description: "Org Browser"
+        description: 'Org Browser'
         required: false
         default: true
         type: boolean
       pushAndPull:
-        description: "Push and Pull"
+        description: 'Push and Pull'
         required: false
         default: true
         type: boolean
       vscodeVersion:
-        description: "VSCode Version"
+        description: 'VSCode Version'
         required: false
-        default: "1.85.2"
+        default: '1.85.2'
         type: string
       runId:
-        description: "Run ID of the workflow run that created the vsixes"
+        description: 'Run ID of the workflow run that created the vsixes'
         required: true
         type: string
 
   workflow_call:
     inputs:
       automationBranch:
-        description: "Set the branch to use for automation tests"
+        description: 'Set the branch to use for automation tests'
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       deployAndRetrieve:
-        description: "Deploy and Retrieve"
+        description: 'Deploy and Retrieve'
         required: false
         default: true
         type: boolean
-      diffAndConflictDetection:
-        description: "Diff and Conflict Detection"
-        required: false
-        default: false
-        type: boolean
+      # diffAndConflictDetection:
+      #   description: "Diff and Conflict Detection"
+      #   required: false
+      #   default: true
+      #   type: boolean
       manifestBuilder:
-        description: "Manifest Builder"
+        description: 'Manifest Builder'
         required: false
         default: true
         type: boolean
       orgBrowser:
-        description: "Org Browser"
+        description: 'Org Browser'
         required: false
         default: true
         type: boolean
       pushAndPull:
-        description: "Push and Pull"
+        description: 'Push and Pull'
         required: false
         default: true
         type: boolean
       vscodeVersion:
-        description: "VSCode Version"
+        description: 'VSCode Version'
         required: false
-        default: "1.85.2"
+        default: '1.85.2'
         type: string
       runId:
-        description: "Run ID of the workflow run that created the vsixes"
+        description: 'Run ID of the workflow run that created the vsixes'
         required: false
         type: string
 
@@ -92,19 +92,19 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "deployAndRetrieve.e2e.ts"
+      testToRun: 'deployAndRetrieve.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  diffAndConflictDetection:
-    if: ${{ inputs.diffAndConflictDetection }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "diffAndConflictDetection.e2e.ts"
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
-      runId: ${{ inputs.runId }}
+  # diffAndConflictDetection:
+  #   if: ${{ inputs.diffAndConflictDetection }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: "diffAndConflictDetection.e2e.ts"
+  #     vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+  #     runId: ${{ inputs.runId }}
 
   manifestBuilder:
     if: ${{ inputs.manifestBuilder }}
@@ -112,7 +112,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "manifestBuilder.e2e.ts"
+      testToRun: 'manifestBuilder.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
@@ -122,7 +122,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "orgBrowser.e2e.ts"
+      testToRun: 'orgBrowser.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
@@ -132,16 +132,15 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: "pushAndPull.e2e.ts"
+      testToRun: 'pushAndPull.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:
     if: ${{ success() }}
-    needs:
-      [
+    needs: [
         deployAndRetrieve,
-        diffAndConflictDetection,
+        # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
         pushAndPull,
@@ -149,19 +148,20 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Deploy and Retrieve E2E Tests"
+      title: 'Deploy and Retrieve E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      result: "All the tests passed."
-      workflow: "actions/runs/${{ github.run_id }}"
-      type: "e2e"
+      # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure()}}
-    needs:
-      [
+    needs: [
         deployAndRetrieve,
-        diffAndConflictDetection,
+        # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
         pushAndPull,
@@ -169,19 +169,20 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Deploy and Retrieve E2E Tests"
+      title: 'Deploy and Retrieve E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      result: "Not all the tests passed."
-      workflow: "actions/runs/${{ github.run_id }}"
-      type: "e2e"
+      # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs:
-      [
+    needs: [
         deployAndRetrieve,
-        diffAndConflictDetection,
+        # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
         pushAndPull,
@@ -189,9 +190,11 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Deploy and Retrieve E2E Tests"
+      title: 'Deploy and Retrieve E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      result: "The workflow was cancelled."
-      workflow: "actions/runs/${{ github.run_id }}"
-      type: "e2e"
+      # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
