@@ -194,6 +194,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Base E2E Test Suite'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'All the tests passed.'
@@ -215,6 +216,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Base E2E Test Suite'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'Not all the tests passed.'
@@ -236,6 +238,7 @@ jobs:
     secrets: inherit
     with:
       title: 'Base E2E Test Suite'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'The workflow was cancelled.'
