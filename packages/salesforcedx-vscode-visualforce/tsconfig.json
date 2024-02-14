@@ -18,6 +18,9 @@
     },
     {
       "path": "../salesforcedx-test-utils-vscode"
+    },
+    {
+      "path": "../salesforcedx-utils-vscode"
     }
   ]
 }
