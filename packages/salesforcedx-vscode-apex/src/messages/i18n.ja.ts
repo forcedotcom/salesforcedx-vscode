@@ -44,19 +44,19 @@ export const messages = {
   force_apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
   force_apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
   force_apex_log_list_text: 'Apex デバッグログを取得しています',
-  force_apex_test_run_all_test_label: 'すべてのテスト',
-  force_apex_test_run_all_local_test_label: 'すべてのローカルのテスト',
-  force_apex_test_run_all_tests_description_text:
+  apex_test_run_all_test_label: 'すべてのテスト',
+  apex_test_run_all_local_test_label: 'すべてのローカルのテスト',
+  apex_test_run_all_tests_description_text:
     '現在の組織にあるすべてのテストを実行',
-  force_apex_test_run_all_local_tests_description_text:
+  apex_test_run_all_local_tests_description_text:
     'インストールされた管理パッケージに含まれるテストを除き、現在の組織にあるすべてのテストを実行',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
-  force_apex_test_run_codeAction_no_class_test_param_text:
+  apex_test_run_codeAction_no_class_test_param_text:
     'テストクラスがありません。@isTest アノテーションのあるクラスでコードアクションを実行してください。',
-  force_apex_test_run_codeAction_no_method_test_param_text:
+  apex_test_run_codeAction_no_method_test_param_text:
     'テストメソッドがありません. @isTest アノテーションまたは testMethod キーワードのあるメソッドでコードアクションを実行してください。',
   force_apex_test_run_description_text: 'Apex テストを実行',
-  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す',
+  apex_test_run_text: 'SFDX: Apex テストを呼び出す',
   force_sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   force_test_view_loading_message: 'Apex テストを読み込んでいます...',

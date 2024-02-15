@@ -26,12 +26,15 @@ import {
   ApexLibraryTestRunExecutor,
   ApexTestQuickPickItem,
   TestType
-} from './forceApexTestRun';
+} from './apexTestRun';
 
 export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
+  const apexClasses = await vscode.workspace.findFiles(
+    `**/*${APEX_CLASS_EXT}`,
+    SFDX_FOLDER
+  );
   const apexClassItems = apexClasses
     .filter(apexClass => {
       const fileContent = readFileSync(apexClass.fsPath).toString();

@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import {
   ApexTestQuickPickItem,
   TestType
-} from '../../../src/commands/forceApexTestRun';
+} from '../../../src/commands/apexTestRun';
 import {
   ApexTestSuiteOptions,
   TestSuiteBuilder,
