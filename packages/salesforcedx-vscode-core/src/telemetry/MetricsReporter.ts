@@ -16,11 +16,10 @@ export enum EXT_PACK_TYPES {
 };
 
 export class MetricsReporter {
-  private static telemetryService = TelemetryService.getInstance();
 
   public static extensionPackStatus = () => {
     const extensionPackStatus = MetricsReporter.getExtensionPackStatus();
-    MetricsReporter.telemetryService.sendEventData(
+    TelemetryService.getInstance().sendEventData(
       EXT_PACK_STATUS,
       { extpack: extensionPackStatus }
     );

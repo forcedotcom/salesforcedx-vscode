@@ -10,7 +10,7 @@ import { MetricsReporter } from '../../../src/telemetry/MetricsReporter';
 
 describe('MetricsReporter', () => {
   describe('extensionPackStatus', () => {
-    const eventName = 'sfdx__core_extension_pack_status';
+    const eventName = 'extensionPackStatus';
     const fakeExtension = {
       extensionUri: { url: 'fake' }
     };
