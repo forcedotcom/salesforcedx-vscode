@@ -9,8 +9,8 @@ import { assert, match, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { nls } from '../../../../src/messages';
-import { forceLwcTestNavigateToTest } from '../../../../src/testSupport/commands/forceLwcTestNavigateToTest';
-import { forceLwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/forceLwcTestRefreshTestExplorer';
+import { lwcTestNavigateToTest } from '../../../../src/testSupport/commands/lwcTestNavigateToTest';
+import { lwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/lwcTestRefreshTestExplorer';
 import {
   forceLwcTestCaseRun,
   forceLwcTestFileRun,
@@ -176,8 +176,8 @@ describe('LWC Test Outline Provider', () => {
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         contextValue: 'lwcTestGroup',
         command: {
-          command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-          title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+          command: 'sfdx.lightning.lwc.test.navigateToTest',
+          title: nls.localize('lightning_lwc_test_navigate_to_test'),
           arguments: [actualFileNode]
         }
       };
@@ -190,8 +190,8 @@ describe('LWC Test Outline Provider', () => {
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           contextValue: 'lwcTest',
           command: {
-            command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-            title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+            command: 'sfdx.lightning.lwc.test.navigateToTest',
+            title: nls.localize('lightning_lwc_test_navigate_to_test'),
             arguments: [actualTestCaseNodes[0]]
           }
         },
@@ -201,8 +201,8 @@ describe('LWC Test Outline Provider', () => {
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           contextValue: 'lwcTest',
           command: {
-            command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-            title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+            command: 'sfdx.lightning.lwc.test.navigateToTest',
+            title: nls.localize('lightning_lwc_test_navigate_to_test'),
             arguments: [actualTestCaseNodes[1]]
           }
         }
@@ -221,9 +221,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -253,9 +252,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -273,7 +271,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should navigate to test file from test file nodes', () => {
-      forceLwcTestNavigateToTest(actualFileNode);
+      lwcTestNavigateToTest(actualFileNode);
       assert.calledOnce(showTextDocumentStub);
       assert.calledOnce(revealRangeStub);
       assert.calledWith(
@@ -285,7 +283,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should navigate to test case from test case nodes', () => {
-      forceLwcTestNavigateToTest(actualTestCaseNodes[0]);
+      lwcTestNavigateToTest(actualTestCaseNodes[0]);
       assert.calledOnce(showTextDocumentStub);
       assert.calledOnce(revealRangeStub);
       assert.calledWith(
@@ -312,9 +310,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.PASSED);
@@ -344,9 +341,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -370,7 +366,7 @@ describe('LWC Test Outline Provider', () => {
       });
     });
 
-    it('Should refresh test explorer', async function() {
+    it('Should refresh test explorer', async function () {
       this.timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
@@ -383,7 +379,7 @@ describe('LWC Test Outline Provider', () => {
       expect(
         actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
       ).to.equal(TestResultStatus.PASSED);
-      forceLwcTestRefreshTestExplorer();
+      lwcTestRefreshTestExplorer();
 
       actualFileNodes = await outlineProvder.getChildren();
       actualFileNode = actualFileNodes.find(
