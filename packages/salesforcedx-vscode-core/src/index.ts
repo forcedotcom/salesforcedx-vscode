@@ -32,7 +32,7 @@ import {
   orgLoginAccessToken,
   projectGenerateManifest,
   forceLightningLwcTestCreate,
-  forcePackageInstall,
+  packageInstall,
   forceRefreshSObjects,
   renameLightningComponent,
   forceSourceDeployManifest,
@@ -334,9 +334,9 @@ function registerCommands(
     sfProjectGenerate
   );
 
-  const forcePackageInstallCmd = vscode.commands.registerCommand(
-    'sfdx.force.package.install',
-    forcePackageInstall
+  const packageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.package.install',
+    packageInstall
   );
   const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
     'sfdx.project.generate.with.manifest',
@@ -436,7 +436,7 @@ function registerCommands(
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
     projectGenerateCmd,
-    forcePackageInstallCmd,
+    packageInstallCmd,
     projectGenerateWithManifestCmd,
     apexGenerateTriggerCmd,
     startApexDebugLoggingCmd,
