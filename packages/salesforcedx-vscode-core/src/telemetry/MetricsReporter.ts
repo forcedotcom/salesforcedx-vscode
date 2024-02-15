@@ -6,7 +6,7 @@
  */
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { BASE_EXTENSION, EXPANDED_EXTENSION, EXT_PACK_STATUS } from '../constants';
+import { BASE_EXTENSION, EXPANDED_EXTENSION, EXT_PACK_STATUS_EVENT_NAME } from '../constants';
 
 export enum EXT_PACK_TYPES {
   BASE = 'BASE',
@@ -20,7 +20,7 @@ export class MetricsReporter {
   public static extensionPackStatus = () => {
     const extensionPackStatus = MetricsReporter.getExtensionPackStatus();
     TelemetryService.getInstance().sendEventData(
-      EXT_PACK_STATUS,
+      EXT_PACK_STATUS_EVENT_NAME,
       { extpack: extensionPackStatus }
     );
   };

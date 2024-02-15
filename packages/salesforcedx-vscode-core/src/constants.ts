@@ -24,7 +24,7 @@ export const TELEMETRY_OPT_OUT_LINK =
 export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 export const BASE_EXTENSION = 'salesforce.salesforcedx-vscode';
 export const EXPANDED_EXTENSION = 'salesforce.salesforcedx-vscode-expanded';
-export const EXT_PACK_STATUS = 'extensionPackStatus';
+export const EXT_PACK_STATUS_EVENT_NAME = 'extensionPackStatus';
 
 export const CONFIG_SET_EXECUTOR = 'config_set_org_text';
 export const CONFIG_SET_NAME = 'config_set_title';
