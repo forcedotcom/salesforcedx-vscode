@@ -44,6 +44,9 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
 
 const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
@@ -216,6 +219,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     debugTests,
     debugTest
   );
+
+  // Telemetry
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
 };

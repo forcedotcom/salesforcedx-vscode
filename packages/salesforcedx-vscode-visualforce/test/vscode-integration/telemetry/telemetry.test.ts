@@ -26,7 +26,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent([0, 330]);
+    telemetryService.sendExtensionActivationEvent([1, 300]);
     assert.calledOnce(sendEvent);
   });
 
@@ -34,7 +34,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendLaunchEvent('test', 'test2');
+    telemetryService.sendExtensionDeactivationEvent();
     assert.notCalled(sendEvent);
   });
 
@@ -42,13 +42,12 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent([0, 330]);
+    telemetryService.sendExtensionActivationEvent([1, 300]);
     assert.calledOnce(sendEvent);
 
     const expectedProps = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger'
+      extensionName: 'salesforcedx-vscode-visualforce'
     };
-
     const expectedMeasures = {
       startupTime: match.number
     };
@@ -68,49 +67,8 @@ describe('Telemetry', () => {
     assert.calledOnce(sendEvent);
 
     const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger'
+      extensionName: 'salesforcedx-vscode-visualforce'
     };
     assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
-  });
-
-  it('Should send launch event', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendLaunchEvent('123', 'error message');
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger',
-      logSize: '123',
-      errorMessage: 'error message'
-    };
-    assert.calledWith(sendEvent, 'launchDebuggerSession', expectedData);
-  });
-
-  it('Should send checkpoint event', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendCheckpointEvent('error message');
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger',
-      errorMessage: 'error message'
-    };
-    assert.calledWith(sendEvent, 'updateCheckpoints', expectedData);
-  });
-
-  it('Should send error event', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendErrorEvent('error message', 'error callstack');
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger',
-      errorMessage: 'error message',
-      errorStack: 'error callstack'
-    };
-    assert.calledWith(sendEvent, 'error', expectedData);
   });
 });

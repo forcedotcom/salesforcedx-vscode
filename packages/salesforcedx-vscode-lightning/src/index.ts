@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   ExtensionContext,
@@ -22,7 +22,6 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { nls } from './messages';
-import { telemetryService } from './telemetry';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export const code2ProtocolConverter = (value: Uri): string => {
@@ -45,13 +44,7 @@ const getActivationMode = (): string => {
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  // Initialize telemetry service
-  await telemetryService.initializeService(extensionContext);
-  const activateTracker = new ActivationTracker(
-    extensionContext,
-    telemetryService
-  );
-
+  const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
@@ -89,6 +82,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // 4) If we get here, we either passed autodetect validation or activationMode == always
   console.log('Aura Components Extension Activated');
   console.log('WorkspaceType detected: ' + workspaceType);
+
+  // Initialize telemetry service
+  await TelemetryService.getInstance().initializeService(extensionContext);
 
   // Start the Aura Language Server
 
@@ -182,7 +178,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   extensionContext.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
-  void activateTracker.markActivationStop();
+  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
 };
 
 let indexingResolve: any;
@@ -212,5 +208,5 @@ const reportIndexing = async (indexingPromise: Promise<void>) => {
 
 export const deactivate = () => {
   console.log('Aura Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  TelemetryService.getInstance().sendExtensionDeactivationEvent();
 };

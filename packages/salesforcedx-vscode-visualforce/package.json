@@ -24,7 +24,6 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "60.0.0",
     "@salesforce/salesforcedx-visualforce-language-server": "60.0.0",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "60.0.0",
     "vscode-extension-telemetry": "0.0.17",
@@ -61,7 +60,7 @@
   ],
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:build": "esbuild ./src/extension.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/source-tracking --external:@salesforce/core",
+    "bundle:extension:build": "esbuild ./src/extension.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --minify",
     "bundle:extension:copy": "cp ../salesforcedx-visualforce-language-server/dist/visualforceServer.js ./dist/",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
@@ -112,9 +111,7 @@
         "vscode-languageserver-protocol": "3.14.1",
         "vscode-languageserver-types": "3.14.0",
         "vscode-nls": "2.0.2",
-        "vscode-uri": "1.0.1",
-        "@salesforce/core": "6.5.2",
-        "@salesforce/source-tracking": "5.1.11"
+        "vscode-uri": "1.0.1"
       },
       "devDependencies": {},
       "serverPath": [

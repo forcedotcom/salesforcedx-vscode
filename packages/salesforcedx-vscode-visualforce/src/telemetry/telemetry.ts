@@ -8,7 +8,7 @@
 import * as util from 'util';
 import TelemetryReporter from 'vscode-extension-telemetry';
 
-const EXTENSION_NAME = 'salesforcedx-vscode-apex-replay-debugger';
+const EXTENSION_NAME = 'salesforcedx-vscode-visualforce';
 
 export class TelemetryService {
   private static instance: TelemetryService;
@@ -42,9 +42,7 @@ export class TelemetryService {
         {
           extensionName: EXTENSION_NAME
         },
-        {
-          startupTime
-        }
+        { startupTime }
       );
     }
   }
@@ -53,35 +51,6 @@ export class TelemetryService {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('deactivationEvent', {
         extensionName: EXTENSION_NAME
-      });
-    }
-  }
-
-  public sendLaunchEvent(logSizeStr: string, errorMsg: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('launchDebuggerSession', {
-        extensionName: EXTENSION_NAME,
-        logSize: logSizeStr,
-        errorMessage: errorMsg
-      });
-    }
-  }
-
-  public sendCheckpointEvent(errorMsg: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('updateCheckpoints', {
-        extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg
-      });
-    }
-  }
-
-  public sendErrorEvent(errorMsg: string, callstack: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('error', {
-        extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg,
-        errorStack: callstack
       });
     }
   }
