@@ -36,14 +36,14 @@ export const messages = {
     'このファイルでコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-core.retrieve-test-code-coverage" を true に設定してください。次に、このファイルを含むApex テストを実行してください。Apex テストのサイドバーまたは、ファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行できます。',
   colorizer_statusbar_hover_text: 'Apex コードカバレッジを強調表示',
   force_sobjects_refresh: 'SFDX: SObject の定義を更新',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
-  force_apex_log_get_text: 'SFDX: Apex デバッグログを取得',
-  force_apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
-  force_apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
-  force_apex_log_list_text: 'Apex デバッグログを取得しています',
+  apex_log_get_text: 'SFDX: Apex デバッグログを取得',
+  apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
+  apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
+  apex_log_list_text: 'Apex デバッグログを取得しています',
   force_apex_test_run_all_test_label: 'すべてのテスト',
   force_apex_test_run_all_local_test_label: 'すべてのローカルのテスト',
   force_apex_test_run_all_tests_description_text:
@@ -61,7 +61,7 @@ export const messages = {
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   force_test_view_loading_message: 'Apex テストを読み込んでいます...',
   force_test_view_no_tests_message: 'Apex テストが見つかりませんでした',
-  force_test_view_show_error_title: 'エラーを表示',
+  test_view_show_error_title: 'エラーを表示',
   force_test_view_no_tests_description:
     'プロジェクトに Apex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
   java_runtime_missing_text:

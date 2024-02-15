@@ -188,9 +188,9 @@ export const messages = {
   data_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   project_generate_text: 'SFDX: Create Project',
@@ -349,7 +349,7 @@ export const messages = {
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
-  force_apex_execute_library: 'Apex Library: Execute Anonymous',
+  apex_execute_library: 'Apex Library: Execute Anonymous',
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
   AIApplication: 'AI Applications',

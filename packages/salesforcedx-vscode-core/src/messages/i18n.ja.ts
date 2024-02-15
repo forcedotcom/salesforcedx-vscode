@@ -152,9 +152,9 @@ export const messages = {
   data_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   project_generate_text: 'SFDX: プロジェクトを作成',
   project_generate_open_dialog_create_label: 'プロジェクトを作成',

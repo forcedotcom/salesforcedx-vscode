@@ -5,20 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export { anonApexDebug, anonApexExecute } from './anonApexExecute';
+export { apexLogGet } from './apexLogGet';
+export { forceApexTestRun } from './forceApexTestRun';
 export {
   ApexLibraryTestRunExecutor,
-  forceApexDebugClassRunCodeActionDelegate,
-  forceApexDebugMethodRunCodeActionDelegate,
+  apexDebugClassRunCodeActionDelegate,
+  apexDebugMethodRunCodeActionDelegate,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate
 } from './forceApexTestRunCodeAction';
-export { forceApexLogGet } from './forceApexLogGet';
-export { forceApexTestRun } from './forceApexTestRun';
 export {
-  forceAnonApexDebug,
-  forceAnonApexExecute
-} from './forceAnonApexExecute';
-export { forceApexTestSuiteAdd, forceApexTestSuiteCreate, forceApexTestSuiteRun } from './forceApexTestSuite';
-export { forceLaunchApexReplayDebuggerWithCurrentFile } from './forceLaunchApexReplayDebuggerWithCurrentFile';
+  forceApexTestSuiteAdd,
+  forceApexTestSuiteCreate,
+  forceApexTestSuiteRun
+} from './forceApexTestSuite';
+export { launchApexReplayDebuggerWithCurrentFile } from './launchApexReplayDebuggerWithCurrentFile';

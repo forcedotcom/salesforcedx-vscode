@@ -232,7 +232,7 @@
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "command": "sfdx.launch.apex.replay.debugger.with.current.file",
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ],
@@ -604,7 +604,7 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "command": "sfdx.launch.apex.replay.debugger.with.current.file",
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         },
         {
@@ -907,8 +907,8 @@
         "title": "%force_sobjects_refresh%"
       },
       {
-        "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
-        "title": "%force_launch_apex_replay_debugger_with_current_file%"
+        "command": "sfdx.launch.apex.replay.debugger.with.current.file",
+        "title": "%launch_apex_replay_debugger_with_current_file%"
       },
       {
         "command": "sfdx.rename.lightning.component",

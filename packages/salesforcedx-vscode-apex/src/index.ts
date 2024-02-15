@@ -13,11 +13,11 @@ import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 
 import {
-  forceAnonApexDebug,
-  forceAnonApexExecute,
-  forceApexDebugClassRunCodeActionDelegate,
-  forceApexDebugMethodRunCodeActionDelegate,
-  forceApexLogGet,
+  anonApexDebug,
+  anonApexExecute,
+  apexDebugClassRunCodeActionDelegate,
+  apexDebugMethodRunCodeActionDelegate,
+  apexLogGet,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
@@ -26,10 +26,9 @@ import {
   forceApexTestSuiteAdd,
   forceApexTestSuiteCreate,
   forceApexTestSuiteRun,
-  forceLaunchApexReplayDebuggerWithCurrentFile
+  launchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { API } from './constants';
-import { SET_JAVA_DOC_LINK } from './constants';
+import { API, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
@@ -59,9 +58,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     );
 
     const testResultOutput = path.join(apexDirPath, '*.json');
-    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(
-      testResultOutput
-    );
+    const testResultFileWatcher =
+      vscode.workspace.createFileSystemWatcher(testResultOutput);
     testResultFileWatcher.onDidCreate(uri =>
       testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
     );
@@ -129,32 +127,17 @@ const registerCommands = (): vscode.Disposable => {
     'sfdx.force.apex.test.method.run.delegate',
     forceApexTestMethodRunCodeActionDelegate
   );
-  const forceApexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.debug.class.run.delegate',
-    forceApexDebugClassRunCodeActionDelegate
+  const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.debug.class.run.delegate',
+    apexDebugClassRunCodeActionDelegate
   );
-  const forceApexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.debug.method.run.delegate',
-    forceApexDebugMethodRunCodeActionDelegate
+  const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.debug.method.run.delegate',
+    apexDebugMethodRunCodeActionDelegate
   );
-  // TODO: remove forceApexAnonRunDelegateCmd
-  // forceApexAnonRunDelegateCmd is a duplicate of forceAnonApexRunDelegateCmd
-  // and needs to be removed after the Apex language server is updated.
-  const forceApexAnonRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.anon.run.delegate',
-    forceAnonApexExecute
-  );
-  const forceAnonApexRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.anon.apex.run.delegate',
-    forceAnonApexExecute
-  );
-  const forceAnonApexDebugDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.anon.apex.debug.delegate',
-    forceAnonApexDebug
-  );
-  const forceApexLogGetCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.log.get',
-    forceApexLogGet
+  const apexLogGetCmd = vscode.commands.registerCommand(
+    'sfdx.apex.log.get',
+    apexLogGet
   );
   const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.last.method.run',
@@ -180,34 +163,32 @@ const registerCommands = (): vscode.Disposable => {
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
-  const forceAnonApexExecuteDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.anon.apex.execute.document',
-    forceAnonApexExecute
+  const anonApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.anon.apex.execute.document',
+    anonApexExecute
   );
-  const forceAnonApexDebugDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.debug.document',
-    forceAnonApexDebug
+  const anonApexDebugDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.apex.debug.document',
+    anonApexDebug
   );
-  const forceAnonApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.anon.apex.execute.selection',
-    forceAnonApexExecute
+  const anonApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.anon.apex.execute.selection',
+    anonApexExecute
   );
-  const forceLaunchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.launch.apex.replay.debugger.with.current.file',
-    forceLaunchApexReplayDebuggerWithCurrentFile
-  );
+  const launchApexReplayDebuggerWithCurrentFileCmd =
+    vscode.commands.registerCommand(
+      'sfdx.launch.apex.replay.debugger.with.current.file',
+      launchApexReplayDebuggerWithCurrentFile
+    );
 
   return vscode.Disposable.from(
-    forceApexDebugClassRunDelegateCmd,
-    forceApexDebugMethodRunDelegateCmd,
-    forceApexAnonRunDelegateCmd,
-    forceAnonApexRunDelegateCmd,
-    forceAnonApexDebugDelegateCmd,
-    forceAnonApexExecuteDocumentCmd,
-    forceAnonApexExecuteSelectionCmd,
-    forceAnonApexDebugDocumentCmd,
-    forceLaunchApexReplayDebuggerWithCurrentFileCmd,
-    forceApexLogGetCmd,
+    apexDebugClassRunDelegateCmd,
+    apexDebugMethodRunDelegateCmd,
+    anonApexExecuteDocumentCmd,
+    anonApexExecuteSelectionCmd,
+    anonApexDebugDocumentCmd,
+    launchApexReplayDebuggerWithCurrentFileCmd,
+    apexLogGetCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,
     forceApexTestLastClassRunCmd,
@@ -238,40 +219,37 @@ const registerTestView = (): vscode.Disposable => {
 
   // Run Test Button on Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.run', () =>
+    vscode.commands.registerCommand('sfdx.test.view.run', () =>
       testRunner.runAllApexTests()
     )
   );
   // Show Error Message command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.showError', test =>
+    vscode.commands.registerCommand('sfdx.test.view.showError', test =>
       testRunner.showErrorMessage(test)
     )
   );
   // Show Definition command
   testViewItems.push(
-    vscode.commands.registerCommand(
-      'sfdx.force.test.view.goToDefinition',
-      test => testRunner.showErrorMessage(test)
+    vscode.commands.registerCommand('sfdx.test.view.goToDefinition', test =>
+      testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command
   testViewItems.push(
-    vscode.commands.registerCommand(
-      'sfdx.force.test.view.runClassTests',
-      test => testRunner.runApexTests([test.name], TestRunType.Class)
+    vscode.commands.registerCommand('sfdx.test.view.runClassTests', test =>
+      testRunner.runApexTests([test.name], TestRunType.Class)
     )
   );
   // Run Single Test command
   testViewItems.push(
-    vscode.commands.registerCommand(
-      'sfdx.force.test.view.runSingleTest',
-      test => testRunner.runApexTests([test.name], TestRunType.Method)
+    vscode.commands.registerCommand('sfdx.test.view.runSingleTest', test =>
+      testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
+    vscode.commands.registerCommand('sfdx.test.view.refresh', () => {
       if (languageClientUtils.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
@@ -295,9 +273,9 @@ const createLanguageClient = async (
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
-    languageClientUtils.setClientInstance(await languageServer.createLanguageServer(
-      extensionContext
-    ));
+    languageClientUtils.setClientInstance(
+      await languageServer.createLanguageServer(extensionContext)
+    );
 
     const languageClient = languageClientUtils.getClientInstance();
 
@@ -331,11 +309,20 @@ const createLanguageClient = async (
         languageClient,
         languageServerStatusBarItem
       );
-      extensionContext.subscriptions.push(languageClientUtils.getClientInstance()!);
+      extensionContext.subscriptions.push(
+        languageClientUtils.getClientInstance()!
+      );
     } else {
-      languageClientUtils.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`);
+      languageClientUtils.setStatus(
+        ClientStatus.Error,
+        `${nls.localize(
+          'apex_language_server_failed_activate'
+        )} - ${nls.localize('unknown')}`
+      );
       languageServerStatusBarItem.error(
-        `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
+        `${nls.localize(
+          'apex_language_server_failed_activate'
+        )} - ${nls.localize('unknown')}`
       );
     }
   } catch (e) {

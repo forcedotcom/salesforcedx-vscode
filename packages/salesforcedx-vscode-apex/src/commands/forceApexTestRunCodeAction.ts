@@ -41,9 +41,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private codeCoverage: boolean = false;
   private outputDir: string;
 
-  public static diagnostics = vscode.languages.createDiagnosticCollection(
-    'apex-errors'
-  );
+  public static diagnostics =
+    vscode.languages.createDiagnosticCollection('apex-errors');
 
   constructor(
     tests: string[],
@@ -181,16 +180,15 @@ const getTempFolder = (): string => {
 //   T E S T   C L A S S
 
 // redirects to run-all-tests cmd
-export const forceApexTestClassRunCodeActionDelegate = (
-  testClass: string
-) => {
-  void vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
+export const forceApexTestClassRunCodeActionDelegate = (testClass: string) => {
+  void vscode.commands.executeCommand(
+    'sfdx.force.apex.test.class.run',
+    testClass
+  );
 };
 
-export const forceApexDebugClassRunCodeActionDelegate = (
-  testClass: string
-) => {
-  void vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+export const apexDebugClassRunCodeActionDelegate = (testClass: string) => {
+  void vscode.commands.executeCommand('sfdx.test.view.debugTests', {
     name: testClass
   });
 };
@@ -232,12 +230,13 @@ export const forceApexTestClassRunCodeAction = async (testClass: string) => {
 export const forceApexTestMethodRunCodeActionDelegate = (
   testMethod: string
 ) => {
-  void vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
+  void vscode.commands.executeCommand(
+    'sfdx.force.apex.test.method.run',
+    testMethod
+  );
 };
-export const forceApexDebugMethodRunCodeActionDelegate = (
-  testMethod: string
-) => {
-  void vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
+export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
+  void vscode.commands.executeCommand('sfdx.test.view.debugSingleTest', {
     name: testMethod
   });
 };
