@@ -330,11 +330,11 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.create.manifest",
+          "command": "sfdx.project.generate.manifest",
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.lightning.rename",
+          "command": "sfdx.rename.lightning.component",
           "when": "sfdx:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
       ],
@@ -348,7 +348,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.auth.accessToken",
+          "command": "sfdx.org.login.access.token",
           "when": "sfdx:project_opened"
         },
         {
@@ -464,11 +464,11 @@
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.create.manifest",
+          "command": "sfdx.project.generate.manifest",
           "when": "false"
         },
         {
-          "command": "sfdx.lightning.rename",
+          "command": "sfdx.rename.lightning.component",
           "when": "false"
         },
         {
@@ -631,8 +631,8 @@
         "title": "%org_login_web_authorize_org_text%"
       },
       {
-        "command": "sfdx.force.auth.accessToken",
-        "title": "%force_auth_access_token_authorize_org_text%"
+        "command": "sfdx.org.login.access.token",
+        "title": "%org_login_access_token_text%"
       },
       {
         "command": "sfdx.org.logout.all",
@@ -883,8 +883,8 @@
         }
       },
       {
-        "command": "sfdx.create.manifest",
-        "title": "%force_create_manifest%"
+        "command": "sfdx.project.generate.manifest",
+        "title": "%project_generate_manifest%"
       },
       {
         "command": "sfdx.force.diff",
@@ -911,8 +911,8 @@
         "title": "%force_launch_apex_replay_debugger_with_current_file%"
       },
       {
-        "command": "sfdx.lightning.rename",
-        "title": "%force_lightning_rename_component_text%"
+        "command": "sfdx.rename.lightning.component",
+        "title": "%rename_lightning_component_text%"
       }
     ],
     "configuration": {

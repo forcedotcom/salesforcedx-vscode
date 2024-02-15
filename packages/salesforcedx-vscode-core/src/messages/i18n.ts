@@ -42,9 +42,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   org_login_device_code_parse_error:
     'There was an unexpected error authorizing to your org in a container environment.',
@@ -140,7 +139,7 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
-  force_create_manifest: 'SFDX: Generate Manifest File',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
@@ -658,7 +657,7 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   force_sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
-  force_rename_lightning_component: 'SFDX: Rename Component',
+  rename_lightning_component: 'SFDX: Rename Component',
   rename_component_input_dup_error:
     'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:
