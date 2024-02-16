@@ -21,7 +21,7 @@
   "force_diff_folder_against_org": "SFDX: フォルダと組織の差分を表示",
   "force_lightning_lwc_test_create_text": "SFDX: Lightning Web コンポーネントのテストを作成",
   "force_manifest_editor_show_text": "SFDX: パッケージマニフェストエディタを表示",
-  "force_package_install_text": "SFDX: パッケージをインストール",
+  "package_install_text": "SFDX: パッケージをインストール",
   "force_sobjects_refresh": "SFDX: SObject 定義を更新",
   "force_source_deploy_in_manifest_text": "SFDX: マニフェストファイルのソースを組織へデプロイ",
   "force_source_deploy_text": "SFDX: 組織へソースをデプロイ",

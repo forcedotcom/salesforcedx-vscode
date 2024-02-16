@@ -23,15 +23,13 @@ import {
   SfdxCommandletExecutor
 } from './util';
 
-type forcePackageInstallOptions = {
+type packageInstallOptions = {
   packageId: string;
   installationKey: string;
 };
 
-export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
-  PackageIdAndInstallationKey
-> {
-  private readonly options: forcePackageInstallOptions;
+export class PackageInstallExecutor extends SfdxCommandletExecutor<PackageIdAndInstallationKey> {
+  private readonly options: packageInstallOptions;
 
   public constructor(options = { packageId: '', installationKey: '' }) {
     super();
@@ -40,13 +38,13 @@ export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
 
   public build(data: PackageIdAndInstallationKey): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_package_install_text'))
-      .withArg('force:package:install')
+      .withDescription(nls.localize('package_install_text'))
+      .withArg('package:install')
       .withFlag('--package', data.packageId)
-      .withLogName('force_package_install');
+      .withLogName('package_install');
 
     if (data.installationKey) {
-      builder.withFlag('--installationkey', data.installationKey);
+      builder.withFlag('--installation-key', data.installationKey);
     }
 
     return builder.build();
@@ -83,7 +81,8 @@ export class SelectPackageID implements ParametersGatherer<PackageID> {
 }
 
 export class SelectInstallationKey
-  implements ParametersGatherer<InstallationKey> {
+  implements ParametersGatherer<InstallationKey>
+{
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
@@ -119,9 +118,9 @@ const parameterGatherer = new CompositeParametersGatherer(
 const sfdxPackageInstallCommandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
-  new ForcePackageInstallExecutor()
+  new PackageInstallExecutor()
 );
 
-export async function forcePackageInstall() {
+export async function packageInstall() {
   await sfdxPackageInstallCommandlet.run();
 }

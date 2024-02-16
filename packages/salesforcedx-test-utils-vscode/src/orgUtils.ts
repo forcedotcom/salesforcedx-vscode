@@ -176,10 +176,10 @@ export const assignPermissionSet = async (
 ): Promise<void> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:user:permset:assign')
-      .withFlag('--permsetname', permissionSetName)
-      .withFlag('--targetusername', username)
-      .withJson()
+      .withArg('org:assign:permset')
+      .withFlag('--name', permissionSetName)
+      .withFlag('--target-org', username)
+      .withJson(false)
       .build(),
     { cwd: process.cwd() }
   ).execute();

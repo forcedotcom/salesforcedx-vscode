@@ -192,7 +192,7 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_package_install_text: 'SFDX: Install Package',
+  package_install_text: 'SFDX: Install Package',
   project_generate_text: 'SFDX: Create Project',
   project_generate_open_dialog_create_label: 'Create Project',
   project_generate_standard_template: 'Standard project template (default)',
