@@ -16,7 +16,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
-import { forceSourceDiff } from '../../../src/commands';
+import { sourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
 import {
   FilePathGatherer,
@@ -140,7 +140,7 @@ describe('Force Source Diff', () => {
       mockComponentWalkContentStub.returns([remoteFsPath]);
       processStub.returns(mockResult);
 
-      await forceSourceDiff(Uri.file(mockFilePath));
+      await sourceDiff(Uri.file(mockFilePath));
 
       assert.calledOnce(vscodeExecuteCommandStub);
       assert.calledWith(
@@ -149,7 +149,7 @@ describe('Force Source Diff', () => {
         match.has('fsPath', remoteFsPath),
         match.has('fsPath', localFsPath),
         nls.localize(
-          'force_source_diff_title',
+          'source_diff_title',
           mockUsername,
           'mockFile.cls',
           'mockFile.cls'
@@ -168,23 +168,23 @@ describe('Force Source Diff', () => {
         return mockActiveTextEditor;
       });
 
-      await forceSourceDiff();
+      await sourceDiff();
 
       assert.calledOnce(telemetryServiceSendExceptionStub);
       assert.calledWith(
         telemetryServiceSendExceptionStub,
         'unsupported_type_on_diff',
-        nls.localize('force_source_diff_unsupported_type')
+        nls.localize('source_diff_unsupported_type')
       );
       assert.calledOnce(notificationStub);
       assert.calledWith(
         notificationStub,
-        nls.localize('force_source_diff_unsupported_type')
+        nls.localize('source_diff_unsupported_type')
       );
       assert.calledOnce(channelAppendLineStub);
       assert.calledWith(
         channelAppendLineStub,
-        nls.localize('force_source_diff_unsupported_type')
+        nls.localize('source_diff_unsupported_type')
       );
       assert.calledOnce(channelShowChannelOutputStub);
     });
@@ -215,12 +215,12 @@ describe('Force Source Diff', () => {
         expectedError = error;
       }
       expect(expectedError.message).to.equal(
-        nls.localize('force_source_diff_components_not_in_org')
+        nls.localize('source_diff_components_not_in_org')
       );
       assert.calledOnce(notificationStub);
       assert.calledWith(
         notificationStub,
-        nls.localize('force_source_diff_components_not_in_org')
+        nls.localize('source_diff_components_not_in_org')
       );
     });
 
