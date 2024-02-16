@@ -31,7 +31,7 @@ type RegexGroups = {
 const activationRecordRegExp =
   /(?<dateTimeStr>\S+?\s?\S+?)\s?\[(?<level>\S+?)\]\s?(?<eventName>\S+?)\s(?<extensionId>\S+?),\s+?(?<properties>.*)/;
 
-// capturing group regex for parsing current session log starrt records
+// capturing group regex for parsing current session log start records
 // 2024-01-16 15:18:17.014 [info] Extension host with pid 3574 started
 const sessionStartRecordRegExp =
   /.*?Extension host with pid\s?(?<pid>[0-9]+?)\s+?started/;
