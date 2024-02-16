@@ -117,6 +117,7 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { SfdxProjectConfig } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
+import { MetricsReporter } from './telemetry/MetricsReporter';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
@@ -594,6 +595,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     };
 
     telemetryService.sendExtensionActivationEvent(activateTracker.activationInfo.startActivateHrTime);
+    MetricsReporter.extensionPackStatus();
     console.log('SFDX CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
@@ -659,6 +661,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   };
 
   void activateTracker.markActivationStop();
+  MetricsReporter.extensionPackStatus();
   console.log('SFDX CLI Extension Activated');
 
   if (
