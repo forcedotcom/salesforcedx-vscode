@@ -184,8 +184,8 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
   void vscode.commands.executeCommand('sfdx.apex.test.class.run', testClass);
 };
 
-export const forceApexDebugClassRunCodeActionDelegate = (testClass: string) => {
-  void vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+export const apexDebugClassRunCodeActionDelegate = (testClass: string) => {
+  void vscode.commands.executeCommand('sfdx.test.view.debugTests', {
     name: testClass
   });
 };
@@ -227,10 +227,8 @@ export const apexTestClassRunCodeAction = async (testClass: string) => {
 export const apexTestMethodRunCodeActionDelegate = (testMethod: string) => {
   void vscode.commands.executeCommand('sfdx.apex.test.method.run', testMethod);
 };
-export const forceApexDebugMethodRunCodeActionDelegate = (
-  testMethod: string
-) => {
-  void vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
+export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
+  void vscode.commands.executeCommand('sfdx.test.view.debugSingleTest', {
     name: testMethod
   });
 };

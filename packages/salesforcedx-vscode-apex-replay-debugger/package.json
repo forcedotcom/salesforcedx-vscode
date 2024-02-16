@@ -152,11 +152,11 @@
           "when": "sfdx:project_opened && !inDebugMode"
         },
         {
-          "command": "sfdx.force.test.view.debugTests",
+          "command": "sfdx.test.view.debugTests",
           "when": "false"
         },
         {
-          "command": "sfdx.force.test.view.debugSingleTest",
+          "command": "sfdx.test.view.debugSingleTest",
           "when": "false"
         }
       ],
@@ -169,12 +169,12 @@
       ],
       "view/item/context": [
         {
-          "command": "sfdx.force.test.view.debugTests",
+          "command": "sfdx.test.view.debugTests",
           "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
           "group": "inline"
         },
         {
-          "command": "sfdx.force.test.view.debugSingleTest",
+          "command": "sfdx.test.view.debugSingleTest",
           "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
@@ -199,7 +199,7 @@
         "title": "%launch_from_last_log_file%"
       },
       {
-        "command": "sfdx.force.test.view.debugTests",
+        "command": "sfdx.test.view.debugTests",
         "title": "%run_tests_and_debug%",
         "icon": {
           "light": "resources/light/debug.svg",
@@ -207,7 +207,7 @@
         }
       },
       {
-        "command": "sfdx.force.test.view.debugSingleTest",
+        "command": "sfdx.test.view.debugSingleTest",
         "title": "%run_single_test_and_debug%",
         "icon": {
           "light": "resources/light/debug.svg",

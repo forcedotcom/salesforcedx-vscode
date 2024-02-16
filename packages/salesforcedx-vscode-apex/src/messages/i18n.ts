@@ -40,19 +40,19 @@ export const messages = {
   colorizer_no_code_coverage_current_file:
     'No code coverage information was found for file %s. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs',
-  force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
-  force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
-  force_apex_log_list_text: 'Getting Apex debug logs',
   apex_test_run_all_test_label: 'All Tests',
   apex_test_run_all_local_test_label: 'All Local Tests',
   apex_test_run_all_tests_description_text: 'Runs all tests in the current org',
   apex_test_run_all_local_tests_description_text:
     'Runs all tests in the current org except the ones that originate from installed managed packages',
+  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
+  apex_log_get_no_logs_text: 'No Apex debug logs were found',
+  apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
+  apex_log_list_text: 'Getting Apex debug logs',
   force_apex_test_run_description_text: 'Run Apex test(s)',
   apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',
@@ -61,7 +61,7 @@ export const messages = {
   apex_test_run_text: 'SFDX: Run Apex Tests',
   force_test_view_loading_message: 'Loading Apex tests ...',
   force_test_view_no_tests_message: 'No Apex Tests Found',
-  force_test_view_show_error_title: 'Show Error',
+  test_view_show_error_title: 'Show Error',
   force_test_view_no_tests_description:
     "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
   java_runtime_missing_text:

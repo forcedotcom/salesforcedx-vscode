@@ -22,7 +22,7 @@
   "project_generate_manifest": "SFDX: Generate Manifest File",
   "force_diff_against_org": "SFDX: Diff File Against Org",
   "force_diff_folder_against_org": "SFDX: Diff Folder Against Org",
-  "force_launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",
+  "launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",
   "force_lightning_lwc_test_create_text": "SFDX: Create Lightning Web Component Test",
   "rename_lightning_component_text": "SFDX: Rename Component",
   "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",

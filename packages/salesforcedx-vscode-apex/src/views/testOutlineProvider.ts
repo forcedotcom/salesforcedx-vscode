@@ -15,10 +15,7 @@ import {
   PASS_RESULT,
   SKIP_RESULT
 } from '../constants';
-import {
-  getApexTests,
-  languageClientUtils
-} from '../languageUtils';
+import { getApexTests, languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
 import { IconsEnum, iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
@@ -34,10 +31,10 @@ const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 export class ApexTestOutlineProvider
-  implements vscode.TreeDataProvider<TestNode> {
-  private onDidChangeTestData: vscode.EventEmitter<
-    TestNode | undefined
-  > = new vscode.EventEmitter<TestNode | undefined>();
+  implements vscode.TreeDataProvider<TestNode>
+{
+  private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> =
+    new vscode.EventEmitter<TestNode | undefined>();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
 
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
@@ -70,7 +67,7 @@ export class ApexTestOutlineProvider
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientUtils.getStatus() ;
+        const languageClientStatus = languageClientUtils.getStatus();
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
             vscode.window.showInformationMessage(
@@ -259,8 +256,8 @@ export abstract class TestNode extends vscode.TreeItem {
     this.description = label;
     this.name = label;
     this.command = {
-      command: 'sfdx.force.test.view.showError',
-      title: nls.localize('force_test_view_show_error_title'),
+      command: 'sfdx.test.view.showError',
+      title: nls.localize('test_view_show_error_title'),
       arguments: [this]
     };
   }
