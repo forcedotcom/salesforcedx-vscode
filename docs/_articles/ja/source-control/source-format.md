@@ -5,7 +5,7 @@ lang: ja
 
 VS Code 向け Salesforce 拡張機能でソースのプッシュ、プル、リリース、取得に使用するコマンドは、ファイルが \(メタデータ形式ではなく\) ソース形式であると想定しています。ソース形式は、バージョン管理システムで作業しやすいように最適化されています。詳細は、『Salesforce DX 開発者ガイド』の[「Salesforce DX プロジェクトの構造とソース形式」](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm)を参照してください。
 
-Force.com IDE ではメタデータ形式を使用していたため、VS Code で Force.com IDE プロジェクトを開くことはできません。このトピックで説明するコマンドを操作するには、メタデータをソース形式に変換するか \(`sfdx force:mdapi:convert` を使用\)、新しいプロジェクトを作成して、以前の IDE で使っていたマニフェスト \(`package.xml` ファイル\) を使用して組織からメタデータを取得します。
+Force.com IDE ではメタデータ形式を使用していたため、VS Code で Force.com IDE プロジェクトを開くことはできません。このトピックで説明するコマンドを操作するには、メタデータをソース形式に変換するか \(`sf project convert mdapi` を使用\)、新しいプロジェクトを作成して、以前の IDE で使っていたマニフェスト \(`package.xml` ファイル\) を使用して組織からメタデータを取得します。
 
 ## メタデータ形式からソース形式への変換および Git 履歴の維持
 
@@ -41,11 +41,11 @@ Force.com IDE ではメタデータ形式を使用していたため、VS Code �
 
 1. Git リポジトリの外で一時的な SFDX プロジェクトを作成します。この一時的なプロジェクトには Salesforce のプロジェクトで必要とされるディレクトリ構造や設定ファイルがあります。
 
-   `$ sfdx project:generate -n tempproj`
+   `$ sf project generate -name tempproj`
 
 2. メタデータ内のプロジェクトを一時的なプロジェクトに変換します。
 
-   `$ sfdx force:mdapi:convert --rootdir ./project/metadata --outputdir ./tempproj`
+   `$ sf project convert mdapi --root-dir ./project/metadata --output-dir ./tempproj`
 
    これで、プロジェクトのコピーが 2 つできました。1 つは元の場所にあり、もう 1 つは新しいディレクトリ `temproj` にあり、ソース形式に変換した後のプロジェクトファイルが保存されます。
 
@@ -99,7 +99,7 @@ Force.com IDE ではメタデータ形式を使用していたため、VS Code �
 ```text
 `$ git config merge.renameLimit 999999`
 
-`$ sfdx force:mdapi:convert -r src -d src2`
+`$ sf project convert mdapi --root-dir src --output-dir src2`
 
 `$ rm -rf src`
 

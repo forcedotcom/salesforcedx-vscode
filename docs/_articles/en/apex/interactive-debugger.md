@@ -39,7 +39,7 @@ Note: You can use the default license provided to License Management orgs only w
    1. Click **Add Assignments**.
    1. Select the users to whom you want to assign the permission set, and then click **Assign**.
    1. Click **Done**.
-1. **Optional**: In VS Code, run **SFDX: Pull Source from Default Scratch Org**. Then, add your new permission set to your source control repository. If you have a copy of the permission set in your Salesforce DX project, you can assign permissions to scratch org users by running `sfdx force:user:permset:assign -n Your_Perm_Set_Name`.
+1. **Optional**: In VS Code, run **SFDX: Pull Source from Default Scratch Org**. Then, add your new permission set to your source control repository. If you have a copy of the permission set in your Salesforce DX project, you can assign permissions to scratch org users by running `sf org assign permset --name Your_Perm_Set_Name`.
 1. In VS Code, create a launch configuration for Apex Debugger.
    1. To open the Debug view, in the VS Code Activity Bar, click the bug icon (hover text: Debug).
    1. To create a `launch.json` file, click the gear icon (hover text: Configure or Fix launch.json) and then select **Apex Debugger**. (If you’ve already created this file, clicking the gear icon opens the file.)

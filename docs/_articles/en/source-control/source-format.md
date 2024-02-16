@@ -5,7 +5,7 @@ lang: en
 
 The commands that Salesforce Extensions for VS Code uses to push, pull, deploy, and retrieve your source assume that your files are in source format (rather than metadata format). Source format is optimized for working with version control systems. For details, see [Salesforce DX Project Structure and Source Format](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm) in the _Salesforce DX Developer Guide_.
 
-Because legacy tools such as Force.com IDE used the metadata format, you can’t directly open your such projects in VS Code. You must either convert your metadata to source format (using `sfdx force:mdapi:convert`) or create a new project and then retrieve the metadata from your org using the manifest (`package.xml` file) that you used in your previous IDE.
+Because legacy tools such as Force.com IDE used the metadata format, you can’t directly open your such projects in VS Code. You must either convert your metadata to source format (using `sf project convert mdapi`) or create a new project and then retrieve the metadata from your org using the manifest (`package.xml` file) that you used in your previous IDE.
 
 ## Convert Metadata to Source Format and Maintain Git History
 
@@ -41,11 +41,11 @@ Follow these steps to convert the project from metadata to source format, withou
 
 1. Create a temporary SFDX project outside of the Git repo. This temporary project has the structure and a configuration file as required by a Salesforce project.
 
-   `$ sf project:generate -n tempproj`
+   `$ sf project generate --name tempproj`
 
 1. Convert the project in metadata into a temporary project.
 
-   `$ sfdx force:mdapi:convert --rootdir ./project/metadata --outputdir ./tempproj`
+   `$ sf project convert mdapi --root-dir ./project/metadata --output-dir ./tempproj`
 
    Now you have two copies of the project, one in the original location and the other in the new directory `temproj`, where the project files after converting them to the source format are stored.
 
@@ -99,7 +99,7 @@ These commands set the rename detection limit and convert to source format in a 
 ```text
 `$ git config merge.renameLimit 999999`
 
-`$ sfdx force:mdapi:convert -r src -d src2`
+`$ sf project convert mdapi --root-dir src --output-dir src2`
 
 `$ rm -rf src`
 
