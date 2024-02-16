@@ -112,7 +112,7 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
   }
 }
 
-export async function diffFolder(cache: MetadataCacheResult, username: string) {
+export const diffFolder = (cache: MetadataCacheResult, username: string) => {
   const localPath = path.join(
     cache.project.baseDirectory,
     cache.project.commonRoot
@@ -125,13 +125,13 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
   const diffs = differ.diff(localPath, remotePath);
 
   conflictView.visualizeDifferences(
-    nls.localize('force_source_diff_folder_title', username),
+    nls.localize('source_diff_folder_title', username),
     username,
     true,
     diffs,
     true
   );
-}
+};
 
 /**
  * Perform file diff and execute VS Code diff comand to show in UI.
@@ -141,11 +141,11 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
  * @param defaultUsernameorAlias username/org info to show in diff
  * @returns {Promise<void>}
  */
-export async function diffOneFile(
+export const diffOneFile = async (
   localFile: string,
   remoteComponent: SourceComponent,
   defaultUsernameorAlias: string
-): Promise<void> {
+): Promise<void> => {
   const filePart = path.basename(localFile);
 
   const remoteFilePaths = remoteComponent.walkContent();
@@ -163,14 +163,14 @@ export async function diffOneFile(
           remoteUri,
           localUri,
           nls.localize(
-            'force_source_diff_title',
+            'source_diff_title',
             defaultUsernameorAlias,
             filePart,
             filePart
           )
         );
       } catch (err) {
-        notificationService.showErrorMessage(err.message);
+        await notificationService.showErrorMessage(err.message);
         channelService.appendLine(err.message);
         channelService.showChannelOutput();
         telemetryService.sendException(err.name, err.message);
@@ -178,4 +178,4 @@ export async function diffOneFile(
       return;
     }
   }
-}
+};
