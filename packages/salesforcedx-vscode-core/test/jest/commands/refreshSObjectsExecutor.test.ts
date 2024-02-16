@@ -13,9 +13,9 @@ import {
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { channelService } from '../../../src/channels';
-import { ForceRefreshSObjectsExecutor } from '../../../src/commands';
+import { RefreshSObjectsExecutor } from '../../../src/commands';
 
-describe('ForceRefreshSObjectsExecutor', () => {
+describe('RefreshSObjectsExecutor', () => {
   let channelServiceSpy: jest.SpyInstance;
   let transformer: SObjectTransformer;
 
@@ -50,7 +50,7 @@ describe('ForceRefreshSObjectsExecutor', () => {
     source: SObjectRefreshSource,
     category?: SObjectCategory
   ) {
-    const executor = new ForceRefreshSObjectsExecutor();
+    const executor = new RefreshSObjectsExecutor();
     await executor.execute({
       type: 'CONTINUE',
       data: { category: category || SObjectCategory.ALL, source }

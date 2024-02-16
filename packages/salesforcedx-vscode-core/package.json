@@ -228,7 +228,7 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.diff",
+          "command": "sfdx.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -254,7 +254,7 @@
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.folder.diff",
+          "command": "sfdx.folder.diff",
           "when": "explorerResourceIsFolder && sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -306,7 +306,7 @@
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.diff",
+          "command": "sfdx.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -588,11 +588,11 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.diff",
+          "command": "sfdx.diff",
           "when": "false"
         },
         {
-          "command": "sfdx.force.folder.diff",
+          "command": "sfdx.folder.diff",
           "when": "false"
         },
         {
@@ -600,7 +600,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
+          "command": "sfdx.internal.refreshsobjects",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -887,12 +887,12 @@
         "title": "%project_generate_manifest%"
       },
       {
-        "command": "sfdx.force.diff",
-        "title": "%force_diff_against_org%"
+        "command": "sfdx.diff",
+        "title": "%diff_against_org%"
       },
       {
-        "command": "sfdx.force.folder.diff",
-        "title": "%force_diff_folder_against_org%"
+        "command": "sfdx.folder.diff",
+        "title": "%diff_folder_against_org%"
       },
       {
         "command": "sfdx.force.conflict.open",
@@ -903,8 +903,8 @@
         }
       },
       {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
+        "command": "sfdx.internal.refreshsobjects",
+        "title": "%sobjects_refresh%"
       },
       {
         "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
