@@ -41,9 +41,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private codeCoverage: boolean = false;
   private outputDir: string;
 
-  public static diagnostics = vscode.languages.createDiagnosticCollection(
-    'apex-errors'
-  );
+  public static diagnostics =
+    vscode.languages.createDiagnosticCollection('apex-errors');
 
   constructor(
     tests: string[],
@@ -51,7 +50,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     codeCoverage = settings.retrieveTestCodeCoverage()
   ) {
     super(
-      nls.localize('force_apex_test_run_text'),
+      nls.localize('apex_test_run_text'),
       'force_apex_test_run_code_action_library',
       OUTPUT_CHANNEL
     );
@@ -156,7 +155,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-const forceApexTestRunCodeAction = async (tests: string[]) => {
+const apexTestRunCodeAction = async (tests: string[]) => {
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -181,15 +180,11 @@ const getTempFolder = (): string => {
 //   T E S T   C L A S S
 
 // redirects to run-all-tests cmd
-export const forceApexTestClassRunCodeActionDelegate = (
-  testClass: string
-) => {
-  void vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
+export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
+  void vscode.commands.executeCommand('sfdx.apex.test.class.run', testClass);
 };
 
-export const forceApexDebugClassRunCodeActionDelegate = (
-  testClass: string
-) => {
+export const forceApexDebugClassRunCodeActionDelegate = (testClass: string) => {
   void vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
     name: testClass
   });
@@ -213,26 +208,24 @@ export const resolveTestClassParam = async (
 };
 
 // invokes apex test run on all tests in a class
-export const forceApexTestClassRunCodeAction = async (testClass: string) => {
+export const apexTestClassRunCodeAction = async (testClass: string) => {
   testClass = await resolveTestClassParam(testClass);
   if (isEmpty(testClass)) {
     // test param not provided: show error and terminate
     void notificationService.showErrorMessage(
-      nls.localize('force_apex_test_run_codeAction_no_class_test_param_text')
+      nls.localize('apex_test_run_codeAction_no_class_test_param_text')
     );
     return;
   }
 
-  await forceApexTestRunCodeAction([testClass]);
+  await apexTestRunCodeAction([testClass]);
 };
 
 //   T E S T   M E T H O D
 
 // redirects to run-test-method cmd
-export const forceApexTestMethodRunCodeActionDelegate = (
-  testMethod: string
-) => {
-  void vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
+export const apexTestMethodRunCodeActionDelegate = (testMethod: string) => {
+  void vscode.commands.executeCommand('sfdx.apex.test.method.run', testMethod);
 };
 export const forceApexDebugMethodRunCodeActionDelegate = (
   testMethod: string
@@ -261,15 +254,15 @@ export const resolveTestMethodParam = async (
 };
 
 // invokes apex test run on a test method
-export const forceApexTestMethodRunCodeAction = async (testMethod: string) => {
+export const apexTestMethodRunCodeAction = async (testMethod: string) => {
   testMethod = await resolveTestMethodParam(testMethod);
   if (isEmpty(testMethod)) {
     // test param not provided: show error and terminate
     void notificationService.showErrorMessage(
-      nls.localize('force_apex_test_run_codeAction_no_method_test_param_text')
+      nls.localize('apex_test_run_codeAction_no_method_test_param_text')
     );
     return;
   }
 
-  await forceApexTestRunCodeAction([testMethod]);
+  await apexTestRunCodeAction([testMethod]);
 };
