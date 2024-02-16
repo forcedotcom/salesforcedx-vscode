@@ -54,11 +54,11 @@ export { projectGenerateManifest } from './projectGenerateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
 export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
-  ForcePackageInstallExecutor,
+  PackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
-  forcePackageInstall
-} from './forcePackageInstall';
+  packageInstall
+} from './packageInstall';
 export {
   RefreshSObjectsExecutor,
   checkSObjectsAndRefresh,

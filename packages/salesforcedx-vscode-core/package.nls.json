@@ -26,7 +26,7 @@
   "force_lightning_lwc_test_create_text": "SFDX: Create Lightning Web Component Test",
   "rename_lightning_component_text": "SFDX: Rename Component",
   "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
-  "force_package_install_text": "SFDX: Install Package",
+  "package_install_text": "SFDX: Install Package",
   "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "force_source_deploy_in_manifest_text": "SFDX: Deploy Source in Manifest to Org",
   "force_source_deploy_text": "SFDX: Deploy Source to Org",

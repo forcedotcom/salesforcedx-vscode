@@ -32,7 +32,7 @@ import {
   orgLoginAccessToken,
   projectGenerateManifest,
   forceLightningLwcTestCreate,
-  forcePackageInstall,
+  packageInstall,
   refreshSObjects,
   renameLightningComponent,
   forceSourceDeployManifest,
@@ -116,6 +116,7 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { SfdxProjectConfig } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
+import { MetricsReporter } from './telemetry/MetricsReporter';
 import {
   isCLIInstalled,
   setNodeExtraCaCerts,
@@ -334,9 +335,9 @@ function registerCommands(
     sfProjectGenerate
   );
 
-  const forcePackageInstallCmd = vscode.commands.registerCommand(
-    'sfdx.force.package.install',
-    forcePackageInstall
+  const packageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.package.install',
+    packageInstall
   );
   const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
     'sfdx.project.generate.with.manifest',
@@ -433,7 +434,7 @@ function registerCommands(
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
     projectGenerateCmd,
-    forcePackageInstallCmd,
+    packageInstallCmd,
     projectGenerateWithManifestCmd,
     apexGenerateTriggerCmd,
     startApexDebugLoggingCmd,
@@ -592,6 +593,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     };
 
     telemetryService.sendExtensionActivationEvent(extensionHRStart);
+    MetricsReporter.extensionPackStatus();
     console.log('SFDX CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
@@ -657,6 +659,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  MetricsReporter.extensionPackStatus();
   console.log('SFDX CLI Extension Activated');
 
   if (

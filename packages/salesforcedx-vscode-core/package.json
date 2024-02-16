@@ -340,7 +340,7 @@
       ],
       "commandPalette": [
         {
-          "command": "sfdx.force.package.install",
+          "command": "sfdx.package.install",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -619,8 +619,8 @@
     },
     "commands": [
       {
-        "command": "sfdx.force.package.install",
-        "title": "%force_package_install_text%"
+        "command": "sfdx.package.install",
+        "title": "%package_install_text%"
       },
       {
         "command": "sfdx.org.login.web.dev.hub",
