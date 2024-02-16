@@ -25,6 +25,10 @@
 /tools/vscode/en/user-guide/default-org                         /tools/vscode/en/sf-dev-env/default-org                   301
 /tools/vscode/en/user-guide/org-browser                         /tools/vscode/en/sf-dev-env/org-browser                   301
 /tools/vscode/en/user-guide/vscode-commands                     /tools/vscode/en/sf-dev-env/vscode-commands               301
+/tools/vscode/isv-debugger                                      /tools/vscode/en/apex/isv-debugger                        301
+/tools/vscode/ja/getting-started/first-project                  /tools/vscode                                             301
+/tools/vscode/en/getting-started/first-project                  /tools/vscode                                             301
+/tools/vscode/recommended-extensions                            /tools/vscode/en/vscode-desktop/recommended-extensions    301                                   301
 
 # Temporary Redirects for convenience
 /tools/vscode/en/                               /tools/vscode/                          302
