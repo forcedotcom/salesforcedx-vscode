@@ -78,10 +78,10 @@ export const messages = {
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
     'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) or [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) to run the extensions. For more information, see [Set Your Java Version](%s).',
-  wrong_java_version_short:
-    'Unsupported Java version',
-  java_version_check_command_failed: 'Running java command %s failed with error: %s',
-  force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
+  wrong_java_version_short: 'Unsupported Java version',
+  java_version_check_command_failed:
+    'Running java command %s failed with error: %s',
+  apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
@@ -90,8 +90,10 @@ export const messages = {
     'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
   terminate_processes: 'Terminate Processes',
   terminate_show_processes: 'Show Processes',
-  terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
-  terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
+  terminate_failed:
+    'Failed to terminate Apex Language Server process PID: %d: %s',
+  terminated_orphaned_process:
+    'Terminated Apex Language Server process PID: %d',
   terminated_orphaned_processes: 'Terminated %d orphaned processes.',
   unknown_error: 'Unknown error',
   process_id: 'Process ID',
@@ -101,6 +103,7 @@ export const messages = {
   yes: 'Yes',
   cancel: 'Cancel',
   terminate_processes_title: 'Terminate Orphaned Processes',
-  orphan_process_advice: "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
+  orphan_process_advice:
+    "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
   unknown: 'Unknown'
 };
