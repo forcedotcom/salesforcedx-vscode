@@ -19,31 +19,28 @@ import {
   TestSuiteBuilder,
   TestSuiteCreator,
   TestSuiteSelector
-} from '../../../src/commands/forceApexTestSuite';
+} from '../../../src/commands/apexTestSuite';
 import { workspaceContext } from '../../../src/context';
 
 const sb = createSandbox();
 
-describe('Test Suite Selector', async () => {
+describe('Test Suite Selector', () => {
   let quickPickStub: sinon.SinonStub;
-  let retrieveSuitesStub: sinon.SinonStub;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sb.stub(workspaceContext, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns({
       label: 'SuiteOne',
       type: TestType.Suite
     });
 
-    retrieveSuitesStub = sb
-      .stub(TestService.prototype, 'retrieveAllSuites')
-      .resolves([
-        { TestSuiteName: 'SuiteOne', Id: 'xxxxxxxxxxx27343' },
-        { TestSuiteName: 'SuiteTwo', Id: 'xxxxxxxxxxx27343' }
-      ]);
+    sb.stub(TestService.prototype, 'retrieveAllSuites').resolves([
+      { TestSuiteName: 'SuiteOne', Id: 'xxxxxxxxxxx27343' },
+      { TestSuiteName: 'SuiteTwo', Id: 'xxxxxxxxxxx27343' }
+    ]);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sb.restore();
   });
 
@@ -73,11 +70,10 @@ describe('Test Suite Selector', async () => {
   });
 });
 
-describe('Test Suite Builder', async () => {
+describe('Test Suite Builder', () => {
   let quickPickStub: sinon.SinonStub;
-  let retrieveSuitesStub: sinon.SinonStub;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sb.stub(workspaceContext, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns([
       {
@@ -86,15 +82,13 @@ describe('Test Suite Builder', async () => {
       }
     ]);
 
-    retrieveSuitesStub = sb
-      .stub(TestService.prototype, 'retrieveAllSuites')
-      .resolves([
-        { TestSuiteName: 'SuiteOne', Id: 'xxxxxxxxxxx27343' },
-        { TestSuiteName: 'SuiteTwo', Id: 'xxxxxxxxxxx27343' }
-      ]);
+    sb.stub(TestService.prototype, 'retrieveAllSuites').resolves([
+      { TestSuiteName: 'SuiteOne', Id: 'xxxxxxxxxxx27343' },
+      { TestSuiteName: 'SuiteTwo', Id: 'xxxxxxxxxxx27343' }
+    ]);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sb.restore();
   });
 

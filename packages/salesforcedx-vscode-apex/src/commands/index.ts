@@ -16,13 +16,13 @@ export {
   forceApexDebugMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';
 export {
+  apexTestSuiteAdd,
+  apexTestSuiteCreate,
+  apexTestSuiteRun
+} from './apexTestSuite';
+export {
   forceAnonApexDebug,
   forceAnonApexExecute
 } from './forceAnonApexExecute';
 export { forceApexLogGet } from './forceApexLogGet';
-export {
-  forceApexTestSuiteAdd,
-  forceApexTestSuiteCreate,
-  forceApexTestSuiteRun
-} from './forceApexTestSuite';
 export { forceLaunchApexReplayDebuggerWithCurrentFile } from './forceLaunchApexReplayDebuggerWithCurrentFile';
