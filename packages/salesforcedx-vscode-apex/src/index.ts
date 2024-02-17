@@ -23,9 +23,9 @@ import {
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate,
   apexTestRun,
-  forceApexTestSuiteAdd,
-  forceApexTestSuiteCreate,
-  forceApexTestSuiteRun,
+  apexTestSuiteAdd,
+  apexTestSuiteCreate,
+  apexTestSuiteRun,
   launchApexReplayDebuggerWithCurrentFile
 } from './commands';
 import { API, SET_JAVA_DOC_LINK } from './constants';
@@ -147,17 +147,17 @@ const registerCommands = (): vscode.Disposable => {
     'sfdx.apex.test.method.run',
     apexTestMethodRunCodeAction
   );
-  const forceApexTestSuiteCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.suite.create',
-    forceApexTestSuiteCreate
+  const apexTestSuiteCreateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.suite.create',
+    apexTestSuiteCreate
   );
-  const forceApexTestSuiteRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.suite.run',
-    forceApexTestSuiteRun
+  const apexTestSuiteRunCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.suite.run',
+    apexTestSuiteRun
   );
-  const forceApexTestSuiteAddCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.suite.add',
-    forceApexTestSuiteAdd
+  const apexTestSuiteAddCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.suite.add',
+    apexTestSuiteAdd
   );
   const apexTestRunCmd = vscode.commands.registerCommand(
     'sfdx.apex.test.run',
@@ -190,16 +190,16 @@ const registerCommands = (): vscode.Disposable => {
     launchApexReplayDebuggerWithCurrentFileCmd,
     apexLogGetCmd,
     forceApexToggleColorizerCmd,
-    forceApexTestSuiteCreateCmd,
-    forceApexTestSuiteRunCmd,
-    forceApexTestSuiteAddCmd,
     apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexTestLastClassRunCmd,
     apexTestLastMethodRunCmd,
     apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
-    apexTestRunCmd
+    apexTestRunCmd,
+    apexTestSuiteCreateCmd,
+    apexTestSuiteRunCmd,
+    apexTestSuiteAddCmd
   );
 };
 

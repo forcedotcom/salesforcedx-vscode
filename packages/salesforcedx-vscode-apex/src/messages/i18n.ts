@@ -79,7 +79,7 @@ export const messages = {
   wrong_java_version_short: 'Unsupported Java version',
   java_version_check_command_failed:
     'Running java command %s failed with error: %s',
-  force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
+  apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:

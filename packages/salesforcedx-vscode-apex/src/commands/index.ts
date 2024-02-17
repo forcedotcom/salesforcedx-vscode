@@ -9,16 +9,16 @@ export { apexLogGet } from './apexLogGet';
 export { apexTestRun } from './apexTestRun';
 export {
   ApexLibraryTestRunExecutor,
+  apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
   apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate,
-  forceApexDebugClassRunCodeActionDelegate
+  apexTestMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';
 export {
-  forceApexTestSuiteAdd,
-  forceApexTestSuiteCreate,
-  forceApexTestSuiteRun
-} from './forceApexTestSuite';
+  apexTestSuiteAdd,
+  apexTestSuiteCreate,
+  apexTestSuiteRun
+} from './apexTestSuite';
 export { launchApexReplayDebuggerWithCurrentFile } from './launchApexReplayDebuggerWithCurrentFile';

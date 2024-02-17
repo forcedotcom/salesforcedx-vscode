@@ -19,7 +19,7 @@ import {
   TestSuiteBuilder,
   TestSuiteCreator,
   TestSuiteSelector
-} from '../../../src/commands/forceApexTestSuite';
+} from '../../../src/commands/apexTestSuite';
 import { workspaceContext } from '../../../src/context';
 
 const sb = createSandbox();

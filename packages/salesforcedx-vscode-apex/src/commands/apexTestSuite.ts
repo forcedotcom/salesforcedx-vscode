@@ -7,13 +7,13 @@
 
 import { TestService } from '@salesforce/apex-node';
 import {
-  LibraryCommandletExecutor,
-  SFDX_FOLDER,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  LibraryCommandletExecutor,
+  ParametersGatherer,
+  SFDX_FOLDER,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
@@ -158,8 +158,8 @@ export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexT
 
   constructor() {
     super(
-      nls.localize('force_apex_test_suite_build_text'),
-      'force_apex_test_suite_build_library',
+      nls.localize('apex_test_suite_build_text'),
+      'apex_test_suite_build_library',
       OUTPUT_CHANNEL
     );
   }
@@ -179,7 +179,7 @@ const testSuiteSelector = new TestSuiteSelector();
 const testSuiteCreator = new TestSuiteCreator();
 const testSuiteBuilder = new TestSuiteBuilder();
 
-export const forceApexTestSuiteAdd = async () => {
+export const apexTestSuiteAdd = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteBuilder,
@@ -188,7 +188,7 @@ export const forceApexTestSuiteAdd = async () => {
   await commandlet.run();
 };
 
-export const forceApexTestSuiteCreate = async () => {
+export const apexTestSuiteCreate = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteCreator,
@@ -197,7 +197,7 @@ export const forceApexTestSuiteCreate = async () => {
   await commandlet.run();
 };
 
-export const forceApexTestSuiteRun = async () => {
+export const apexTestSuiteRun = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     testSuiteSelector,

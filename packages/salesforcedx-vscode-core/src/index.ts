@@ -29,16 +29,9 @@ import {
   dataQuery,
   debuggerStop,
   deleteSource,
-  orgLoginAccessToken,
-  projectGenerateManifest,
   forceLightningLwcTestCreate,
-  packageInstall,
-  forceRefreshSObjects,
-  renameLightningComponent,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
-  forceSourceDiff,
-  forceSourceFolderDiff,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -58,15 +51,22 @@ import {
   orgDelete,
   orgDisplay,
   orgList,
+  orgLoginAccessToken,
   orgLoginWeb,
   orgLoginWebDevHub,
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
+  packageInstall,
   projectDeployStart,
+  projectGenerateManifest,
   projectGenerateWithManifest,
   projectRetrieveStart,
+  refreshSObjects,
+  renameLightningComponent,
   sfProjectGenerate,
+  sourceDiff,
+  sourceFolderDiff,
   startApexDebugLogging,
   stopApexDebugLogging,
   taskStop,
@@ -369,20 +369,17 @@ function registerCommands(
     configSet
   );
 
-  const forceDiffFile = vscode.commands.registerCommand(
-    'sfdx.force.diff',
-    forceSourceDiff
-  );
+  const diffFile = vscode.commands.registerCommand('sfdx.diff', sourceDiff);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const forceDiffFolder = vscode.commands.registerCommand(
-    'sfdx.force.folder.diff',
-    forceSourceFolderDiff
+  const diffFolder = vscode.commands.registerCommand(
+    'sfdx.folder.diff',
+    sourceFolderDiff
   );
 
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
-    'sfdx.force.internal.refreshsobjects',
-    forceRefreshSObjects
+    'sfdx.internal.refreshsobjects',
+    refreshSObjects
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -393,11 +390,11 @@ function registerCommands(
 
   return vscode.Disposable.from(
     renameLightningComponentCmd,
-    forceDiffFolder,
+    diffFolder,
     orgLoginAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
-    forceDiffFile,
+    diffFile,
     openDocumentationCmd,
     orgCreateCmd,
     orgDeleteDefaultCmd,

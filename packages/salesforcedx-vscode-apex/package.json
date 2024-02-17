@@ -204,15 +204,15 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.apex.test.suite.run",
+          "command": "sfdx.apex.test.suite.run",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.apex.test.suite.create",
+          "command": "sfdx.apex.test.suite.create",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.apex.test.suite.add",
+          "command": "sfdx.apex.test.suite.add",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -259,16 +259,16 @@
         "title": "%apex_test_run_text%"
       },
       {
-        "command": "sfdx.force.apex.test.suite.run",
-        "title": "%force_apex_test_suite_run_text%"
+        "command": "sfdx.apex.test.suite.run",
+        "title": "%apex_test_suite_run_text%"
       },
       {
-        "command": "sfdx.force.apex.test.suite.create",
-        "title": "%force_apex_test_suite_create_text%"
+        "command": "sfdx.apex.test.suite.create",
+        "title": "%apex_test_suite_create_text%"
       },
       {
-        "command": "sfdx.force.apex.test.suite.add",
-        "title": "%force_apex_test_suite_build_text%"
+        "command": "sfdx.apex.test.suite.add",
+        "title": "%apex_test_suite_build_text%"
       },
       {
         "command": "sfdx.test.view.run",
