@@ -14,20 +14,20 @@ import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
 import {
-  forceLwcTestCaseDebug,
-  forceLwcTestDebugActiveTextEditorTest,
-  forceLwcTestFileDebug,
+  lwcTestCaseDebug,
+  lwcTestDebugActiveTextEditorTest,
+  lwcTestFileDebug,
   getDebugConfiguration,
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
-} from '../../../../src/testSupport/commands/forceLwcTestDebugAction';
+} from '../../../../src/testSupport/commands/lwcTestDebugAction';
 import { workspace } from '../../../../src/testSupport/workspace';
 import {
   TestCaseInfo,
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
-import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import { LWC_TEST_DEBUG_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
   mockActiveTextEditorUri,
@@ -38,7 +38,7 @@ import {
 import { InputBuffer } from 'uuid/interfaces';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
-describe('Force LWC Test Debug - Code Action', () => {
+describe('LWC Test Debug - Code Action', () => {
   let uuidStub: SinonStub<
     [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
     string
@@ -147,7 +147,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
-      await forceLwcTestCaseDebug({
+      await lwcTestCaseDebug({
         testExecutionInfo
       });
       const mockDebugSession: vscode.DebugSession = {
@@ -164,7 +164,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       assert.calledOnce(telemetryStub);
       assert.calledWith(
         telemetryStub,
-        FORCE_LWC_TEST_DEBUG_LOG_NAME,
+        LWC_TEST_DEBUG_LOG_NAME,
         mockExecutionTime,
         {
           workspaceType: 'SFDX'
@@ -184,7 +184,7 @@ describe('Force LWC Test Debug - Code Action', () => {
 
     const mockTestFileInfo = createMockTestFileInfo();
     it('Should debug test file', async () => {
-      await forceLwcTestFileDebug({
+      await lwcTestFileDebug({
         testExecutionInfo: mockTestFileInfo
       });
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
@@ -231,7 +231,7 @@ describe('Force LWC Test Debug - Code Action', () => {
 
     it('Should debug active text editor test file', async () => {
       mockActiveTextEditorUri(mockTestFileInfo.testUri);
-      await forceLwcTestDebugActiveTextEditorTest();
+      await lwcTestDebugActiveTextEditorTest();
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
       expect(getLwcTestRunnerExecutableStub.getCalls().length).to.equal(1);
       assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
