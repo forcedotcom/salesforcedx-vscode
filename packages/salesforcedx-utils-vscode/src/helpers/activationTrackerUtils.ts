@@ -45,7 +45,7 @@ export const isProcessAlive = (pid: string): boolean => {
   }
 };
 /**
- * given an log Uri, this function will return the exthost.log file contents
+ * given a log Uri, this function will return the exthost.log file contents
  * @param logUri - URI to the extension host log
  * @returns string[]
  */

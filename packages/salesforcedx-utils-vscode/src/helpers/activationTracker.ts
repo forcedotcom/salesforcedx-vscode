@@ -52,7 +52,7 @@ export class ActivationTracker {
     const activateEndDate = activationEndDate ?? new Date();
     const hrEnd = this.telemetryService.getEndHRTime(this._activationInfo.startActivateHrTime);
     // getting extension info. This may take up to 10 seconds, as log record creation might be lagging from
-    // this code. All needed data have been captured for telementry, so a wait here should have no effect
+    // this code. All needed data have been captured for telemetry, so a wait here should have no effect
     // on quality of telemetry data
     const extensionInfo = await getExtensionInfo(this.extensionContext);
     // subtract activateEndDate from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
