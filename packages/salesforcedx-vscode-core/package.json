@@ -976,6 +976,14 @@
         },
         "salesforcedx-vscode-core.SF_LOG_LEVEL": {
           "type": "string",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
           "default": "fatal",
           "description": "%sf_log_level_description%"
         }

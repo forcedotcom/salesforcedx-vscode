@@ -109,7 +109,7 @@ export class SfdxCoreSettings {
   public getSfLogLevel(): string {
     return this.getConfigValue(
       ENV_SF_LOG_LEVEL,
-      process.env.SF_LOG_LEVEL ?? ''
+      process.env.SF_LOG_LEVEL ?? 'debug'
     );
   }
 
