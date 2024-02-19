@@ -215,7 +215,7 @@
         },
         {
           "command": "sfdx.lightning.lwc.test.case.debug",
-          "title": "%lightning_lwc_test_case_run_text%",
+          "title": "%lightning_lwc_test_case_debug_text%",
           "when": "view == sfdx.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
           "group": "inline"
         },
@@ -227,7 +227,7 @@
         },
         {
           "command": "sfdx.lightning.lwc.test.file.debug",
-          "title": "%lightning_lwc_test_file_run_text%",
+          "title": "%lightning_lwc_test_file_debug_text%",
           "when": "view == sfdx.lightning.lwc.test.view && viewItem =~ /(lwcTestGroup)(_.*|\\b)/",
           "group": "inline"
         }
