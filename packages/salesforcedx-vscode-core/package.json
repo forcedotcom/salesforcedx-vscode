@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.0.0",
+  "version": "60.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "6.5.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "60.0.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.0.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "60.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.1.0",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "10.3.3",
     "@salesforce/templates": "^60.1.0",
@@ -40,7 +40,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.0.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.1.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -228,7 +228,7 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.diff",
+          "command": "sfdx.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -254,7 +254,7 @@
           "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.folder.diff",
+          "command": "sfdx.folder.diff",
           "when": "explorerResourceIsFolder && sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -306,7 +306,7 @@
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.diff",
+          "command": "sfdx.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -340,7 +340,7 @@
       ],
       "commandPalette": [
         {
-          "command": "sfdx.force.package.install",
+          "command": "sfdx.package.install",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -588,11 +588,11 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.diff",
+          "command": "sfdx.diff",
           "when": "false"
         },
         {
-          "command": "sfdx.force.folder.diff",
+          "command": "sfdx.folder.diff",
           "when": "false"
         },
         {
@@ -600,7 +600,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
+          "command": "sfdx.internal.refreshsobjects",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -619,8 +619,8 @@
     },
     "commands": [
       {
-        "command": "sfdx.force.package.install",
-        "title": "%force_package_install_text%"
+        "command": "sfdx.package.install",
+        "title": "%package_install_text%"
       },
       {
         "command": "sfdx.org.login.web.dev.hub",
@@ -887,12 +887,12 @@
         "title": "%project_generate_manifest%"
       },
       {
-        "command": "sfdx.force.diff",
-        "title": "%force_diff_against_org%"
+        "command": "sfdx.diff",
+        "title": "%diff_against_org%"
       },
       {
-        "command": "sfdx.force.folder.diff",
-        "title": "%force_diff_folder_against_org%"
+        "command": "sfdx.folder.diff",
+        "title": "%diff_folder_against_org%"
       },
       {
         "command": "sfdx.force.conflict.open",
@@ -903,8 +903,8 @@
         }
       },
       {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
+        "command": "sfdx.internal.refreshsobjects",
+        "title": "%sobjects_refresh%"
       },
       {
         "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
