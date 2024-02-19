@@ -54,28 +54,24 @@ export { projectGenerateManifest } from './projectGenerateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
 export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
-  ForcePackageInstallExecutor,
+  PackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
-  forcePackageInstall
-} from './forcePackageInstall';
+  packageInstall
+} from './packageInstall';
 export {
-  ForceRefreshSObjectsExecutor,
+  RefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
-  forceRefreshSObjects,
+  refreshSObjects,
   initSObjectDefinitions
-} from './forceRefreshSObjects';
+} from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   LibraryDeploySourcePathExecutor,
   forceSourceDeploySourcePaths
 } from './forceSourceDeploySourcePath';
-export {
-  forceSourceDiff,
-  forceSourceFolderDiff,
-  handleCacheResults
-} from './forceSourceDiff';
+export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {

@@ -9,14 +9,14 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  ForcePackageInstallExecutor,
+  PackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Package Install', () => {
+describe('Package Install', () => {
   describe('SelectPackageID Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
     const EVENT_CONTINUE = 'CONTINUE';
@@ -106,31 +106,31 @@ describe('Force Package Install', () => {
     it('Should build the package install command', async () => {
       const TEST_PACKAGE_ID = 'testPackageID';
       const TEST_INSTALLATION_KEY = 'testInstallationKey';
-      const forcePackageInstallExecutor = new ForcePackageInstallExecutor();
-      const createCommand = forcePackageInstallExecutor.build({
+      const packageInstallExecutor = new PackageInstallExecutor();
+      const createCommand = packageInstallExecutor.build({
         packageId: TEST_PACKAGE_ID,
         installationKey: TEST_INSTALLATION_KEY
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:package:install --package ${TEST_PACKAGE_ID} --installationkey ${TEST_INSTALLATION_KEY}`
+        `sfdx package:install --package ${TEST_PACKAGE_ID} --installation-key ${TEST_INSTALLATION_KEY}`
       );
       expect(createCommand.description).to.equal(
-        nls.localize('force_package_install_text')
+        nls.localize('package_install_text')
       );
     });
     it('Should build the package install command without installation key', async () => {
       const TEST_PACKAGE_ID = 'testPackageID';
       const TEST_INSTALLATION_KEY = '';
-      const forcePackageInstallExecutor = new ForcePackageInstallExecutor();
-      const createCommand = forcePackageInstallExecutor.build({
+      const packageInstallExecutor = new PackageInstallExecutor();
+      const createCommand = packageInstallExecutor.build({
         packageId: TEST_PACKAGE_ID,
         installationKey: TEST_INSTALLATION_KEY
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:package:install --package ${TEST_PACKAGE_ID}`
+        `sfdx package:install --package ${TEST_PACKAGE_ID}`
       );
       expect(createCommand.description).to.equal(
-        nls.localize('force_package_install_text')
+        nls.localize('package_install_text')
       );
     });
   });

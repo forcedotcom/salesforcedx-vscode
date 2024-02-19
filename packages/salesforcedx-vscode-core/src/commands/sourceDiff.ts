@@ -21,15 +21,15 @@ import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceSourceDiff(sourceUri?: vscode.Uri) {
+export const sourceDiff = async (sourceUri?: vscode.Uri) => {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
       sourceUri = editor.document.uri;
     } else {
-      const errorMessage = nls.localize('force_source_diff_unsupported_type');
+      const errorMessage = nls.localize('source_diff_unsupported_type');
       telemetryService.sendException('unsupported_type_on_diff', errorMessage);
-      notificationService.showErrorMessage(errorMessage);
+      await notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -38,13 +38,15 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
 
   const defaultUsernameorAlias = WorkspaceContext.getInstance().username;
   if (!defaultUsernameorAlias) {
-    notificationService.showErrorMessage(nls.localize('missing_default_org'));
+    await notificationService.showErrorMessage(
+      nls.localize('missing_default_org')
+    );
     return;
   }
   const executor = new MetadataCacheExecutor(
     defaultUsernameorAlias,
-    nls.localize('force_source_diff_text'),
-    'force_source_diff',
+    nls.localize('source_diff_text'),
+    'source_diff',
     handleCacheResults
   );
   const commandlet = new SfdxCommandlet(
@@ -53,17 +55,17 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
     executor
   );
   await commandlet.run();
-}
+};
 
-export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
+export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
       explorerPath = editor.document.uri;
     } else {
-      const errorMessage = nls.localize('force_source_diff_unsupported_type');
+      const errorMessage = nls.localize('source_diff_unsupported_type');
       telemetryService.sendException('unsupported_type_on_diff', errorMessage);
-      notificationService.showErrorMessage(errorMessage);
+      await notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -72,7 +74,9 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
 
   const username = WorkspaceContext.getInstance().username;
   if (!username) {
-    notificationService.showErrorMessage(nls.localize('missing_default_org'));
+    await notificationService.showErrorMessage(
+      nls.localize('missing_default_org')
+    );
     return;
   }
 
@@ -87,12 +91,12 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
     )
   );
   await commandlet.run();
-}
+};
 
-export async function handleCacheResults(
+export const handleCacheResults = async (
   username: string,
   cache?: MetadataCacheResult
-): Promise<void> {
+): Promise<void> => {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(
@@ -104,8 +108,8 @@ export async function handleCacheResults(
       await differ.diffFolder(cache, username);
     }
   } else {
-    const message = nls.localize('force_source_diff_components_not_in_org');
-    notificationService.showErrorMessage(message);
+    const message = nls.localize('source_diff_components_not_in_org');
+    await notificationService.showErrorMessage(message);
     throw new Error(message);
   }
-}
+};
