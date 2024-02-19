@@ -1,9 +1,6 @@
 {
   "force_lightning_lwc_debugger": "Debug: LWC Jest Tests",
   "force_lightning_lwc_debugger_desc": "Debug configuration for running LWC jest tests in VSCode.",
-  "force_lightning_lwc_mobile_log_level": "Log level used when calling SFDX Preview on Mobile command.",
-  "force_lightning_lwc_preferences": "Salesforce Lightning Web Components",
-  "force_lightning_lwc_remember_device_description": "Remember most recently used mobile device target.",
   "force_lightning_lwc_test_case_debug_text": "SFDX: Debug Lightning Web Component Test Case",
   "force_lightning_lwc_test_case_run_text": "SFDX: Run Lightning Web Component Test Case",
   "force_lightning_lwc_test_debug_current_file_text": "SFDX: Debug Current Lightning Web Component Test File",
