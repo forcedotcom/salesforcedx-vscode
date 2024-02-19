@@ -13,7 +13,7 @@ import {
   TestInfoKind,
   TestType
 } from '../types';
-import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../types/constants';
+import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 import { workspace } from '../workspace';
 
@@ -21,11 +21,11 @@ import { workspace } from '../workspace';
  * Run an LWC Jest test from provided test execution info
  * @param testExecutionInfo test execution info
  */
-export const forceLwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
+export const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(
     testExecutionInfo,
     TestRunType.RUN,
-    FORCE_LWC_TEST_RUN_LOG_NAME
+    LWC_TEST_RUN_LOG_NAME
   );
   try {
     return await testRunner.executeAsSfdxTask();
@@ -38,28 +38,28 @@ export const forceLwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
  * Run an individual test case
  * @param data a test explorer node or information provided by code lens
  */
-export const forceLwcTestCaseRun = (data: {
+export const lwcTestCaseRun = (data: {
   testExecutionInfo: TestExecutionInfo;
 }) => {
   const { testExecutionInfo } = data;
-  return forceLwcTestRun(testExecutionInfo);
+  return lwcTestRun(testExecutionInfo);
 };
 
 /**
  * Run a test file
  * @param data a test explorer node
  */
-export const forceLwcTestFileRun = (data: {
+export const lwcTestFileRun = (data: {
   testExecutionInfo: TestExecutionInfo;
 }) => {
   const { testExecutionInfo } = data;
-  return forceLwcTestRun(testExecutionInfo);
+  return lwcTestRun(testExecutionInfo);
 };
 
 /**
  * Run all tests in the workspace folder
  */
-export const forceLwcTestRunAllTests = () => {
+export const lwcTestRunAllTests = () => {
   const workspaceFolder = workspace.getTestWorkspaceFolder();
   if (workspaceFolder) {
     const testExecutionInfo: TestDirectoryInfo = {
@@ -67,14 +67,14 @@ export const forceLwcTestRunAllTests = () => {
       testType: TestType.LWC,
       testUri: workspaceFolder.uri
     };
-    return forceLwcTestRun(testExecutionInfo);
+    return lwcTestRun(testExecutionInfo);
   }
 };
 
 /**
  * Run the test of currently focused editor
  */
-export const forceLwcTestRunActiveTextEditorTest = () => {
+export const lwcTestRunActiveTextEditorTest = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -82,7 +82,7 @@ export const forceLwcTestRunActiveTextEditorTest = () => {
       testType: TestType.LWC,
       testUri: activeTextEditor.document.uri
     };
-    return forceLwcTestFileRun({
+    return lwcTestFileRun({
       testExecutionInfo
     });
   }

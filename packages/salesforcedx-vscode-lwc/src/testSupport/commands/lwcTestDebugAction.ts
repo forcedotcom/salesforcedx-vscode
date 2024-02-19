@@ -15,7 +15,7 @@ import {
   TestInfoKind,
   TestType
 } from '../types';
-import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
+import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
 import { workspaceService } from '../workspace/workspaceService';
@@ -55,16 +55,12 @@ export const getDebugConfiguration = (
  * Start a debug session with provided test execution information
  * @param testExecutionInfo test execution information
  */
-export const forceLwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
+export const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
   const shellExecutionInfo = testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {
-    const {
-      command,
-      args,
-      workspaceFolder,
-      testResultFsPath
-    } = shellExecutionInfo;
+    const { command, args, workspaceFolder, testResultFsPath } =
+      shellExecutionInfo;
     testRunner.startWatchingTestResults(testResultFsPath);
     const debugConfiguration = getDebugConfiguration(
       command,
@@ -79,28 +75,28 @@ export const forceLwcTestDebug = async (testExecutionInfo: TestExecutionInfo) =>
  * Debug an individual test case
  * @param data a test explorer node or information provided by code lens
  */
-export const forceLwcTestCaseDebug = async (data: {
+export const lwcTestCaseDebug = async (data: {
   testExecutionInfo: TestCaseInfo;
 }) => {
   const { testExecutionInfo } = data;
-  await forceLwcTestDebug(testExecutionInfo);
+  await lwcTestDebug(testExecutionInfo);
 };
 
 /**
  * Debug a test file
  * @param data a test explorer node
  */
-export const  forceLwcTestFileDebug = async (data: {
+export const lwcTestFileDebug = async (data: {
   testExecutionInfo: TestExecutionInfo;
 }) => {
   const { testExecutionInfo } = data;
-  await forceLwcTestDebug(testExecutionInfo);
+  await lwcTestDebug(testExecutionInfo);
 };
 
 /**
  * Debug the test of currently focused editor
  */
-export const forceLwcTestDebugActiveTextEditorTest = async () => {
+export const lwcTestDebugActiveTextEditorTest = async () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -108,7 +104,7 @@ export const forceLwcTestDebugActiveTextEditorTest = async () => {
       testType: TestType.LWC,
       testUri: activeTextEditor.document.uri
     };
-    await forceLwcTestFileDebug({ testExecutionInfo });
+    await lwcTestFileDebug({ testExecutionInfo });
   }
 };
 
@@ -127,18 +123,16 @@ export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
  * Send telemetry event if applicable when debug session ends
  * @param session debug session
  */
-export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => {
+export const handleDidTerminateDebugSession = (
+  session: vscode.DebugSession
+) => {
   const { configuration } = session;
   const startTime = debugSessionStartTimes.get(
     configuration.sfdxDebugSessionId
   );
   if (Array.isArray(startTime)) {
-    telemetryService.sendCommandEvent(
-      FORCE_LWC_TEST_DEBUG_LOG_NAME,
-      startTime,
-      {
-        workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-      }
-    );
+    telemetryService.sendCommandEvent(LWC_TEST_DEBUG_LOG_NAME, startTime, {
+      workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
+    });
   }
 };
