@@ -11,15 +11,15 @@ import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
-  ApexTestQuickPickItem,
-  TestType
-} from '../../../src/commands/forceApexTestRun';
-import {
   ApexTestSuiteOptions,
   TestSuiteBuilder,
   TestSuiteCreator,
   TestSuiteSelector
-} from '../../../src/commands/forceApexTestSuite';
+} from '../../../src/commands/apexTestSuite';
+import {
+  ApexTestQuickPickItem,
+  TestType
+} from '../../../src/commands/forceApexTestRun';
 import { workspaceContext } from '../../../src/context';
 
 const sb = createSandbox();

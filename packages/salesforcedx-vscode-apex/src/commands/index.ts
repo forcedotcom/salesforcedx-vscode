@@ -6,6 +6,17 @@
  */
 
 export {
+  apexTestSuiteAdd,
+  apexTestSuiteCreate,
+  apexTestSuiteRun
+} from './apexTestSuite';
+export {
+  forceAnonApexDebug,
+  forceAnonApexExecute
+} from './forceAnonApexExecute';
+export { forceApexLogGet } from './forceApexLogGet';
+export { forceApexTestRun } from './forceApexTestRun';
+export {
   ApexLibraryTestRunExecutor,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
@@ -14,11 +25,4 @@ export {
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate
 } from './forceApexTestRunCodeAction';
-export { forceApexLogGet } from './forceApexLogGet';
-export { forceApexTestRun } from './forceApexTestRun';
-export {
-  forceAnonApexDebug,
-  forceAnonApexExecute
-} from './forceAnonApexExecute';
-export { forceApexTestSuiteAdd, forceApexTestSuiteCreate, forceApexTestSuiteRun } from './forceApexTestSuite';
 export { forceLaunchApexReplayDebuggerWithCurrentFile } from './forceLaunchApexReplayDebuggerWithCurrentFile';

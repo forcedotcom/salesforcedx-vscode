@@ -32,13 +32,13 @@ import {
   orgLoginAccessToken,
   projectGenerateManifest,
   forceLightningLwcTestCreate,
-  forcePackageInstall,
-  forceRefreshSObjects,
+  packageInstall,
+  refreshSObjects,
   renameLightningComponent,
   forceSourceDeployManifest,
   forceSourceDeploySourcePaths,
-  forceSourceDiff,
-  forceSourceFolderDiff,
+  sourceDiff,
+  sourceFolderDiff,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -335,9 +335,9 @@ function registerCommands(
     sfProjectGenerate
   );
 
-  const forcePackageInstallCmd = vscode.commands.registerCommand(
-    'sfdx.force.package.install',
-    forcePackageInstall
+  const packageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.package.install',
+    packageInstall
   );
   const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
     'sfdx.project.generate.with.manifest',
@@ -369,20 +369,17 @@ function registerCommands(
     configSet
   );
 
-  const forceDiffFile = vscode.commands.registerCommand(
-    'sfdx.force.diff',
-    forceSourceDiff
-  );
+  const diffFile = vscode.commands.registerCommand('sfdx.diff', sourceDiff);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const forceDiffFolder = vscode.commands.registerCommand(
-    'sfdx.force.folder.diff',
-    forceSourceFolderDiff
+  const diffFolder = vscode.commands.registerCommand(
+    'sfdx.folder.diff',
+    sourceFolderDiff
   );
 
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
-    'sfdx.force.internal.refreshsobjects',
-    forceRefreshSObjects
+    'sfdx.internal.refreshsobjects',
+    refreshSObjects
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -393,11 +390,11 @@ function registerCommands(
 
   return vscode.Disposable.from(
     renameLightningComponentCmd,
-    forceDiffFolder,
+    diffFolder,
     orgLoginAccessTokenCmd,
     dataQueryInputCmd,
     dataQuerySelectionCmd,
-    forceDiffFile,
+    diffFile,
     openDocumentationCmd,
     orgCreateCmd,
     orgDeleteDefaultCmd,
@@ -437,7 +434,7 @@ function registerCommands(
     orgDisplayDefaultCmd,
     orgDisplayUsernameCmd,
     projectGenerateCmd,
-    forcePackageInstallCmd,
+    packageInstallCmd,
     projectGenerateWithManifestCmd,
     apexGenerateTriggerCmd,
     startApexDebugLoggingCmd,

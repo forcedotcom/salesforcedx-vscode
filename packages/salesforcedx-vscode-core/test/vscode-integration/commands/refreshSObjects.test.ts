@@ -31,11 +31,11 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { ProgressLocation, window } from 'vscode';
 import {
   checkSObjectsAndRefresh,
-  ForceRefreshSObjectsExecutor,
+  RefreshSObjectsExecutor,
   RefreshSelection,
   SObjectRefreshGatherer,
   verifyUsernameAndInitSObjectDefinitions
-} from '../../../src/commands/forceRefreshSObjects';
+} from '../../../src/commands/refreshSObjects';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
@@ -122,7 +122,7 @@ describe('ForceGenerateFauxClasses', () => {
       sandboxStub.restore();
     });
 
-    it('Should call forceRefreshSObjects service when sobjects do not exist', async () => {
+    it('Should call refreshSObjects service when sobjects do not exist', async () => {
       existsSyncStub.returns(false);
 
       await checkSObjectsAndRefresh(projectPath);
@@ -137,7 +137,7 @@ describe('ForceGenerateFauxClasses', () => {
       expect(telemetryCallArgs[2]).to.equal(undefined);
     });
 
-    it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
+    it('Should not call refreshSObjects service when sobjects already exist', async () => {
       existsSyncStub.returns(true);
 
       await checkSObjectsAndRefresh(projectPath);
@@ -178,7 +178,7 @@ describe('ForceGenerateFauxClasses', () => {
           return Promise.resolve(transformer);
         });
       logStub = sandboxStub.stub(
-        ForceRefreshSObjectsExecutor.prototype,
+        RefreshSObjectsExecutor.prototype,
         'logMetric'
       );
       errorStub = sandboxStub.stub(telemetryService, 'sendException');
@@ -270,7 +270,7 @@ describe('ForceGenerateFauxClasses', () => {
       source: SObjectRefreshSource,
       category?: SObjectCategory
     ) {
-      const executor = new ForceRefreshSObjectsExecutor();
+      const executor = new RefreshSObjectsExecutor();
       await executor.execute({
         type: 'CONTINUE',
         data: { category: category || SObjectCategory.ALL, source }
@@ -294,40 +294,35 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should return All sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_all'));
-      const response = (await gatherer.gather()) as ContinueResponse<
-        RefreshSelection
-      >;
+      const response =
+        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.category).to.equal(SObjectCategory.ALL);
     });
 
     it('Should return Custom sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_custom'));
-      const response = (await gatherer.gather()) as ContinueResponse<
-        RefreshSelection
-      >;
+      const response =
+        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.category).to.equal(SObjectCategory.CUSTOM);
     });
 
     it('Should return Standard sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_standard'));
-      const response = (await gatherer.gather()) as ContinueResponse<
-        RefreshSelection
-      >;
+      const response =
+        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.category).to.equal(SObjectCategory.STANDARD);
     });
 
     it('Should return given source', async () => {
       gatherer = new SObjectRefreshGatherer(SObjectRefreshSource.Startup);
-      const response = (await gatherer.gather()) as ContinueResponse<
-        RefreshSelection
-      >;
+      const response =
+        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.source).to.equal(SObjectRefreshSource.Startup);
     });
 
     it('Should return Manual source if none given', async () => {
-      const response = (await gatherer.gather()) as ContinueResponse<
-        RefreshSelection
-      >;
+      const response =
+        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.source).to.equal(SObjectRefreshSource.Manual);
     });
   });
