@@ -53,7 +53,9 @@ export class ProjectRetrieveStartResultParser {
         message: this.response.message ?? 'Pull failed. ',
         name: this.response.name ?? 'RetrieveFailed',
         status: this.response.status,
-        files: this.response.data ?? this.response.result.files
+        files: (this.response.data ?? this.response.result.files).filter(
+          (file: { state: string }) => file.state === 'Failed'
+        )
       } as ProjectRetrieveStartErrorResponse;
     }
   }
