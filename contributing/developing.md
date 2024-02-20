@@ -229,13 +229,7 @@ During development and quality assurance testing, it can be helpful to validate 
 > "localTelemetryLogging": "true"
 > }
 
-With the above configuration, all extensions that re-use the core extension's telemetry module will log telemetry events to a local file at the project root.
-
-Extensions that are dependent on the core extension and use its telemetry module can also take advantage of this local logging functionality. For instance, the Einstein for Developers extension uses core telemetry but initializes its own instance. So with that extension installed the following line in settings.json will log telemetry events to a local file for Einstein for Developers only:
-
-> "salesforcedx-einstein-gpt.advanced": {
-> "localTelemetryLogging": "true"
-> }
+With the above configuration, all extensions that use the telemetry module from the salesforcedx-vscode-core extension will log telemetry events to a local file at the project root.
 
 ### Production Mode Local Telemetry Logging
 
