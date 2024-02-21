@@ -47,14 +47,20 @@ export class TelemetryBuilder {
   private properties?: Properties;
   private measurements?: Measurements;
 
-  public addProperty(key: string, value: string) {
+  public addProperty(key: string, value?: string): TelemetryBuilder {
     this.properties = this.properties || {};
-    this.properties[key] = value;
+    if (value !== undefined) {
+      this.properties[key] = value;
+    }
+    return this;
   }
 
-  public addMeasurement(key: string, value: number) {
+  public addMeasurement(key: string, value?: number): TelemetryBuilder {
     this.measurements = this.measurements || {};
-    this.measurements[key] = value;
+    if (value !== undefined) {
+      this.measurements[key] = value;
+    }
+    return this;
   }
 
   public build(): TelemetryData {
@@ -224,43 +230,45 @@ export class TelemetryService {
       disableCLITelemetry();
     }
   }
-  
-    public sendActivationEventInfo(activationInfo: ActivationInfo) {
+
+  public sendActivationEventInfo(activationInfo: ActivationInfo) {
+    const telemetryBuilder = new TelemetryBuilder();
+    const telemetryData = telemetryBuilder
+      .addProperty(
+        'activateStartDate',
+        activationInfo.activateStartDate?.toISOString()
+      )
+      .addProperty(
+        'activateEndDate',
+        activationInfo.activateEndDate?.toISOString()
+      )
+      .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
+      .addMeasurement(
+        'extensionActivationTime',
+        activationInfo.extensionActivationTime
+      )
+      .build();
     this.sendExtensionActivationEvent(
       activationInfo.startActivateHrTime,
       activationInfo.markEndTime,
-      activationInfo.activateStartDate,
-      activationInfo.loadStartDate,
-      activationInfo.activateEndDate,
-      activationInfo.extensionActivationTime
+      telemetryData
     );
   }
 
   public sendExtensionActivationEvent(
     hrstart: [number, number],
     markEndTime?: number,
-    activateStartDate?: Date,
-    loadStartDate?: Date,
-    activateEndDate?: Date,
-    extensionActivationTime?: number
+    telemetryData?: TelemetryData
   ): void {
-    const startupTime = this.getEndHRTime(hrstart);
-          const properties = {
-        extensionName: this.extensionName,
-        ...(activateStartDate
-          ? { activateStartDate: activateStartDate.toISOString() }
-          : {}),
-        ...(activateEndDate
-          ? { activateEndDate: activateEndDate.toISOString() }
-          : {}),
-        ...(loadStartDate ? { loadStartDate: loadStartDate.toISOString() } : {})
-      };
-      const measurements = {
-        startupTime,
-        ...(extensionActivationTime === undefined
-          ? {}
-          : { extensionActivationTime })
-      };
+    const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
+    const properties = {
+      extensionName: this.extensionName,
+      ...(telemetryData?.properties ? telemetryData.properties : {})
+    };
+    const measurements = {
+      startupTime,
+      ...(telemetryData?.measurements ? telemetryData.measurements : {})
+    };
 
     this.validateTelemetry(() => {
       this.reporters.forEach(reporter => {

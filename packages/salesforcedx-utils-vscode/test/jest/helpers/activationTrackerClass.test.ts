@@ -5,12 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionContext, ExtensionKind, Uri } from 'vscode';
-import {
-  ActivationInfo,
-  ActivationTracker
-} from '../../../src/helpers/activationTracker';
+import { ActivationTracker } from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';
-import { TelemetryService } from '../../../src/telemetry/telemetry';
+import { TelemetryService } from '../../../src/services/telemetry';
 
 jest.mock('../../../src/helpers/activationTrackerUtils', () => ({
   getExtensionInfo: jest.fn()
