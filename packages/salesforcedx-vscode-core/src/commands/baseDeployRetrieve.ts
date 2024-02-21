@@ -280,15 +280,17 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async postOperation(
     result: RetrieveResult | undefined
   ): Promise<void> {
-    if (result?.response?.fileProperties !== undefined) {
+    if (result) {
       DeployRetrieveExecutor.errorCollection.clear();
       SfdxCommandletExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
-      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
-        result.response.fileProperties
-      );
+      if (result?.response?.fileProperties !== undefined) {
+        PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
+          result.response.fileProperties
+        );
+      }
     }
   }
 
