@@ -135,6 +135,14 @@ const registerCommands = (): vscode.Disposable => {
     'sfdx.apex.debug.method.run.delegate',
     apexDebugMethodRunCodeActionDelegate
   );
+  const anonApexRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.run.delegate',
+    anonApexExecute
+  );
+  const anonApexDebugDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.debug.delegate',
+    anonApexDebug
+  );
   const apexLogGetCmd = vscode.commands.registerCommand(
     'sfdx.apex.log.get',
     apexLogGet
@@ -187,6 +195,8 @@ const registerCommands = (): vscode.Disposable => {
     anonApexExecuteDocumentCmd,
     anonApexExecuteSelectionCmd,
     anonApexDebugDocumentCmd,
+    anonApexRunDelegateCmd,
+    anonApexDebugDelegateCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,
     apexLogGetCmd,
     forceApexTestClassRunCmd,
