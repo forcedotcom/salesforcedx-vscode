@@ -265,7 +265,7 @@ export const activate = (context: ExtensionContext) => {
 
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.getReporters(),
       sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
