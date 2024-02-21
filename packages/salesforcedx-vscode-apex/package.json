@@ -131,7 +131,7 @@
     "views": {
       "test": [
         {
-          "id": "sfdx.force.test.view",
+          "id": "sfdx.test.view",
           "name": "%test_view_name%",
           "when": "sfdx:project_opened"
         }
@@ -141,32 +141,32 @@
       "view/title": [
         {
           "command": "sfdx.test.view.run",
-          "when": "view == sfdx.force.test.view",
+          "when": "view == sfdx.test.view",
           "group": "navigation"
         },
         {
           "command": "sfdx.test.view.refresh",
-          "when": "view == sfdx.force.test.view",
+          "when": "view == sfdx.test.view",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "sfdx.test.view.showError",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
+          "when": "view == sfdx.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
         },
         {
           "command": "sfdx.test.view.goToDefinition",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
+          "when": "view == sfdx.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
         },
         {
           "command": "sfdx.test.view.runClassTests",
-          "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
+          "when": "view == sfdx.test.view && viewItem =~ /apexTestGroup/",
           "group": "inline"
         },
         {
           "command": "sfdx.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
+          "when": "view == sfdx.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
       ],
@@ -184,23 +184,23 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.apex.test.last.class.run",
+          "command": "sfdx.apex.test.last.class.run",
           "when": "sfdx:project_opened && sfdx:has_cached_test_class && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.apex.test.class.run",
+          "command": "sfdx.apex.test.class.run",
           "when": "false"
         },
         {
-          "command": "sfdx.force.apex.test.method.run",
+          "command": "sfdx.apex.test.method.run",
           "when": "false"
         },
         {
-          "command": "sfdx.force.apex.test.last.method.run",
+          "command": "sfdx.apex.test.last.method.run",
           "when": "sfdx:project_opened && sfdx:has_cached_test_method && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.apex.test.run",
+          "command": "sfdx.apex.test.run",
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
@@ -255,8 +255,8 @@
         "title": "%apex_log_get_text%"
       },
       {
-        "command": "sfdx.force.apex.test.run",
-        "title": "%force_apex_test_run_text%"
+        "command": "sfdx.apex.test.run",
+        "title": "%apex_test_run_text%"
       },
       {
         "command": "sfdx.apex.test.suite.run",
@@ -319,20 +319,20 @@
         }
       },
       {
-        "command": "sfdx.force.apex.test.last.class.run",
-        "title": "%force_apex_test_last_class_run_text%"
+        "command": "sfdx.apex.test.last.class.run",
+        "title": "%apex_test_last_class_run_text%"
       },
       {
-        "command": "sfdx.force.apex.test.class.run",
-        "title": "%force_apex_test_class_run_text%"
+        "command": "sfdx.apex.test.class.run",
+        "title": "%apex_test_class_run_text%"
       },
       {
-        "command": "sfdx.force.apex.test.method.run",
-        "title": "%force_apex_test_method_run_text%"
+        "command": "sfdx.apex.test.method.run",
+        "title": "%apex_test_method_run_text%"
       },
       {
-        "command": "sfdx.force.apex.test.last.method.run",
-        "title": "%force_apex_test_last_method_run_text%"
+        "command": "sfdx.apex.test.last.method.run",
+        "title": "%apex_test_last_method_run_text%"
       }
     ],
     "configuration": {

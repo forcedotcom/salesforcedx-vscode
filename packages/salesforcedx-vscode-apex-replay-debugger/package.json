@@ -170,12 +170,12 @@
       "view/item/context": [
         {
           "command": "sfdx.test.view.debugTests",
-          "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
+          "when": "view == sfdx.test.view && viewItem =~ /apexTestGroup/",
           "group": "inline"
         },
         {
           "command": "sfdx.test.view.debugSingleTest",
-          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
+          "when": "view == sfdx.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
       ]
