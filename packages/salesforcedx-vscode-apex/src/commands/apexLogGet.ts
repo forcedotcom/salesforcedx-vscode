@@ -34,7 +34,8 @@ export type ApexDebugLogIdStartTime = {
 };
 
 export class LogFileSelector
-  implements ParametersGatherer<ApexDebugLogIdStartTime> {
+  implements ParametersGatherer<ApexDebugLogIdStartTime>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
@@ -60,7 +61,7 @@ export class LogFileSelector
       });
       const logItem = await vscode.window.showQuickPick(
         logItems,
-        { placeHolder: nls.localize('force_apex_log_get_pick_log_text') },
+        { placeHolder: nls.localize('apex_log_get_pick_log_text') },
         cancellationTokenSource.token
       );
       if (logItem) {
@@ -72,7 +73,7 @@ export class LogFileSelector
     } else {
       return {
         type: 'CANCEL',
-        msg: nls.localize('force_apex_log_get_no_logs_text')
+        msg: nls.localize('apex_log_get_no_logs_text')
       } as CancelResponse;
     }
     return { type: 'CANCEL' };
@@ -84,7 +85,7 @@ export class LogFileSelector
     return vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: nls.localize('force_apex_log_list_text')
+        title: nls.localize('apex_log_list_text')
       },
       () => logService.getLogRecords()
     );
@@ -107,8 +108,8 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
 }> {
   constructor() {
     super(
-      nls.localize('force_apex_log_get_text'),
-      'force_apex_log_get_library',
+      nls.localize('apex_log_get_text'),
+      'apex_log_get_library',
       OUTPUT_CHANNEL
     );
   }
@@ -137,7 +138,7 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const forceApexLogGet = async (explorerDir?: any) => {
+export const apexLogGet = async (explorerDir?: any) => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new LogFileSelector(),

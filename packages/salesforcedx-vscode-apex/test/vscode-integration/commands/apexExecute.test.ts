@@ -23,12 +23,12 @@ import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
   AnonApexLibraryExecuteExecutor
-} from '../../../src/commands/forceAnonApexExecute';
+} from '../../../src/commands/anonApexExecute';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Apex Execute', () => {
+describe('Apex Execute', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
@@ -137,7 +137,7 @@ describe('Force Apex Execute', () => {
       expect(result.data.apexCode).to.equal(text);
     });
 
-    it('should return the currently highlighted \'selection\' to execute anonymous apex', async () => {
+    it("should return the currently highlighted 'selection' to execute anonymous apex", async () => {
       const mockActiveTextEditor = {
         document: {
           getText: (doc: { isEmpty: boolean; text: string }) => doc.text,
@@ -180,10 +180,9 @@ describe('Force Apex Execute', () => {
         AnonApexLibraryExecuteExecutor.diagnostics,
         'set'
       );
-      debugLogsfolder = sb.stub(
-        projectPaths,
-        'debugLogsFolder'
-      ).returns('.sfdx/tools/debug/logs');
+      debugLogsfolder = sb
+        .stub(projectPaths, 'debugLogsFolder')
+        .returns('.sfdx/tools/debug/logs');
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -191,8 +190,7 @@ describe('Force Apex Execute', () => {
       const execAnonResponse = {
         compiled: true,
         success: true,
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
+        logs: '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
         diagnostic: [
           {
             lineNumber: -1,
@@ -227,7 +225,7 @@ describe('Force Apex Execute', () => {
           {
             columnNumber: 1,
             lineNumber: 6,
-            compileProblem: 'Unexpected token \'(\'.',
+            compileProblem: "Unexpected token '('.",
             exceptionMessage: '',
             exceptionStackTrace: ''
           }
@@ -248,8 +246,7 @@ describe('Force Apex Execute', () => {
       const execAnonResponse = {
         compiled: true,
         success: false,
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
+        logs: '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
         diagnostic: [
           {
             columnNumber: 1,
@@ -260,10 +257,8 @@ describe('Force Apex Execute', () => {
           }
         ]
       };
-      const {
-        exceptionMessage,
-        exceptionStackTrace
-      } = execAnonResponse.diagnostic[0];
+      const { exceptionMessage, exceptionStackTrace } =
+        execAnonResponse.diagnostic[0];
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
       )}\nError: ${exceptionMessage}\nError: ${exceptionStackTrace}\n\n${
@@ -283,8 +278,7 @@ describe('Force Apex Execute', () => {
       const execAnonResponse = {
         compiled: true,
         success: false,
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
+        logs: '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
         diagnostic: [
           {
             columnNumber: 1,
@@ -329,8 +323,7 @@ describe('Force Apex Execute', () => {
     const defaultResponse = {
       compiled: true,
       success: false,
-      logs:
-        '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
+      logs: '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
       diagnostic: [
         {
           columnNumber: '1',
@@ -522,8 +515,7 @@ describe('Force Apex Execute', () => {
       const execAnonResponse = {
         compiled: true,
         success: true,
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
+        logs: '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
         diagnostic: [
           {
             lineNumber: -1,
@@ -554,8 +546,7 @@ describe('Force Apex Execute', () => {
       const execAnonResponse = {
         compiled: true,
         success: true,
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
+        logs: '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
         diagnostic: [
           {
             lineNumber: -1,

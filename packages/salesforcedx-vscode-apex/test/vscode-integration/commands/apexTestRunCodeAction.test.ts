@@ -30,7 +30,7 @@ import {
   ApexLibraryTestRunExecutor,
   resolveTestClassParam,
   resolveTestMethodParam
-} from '../../../src/commands/forceApexTestRunCodeAction';
+} from '../../../src/commands/apexTestRunCodeAction';
 import { workspaceContext } from '../../../src/context';
 
 // return undefined: used to get around strict checks
@@ -39,7 +39,7 @@ const getUndefined = (): any => {
 };
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-describe('Force Apex Test Run - Code Action', () => {
+describe('Apex Test Run - Code Action', () => {
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
     const testClass2 = 'MyTests2';
@@ -505,10 +505,8 @@ describe('Force Apex Test Run - Code Action', () => {
       'TestClass.cls'
     );
     const diagnostics = testResult.tests.map(() => {
-      const {
-        exceptionMessage,
-        exceptionStackTrace
-      } = testResult.tests[0].diagnostic!;
+      const { exceptionMessage, exceptionStackTrace } =
+        testResult.tests[0].diagnostic!;
       return {
         message: `${exceptionMessage}\n${exceptionStackTrace}`,
         severity: DiagnosticSeverity.Error,

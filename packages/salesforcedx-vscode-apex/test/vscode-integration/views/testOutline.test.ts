@@ -39,9 +39,7 @@ import {
   apexLibTestInfo
 } from './testJSONOutputs';
 
-const NO_TESTS_DESCRIPTION = nls.localize(
-  'force_test_view_no_tests_description'
-);
+const NO_TESTS_DESCRIPTION = nls.localize('test_view_no_tests_description');
 
 describe('TestView', () => {
   let testOutline: ApexTestOutlineProvider;

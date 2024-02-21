@@ -71,41 +71,38 @@ export class TestsSelector
         SFDX_FOLDER
       )
     )
-    .sort((a, b) => a.fsPath.localeCompare(b.fsPath))
-    .reduce(
-      (acc: { testSuites: Uri[]; apexClasses: Uri[] }, file) => {
-        if (file.path.endsWith('.cls')) {
-          acc.apexClasses.push(file);
-        } else {
-          acc.testSuites.push(file);
-        }
-        return acc;
-      },
-      { testSuites: [], apexClasses: [] }
-    );
+      .sort((a, b) => a.fsPath.localeCompare(b.fsPath))
+      .reduce(
+        (acc: { testSuites: Uri[]; apexClasses: Uri[] }, file) => {
+          if (file.path.endsWith('.cls')) {
+            acc.apexClasses.push(file);
+          } else {
+            acc.testSuites.push(file);
+          }
+          return acc;
+        },
+        { testSuites: [], apexClasses: [] }
+      );
 
-    const fileItems = testSuites
-      .map(testSuite => {
-        return {
-          label: basename(testSuite.toString(), '.testSuite-meta.xml'),
-          description: testSuite.fsPath,
-          type: TestType.Suite
-        };
-      });
+    const fileItems = testSuites.map(testSuite => {
+      return {
+        label: basename(testSuite.toString(), '.testSuite-meta.xml'),
+        description: testSuite.fsPath,
+        type: TestType.Suite
+      };
+    });
 
     fileItems.push({
-      label: nls.localize('force_apex_test_run_all_local_test_label'),
+      label: nls.localize('apex_test_run_all_local_test_label'),
       description: nls.localize(
-        'force_apex_test_run_all_local_tests_description_text'
+        'apex_test_run_all_local_tests_description_text'
       ),
       type: TestType.AllLocal
     });
 
     fileItems.push({
-      label: nls.localize('force_apex_test_run_all_test_label'),
-      description: nls.localize(
-        'force_apex_test_run_all_tests_description_text'
-      ),
+      label: nls.localize('apex_test_run_all_test_label'),
+      description: nls.localize('apex_test_run_all_tests_description_text'),
       type: TestType.All
     });
 
@@ -149,8 +146,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
 
   constructor() {
     super(
-      nls.localize('force_apex_test_run_text'),
-      'force_apex_test_run_library',
+      nls.localize('apex_test_run_text'),
+      'apex_test_run_library',
       OUTPUT_CHANNEL
     );
   }
@@ -235,7 +232,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new TestsSelector();
 
-export const forceApexTestRun = async () => {
+export const apexTestRun = async () => {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

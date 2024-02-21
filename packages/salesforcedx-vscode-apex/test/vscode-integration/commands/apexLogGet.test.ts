@@ -12,10 +12,10 @@ import * as vscode from 'vscode';
 import {
   ApexDebugLogObject,
   LogFileSelector
-} from '../../../src/commands/forceApexLogGet';
+} from '../../../src/commands/apexLogGet';
 
 // tslint:disable:no-unused-expression
-describe('Force Apex Log Get Logging', () => {
+describe('Apex Log Get Logging', () => {
   const newerStartTime = new Date(Date.now());
   const olderStartTime = new Date(Date.now() - 10 * 60000);
   const oldestStartTime = new Date(Date.now() - 20 * 60000);

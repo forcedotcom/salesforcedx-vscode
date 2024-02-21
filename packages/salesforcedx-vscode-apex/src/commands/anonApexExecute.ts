@@ -35,7 +35,8 @@ interface ApexExecuteParameters {
 }
 
 export class AnonApexGatherer
-  implements ParametersGatherer<ApexExecuteParameters> {
+  implements ParametersGatherer<ApexExecuteParameters>
+{
   public gather(): Promise<
     CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
@@ -64,25 +65,25 @@ export class AnonApexGatherer
         });
       }
 
-      return Promise.resolve({ type: 'CONTINUE', data: { fileName: document.uri.fsPath } });
+      return Promise.resolve({
+        type: 'CONTINUE',
+        data: { fileName: document.uri.fsPath }
+      });
     }
     return Promise.resolve({ type: 'CANCEL' });
   }
 }
 
-export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
-  ApexExecuteParameters
-> {
-  public static diagnostics = vscode.languages.createDiagnosticCollection(
-    'apex-errors'
-  );
+export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+  public static diagnostics =
+    vscode.languages.createDiagnosticCollection('apex-errors');
 
   private isDebugging: boolean;
 
   constructor(isDebugging: boolean) {
     super(
       nls.localize('apex_execute_text'),
-      'force_apex_execute_library',
+      'apex_execute_library',
       OUTPUT_CHANNEL
     );
 
@@ -204,12 +205,8 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     AnonApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
-      const {
-        compileProblem,
-        exceptionMessage,
-        lineNumber,
-        columnNumber
-      } = response.diagnostic[0];
+      const { compileProblem, exceptionMessage, lineNumber, columnNumber } =
+        response.diagnostic[0];
       let message;
       if (compileProblem && compileProblem !== '') {
         message = compileProblem;
@@ -255,7 +252,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export const forceAnonApexExecute = async () => {
+export const anonApexExecute = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
@@ -265,7 +262,7 @@ export const forceAnonApexExecute = async () => {
   await commandlet.run();
 };
 
-export const forceAnonApexDebug = async () => {
+export const anonApexDebug = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),

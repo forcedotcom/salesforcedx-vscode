@@ -13,11 +13,11 @@ import {
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { forceLaunchApexReplayDebuggerWithCurrentFile } from '../../../src/commands/forceLaunchApexReplayDebuggerWithCurrentFile';
+import { launchApexReplayDebuggerWithCurrentFile } from '../../../src/commands/launchApexReplayDebuggerWithCurrentFile';
 import { nls } from '../../../src/messages';
 import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider';
 
-describe('Force Launch Replay Debugger', () => {
+describe('Launch Replay Debugger', () => {
   const $$ = new TestContext();
   const sb = createSandbox();
   let flushFilePathStub: SinonStub;
@@ -37,7 +37,7 @@ describe('Force Launch Replay Debugger', () => {
       'showErrorMessage'
     );
 
-    await forceLaunchApexReplayDebuggerWithCurrentFile();
+    await launchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
@@ -57,7 +57,7 @@ describe('Force Launch Replay Debugger', () => {
       'showErrorMessage'
     );
 
-    await forceLaunchApexReplayDebuggerWithCurrentFile();
+    await launchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
@@ -85,7 +85,7 @@ describe('Force Launch Replay Debugger', () => {
 
     flushFilePathStub.returns(undefined);
 
-    await forceLaunchApexReplayDebuggerWithCurrentFile();
+    await launchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
@@ -106,7 +106,7 @@ describe('Force Launch Replay Debugger', () => {
       .stub(vscode.commands, 'executeCommand')
       .resolves(true);
 
-    await forceLaunchApexReplayDebuggerWithCurrentFile();
+    await launchApexReplayDebuggerWithCurrentFile();
 
     expect(executeCommandSpy.called).to.equal(true);
     expect(
@@ -123,7 +123,7 @@ describe('Force Launch Replay Debugger', () => {
 
     const runStub = sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
 
-    await forceLaunchApexReplayDebuggerWithCurrentFile();
+    await launchApexReplayDebuggerWithCurrentFile();
 
     expect(runStub.called).to.equal(true);
   });
@@ -149,11 +149,11 @@ describe('Force Launch Replay Debugger', () => {
       .stub(vscode.commands, 'executeCommand')
       .resolves(true);
 
-    await forceLaunchApexReplayDebuggerWithCurrentFile();
+    await launchApexReplayDebuggerWithCurrentFile();
 
     expect(executeCommandSpy.called).to.equal(true);
-    expect(
-      executeCommandSpy.calledWith('sfdx.force.test.view.debugTests')
-    ).to.equal(true);
+    expect(executeCommandSpy.calledWith('sfdx.test.view.debugTests')).to.equal(
+      true
+    );
   });
 });

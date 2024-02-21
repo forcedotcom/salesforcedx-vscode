@@ -26,7 +26,7 @@ import {
   ApexLibraryTestRunExecutor,
   ApexTestQuickPickItem,
   TestType
-} from './forceApexTestRun';
+} from './apexTestRun';
 
 export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 

@@ -19,9 +19,9 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getTestOutlineProvider } from '../views/testOutlineProvider';
-import { forceAnonApexDebug } from './forceAnonApexExecute';
+import { anonApexDebug } from './anonApexExecute';
 
-export const forceLaunchApexReplayDebuggerWithCurrentFile = async () => {
+export const launchApexReplayDebuggerWithCurrentFile = async () => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     void notificationService.showErrorMessage(
@@ -96,28 +96,28 @@ const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
-    new ForceAnonApexLaunchReplayDebuggerExecutor()
+    new AnonApexLaunchReplayDebuggerExecutor()
   );
   await commandlet.run();
 };
 
 const launchApexReplayDebugger = async (apexTestClassName: string) => {
   // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
-  await vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+  await vscode.commands.executeCommand('sfdx.test.view.debugTests', {
     name: apexTestClassName
   });
 };
 
-export class ForceAnonApexLaunchReplayDebuggerExecutor extends SfdxCommandletExecutor<{}> {
+export class AnonApexLaunchReplayDebuggerExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
     return new CommandBuilder(
-      nls.localize('force_launch_apex_replay_debugger_with_selected_file')
+      nls.localize('launch_apex_replay_debugger_with_selected_file')
     )
-      .withLogName('force_launch_apex_replay_debugger_with_selected_file')
+      .withLogName('launch_apex_replay_debugger_with_selected_file')
       .build();
   }
 
   public async execute(): Promise<void> {
-    await forceAnonApexDebug();
+    await anonApexDebug();
   }
 }
