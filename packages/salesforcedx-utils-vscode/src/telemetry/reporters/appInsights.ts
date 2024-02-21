@@ -6,13 +6,12 @@
 'use strict';
 
 import * as appInsights from 'applicationinsights';
-import * as fs from 'fs';
 import * as os from 'os';
-import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
+import { TelemetryReporter } from '../interfaces';
 
-export class TelemetryReporter extends Disposable {
+export class AppInsights extends Disposable implements TelemetryReporter {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];
@@ -21,53 +20,37 @@ export class TelemetryReporter extends Disposable {
   private static TELEMETRY_CONFIG_ID = 'telemetry';
   private static TELEMETRY_CONFIG_ENABLED_ID = 'enableTelemetry';
 
-  private logStream: fs.WriteStream | undefined;
-  private telemetryTag: string | undefined;
-
   constructor(
     private extensionId: string,
     private extensionVersion: string,
     key: string,
     enableUniqueMetrics?: boolean
   ) {
-    super(() => this.toDispose.forEach(d => d?.dispose()));
-    let logFilePath = process.env['VSCODE_LOGS'] || '';
-    if (
-      logFilePath &&
-      extensionId &&
-      process.env['VSCODE_LOG_LEVEL'] === 'trace'
-    ) {
-      logFilePath = path.join(logFilePath, `${extensionId}.txt`);
-      this.logStream = fs.createWriteStream(logFilePath, {
-        flags: 'a',
-        encoding: 'utf8',
-        autoClose: true
-      });
+    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    if (enableUniqueMetrics) {
+      this.uniqueUserMetrics = true;
     }
-    this.uniqueUserMetrics = enableUniqueMetrics ?? false;
     this.updateUserOptIn(key);
-    this.getTelemetryTag();
     this.toDispose.push(
       workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
     );
   }
 
   private updateUserOptIn(key: string): void {
-    const config = workspace.getConfiguration(
-      TelemetryReporter.TELEMETRY_CONFIG_ID
-    );
+    const config = workspace.getConfiguration(AppInsights.TELEMETRY_CONFIG_ID);
     if (
       this.userOptIn !==
-      config.get<boolean>(TelemetryReporter.TELEMETRY_CONFIG_ENABLED_ID, true)
+      config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)
     ) {
       this.userOptIn = config.get<boolean>(
-        TelemetryReporter.TELEMETRY_CONFIG_ENABLED_ID,
+        AppInsights.TELEMETRY_CONFIG_ENABLED_ID,
         true
       );
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        void this.dispose();
+        // tslint:disable-next-line:no-floating-promises
+        this.dispose();
       }
     }
   }
@@ -144,23 +127,18 @@ export class TelemetryReporter extends Disposable {
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       const orgId = WorkspaceContextUtil.getInstance().orgId;
-      let props = properties ? properties : {};
-      props = this.applyTelemetryTag(orgId ? { ...props, orgId } : props);
-
+      if (orgId && properties) {
+        properties.orgId = orgId;
+      } else if (orgId) {
+        properties = { orgId };
+      }
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        properties: props,
+        // tslint:disable-next-line:object-literal-shorthand
+        properties,
+        // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
-
-      if (this.logStream) {
-        this.logStream.write(
-          `telemetry/${eventName} ${JSON.stringify({
-            properties: props,
-            measurements
-          })}\n`
-        );
-      }
     }
   }
 
@@ -176,33 +154,16 @@ export class TelemetryReporter extends Disposable {
       error.stack = 'DEPRECATED';
 
       const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const properties = this.applyTelemetryTag({ orgId });
+      const properties = { orgId };
       this.appInsightsClient.trackException({
         exception: error,
         properties,
         measurements
       });
-
-      if (this.logStream) {
-        this.logStream.write(
-          `telemetry/${exceptionName} ${JSON.stringify({
-            properties,
-            measurements
-          })}\n`
-        );
-      }
     }
   }
 
   public dispose(): Promise<any> {
-    const flushEventsToLogger = new Promise<any>(resolve => {
-      if (!this.logStream) {
-        return resolve(void 0);
-      }
-      this.logStream.on('finish', resolve);
-      this.logStream.end();
-    });
-
     const flushEventsToAI = new Promise<any>(resolve => {
       if (this.appInsightsClient) {
         this.appInsightsClient.flush({
@@ -216,31 +177,6 @@ export class TelemetryReporter extends Disposable {
         resolve(void 0);
       }
     });
-    return Promise.all([flushEventsToAI, flushEventsToLogger]);
-  }
-
-  /**
-   * Helper to set reporter's telemetryTag from setting salesforcedx-vscode-core.telemetry-tag
-   * @returns string | undefined
-   */
-  private getTelemetryTag(): void {
-    const config = workspace.getConfiguration();
-    this.telemetryTag =
-      config.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
-  }
-
-  /**
-   * Helper to include telemetryTag in properties if it exists
-   * if not, return properties as is
-   *
-   * @param properties
-   * @returns
-   */
-  private applyTelemetryTag(properties: { [key: string]: string }): {
-    [key: string]: string;
-  } {
-    return this.telemetryTag
-      ? { ...properties, telemetryTag: this.telemetryTag }
-      : properties;
+    return flushEventsToAI;
   }
 }
