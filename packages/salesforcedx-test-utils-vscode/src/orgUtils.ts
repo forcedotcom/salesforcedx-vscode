@@ -106,15 +106,15 @@ export const pullSource = async (
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:source:pull')
-      .withFlag('--targetusername', username)
-      .withJson()
+      .withArg('project:retrieve:start')
+      .withFlag('--target-org', username)
+      .withJson(false)
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pulledSource;
+  const source = JSON.parse(result).result.files;
   return Promise.resolve(source);
 };
 
@@ -176,10 +176,10 @@ export const assignPermissionSet = async (
 ): Promise<void> => {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withArg('force:user:permset:assign')
-      .withFlag('--permsetname', permissionSetName)
-      .withFlag('--targetusername', username)
-      .withJson()
+      .withArg('org:assign:permset')
+      .withFlag('--name', permissionSetName)
+      .withFlag('--target-org', username)
+      .withJson(false)
       .build(),
     { cwd: process.cwd() }
   ).execute();

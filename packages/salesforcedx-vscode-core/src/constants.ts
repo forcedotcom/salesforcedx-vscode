@@ -22,6 +22,9 @@ export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK =
   'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
 export const TELEMETRY_METADATA_COUNT = 'metadataCount';
+export const BASE_EXTENSION = 'salesforce.salesforcedx-vscode';
+export const EXPANDED_EXTENSION = 'salesforce.salesforcedx-vscode-expanded';
+export const EXT_PACK_STATUS_EVENT_NAME = 'extensionPackStatus';
 
 export const CONFIG_SET_EXECUTOR = 'config_set_org_text';
 export const CONFIG_SET_NAME = 'config_set_title';
@@ -62,7 +65,7 @@ export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
 export const ORG_OPEN_COMMAND = 'sfdx.org.open';
-export const FORCE_SOURCE_PULL_LOG_NAME =
-  'force_source_pull_default_scratch_org';
+export const PROJECT_RETRIEVE_START_LOG_NAME =
+  'project_retrieve_start_default_scratch_org';
 export const PROJECT_DEPLOY_START_LOG_NAME =
   'project_deploy_start_default_scratch_org';

@@ -207,8 +207,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
     }
 
     if (errors && !parser.hasConflicts()) {
-      const { name, message } = errors;
-      const files = errors.files;
+      const { name, message, files } = errors;
       if (files) {
         const outputTable = this.getErrorTable(table, files, titleType);
         channelService.appendLine(outputTable);
