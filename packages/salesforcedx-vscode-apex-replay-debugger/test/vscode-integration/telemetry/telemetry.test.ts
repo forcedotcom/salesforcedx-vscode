@@ -24,7 +24,7 @@ describe('Telemetry', () => {
 
   it('Should send telemetry data', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendExtensionActivationEvent([0, 330]);
     assert.calledOnce(sendEvent);
@@ -32,7 +32,7 @@ describe('Telemetry', () => {
 
   it('Should not send telemetry data', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, false);
+    telemetryService.initializeService([reporter], false);
 
     telemetryService.sendLaunchEvent('test', 'test2');
     assert.notCalled(sendEvent);
@@ -40,7 +40,7 @@ describe('Telemetry', () => {
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendExtensionActivationEvent([0, 330]);
     assert.calledOnce(sendEvent);
@@ -62,7 +62,7 @@ describe('Telemetry', () => {
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendExtensionDeactivationEvent();
     assert.calledOnce(sendEvent);
@@ -75,7 +75,7 @@ describe('Telemetry', () => {
 
   it('Should send launch event', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendLaunchEvent('123', 'error message');
 
@@ -89,7 +89,7 @@ describe('Telemetry', () => {
 
   it('Should send checkpoint event', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendCheckpointEvent('error message');
 
@@ -102,7 +102,7 @@ describe('Telemetry', () => {
 
   it('Should send error event', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendErrorEvent('error message', 'error callstack');
 

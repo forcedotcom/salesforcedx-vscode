@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode';
+import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { assert, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
@@ -49,7 +49,7 @@ describe('Telemetry', () => {
 
       await telemetryService.initializeService(mockExtensionContext);
 
-      const telemetryReporter = telemetryService.getReporter();
+      const telemetryReporter = telemetryService.getReporters();
 
       expect(typeof telemetryReporter).to.eql('undefined');
       expect(teleStub.firstCall.args).to.eql([true]);
@@ -102,8 +102,8 @@ describe('Telemetry', () => {
         SfdxCoreSettings.prototype,
         'getTelemetryEnabled'
       ).returns(true);
-      reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
-      exceptionEvent = stub(TelemetryReporter.prototype, 'sendExceptionEvent');
+      reporter = stub(AppInsights.prototype, 'sendTelemetryEvent');
+      exceptionEvent = stub(AppInsights.prototype, 'sendExceptionEvent');
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
       cliStub = stub(telemetryService, 'checkCliTelemetry');
       cliStub.returns(Promise.resolve(true));

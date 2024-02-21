@@ -24,7 +24,7 @@ describe('Telemetry', () => {
 
   it('Should send telemetry data', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendExtensionActivationEvent([0, 300]);
     assert.calledOnce(sendEvent);
@@ -32,7 +32,7 @@ describe('Telemetry', () => {
 
   it('Should not send telemetry data', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, false);
+    telemetryService.initializeService([reporter], false);
 
     telemetryService.sendExtensionActivationEvent([0, 400]);
     assert.notCalled(sendEvent);
@@ -40,7 +40,7 @@ describe('Telemetry', () => {
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendExtensionActivationEvent([0, 400]);
     assert.calledOnce(sendEvent);
@@ -61,7 +61,7 @@ describe('Telemetry', () => {
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    telemetryService.initializeService([reporter], true);
 
     telemetryService.sendExtensionDeactivationEvent();
     assert.calledOnce(sendEvent);

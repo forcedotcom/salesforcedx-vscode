@@ -12,7 +12,7 @@ const EXTENSION_NAME = 'salesforcedx-vscode-apex-replay-debugger';
 
 export class TelemetryService {
   private static instance: TelemetryService;
-  private reporter: TelemetryReporter | undefined;
+  private reporters: TelemetryReporter[] | undefined;
   private isTelemetryEnabled: boolean;
 
   constructor() {
@@ -27,61 +27,71 @@ export class TelemetryService {
   }
 
   public initializeService(
-    reporter: TelemetryReporter,
+    reporters: TelemetryReporter[],
     isTelemetryEnabled: boolean
   ): void {
     this.isTelemetryEnabled = isTelemetryEnabled;
-    this.reporter = reporter;
+    this.reporters = reporters;
   }
 
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent(
-        'activationEvent',
-        {
-          extensionName: EXTENSION_NAME
-        },
-        {
-          startupTime
-        }
-      );
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent(
+          'activationEvent',
+          {
+            extensionName: EXTENSION_NAME
+          },
+          {
+            startupTime
+          }
+        );
+      });
     }
   }
 
   public sendExtensionDeactivationEvent(): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('deactivationEvent', {
-        extensionName: EXTENSION_NAME
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('deactivationEvent', {
+          extensionName: EXTENSION_NAME
+        });
       });
     }
   }
 
   public sendLaunchEvent(logSizeStr: string, errorMsg: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('launchDebuggerSession', {
-        extensionName: EXTENSION_NAME,
-        logSize: logSizeStr,
-        errorMessage: errorMsg
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('launchDebuggerSession', {
+          extensionName: EXTENSION_NAME,
+          logSize: logSizeStr,
+          errorMessage: errorMsg
+        });
       });
     }
   }
 
   public sendCheckpointEvent(errorMsg: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('updateCheckpoints', {
-        extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('updateCheckpoints', {
+          extensionName: EXTENSION_NAME,
+          errorMessage: errorMsg
+        });
       });
     }
   }
 
   public sendErrorEvent(errorMsg: string, callstack: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('error', {
-        extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg,
-        errorStack: callstack
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('error', {
+          extensionName: EXTENSION_NAME,
+          errorMessage: errorMsg,
+          errorStack: callstack
+        });
       });
     }
   }

@@ -36,10 +36,10 @@ export {
   TelemetryData,
   Properties,
   Measurements
-} from './telemetry/telemetry';
+} from './services/telemetry';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
-export { TelemetryReporter } from './telemetry/telemetryReporter';
+export { AppInsights } from './telemetry/reporters/appInsights';
 export {
   hasRootWorkspace,
   getRootWorkspace,
