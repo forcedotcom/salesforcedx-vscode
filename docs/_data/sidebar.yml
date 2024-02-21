@@ -74,6 +74,10 @@
         ja: Inline Auto Completion
       url: /einstein/einstein-inline
     - title:
+        en: Test Case Generation
+        ja: Test Case Generation
+      url: /einstein/einstein-testcasegen
+    - title:
         en: Effective Prompt Writing
         ja: Effective Prompt Writing
       url: /einstein/einstein-example-prompts
