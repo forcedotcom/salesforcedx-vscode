@@ -12,11 +12,11 @@ import { nls } from '../../../../src/messages';
 import { forceLwcTestNavigateToTest } from '../../../../src/testSupport/commands/forceLwcTestNavigateToTest';
 import { forceLwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/forceLwcTestRefreshTestExplorer';
 import {
-  forceLwcTestCaseRun,
-  forceLwcTestFileRun,
-  forceLwcTestRun,
-  forceLwcTestRunAllTests
-} from '../../../../src/testSupport/commands/forceLwcTestRunAction';
+  lwcTestCaseRun,
+  lwcTestFileRun,
+  lwcTestRun,
+  lwcTestRunAllTests
+} from '../../../../src/testSupport/commands/lwcTestRunAction';
 import {
   SfdxTestGroupNode,
   SfdxTestNode
@@ -213,7 +213,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run all tests', async () => {
-      const commandResult = (await forceLwcTestRunAllTests()) as SfdxTask;
+      const commandResult = (await lwcTestRunAllTests()) as SfdxTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
@@ -221,9 +221,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -241,7 +240,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run tests from test file nodes', async () => {
-      const commandResult = (await forceLwcTestFileRun(
+      const commandResult = (await lwcTestFileRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
@@ -253,9 +252,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -300,7 +298,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a successful test case node', async () => {
-      const commandResult = (await forceLwcTestCaseRun(
+      const commandResult = (await lwcTestCaseRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
@@ -312,9 +310,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.PASSED);
@@ -332,7 +329,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a failed test case node and generates diagnostics for the test uri', async () => {
-      const commandResult = (await forceLwcTestCaseRun(
+      const commandResult = (await lwcTestCaseRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
@@ -344,9 +341,8 @@ describe('LWC Test Outline Provider', () => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -370,7 +366,7 @@ describe('LWC Test Outline Provider', () => {
       });
     });
 
-    it('Should refresh test explorer', async function() {
+    it('Should refresh test explorer', async function () {
       this.timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
