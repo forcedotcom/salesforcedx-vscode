@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId to appInsightsClient.trackException 1`] = `
+{
+  "exception": [anExtensionId/Dummy Exception: a dummy exception occurred],
+  "measurements": undefined,
+  "properties": {
+    "orgId": "000dummyOrgId",
+  },
+}
+`;
+
+exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send telemetry data to appInsightsClient.trackEvent 1`] = `
+{
+  "measurements": {},
+  "name": "anExtensionId/Dummy Telemetry Event",
+  "properties": {
+    "orgId": "000dummyOrgId",
+  },
+}
+`;
