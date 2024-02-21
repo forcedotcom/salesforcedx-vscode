@@ -270,7 +270,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
     // Telemetry
     telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.getReporters(),
       sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
