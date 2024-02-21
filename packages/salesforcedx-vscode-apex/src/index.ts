@@ -13,20 +13,20 @@ import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 
 import {
+  anonApexDebug,
+  anonApexExecute,
+  apexDebugClassRunCodeActionDelegate,
+  apexDebugMethodRunCodeActionDelegate,
+  apexLogGet,
+  apexTestClassRunCodeAction,
+  apexTestClassRunCodeActionDelegate,
+  apexTestMethodRunCodeAction,
+  apexTestMethodRunCodeActionDelegate,
+  apexTestRun,
   apexTestSuiteAdd,
   apexTestSuiteCreate,
   apexTestSuiteRun,
-  forceAnonApexDebug,
-  forceAnonApexExecute,
-  forceApexDebugClassRunCodeActionDelegate,
-  forceApexDebugMethodRunCodeActionDelegate,
-  forceApexLogGet,
-  forceApexTestClassRunCodeAction,
-  forceApexTestClassRunCodeActionDelegate,
-  forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate,
-  forceApexTestRun,
-  forceLaunchApexReplayDebuggerWithCurrentFile
+  launchApexReplayDebuggerWithCurrentFile
 } from './commands';
 import { API, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
@@ -105,62 +105,55 @@ const registerCommands = (): vscode.Disposable => {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
-  const forceApexToggleColorizerCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.toggle.colorizer',
+  const apexToggleColorizerCmd = vscode.commands.registerCommand(
+    'sfdx.apex.toggle.colorizer',
     () => colorizer.toggleCoverage()
   );
 
   // Customer-facing commands
-  const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.class.run.delegate',
-    forceApexTestClassRunCodeActionDelegate
+  const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.class.run.delegate',
+    apexTestClassRunCodeActionDelegate
   );
-  const forceApexTestLastClassRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.last.class.run',
-    forceApexTestClassRunCodeAction
+  const apexTestLastClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.last.class.run',
+    apexTestClassRunCodeAction
   );
-  const forceApexTestClassRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.class.run',
-    forceApexTestClassRunCodeAction
+  const apexTestClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.class.run',
+    apexTestClassRunCodeAction
   );
-  const forceApexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.method.run.delegate',
-    forceApexTestMethodRunCodeActionDelegate
+  const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.method.run.delegate',
+    apexTestMethodRunCodeActionDelegate
   );
-  const forceApexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.debug.class.run.delegate',
-    forceApexDebugClassRunCodeActionDelegate
+  const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.debug.class.run.delegate',
+    apexDebugClassRunCodeActionDelegate
   );
-  const forceApexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.debug.method.run.delegate',
-    forceApexDebugMethodRunCodeActionDelegate
+  const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.apex.debug.method.run.delegate',
+    apexDebugMethodRunCodeActionDelegate
   );
-  // TODO: remove forceApexAnonRunDelegateCmd
-  // forceApexAnonRunDelegateCmd is a duplicate of forceAnonApexRunDelegateCmd
-  // and needs to be removed after the Apex language server is updated.
-  const forceApexAnonRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.anon.run.delegate',
-    forceAnonApexExecute
-  );
-  const forceAnonApexRunDelegateCmd = vscode.commands.registerCommand(
+  const anonApexRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.anon.apex.run.delegate',
-    forceAnonApexExecute
+    anonApexExecute
   );
-  const forceAnonApexDebugDelegateCmd = vscode.commands.registerCommand(
+  const anonApexDebugDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.anon.apex.debug.delegate',
-    forceAnonApexDebug
+    anonApexDebug
   );
-  const forceApexLogGetCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.log.get',
-    forceApexLogGet
+  const apexLogGetCmd = vscode.commands.registerCommand(
+    'sfdx.apex.log.get',
+    apexLogGet
   );
-  const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.last.method.run',
-    forceApexTestMethodRunCodeAction
+  const apexTestLastMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.last.method.run',
+    apexTestMethodRunCodeAction
   );
-  const forceApexTestMethodRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.method.run',
-    forceApexTestMethodRunCodeAction
+  const apexTestMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.method.run',
+    apexTestMethodRunCodeAction
   );
   const apexTestSuiteCreateCmd = vscode.commands.registerCommand(
     'sfdx.apex.test.suite.create',
@@ -174,50 +167,49 @@ const registerCommands = (): vscode.Disposable => {
     'sfdx.apex.test.suite.add',
     apexTestSuiteAdd
   );
-  const forceApexTestRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.run',
-    forceApexTestRun
+  const apexTestRunCmd = vscode.commands.registerCommand(
+    'sfdx.apex.test.run',
+    apexTestRun
   );
-  const forceAnonApexExecuteDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.anon.apex.execute.document',
-    forceAnonApexExecute
+  const anonApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.anon.apex.execute.document',
+    anonApexExecute
   );
-  const forceAnonApexDebugDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.debug.document',
-    forceAnonApexDebug
+  const anonApexDebugDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.apex.debug.document',
+    anonApexDebug
   );
-  const forceAnonApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.anon.apex.execute.selection',
-    forceAnonApexExecute
+  const anonApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.anon.apex.execute.selection',
+    anonApexExecute
   );
-  const forceLaunchApexReplayDebuggerWithCurrentFileCmd =
+  const launchApexReplayDebuggerWithCurrentFileCmd =
     vscode.commands.registerCommand(
-      'sfdx.force.launch.apex.replay.debugger.with.current.file',
-      forceLaunchApexReplayDebuggerWithCurrentFile
+      'sfdx.launch.apex.replay.debugger.with.current.file',
+      launchApexReplayDebuggerWithCurrentFile
     );
 
   return vscode.Disposable.from(
-    forceApexDebugClassRunDelegateCmd,
-    forceApexDebugMethodRunDelegateCmd,
-    forceApexAnonRunDelegateCmd,
-    forceAnonApexRunDelegateCmd,
-    forceAnonApexDebugDelegateCmd,
-    forceAnonApexExecuteDocumentCmd,
-    forceAnonApexExecuteSelectionCmd,
-    forceAnonApexDebugDocumentCmd,
-    forceLaunchApexReplayDebuggerWithCurrentFileCmd,
-    forceApexLogGetCmd,
-    forceApexTestClassRunCmd,
-    forceApexTestClassRunDelegateCmd,
-    forceApexTestLastClassRunCmd,
-    forceApexTestLastMethodRunCmd,
-    forceApexTestMethodRunCmd,
-    forceApexTestMethodRunDelegateCmd,
-    forceApexTestRunCmd,
-    forceApexToggleColorizerCmd,
+    anonApexDebugDelegateCmd,
+    anonApexDebugDocumentCmd,
+    anonApexExecuteDocumentCmd,
+    anonApexExecuteSelectionCmd,
+    anonApexRunDelegateCmd,
+    apexDebugClassRunDelegateCmd,
+    apexDebugMethodRunDelegateCmd,
+    apexLogGetCmd,
+    apexTestClassRunCmd,
+    apexTestClassRunDelegateCmd,
+    apexTestLastClassRunCmd,
+    apexTestLastMethodRunCmd,
+    apexTestMethodRunCmd,
+    apexTestMethodRunDelegateCmd,
+    apexTestRunCmd,
+    apexToggleColorizerCmd,
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
-    apexTestSuiteAddCmd
+    apexTestSuiteAddCmd,
+    launchApexReplayDebuggerWithCurrentFileCmd
   );
 };
 
@@ -230,47 +222,44 @@ const registerTestView = (): vscode.Disposable => {
   const testViewItems = new Array<vscode.Disposable>();
 
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.test.view',
+    'sfdx.test.view',
     testOutlineProvider
   );
   testViewItems.push(testProvider);
 
   // Run Test Button on Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.run', () =>
+    vscode.commands.registerCommand('sfdx.test.view.run', () =>
       testRunner.runAllApexTests()
     )
   );
   // Show Error Message command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.showError', test =>
+    vscode.commands.registerCommand('sfdx.test.view.showError', test =>
       testRunner.showErrorMessage(test)
     )
   );
   // Show Definition command
   testViewItems.push(
-    vscode.commands.registerCommand(
-      'sfdx.force.test.view.goToDefinition',
-      test => testRunner.showErrorMessage(test)
+    vscode.commands.registerCommand('sfdx.test.view.goToDefinition', test =>
+      testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command
   testViewItems.push(
-    vscode.commands.registerCommand(
-      'sfdx.force.test.view.runClassTests',
-      test => testRunner.runApexTests([test.name], TestRunType.Class)
+    vscode.commands.registerCommand('sfdx.test.view.runClassTests', test =>
+      testRunner.runApexTests([test.name], TestRunType.Class)
     )
   );
   // Run Single Test command
   testViewItems.push(
-    vscode.commands.registerCommand(
-      'sfdx.force.test.view.runSingleTest',
-      test => testRunner.runApexTests([test.name], TestRunType.Method)
+    vscode.commands.registerCommand('sfdx.test.view.runSingleTest', test =>
+      testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
+    vscode.commands.registerCommand('sfdx.test.view.refresh', () => {
       if (languageClientUtils.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
