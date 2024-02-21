@@ -280,7 +280,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async postOperation(
     result: RetrieveResult | undefined
   ): Promise<void> {
-    if (result) {
+    if (result && result.response.fileProperties !== undefined) {
       DeployRetrieveExecutor.errorCollection.clear();
       SfdxCommandletExecutor.errorCollection.clear();
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
