@@ -1,11 +1,5 @@
 # 60.1.2 - February 22, 2024
 
-## Added
-
-#### salesforcedx-utils-vscode
-
-- Advanced Setting for Dev Mode Local Telemetry Logging ([PR #5382](https://github.com/forcedotcom/salesforcedx-vscode/pull/5382))
-
 ## Fixed
 
 #### salesforcedx-vscode-apex
