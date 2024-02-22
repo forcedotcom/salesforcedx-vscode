@@ -195,7 +195,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(
-    'sfdx.force.test.view.debugTests',
+    'sfdx.test.view.debugTests',
     async test => {
       await setupAndDebugTests(test.name);
     }
@@ -203,7 +203,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Debug Single Test command
   const debugTest = vscode.commands.registerCommand(
-    'sfdx.force.test.view.debugSingleTest',
+    'sfdx.test.view.debugSingleTest',
     async test => {
       const name = test.name.split('.');
       await setupAndDebugTests(name[0], name[1]);
