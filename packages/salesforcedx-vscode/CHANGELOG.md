@@ -1,3 +1,55 @@
+# 60.1.2 - February 24, 2024
+
+## Added
+
+#### salesforcedx-utils-vscode
+
+- Advanced Setting for Dev Mode Local Telemetry Logging ([PR #5382](https://github.com/forcedotcom/salesforcedx-vscode/pull/5382))
+
+#### salesforcedx-vscode-apex-debugger
+
+- Advanced Setting for Dev Mode Local Telemetry Logging ([PR #5382](https://github.com/forcedotcom/salesforcedx-vscode/pull/5382))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Advanced Setting for Dev Mode Local Telemetry Logging ([PR #5382](https://github.com/forcedotcom/salesforcedx-vscode/pull/5382))
+
+#### salesforcedx-vscode-visualforce
+
+- Advanced Setting for Dev Mode Local Telemetry Logging ([PR #5382](https://github.com/forcedotcom/salesforcedx-vscode/pull/5382))
+
+## Fixed
+
+#### docs
+
+- Revert " update "sfdx" examples in docs to their "sf" equivalents" ([PR #5434](https://github.com/forcedotcom/salesforcedx-vscode/pull/5434))
+
+- Sfdx to sf for install package and org assign permset ([PR #5424](https://github.com/forcedotcom/salesforcedx-vscode/pull/5424))
+
+- Update "sfdx" examples in docs to their "sf" equivalents ([PR #5432](https://github.com/forcedotcom/salesforcedx-vscode/pull/5432))
+
+- Revert " update "sfdx" examples in docs to their "sf" equivalents " (#5431) ([PR #5430](https://github.com/forcedotcom/salesforcedx-vscode/pull/5430))
+
+- Update "sfdx" examples in docs to their "sf" equivalents ([PR #5430](https://github.com/forcedotcom/salesforcedx-vscode/pull/5430))
+
+- Broken links and new redirects ([PR #5422](https://github.com/forcedotcom/salesforcedx-vscode/pull/5422))
+
+#### salesforcedx-vscode-apex
+
+- Sfdx to sf for apex test suite ([PR #5427](https://github.com/forcedotcom/salesforcedx-vscode/pull/5427))
+
+#### salesforcedx-vscode-core
+
+- Eliminate "Cannot read properties of undefined (reading type)" error ([PR #5443](https://github.com/forcedotcom/salesforcedx-vscode/pull/5443))
+
+- Sfdx to sf for install package and org assign permset ([PR #5424](https://github.com/forcedotcom/salesforcedx-vscode/pull/5424))
+
+- Sfdx to sf for auth access token, generate manifest and rename lwc component ([PR #5409](https://github.com/forcedotcom/salesforcedx-vscode/pull/5409))
+
+#### salesforcedx-vscode-lwc
+
+- Sfdx to sf for lwc run and debug tests ([PR #5428](https://github.com/forcedotcom/salesforcedx-vscode/pull/5428))
+
 # 60.0.0 - February 14, 2024
 
 ## Added
