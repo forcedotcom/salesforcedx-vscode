@@ -12,7 +12,7 @@ const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
 
 export class TelemetryService {
   private static instance: TelemetryService;
-  private reporter: TelemetryReporter | undefined;
+  private reporters: TelemetryReporter[] | undefined;
   private isTelemetryEnabled: boolean;
 
   constructor() {
@@ -27,33 +27,42 @@ export class TelemetryService {
   }
 
   public initializeService(
-    reporter: TelemetryReporter,
+    reporters: TelemetryReporter[],
     isTelemetryEnabled: boolean
   ): void {
     this.isTelemetryEnabled = isTelemetryEnabled;
-    this.reporter = reporter;
+    this.reporters = reporters;
   }
 
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent('activationEvent', {
-        extensionName: EXTENSION_NAME,
-        startupTime
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent(
+          'activationEvent',
+          {
+            extensionName: EXTENSION_NAME
+          },
+          {
+            startupTime
+          }
+        );
       });
     }
   }
 
   public sendExtensionDeactivationEvent(): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('deactivationEvent', {
-        extensionName: EXTENSION_NAME
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('deactivationEvent', {
+          extensionName: EXTENSION_NAME
+        });
       });
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): string {
+  private getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
-    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
+    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 }

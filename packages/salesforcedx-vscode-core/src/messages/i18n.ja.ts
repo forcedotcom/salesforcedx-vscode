@@ -40,9 +40,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
   org_login_web_authorize_org_text: 'SFDX: 組織を認証',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
@@ -81,15 +80,15 @@ export const messages = {
   org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
-  force_source_pull_default_org_text:
+  project_retrieve_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプル',
-  force_source_pull_force_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
+  project_retrieve_start_ignore_conflicts_default_org_text:
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
 
-  force_source_push_default_org_text:
+  project_deploy_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送',
-  force_source_push_force_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織へソースを転送して競合を上書き',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
 
   force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
   force_source_deploy_select_file_or_directory:
@@ -112,9 +111,8 @@ export const messages = {
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
-
-  force_source_status_text:
-    'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
+  rename_lightning_component: 'SFDX: Rename Component',
+  view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
   apex_generate_class_text: 'SFDX: Apex クラスを作成',
   visualforce_generate_component_text: 'SFDX: Visualforce コンポーネントを作成',
@@ -125,9 +123,8 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Aura インタフェースを作成',
   analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
   analytics_template_name_text: 'template name',
-  force_source_status_local_text: 'SFDX: ローカルの変更を表示',
-  force_source_status_remote_text:
-    'SFDX: デフォルトのスクラッチ組織の変更を参照',
+  view_local_changes_text: 'SFDX: ローカルの変更を表示',
+  view_remote_changes_text: 'SFDX: デフォルトのスクラッチ組織の変更を参照',
   warning_prompt_file_overwrite:
     '指定されたパスを使用した 1 つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_dir_overwrite:
@@ -155,9 +152,9 @@ export const messages = {
   data_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   project_generate_text: 'SFDX: プロジェクトを作成',
   project_generate_open_dialog_create_label: 'プロジェクトを作成',
@@ -168,6 +165,7 @@ export const messages = {
   project_generate_analytics_template_display_text: 'Analytics',
   project_generate_empty_template: '空のプロジェクトテンプレート',
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
@@ -269,7 +267,9 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    '競合のためソースをプッシュできませんでした。組織のメタデータをローカルファイルで上書きしても良い場合は、 "SFDX: ソースをデフォルトのスクラッチ組織にプッシュし競合を上書き" を実行してください。',
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
+  pull_conflicts_error:
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_default_username:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
   error_no_default_devhubusername:
@@ -295,7 +295,7 @@ export const messages = {
     '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
@@ -512,12 +512,12 @@ export const messages = {
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'ファイルを比較',
 
-  force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
-  force_source_diff_components_not_in_org:
+  source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
+  source_diff_components_not_in_org:
     'Selected components are not available in the org',
-  force_source_diff_unsupported_type:
+  source_diff_unsupported_type:
     'このメタデータ型に対する差分は現在サポートされていません。',
-  force_source_diff_title: '%s//%s ↔ ローカル //%s',
+  source_diff_title: '%s//%s ↔ ローカル //%s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',

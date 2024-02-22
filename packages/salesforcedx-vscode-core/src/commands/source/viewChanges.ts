@@ -20,8 +20,8 @@ function getCommandletFor(
 }
 
 export async function viewAllChanges() {
-  const executionName = 'force_source_status_text';
-  const logName = 'force_source_status';
+  const executionName = 'view_all_changes_text';
+  const logName = 'view_all_changes';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
     local: true,
     remote: true
@@ -31,8 +31,8 @@ export async function viewAllChanges() {
 }
 
 export async function viewLocalChanges() {
-  const executionName = 'force_source_status_local_text';
-  const logName = 'force_source_status_local';
+  const executionName = 'view_local_changes_text';
+  const logName = 'view_local_changes';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
     local: true,
     remote: false
@@ -42,8 +42,8 @@ export async function viewLocalChanges() {
 }
 
 export async function viewRemoteChanges() {
-  const executionName = 'force_source_status_remote_text';
-  const logName = 'force_source_status_remote';
+  const executionName = 'view_remote_changes_text';
+  const logName = 'view_remote_changes';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
     local: false,
     remote: true

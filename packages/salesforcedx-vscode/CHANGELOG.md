@@ -1,3 +1,91 @@
+# 60.0.0 - February 14, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Bump SDR to 10.3.3 ([PR #5400](https://github.com/forcedotcom/salesforcedx-vscode/pull/5400))
+
+#### salesforcedx-vscode-apex
+
+- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)). 
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience.  ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
+
+- We fixed an issue with the Org Browser so that custom objects with a namespace can now be refreshed. ([PR #5403](https://github.com/forcedotcom/salesforcedx-vscode/pull/5403))
+
+- We no longer show you commands that require a default org when no default org is set. ([PR #5406](https://github.com/forcedotcom/salesforcedx-vscode/pull/5406))
+
+- We migrated some more commands to the new `sf style`. ([PR #5379](https://github.com/forcedotcom/salesforcedx-vscode/pull/5379), [PR #5388](https://github.com/forcedotcom/salesforcedx-vscode/pull/5388))
+
+
+# 59.17.0 - February 7, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the `SFDX:Deploy this Source to Org` command not throwing an error when the command failed. ([PR #5392](https://github.com/forcedotcom/salesforcedx-vscode/pull/5392))
+
+- We migrated some more commands to the new `sf style`. ([PR #5362](https://github.com/forcedotcom/salesforcedx-vscode/pull/5362))
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #5393](https://github.com/forcedotcom/salesforcedx-vscode/pull/5393))
+
+# 59.16.0 - January 31, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood to make the java version validation more reliable. Thank you [Saranchuk Viktor](https://github.com/Blackbackroom) for creating the issue.
+ ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363), [ISSUE #5358](https://github.com/forcedotcom/salesforcedx-vscode/issues/5358))
+
+# 59.15.0 - January 26, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made a major upgrade to the version of the `@salesforce/core` library. ([PR #5332](https://github.com/forcedotcom/salesforcedx-vscode/pull/5332))
+
+## Fixed
+
+#### docs
+
+- We added information about purchasing additional Code Builder licenses. ([PR #5329](https://github.com/forcedotcom/salesforcedx-vscode/pull/5329))
+
+#### salesforcedx-utils-vscode
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue with the Apex Replay Debugger that was preventing it from being launched from an Apex test file. ([PR #5326](https://github.com/forcedotcom/salesforcedx-vscode/pull/5326))
+
+- We made some changes under the hood. ([PR #5342](https://github.com/forcedotcom/salesforcedx-vscode/pull/5342))
+
+- We made some changes so that the no coverage warning now only pops up for Apex classes and Apex triggers. We also added a setting to move the warning from notifications to the Output panel. ([PR #5320](https://github.com/forcedotcom/salesforcedx-vscode/pull/5320))
+
+#### salesforcedx-vscode-core
+
+- We migrated some more commands to the new `sf style` to get rid of more warnings. ([PR #5297](https://github.com/forcedotcom/salesforcedx-vscode/pull/5297), [PR #5298](https://github.com/forcedotcom/salesforcedx-vscode/pull/5298))
+
+- We reverted CLI version validation ([PR #5185](https://github.com/forcedotcom/salesforcedx-vscode/pull/5185)) to resolve issues for users who were affected by it. ([PR #5343](https://github.com/forcedotcom/salesforcedx-vscode/pull/5343))
+
+#### salesforcedx-vscode-apex-debugger
+
+- We made some changes under the hood. ([PR #5341](https://github.com/forcedotcom/salesforcedx-vscode/pull/5341))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #5341](https://github.com/forcedotcom/salesforcedx-vscode/pull/5341))
+
 # 59.13.0 - January 11, 2024
 
 ## Added

@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { ForceDescribeMetadataExecutor } from '../../../src/commands';
+import { DescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
@@ -109,7 +109,7 @@ describe('load metadata types data', () => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
     fileExistsStub = stub(fs, 'existsSync');
     buildTypesStub = stub(TypeUtils.prototype, 'buildTypesList');
-    execStub = stub(ForceDescribeMetadataExecutor.prototype, 'execute');
+    execStub = stub(DescribeMetadataExecutor.prototype, 'execute');
     cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
     writeFileStub = stub(fs, 'writeFileSync');
     getTypesFolderStub = stub(TypeUtils.prototype, 'getTypesFolder').returns(

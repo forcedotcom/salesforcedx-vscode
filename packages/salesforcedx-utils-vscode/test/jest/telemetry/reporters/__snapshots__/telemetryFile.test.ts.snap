@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TelemetryFile writeToFile should append data to the telemetry file 1`] = `
+[
+  "extensionId-telemetry.json",
+  "{
+  "timestamp": "2020-01-01T00:00:00.000Z",
+  "command": "testEvent",
+  "data": {
+    "key1": "value1",
+    "key2": "value2"
+  }
+},",
+]
+`;

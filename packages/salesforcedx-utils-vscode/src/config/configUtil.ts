@@ -19,7 +19,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryService } from '../telemetry/telemetry';
+import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -180,6 +180,21 @@ export class ConfigUtil {
     return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 
+  public static async unsetTargetOrg(): Promise<void> {
+    const originalDirectory = process.cwd();
+    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+    const workspacePath = workspaceUtils.getRootWorkspacePath();
+    try {
+      process.chdir(workspacePath);
+      const config = await Config.create(Config.getDefaultOptions());
+      config.unset(TARGET_ORG_KEY);
+      await config.write();
+      await this.updateConfigAndStateAggregators();
+    } finally {
+      process.chdir(originalDirectory);
+    }
+  }
+
   public static async setDefaultUsernameOrAlias(
     usernameOrAlias: string
   ): Promise<void> {
@@ -203,6 +218,10 @@ export class ConfigUtil {
     const config = await Config.create(Config.getDefaultOptions());
     config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
+    await this.updateConfigAndStateAggregators();
+  }
+
+  private static async updateConfigAndStateAggregators(): Promise<void> {
     // Force the ConfigAggregatorProvider to reload its stored
     // ConfigAggregators so that this config file change is accounted
     // for and the ConfigAggregators are updated with the latest info.
