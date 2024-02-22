@@ -1,3 +1,21 @@
+# 60.1.2 - February 22, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+- We made some changes under the hood. ([PR #5427](https://github.com/forcedotcom/salesforcedx-vscode/pull/5427), [PR #5442](https://github.com/forcedotcom/salesforcedx-vscode/pull/5442))
+
+#### salesforcedx-vscode-lwc
+- We made some changes under the hood. ([PR #5428](https://github.com/forcedotcom/salesforcedx-vscode/pull/5428))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5424](https://github.com/forcedotcom/salesforcedx-vscode/pull/5424), [PR #5409](https://github.com/forcedotcom/salesforcedx-vscode/pull/5409), [PR #5418](https://github.com/forcedotcom/salesforcedx-vscode/pull/5418))
+
+- We fixed an issue where error messages thrown by push commands weren't showing up in the Output tab. ([PR #5441](https://github.com/forcedotcom/salesforcedx-vscode/pull/5441))
+
+- We fixed an uncaught error that occurs when the Cancel button is clicked to cancel a retrieve in progress. ([PR #5443](https://github.com/forcedotcom/salesforcedx-vscode/pull/5443))
+
 # 60.0.0 - February 14, 2024
 
 ## Added
