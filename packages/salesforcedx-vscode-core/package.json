@@ -129,10 +129,7 @@
     ]
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.project.generate",
-    "onCommand:sfdx.project.generate.with.manifest",
-    "onCommand:sfdx.debug.isv.bootstrap"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
   "contributes": {

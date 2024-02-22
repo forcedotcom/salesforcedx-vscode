@@ -103,8 +103,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onCommand:soql.builder.toggle"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "out/src",
   "serverPath": [
