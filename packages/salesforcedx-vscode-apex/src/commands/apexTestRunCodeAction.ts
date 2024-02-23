@@ -180,14 +180,14 @@ const getTempFolder = (): string => {
 //   T E S T   C L A S S
 
 // redirects to run-all-tests cmd
-export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
-  void vscode.commands.executeCommand('sfdx.apex.test.class.run', testClass);
-};
-
 export const apexDebugClassRunCodeActionDelegate = (testClass: string) => {
   void vscode.commands.executeCommand('sfdx.test.view.debugTests', {
     name: testClass
   });
+};
+
+export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
+  void vscode.commands.executeCommand('sfdx.apex.test.class.run', testClass);
 };
 
 // evaluate test class param: if not provided, apply cached value

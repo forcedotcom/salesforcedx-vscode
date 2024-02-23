@@ -44,25 +44,25 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
+  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
+  apex_log_get_no_logs_text: 'No Apex debug logs were found',
+  apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
+  apex_log_list_text: 'Getting Apex debug logs',
   apex_test_run_all_test_label: 'All Tests',
   apex_test_run_all_local_test_label: 'All Local Tests',
   apex_test_run_all_tests_description_text: 'Runs all tests in the current org',
   apex_test_run_all_local_tests_description_text:
     'Runs all tests in the current org except the ones that originate from installed managed packages',
-  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
-  apex_log_get_no_logs_text: 'No Apex debug logs were found',
-  apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
-  apex_log_list_text: 'Getting Apex debug logs',
-  force_apex_test_run_description_text: 'Run Apex test(s)',
+  apex_test_run_description_text: 'Run Apex test(s)',
   apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
-  force_test_view_loading_message: 'Loading Apex tests ...',
-  force_test_view_no_tests_message: 'No Apex Tests Found',
+  test_view_loading_message: 'Loading Apex tests ...',
+  test_view_no_tests_message: 'No Apex Tests Found',
   test_view_show_error_title: 'Show Error',
-  force_test_view_no_tests_description:
+  test_view_no_tests_description:
     "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',

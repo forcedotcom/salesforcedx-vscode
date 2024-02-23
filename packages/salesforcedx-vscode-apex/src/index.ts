@@ -105,8 +105,8 @@ const registerCommands = (): vscode.Disposable => {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
-  const forceApexToggleColorizerCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.toggle.colorizer',
+  const apexToggleColorizerCmd = vscode.commands.registerCommand(
+    'sfdx.apex.toggle.colorizer',
     () => colorizer.toggleCoverage()
   );
 
@@ -134,6 +134,14 @@ const registerCommands = (): vscode.Disposable => {
   const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.apex.debug.method.run.delegate',
     apexDebugMethodRunCodeActionDelegate
+  );
+  const anonApexRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.run.delegate',
+    anonApexExecute
+  );
+  const anonApexDebugDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.debug.delegate',
+    anonApexDebug
   );
   const apexLogGetCmd = vscode.commands.registerCommand(
     'sfdx.apex.log.get',
@@ -182,14 +190,14 @@ const registerCommands = (): vscode.Disposable => {
     );
 
   return vscode.Disposable.from(
-    apexDebugClassRunDelegateCmd,
-    apexDebugMethodRunDelegateCmd,
+    anonApexDebugDelegateCmd,
+    anonApexDebugDocumentCmd,
     anonApexExecuteDocumentCmd,
     anonApexExecuteSelectionCmd,
-    anonApexDebugDocumentCmd,
-    launchApexReplayDebuggerWithCurrentFileCmd,
+    anonApexRunDelegateCmd,
+    apexDebugClassRunDelegateCmd,
+    apexDebugMethodRunDelegateCmd,
     apexLogGetCmd,
-    forceApexToggleColorizerCmd,
     apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexTestLastClassRunCmd,
@@ -197,9 +205,11 @@ const registerCommands = (): vscode.Disposable => {
     apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
     apexTestRunCmd,
+    apexToggleColorizerCmd,
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
-    apexTestSuiteAddCmd
+    apexTestSuiteAddCmd,
+    launchApexReplayDebuggerWithCurrentFileCmd
   );
 };
 
@@ -212,7 +222,7 @@ const registerTestView = (): vscode.Disposable => {
   const testViewItems = new Array<vscode.Disposable>();
 
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.test.view',
+    'sfdx.test.view',
     testOutlineProvider
   );
   testViewItems.push(testProvider);

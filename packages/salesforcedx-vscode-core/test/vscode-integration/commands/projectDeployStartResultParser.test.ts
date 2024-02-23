@@ -85,7 +85,7 @@ describe('Correctly output deploy results', () => {
         { key: 'type', label: nls.localize('table_header_type') },
         { key: 'filePath', label: nls.localize('table_header_project_path') }
       ],
-      nls.localize('table_title_deployed_source')
+      nls.localize('table_title_pushed_source')
     );
     expect(output).to.be.equal(`${successTable}\n`);
   });
@@ -105,7 +105,7 @@ describe('Correctly output deploy results', () => {
         { key: 'type', label: nls.localize('table_header_type') },
         { key: 'filePath', label: nls.localize('table_header_project_path') }
       ],
-      nls.localize('table_title_deployed_source')
+      nls.localize('table_title_pushed_source')
     );
     const expectedOutput = `${successTable}\n${nls.localize(
       'table_no_results_found'
