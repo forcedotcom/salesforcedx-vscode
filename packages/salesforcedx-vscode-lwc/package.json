@@ -126,8 +126,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "workspaceContains:../workspace-user.xml",
-    "workspaceContains:**/workspace-user.xml",
-    "onCommand:sfdx.lightning.lwc.start"
+    "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
   "serverPath": [
