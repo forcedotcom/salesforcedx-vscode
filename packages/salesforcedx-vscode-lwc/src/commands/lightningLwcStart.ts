@@ -26,8 +26,8 @@ import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
 import { openBrowser, showError } from './commandUtils';
 
-const logName = 'force_lightning_lwc_start';
-const commandName = nls.localize('force_lightning_lwc_start_text');
+const logName = 'lightning_lwc_start';
+const commandName = nls.localize('lightning_lwc_start_text');
 
 /**
  * Hints for providing a user-friendly error message / action.
@@ -39,18 +39,18 @@ export const enum errorHints {
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
 }
 
-export interface ForceLightningLwcStartOptions {
+export interface LightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
   /** component name to preview in the browser */
   componentName?: string;
 }
 
-export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
-  private readonly options: ForceLightningLwcStartOptions;
+export class LightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
+  private readonly options: LightningLwcStartOptions;
   private errorHint?: string;
 
-  constructor(options: ForceLightningLwcStartOptions = { openBrowser: true }) {
+  constructor(options: LightningLwcStartOptions = { openBrowser: true }) {
     super();
     this.options = options;
   }
@@ -74,7 +74,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
     const executor = new CliCommandExecutor(this.build(), {
       cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     });
     const execution = executor.execute(cancellationToken);
     const executionName = execution.command.toString();
@@ -185,37 +185,32 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   ) {
     DevServerService.instance.clearServerHandler(serverHandler);
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
-      let message = nls.localize('force_lightning_lwc_start_failed');
+      let message = nls.localize('lightning_lwc_start_failed');
 
       if (
         exitCode === 1 &&
         this.errorHint === errorHints.INACTIVE_SCRATCH_ORG
       ) {
-        message = nls.localize('force_lightning_lwc_inactive_scratch_org');
+        message = nls.localize('lightning_lwc_inactive_scratch_org');
       }
       if (exitCode === 127) {
-        message = nls.localize('force_lightning_lwc_start_not_found');
+        message = nls.localize('lightning_lwc_start_not_found');
       }
       if (exitCode === 98) {
-        message = nls.localize('force_lightning_lwc_start_addr_in_use');
+        message = nls.localize('lightning_lwc_start_addr_in_use');
       }
 
       showError(new Error(message), logName, commandName);
     } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
-      const message = nls.localize(
-        'force_lightning_lwc_start_exited',
-        exitCode
-      );
+      const message = nls.localize('lightning_lwc_start_exited', exitCode);
       showError(new Error(message), logName, commandName);
     }
   }
 }
 
-export const forceLightningLwcStart = async () => {
+export const lightningLwcStart = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
-    const warningMessage = nls.localize(
-      'force_lightning_lwc_start_already_running'
-    );
+    const warningMessage = nls.localize('lightning_lwc_start_already_running');
     const openBrowserOption = nls.localize('prompt_option_open_browser');
     const restartOption = nls.localize('prompt_option_restart');
     const response = await notificationService.showWarningMessage(
@@ -227,9 +222,7 @@ export const forceLightningLwcStart = async () => {
       await openBrowser(DevServerService.instance.getBaseUrl());
       return;
     } else if (response === restartOption) {
-      channelService.appendLine(
-        nls.localize('force_lightning_lwc_stop_in_progress')
-      );
+      channelService.appendLine(nls.localize('lightning_lwc_stop_in_progress'));
       await DevServerService.instance.stopServer();
     } else {
       console.log('local development server already running, no action taken');
@@ -239,7 +232,7 @@ export const forceLightningLwcStart = async () => {
 
   const preconditionChecker = new SfdxWorkspaceChecker();
   const parameterGatherer = new EmptyParametersGatherer();
-  const executor = new ForceLightningLwcStartExecutor();
+  const executor = new LightningLwcStartExecutor();
 
   const commandlet = new SfdxCommandlet(
     preconditionChecker,

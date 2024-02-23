@@ -36,7 +36,7 @@ import {
   lwcPreview,
   PlatformName,
   platformOptions
-} from '../../../src/commands/forceLightningLwcPreview';
+} from '../../../src/commands/lightningLwcPreview';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
@@ -142,7 +142,7 @@ const appConfigFileJson = `
 }
 `;
 
-describe('forceLightningLwcPreview - lwcPreview ', () => {
+describe('lightningLwcPreview - lwcPreview ', () => {
   let sandbox: SinonSandbox;
   let devServiceStub: any;
   let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
@@ -197,9 +197,9 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     public get<T>(key: string): T | undefined {
       switch (key) {
         case `last${PlatformName.Android}Device`:
-          return (rememberedAndroidDevice as unknown) as T;
+          return rememberedAndroidDevice as unknown as T;
         case `last${PlatformName.iOS}Device`:
-          return (rememberediOSDevice as unknown) as T;
+          return rememberediOSDevice as unknown as T;
         default:
           return undefined;
       }
@@ -238,9 +238,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     public has(section: string): boolean {
       return this.shouldRemember;
     }
-    public inspect<T>(
-      section: string
-    ):
+    public inspect<T>(section: string):
       | {
           key: string;
           defaultValue?: T | undefined;
@@ -516,8 +514,8 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     expect(
       successInfoMessageSpy.calledWith(
         isAndroid
-          ? nls.localize('force_lightning_lwc_android_start', deviceName)
-          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+          ? nls.localize('lightning_lwc_android_start', deviceName)
+          : nls.localize('lightning_lwc_ios_start', deviceName)
       )
     );
   }
@@ -539,7 +537,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
+          `lightning_lwc_preview_unsupported`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -558,7 +556,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
+          `lightning_lwc_preview_file_nonexist`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -580,7 +578,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
 
     await lwcPreview(mockLwcFileDirectoryUri);
 
-    const commandName = nls.localize(`force_lightning_lwc_preview_text`);
+    const commandName = nls.localize(`lightning_lwc_preview_text`);
     sinon.assert.calledTwice(showErrorMessageStub);
     sinon.assert.calledWith(
       showErrorMessageStub,
@@ -715,7 +713,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
+          `lightning_lwc_preview_unsupported`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -737,7 +735,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       showErrorMessageStub,
       sinon.match(
         nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
+          `lightning_lwc_preview_file_nonexist`,
           /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
@@ -797,8 +795,8 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     expect(
       successInfoMessageSpy.calledWith(
         isAndroid
-          ? nls.localize('force_lightning_lwc_android_start', deviceName)
-          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+          ? nls.localize('lightning_lwc_android_start', deviceName)
+          : nls.localize('lightning_lwc_ios_start', deviceName)
       )
     );
   }
@@ -858,8 +856,8 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     expect(
       successInfoMessageSpy.calledWith(
         isAndroid
-          ? nls.localize('force_lightning_lwc_android_start', deviceName)
-          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+          ? nls.localize('lightning_lwc_android_start', deviceName)
+          : nls.localize('lightning_lwc_ios_start', deviceName)
       )
     );
   }
@@ -895,7 +893,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(mobileExecutorStub); // device list only (no preview)
     expect(
       showWarningMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_operation_cancelled')
+        nls.localize('lightning_lwc_operation_cancelled')
       )
     );
   }
@@ -932,11 +930,11 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
       sinon.match(
         isAndroid
           ? nls.localize(
-              'force_lightning_lwc_android_failure',
+              'lightning_lwc_android_failure',
               androidQuickPick.defaultTargetName
             )
           : nls.localize(
-              'force_lightning_lwc_ios_failure',
+              'lightning_lwc_ios_failure',
               iOSQuickPick.defaultTargetName
             )
       )
@@ -970,7 +968,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
 
     sinon.assert.calledWith(
       showErrorMessageStub,
-      sinon.match(nls.localize('force_lightning_lwc_no_mobile_plugin'))
+      sinon.match(nls.localize('lightning_lwc_no_mobile_plugin'))
     );
 
     sinon.assert.notCalled(streamCommandOutputSpy);
@@ -978,9 +976,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
 
     sinon.assert.calledOnce(appendLineSpy);
     expect(
-      appendLineSpy.calledWith(
-        nls.localize('force_lightning_lwc_no_mobile_plugin')
-      )
+      appendLineSpy.calledWith(nls.localize('lightning_lwc_no_mobile_plugin'))
     );
   });
 
@@ -1104,8 +1100,8 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     expect(
       successInfoMessageSpy.calledWith(
         isAndroid
-          ? nls.localize('force_lightning_lwc_android_start', deviceName)
-          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+          ? nls.localize('lightning_lwc_android_start', deviceName)
+          : nls.localize('lightning_lwc_ios_start', deviceName)
       )
     );
   }
@@ -1171,8 +1167,8 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     expect(
       successInfoMessageSpy.calledWith(
         isAndroid
-          ? nls.localize('force_lightning_lwc_android_start', deviceName)
-          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+          ? nls.localize('lightning_lwc_android_start', deviceName)
+          : nls.localize('lightning_lwc_ios_start', deviceName)
       )
     );
   }
@@ -1302,8 +1298,8 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     expect(
       successInfoMessageSpy.calledWith(
         isAndroid
-          ? nls.localize('force_lightning_lwc_android_start', deviceName)
-          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+          ? nls.localize('lightning_lwc_android_start', deviceName)
+          : nls.localize('lightning_lwc_ios_start', deviceName)
       )
     );
   }
@@ -1329,7 +1325,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     sinon.assert.notCalled(cmdWithFlagSpy);
     expect(
       showWarningMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_operation_cancelled')
+        nls.localize('lightning_lwc_operation_cancelled')
       )
     );
   });
@@ -1356,7 +1352,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(cmdWithFlagSpy); // device list
     expect(
       showWarningMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_operation_cancelled')
+        nls.localize('lightning_lwc_operation_cancelled')
       )
     );
   });
@@ -1384,7 +1380,7 @@ describe('forceLightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(cmdWithFlagSpy); // device list
     expect(
       showWarningMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_operation_cancelled')
+        nls.localize('lightning_lwc_operation_cancelled')
       )
     );
   });

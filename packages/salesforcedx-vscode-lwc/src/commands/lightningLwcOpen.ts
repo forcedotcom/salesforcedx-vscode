@@ -11,10 +11,10 @@ import { DevServerService } from '../service/devServerService';
 import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
 
-const logName = 'force_lightning_lwc_open';
-const commandName = nls.localize('force_lightning_lwc_open_text');
+const logName = 'lightning_lwc_open';
+const commandName = nls.localize('lightning_lwc_open_text');
 
-export const forceLightningLwcOpen = async () => {
+export const lightningLwcOpen = async () => {
   const startTime = process.hrtime();
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
@@ -26,7 +26,7 @@ export const forceLightningLwcOpen = async () => {
     }
   } else {
     console.log(`${logName}: server was not running, starting...`);
-    await vscode.commands.executeCommand('sfdx.force.lightning.lwc.start');
+    await vscode.commands.executeCommand('sfdx.lightning.lwc.start');
     telemetryService.sendCommandEvent(logName, startTime);
   }
 };
