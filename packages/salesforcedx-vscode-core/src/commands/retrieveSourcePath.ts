@@ -27,10 +27,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string[]
 > {
   constructor() {
-    super(
-      nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_with_sourcepath_beta'
-    );
+    super(nls.localize('retrieve_text'), 'retrieve_with_sourcepath_beta');
   }
 
   public async getComponents(
@@ -52,9 +49,8 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       const sourcePaths = inputs.data;
       try {
         for (const sourcePath of sourcePaths) {
-          const isInSfdxPackageDirectory = await SfdxPackageDirectories.isInPackageDirectory(
-            sourcePath
-          );
+          const isInSfdxPackageDirectory =
+            await SfdxPackageDirectories.isInPackageDirectory(sourcePath);
 
           if (!isInSfdxPackageDirectory) {
             throw nls.localize(
@@ -66,18 +62,17 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
         return inputs;
       } catch (error) {
         telemetryService.sendException(
-          'force_source_retrieve_with_sourcepath',
-          `Error while parsing package directories. ${error instanceof Error ? error.message : JSON.stringify(error)}`
+          'retrieve_with_sourcepath',
+          `Error while parsing package directories. ${
+            error instanceof Error ? error.message : JSON.stringify(error)
+          }`
         );
       }
 
       const errorMessage = nls.localize(
         'error_source_path_not_in_package_directory_text'
       );
-      telemetryService.sendException(
-        'force_source_retrieve_with_sourcepath',
-        errorMessage
-      );
+      telemetryService.sendException('retrieve_with_sourcepath', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
@@ -86,7 +81,7 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
   }
 }
 
-export const forceSourceRetrieveSourcePaths = async (
+export const retrieveSourcePaths = async (
   sourceUri: vscode.Uri | undefined,
   uris: vscode.Uri[] | undefined
 ) => {
@@ -130,13 +125,8 @@ export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
     return editor.document.uri;
   }
 
-  const errorMessage = nls.localize(
-    'force_source_retrieve_select_file_or_directory'
-  );
-  telemetryService.sendException(
-    'force_source_retrieve_with_sourcepath',
-    errorMessage
-  );
+  const errorMessage = nls.localize('retrieve_select_file_or_directory');
+  telemetryService.sendException('retrieve_with_sourcepath', errorMessage);
   notificationService.showErrorMessage(errorMessage);
   channelService.appendLine(errorMessage);
   channelService.showChannelOutput();

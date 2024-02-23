@@ -16,7 +16,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
-import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
+import { LibraryRetrieveManifestExecutor } from '../../../src/commands/retrieveManifest';
 import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
@@ -24,7 +24,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
-describe('Force Source Retrieve with Manifest Option', () => {
+describe('Retrieve with Manifest Option', () => {
   beforeEach(() => {
     env.stub(SourceTrackingService, 'getSourceTracking');
     env.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
@@ -49,7 +49,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
     let retrieveStub: SinonStub;
     let pollStatusStub: SinonStub;
 
-    const executor = new LibrarySourceRetrieveManifestExecutor();
+    const executor = new LibraryRetrieveManifestExecutor();
 
     beforeEach(async () => {
       const testData = new MockTestOrgData();

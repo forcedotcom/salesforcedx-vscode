@@ -13,7 +13,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
-import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
+import { SourcePathChecker } from './retrieveSourcePath';
 import {
   LibraryPathsGatherer,
   SfdxCommandlet,
@@ -24,10 +24,7 @@ import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor() {
-    super(
-      nls.localize('force_source_deploy_text'),
-      'force_source_deploy_with_sourcepath_beta'
-    );
+    super(nls.localize('deploy_text'), 'deploy_with_sourcepath_beta');
   }
 
   public async getComponents(
@@ -41,7 +38,7 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   }
 }
 
-export const forceSourceDeploySourcePaths = async (
+export const deploySourcePaths = async (
   sourceUri: vscode.Uri | vscode.Uri[] | undefined,
   uris: vscode.Uri[] | undefined
 ) => {
@@ -74,9 +71,7 @@ export const forceSourceDeploySourcePaths = async (
     }
   }
 
-  const messages = getConflictMessagesFor(
-    'force_source_deploy_with_sourcepath_beta'
-  );
+  const messages = getConflictMessagesFor('deploy_with_sourcepath_beta');
 
   if (messages) {
     const commandlet = new SfdxCommandlet<string[]>(
@@ -99,13 +94,8 @@ export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
     return editor.document.uri;
   }
 
-  const errorMessage = nls.localize(
-    'force_source_deploy_select_file_or_directory'
-  );
-  telemetryService.sendException(
-    'force_source_deploy_with_sourcepath',
-    errorMessage
-  );
+  const errorMessage = nls.localize('deploy_select_file_or_directory');
+  telemetryService.sendException('deploy_with_sourcepath', errorMessage);
   notificationService.showErrorMessage(errorMessage);
   channelService.appendLine(errorMessage);
   channelService.showChannelOutput();
