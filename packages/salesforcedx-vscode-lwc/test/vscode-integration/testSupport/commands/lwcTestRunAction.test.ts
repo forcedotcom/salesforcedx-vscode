@@ -10,11 +10,11 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../../../src/telemetry';
 import {
-  forceLwcTestRun,
-  forceLwcTestRunActiveTextEditorTest
-} from '../../../../src/testSupport/commands/forceLwcTestRunAction';
+  lwcTestRun,
+  lwcTestRunActiveTextEditorTest
+} from '../../../../src/testSupport/commands/lwcTestRunAction';
 import { workspace } from '../../../../src/testSupport/workspace';
-import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import { LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
   mockActiveTextEditorUri,
@@ -29,7 +29,7 @@ import {
 import { InputBuffer } from 'uuid/interfaces';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
-describe('Force LWC Test Run - Code Action', () => {
+describe('LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
     let telemetryStub: SinonStub<
       [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
@@ -57,11 +57,11 @@ describe('Force LWC Test Run - Code Action', () => {
       const testExecutionInfo = createMockTestFileInfo();
       const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
-      await forceLwcTestRun(testExecutionInfo);
+      await lwcTestRun(testExecutionInfo);
       assert.calledOnce(telemetryStub);
       assert.calledWith(
         telemetryStub,
-        FORCE_LWC_TEST_RUN_LOG_NAME,
+        LWC_TEST_RUN_LOG_NAME,
         mockExecutionTime,
         {
           workspaceType: 'SFDX'
@@ -100,7 +100,7 @@ describe('Force LWC Test Run - Code Action', () => {
     const mockTestFileInfo = createMockTestFileInfo();
     it('Should run active text editor test file', async () => {
       mockActiveTextEditorUri(mockTestFileInfo.testUri);
-      await forceLwcTestRunActiveTextEditorTest();
+      await lwcTestRunActiveTextEditorTest();
 
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
       const expectedOptions = /^win32/.test(process.platform)
@@ -109,9 +109,8 @@ describe('Force LWC Test Run - Code Action', () => {
             shellArgs: ['/d', '/c']
           }
         : undefined;
-      const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
-        expectedCwd
-      );
+      const lwcTestRunnerExecutable =
+        workspace.getLwcTestRunnerExecutable(expectedCwd);
       assert.calledOnce(executeTaskStub);
       assert.calledWith(
         executeTaskStub,

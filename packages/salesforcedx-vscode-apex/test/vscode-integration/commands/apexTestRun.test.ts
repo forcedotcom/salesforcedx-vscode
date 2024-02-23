@@ -14,7 +14,7 @@ import {
   ApexTestQuickPickItem,
   TestsSelector,
   TestType
-} from '../../../src/commands/forceApexTestRun';
+} from '../../../src/commands/apexTestRun';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
@@ -241,10 +241,8 @@ describe('Apex Library Test Run Executor', async () => {
 
     beforeEach(() => {
       quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns({
-        label: nls.localize('force_apex_test_run_all_test_label'),
-        description: nls.localize(
-          'force_apex_test_run_all_tests_description_text'
-        ),
+        label: nls.localize('apex_test_run_all_test_label'),
+        description: nls.localize('apex_test_run_all_tests_description_text'),
         type: TestType.All
       });
     });
@@ -255,25 +253,25 @@ describe('Apex Library Test Run Executor', async () => {
 
       expect(result.type).to.equal('CONTINUE');
       expect(quickPickStub.getCall(0).args.length).to.equal(1);
-      const fileItems: ApexTestQuickPickItem[] = quickPickStub.getCall(0)
-        .args[0];
+      const fileItems: ApexTestQuickPickItem[] =
+        quickPickStub.getCall(0).args[0];
       expect(fileItems.length).to.equal(4);
       expect(fileItems[0].label).to.equal('DemoSuite');
       expect(fileItems[0].type).to.equal(TestType.Suite);
       expect(fileItems[3].label).to.equal('DemoControllerTests');
       expect(fileItems[3].type).to.equal(TestType.Class);
       expect(fileItems[1].label).to.equal(
-        nls.localize('force_apex_test_run_all_local_test_label')
+        nls.localize('apex_test_run_all_local_test_label')
       );
       expect(fileItems[1].description).to.equal(
-        nls.localize('force_apex_test_run_all_local_tests_description_text')
+        nls.localize('apex_test_run_all_local_tests_description_text')
       );
       expect(fileItems[1].type).to.equal(TestType.AllLocal);
       expect(fileItems[2].label).to.equal(
-        nls.localize('force_apex_test_run_all_test_label')
+        nls.localize('apex_test_run_all_test_label')
       );
       expect(fileItems[2].description).to.equal(
-        nls.localize('force_apex_test_run_all_tests_description_text')
+        nls.localize('apex_test_run_all_tests_description_text')
       );
       expect(fileItems[2].type).to.equal(TestType.All);
     });
