@@ -14,19 +14,19 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.1.1",
+  "version": "60.1.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Other"
   ],
   "dependencies": {
     "@salesforce/core": "6.5.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "60.1.1",
-    "@salesforce/salesforcedx-utils-vscode": "60.1.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "60.1.2",
+    "@salesforce/salesforcedx-utils-vscode": "60.1.2",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "10.3.3",
     "@salesforce/templates": "^60.1.0",
@@ -40,7 +40,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.1.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.1.2",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -129,10 +129,7 @@
     ]
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.project.generate",
-    "onCommand:sfdx.project.generate.with.manifest",
-    "onCommand:sfdx.debug.isv.bootstrap"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
   "contributes": {
@@ -976,6 +973,14 @@
         },
         "salesforcedx-vscode-core.SF_LOG_LEVEL": {
           "type": "string",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
           "default": "fatal",
           "description": "%sf_log_level_description%"
         },
