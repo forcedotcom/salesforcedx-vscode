@@ -17,7 +17,8 @@
  */
 export const messages = {
   command_failure: '%s failed to run.',
-  force_lightning_lwc_test_navigate_to_test:
+  lwc_test_run_description_text: 'Run LWC test(s)',
+  lightning_lwc_test_navigate_to_test:
     'SFDX: Navigate to Lightning Web Component Test',
   no_lwc_jest_found_text:
     'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
@@ -32,12 +33,11 @@ export const messages = {
   task_windows_command_prompt_messaging:
     'Default shell for running tasks is set to cmd.exe',
   lwc_output_channel_name: 'LWC Extension',
-  force_lightning_lwc_no_redhat_extension_found:
+  lightning_lwc_no_redhat_extension_found:
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
-  force_lightning_lwc_deprecated_redhat_extension:
+  lightning_lwc_deprecated_redhat_extension:
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
-  force_lightning_lwc_redhat_extension_regression:
+  lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
-  force_lightning_lwc_fail_redhat_extension:
-    'Failed to setup Red Hat XML extension'
+  lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension'
 };
