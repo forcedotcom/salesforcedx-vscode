@@ -12,28 +12,26 @@ import { DevServerService } from '../service/devServerService';
 import { telemetryService } from '../telemetry';
 import { showError } from './commandUtils';
 
-const logName = 'force_lightning_lwc_stop';
-const commandName = nls.localize('force_lightning_lwc_stop_text');
+const logName = 'lightning_lwc_stop';
+const commandName = nls.localize('lightning_lwc_stop_text');
 
-export const forceLightningLwcStop = async () => {
+export const lightningLwcStop = async () => {
   const startTime = process.hrtime();
 
   try {
     if (DevServerService.instance.isServerHandlerRegistered()) {
-      channelService.appendLine(
-        nls.localize('force_lightning_lwc_stop_in_progress')
-      );
+      channelService.appendLine(nls.localize('lightning_lwc_stop_in_progress'));
       await DevServerService.instance.stopServer();
       notificationService
         .showSuccessfulExecution(
-          nls.localize('force_lightning_lwc_stop_text'),
+          nls.localize('lightning_lwc_stop_text'),
           channelService
         )
         .catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {
       notificationService.showWarningMessage(
-        nls.localize('force_lightning_lwc_stop_not_running')
+        nls.localize('lightning_lwc_stop_not_running')
       );
     }
   } catch (e) {

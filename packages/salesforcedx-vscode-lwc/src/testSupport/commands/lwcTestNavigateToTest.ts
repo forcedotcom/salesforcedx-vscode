@@ -33,7 +33,7 @@ const updateSelection = (index: vscode.Range | number) => {
  * Navigate to the test position
  * @param node test explorer node
  */
-export const forceLwcTestNavigateToTest = (node: TestNode) => {
+export const lwcTestNavigateToTest = (node: TestNode) => {
   if (node.location) {
     vscode.window.showTextDocument(node.location.uri);
   }
