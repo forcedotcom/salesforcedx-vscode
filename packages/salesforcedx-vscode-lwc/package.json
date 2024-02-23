@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Programming Languages"
@@ -126,8 +126,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "workspaceContains:../workspace-user.xml",
-    "workspaceContains:**/workspace-user.xml",
-    "onCommand:sfdx.force.lightning.lwc.start"
+    "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
   "serverPath": [
