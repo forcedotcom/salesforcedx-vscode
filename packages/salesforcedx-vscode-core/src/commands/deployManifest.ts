@@ -9,26 +9,19 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
+import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { RetrieveExecutor } from './baseDeployRetrieve';
-import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { DeployExecutor } from './baseDeployRetrieve';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
-export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
-  string
-> {
+export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
-    super(
-      nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_with_manifest_beta'
-    );
+    super(nls.localize('deploy_text'), 'deploy_with_manifest_beta');
   }
 
   protected async getComponents(
@@ -36,31 +29,27 @@ export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
   ): Promise<ComponentSet> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-    const resolveSourcePaths = packageDirs.map(packageDir => join(rootWorkspacePath, packageDir));
-
+    const resolveSourcePaths = packageDirs.map(packageDir =>
+      join(rootWorkspacePath, packageDir)
+    );
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
       resolveSourcePaths,
-      forceAddWildcards: true
+      forceAddWildcards: undefined
     });
 
     return componentSet;
   }
 }
 
-export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
-  if (!explorerPath) {
+export async function deployManifest(manifestUri: vscode.Uri) {
+  if (!manifestUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {
-      explorerPath = editor.document.uri;
+      manifestUri = editor.document.uri;
     } else {
-      const errorMessage = nls.localize(
-        'force_source_retrieve_select_manifest'
-      );
-      telemetryService.sendException(
-        'force_source_retrieve_with_manifest',
-        errorMessage
-      );
+      const errorMessage = nls.localize('deploy_select_manifest');
+      telemetryService.sendException('deploy_with_manifest', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
@@ -68,10 +57,15 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
     }
   }
 
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new FilePathGatherer(explorerPath),
-    new LibrarySourceRetrieveManifestExecutor()
-  );
-  await commandlet.run();
+  const messages = getConflictMessagesFor('deploy_with_manifest_beta');
+
+  if (messages) {
+    const commandlet = new SfdxCommandlet(
+      new SfdxWorkspaceChecker(),
+      new FilePathGatherer(manifestUri),
+      new LibraryDeployManifestExecutor(),
+      new TimestampConflictChecker(true, messages)
+    );
+    await commandlet.run();
+  }
 }
