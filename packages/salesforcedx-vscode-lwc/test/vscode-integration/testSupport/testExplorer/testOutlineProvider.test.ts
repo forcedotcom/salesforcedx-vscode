@@ -12,11 +12,11 @@ import { nls } from '../../../../src/messages';
 import { lwcTestNavigateToTest } from '../../../../src/testSupport/commands/lwcTestNavigateToTest';
 import { lwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/lwcTestRefreshTestExplorer';
 import {
-  forceLwcTestCaseRun,
-  forceLwcTestFileRun,
-  forceLwcTestRun,
-  forceLwcTestRunAllTests
-} from '../../../../src/testSupport/commands/forceLwcTestRunAction';
+  lwcTestCaseRun,
+  lwcTestFileRun,
+  lwcTestRun,
+  lwcTestRunAllTests
+} from '../../../../src/testSupport/commands/lwcTestRunAction';
 import {
   SfdxTestGroupNode,
   SfdxTestNode
@@ -213,7 +213,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run all tests', async () => {
-      const commandResult = (await forceLwcTestRunAllTests()) as SfdxTask;
+      const commandResult = (await lwcTestRunAllTests()) as SfdxTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
@@ -240,7 +240,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run tests from test file nodes', async () => {
-      const commandResult = (await forceLwcTestFileRun(
+      const commandResult = (await lwcTestFileRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
@@ -298,7 +298,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a successful test case node', async () => {
-      const commandResult = (await forceLwcTestCaseRun(
+      const commandResult = (await lwcTestCaseRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
@@ -329,7 +329,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a failed test case node and generates diagnostics for the test uri', async () => {
-      const commandResult = (await forceLwcTestCaseRun(
+      const commandResult = (await lwcTestCaseRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }

@@ -7,20 +7,20 @@
 import * as vscode from 'vscode';
 import { commands, Disposable, ExtensionContext } from 'vscode';
 import {
-  forceLwcTestCaseDebug,
-  forceLwcTestDebugActiveTextEditorTest,
-  forceLwcTestFileDebug,
   handleDidStartDebugSession,
-  handleDidTerminateDebugSession
-} from './forceLwcTestDebugAction';
-import {
-  forceLwcTestCaseRun,
-  forceLwcTestFileRun,
-  forceLwcTestRunActiveTextEditorTest,
-  forceLwcTestRunAllTests
-} from './forceLwcTestRunAction';
+  handleDidTerminateDebugSession,
+  lwcTestCaseDebug,
+  lwcTestDebugActiveTextEditorTest,
+  lwcTestFileDebug
+} from './lwcTestDebugAction';
 import { lwcTestNavigateToTest } from './lwcTestNavigateToTest';
 import { lwcTestRefreshTestExplorer } from './lwcTestRefreshTestExplorer';
+import {
+  lwcTestCaseRun,
+  lwcTestFileRun,
+  lwcTestRunActiveTextEditorTest,
+  lwcTestRunAllTests
+} from './lwcTestRunAction';
 import {
   lwcTestStartWatchingCurrentFile,
   lwcTestStopWatchingAllTests,
@@ -34,9 +34,9 @@ import {
 export const registerCommands = (
   extensionContext: ExtensionContext
 ): Disposable => {
-  const forceLwcTestRunAllTestsCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.runAllTests',
-    forceLwcTestRunAllTests
+  const lwcTestRunAllTestsCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.runAllTests',
+    lwcTestRunAllTests
   );
   const lwcTestRefreshTestExplorerCmd = commands.registerCommand(
     'sfdx.lightning.lwc.test.refreshTestExplorer',
@@ -46,29 +46,29 @@ export const registerCommands = (
     'sfdx.lightning.lwc.test.navigateToTest',
     lwcTestNavigateToTest
   );
-  const forceLwcTestFileRunCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.file.run',
-    forceLwcTestFileRun
+  const lwcTestFileRunCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.file.run',
+    lwcTestFileRun
   );
-  const forceLwcTestFileDebugCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.file.debug',
-    forceLwcTestFileDebug
+  const lwcTestFileDebugCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.file.debug',
+    lwcTestFileDebug
   );
-  const forceLwcTestCaseRunCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.case.run',
-    forceLwcTestCaseRun
+  const lwcTestCaseRunCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.case.run',
+    lwcTestCaseRun
   );
-  const forceLwcTestCaseDebugCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.case.debug',
-    forceLwcTestCaseDebug
+  const lwcTestCaseDebugCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.case.debug',
+    lwcTestCaseDebug
   );
-  const forceLwcTestEditorTitleRunCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.editorTitle.run',
-    forceLwcTestRunActiveTextEditorTest
+  const lwcTestEditorTitleRunCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.editorTitle.run',
+    lwcTestRunActiveTextEditorTest
   );
-  const forceLwcTestEditorTitleDebugCmd = commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.editorTitle.debug',
-    forceLwcTestDebugActiveTextEditorTest
+  const lwcTestEditorTitleDebugCmd = commands.registerCommand(
+    'sfdx.lightning.lwc.test.editorTitle.debug',
+    lwcTestDebugActiveTextEditorTest
   );
   const lwcTestEditorTitleStartWatchingCmd = commands.registerCommand(
     'sfdx.lightning.lwc.test.editorTitle.startWatching',
@@ -89,18 +89,18 @@ export const registerCommands = (
     handleDidTerminateDebugSession
   );
   const disposables = Disposable.from(
-    forceLwcTestRunAllTestsCmd,
     lwcTestRefreshTestExplorerCmd,
     lwcTestNavigateToTestCmd,
-    forceLwcTestFileRunCmd,
-    forceLwcTestFileDebugCmd,
-    forceLwcTestCaseRunCmd,
-    forceLwcTestCaseDebugCmd,
-    forceLwcTestEditorTitleRunCmd,
-    forceLwcTestEditorTitleDebugCmd,
     lwcTestEditorTitleStartWatchingCmd,
     lwcTestEditorTitleStopWatchingCmd,
     lwcTestStopWatchingAllTestsCmd,
+    lwcTestRunAllTestsCmd,
+    lwcTestFileRunCmd,
+    lwcTestFileDebugCmd,
+    lwcTestCaseRunCmd,
+    lwcTestCaseDebugCmd,
+    lwcTestEditorTitleRunCmd,
+    lwcTestEditorTitleDebugCmd,
     startDebugSessionDisposable,
     stopDebugSessionDisposable
   );
