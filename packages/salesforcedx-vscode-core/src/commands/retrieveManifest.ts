@@ -9,28 +9,17 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
-import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { DeployExecutor } from './baseDeployRetrieve';
-import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { RetrieveExecutor } from './baseDeployRetrieve';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
-export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
-  string
-> {
+export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   constructor() {
-    super(
-      nls.localize('force_source_deploy_text'),
-      'force_source_deploy_with_manifest_beta'
-    );
+    super(nls.localize('retrieve_text'), 'retrieve_with_manifest_beta');
   }
 
   protected async getComponents(
@@ -41,27 +30,25 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
     const resolveSourcePaths = packageDirs.map(packageDir =>
       join(rootWorkspacePath, packageDir)
     );
+
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
       resolveSourcePaths,
-      forceAddWildcards: undefined
+      forceAddWildcards: true
     });
 
     return componentSet;
   }
 }
 
-export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
-  if (!manifestUri) {
+export async function retrieveManifest(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {
-      manifestUri = editor.document.uri;
+      explorerPath = editor.document.uri;
     } else {
-      const errorMessage = nls.localize('force_source_deploy_select_manifest');
-      telemetryService.sendException(
-        'force_source_deploy_with_manifest',
-        errorMessage
-      );
+      const errorMessage = nls.localize('retrieve_select_manifest');
+      telemetryService.sendException('retrieve_with_manifest', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
@@ -69,17 +56,10 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     }
   }
 
-  const messages = getConflictMessagesFor(
-    'force_source_deploy_with_manifest_beta'
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new FilePathGatherer(explorerPath),
+    new LibraryRetrieveManifestExecutor()
   );
-
-  if (messages) {
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
-      new FilePathGatherer(manifestUri),
-      new LibrarySourceDeployManifestExecutor(),
-      new TimestampConflictChecker(true, messages)
-    );
-    await commandlet.run();
-  }
+  await commandlet.run();
 }

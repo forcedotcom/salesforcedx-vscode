@@ -17,7 +17,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
-import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
+import { LibraryDeployManifestExecutor } from '../../../src/commands/deployManifest';
 import { WorkspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
@@ -25,7 +25,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
-describe('Force Source Deploy Using Manifest Option', () => {
+describe('Deploy Using Manifest Option', () => {
   beforeEach(() => {
     stubContext($$);
   });
@@ -46,7 +46,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
     let deployStub: SinonStub;
     let pollStatusStub: SinonStub;
 
-    const executor = new LibrarySourceDeployManifestExecutor();
+    const executor = new LibraryDeployManifestExecutor();
 
     beforeEach(async () => {
       const testData = new MockTestOrgData();
