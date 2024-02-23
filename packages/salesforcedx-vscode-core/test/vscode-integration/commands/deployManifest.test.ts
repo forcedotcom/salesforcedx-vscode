@@ -25,7 +25,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
-describe('Force Source Deploy Using Manifest Option', () => {
+describe('Deploy Using Manifest Option', () => {
   beforeEach(() => {
     stubContext($$);
   });

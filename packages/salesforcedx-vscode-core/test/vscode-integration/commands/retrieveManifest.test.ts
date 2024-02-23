@@ -24,7 +24,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const env = $$.SANDBOX;
 
-describe('Force Source Retrieve with Manifest Option', () => {
+describe('Retrieve with Manifest Option', () => {
   beforeEach(() => {
     env.stub(SourceTrackingService, 'getSourceTracking');
     env.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');

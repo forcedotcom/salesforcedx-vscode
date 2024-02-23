@@ -38,7 +38,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;
 
-describe('Force Source Deploy Using Sourcepath Option', () => {
+describe('Deploy Using Sourcepath Option', () => {
   afterEach(() => {
     restoreContext($$);
   });
