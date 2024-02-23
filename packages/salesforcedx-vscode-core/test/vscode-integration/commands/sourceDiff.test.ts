@@ -36,8 +36,8 @@ import { telemetryService } from '../../../src/telemetry';
 
 const sandbox = createSandbox();
 
-describe('Force Source Diff', () => {
-  describe('Force Source File Diff', () => {
+describe('Diff', () => {
+  describe('File Diff', () => {
     const mockAlias = 'vscodeOrg';
     const mockUsername = 'admin@ut-sandbox.org';
     const mockFilePath = path.join(
@@ -190,7 +190,7 @@ describe('Force Source Diff', () => {
     });
   });
 
-  describe('Force Source Folder Diff', () => {
+  describe('Folder Diff', () => {
     let notificationStub: SinonStub;
     let diffOneFileStub: SinonSpy;
     let diffFolderStub: SinonSpy;

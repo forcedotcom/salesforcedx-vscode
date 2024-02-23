@@ -24,7 +24,7 @@ import {
 } from '../../../src/languageUtils/languageClientUtils';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
-import { forceApexTestRunCacheService } from '../../../src/testRunCache';
+import { apexTestRunCacheService } from '../../../src/testRunCache';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
@@ -90,34 +90,30 @@ describe('TestView', () => {
     });
 
     it('Should cache the last run test method', async () => {
-      // forceApexTestRunCacheService is a singleton which means the values need to be
+      // apexTestRunCacheService is a singleton which means the values need to be
       // reset back to their default values otherwise they'll be set by the earlier
       // calls testRunner.runApexTests in this test suite
-      await forceApexTestRunCacheService.setCachedClassTestParam('');
-      await forceApexTestRunCacheService.setCachedMethodTestParam('');
+      await apexTestRunCacheService.setCachedClassTestParam('');
+      await apexTestRunCacheService.setCachedMethodTestParam('');
       await testRunner.runApexTests([`${testMethod}`], TestRunType.Method);
-      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+      expect(apexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
       );
       // the test class value should remain unchanged
-      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq('');
+      expect(apexTestRunCacheService.getLastClassTestParam()).to.eq('');
     });
     it('Should cache the last run test class', async () => {
       await testRunner.runApexTests([`${testClass}`], TestRunType.Class);
-      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq(
-        testClass
-      );
+      expect(apexTestRunCacheService.getLastClassTestParam()).to.eq(testClass);
       // the test method value should remain unchanged
-      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+      expect(apexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
       );
     });
     it('Should not change last run class or method when all tests are selected', async () => {
       await testRunner.runApexTests([`${testRunAll}`], TestRunType.All);
-      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq(
-        testClass
-      );
-      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+      expect(apexTestRunCacheService.getLastClassTestParam()).to.eq(testClass);
+      expect(apexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
       );
     });

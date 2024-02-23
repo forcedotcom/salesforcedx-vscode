@@ -26,7 +26,7 @@ import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
-import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
+import * as deploySourcePath from '../../../src/commands/deploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
 import { WorkspaceContext } from '../../../src/context';
 import {
@@ -38,7 +38,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;
 
-describe('Force Source Deploy Using Sourcepath Option', () => {
+describe('Deploy Using Sourcepath Option', () => {
   afterEach(() => {
     restoreContext($$);
   });
@@ -158,10 +158,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           path.sep + filePath3
         ]);
 
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        uris[0],
-        uris
-      );
+      await deploySourcePath.deploySourcePaths(uris[0], uris);
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
       const continueResponse = timestampConflictCheckerCheckStub
@@ -193,10 +190,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        uris[0],
-        uris
-      );
+      await deploySourcePath.deploySourcePaths(uris[0], uris);
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
       const continueResponse = timestampConflictCheckerCheckStub
@@ -229,10 +223,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        uris[0],
-        undefined
-      );
+      await deploySourcePath.deploySourcePaths(uris[0], undefined);
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
       const continueResponse = timestampConflictCheckerCheckStub
@@ -267,16 +258,13 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const getUriFromActiveEditorStub = sb
-        .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
+        .stub(deploySourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
 
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        sourceUri,
-        uris
-      );
+      await deploySourcePath.deploySourcePaths(sourceUri, uris);
 
       expect(getUriFromActiveEditorStub.called).to.equal(true);
 
@@ -310,10 +298,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        sourceUris,
-        uris
-      );
+      await deploySourcePath.deploySourcePaths(sourceUris, uris);
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
       const continueResponse = timestampConflictCheckerCheckStub

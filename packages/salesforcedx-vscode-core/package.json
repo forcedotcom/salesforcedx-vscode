@@ -188,36 +188,36 @@
           "group": "inline"
         },
         {
-          "command": "sfdx.force.source.retrieve.open.component",
+          "command": "sfdx.retrieve.open.component",
           "when": "view == metadata && viewItem == component",
           "group": "inline"
         },
         {
-          "command": "sfdx.force.source.retrieve.component",
+          "command": "sfdx.retrieve.component",
           "when": "view == metadata && viewItem =~ /(type|component|folder)/",
           "group": "inline"
         },
         {
-          "command": "sfdx.force.conflict.open",
+          "command": "sfdx.conflict.open",
           "when": "view == conflicts && viewItem == conflict-actions",
           "group": "inline"
         }
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.source.retrieve.current.source.file",
+          "command": "sfdx.retrieve.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.retrieve.in.manifest",
+          "command": "sfdx.retrieve.in.manifest",
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.deploy.current.source.file",
+          "command": "sfdx.deploy.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.deploy.in.manifest",
+          "command": "sfdx.deploy.in.manifest",
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -307,19 +307,19 @@
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.retrieve.source.path",
+          "command": "sfdx.retrieve.source.path",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.retrieve.in.manifest",
+          "command": "sfdx.retrieve.in.manifest",
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.deploy.source.path",
+          "command": "sfdx.deploy.source.path",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.deploy.in.manifest",
+          "command": "sfdx.deploy.in.manifest",
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -485,35 +485,35 @@
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.source.retrieve.component",
+          "command": "sfdx.retrieve.component",
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.open.component",
+          "command": "sfdx.retrieve.open.component",
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.source.path",
+          "command": "sfdx.retrieve.source.path",
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy.source.path",
+          "command": "sfdx.deploy.source.path",
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.current.source.file",
+          "command": "sfdx.retrieve.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.retrieve.in.manifest",
+          "command": "sfdx.retrieve.in.manifest",
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.deploy.current.source.file",
+          "command": "sfdx.deploy.current.source.file",
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sfdx:has_default_username"
         },
         {
-          "command": "sfdx.force.source.deploy.in.manifest",
+          "command": "sfdx.deploy.in.manifest",
           "when": "sfdx:project_opened && resourceLangId == 'forcesourcemanifest' && sfdx:has_default_username"
         },
         {
@@ -593,7 +593,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.conflict.open",
+          "command": "sfdx.conflict.open",
           "when": "false"
         },
         {
@@ -800,28 +800,28 @@
         "title": "%isv_bootstrap_command_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.source.path",
-        "title": "%force_source_retrieve_text%"
+        "command": "sfdx.retrieve.source.path",
+        "title": "%retrieve_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.current.source.file",
-        "title": "%force_source_retrieve_this_source_text%"
+        "command": "sfdx.retrieve.current.source.file",
+        "title": "%retrieve_this_source_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.in.manifest",
-        "title": "%force_source_retrieve_in_manifest_text%"
+        "command": "sfdx.retrieve.in.manifest",
+        "title": "%retrieve_in_manifest_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.source.path",
-        "title": "%force_source_deploy_text%"
+        "command": "sfdx.deploy.source.path",
+        "title": "%deploy_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.current.source.file",
-        "title": "%force_source_deploy_this_source_text%"
+        "command": "sfdx.deploy.current.source.file",
+        "title": "%deploy_this_source_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.in.manifest",
-        "title": "%force_source_deploy_in_manifest_text%"
+        "command": "sfdx.deploy.in.manifest",
+        "title": "%deploy_in_manifest_text%"
       },
       {
         "command": "sfdx.delete.source",
@@ -864,16 +864,16 @@
         }
       },
       {
-        "command": "sfdx.force.source.retrieve.component",
-        "title": "%force_source_retrieve_display_text%",
+        "command": "sfdx.retrieve.component",
+        "title": "%retrieve_display_text%",
         "icon": {
           "light": "resources/light/retrieve.svg",
           "dark": "resources/dark/retrieve.svg"
         }
       },
       {
-        "command": "sfdx.force.source.retrieve.open.component",
-        "title": "%force_source_retrieve_and_open_display_text%",
+        "command": "sfdx.retrieve.open.component",
+        "title": "%retrieve_and_open_display_text%",
         "icon": {
           "light": "resources/light/code.svg",
           "dark": "resources/dark/code.svg"
@@ -892,7 +892,7 @@
         "title": "%diff_folder_against_org%"
       },
       {
-        "command": "sfdx.force.conflict.open",
+        "command": "sfdx.conflict.open",
         "title": "%conflict_detect_open_file%",
         "icon": {
           "light": "resources/light/go-to-file.svg",

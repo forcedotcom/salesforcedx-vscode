@@ -29,19 +29,9 @@ import {
   dataQuery,
   debuggerStop,
   deleteSource,
-  orgLoginAccessToken,
-  projectGenerateManifest,
+  deployManifest,
+  deploySourcePaths,
   forceLightningLwcTestCreate,
-  packageInstall,
-  refreshSObjects,
-  renameLightningComponent,
-  forceSourceDeployManifest,
-  forceSourceDeploySourcePaths,
-  sourceDiff,
-  sourceFolderDiff,
-  forceSourceRetrieveCmp,
-  forceSourceRetrieveManifest,
-  forceSourceRetrieveSourcePaths,
   initSObjectDefinitions,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
@@ -58,15 +48,25 @@ import {
   orgDelete,
   orgDisplay,
   orgList,
+  orgLoginAccessToken,
   orgLoginWeb,
   orgLoginWebDevHub,
   orgLogoutAll,
   orgLogoutDefault,
   orgOpen,
+  packageInstall,
   projectDeployStart,
+  projectGenerateManifest,
   projectGenerateWithManifest,
   projectRetrieveStart,
+  refreshSObjects,
+  renameLightningComponent,
+  retrieveComponent,
+  retrieveManifest,
+  retrieveSourcePaths,
   sfProjectGenerate,
+  sourceDiff,
+  sourceFolderDiff,
   startApexDebugLogging,
   stopApexDebugLogging,
   taskStop,
@@ -77,8 +77,8 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { isvDebugBootstrap } from './commands/isvdebugging';
+import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { getUserId } from './commands/startApexDebugLogging';
 import {
   CompositeParametersGatherer,
@@ -173,22 +173,21 @@ function registerCommands(
     'sfdx.delete.source.current.file',
     deleteSource
   );
-  const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.current.source.file',
-    forceSourceDeploySourcePaths
+  const deployCurrentSourceFileCmd = vscode.commands.registerCommand(
+    'sfdx.deploy.current.source.file',
+    deploySourcePaths
   );
-  const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.in.manifest',
-    forceSourceDeployManifest
+  const deployInManifestCmd = vscode.commands.registerCommand(
+    'sfdx.deploy.in.manifest',
+    deployManifest
   );
-  const forceSourceDeployMultipleSourcePathsCmd =
-    vscode.commands.registerCommand(
-      'sfdx.force.source.deploy.multiple.source.paths',
-      forceSourceDeploySourcePaths
-    );
-  const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.source.path',
-    forceSourceDeploySourcePaths
+  const deployMultipleSourcePathsCmd = vscode.commands.registerCommand(
+    'sfdx.deploy.multiple.source.paths',
+    deploySourcePaths
+  );
+  const deploySourcePathCmd = vscode.commands.registerCommand(
+    'sfdx.deploy.source.path',
+    deploySourcePaths
   );
   const projectRetrieveStartCmd = vscode.commands.registerCommand(
     'sfdx.project.retrieve.start',
@@ -209,17 +208,17 @@ function registerCommands(
     projectDeployStart,
     flagIgnoreConflicts
   );
-  const forceSourceRetrieveCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.source.path',
-    forceSourceRetrieveSourcePaths
+  const retrieveCmd = vscode.commands.registerCommand(
+    'sfdx.retrieve.source.path',
+    retrieveSourcePaths
   );
-  const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.current.source.file',
-    forceSourceRetrieveSourcePaths
+  const retrieveCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.retrieve.current.source.file',
+    retrieveSourcePaths
   );
-  const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.in.manifest',
-    forceSourceRetrieveManifest
+  const retrieveInManifestCmd = vscode.commands.registerCommand(
+    'sfdx.retrieve.in.manifest',
+    retrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.view.all.changes',
@@ -402,17 +401,17 @@ function registerCommands(
     forceRefreshSObjectsCmd,
     deleteSourceCmd,
     deleteSourceCurrentFileCmd,
-    forceSourceDeployCurrentSourceFileCmd,
-    forceSourceDeployInManifestCmd,
-    forceSourceDeployMultipleSourcePathsCmd,
-    forceSourceDeploySourcePathCmd,
+    deployCurrentSourceFileCmd,
+    deployInManifestCmd,
+    deployMultipleSourcePathsCmd,
+    deploySourcePathCmd,
     projectDeployStartCmd,
     projectDeployStartIgnoreConflictsCmd,
     projectRetrieveStartCmd,
     projectRetrieveStartIgnoreConflictsCmd,
-    forceSourceRetrieveCmd,
-    forceSourceRetrieveCurrentFileCmd,
-    forceSourceRetrieveInManifestCmd,
+    retrieveCmd,
+    retrieveCurrentFileCmd,
+    retrieveInManifestCmd,
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
@@ -517,16 +516,16 @@ async function setupOrgBrowser(
   );
 
   vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.component',
+    'sfdx.retrieve.component',
     async (trigger: RetrieveMetadataTrigger) => {
-      await forceSourceRetrieveCmp(trigger);
+      await retrieveComponent(trigger);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.open.component',
+    'sfdx.retrieve.open.component',
     async (trigger: RetrieveMetadataTrigger) => {
-      await forceSourceRetrieveCmp(trigger, true);
+      await retrieveComponent(trigger, true);
     }
   );
 
