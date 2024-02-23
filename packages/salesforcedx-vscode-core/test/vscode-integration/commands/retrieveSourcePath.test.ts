@@ -32,7 +32,7 @@ import {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from '../../../src/commands';
-import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
+import * as retrieveSourcePath from '../../../src/commands/retrieveSourcePath';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
@@ -148,10 +148,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           path.sep + filePath3
         ]);
 
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
-        uris[0],
-        uris
-      );
+      await retrieveSourcePath.retrieveSourcePaths(uris[0], uris);
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
       const continueResponse = sourcePathCheckerCheckStub
@@ -180,10 +177,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
-        uris[0],
-        uris
-      );
+      await retrieveSourcePath.retrieveSourcePaths(uris[0], uris);
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
       const continueResponse = sourcePathCheckerCheckStub
@@ -212,10 +206,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
-        uris[0],
-        undefined
-      );
+      await retrieveSourcePath.retrieveSourcePaths(uris[0], undefined);
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
       const continueResponse = sourcePathCheckerCheckStub
@@ -246,16 +237,13 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const getUriFromActiveEditorStub = sb
-        .stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor')
+        .stub(retrieveSourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
 
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
-        sourceUri,
-        uris
-      );
+      await retrieveSourcePath.retrieveSourcePaths(sourceUri, uris);
 
       expect(getUriFromActiveEditorStub.called).to.equal(true);
 

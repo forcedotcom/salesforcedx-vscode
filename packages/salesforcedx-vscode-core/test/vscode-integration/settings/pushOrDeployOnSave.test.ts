@@ -236,7 +236,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.deploy.multiple.source.paths'
+        'sfdx.deploy.multiple.source.paths'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
