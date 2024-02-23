@@ -45,7 +45,7 @@ import { workspaceUtils } from '../../../src/util';
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;
 
-describe('Force Source Retrieve with Sourcepath Option', () => {
+describe('Retrieve with Sourcepath Option', () => {
   beforeEach(() => {
     stubContext($$);
   });
