@@ -46,9 +46,7 @@ export interface DeviceCodeResponse {
   verification_uri: string;
 }
 
-export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
-  AuthParams
-> {
+export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
@@ -167,7 +165,7 @@ export class OrgLoginWebExecutor extends SfdxCommandletExecutor<AuthParams> {
   }
 }
 
-export abstract class ForceAuthDemoModeExecutor<
+export abstract class AuthDemoModeExecutor<
   T
 > extends SfdxCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
@@ -185,7 +183,7 @@ export abstract class ForceAuthDemoModeExecutor<
 
     notificationService.reportExecutionError(
       execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
+      execution.stderrSubject as any as Observable<Error | undefined>
     );
 
     channelService.streamCommandOutput(execution);
@@ -208,9 +206,7 @@ export abstract class ForceAuthDemoModeExecutor<
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<
-  AuthParams
-> {
+export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))
