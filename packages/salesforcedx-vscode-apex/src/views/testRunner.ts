@@ -15,12 +15,10 @@ import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
-import {
-  languageClientUtils
-} from '../languageUtils';
+import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { forceApexTestRunCacheService } from '../testRunCache';
+import { apexTestRunCacheService } from '../testRunCache';
 import {
   ApexTestGroupNode,
   ApexTestNode,
@@ -122,7 +120,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus() ;
+    const languageClientStatus = languageClientUtils.getStatus();
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
         vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
@@ -133,9 +131,9 @@ export class ApexTestRunner {
     const tmpFolder = this.getTempFolder();
     const getCodeCoverage = settings.retrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {
-      await forceApexTestRunCacheService.setCachedClassTestParam(tests[0]);
+      await apexTestRunCacheService.setCachedClassTestParam(tests[0]);
     } else if (testRunType === TestRunType.Method) {
-      await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
+      await apexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),

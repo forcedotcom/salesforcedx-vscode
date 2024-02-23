@@ -33,7 +33,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
+import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
@@ -51,7 +51,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   ) {
     super(
       nls.localize('apex_test_run_text'),
-      'force_apex_test_run_code_action_library',
+      'apex_test_run_code_action_library',
       OUTPUT_CHANNEL
     );
     this.tests = tests;
@@ -198,11 +198,11 @@ export const resolveTestClassParam = async (
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
-    if (forceApexTestRunCacheService.hasCachedClassTestParam()) {
-      testClass = forceApexTestRunCacheService.getLastClassTestParam();
+    if (apexTestRunCacheService.hasCachedClassTestParam()) {
+      testClass = apexTestRunCacheService.getLastClassTestParam();
     }
   } else {
-    await forceApexTestRunCacheService.setCachedClassTestParam(testClass);
+    await apexTestRunCacheService.setCachedClassTestParam(testClass);
   }
   return testClass;
 };
@@ -241,11 +241,11 @@ export const resolveTestMethodParam = async (
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
-    if (forceApexTestRunCacheService.hasCachedMethodTestParam()) {
-      testMethod = forceApexTestRunCacheService.getLastMethodTestParam();
+    if (apexTestRunCacheService.hasCachedMethodTestParam()) {
+      testMethod = apexTestRunCacheService.getLastMethodTestParam();
     }
   } else {
-    await forceApexTestRunCacheService.setCachedMethodTestParam(testMethod);
+    await apexTestRunCacheService.setCachedMethodTestParam(testMethod);
   }
 
   return testMethod;
