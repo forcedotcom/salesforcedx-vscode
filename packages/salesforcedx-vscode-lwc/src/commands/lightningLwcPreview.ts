@@ -27,7 +27,7 @@ import { DevServerService } from '../service/devServerService';
 import { PreviewService } from '../service/previewService';
 import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
-import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
+import { LightningLwcStartExecutor } from './lightningLwcStart';
 
 enum PreviewPlatformType {
   Desktop = 1,
@@ -74,8 +74,8 @@ export interface DeviceQuickPickItem extends vscode.QuickPickItem {
 
 export const platformOptions: PreviewQuickPickItem[] = [
   {
-    label: nls.localize('force_lightning_lwc_preview_desktop_label'),
-    detail: nls.localize('force_lightning_lwc_preview_desktop_description'),
+    label: nls.localize('lightning_lwc_preview_desktop_label'),
+    detail: nls.localize('lightning_lwc_preview_desktop_description'),
     alwaysShow: true,
     picked: true,
     id: PreviewPlatformType.Desktop,
@@ -83,8 +83,8 @@ export const platformOptions: PreviewQuickPickItem[] = [
     defaultTargetName: ''
   },
   {
-    label: nls.localize('force_lightning_lwc_android_label'),
-    detail: nls.localize('force_lightning_lwc_android_description'),
+    label: nls.localize('lightning_lwc_android_label'),
+    detail: nls.localize('lightning_lwc_android_description'),
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.Android,
@@ -92,8 +92,8 @@ export const platformOptions: PreviewQuickPickItem[] = [
     defaultTargetName: 'SFDXEmulator'
   },
   {
-    label: nls.localize('force_lightning_lwc_ios_label'),
-    detail: nls.localize('force_lightning_lwc_ios_description'),
+    label: nls.localize('lightning_lwc_ios_label'),
+    detail: nls.localize('lightning_lwc_ios_description'),
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.iOS,
@@ -102,13 +102,13 @@ export const platformOptions: PreviewQuickPickItem[] = [
   }
 ];
 
-const logName = 'force_lightning_lwc_preview';
-const commandName = nls.localize('force_lightning_lwc_preview_text');
+const logName = 'lightning_lwc_preview';
+const commandName = nls.localize('lightning_lwc_preview_text');
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
-export const forceLightningLwcPreview = async (sourceUri: vscode.Uri) => {
+export const lightningLwcPreview = async (sourceUri: vscode.Uri) => {
   const preview = getPreview();
   preview(sourceUri);
 };
@@ -122,7 +122,7 @@ export const getPreview = () => {
 };
 
 const lwcPreviewContainerMode = () => {
-  const message = nls.localize('force_lightning_lwc_preview_container_mode');
+  const message = nls.localize('lightning_lwc_preview_container_mode');
   vscode.window.showErrorMessage(message);
   return;
 };
@@ -135,7 +135,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
       sourceUri = vscode.window.activeTextEditor.document.uri;
     } else {
       const message = nls.localize(
-        'force_lightning_lwc_preview_file_undefined',
+        'lightning_lwc_preview_file_undefined',
         sourceUri
       );
       showError(new Error(message), logName, commandName);
@@ -146,7 +146,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
   const resourcePath = sourceUri.fsPath;
   if (!resourcePath) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_file_undefined',
+      'lightning_lwc_preview_file_undefined',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -155,7 +155,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
 
   if (!fs.existsSync(resourcePath)) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_file_nonexist',
+      'lightning_lwc_preview_file_nonexist',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -169,7 +169,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
     : componentUtil.moduleFromFile(resourcePath, isSFDX);
   if (!componentName) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_unsupported',
+      'lightning_lwc_preview_unsupported',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -195,7 +195,7 @@ const executePreview = async (
   resourcePath: string
 ) => {
   const commandCancelledMessage = nls.localize(
-    'force_lightning_lwc_operation_cancelled'
+    'lightning_lwc_operation_cancelled'
   );
 
   // 1. Prompt user to select a platform
@@ -267,7 +267,7 @@ const startServer = async (
     console.log(`${logName}: server was not running, starting...`);
     const preconditionChecker = new SfdxWorkspaceChecker();
     const parameterGatherer = new EmptyParametersGatherer();
-    const executor = new ForceLightningLwcStartExecutor({
+    const executor = new LightningLwcStartExecutor({
       openBrowser: isDesktop,
       componentName
     });
@@ -282,9 +282,8 @@ const startServer = async (
     telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
-      const fullUrl = DevServerService.instance.getComponentPreviewUrl(
-        componentName
-      );
+      const fullUrl =
+        DevServerService.instance.getComponentPreviewUrl(componentName);
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
@@ -299,7 +298,7 @@ const startServer = async (
  */
 const selectPlatform = async (): Promise<PreviewQuickPickItem | undefined> => {
   const platformSelection = await vscode.window.showQuickPick(platformOptions, {
-    placeHolder: nls.localize('force_lightning_lwc_platform_selection')
+    placeHolder: nls.localize('lightning_lwc_platform_selection')
   });
 
   return platformSelection;
@@ -320,14 +319,14 @@ const selectTargetDevice = async (
   );
   let target: string | undefined = platformSelection.defaultTargetName;
   let createDevicePlaceholderText = isAndroid
-    ? nls.localize('force_lightning_lwc_android_target_default')
-    : nls.localize('force_lightning_lwc_ios_target_default');
+    ? nls.localize('lightning_lwc_android_target_default')
+    : nls.localize('lightning_lwc_ios_target_default');
 
   // Remember device setting enabled and previous device retrieved.
   if (PreviewService.instance.isRememberedDeviceEnabled() && lastTarget) {
     const message = isAndroid
-      ? 'force_lightning_lwc_android_target_remembered'
-      : 'force_lightning_lwc_ios_target_remembered';
+      ? 'lightning_lwc_android_target_remembered'
+      : 'lightning_lwc_ios_target_remembered';
     createDevicePlaceholderText = nls.localize(message, lastTarget);
     target = lastTarget;
   }
@@ -340,7 +339,8 @@ const selectTargetDevice = async (
     .build();
 
   let deviceListExecutionExitCode: number | undefined;
-  const deviceListCancellationTokenSource = new vscode.CancellationTokenSource();
+  const deviceListCancellationTokenSource =
+    new vscode.CancellationTokenSource();
   const deviceListCancellationToken = deviceListCancellationTokenSource.token;
   const deviceListExecutor = new CliCommandExecutor(deviceListCommand, {});
   const deviceListExecution = deviceListExecutor.execute(
@@ -352,22 +352,15 @@ const selectTargetDevice = async (
 
   const items: DeviceQuickPickItem[] = [];
   const createNewDeviceItem: DeviceQuickPickItem = {
-    label: nls.localize(
-      'force_lightning_lwc_preview_create_virtual_device_label'
-    ),
-    detail: nls.localize(
-      'force_lightning_lwc_preview_create_virtual_device_detail'
-    ),
-    name: nls.localize(
-      'force_lightning_lwc_preview_create_virtual_device_label'
-    )
+    label: nls.localize('lightning_lwc_preview_create_virtual_device_label'),
+    detail: nls.localize('lightning_lwc_preview_create_virtual_device_detail'),
+    name: nls.localize('lightning_lwc_preview_create_virtual_device_label')
   };
   let targetName: string | undefined;
 
   try {
-    const result: string = await deviceListOutput.getCmdResult(
-      deviceListExecution
-    );
+    const result: string =
+      await deviceListOutput.getCmdResult(deviceListExecution);
 
     const jsonString: string = result.substring(result.indexOf('{'));
 
@@ -402,7 +395,7 @@ const selectTargetDevice = async (
       error.includes('not a sfdx command')
     ) {
       showError(
-        new Error(nls.localize('force_lightning_lwc_no_mobile_plugin')),
+        new Error(nls.localize('lightning_lwc_no_mobile_plugin')),
         logName,
         commandName
       );
@@ -416,9 +409,7 @@ const selectTargetDevice = async (
     items.unshift(createNewDeviceItem);
 
     selectedItem = await vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize(
-        'force_lightning_lwc_preview_select_virtual_device'
-      )
+      placeHolder: nls.localize('lightning_lwc_preview_select_virtual_device')
     });
 
     if (selectedItem === undefined) {
@@ -469,8 +460,8 @@ const selectTargetApp = async (
   let targetApp: string | undefined = 'browser';
   const items: vscode.QuickPickItem[] = [];
   const browserItem: vscode.QuickPickItem = {
-    label: nls.localize('force_lightning_lwc_browserapp_label'),
-    detail: nls.localize('force_lightning_lwc_browserapp_description')
+    label: nls.localize('lightning_lwc_browserapp_label'),
+    detail: nls.localize('lightning_lwc_browserapp_description')
   };
 
   if (configFile === undefined || fs.existsSync(configFile) === false) {
@@ -501,7 +492,7 @@ const selectTargetApp = async (
     items.unshift(browserItem);
 
     const selectedItem = await vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('force_lightning_lwc_preview_select_target_app')
+      placeHolder: nls.localize('lightning_lwc_preview_select_target_app')
     });
 
     if (selectedItem) {
@@ -562,7 +553,7 @@ const executeMobilePreview = async (
     .build();
 
   const previewExecutor = new CliCommandExecutor(previewCommand, {
-    env: { SFDX_JSON_TO_STDOUT: 'true' }
+    env: { SF_JSON_TO_STDOUT: 'true' }
   });
   const previewCancellationTokenSource = new vscode.CancellationTokenSource();
   const previewCancellationToken = previewCancellationTokenSource.token;
@@ -574,8 +565,8 @@ const executeMobilePreview = async (
   previewExecution.processExitSubject.subscribe(async exitCode => {
     if (exitCode !== 0) {
       const message = isAndroid
-        ? nls.localize('force_lightning_lwc_android_failure', targetDevice)
-        : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
+        ? nls.localize('lightning_lwc_android_failure', targetDevice)
+        : nls.localize('lightning_lwc_ios_failure', targetDevice);
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
       notificationService
@@ -585,7 +576,7 @@ const executeMobilePreview = async (
         )
         .catch();
       vscode.window.showInformationMessage(
-        nls.localize('force_lightning_lwc_ios_start', targetDevice)
+        nls.localize('lightning_lwc_ios_start', targetDevice)
       );
     }
   });
@@ -602,7 +593,7 @@ const executeMobilePreview = async (
           )
           .catch();
         vscode.window.showInformationMessage(
-          nls.localize('force_lightning_lwc_android_start', targetDevice)
+          nls.localize('lightning_lwc_android_start', targetDevice)
         );
       }
     });
@@ -616,7 +607,9 @@ const executeMobilePreview = async (
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export const getProjectRootDirectory = (startPath: string): string | undefined => {
+export const getProjectRootDirectory = (
+  startPath: string
+): string | undefined => {
   if (!fs.existsSync(startPath)) {
     return undefined;
   }

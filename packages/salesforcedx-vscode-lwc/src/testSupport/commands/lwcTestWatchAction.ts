@@ -22,7 +22,7 @@ import { isLwcJestTest } from '../utils';
  * it will re-run the tests.
  * @param data provided by test watch commands (or test explorer potentially in the future)
  */
-export const forceLwcTestStartWatching = async (data: {
+export const lwcTestStartWatching = async (data: {
   testExecutionInfo: TestExecutionInfo;
 }) => {
   const { testExecutionInfo } = data;
@@ -34,7 +34,7 @@ export const forceLwcTestStartWatching = async (data: {
  * It will terminate the test watch task matched by the test URI.
  * @param data provided by test watch commands
  */
-export const forceLwcTestStopWatching = async (data: {
+export const lwcTestStopWatching = async (data: {
   testExecutionInfo: TestExecutionInfo;
 }) => {
   const { testExecutionInfo } = data;
@@ -45,14 +45,14 @@ export const forceLwcTestStopWatching = async (data: {
  * Stop watching all tests.
  * It will terminate all test watch tasks.
  */
-export const forceLwcTestStopWatchingAllTests = () => {
+export const lwcTestStopWatchingAllTests = () => {
   testWatcher.stopWatchingAllTests();
 };
 
 /**
  * Start watching the test of currently focused editor
  */
-export const forceLwcTestStartWatchingCurrentFile = () => {
+export const lwcTestStartWatchingCurrentFile = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -60,7 +60,7 @@ export const forceLwcTestStartWatchingCurrentFile = () => {
       testType: TestType.LWC,
       testUri: activeTextEditor.document.uri
     };
-    return forceLwcTestStartWatching({
+    return lwcTestStartWatching({
       testExecutionInfo
     });
   }
@@ -69,7 +69,7 @@ export const forceLwcTestStartWatchingCurrentFile = () => {
 /**
  * Stop watching the test of currently focused editor
  */
-export const forceLwcTestStopWatchingCurrentFile = () => {
+export const lwcTestStopWatchingCurrentFile = () => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
     const testExecutionInfo: TestFileInfo = {
@@ -77,7 +77,7 @@ export const forceLwcTestStopWatchingCurrentFile = () => {
       testType: TestType.LWC,
       testUri: activeTextEditor.document.uri
     };
-    return forceLwcTestStopWatching({
+    return lwcTestStopWatching({
       testExecutionInfo
     });
   }

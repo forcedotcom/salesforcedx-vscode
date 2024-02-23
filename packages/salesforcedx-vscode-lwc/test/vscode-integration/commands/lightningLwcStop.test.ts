@@ -7,7 +7,7 @@
 
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { forceLightningLwcStop } from '../../../src/commands/forceLightningLwcStop';
+import { lightningLwcStop } from '../../../src/commands/lightningLwcStop';
 import { DevServerService } from '../../../src/service/devServerService';
 import { nls } from '../../../src/messages';
 import {
@@ -15,7 +15,7 @@ import {
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 
-describe('forceLightningLwcStop', () => {
+describe('lightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;
   let devService: DevServerService;
   let appendLineStub: sinon.SinonStub;
@@ -53,7 +53,7 @@ describe('forceLightningLwcStop', () => {
       stop: stopStub
     });
 
-    await forceLightningLwcStop();
+    await lightningLwcStop();
     sinon.assert.calledOnce(stopStub);
   });
 
@@ -62,14 +62,14 @@ describe('forceLightningLwcStop', () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
     sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 
-    await forceLightningLwcStop();
+    await lightningLwcStop();
 
     sinon.assert.notCalled(notificationServiceStubs.showErrorMessageStub);
 
     sinon.assert.calledOnce(appendLineStub);
     sinon.assert.calledWith(
       appendLineStub,
-      sinon.match(nls.localize('force_lightning_lwc_stop_in_progress'))
+      sinon.match(nls.localize('lightning_lwc_stop_in_progress'))
     );
 
     sinon.assert.calledOnce(
@@ -77,7 +77,7 @@ describe('forceLightningLwcStop', () => {
     );
     sinon.assert.calledWith(
       notificationServiceStubs.showSuccessfulExecutionStub,
-      sinon.match(nls.localize('force_lightning_lwc_stop_text'))
+      sinon.match(nls.localize('lightning_lwc_stop_text'))
     );
   });
 });

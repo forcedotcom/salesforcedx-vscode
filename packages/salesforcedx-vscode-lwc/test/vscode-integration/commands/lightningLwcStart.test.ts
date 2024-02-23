@@ -20,9 +20,9 @@ import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConsta
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   errorHints,
-  forceLightningLwcStart,
-  ForceLightningLwcStartExecutor
-} from '../../../src/commands/forceLightningLwcStart';
+  lightningLwcStart,
+  LightningLwcStartExecutor
+} from '../../../src/commands/lightningLwcStart';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import {
@@ -54,27 +54,27 @@ class FakeExecution implements CommandExecution {
   }
 }
 
-describe('forceLightningLwcStart', () => {
-  describe('ForceLightningLwcStartExecutor', () => {
+describe('lightningLwcStart', () => {
+  describe('LightningLwcStartExecutor', () => {
     describe('build', () => {
       it('returns a command with the correct params', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const command = executor.build();
         expect(command.toCommand()).to.equal(`sfdx force:lightning:lwc:start`);
       });
 
       it('returns a command with the correct description', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const command = executor.build();
         expect(command.description).to.equal(
-          nls.localize('force_lightning_lwc_start_text')
+          nls.localize('lightning_lwc_start_text')
         );
       });
 
       it('returns a command with the correct logName', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const command = executor.build();
-        expect(command.logName).to.equal('force_lightning_lwc_start');
+        expect(command.logName).to.equal('lightning_lwc_start');
       });
     });
 
@@ -131,7 +131,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('calls execute on the CliCommandExecutor', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -141,7 +141,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('registers the server with DevServerService', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -151,7 +151,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('shows the success message once server is started', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -170,7 +170,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('shows the error message if server start up failed', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -187,7 +187,7 @@ describe('forceLightningLwcStart', () => {
           sinon.match(
             nls.localize(
               'command_failure',
-              nls.localize(`force_lightning_lwc_start_text`)
+              nls.localize(`lightning_lwc_start_text`)
             )
           )
         );
@@ -195,12 +195,12 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
           appendLineStub,
-          sinon.match(nls.localize('force_lightning_lwc_start_failed'))
+          sinon.match(nls.localize('lightning_lwc_start_failed'))
         );
       });
 
       it('opens the browser once server is started', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
         devServiceStub.getBaseUrl.returns('http://localhost:3333');
@@ -220,7 +220,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('opens the browser at the correct port once server is started', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
         devServiceStub.getBaseUrl.returns('http://localhost:3332');
@@ -244,7 +244,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('opens the browser with default url when Server up message contains no url', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
         devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
@@ -266,7 +266,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('shows an error when the plugin is not installed', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -274,7 +274,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stdoutSubject.next('foo');
         fakeExecution.processExitSubject.next(127);
 
-        const commandName = nls.localize(`force_lightning_lwc_start_text`);
+        const commandName = nls.localize(`lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -285,19 +285,19 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
           appendLineStub,
-          sinon.match(nls.localize('force_lightning_lwc_start_not_found'))
+          sinon.match(nls.localize('lightning_lwc_start_not_found'))
         );
       });
 
       it('shows an error when the address is already in use', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
         executor.execute({ type: 'CONTINUE', data: {} });
         fakeExecution.processExitSubject.next(98);
 
-        const commandName = nls.localize(`force_lightning_lwc_start_text`);
+        const commandName = nls.localize(`lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -308,12 +308,12 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
           appendLineStub,
-          sinon.match(nls.localize('force_lightning_lwc_start_addr_in_use'))
+          sinon.match(nls.localize('lightning_lwc_start_addr_in_use'))
         );
       });
 
       it('shows an error when scratch org is inactive', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -321,7 +321,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stderrSubject.next(errorHints.INACTIVE_SCRATCH_ORG);
         fakeExecution.processExitSubject.next(1);
 
-        const commandName = nls.localize(`force_lightning_lwc_start_text`);
+        const commandName = nls.localize(`lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -332,12 +332,12 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
           appendLineStub,
-          sinon.match(nls.localize('force_lightning_lwc_inactive_scratch_org'))
+          sinon.match(nls.localize('lightning_lwc_inactive_scratch_org'))
         );
       });
 
       it('shows no error when server is stopping', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -350,7 +350,7 @@ describe('forceLightningLwcStart', () => {
       });
 
       it('shows an error message when the process exists before server startup', () => {
-        const executor = new ForceLightningLwcStartExecutor();
+        const executor = new LightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
 
@@ -358,7 +358,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stdoutSubject.next('foo');
         fakeExecution.processExitSubject.next(0);
 
-        const commandName = nls.localize(`force_lightning_lwc_start_text`);
+        const commandName = nls.localize(`lightning_lwc_start_text`);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
@@ -369,13 +369,13 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
           appendLineStub,
-          sinon.match(nls.localize('force_lightning_lwc_start_failed'))
+          sinon.match(nls.localize('lightning_lwc_start_failed'))
         );
       });
     });
   });
 
-  describe('forceLightningLwcStart function', () => {
+  describe('lightningLwcStart function', () => {
     let sandbox: SinonSandbox;
     let showWarningStub: SinonStub<
       [string, ...string[]],
@@ -400,7 +400,7 @@ describe('forceLightningLwcStart', () => {
     });
 
     it('calls run on the commandlet', async () => {
-      await forceLightningLwcStart();
+      await lightningLwcStart();
       sinon.assert.calledOnce(commandletStub);
     });
 
@@ -408,12 +408,12 @@ describe('forceLightningLwcStart', () => {
       devServiceStub.isServerHandlerRegistered.returns(true);
       showWarningStub.resolves();
 
-      await forceLightningLwcStart();
+      await lightningLwcStart();
 
       sinon.assert.calledOnce(showWarningStub);
       sinon.assert.calledWith(
         showWarningStub,
-        nls.localize('force_lightning_lwc_start_already_running')
+        nls.localize('lightning_lwc_start_already_running')
       );
     });
   });

@@ -6,12 +6,12 @@
  */
 import { expect } from 'chai';
 import {
-  forceLwcTestStartWatching,
-  forceLwcTestStartWatchingCurrentFile,
-  forceLwcTestStopWatching,
-  forceLwcTestStopWatchingAllTests,
-  forceLwcTestStopWatchingCurrentFile
-} from '../../../../src/testSupport/commands/forceLwcTestWatchAction';
+  lwcTestStartWatching,
+  lwcTestStartWatchingCurrentFile,
+  lwcTestStopWatching,
+  lwcTestStopWatchingAllTests,
+  lwcTestStopWatchingCurrentFile
+} from '../../../../src/testSupport/commands/lwcTestWatchAction';
 import { testWatcher } from '../../../../src/testSupport/testRunner/testWatcher';
 import {
   createMockTestFileInfo,
@@ -23,7 +23,7 @@ import {
   unmockSfdxTaskExecute
 } from '../mocks';
 
-describe('Force LWC Test Watch Action', () => {
+describe('LWC Test Watch Action', () => {
   beforeEach(() => {
     mockGetLwcTestRunnerExecutable();
     mockSfdxTaskExecute();
@@ -37,14 +37,14 @@ describe('Force LWC Test Watch Action', () => {
   const mockTestFileInfo = createMockTestFileInfo();
 
   it('Should start watching tests', async () => {
-    await forceLwcTestStartWatching({ testExecutionInfo: mockTestFileInfo });
+    await lwcTestStartWatching({ testExecutionInfo: mockTestFileInfo });
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(true);
   });
 
   it('Should start and stop watching tests', async () => {
-    await forceLwcTestStartWatching({ testExecutionInfo: mockTestFileInfo });
+    await lwcTestStartWatching({ testExecutionInfo: mockTestFileInfo });
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(true);
-    await forceLwcTestStopWatching({ testExecutionInfo: mockTestFileInfo });
+    await lwcTestStopWatching({ testExecutionInfo: mockTestFileInfo });
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(
       false
     );
@@ -52,13 +52,13 @@ describe('Force LWC Test Watch Action', () => {
 
   it('Should stop watching all tests', async () => {
     const mockTestFileInfo2 = createMockTestFileInfo('mockTest2.test.js');
-    await forceLwcTestStartWatching({ testExecutionInfo: mockTestFileInfo });
-    await forceLwcTestStartWatching({ testExecutionInfo: mockTestFileInfo2 });
+    await lwcTestStartWatching({ testExecutionInfo: mockTestFileInfo });
+    await lwcTestStartWatching({ testExecutionInfo: mockTestFileInfo2 });
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(true);
     expect(testWatcher.isWatchingTest(mockTestFileInfo2.testUri)).to.equal(
       true
     );
-    forceLwcTestStopWatchingAllTests();
+    lwcTestStopWatchingAllTests();
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(
       false
     );
@@ -68,14 +68,14 @@ describe('Force LWC Test Watch Action', () => {
   });
 
   it('Stop watching all tests should not throw if no tests are being watched', async () => {
-    expect(forceLwcTestStopWatchingAllTests).to.not.throw();
+    expect(lwcTestStopWatchingAllTests).to.not.throw();
   });
 
   it('Should start and stop watching current file', async () => {
     mockActiveTextEditorUri(mockTestFileInfo.testUri);
-    await forceLwcTestStartWatchingCurrentFile();
+    await lwcTestStartWatchingCurrentFile();
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(true);
-    await forceLwcTestStopWatchingCurrentFile();
+    await lwcTestStopWatchingCurrentFile();
     expect(testWatcher.isWatchingTest(mockTestFileInfo.testUri)).to.equal(
       false
     );

@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getPreview } from '../../../src/commands/forceLightningLwcPreview';
+import { getPreview } from '../../../src/commands/lightningLwcPreview';
 
-describe('forceLightningLwcPreview', () => {
+describe('lightningLwcPreview', () => {
   describe('not in container mode', () => {
     it('uses default preview', async () => {
       const preview = getPreview();

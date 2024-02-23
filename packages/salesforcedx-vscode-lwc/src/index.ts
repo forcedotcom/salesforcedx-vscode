@@ -16,10 +16,10 @@ import {
   WorkspaceConfiguration
 } from 'vscode';
 import {
-  forceLightningLwcOpen,
-  forceLightningLwcPreview,
-  forceLightningLwcStart,
-  forceLightningLwcStop
+  lightningLwcOpen,
+  lightningLwcPreview,
+  lightningLwcStart,
+  lightningLwcStop
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -143,21 +143,9 @@ const getActivationMode = (): string => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.start',
-      forceLightningLwcStart
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.stop',
-      forceLightningLwcStop
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.open',
-      forceLightningLwcOpen
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.preview',
-      forceLightningLwcPreview
-    )
+    commands.registerCommand('sfdx.lightning.lwc.start', lightningLwcStart),
+    commands.registerCommand('sfdx.lightning.lwc.stop', lightningLwcStop),
+    commands.registerCommand('sfdx.lightning.lwc.open', lightningLwcOpen),
+    commands.registerCommand('sfdx.lightning.lwc.preview', lightningLwcPreview)
   );
 };

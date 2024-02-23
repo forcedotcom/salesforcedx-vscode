@@ -20,14 +20,14 @@ describe('command utilities', () => {
 
       showError(
         new Error('test error message'),
-        'force_lightning_lwc_start_test',
+        'lightning_lwc_start_test',
         'SFDX: Start Local Development Server'
       );
 
       sinon.assert.calledOnce(spy);
       sinon.assert.calledWith(
         spy,
-        `force_lightning_lwc_start_test_error`,
+        `lightning_lwc_start_test_error`,
         'test error message'
       );
 
@@ -39,7 +39,7 @@ describe('command utilities', () => {
 
       showError(
         new Error('test error message'),
-        'force_lightning_lwc_start_test',
+        'lightning_lwc_start_test',
         'SFDX: Start Local Development Server'
       );
 
@@ -57,7 +57,7 @@ describe('command utilities', () => {
 
       showError(
         new Error('test error message'),
-        'force_lightning_lwc_start_test',
+        'lightning_lwc_start_test',
         'SFDX: Start Local Development Server'
       );
 
@@ -72,7 +72,7 @@ describe('command utilities', () => {
 
       showError(
         new Error('test error message'),
-        'force_lightning_lwc_start_test',
+        'lightning_lwc_start_test',
         'SFDX: Start Local Development Server'
       );
 
