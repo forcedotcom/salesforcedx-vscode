@@ -12,8 +12,8 @@ import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
 import { SalesforcePackageDirectories } from '../salesforceProject';
+import { sfdxCoreSettings } from '../settings';
 
 import { telemetryService } from '../telemetry';
 

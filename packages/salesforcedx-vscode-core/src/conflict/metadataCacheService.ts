@@ -19,8 +19,8 @@ import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
-import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { SalesforcePackageDirectories } from '../salesforceProject';
+import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { workspaceUtils } from '../util';
 
 export interface MetadataContext {

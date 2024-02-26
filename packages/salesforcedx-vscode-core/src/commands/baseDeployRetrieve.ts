@@ -33,9 +33,9 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployQueue, sfdxCoreSettings } from '../settings';
-import { SalesforcePackageDirectories } from '../salesforceProject';
 import {
   createComponentCount,
   formatException,
