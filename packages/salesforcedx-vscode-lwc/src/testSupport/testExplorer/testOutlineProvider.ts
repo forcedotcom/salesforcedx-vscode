@@ -132,7 +132,7 @@ export const registerLwcTestExplorerTreeView = (
 ) => {
   const testOutlineProvider = new SfdxTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.lightning.lwc.test.view',
+    'sf.lightning.lwc.test.view',
     testOutlineProvider
   );
   extensionContext.subscriptions.push(testOutlineProvider);

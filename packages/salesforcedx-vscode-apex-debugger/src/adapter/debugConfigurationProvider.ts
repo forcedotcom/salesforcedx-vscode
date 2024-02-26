@@ -14,8 +14,9 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider
-  implements vscode.DebugConfigurationProvider {
-  private sfdxApex = vscode.extensions.getExtension(
+  implements vscode.DebugConfigurationProvider
+{
+  private salesforceApexExtension = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
 
@@ -86,9 +87,10 @@ export class DebugConfigurationProvider
       } as WorkspaceSettings;
     }
 
-    if (this.sfdxApex && this.sfdxApex.exports) {
+    if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {
       await this.isLanguageClientReady();
-      config.lineBreakpointInfo = await this.sfdxApex.exports.getLineBreakpointInfo();
+      config.lineBreakpointInfo =
+        await this.salesforceApexExtension.exports.getLineBreakpointInfo();
     }
     return config;
   }
@@ -97,18 +99,20 @@ export class DebugConfigurationProvider
     let expired = false;
     let i = 0;
     while (
-      this.sfdxApex &&
-      this.sfdxApex.exports &&
-      !this.sfdxApex.exports.languageClientUtils.getStatus().isReady() &&
+      this.salesforceApexExtension &&
+      this.salesforceApexExtension.exports &&
+      !this.salesforceApexExtension.exports.languageClientUtils
+        .getStatus()
+        .isReady() &&
       !expired
     ) {
       if (
-        this.sfdxApex.exports.languageClientUtils
+        this.salesforceApexExtension.exports.languageClientUtils
           .getStatus()
           .failedToInitialize()
       ) {
         throw Error(
-          this.sfdxApex.exports.languageClientUtils
+          this.salesforceApexExtension.exports.languageClientUtils
             .getStatus()
             .getStatusMessage()
         );

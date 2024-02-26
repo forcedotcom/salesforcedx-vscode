@@ -13,7 +13,7 @@ import {
   CommandOutput,
   CompositeCliCommandExecutor,
   ContinueResponse,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -25,12 +25,12 @@ import { OrgAuthInfo, workspaceUtils } from '../util';
 import { developerLogTraceFlag } from '.';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class StartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
+export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
@@ -118,7 +118,8 @@ export class StartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 export async function getUserId(projectPath: string): Promise<string> {
-  const defaultUsernameOrAlias = await workspaceContextUtils.getDefaultUsernameOrAlias();
+  const defaultUsernameOrAlias =
+    await workspaceContextUtils.getDefaultUsernameOrAlias();
   if (!defaultUsernameOrAlias) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendException('replay_debugger_undefined_username', err);
@@ -146,14 +147,14 @@ export async function getUserId(projectPath: string): Promise<string> {
   }
 }
 
-export class QueryUser extends SfdxCommandletExecutor<{}> {
+export class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
   public constructor(username: string) {
     super();
     this.username = username;
   }
   public build(): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:query')
       .withFlag(
         '--query',
@@ -165,10 +166,10 @@ export class QueryUser extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
+export class CreateDebugLevel extends SfCommandletExecutor<{}> {
   public readonly developerName = `ReplayDebuggerLevels${Date.now()}`;
   public build(): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:create:record')
       .withFlag('--sobject', 'DebugLevel')
       .withFlag(
@@ -182,7 +183,7 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
+export class CreateTraceFlag extends SfCommandletExecutor<{}> {
   private userId: string;
 
   public constructor(userId: string) {
@@ -191,7 +192,7 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
   }
 
   public build(): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:create:record')
       .withFlag('--sobject', 'TraceFlag')
       .withFlag(
@@ -209,10 +210,10 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
+export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:update:record')
       .withFlag('--sobject', 'DebugLevel')
       .withFlag('--record-id', nonNullDebugLevel)
@@ -227,10 +228,10 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
+export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:update:record')
       .withFlag('--sobject', 'TraceFlag')
       .withFlag('--record-id', nonNullTraceFlag)
@@ -247,12 +248,12 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export class QueryTraceFlag extends SfdxCommandletExecutor<{}> {
+export class QueryTraceFlag extends SfCommandletExecutor<{}> {
   public build(userId: string): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('start_apex_debug_logging'))
       .withArg('data:query')
       .withFlag(
@@ -268,7 +269,7 @@ export class QueryTraceFlag extends SfdxCommandletExecutor<{}> {
 
 export async function startApexDebugLogging() {
   const executor = new StartApexDebugLoggingExecutor();
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor

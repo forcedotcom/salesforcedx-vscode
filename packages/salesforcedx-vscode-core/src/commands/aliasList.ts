@@ -7,20 +7,20 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class AliasList extends SfdxCommandletExecutor<{}> {
+export class AliasList extends SfCommandletExecutor<{}> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('alias_list_text'))
       .withArg('alias:list')
       .withLogName('force_alias_list')
@@ -28,10 +28,10 @@ export class AliasList extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 const executor = new AliasList();
-const commandlet = new SfdxCommandlet(
+const commandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor

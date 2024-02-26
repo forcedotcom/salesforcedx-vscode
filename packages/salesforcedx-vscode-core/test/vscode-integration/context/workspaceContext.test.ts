@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
+import { SF_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { decorators } from '../../../src/decorators';
@@ -81,7 +81,7 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     const cliConfigPath = join(
       workspaceUtils.getRootWorkspacePath(),
       SFDX_FOLDER,
-      SFDX_CONFIG_FILE
+      SF_CONFIG_FILE
     );
     this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
@@ -126,9 +126,9 @@ describe('WorkspaceContext', () => {
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
     showOrgStub = env.stub(decorators, 'showOrg').resolves();
 
-    const extensionContext = ({
+    const extensionContext = {
       subscriptions: []
-    } as unknown) as vscode.ExtensionContext;
+    } as unknown as vscode.ExtensionContext;
 
     workspaceContext = WorkspaceContext.getInstance(true);
     await workspaceContext.initialize(extensionContext);
@@ -169,20 +169,26 @@ describe('WorkspaceContext', () => {
   });
 
   // tslint:disable-next-line:only-arrow-functions
-  it('should notify subscribers that the default org may have changed', async function() {
+  it('should notify subscribers that the default org may have changed', async function () {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);
     });
 
     // awaiting to ensure subscribers run their logic
-    const fileChangedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileChangedPromise = (
+      workspaceContextUtil as TestWorkspaceContextUtil
+    )
       .getFileWatcher()
       .fire('change');
-    const fileCreatedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileCreatedPromise = (
+      workspaceContextUtil as TestWorkspaceContextUtil
+    )
       .getFileWatcher()
       .fire('create');
-    const fileDeletedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileDeletedPromise = (
+      workspaceContextUtil as TestWorkspaceContextUtil
+    )
       .getFileWatcher()
       .fire('delete');
 

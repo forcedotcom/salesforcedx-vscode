@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
+import { SfCommandlet, SfWorkspaceChecker } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
@@ -16,8 +16,8 @@ export async function retrieveComponent(
   openAfterRetrieve: boolean = false
 ) {
   const retrieveDescriber = trigger.describer();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
     new LibraryRetrieveSourcePathExecutor(openAfterRetrieve),
     new OverwriteComponentPrompt()

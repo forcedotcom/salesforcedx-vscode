@@ -28,7 +28,7 @@ export abstract class TestNode extends vscode.TreeItem {
     this.location = location;
     this.description = label;
     this.command = {
-      command: 'sfdx.lightning.lwc.test.navigateToTest',
+      command: 'sf.lightning.lwc.test.navigateToTest',
       title: nls.localize('lightning_lwc_test_navigate_to_test'),
       arguments: [this]
     };

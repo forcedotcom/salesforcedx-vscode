@@ -4,7 +4,7 @@
   "apex_generate_class_text": "SFDX: Create Apex Class",
   "apex_generate_trigger_text": "SFDX: Create Apex Trigger",
   "apex_generate_unit_test_class_text": "SFDX: Create Apex Unit Test Class",
-  "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
+  "cancel_sf_command_text": "SFDX: Cancel Active Command",
   "config_list_text": "SFDX: List All Config Variables",
   "config_set_org_text": "SFDX: Set a Default Org",
   "conflict_detect_open_file": "Open File",

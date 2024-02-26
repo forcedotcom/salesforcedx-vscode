@@ -50,7 +50,7 @@ describe('Org Login Web in Demo Mode', () => {
       loginUrl: TEST_URL
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json --loglevel fatal`
+      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_org_text')
@@ -262,7 +262,7 @@ describe('Org Login Web is based on environment variables', () => {
         loginUrl: TEST_URL
       });
       expect(orgLoginWebCommand.toCommand()).to.equal(
-        `sfdx org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json --loglevel fatal`
+        `sfdx org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json`
       );
       expect(orgLoginWebCommand.description).to.equal(
         nls.localize('org_login_web_authorize_org_text')
@@ -307,8 +307,8 @@ describe('Force Auth Device Login', () => {
     expect(openExternal.called).to.be.true;
     expect(deviceExecutor.deviceCodeReceived).to.be.true;
 
-    const uri: vscode.Uri = (openExternal.getCall(0)
-      .args as unknown) as vscode.Uri;
+    const uri: vscode.Uri = openExternal.getCall(0)
+      .args as unknown as vscode.Uri;
     const targetUrl = uri.toString();
     expect(targetUrl).to.contain(testResponse.verification_uri);
     expect(targetUrl).to.contain(testResponse.user_code);

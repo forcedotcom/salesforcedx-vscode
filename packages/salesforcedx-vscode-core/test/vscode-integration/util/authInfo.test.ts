@@ -79,7 +79,7 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(
-        executeCommandStub.calledWith('sfdx.org.login.web.dev.hub')
+        executeCommandStub.calledWith('sf.org.login.web.dev.hub')
       ).to.equal(true);
       expect(showMessageStub.calledOnce).to.equal(true);
     });

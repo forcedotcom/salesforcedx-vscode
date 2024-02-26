@@ -17,11 +17,7 @@ import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
-import {
-  LibraryPathsGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string[]
@@ -109,8 +105,8 @@ export const retrieveSourcePaths = async (
     uris.push(sourceUri);
   }
 
-  const commandlet = new SfdxCommandlet<string[]>(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet<string[]>(
+    new SfWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
     new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()

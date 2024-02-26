@@ -8,7 +8,7 @@
 import { OrgInfo } from '@salesforce/salesforcedx-utils';
 import * as sfdx from '../../src/sfdx';
 
-describe('sfdx utils', () => {
+describe('sf utils', () => {
   let debouncedShowChannelAndErrorMessageSpy;
 
   beforeEach(() => {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CliCommandExecutor,
   Command,
@@ -60,7 +60,7 @@ describe('lightningLwcStart', () => {
       it('returns a command with the correct params', () => {
         const executor = new LightningLwcStartExecutor();
         const command = executor.build();
-        expect(command.toCommand()).to.equal(`sfdx force:lightning:lwc:start`);
+        expect(command.toCommand()).to.equal(`sf force:lightning:lwc:start`);
       });
 
       it('returns a command with the correct description', () => {
@@ -391,7 +391,7 @@ describe('lightningLwcStart', () => {
       sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 
       sandbox.stub(commandUtils, 'openBrowser');
-      commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+      commandletStub = sandbox.stub(SfCommandlet.prototype, 'run');
       showWarningStub = sandbox.stub(notificationService, 'showWarningMessage');
     });
 

@@ -6,7 +6,7 @@
  */
 
 // tslint:disable:no-unused-expression
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
@@ -56,7 +56,7 @@ describe('TestView', () => {
     let languageClientUtils: LanguageClientUtils;
 
     beforeEach(() => {
-      commandletSpy = sb.spy(SfdxCommandlet.prototype, 'run');
+      commandletSpy = sb.spy(SfCommandlet.prototype, 'run');
       getCoverageStub = sb.stub(settings, 'retrieveTestCodeCoverage');
       languageClientUtils = LanguageClientUtils.getInstance();
       languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
@@ -330,7 +330,7 @@ describe('TestView', () => {
 
       // make sure we emit the update_selection event with the correct position
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         testRange
       ]);
     });
@@ -344,7 +344,7 @@ describe('TestView', () => {
       await testRunner.showErrorMessage(testNode);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         lineFailure - 1
       ]);
     });
@@ -356,7 +356,7 @@ describe('TestView', () => {
       await testRunner.showErrorMessage(testClass);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         lineFailure - 1
       ]);
     });

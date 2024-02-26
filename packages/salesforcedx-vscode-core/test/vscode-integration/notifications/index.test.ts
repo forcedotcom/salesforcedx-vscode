@@ -11,7 +11,7 @@ import { CancellationTokenSource, window } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { NotificationService } from '../../../src/notifications/notificationService';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
 const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
@@ -41,9 +41,10 @@ describe('Notifications', () => {
     mStatusBar = stub(window, 'setStatusBarMessage').returns(
       Promise.resolve(null)
     );
-    settings = stub(SfdxCoreSettings.prototype, 'getShowCLISuccessMsg').returns(
-      true
-    );
+    settings = stub(
+      SalesforceCoreSettings.prototype,
+      'getShowCLISuccessMsg'
+    ).returns(true);
   });
 
   afterEach(() => {
@@ -106,9 +107,10 @@ describe('Notifications', () => {
   it('Should notify successful in status bar based on user configuration', done => {
     // Set user configuration to show success messages in status bar.
     settings.restore();
-    settings = stub(SfdxCoreSettings.prototype, 'getShowCLISuccessMsg').returns(
-      false
-    );
+    settings = stub(
+      SalesforceCoreSettings.prototype,
+      'getShowCLISuccessMsg'
+    ).returns(false);
 
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
@@ -133,7 +135,7 @@ describe('Notifications', () => {
       Promise.resolve(SHOW_ONLY_STATUS_BAR_BUTTON_TEXT)
     );
     const updateSetting = stub(
-      SfdxCoreSettings.prototype,
+      SalesforceCoreSettings.prototype,
       'updateShowCLISuccessMsg'
     );
     const observable = new ReplaySubject<number | undefined>();

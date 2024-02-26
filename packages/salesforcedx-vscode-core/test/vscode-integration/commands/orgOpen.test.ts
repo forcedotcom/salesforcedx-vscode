@@ -19,7 +19,7 @@ describe('Org Open', () => {
     const orgOpenContainer = new OrgOpenExecutor();
     const orgOpenCommand = orgOpenContainer.build({});
 
-    expect(orgOpenCommand.toCommand()).to.equal('sfdx org:open');
+    expect(orgOpenCommand.toCommand()).to.equal('sf org:open');
     expect(orgOpenCommand.description).to.equal(
       nls.localize('org_open_default_scratch_org_text')
     );
@@ -30,7 +30,7 @@ describe('Org Open', () => {
     const orgOpenCommand = orgOpenContainer.build({});
 
     expect(orgOpenCommand.toCommand()).to.equal(
-      'sfdx org:open --url-only --json --loglevel fatal'
+      'sf org:open --url-only --json'
     );
     expect(orgOpenCommand.description).to.equal(
       nls.localize('org_open_default_scratch_org_text')

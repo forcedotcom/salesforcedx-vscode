@@ -21,7 +21,7 @@ export const setupGlobalDefaultUserIsvAuth = async () => {
 
     await vscode.commands.executeCommand(
       'setContext',
-      'sfdx:isv_debug_project',
+      'sf:isv_debug_project',
       isvDebugProject
     );
 
@@ -35,7 +35,9 @@ export const setupGlobalDefaultUserIsvAuth = async () => {
   isvUtil.resetCliEnvironmentVars();
 };
 
-export const registerIsvAuthWatcher = (extensionContext: vscode.ExtensionContext) => {
+export const registerIsvAuthWatcher = (
+  extensionContext: vscode.ExtensionContext
+) => {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0

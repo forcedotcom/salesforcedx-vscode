@@ -12,7 +12,7 @@ import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
+import { salesforceCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 
 import { telemetryService } from '../telemetry';
@@ -67,18 +67,15 @@ export class DeployQueue {
   }
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    vscode.commands.executeCommand(
-      'sfdx.deploy.multiple.source.paths',
-      toDeploy
-    );
+    vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy);
   }
 
   private async executePushCommand() {
     const ignoreConflictsCommand =
-      sfdxCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
+      salesforceCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
         ? '.ignore.conflicts'
         : '';
-    const command = `sfdx.project.deploy.start${ignoreConflictsCommand}`;
+    const command = `sf.project.deploy.start${ignoreConflictsCommand}`;
     vscode.commands.executeCommand(command);
   }
 
@@ -90,7 +87,7 @@ export class DeployQueue {
       let deployType: string = '';
       try {
         const preferDeployOnSaveEnabled =
-          sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+          salesforceCoreSettings.getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
           await this.executeDeployCommand(toDeploy);
           deployType = 'Deploy';
@@ -145,7 +142,7 @@ export async function registerPushOrDeployOnSave() {
     async (textDocument: vscode.TextDocument) => {
       const documentUri = textDocument.uri;
       if (
-        sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
+        salesforceCoreSettings.getPushOrDeployOnSaveEnabled() &&
         !(await ignorePath(documentUri.fsPath))
       ) {
         await DeployQueue.get().enqueue(documentUri);

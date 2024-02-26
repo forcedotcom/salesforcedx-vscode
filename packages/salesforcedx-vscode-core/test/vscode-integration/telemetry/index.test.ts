@@ -8,7 +8,7 @@ import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { assert, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
@@ -28,7 +28,7 @@ describe('Telemetry', () => {
         Promise.resolve(null)
       );
       settings = stub(
-        SfdxCoreSettings.prototype,
+        SalesforceCoreSettings.prototype,
         'getTelemetryEnabled'
       ).returns(true);
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
@@ -99,7 +99,7 @@ describe('Telemetry', () => {
         Promise.resolve(null)
       );
       settings = stub(
-        SfdxCoreSettings.prototype,
+        SalesforceCoreSettings.prototype,
         'getTelemetryEnabled'
       ).returns(true);
       reporter = stub(AppInsights.prototype, 'sendTelemetryEvent');

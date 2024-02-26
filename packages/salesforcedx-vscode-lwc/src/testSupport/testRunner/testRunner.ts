@@ -101,7 +101,7 @@ export class TestRunner {
       runTestsByPathArgs = [];
     }
     const testNamePatternArgs =
-      (isTestCaseInfo(testExecutionInfo) && testExecutionInfo.testName)
+      isTestCaseInfo(testExecutionInfo) && testExecutionInfo.testName
         ? getTestNamePatternArgs(testExecutionInfo.testName)
         : [];
 
@@ -138,9 +138,8 @@ export class TestRunner {
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
-        const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
-          cwd
-        );
+        const lwcTestRunnerExecutable =
+          workspace.getLwcTestRunnerExecutable(cwd);
         const cliArgs: string[] = workspace.getCliArgsFromJestArgs(
           jestArgs,
           this.testRunType
@@ -184,15 +183,11 @@ export class TestRunner {
   public async executeAsSfdxTask(): Promise<SfdxTask | undefined> {
     const shellExecutionInfo = this.getShellExecutionInfo();
     if (shellExecutionInfo) {
-      const {
-        command,
-        args,
-        workspaceFolder,
-        testResultFsPath
-      } = shellExecutionInfo;
+      const { command, args, workspaceFolder, testResultFsPath } =
+        shellExecutionInfo;
       this.startWatchingTestResults(testResultFsPath);
       const taskName = this.getTaskName();
-      const sfdxTask = taskService.createTask(
+      const sfTask = taskService.createTask(
         this.testRunId,
         taskName,
         workspaceFolder,
@@ -201,13 +196,14 @@ export class TestRunner {
       );
       if (this.logName) {
         const startTime = process.hrtime();
-        sfdxTask.onDidEnd(() => {
+        sfTask.onDidEnd(() => {
           telemetryService.sendCommandEvent(this.logName, startTime, {
-            workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
+            workspaceType:
+              workspaceService.getCurrentWorkspaceTypeForTelemetry()
           });
         });
       }
-      return sfdxTask.execute();
+      return sfTask.execute();
     }
   }
 }

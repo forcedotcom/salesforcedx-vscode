@@ -26,7 +26,7 @@ export const lightningLwcOpen = async () => {
     }
   } else {
     console.log(`${logName}: server was not running, starting...`);
-    await vscode.commands.executeCommand('sfdx.lightning.lwc.start');
+    await vscode.commands.executeCommand('sf.lightning.lwc.start');
     telemetryService.sendCommandEvent(logName, startTime);
   }
 };

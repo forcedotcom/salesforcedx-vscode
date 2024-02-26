@@ -9,7 +9,7 @@ import { channelService } from '../../channel';
 import { nls } from '../../messages';
 
 interface SfdxTaskDefinition extends vscode.TaskDefinition {
-  sfdxTaskId: string;
+  sfTaskId: string;
 }
 
 /**
@@ -76,9 +76,9 @@ class TaskService {
       taskStartEvent => {
         const { execution } = taskStartEvent;
         const { definition } = execution.task;
-        const { sfdxTaskId } = definition;
-        if (sfdxTaskId) {
-          const foundTask = this.createdTasks.get(sfdxTaskId);
+        const { sfTaskId } = definition;
+        if (sfTaskId) {
+          const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {
             foundTask.notifyStartTask();
           }
@@ -92,12 +92,12 @@ class TaskService {
       taskEndEvent => {
         const { execution } = taskEndEvent;
         const { definition } = execution.task;
-        const { sfdxTaskId } = definition;
-        if (sfdxTaskId) {
-          const foundTask = this.createdTasks.get(sfdxTaskId);
+        const { sfTaskId } = definition;
+        if (sfTaskId) {
+          const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {
             foundTask.notifyEndTask();
-            this.createdTasks.delete(sfdxTaskId);
+            this.createdTasks.delete(sfTaskId);
             foundTask.dispose();
           }
         }
@@ -124,8 +124,8 @@ class TaskService {
     args: (string | vscode.ShellQuotedString)[]
   ): SfdxTask {
     const taskDefinition: SfdxTaskDefinition = {
-      type: 'sfdxLwcTest',
-      sfdxTaskId: taskId
+      type: 'sfLwcTest',
+      sfTaskId: taskId
     };
     const taskSource = 'SFDX';
     // https://github.com/forcedotcom/salesforcedx-vscode/issues/2097
@@ -156,9 +156,9 @@ class TaskService {
     );
     task.presentationOptions.clear = true;
 
-    const sfdxTask = new SfdxTask(task);
-    this.createdTasks.set(taskId, sfdxTask);
-    return sfdxTask;
+    const sfTask = new SfdxTask(task);
+    this.createdTasks.set(taskId, sfTask);
+    return sfTask;
   }
 }
 export const taskService = new TaskService();

@@ -14,7 +14,7 @@ describe('Status', () => {
   it('Should build the source command no flag', async () => {
     const orgDisplay = new OrgDisplay();
     const displayCommand = orgDisplay.build({});
-    expect(displayCommand.toCommand()).to.equal('sfdx org:display');
+    expect(displayCommand.toCommand()).to.equal('sf org:display');
     expect(displayCommand.description).to.equal(
       nls.localize('org_display_default_text')
     );
@@ -23,7 +23,7 @@ describe('Status', () => {
     const orgDisplay = new OrgDisplay('--target-org');
     const displayCommand = orgDisplay.build({ username: 'test' });
     expect(displayCommand.toCommand()).to.equal(
-      'sfdx org:display --target-org test'
+      'sf org:display --target-org test'
     );
     expect(displayCommand.description).to.equal(
       nls.localize('org_display_username_text')

@@ -9,7 +9,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as sfdx from '../../src/sfdx';
 
-describe('sfdx utils', () => {
+describe('sf utils', () => {
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {

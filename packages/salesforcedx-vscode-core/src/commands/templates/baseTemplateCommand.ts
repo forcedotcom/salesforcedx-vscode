@@ -19,13 +19,11 @@ import { taskViewService } from '../../statuses';
 import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
 import {
   SelectOutputDir,
-  SfdxCommandletExecutor,
+  SfCommandletExecutor,
   SourcePathStrategy
 } from '../util';
 
-export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
-  DirFileNameSelection
-> {
+export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNameSelection> {
   private metadataType?: MetadataInfo;
 
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
@@ -54,7 +52,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 
     notificationService.reportExecutionError(
       execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
+      execution.stderrSubject as any as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);

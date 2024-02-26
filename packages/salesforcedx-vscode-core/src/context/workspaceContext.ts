@@ -15,7 +15,7 @@ import { decorators } from '../decorators';
 import { workspaceContextUtils } from '.';
 
 /**
- * Manages the context of a workspace during a session with an open SFDX project.
+ * Manages the context of a workspace during a session with an open Sf project.
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;

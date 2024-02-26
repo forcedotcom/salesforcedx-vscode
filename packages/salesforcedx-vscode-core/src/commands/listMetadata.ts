@@ -10,13 +10,13 @@ import {
   CliCommandExecutor,
   Command,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { workspaceUtils } from '../util';
-import { SfdxCommandletExecutor } from './util';
+import { SfCommandletExecutor } from './util';
 
-export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
+export class ListMetadataExecutor extends SfCommandletExecutor<string> {
   private metadataType: string;
   private defaultUsernameOrAlias: string;
   private folder?: string;
@@ -34,11 +34,11 @@ export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withArg('org:list:metadata')
       .withFlag('-m', this.metadataType)
       .withLogName('list_metadata')
-      .withJson(false);
+      .withJson();
 
     if (this.folder) {
       builder.withFlag('--folder', this.folder);

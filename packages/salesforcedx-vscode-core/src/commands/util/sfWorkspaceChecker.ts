@@ -10,7 +10,7 @@ import { workspace } from 'vscode';
 import { notificationService } from '../../notifications';
 import { isSfdxProjectOpened } from '../../predicates';
 
-export class SfdxWorkspaceChecker implements PreconditionChecker {
+export class SfWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
     const result = isSfdxProjectOpened.apply(workspace);
     if (!result.result) {

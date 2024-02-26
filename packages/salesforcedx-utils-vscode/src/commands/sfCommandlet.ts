@@ -14,7 +14,7 @@ import {
 import { notificationService } from './index';
 import { EmptyPostChecker } from './postconditionCheckers';
 
-export class SfdxCommandlet<T> {
+export class SfCommandlet<T> {
   private readonly prechecker: PreconditionChecker;
   private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;

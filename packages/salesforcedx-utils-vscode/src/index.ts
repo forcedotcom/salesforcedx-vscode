@@ -13,13 +13,13 @@ export {
 export { EmptyPostChecker } from './commands/postconditionCheckers';
 export {
   EmptyPreChecker,
-  SfdxWorkspaceChecker
+  SfWorkspaceChecker
 } from './commands/preconditionCheckers';
 export {
-  SfdxCommandletExecutor,
+  SfCommandletExecutor,
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
-export { SfdxCommandlet } from './commands/sfdxCommandlet';
+export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,

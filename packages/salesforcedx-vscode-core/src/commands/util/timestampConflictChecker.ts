@@ -21,7 +21,7 @@ import { TimestampConflictDetector } from '../../conflict/timestampConflictDetec
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { DeployQueue, sfdxCoreSettings } from '../../settings';
+import { DeployQueue, salesforceCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
@@ -38,7 +38,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+    if (!salesforceCoreSettings.getConflictDetectionEnabled()) {
       return inputs;
     }
 

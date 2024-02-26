@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from './commandBuilder';
+import { SfCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
@@ -19,7 +19,7 @@ export class ConfigGet {
     projectPath: string,
     ...keys: string[]
   ): Promise<Map<string, string>> {
-    const commandBuilder = new SfdxCommandBuilder().withArg(CONFIG_GET_COMMAND);
+    const commandBuilder = new SfCommandBuilder().withArg(CONFIG_GET_COMMAND);
     keys.forEach(key => commandBuilder.withArg(key));
 
     const execution = new CliCommandExecutor(

@@ -41,7 +41,7 @@ describe('Sfdx Test Node', () => {
         vscode.TreeItemCollapsibleState.Collapsed;
       const expectedContextValue = 'lwcTestGroup';
       const expectedCommand = {
-        command: 'sfdx.lightning.lwc.test.navigateToTest',
+        command: 'sf.lightning.lwc.test.navigateToTest',
         title: nls.localize('lightning_lwc_test_navigate_to_test'),
         arguments: [groupNode]
       };
@@ -64,7 +64,7 @@ describe('Sfdx Test Node', () => {
       const expectedCollpasibleState = vscode.TreeItemCollapsibleState.None;
       const expectedContextValue = 'lwcTest';
       const expectedCommand = {
-        command: 'sfdx.lightning.lwc.test.navigateToTest',
+        command: 'sf.lightning.lwc.test.navigateToTest',
         title: nls.localize('lightning_lwc_test_navigate_to_test'),
         arguments: [testNode]
       };

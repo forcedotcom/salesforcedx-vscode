@@ -5,21 +5,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE } from '../../../src/constants';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 
-describe('sfdxCoreSettings', () => {
+describe('salesforceCoreSettings', () => {
   let getConfigValueSpy: jest.SpyInstance;
-  beforeEach( () => {
-    getConfigValueSpy = jest.spyOn((SfdxCoreSettings as any).prototype, 'getConfigValue');
+  beforeEach(() => {
+    getConfigValueSpy = jest.spyOn(
+      (SalesforceCoreSettings as any).prototype,
+      'getConfigValue'
+    );
   });
   describe('getEnableSourceTrackingForDeployAndRetrieve', () => {
     it('should set the default value for enable source tracking to be true.', () => {
       getConfigValueSpy.mockReturnValue(true);
-      const sfdxCoreSettingsInstance = SfdxCoreSettings.getInstance();
-      const defaultValue = sfdxCoreSettingsInstance.getEnableSourceTrackingForDeployAndRetrieve();
-      expect(sfdxCoreSettingsInstance).toBeInstanceOf(SfdxCoreSettings);
+      const salesforceCoreSettingsInstance =
+        SalesforceCoreSettings.getInstance();
+      const defaultValue =
+        salesforceCoreSettingsInstance.getEnableSourceTrackingForDeployAndRetrieve();
+      expect(salesforceCoreSettingsInstance).toBeInstanceOf(
+        SalesforceCoreSettings
+      );
       expect(getConfigValueSpy).toHaveBeenCalled();
-      expect(getConfigValueSpy).toBeCalledWith(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
+      expect(getConfigValueSpy).toBeCalledWith(
+        ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
+        true
+      );
       expect(defaultValue).toEqual(true);
     });
   });

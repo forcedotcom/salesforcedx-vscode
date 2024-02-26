@@ -6,7 +6,7 @@
  */
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -23,10 +23,10 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import { SfdxCommandlet } from './util/sfdxCommandlet';
-import { SfdxCommandletExecutor } from './util/sfdxCommandletExecutor';
+import { SfCommandlet } from './util/sfCommandlet';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export class DeleteSourceExecutor extends SfdxCommandletExecutor<{
+export class DeleteSourceExecutor extends SfCommandletExecutor<{
   filePath: string;
 }> {
   private isSourceTracked: boolean;
@@ -36,7 +36,7 @@ export class DeleteSourceExecutor extends SfdxCommandletExecutor<{
     this.isSourceTracked = isSourceTracked;
   }
   public build(data: { filePath: string }): Command {
-    const commandBuilder = new SfdxCommandBuilder()
+    const commandBuilder = new SfCommandBuilder()
       .withDescription(nls.localize('delete_source_text'))
       .withArg('project:delete:source')
       .withLogName('force_source_delete')
@@ -74,7 +74,8 @@ export class ManifestChecker implements PreconditionChecker {
 }
 
 export class ConfirmationAndSourcePathGatherer
-  implements ParametersGatherer<{ filePath: string }> {
+  implements ParametersGatherer<{ filePath: string }>
+{
   private explorerPath: string;
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
@@ -121,7 +122,7 @@ export async function deleteSource(sourceUri: vscode.Uri) {
     }
   }
   const manifestChecker = new ManifestChecker(sourceUri);
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     manifestChecker,
     new ConfirmationAndSourcePathGatherer(sourceUri),
     new DeleteSourceExecutor(isSourceTracked)

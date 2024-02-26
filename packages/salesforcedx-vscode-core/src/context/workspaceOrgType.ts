@@ -52,17 +52,13 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
 function setDefaultUsernameHasChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
-    'sfdx:default_username_has_change_tracking',
+    'sf:default_username_has_change_tracking',
     val
   );
 }
 
 function setHasDefaultUsername(val: boolean) {
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:has_default_username',
-    val
-  );
+  vscode.commands.executeCommand('setContext', 'sf:has_default_username', val);
 }
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {

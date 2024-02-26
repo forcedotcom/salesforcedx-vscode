@@ -8,7 +8,7 @@ import * as path from 'path';
 import { ExtensionContext, TreeView, window } from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
+import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictOutlineProvider } from './conflictOutlineProvider';
@@ -108,7 +108,7 @@ export class ConflictView {
 
   private updateEnablementMessage() {
     this.treeView.message =
-      sfdxCoreSettings.getConflictDetectionEnabled() || this.diffsOnly
+      salesforceCoreSettings.getConflictDetectionEnabled() || this.diffsOnly
         ? undefined
         : nls.localize('conflict_detect_not_enabled');
   }

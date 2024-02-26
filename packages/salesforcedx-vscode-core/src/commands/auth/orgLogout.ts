@@ -12,7 +12,7 @@ import {
   ContinueResponse,
   LibraryCommandletExecutor,
   notificationService,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
@@ -21,14 +21,14 @@ import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker,
   SimpleGatherer
 } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
-export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
+export class OrgLogoutAll extends SfCommandletExecutor<{}> {
   public static withoutShowingChannel(): OrgLogoutAll {
     const instance = new OrgLogoutAll();
     instance.showChannelOutput = false;
@@ -37,7 +37,7 @@ export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
       .withArg('org:logout')
       .withArg('--all')
@@ -47,10 +47,10 @@ export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 const executor = new OrgLogoutAll();
-const commandlet = new SfdxCommandlet(
+const commandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor
@@ -96,9 +96,9 @@ export async function orgLogoutDefault() {
     notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
     // confirm logout for scratch orgs due to special considerations:
-    // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
-    const logoutCommandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
+    // https://developer.salesforce.com/docs/atlas.en-us.sf_dev.meta/sf_dev/sf_dev_auth_logout.htm
+    const logoutCommandlet = new SfCommandlet(
+      new SfWorkspaceChecker(),
       isScratch
         ? new ScratchOrgLogoutParamsGatherer(username, alias)
         : new SimpleGatherer<string>(username),

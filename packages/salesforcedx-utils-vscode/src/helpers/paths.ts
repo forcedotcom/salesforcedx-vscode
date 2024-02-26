@@ -21,7 +21,7 @@ export const DEBUG = 'debug';
 export const LOGS = 'logs';
 export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
-export const SFDX_CONFIG_FILE = 'sfdx-config.json';
+export const SF_CONFIG_FILE = 'config.json';
 
 export const ensureDirectoryExists = (filePath: string): void => {
   if (fs.existsSync(filePath)) {
@@ -76,10 +76,7 @@ export const fileExtensionsMatch = (
   sourceUri: vscode.Uri,
   targetExtension: string
 ): boolean => {
-  const extension = sourceUri.path
-    .split('.')
-    .pop()
-    ?.toLowerCase();
+  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 };
 
@@ -132,7 +129,7 @@ const debugLogsFolder = (): string => {
 const sfdxProjectConfig = (): string => {
   const pathToSFDXProjectConfig = path.join(
     projectPaths.stateFolder(),
-    SFDX_CONFIG_FILE
+    SF_CONFIG_FILE
   );
   return pathToSFDXProjectConfig;
 };

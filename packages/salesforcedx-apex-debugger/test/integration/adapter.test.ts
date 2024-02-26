@@ -9,7 +9,7 @@ import * as util from '@salesforce/salesforcedx-test-utils-vscode/out/src/orgUti
 import {
   CliCommandExecutor,
   CommandExecution,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -201,7 +201,7 @@ const execApexNoWait = (
   userName: string
 ): CommandExecution => {
   return new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('force:apex:execute')
       .withFlag('--apexcodefile', apexExecFilePath)
       .withFlag('--targetusername', userName)

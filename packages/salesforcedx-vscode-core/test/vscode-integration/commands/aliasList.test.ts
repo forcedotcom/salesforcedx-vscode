@@ -14,7 +14,7 @@ describe('Alias List', () => {
   it('Should build the alias list command', async () => {
     const aliasList = new AliasList();
     const aliasListCommand = aliasList.build({});
-    expect(aliasListCommand.toCommand()).to.equal('sfdx alias:list');
+    expect(aliasListCommand.toCommand()).to.equal('sf alias:list');
     expect(aliasListCommand.description).to.equal(
       nls.localize('alias_list_text')
     );

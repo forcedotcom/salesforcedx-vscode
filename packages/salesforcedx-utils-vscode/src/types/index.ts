@@ -6,7 +6,7 @@
  */
 
 export {
-  SFDX_CONFIG_FILE,
+  SF_CONFIG_FILE,
   SFDX_FOLDER,
   SFDX_PROJECT_FILE,
   ENV_SF_TARGET_ORG,
@@ -75,7 +75,7 @@ export type DirFileNameSelection = {
   /**
    * used for selecting the different apex unit test templates
    */
-  template?: 'ApexUnitTest'|'BasicUnitTest';
+  template?: 'ApexUnitTest' | 'BasicUnitTest';
 };
 
 /**

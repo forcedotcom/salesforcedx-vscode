@@ -18,8 +18,8 @@ import {
   CompositeParametersGatherer,
   PathStrategyFactory,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
@@ -85,8 +85,8 @@ const parameterGatherer = new CompositeParametersGatherer(
 
 export async function analyticsGenerateTemplate() {
   const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     parameterGatherer,
     createTemplateExecutor
   );

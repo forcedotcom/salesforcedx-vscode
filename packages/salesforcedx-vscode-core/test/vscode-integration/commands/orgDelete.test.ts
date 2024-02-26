@@ -13,7 +13,7 @@ describe('Org Delete', () => {
     const orgDelete = new OrgDeleteExecutor();
     const deleteCommand = orgDelete.build({});
     expect(deleteCommand.toCommand()).to.equal(
-      'sfdx org:delete:scratch --no-prompt'
+      'sf org:delete:scratch --no-prompt'
     );
     expect(deleteCommand.description).to.equal(
       nls.localize('org_delete_default_text')
@@ -24,7 +24,7 @@ describe('Org Delete', () => {
     const orgDelete = new OrgDeleteExecutor('--target-org');
     const deleteCommand = orgDelete.build({ username: 'test' });
     expect(deleteCommand.toCommand()).to.equal(
-      'sfdx org:delete:scratch --no-prompt --target-org test'
+      'sf org:delete:scratch --no-prompt --target-org test'
     );
     expect(deleteCommand.description).to.equal(
       nls.localize('org_delete_username_text')

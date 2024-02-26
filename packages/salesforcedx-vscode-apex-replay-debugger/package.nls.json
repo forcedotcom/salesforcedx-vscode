@@ -7,8 +7,8 @@
   "logfile_text": "Path to an Apex Debug Log file (*.log) in the workspace folder.",
   "stop_on_entry_text": "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
   "trace_text": "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'logfile', 'launch', 'breakpoints'.",
-  "sfdx_update_checkpoints_in_org": "SFDX: Update Checkpoints in Org",
-  "sfdx_toggle_checkpoint": "SFDX: Toggle Checkpoint",
+  "sf_update_checkpoints_in_org": "SFDX: Update Checkpoints in Org",
+  "sf_toggle_checkpoint": "SFDX: Toggle Checkpoint",
   "run_tests_and_debug": "Debug Tests",
   "run_single_test_and_debug": "Debug Single Test"
 }

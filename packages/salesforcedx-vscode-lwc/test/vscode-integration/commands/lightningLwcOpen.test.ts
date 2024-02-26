@@ -50,6 +50,6 @@ describe('lightningLwcOpen', () => {
     await lightningLwcOpen();
 
     sinon.assert.calledOnce(executeCommandStub);
-    sinon.assert.calledWith(executeCommandStub, 'sfdx.lightning.lwc.start');
+    sinon.assert.calledWith(executeCommandStub, 'sf.lightning.lwc.start');
   });
 });

@@ -196,7 +196,7 @@ export const messages = {
   error_extracting_org_source:
     'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
-  error_updating_sfdx_project: 'sfdx-project.json の更新中にエラー: %s',
+  error_updating_sf_project: 'sfdx-project.json の更新中にエラー: %s',
   error_writing_installed_package_info:
     'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
@@ -244,7 +244,7 @@ export const messages = {
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
-  error_parsing_sfdx_project_file:
+  error_parsing_salesforce__file:
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',

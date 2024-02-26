@@ -22,15 +22,16 @@ import {
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
+import {
+  registerIsvAuthWatcher,
+  setupGlobalDefaultUserIsvAuth
+} from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
-const cachedExceptionBreakpoints: Map<
-  string,
-  ExceptionBreakpointItem
-> = new Map();
-const sfdxCoreExtension = vscode.extensions.getExtension(
+const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> =
+  new Map();
+const salesforceCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
@@ -72,7 +73,7 @@ const registerCommands = (): vscode.Disposable => {
     }
   );
   const exceptionBreakpointCmd = vscode.commands.registerCommand(
-    'sfdx.debug.exception.breakpoint',
+    'sf.debug.exception.breakpoint',
     configureExceptionBreakpoint
   );
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
@@ -115,11 +116,12 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 ];
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
-  const sfdxApex = vscode.extensions.getExtension(
+  const salesforceApexExtension = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
-  if (sfdxApex && sfdxApex.exports) {
-    const exceptionBreakpointInfos: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
+  if (salesforceApexExtension && salesforceApexExtension.exports) {
+    const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
+      await salesforceApexExtension.exports.getExceptionBreakpointInfo();
     console.log('Retrieved exception breakpoint info from language server');
     let enabledExceptionBreakpointTyperefs: string[] = [];
     if (vscode.debug.activeDebugSession) {
@@ -238,7 +240,9 @@ const notifyDebuggerSessionFileChanged = (): void => {
   }
 };
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+export const activate = async (
+  extensionContext: vscode.ExtensionContext
+): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
@@ -251,8 +255,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     )
   );
 
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    if (sfdxCoreExtension.exports.isCLIInstalled()) {
+  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+    if (salesforceCoreExtension.exports.isCLIInstalled()) {
       console.log('Setting up ISV Debugger environment variables');
       // register watcher for ISV authentication and setup default user for CLI
       // this is done in core because it shares access to GlobalCliEnvironment with the commands
@@ -270,8 +274,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
     // Telemetry
     telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporters(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      salesforceCoreExtension.exports.telemetryService.getReporters(),
+      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 

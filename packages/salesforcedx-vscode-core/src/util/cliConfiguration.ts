@@ -18,7 +18,7 @@ import {
   SF_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
+import { salesforceCoreSettings } from '../settings';
 
 export const isCLIInstalled = () => {
   let isInstalled = false;
@@ -56,14 +56,14 @@ export const isCLITelemetryAllowed = async () => {
 export const setNodeExtraCaCerts = () => {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_NODE_EXTRA_CA_CERTS,
-    sfdxCoreSettings.getNodeExtraCaCerts()
+    salesforceCoreSettings.getNodeExtraCaCerts()
   );
 };
 
 export const setSfLogLevel = () => {
   GlobalCliEnvironment.environmentVariables.set(
     ENV_SF_LOG_LEVEL,
-    sfdxCoreSettings.getSfLogLevel()
+    salesforceCoreSettings.getSfLogLevel()
   );
-  process.env[ENV_SF_LOG_LEVEL] = sfdxCoreSettings.getSfLogLevel();
+  process.env[ENV_SF_LOG_LEVEL] = salesforceCoreSettings.getSfLogLevel();
 };

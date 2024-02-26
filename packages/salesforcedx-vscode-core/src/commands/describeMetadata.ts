@@ -10,24 +10,24 @@ import {
   CliCommandExecutor,
   Command,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
 import { workspaceUtils } from '../util';
-import { SfdxCommandletExecutor } from './util';
+import { SfCommandletExecutor } from './util';
 
-export class DescribeMetadataExecutor extends SfdxCommandletExecutor<string> {
+export class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
   public constructor() {
     super();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('org:list:metadata-types')
-      .withJson(false)
+      .withJson()
       .withLogName('describe_metadata_types')
       .build();
   }

@@ -335,7 +335,7 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.org.login.web')).to.equal(
+        expect(executeCommandStub.calledWith('sf.org.login.web')).to.equal(
           true
         );
       });
@@ -347,7 +347,7 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.org.create')).to.equal(true);
+        expect(executeCommandStub.calledWith('sf.org.create')).to.equal(true);
       });
 
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
@@ -358,11 +358,11 @@ describe('orgList Tests', () => {
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(
-          executeCommandStub.calledWith('sfdx.org.login.web.dev.hub')
+          executeCommandStub.calledWith('sf.org.login.web.dev.hub')
         ).to.equal(true);
       });
 
-      it('should return Continue and call sfdx:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
+      it('should return Continue and call sf:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
           '$(plus) ' + nls.localize('org_login_access_token_text')
@@ -370,7 +370,7 @@ describe('orgList Tests', () => {
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(
-          executeCommandStub.calledWith('sfdx.org.login.access.token')
+          executeCommandStub.calledWith('sf.org.login.access.token')
         ).to.equal(true);
       });
 
@@ -379,7 +379,7 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus) ' + nls.localize('org_list_clean_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.org.list.clean')).to.equal(
+        expect(executeCommandStub.calledWith('sf.org.list.clean')).to.equal(
           true
         );
       });
@@ -390,7 +390,7 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.config.set')).to.equal(true);
+        expect(executeCommandStub.calledWith('sf.config.set')).to.equal(true);
       });
     });
   });

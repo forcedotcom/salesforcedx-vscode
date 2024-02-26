@@ -12,8 +12,8 @@ import {
   LibraryCommandletExecutor,
   ParametersGatherer,
   SFDX_FOLDER,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
@@ -174,13 +174,13 @@ export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexT
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const testSuiteSelector = new TestSuiteSelector();
 const testSuiteCreator = new TestSuiteCreator();
 const testSuiteBuilder = new TestSuiteBuilder();
 
 export const apexTestSuiteAdd = async () => {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     testSuiteBuilder,
     new ApexLibraryTestSuiteBuilder()
@@ -189,7 +189,7 @@ export const apexTestSuiteAdd = async () => {
 };
 
 export const apexTestSuiteCreate = async () => {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     testSuiteCreator,
     new ApexLibraryTestSuiteBuilder()
@@ -198,7 +198,7 @@ export const apexTestSuiteCreate = async () => {
 };
 
 export const apexTestSuiteRun = async () => {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     testSuiteSelector,
     new ApexLibraryTestRunExecutor()

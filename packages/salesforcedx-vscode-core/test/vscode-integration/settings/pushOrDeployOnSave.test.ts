@@ -16,7 +16,7 @@ import {
   fileShouldNotBeDeployed,
   pathIsInPackageDirectory
 } from '../../../src/settings';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
 
@@ -115,7 +115,7 @@ describe('Push or Deploy on Save', () => {
       );
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
       sandbox
-        .stub(SfdxCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
+        .stub(SalesforceCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
         .returns(false);
     });
 
@@ -195,7 +195,7 @@ describe('Push or Deploy on Save', () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
-          SfdxCoreSettings.prototype,
+          SalesforceCoreSettings.prototype,
           'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(false);
@@ -204,7 +204,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.project.deploy.start'
+        'sf.project.deploy.start'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
@@ -214,7 +214,7 @@ describe('Push or Deploy on Save', () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
-          SfdxCoreSettings.prototype,
+          SalesforceCoreSettings.prototype,
           'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(true);
@@ -223,7 +223,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.project.deploy.start.ignore.conflicts'
+        'sf.project.deploy.start.ignore.conflicts'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
@@ -236,7 +236,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.deploy.multiple.source.paths'
+        'sf.deploy.multiple.source.paths'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;

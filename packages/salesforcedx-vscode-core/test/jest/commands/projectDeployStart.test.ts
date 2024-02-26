@@ -12,7 +12,7 @@ import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve
 import { DeployType } from '../../../src/commands/projectDeployStart';
 import {
   CommandParams,
-  SfdxCommandletExecutor
+  SfCommandletExecutor
 } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { dummyPushResult, dummyStdOut } from './data/testData';
@@ -48,14 +48,14 @@ describe('ProjectDeployStartExecutor', () => {
       const executor = new ProjectDeployStartExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
       const executorAsAny = executor as any;
-      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
+      SfCommandletExecutor.errorCollection = MockErrorCollection as any;
       DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
       const deployRetrieveExecutorClearSpy = jest.spyOn(
         DeployRetrieveExecutor.errorCollection,
         'clear'
       );
-      const sfdxCommandletExecutorClearSpy = jest.spyOn(
-        SfdxCommandletExecutor.errorCollection,
+      const sfCommandletExecutorClearSpy = jest.spyOn(
+        SfCommandletExecutor.errorCollection,
         'clear'
       );
       executorAsAny.updateCache = updateCacheMock;
@@ -75,7 +75,7 @@ describe('ProjectDeployStartExecutor', () => {
 
       // Assert
       expect(updateCacheMock).toHaveBeenCalled();
-      expect(sfdxCommandletExecutorClearSpy).toHaveBeenCalled();
+      expect(sfCommandletExecutorClearSpy).toHaveBeenCalled();
       expect(deployRetrieveExecutorClearSpy).toHaveBeenCalled();
     });
   });

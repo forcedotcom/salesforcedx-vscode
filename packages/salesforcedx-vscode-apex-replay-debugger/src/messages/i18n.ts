@@ -29,7 +29,7 @@ export const messages = {
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
   long_command_start: 'Starting',
   long_command_end: 'Ending',
-  sfdx_update_checkpoints_in_org: 'SFDX: Update Checkpoints in Org',
+  sf_update_checkpoints_in_org: 'SFDX: Update Checkpoints in Org',
   checkpoint_creation_status_org_info:
     'Step 1 of 6: Retrieving org information',
   checkpoint_creation_status_source_line_info:
@@ -52,8 +52,8 @@ export const messages = {
   cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
   unable_to_parse_checkpoint_query_result:
     'Unable to parse checkpoint query result',
-  unable_to_retrieve_active_user_for_sfdx_project:
-    'Unable to retrieve active user for sfdx project',
+  unable_to_retrieve_active_user_for_sf_project:
+    'Unable to retrieve active user for sf project',
   unable_to_query_for_existing_checkpoints:
     'Unable to query for existing checkpoints',
   unable_to_load_vscode_core_extension:

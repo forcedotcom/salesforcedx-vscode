@@ -58,7 +58,7 @@ export default class SfdxProjectConfig {
     let errorMessage = error.message;
     if (error.name === 'JsonParseError') {
       errorMessage = nls.localize(
-        'error_parsing_sfdx_project_file',
+        'error_parsing_salesforce__file',
         error.path,
         error.message
       );
@@ -74,7 +74,9 @@ export default class SfdxProjectConfig {
     return SfdxProjectConfig.instance;
   }
 
-  public static async getValue<T extends JsonArray | string | undefined>(key: string): Promise<T> {
+  public static async getValue<T extends JsonArray | string | undefined>(
+    key: string
+  ): Promise<T> {
     const projectConfig = await SfdxProjectConfig.getInstance();
     return projectConfig.get(key) as T;
   }

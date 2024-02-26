@@ -11,7 +11,7 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { OrgLogoutAll, orgLogoutDefault } from '../../../../src/commands';
-import { SfdxCommandlet } from '../../../../src/commands/util';
+import { SfCommandlet } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo } from '../../../../src/util';
@@ -21,7 +21,7 @@ describe('Force Auth Logout All', () => {
     const authLogoutAll = new OrgLogoutAll();
     const authLogoutAllCommand = authLogoutAll.build({});
     expect(authLogoutAllCommand.toCommand()).to.equal(
-      'sfdx org:logout --all --no-prompt'
+      'sf org:logout --all --no-prompt'
     );
     expect(authLogoutAllCommand.description).to.equal(
       nls.localize('org_logout_all_text')
@@ -47,7 +47,7 @@ describe('Force Auth Logout Default', () => {
     scratchOrgStub = sb.stub(OrgAuthInfo, 'isAScratchOrg');
     notificationStub = sb.stub(notificationService, 'showInformationMessage');
     sendExceptionStub = sb.stub(telemetryService, 'sendException');
-    commandletStub = sb.stub(SfdxCommandlet.prototype, 'run');
+    commandletStub = sb.stub(SfCommandlet.prototype, 'run');
     inputMessageStub = sb.stub(vscode.window, 'showInformationMessage');
     authRemoverStub = sb.stub(AuthRemover, 'create');
   });

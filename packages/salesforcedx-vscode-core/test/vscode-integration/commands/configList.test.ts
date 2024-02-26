@@ -14,7 +14,7 @@ describe('Config List', () => {
   it('Should build the config list command', async () => {
     const configList = new ConfigList();
     const configListCommand = configList.build({});
-    expect(configListCommand.toCommand()).to.equal('sfdx config:list');
+    expect(configListCommand.toCommand()).to.equal('sf config:list');
     expect(configListCommand.description).to.equal(
       nls.localize('config_list_text')
     );

@@ -7,7 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
@@ -32,9 +32,9 @@ import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import {
   DemoModePromptGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from '../util';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
@@ -46,15 +46,13 @@ export interface DeviceCodeResponse {
   verification_uri: string;
 }
 
-export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
-  AuthParams
-> {
+export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
 
   public build(data: AuthParams): Command {
-    const command = new SfdxCommandBuilder().withDescription(
+    const command = new SfCommandBuilder().withDescription(
       nls.localize('org_login_web_authorize_org_text')
     );
 
@@ -148,11 +146,11 @@ export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class OrgLoginWebExecutor extends SfdxCommandletExecutor<AuthParams> {
+export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
-    const command = new SfdxCommandBuilder().withDescription(
+    const command = new SfCommandBuilder().withDescription(
       nls.localize('org_login_web_authorize_org_text')
     );
 
@@ -169,7 +167,7 @@ export class OrgLoginWebExecutor extends SfdxCommandletExecutor<AuthParams> {
 
 export abstract class ForceAuthDemoModeExecutor<
   T
-> extends SfdxCommandletExecutor<T> {
+> extends SfCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new CancellationTokenSource();
@@ -185,7 +183,7 @@ export abstract class ForceAuthDemoModeExecutor<
 
     notificationService.reportExecutionError(
       execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
+      execution.stderrSubject as any as Observable<Error | undefined>
     );
 
     channelService.streamCommandOutput(execution);
@@ -208,11 +206,9 @@ export abstract class ForceAuthDemoModeExecutor<
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<
-  AuthParams
-> {
+export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))
       .withArg(CLI.ORG_LOGIN_WEB)
       .withFlag('--alias', data.alias)
@@ -226,17 +222,17 @@ export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<
 }
 
 export async function promptLogOutForProdOrg() {
-  await new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  await new SfCommandlet(
+    new SfWorkspaceChecker(),
     new DemoModePromptGatherer(),
     OrgLogoutAll.withoutShowingChannel()
   ).run();
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<{}> {
+export function createOrgLoginWebExecutor(): SfCommandletExecutor<{}> {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();
@@ -248,7 +244,7 @@ export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<{}> {
 }
 
 export async function orgLoginWeb() {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createOrgLoginWebExecutor()

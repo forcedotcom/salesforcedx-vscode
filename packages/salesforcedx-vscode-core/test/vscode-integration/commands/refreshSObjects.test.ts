@@ -20,7 +20,7 @@ import {
   notificationService,
   ProgressNotification,
   projectPaths,
-  SfdxCommandlet
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
 import { expect } from 'chai';
@@ -58,7 +58,7 @@ describe('ForceGenerateFauxClasses', () => {
       sandboxStub
         .stub(WorkspaceContext.prototype, 'getConnection')
         .resolves({ getUsername: getUsernameStub });
-      commandletSpy = sandboxStub.stub(SfdxCommandlet.prototype, 'run');
+      commandletSpy = sandboxStub.stub(SfCommandlet.prototype, 'run');
       notificationStub = sandboxStub.stub(
         notificationService,
         'showInformationMessage'

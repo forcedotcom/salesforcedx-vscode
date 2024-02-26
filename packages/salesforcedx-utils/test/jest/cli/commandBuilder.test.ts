@@ -8,8 +8,7 @@ import { Command } from '../../../src/cli/command';
 import {
   CommandBuilder,
   FATAL,
-  JSON_FLAG,
-  LOG_LEVEL_FLAG
+  JSON_FLAG
 } from '../../../src/cli/commandBuilder';
 
 describe('CommandBuild unit tests', () => {
@@ -46,14 +45,14 @@ describe('CommandBuild unit tests', () => {
   it('Should have special handling for the json flag.', () => {
     const testCommand = commandBuilderInst.withArg(JSON_FLAG);
     expect(testCommand.args).toEqual(
-      expect.arrayContaining([JSON_FLAG, LOG_LEVEL_FLAG, FATAL])
+      expect.arrayContaining([JSON_FLAG, FATAL])
     );
   });
 
   it('Should be able to set json flags.', () => {
     const testCommand = commandBuilderInst.withJson().build();
     expect(testCommand.args).toEqual(
-      expect.arrayContaining([JSON_FLAG, LOG_LEVEL_FLAG, FATAL])
+      expect.arrayContaining([JSON_FLAG, FATAL])
     );
   });
 
@@ -82,7 +81,7 @@ describe('CommandBuild unit tests', () => {
       expect.arrayContaining([testFlag, testFlagValue])
     );
     expect(testCommand.args).toEqual(
-      expect.arrayContaining([JSON_FLAG, LOG_LEVEL_FLAG, FATAL])
+      expect.arrayContaining([JSON_FLAG, FATAL])
     );
     expect(testCommand.logName).toEqual(testLogName);
   });

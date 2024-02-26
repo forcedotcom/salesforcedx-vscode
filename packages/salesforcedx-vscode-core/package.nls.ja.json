@@ -3,7 +3,7 @@
   "analytics_generate_template_text": "SFDX: サンプルの Analytics テンプレートを作成",
   "apex_generate_class_text": "SFDX: Apex クラスを作成",
   "apex_generate_trigger_text": "SFDX: Apex トリガを作成",
-  "cancel_sfdx_command_text": "SFDX: アクティブなコマンドをキャンセル",
+  "cancel_sf_command_text": "SFDX: アクティブなコマンドをキャンセル",
   "config_list_text": "SFDX: すべての設定変数を一覧表示",
   "config_set_org_text": "SFDX: デフォルトの組織を設定",
   "conflict_detect_open_file": "ファイルを開く",

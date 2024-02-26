@@ -152,7 +152,7 @@ describe('SFDX CLI Configuration utility', () => {
       // Remove the config files that were created for the test
       try {
         const configFile = await ConfigFile.create(
-          Config.getDefaultOptions(false, 'sfdx-config.json')
+          Config.getDefaultOptions(false, 'config.json')
         );
         configFile.unlinkSync(); // delete the sfdx config file that was created for the test
 
@@ -185,7 +185,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 4. The VS Code orgChange event was fired with the correct values
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
-    it('Should return the locally configured default username when it exists', async function() {
+    it('Should return the locally configured default username when it exists', async function () {
       this.timeout(60000);
 
       let res: (value: string) => void;
@@ -197,7 +197,8 @@ describe('SFDX CLI Configuration utility', () => {
       WorkspaceContext.getInstance().onOrgChange(async orgUserInfo => {
         try {
           // Act
-          const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+          const localProjectDefaultUsernameOrAlias =
+            await ConfigUtil.getDefaultUsernameOrAlias();
 
           // Assert
           expect(localProjectDefaultUsernameOrAlias).to.equal(

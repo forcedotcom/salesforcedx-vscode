@@ -227,7 +227,7 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
-  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
+  error_updating_salesforce_: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
@@ -285,7 +285,7 @@ export const messages = {
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',
-  error_parsing_sfdx_project_file:
+  error_parsing_salesforce__file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
     'Salesforce CLI is not installed. Install it from [%s](%s)',

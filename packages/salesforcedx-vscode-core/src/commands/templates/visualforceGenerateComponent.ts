@@ -19,8 +19,8 @@ import {
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
@@ -57,8 +57,8 @@ const metadataTypeGatherer = new MetadataTypeGatherer(
 export async function visualforceGenerateComponent() {
   const createTemplateExecutor =
     new LibraryVisualforceGenerateComponentExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,

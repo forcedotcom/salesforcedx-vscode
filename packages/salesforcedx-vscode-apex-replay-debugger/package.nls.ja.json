@@ -7,8 +7,8 @@
   "logfile_text": "ワークスペースフォルダ内の Apex デバッグログファイル(*.log) のパス。",
   "stop_on_entry_text": "起動後にデバッガを停止する。もし false に設定した場合、デバッガはブレークポイントにヒットするまで実行されます。",
   "trace_text": "診断出力を生成します。これを true、false、またはカンマで区切った 1 つ以上のセレクタに設定できます。セレクタには、'all' (非常に詳細な出力。true と同等)、'protocol'、'logfile'、'launch'、'breakpoints' があります。",
-  "sfdx_update_checkpoints_in_org": "SFDX: 組織のチェックポイントをアップデート",
-  "sfdx_toggle_checkpoint": "SFDX: チェックポイントを切り替え",
+  "sf_update_checkpoints_in_org": "SFDX: 組織のチェックポイントをアップデート",
+  "sf_toggle_checkpoint": "SFDX: チェックポイントを切り替え",
   "run_tests_and_debug": "テストをデバッグ",
   "run_single_test_and_debug": "1 つのテストをデバッグ"
 }

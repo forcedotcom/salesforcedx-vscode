@@ -11,7 +11,7 @@ import {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
@@ -26,15 +26,15 @@ import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
       .withLogName('force_org_open_default_scratch_org')
@@ -105,11 +105,11 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
       .withLogName('force_org_open_default_scratch_org')
@@ -117,17 +117,17 @@ export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export function getExecutor(): SfdxCommandletExecutor<{}> {
+export function getExecutor(): SfCommandletExecutor<{}> {
   return isSFContainerMode()
     ? new OrgOpenContainerExecutor()
     : new OrgOpenExecutor();
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function orgOpen() {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     getExecutor()

@@ -20,7 +20,7 @@ import {
   LWC,
   METADATA,
   ORGS,
-  SFDX_CONFIG_FILE,
+  SF_CONFIG_FILE,
   TEST_RESULTS,
   TOOLS
 } from '../../../src/helpers/paths';
@@ -69,7 +69,7 @@ describe('test project paths', () => {
   });
   describe('test sfdxProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
-    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
+    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SF_CONFIG_FILE);
 
     beforeEach(() => {
       stateFolderStub = jest
@@ -186,7 +186,8 @@ describe('test project paths', () => {
     });
 
     it('should return a path to the apex Language Server Database folder based on root workspace', () => {
-      const apexLanguageServerDatabase = projectPaths.apexLanguageServerDatabase();
+      const apexLanguageServerDatabase =
+        projectPaths.apexLanguageServerDatabase();
       expect(apexLanguageServerDatabase).toEqual(
         path.join(FAKE_WORKSPACE, TOOLS, APEX_DB)
       );

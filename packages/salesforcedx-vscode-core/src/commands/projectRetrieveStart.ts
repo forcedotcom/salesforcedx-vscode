@@ -13,7 +13,7 @@ import {
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
   Row,
-  SfdxCommandBuilder,
+  SfCommandBuilder,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -25,9 +25,9 @@ import {
   CommandParams,
   EmptyParametersGatherer,
   FlagParameter,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
 export const pullCommand: CommandParams = {
@@ -39,7 +39,7 @@ export const pullCommand: CommandParams = {
   logName: { default: PROJECT_RETRIEVE_START_LOG_NAME }
 };
 
-export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
+export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(
@@ -52,10 +52,10 @@ export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
-      .withJson(false)
+      .withJson()
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--ignore-conflicts') {
@@ -221,13 +221,13 @@ export class ProjectRetrieveStartExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function projectRetrieveStart(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ProjectRetrieveStartExecutor(flag, pullCommand);
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor

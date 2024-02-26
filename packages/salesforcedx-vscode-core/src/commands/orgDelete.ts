@@ -7,7 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
@@ -15,12 +15,12 @@ import {
   FlagParameter,
   PromptConfirmGatherer,
   SelectUsername,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class OrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -29,7 +29,7 @@ export class OrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public build(data: { choice?: string; username?: string }): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withDescription(nls.localize('org_delete_default_text'))
       .withArg('org:delete:scratch')
       .withArg('--no-prompt')
@@ -45,7 +45,7 @@ export class OrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 
 export async function orgDelete(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
@@ -63,7 +63,7 @@ export async function orgDelete(this: FlagParameter<string>) {
       );
 
   const executor = new OrgDeleteExecutor(flag);
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor

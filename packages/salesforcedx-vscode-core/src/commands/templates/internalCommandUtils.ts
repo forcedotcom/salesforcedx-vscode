@@ -13,16 +13,17 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { Uri } from 'vscode';
-import { sfdxCoreSettings } from '../../settings';
+import { salesforceCoreSettings } from '../../settings';
 
 export class InternalDevWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
-    return sfdxCoreSettings.getInternalDev();
+    return salesforceCoreSettings.getInternalDev();
   }
 }
 
 export class FileInternalPathGatherer
-  implements ParametersGatherer<{ outputdir: string }> {
+  implements ParametersGatherer<{ outputdir: string }>
+{
   private filePath: string;
   public constructor(uri: Uri) {
     this.filePath = uri.fsPath;

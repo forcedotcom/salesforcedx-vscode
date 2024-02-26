@@ -254,7 +254,7 @@ export abstract class TestNode extends vscode.TreeItem {
     this.description = label;
     this.name = label;
     this.command = {
-      command: 'sfdx.test.view.showError',
+      command: 'sf.test.view.showError',
       title: nls.localize('test_view_show_error_title'),
       arguments: [this]
     };

@@ -176,7 +176,7 @@ describe('LWC Test Outline Provider', () => {
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         contextValue: 'lwcTestGroup',
         command: {
-          command: 'sfdx.lightning.lwc.test.navigateToTest',
+          command: 'sf.lightning.lwc.test.navigateToTest',
           title: nls.localize('lightning_lwc_test_navigate_to_test'),
           arguments: [actualFileNode]
         }
@@ -190,7 +190,7 @@ describe('LWC Test Outline Provider', () => {
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           contextValue: 'lwcTest',
           command: {
-            command: 'sfdx.lightning.lwc.test.navigateToTest',
+            command: 'sf.lightning.lwc.test.navigateToTest',
             title: nls.localize('lightning_lwc_test_navigate_to_test'),
             arguments: [actualTestCaseNodes[0]]
           }
@@ -201,7 +201,7 @@ describe('LWC Test Outline Provider', () => {
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           contextValue: 'lwcTest',
           command: {
-            command: 'sfdx.lightning.lwc.test.navigateToTest',
+            command: 'sf.lightning.lwc.test.navigateToTest',
             title: nls.localize('lightning_lwc_test_navigate_to_test'),
             arguments: [actualTestCaseNodes[1]]
           }

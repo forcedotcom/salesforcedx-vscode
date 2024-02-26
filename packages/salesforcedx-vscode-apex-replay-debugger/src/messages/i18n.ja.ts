@@ -29,7 +29,7 @@ export const messages = {
     'ローカルソースはサーバーと同期していません。ローカルで行った変更を組織にプッシュし、組織で行った変更をローカルプロジェクトにプルしてください。',
   long_command_start: '開始しています',
   long_command_end: '終了しています',
-  sfdx_update_checkpoints_in_org: 'SFDX: 組織のチェックポイントを更新',
+  sf_update_checkpoints_in_org: 'SFDX: 組織のチェックポイントを更新',
   checkpoint_creation_status_org_info:
     'ステップ 1/6: 組織の情報を取得しています。',
   checkpoint_creation_status_source_line_info:
@@ -52,7 +52,7 @@ export const messages = {
   cannot_delete_existing_checkpoint: '既存のチェックポイントを削除できません。',
   unable_to_parse_checkpoint_query_result:
     'チェックポイントのクエリ結果をパースできませんでした。',
-  unable_to_retrieve_active_user_for_sfdx_project:
+  unable_to_retrieve_active_user_for_sf_project:
     'SFDX プロジェクトの有効なユーザを取得できませんでした。',
   unable_to_query_for_existing_checkpoints:
     '既存のチェックポイントをクエリできませんでした。',

@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SFDX_COMMAND } from '../constants';
+import { SF_COMMAND } from '../constants';
 import { CommandBuilder } from './commandBuilder';
 
-export class SfdxCommandBuilder extends CommandBuilder {
+export class SfCommandBuilder extends CommandBuilder {
   public constructor() {
-    super(SFDX_COMMAND);
+    super(SF_COMMAND);
   }
 }

@@ -18,9 +18,8 @@ import { telemetryService } from '../telemetry';
 
 export class OrgAuthInfo {
   public static async getDevHubUsername() {
-    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-      false
-    );
+    const defaultDevHubUsernameOrAlias =
+      await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
     let defaultDevHubUsername: string | undefined;
     if (defaultDevHubUsernameOrAlias) {
       defaultDevHubUsername = await OrgAuthInfo.getUsername(
@@ -34,7 +33,8 @@ export class OrgAuthInfo {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+      const defaultUsernameOrAlias =
+        await ConfigUtil.getDefaultUsernameOrAlias();
       if (!defaultUsernameOrAlias) {
         displayMessage(
           nls.localize('error_no_default_username'),
@@ -84,7 +84,7 @@ export class OrgAuthInfo {
           [showButtonText]
         );
         if (selection && selection === showButtonText) {
-          vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
+          vscode.commands.executeCommand('sf.org.login.web.dev.hub');
         }
         return undefined;
       }

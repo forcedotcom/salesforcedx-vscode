@@ -27,7 +27,7 @@ const expectSetHasDefaultUsername = (
 ) => {
   expect(executeCommandStub.getCall(0).args).to.eql([
     'setContext',
-    'sfdx:has_default_username',
+    'sf:has_default_username',
     hasUsername
   ]);
 };
@@ -39,7 +39,7 @@ const expectDefaultUsernameHasChangeTracking = (
 ) => {
   expect(executeCommandStub.getCall(argOrder ?? 1).args).to.eql([
     'setContext',
-    'sfdx:default_username_has_change_tracking',
+    'sf:default_username_has_change_tracking',
     hasChangeTracking
   ]);
 };
@@ -126,7 +126,7 @@ describe('workspaceOrgType', () => {
       sandbox.restore();
     });
 
-    it('should set sfdx:default_username_has_change_tracking context to false when no default org is set', async () => {
+    it('should set sf:default_username_has_change_tracking context to false when no default org is set', async () => {
       workspaceContextGetInstanceStub.returns(() => {
         throw new Error('no connection found.');
       });
@@ -145,7 +145,7 @@ describe('workspaceOrgType', () => {
     });
 
     describe('setWorkspaceOrgTypeWithOrgType', () => {
-      it('should set sfdx:default_username_has_change_tracking to true when default org is source-tracked', async () => {
+      it('should set sf:default_username_has_change_tracking to true when default org is source-tracked', async () => {
         const executeCommandStub = sandbox.stub(
           vscode.commands,
           'executeCommand'
@@ -161,7 +161,7 @@ describe('workspaceOrgType', () => {
         executeCommandStub.restore();
       });
 
-      it('should set sfdx:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
+      it('should set sf:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
         const executeCommandStub = sandbox.stub(
           vscode.commands,
           'executeCommand'

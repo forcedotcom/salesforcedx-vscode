@@ -28,17 +28,17 @@ class TestWatcher {
       FORCE_LWC_TEST_WATCH_LOG_NAME
     );
     try {
-      const sfdxTask = await testRunner.executeAsSfdxTask();
-      if (sfdxTask) {
+      const sfTask = await testRunner.executeAsSfdxTask();
+      if (sfTask) {
         const { testUri } = testExecutionInfo;
         const { fsPath } = testUri;
-        sfdxTask.onDidEnd(() => {
+        sfTask.onDidEnd(() => {
           this.watchedTests.delete(fsPath);
           this.setWatchingContext(testUri);
         });
-        this.watchedTests.set(fsPath, sfdxTask);
+        this.watchedTests.set(fsPath, sfTask);
         this.setWatchingContext(testUri);
-        return sfdxTask;
+        return sfTask;
       }
     } catch (error) {
       console.error(error);

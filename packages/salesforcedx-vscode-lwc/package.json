@@ -152,8 +152,8 @@
     "views": {
       "test": [
         {
-          "id": "sfdx.lightning.lwc.test.view",
-          "when": "sfdx:project_opened || sfdx:internal_dev",
+          "id": "sf.lightning.lwc.test.view",
+          "when": "sf:project_opened || sf:internal_dev",
           "name": "%lightning_lwc_test_view_name%"
         }
       ]
@@ -161,168 +161,168 @@
     "menus": {
       "editor/context": [
         {
-          "command": "sfdx.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "command": "sf.lightning.lwc.preview",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "editor/title": [
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.run",
-          "when": "sfdx:lwc_jest_file_focused",
+          "command": "sf.lightning.lwc.test.editorTitle.run",
+          "when": "sf:lwc_jest_file_focused",
           "group": "navigation"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.debug",
-          "when": "sfdx:lwc_jest_file_focused",
+          "command": "sf.lightning.lwc.test.editorTitle.debug",
+          "when": "sf:lwc_jest_file_focused",
           "group": "navigation"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.startWatching",
-          "when": "sfdx:lwc_jest_file_focused && !sfdx:lwc_jest_is_watching_focused_file",
+          "command": "sf.lightning.lwc.test.editorTitle.startWatching",
+          "when": "sf:lwc_jest_file_focused && !sf:lwc_jest_is_watching_focused_file",
           "group": "navigation"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.stopWatching",
-          "when": "sfdx:lwc_jest_file_focused && sfdx:lwc_jest_is_watching_focused_file",
+          "command": "sf.lightning.lwc.test.editorTitle.stopWatching",
+          "when": "sf:lwc_jest_file_focused && sf:lwc_jest_is_watching_focused_file",
           "group": "navigation"
         }
       ],
       "editor/title/context": [
         {
-          "command": "sfdx.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "command": "sf.lightning.lwc.preview",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "view/title": [
         {
-          "command": "sfdx.lightning.lwc.test.runAllTests",
-          "when": "view == sfdx.lightning.lwc.test.view",
+          "command": "sf.lightning.lwc.test.runAllTests",
+          "when": "view == sf.lightning.lwc.test.view",
           "group": "navigation"
         },
         {
-          "command": "sfdx.lightning.lwc.test.refreshTestExplorer",
-          "when": "view == sfdx.lightning.lwc.test.view",
+          "command": "sf.lightning.lwc.test.refreshTestExplorer",
+          "when": "view == sf.lightning.lwc.test.view",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "sfdx.lightning.lwc.test.case.run",
+          "command": "sf.lightning.lwc.test.case.run",
           "title": "%lightning_lwc_test_case_run_text%",
-          "when": "view == sfdx.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
+          "when": "view == sf.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
           "group": "inline"
         },
         {
-          "command": "sfdx.lightning.lwc.test.case.debug",
+          "command": "sf.lightning.lwc.test.case.debug",
           "title": "%lightning_lwc_test_case_debug_text%",
-          "when": "view == sfdx.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
+          "when": "view == sf.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
           "group": "inline"
         },
         {
-          "command": "sfdx.lightning.lwc.test.file.run",
+          "command": "sf.lightning.lwc.test.file.run",
           "title": "%lightning_lwc_test_file_run_text%",
-          "when": "view == sfdx.lightning.lwc.test.view && viewItem =~ /(lwcTestGroup)(_.*|\\b)/",
+          "when": "view == sf.lightning.lwc.test.view && viewItem =~ /(lwcTestGroup)(_.*|\\b)/",
           "group": "inline"
         },
         {
-          "command": "sfdx.lightning.lwc.test.file.debug",
+          "command": "sf.lightning.lwc.test.file.debug",
           "title": "%lightning_lwc_test_file_debug_text%",
-          "when": "view == sfdx.lightning.lwc.test.view && viewItem =~ /(lwcTestGroup)(_.*|\\b)/",
+          "when": "view == sf.lightning.lwc.test.view && viewItem =~ /(lwcTestGroup)(_.*|\\b)/",
           "group": "inline"
         }
       ],
       "explorer/context": [
         {
-          "command": "sfdx.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "command": "sf.lightning.lwc.preview",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "commandPalette": [
         {
-          "command": "sfdx.lightning.lwc.start",
-          "when": "sfdx:project_opened"
+          "command": "sf.lightning.lwc.start",
+          "when": "sf:project_opened"
         },
         {
-          "command": "sfdx.lightning.lwc.stop",
-          "when": "sfdx:project_opened"
+          "command": "sf.lightning.lwc.stop",
+          "when": "sf:project_opened"
         },
         {
-          "command": "sfdx.lightning.lwc.open",
-          "when": "sfdx:project_opened"
+          "command": "sf.lightning.lwc.open",
+          "when": "sf:project_opened"
         },
         {
-          "command": "sfdx.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "command": "sf.lightning.lwc.preview",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         },
         {
-          "command": "sfdx.lightning.lwc.test.file.run",
+          "command": "sf.lightning.lwc.test.file.run",
           "when": "false"
         },
         {
-          "command": "sfdx.lightning.lwc.test.file.debug",
+          "command": "sf.lightning.lwc.test.file.debug",
           "when": "false"
         },
         {
-          "command": "sfdx.lightning.lwc.test.case.run",
+          "command": "sf.lightning.lwc.test.case.run",
           "when": "false"
         },
         {
-          "command": "sfdx.lightning.lwc.test.case.debug",
+          "command": "sf.lightning.lwc.test.case.debug",
           "when": "false"
         },
         {
-          "command": "sfdx.lightning.lwc.test.navigateToTest",
+          "command": "sf.lightning.lwc.test.navigateToTest",
           "when": "false"
         },
         {
-          "command": "sfdx.lightning.lwc.test.runAllTests",
-          "when": "sfdx:project_opened || sfdx:internal_dev"
+          "command": "sf.lightning.lwc.test.runAllTests",
+          "when": "sf:project_opened || sf:internal_dev"
         },
         {
-          "command": "sfdx.lightning.lwc.test.refreshTestExplorer",
-          "when": "sfdx:project_opened || sfdx:internal_dev"
+          "command": "sf.lightning.lwc.test.refreshTestExplorer",
+          "when": "sf:project_opened || sf:internal_dev"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.run",
-          "when": "sfdx:lwc_jest_file_focused"
+          "command": "sf.lightning.lwc.test.editorTitle.run",
+          "when": "sf:lwc_jest_file_focused"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.debug",
-          "when": "sfdx:lwc_jest_file_focused"
+          "command": "sf.lightning.lwc.test.editorTitle.debug",
+          "when": "sf:lwc_jest_file_focused"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.startWatching",
-          "when": "sfdx:lwc_jest_file_focused"
+          "command": "sf.lightning.lwc.test.editorTitle.startWatching",
+          "when": "sf:lwc_jest_file_focused"
         },
         {
-          "command": "sfdx.lightning.lwc.test.editorTitle.stopWatching",
-          "when": "sfdx:lwc_jest_file_focused"
+          "command": "sf.lightning.lwc.test.editorTitle.stopWatching",
+          "when": "sf:lwc_jest_file_focused"
         },
         {
-          "command": "sfdx.lightning.lwc.test.stopWatchingAllTests",
-          "when": "sfdx:project_opened || sfdx:internal_dev"
+          "command": "sf.lightning.lwc.test.stopWatchingAllTests",
+          "when": "sf:project_opened || sf:internal_dev"
         }
       ]
     },
     "commands": [
       {
-        "command": "sfdx.lightning.lwc.start",
+        "command": "sf.lightning.lwc.start",
         "title": "%lightning_lwc_start_text%"
       },
       {
-        "command": "sfdx.lightning.lwc.stop",
+        "command": "sf.lightning.lwc.stop",
         "title": "%lightning_lwc_stop_text%"
       },
       {
-        "command": "sfdx.lightning.lwc.open",
+        "command": "sf.lightning.lwc.open",
         "title": "%lightning_lwc_open_text%"
       },
       {
-        "command": "sfdx.lightning.lwc.preview",
+        "command": "sf.lightning.lwc.preview",
         "title": "%lightning_lwc_preview_text%"
       },
       {
-        "command": "sfdx.lightning.lwc.test.runAllTests",
+        "command": "sf.lightning.lwc.test.runAllTests",
         "title": "%lightning_lwc_test_run_all_tests_text%",
         "icon": {
           "light": "resources/light/play-button.svg",
@@ -330,7 +330,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.refreshTestExplorer",
+        "command": "sf.lightning.lwc.test.refreshTestExplorer",
         "title": "%lightning_lwc_test_refresh_test_explorer_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -338,11 +338,11 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.navigateToTest",
+        "command": "sf.lightning.lwc.test.navigateToTest",
         "title": "%lightning_lwc_test_navigate_to_test%"
       },
       {
-        "command": "sfdx.lightning.lwc.test.file.run",
+        "command": "sf.lightning.lwc.test.file.run",
         "title": "%lightning_lwc_test_file_run_text%",
         "icon": {
           "light": "resources/light/play-button.svg",
@@ -350,7 +350,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.file.debug",
+        "command": "sf.lightning.lwc.test.file.debug",
         "title": "%lightning_lwc_test_file_debug_text%",
         "icon": {
           "light": "resources/light/debug.svg",
@@ -358,7 +358,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.case.run",
+        "command": "sf.lightning.lwc.test.case.run",
         "title": "%lightning_lwc_test_case_run_text%",
         "icon": {
           "light": "resources/light/play-button.svg",
@@ -366,7 +366,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.case.debug",
+        "command": "sf.lightning.lwc.test.case.debug",
         "title": "%lightning_lwc_test_case_debug_text%",
         "icon": {
           "light": "resources/light/debug.svg",
@@ -374,7 +374,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.editorTitle.run",
+        "command": "sf.lightning.lwc.test.editorTitle.run",
         "title": "%lightning_lwc_test_run_current_file_text%",
         "icon": {
           "light": "resources/light/play-button.svg",
@@ -382,7 +382,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.editorTitle.debug",
+        "command": "sf.lightning.lwc.test.editorTitle.debug",
         "title": "%lightning_lwc_test_debug_current_file_text%",
         "icon": {
           "light": "resources/light/debug.svg",
@@ -390,7 +390,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.editorTitle.startWatching",
+        "command": "sf.lightning.lwc.test.editorTitle.startWatching",
         "title": "%lightning_lwc_test_start_watching_text%",
         "icon": {
           "light": "resources/light/startWatching.svg",
@@ -398,7 +398,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.editorTitle.stopWatching",
+        "command": "sf.lightning.lwc.test.editorTitle.stopWatching",
         "title": "%lightning_lwc_test_stop_watching_text%",
         "icon": {
           "light": "resources/light/stopWatching.svg",
@@ -406,7 +406,7 @@
         }
       },
       {
-        "command": "sfdx.lightning.lwc.test.stopWatchingAllTests",
+        "command": "sf.lightning.lwc.test.stopWatchingAllTests",
         "title": "%lightning_lwc_test_stop_watching_all_tests_text%"
       }
     ],
