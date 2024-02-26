@@ -432,7 +432,7 @@
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.7.4",
     "@salesforce/lwc-language-server": "4.7.4",
-    "@salesforce/salesforcedx-utils-vscode": "60.1.2",
+    "@salesforce/salesforcedx-utils-vscode": "60.2.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
     "jest-editor-support": "^30.1.0",
