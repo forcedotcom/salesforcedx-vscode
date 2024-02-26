@@ -119,7 +119,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
         (1024 * 1024 * 1024)
       ).toFixed(2)} GB`,
       'common.extname': this.extensionId,
-      'common.extversion': this.extensionVersion,
+      'common.extversion': this.extensionVersion
     };
 
     const cpus = os.cpus();
