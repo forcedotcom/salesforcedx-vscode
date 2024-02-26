@@ -90,17 +90,17 @@ export const messages = {
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',
 
-  force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
-  force_source_deploy_select_file_or_directory:
+  deploy_text: 'SFDX: 組織へソースをデプロイ',
+  deploy_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: 組織へソースをデプロイ を実行できます。',
-  force_source_deploy_select_manifest:
+  deploy_select_manifest:
     'マニフェストファイル上でのみ SFDX マニフェストのソースを組織へデプロイ を実行できます。',
-  force_source_retrieve_text: 'SFDX: 組織からソースを取得',
-  force_source_retrieve_display_text: 'SFDX: 組織からソースを取得',
-  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
-  force_source_retrieve_select_file_or_directory:
+  retrieve_text: 'SFDX: 組織からソースを取得',
+  retrieve_display_text: 'SFDX: 組織からソースを取得',
+  retrieve_and_open_display_text: 'Retrieve and Open Source',
+  retrieve_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
-  force_source_retrieve_select_manifest:
+  retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
   delete_source_manifest_unsupported_message:

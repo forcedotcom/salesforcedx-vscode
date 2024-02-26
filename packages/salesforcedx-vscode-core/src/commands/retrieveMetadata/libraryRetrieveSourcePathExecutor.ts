@@ -11,7 +11,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
-  RetrieveResult} from '@salesforce/source-deploy-retrieve';
+  RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -26,10 +27,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   private openAfterRetrieve: boolean;
 
   constructor(openAfterRetrieve = false) {
-    super(
-      nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_beta'
-    );
+    super(nls.localize('retrieve_text'), 'retrieve_beta');
     this.openAfterRetrieve = openAfterRetrieve;
   }
 
@@ -39,7 +37,8 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
     const toRetrieve = new ComponentSet(
       response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
-    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+    const packageDirs =
+      await SfdxPackageDirectories.getPackageDirectoryFullPaths();
     const localSourceComponents = ComponentSet.fromSource({
       fsPaths: packageDirs,
       include: toRetrieve

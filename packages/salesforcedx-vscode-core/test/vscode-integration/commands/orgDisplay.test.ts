@@ -10,7 +10,7 @@ import { OrgDisplay } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Source Status', () => {
+describe('Status', () => {
   it('Should build the source command no flag', async () => {
     const orgDisplay = new OrgDisplay();
     const displayCommand = orgDisplay.build({});
