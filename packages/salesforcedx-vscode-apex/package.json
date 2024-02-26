@@ -361,7 +361,7 @@
   },
   "displayName": "Apex",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
