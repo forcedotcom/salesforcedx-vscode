@@ -13,7 +13,7 @@ import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 
 import { telemetryService } from '../telemetry';
 
@@ -175,7 +175,9 @@ export async function pathIsInPackageDirectory(
   documentPath: string
 ): Promise<boolean> {
   try {
-    return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
+    return await SalesforcePackageDirectories.isInPackageDirectory(
+      documentPath
+    );
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':

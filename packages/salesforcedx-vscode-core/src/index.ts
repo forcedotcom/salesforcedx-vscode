@@ -111,9 +111,9 @@ import { isDemoMode } from './modes/demo-mode';
 import { ProgressNotification, notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
-import { isSfdxProjectOpened } from './predicates';
+import { isSalesforceProjectOpened } from './predicates';
+import { SalesforceProjectConfig } from './salesforceProject';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
-import { SfdxProjectConfig } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { MetricsReporter } from './telemetry/MetricsReporter';
@@ -598,7 +598,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   // Context
-  const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
+  const salesforceProjectOpened = isSalesforceProjectOpened.apply(
+    vscode.workspace
+  ).result;
 
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
@@ -618,10 +620,10 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:project_opened',
-    sfdxProjectOpened
+    salesforceProjectOpened
   );
 
-  if (sfdxProjectOpened) {
+  if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
   }
 
@@ -651,7 +653,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     telemetryService,
     services: {
       ChannelService,
-      SfdxProjectConfig,
+      SalesforceProjectConfig,
       TelemetryService,
       WorkspaceContext
     }

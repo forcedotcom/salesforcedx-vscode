@@ -21,7 +21,7 @@ import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import * as diagnostics from '../../../src/diagnostics';
 import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
@@ -56,7 +56,7 @@ jest.mock('../../../src/conflict/metadataCacheService', () => {
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../src/commands/util/timestampConflictChecker');
 jest.mock('../../../src/conflict/timestampConflictDetector');
-jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+jest.mock('../../../src/salesforceProject/salesforceProjectConfig');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
@@ -207,7 +207,7 @@ describe('Deploy Executor', () => {
           setPropertiesForFilesDeploy: setPropertiesForFilesDeployMock
         } as any);
       getPackageDirectoryPathsSpy = jest
-        .spyOn(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+        .spyOn(SalesforcePackageDirectories, 'getPackageDirectoryPaths')
         .mockResolvedValue('path/to/foo' as any);
       createOutputSpy = jest
         .spyOn(TestDeployExecutor.prototype as any, 'createOutput')
