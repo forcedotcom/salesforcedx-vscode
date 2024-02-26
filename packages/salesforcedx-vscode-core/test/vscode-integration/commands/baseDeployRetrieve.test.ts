@@ -47,9 +47,9 @@ import {
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
-import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 

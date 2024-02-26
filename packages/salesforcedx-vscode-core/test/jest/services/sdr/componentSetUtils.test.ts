@@ -8,8 +8,8 @@
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
-import { componentSetUtils } from '../../../../src/services/sdr/componentSetUtils';
 import { SalesforceProjectConfig } from '../../../../src/salesforceProject';
+import { componentSetUtils } from '../../../../src/services/sdr/componentSetUtils';
 
 describe('componentSetUtils', () => {
   afterEach(() => {

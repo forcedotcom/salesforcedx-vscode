@@ -20,8 +20,8 @@ import { SfdxCommandletExecutor } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import * as diagnostics from '../../../src/diagnostics';
-import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
+import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {

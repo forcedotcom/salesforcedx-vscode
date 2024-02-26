@@ -11,13 +11,13 @@ import { channelService } from '../../../src/channels';
 import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import {
   DeployQueue,
   fileShouldNotBeDeployed,
   pathIsInPackageDirectory
 } from '../../../src/settings';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
-import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { telemetryService } from '../../../src/telemetry';
 
 /* tslint:disable:no-unused-expression */
