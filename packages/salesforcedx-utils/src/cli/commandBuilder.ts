@@ -8,7 +8,6 @@
 import { Command } from './command';
 
 export const JSON_FLAG = '--json';
-export const FATAL = 'fatal';
 
 export class CommandBuilder {
   public readonly command: string;
