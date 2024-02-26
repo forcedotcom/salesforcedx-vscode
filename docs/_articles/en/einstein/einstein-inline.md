@@ -14,7 +14,7 @@ To enable or disable the Inline autocomplete feature:
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 2. Under **Einstein for Developers**, select **Enable Einstein Auto Completions** then select the language for which to enable the feature.
 
-Inline autocomplete is enabled by default.
+Inline autocomplete is enabled by default. Run **Einstein: Toggle Einstein Auto Completions** to toggle the feature off and on. Run the **Einstein: Toggle Einstein Auto Completions for Current File Type** command to toggle the feature off and on for the currently active specific file type.
 
 ## Receive your First Inline Completions
 
@@ -30,4 +30,4 @@ To accept an entire suggestion, press Tab. If you have VS Code's **Inline Sugges
 | Windows          | ⌥→               |
 | Linux            | ⌥→               |
 
-**Note**: If you don't see a suggestion, make sure Einstein Auto Completions are enabled. Also, you can always trigger inline suggestions even if you don't have the Auto Completions enabled using the Option (⌥)\ hotkeys to manually generate autocomplete suggestions.
+**Note**: If you don't see a suggestion, make sure Einstein Auto Completions are enabled. Run **Einstein: Toggle Einstein Auto Completions** to toggle the feature off and on. Also, you can always trigger inline suggestions even if you don't have the Auto Completions enabled using the Option (⌥)\ hotkeys to manually generate autocomplete suggestions.
