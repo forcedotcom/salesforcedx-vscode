@@ -445,7 +445,7 @@
   },
   "description": "Provides code-editing features for Lightning Web Components",
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.1.2",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.2.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -710,7 +710,7 @@
       "path": "./snippets/lwc-html.json"
     }
   ],
-  "version": "60.1.2",
+  "version": "60.2.0",
   "views": {
     "test": [
       {
