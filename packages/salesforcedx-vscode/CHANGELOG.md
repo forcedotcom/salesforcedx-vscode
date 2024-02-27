@@ -4,21 +4,19 @@
 
 #### salesforcedx-vscode-apex
 
-- Bump apex lsp to include command rename ([PR #5468](https://github.com/forcedotcom/salesforcedx-vscode/pull/5468))
+- We fixed an issue where code lens stopped working for anonymous apex files. Thank you [Mohith Shrivastava](https://github.com/msrivastav13) for creating the issue. ([PR #5468](https://github.com/forcedotcom/salesforcedx-vscode/pull/5468), [ISSUE #5467](https://github.com/forcedotcom/salesforcedx-vscode/issues/5467))
 
-- Last of apex. apex rest run cache service to sf ([PR #5452](https://github.com/forcedotcom/salesforcedx-vscode/pull/5452))
+- We made some changes under the hood. ([PR #5452](https://github.com/forcedotcom/salesforcedx-vscode/pull/5452))
 
 #### salesforcedx-vscode-core
 
-- Deploy and retrieve from sfdx to sf ([PR #5451](https://github.com/forcedotcom/salesforcedx-vscode/pull/5451))
+- We made some changes under the hood. ([PR #5451](https://github.com/forcedotcom/salesforcedx-vscode/pull/5451), [PR #5446](https://github.com/forcedotcom/salesforcedx-vscode/pull/5446))
 
-- Update vscode engine to 1.82.0 ([PR #5446](https://github.com/forcedotcom/salesforcedx-vscode/pull/5446))
-
-- Add sf log level to current runtime ([PR #5444](https://github.com/forcedotcom/salesforcedx-vscode/pull/5444))
+- We enabled debug logging for libraries that consume the env var SF_LOG_LEVEL. ([PR #5444](https://github.com/forcedotcom/salesforcedx-vscode/pull/5444))
 
 #### salesforcedx-vscode-lwc
 
-- Sfdx to sf for lwc commands ([PR #5429](https://github.com/forcedotcom/salesforcedx-vscode/pull/5429))
+- We made some changes under the hood. ([PR #5429](https://github.com/forcedotcom/salesforcedx-vscode/pull/5429))
 
 # 60.1.2 - February 22, 2024
 
