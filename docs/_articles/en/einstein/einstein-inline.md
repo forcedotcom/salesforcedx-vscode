@@ -5,7 +5,7 @@ lang: en
 
 ## Overview
 
-Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor. Inline autocompletions can currently be triggered in Apex, Javascript and HTML files.
+Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor. Inline autocompletions can currently be triggered in Apex, Javascript, and HTML files.
 
 ![Inline Autocomplete](./images/einstein-inline-autocomplete.gif)
 
@@ -20,7 +20,7 @@ Inline autocomplete is enabled by default. Run **Einstein: Toggle Einstein Auto 
 
 ## Receive your First Inline Completions
 
-Einstein for Developers automatically generates code and suggests completions for you as you type. When writing apex code, you are often doing things like assigning variable values to an `Sobject` such as `Account.name = abc`, or `Account.type = Business`. Pause the cursor after the variable value and watch Einstein for Developers complete your code for you and fill out the remaining fields.
+Einstein for Developers automatically generates code and suggests completions for you as you type. When writing apex code, you're often doing things like assigning variable values to an `Sobject` such as `Account.name = abc`, or `Account.type = Business`. Pause the cursor after the variable value and watch Einstein for Developers complete your code for you and fill out the remaining fields.
 
 ![Inline Suggestions](./images/einstein-inline-create-account.png)
 
