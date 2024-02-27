@@ -10,10 +10,10 @@ import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
-import { forceLightningLwcOpen } from '../../../src/commands/forceLightningLwcOpen';
+import { lightningLwcOpen } from '../../../src/commands/lightningLwcOpen';
 import { DevServerService } from '../../../src/service/devServerService';
 
-describe('forceLightningLwcOpen', () => {
+describe('lightningLwcOpen', () => {
   let sandbox: SinonSandbox;
   let devServiceStub: any;
   let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
@@ -33,7 +33,7 @@ describe('forceLightningLwcOpen', () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
     devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
 
-    await forceLightningLwcOpen();
+    await lightningLwcOpen();
 
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
@@ -47,12 +47,9 @@ describe('forceLightningLwcOpen', () => {
 
     const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
-    await forceLightningLwcOpen();
+    await lightningLwcOpen();
 
     sinon.assert.calledOnce(executeCommandStub);
-    sinon.assert.calledWith(
-      executeCommandStub,
-      'sfdx.force.lightning.lwc.start'
-    );
+    sinon.assert.calledWith(executeCommandStub, 'sfdx.lightning.lwc.start');
   });
 });

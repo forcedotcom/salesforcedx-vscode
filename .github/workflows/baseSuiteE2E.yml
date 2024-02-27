@@ -136,7 +136,7 @@ jobs:
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   lwcLSP:
-    if: ${{ inputs.templates || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.lwcLsp || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
