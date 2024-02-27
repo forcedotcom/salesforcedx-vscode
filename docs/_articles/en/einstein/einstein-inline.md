@@ -11,7 +11,7 @@ Use AI-based autocomplete to accept suggestions for code as you write it right i
 
 ## Enable or Disable Inline Autocomplete
 
-To enable or disable the Inline autocomplete feature:
+To enable or disable the Inline Autocomplete feature:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 2. Under **Einstein for Developers**, select **Enable Einstein Auto Completions** then select the language for which to enable the feature.
