@@ -39,3 +39,8 @@ You can generate a test using one of the following keyboard shortcuts:
 | macOS            | ⌥ ⌘ T         |
 | Windows          | ⌥ ⌘ T         |
 | Linux            | ⌥ ⌘ T         |
+
+## Known Issues
+* Triggering a test from an Apex file could generate the same test over and over again. Generate subsequent tests from the test file to avoid this issue.
+* Currently test data isn’t generated alongside a test generation.
+
