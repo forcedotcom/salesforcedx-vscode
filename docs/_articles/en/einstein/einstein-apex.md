@@ -9,6 +9,10 @@ Use the Einstein for Developers side bar to write a question or an instruction t
 
 ![Sidebar code generation](./images/einstein-sidebar.png)
 
+<div align=center>
+<img src="./images/einstein-sidebar.png" width="750">
+</div>
+
 ## Use the Command Palette to Generate Apex Code
 
 You can quickly access Einstein for Developers from inside an Apex file in the VS Code editor.
