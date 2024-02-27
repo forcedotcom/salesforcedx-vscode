@@ -56,7 +56,7 @@ The Einstein for Developers status icon in the bottom panel of the Visual Studio
 
 ## Disable or Uninstall Einstein for Developers Extension
 
-You can disable or uninstall the Einstein for Developers extension at at time. Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of VS Code or the **View: Show Extensions** command (⇧⌘X). Search for "Einstein for Developers" in installed extensions list, and then select **Disable** or **Uninstall**.
+You can disable or uninstall the Einstein for Developers extension at any time. Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of VS Code or the **View: Show Extensions** command (⇧⌘X). Search for "Einstein for Developers" in installed extensions list, and then select **Disable** or **Uninstall**.
 
 ### Use Einstein for Developers in a Scratch Org
 
