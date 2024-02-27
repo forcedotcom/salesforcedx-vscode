@@ -32,8 +32,8 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/libraryRetrieveSourcePathExecutor';
+import { RetrieveDescriber } from '../../../../src/commands/retrieveMetadata';
+import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/retrieveMetadata/libraryRetrieveSourcePathExecutor';
 import { WorkspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
@@ -51,7 +51,7 @@ class TestDescriber implements RetrieveDescriber {
   }
 }
 
-describe('Force Source Retrieve Component(s)', () => {
+describe('Retrieve Component(s)', () => {
   describe('Library Executor', () => {
     const testData = new MockTestOrgData();
     const defaultPackageDir = 'test-app';
