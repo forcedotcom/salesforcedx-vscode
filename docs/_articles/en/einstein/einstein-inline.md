@@ -7,6 +7,8 @@ lang: en
 
 Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor. Inline autocompletions can currently be triggered in Apex, Javascript and HTML files.
 
+![Inline Autocomplete](./images/einstein-inline-autocomplete.gif)
+
 ## Enable or Disable Inline Autocomplete
 
 To enable or disable the Inline autocomplete feature:
