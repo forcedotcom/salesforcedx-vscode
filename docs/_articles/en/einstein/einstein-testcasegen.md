@@ -29,7 +29,7 @@ Use Einstein for Developers to quickly generate Apex unit tests.
 4. Review the generated unit test method and choose to `Accept`, `Try Again`, or `Clear`.
 5. To generate another test method, right-click within the class file or the test class file and again select **Einstein: Generate A Test**.
 6. Select method(s) for which you want to generate a test. 
-7. Einstein uses the context of existing tests to create new tests that do not duplicate the code that you already have. Select only the tests you want to inform Einstein for Developers about, and then click **OK**.
+Einstein uses the context of existing tests to create new tests that do not duplicate the code that you already have. Select only the tests you want to inform Einstein for Developers about, and then click **OK**.
 8. Again review the generated unit test method and choose to `Accept`, `Try Again`, or `Clear`.
 
 ## Hotkeys
