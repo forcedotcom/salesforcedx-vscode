@@ -8,7 +8,7 @@ lang: en
 Use the Einstein for Developers side bar to write a question or an instruction that describes the task for which you'd like to receive an Apex code suggestion and press **Ask**. Copy the code suggestion you received and paste it into an Apex file to use as "starter" code.
 
 <div align=center>
-<img src="./images/einstein-sidebar.png" width="550">
+<img src="./images/einstein-sidebar.gif" width="550">
 </div>
 
 ## Use the Command Palette to Generate Apex Code
