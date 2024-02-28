@@ -1,28 +1,32 @@
 ---
-title: Inline Automatic Completions
+title: Automatic Inline Completions
 lang: en
 ---
 
 ## Overview
 
-## Set Up Inline Autocomplete
+Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor. Inline autocompletions can currently be triggered in Apex and LWC (Javascript, CSS and HTML) files.
 
-To use inline autocomplete, you first activate the feature
+![Inline Autocomplete](./images/einstein-inline-autocomplete.gif)
+
+## Enable or Disable Inline Autocomplete
+
+Inline autocomplete is enabled by default. Click the Einstein icon in the status bar, or run **Einstein: Toggle Einstein Auto Completions** to toggle the feature off and on. Run the **Einstein: Toggle Einstein Auto Completions for Current File Type** command to toggle the feature off and on for the currently active specific file type.
+
+To enable or disable the Inline Autocomplete feature from Settings:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under Einstein for Developers, select **Enable Einstein Auto Completions**.
+2. Under **Einstein for Developers**, select **Enable Einstein Auto Completions** then select the language for which to enable the feature.
+
+
 
 ## Receive your First Inline Completions
 
-Einstein for Developers autogenerates inline completions suggestions. To start receiving inline completions:
-
-1. In Visual Studio Code, create a new Apex class (\*.cls) file, or open an existing one.
-
-2. In the Apex file, place your cursor inside a method. Einstein for Developers automatically suggests an entire method body in grayed text, as shown below. The exact suggestion may vary.
+Einstein for Developers automatically generates code and suggests completions for you as you type. When writing Apex code, you're often doing things like assigning variable values to an `Sobject` such as `Account.name = abc`, or `Account.type = Business`. Pause the cursor after the variable value and watch Einstein for Developers complete your code for you and fill out the remaining fields.
 
 ![Inline Suggestions](./images/einstein-inline-create-account.png)
 
-To accept the entire suggestion, press Tab. If you have VS Code's **Inline Suggest** enabled, you can accept the next word of the suggestion using one of the following keyboard shortcuts:
+To accept an entire suggestion, press Tab. If you have VS Code's **Inline Suggest** enabled, you can accept the next word of the suggestion using one of the following keyboard shortcuts:
 
 | Operating System | Accept Next Word |
 | ---------------- | ---------------- |
@@ -30,6 +34,8 @@ To accept the entire suggestion, press Tab. If you have VS Code's **Inline Sugge
 | Windows          | ⌥→               |
 | Linux            | ⌥→               |
 
-Note: If you don't see a suggestion, make sure Einstein Auto Completions are enabled.
+**Note**: If you don't see a suggestion, make sure Einstein Auto Completions are enabled. Run **Einstein: Toggle Einstein Auto Completions** to toggle the feature off and on. Also, you can always trigger inline suggestions even if you don't have the Auto Completions enabled using the Option (⌥)\ hotkeys to manually generate autocomplete suggestions.
 
-**_Note_**: Use the Option (⌥)\ hotkeys to manually generate autocomplete suggestions if you don't have the auto completions setting enabled.
+## Known Issues
+* The completions that you receive are sometimes not formatted correctly. Run prettier once you've accepted the suggestions. 
+* Completions sometime populate piecemeal. Accept the partial suggestion and the remainder will populate.
