@@ -38,7 +38,7 @@ VS Code releases a new version each month with new features and important bug fi
 
 ## Enable or Disable Einstein For Developers in VS Code
 
-You can enable or disable Einstein for Developers from within Visual Studio Code. Click the Einstein icon in the status bar to open the command palette, then click enable or disable.
+You can enable or disable Einstein for Developers from within Visual Studio Code or Code Builder. Click the Einstein icon in the status bar to open the command palette, then click enable or disable.
 The Einstein for Developers status icon in the bottom panel of the Visual Studio Code window indicates whether Einstein for Developers is enabled or disabled. When enabled, the background color of the icon will match the color of the status bar. When disabled, the background color of the icon is brown.
 
 ![einstein icon](./images/einstein-icon.png)
