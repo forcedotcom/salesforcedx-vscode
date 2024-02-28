@@ -43,6 +43,7 @@ You can generate a test using one of the following keyboard shortcuts:
 | Linux            | ⌥ ⌘ T         |
 
 ## Known Issues
-*  It's important that you accurately select existing related tests in your project when you generate additional tests. This gives Einstein additional context to work with. Not doing this can cause the AI to generate duplicate test methods. 
+*  It's important that you accurately select existing related tests in your project when you generate additional tests. This gives Einstein additional context to work with. Not doing this can cause the AI to generate duplicate test methods.
+*  Currently, selecting too many tests can throw an `exceeding token budget` error. Selecting fewer tests might cause generation of duplicate test methods. We are aware of this issue and are actively working on a fix.
 * Currently test data isn’t generated alongside a test generation.
 
