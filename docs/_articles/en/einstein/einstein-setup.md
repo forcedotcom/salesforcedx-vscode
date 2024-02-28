@@ -7,7 +7,7 @@ lang: en
 
 Einstein for Developers is available in the [VS Code](https://marketplace.visualstudio.com/vscode) and [Open VSX](https://open-vsx.org/) marketplaces. The extension is enabled by default in a supported Salesforce org. A developer with access to a supported org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage.
 
-To use Einstein for Developers on your desktop, you must have the [Salesforce Extension Pack]() installed in your VS Code desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
+To use Einstein for Developers on your desktop, you must have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) installed in your VS Code desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
 
 ### Required Editions
 
