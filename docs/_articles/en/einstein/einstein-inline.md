@@ -37,5 +37,5 @@ To accept an entire suggestion, press Tab. If you have VS Code's **Inline Sugges
 **Note**: If you don't see a suggestion, make sure Einstein Auto Completions are enabled. Run **Einstein: Toggle Einstein Auto Completions** to toggle the feature off and on. Also, you can always trigger inline suggestions even if you don't have the Auto Completions enabled using the Option (⌥)\ hotkeys to manually generate autocomplete suggestions.
 
 ## Known Issues
-* The completions that you receive are sometimes not formatted correctly. Run prettier once you've accepted the suggestions. 
+* The completions that you receive are sometimes not formatted correctly. Run [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) once you've accepted the suggestions. 
 * Completions sometime populate piecemeal. Accept the partial suggestion and the remainder will populate.
