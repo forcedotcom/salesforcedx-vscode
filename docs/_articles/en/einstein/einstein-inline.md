@@ -39,3 +39,4 @@ To accept an entire suggestion, press Tab. If you have VS Code's **Inline Sugges
 ## Known Issues
 * The completions that you receive are sometimes not formatted correctly. Run [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) once you've accepted the suggestions. 
 * Completions sometime populate piecemeal. Accept the partial suggestion and the remainder will populate.
+* Suggested completions might appear as ghost text if you have multiple AI-based Inline Completion settings enabled. Scroll through them to find the Einstein for Developer specific suggestion, or disable competing extensions as described in [setup](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-setup). 
