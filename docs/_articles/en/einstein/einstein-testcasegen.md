@@ -43,6 +43,6 @@ You can generate a test using one of the following keyboard shortcuts:
 | Linux            | ⌥ ⌘ T         |
 
 ## Known Issues
-* Triggering a test from an Apex file could generate the same test over and over again. Generate subsequent tests from the test file to avoid this issue.
+*  It's important that you accurately select existing related tests in your project when you generate additional tests. This gives Einstein additional context to work with. Not doing this can cause the AI to generate duplicate test methods. 
 * Currently test data isn’t generated alongside a test generation.
 
