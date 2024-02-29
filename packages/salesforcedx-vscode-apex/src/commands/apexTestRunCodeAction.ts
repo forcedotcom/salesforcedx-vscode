@@ -194,7 +194,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     // Remove duplicates
     const files = Array.from(
       new Set(filesWithDuplicates.map(file => file.toString()))
-    ).map(filePath => vscode.Uri.parse(filePath));
+    )
+    .map(filePath => vscode.Uri.parse(filePath));
 
     // Iterate over each file found
     for (const file of files) {
