@@ -22,7 +22,7 @@ To enable or disable the Inline Autocomplete feature from Settings:
 
 ## Receive your First Inline Completions
 
-Einstein for Developers automatically generates code and suggests completions for you as you type. When writing Apex code, you're often doing things like assigning variable values to an `SObject` such as `Account.name = abc`, or `Account.type = Business`. Pause the cursor after the variable value and watch Einstein for Developers complete your code for you and fill out the remaining fields.
+Einstein for Developers automatically generates code and suggests completions for you as you type. When writing code, you're often doing things like assigning variable values to an `SObject` such as `Account.name = abc`, or `Account.type = Business` in Apex. Pause the cursor after the variable value and watch Einstein for Developers complete your code for you and fill out the remaining fields. The Einstein icon in the status bar keeps you updated about completion progress. 
 
 ![Inline Suggestions](./images/einstein-inline-create-account.png)
 
