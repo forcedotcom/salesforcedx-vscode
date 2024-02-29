@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.2.2",
+  "version": "60.2.3",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,8 @@
     "@salesforce/apex-node": "3.0.1",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "6.5.2",
-    "@salesforce/salesforcedx-utils-vscode": "60.2.2",
+    "@salesforce/salesforcedx-utils-vscode": "60.2.3",
+    "@salesforce/source-deploy-retrieve": "10.3.3",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "shelljs": "0.8.5",
@@ -35,7 +36,7 @@
     "vscode-languageclient": "8.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.2.2",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.2.3",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
@@ -67,7 +68,7 @@
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --minify",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve --external:@salesforce/source-tracking --minify",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -105,6 +106,7 @@
         "@salesforce/apex-tmlanguage": "1.4.0",
         "@salesforce/core": "6.5.2",
         "@salesforce/templates": "^60.1.0",
+        "@salesforce/source-deploy-retrieve": "10.3.3",
         "@salesforce/source-tracking": "5.1.11",
         "shelljs": "0.8.5"
       },
