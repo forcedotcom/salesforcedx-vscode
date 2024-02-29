@@ -22,7 +22,7 @@ Test case generation is enabled by default.
 
 Use Einstein for Developers to quickly generate Apex unit tests.
 
-1. From within a method in an Apex class, right-click and select **Einstein: Generate A Test**.
+1. From within a method in an Apex class, right-click and select **Einstein: Generate A Test** or click the beaker icon on the top right.
 2. Select the method for which you want to generate unit tests.
 3. When prompted, choose to create a new test class file or select an existing test class to which to add the test.
    If you choose to create a new file, the command uses the naming convention, `<ApexClassFileName>Test.cls` for the new file. The command adds the test method to the new file.
