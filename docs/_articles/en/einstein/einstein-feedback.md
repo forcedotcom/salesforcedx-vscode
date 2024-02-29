@@ -3,9 +3,9 @@ title: Einstein for Developers Feedback and Support
 lang: en
 ---
 
-## Feedback
+## Questions and Discussions
 
-From the Command Palette run **Einstein: Show Prompt History** to open the Feedback console. Use 👍, 👎and comments for each prompt to provide feedback. To ask questions, request features, and post feedback, use the [Discussions](https://github.com/forcedotcom/Einstein-GPT-for-Developers/discussions) tab.
+To ask questions, request features, and post feedback, use the [Discussions](https://github.com/forcedotcom/Einstein-GPT-for-Developers/discussions) tab.
 
 ## Support
 
