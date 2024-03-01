@@ -21,7 +21,7 @@ At this time, the tool does not:
 - Create _new_ Apex class files through natural language prompts. Apex files must already be created to trigger the command.
 - Take into account any metadata (or context) from your local project or Salesforce org. Generated code is determined by your prompt only.
 
-We plan to follow up with inline code completion and LWC code generation in the coming months.
+We plan to follow up with inline code completion and limited LWC code generation in the coming months.
 
 ## About Trusted Generative AI at Salesforce
 
