@@ -5,7 +5,7 @@ lang: en
 
 ## Overview
 
-Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor. Inline autocompletions can currently be triggered in Apex and some LWC (Javascript, CSS) files.
+Use AI-based autocomplete to accept suggestions for code as you write it right inside your editor. Inline autocompletions can currently be triggered in Apex and LWC (Javascript and CSS) files.
 
 ![Inline Autocomplete](./images/einstein-inline-autocomplete.gif)
 
