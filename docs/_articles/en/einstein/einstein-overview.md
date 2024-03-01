@@ -15,7 +15,7 @@ Einstein for Developers assists you throughout the Salesforce development proces
 
 Einstein for Developers generates Apex code from natural language prompts and automatically suggests code completions for you as you type. When enabled along with IntelliSense, this feature makes Salesforce development tooling in Visual Studio Code even richer. Familiarity with Visual Studio Code is assumed.
 
-- **Generate Code from Natural Langauge Prompts**: Enter natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. Or use the VS Code Command Palette to enter a prompt describing what you'd like to build and then generate code suggestions within your editor.
+- **Generate Apex Code from Natural Language Prompts**: Enter natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. Or use the VS Code Command Palette to enter a prompt describing what you'd like to build and then generate Apex code suggestions within your editor.
 - **Inline Autocomplete for Apex and LWC**: Get multiple inline suggestions as you code. Easily pick the suggestion that works for you. This feature is available in Apex and LWC (Javascript  and CSS) files.
 - **Test Case Generation for Apex**: Use Einstein for Developers to quickly generate unit tests for your Apex methods.
 
