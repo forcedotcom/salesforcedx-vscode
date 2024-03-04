@@ -1,3 +1,11 @@
+# 60.3.1 - March 6, 2024
+
+## Fixed
+
+#### docs
+
+- Remove html from LWC inline ([PR #5490](https://github.com/forcedotcom/salesforcedx-vscode/pull/5490))
+
 # 60.2.3 - February 29, 2024
 
 ## Fixed
