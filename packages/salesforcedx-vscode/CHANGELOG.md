@@ -1,6 +1,6 @@
 # 60.3.1 - March 6, 2024
 
-## Fixed
+## Added
 
 #### docs
 
