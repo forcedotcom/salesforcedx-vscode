@@ -4,7 +4,7 @@
 
 #### docs
 
-- Remove html from LWC inline ([PR #5490](https://github.com/forcedotcom/salesforcedx-vscode/pull/5490))
+- Alongside this release, the Einstein for Developers extension release includes a host of new features that we hope you'll test drive. See the Einstein for Developers [change log](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt/blob/main/CHANGELOG.md) for more details.
 
 # 60.2.3 - February 29, 2024
 
