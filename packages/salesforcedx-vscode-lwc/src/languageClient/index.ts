@@ -45,7 +45,8 @@ export const createLanguageClient = (serverPath: string): LanguageClient => {
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
       { language: 'html', scheme: 'file' },
-      { language: 'javascript', scheme: 'file' }
+      { language: 'javascript', scheme: 'file' },
+      { language: 'typescript', scheme: 'file'}
     ],
     synchronize: {
       fileEvents: [
@@ -59,6 +60,7 @@ export const createLanguageClient = (serverPath: string): LanguageClient => {
         workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
         workspace.createFileSystemWatcher('**/lwc/*/*.js'),
         workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
+        workspace.createFileSystemWatcher('**/modules/*/*/*.ts'),
         // need to watch for directory deletions as no events are created for contents or deleted directories
         workspace.createFileSystemWatcher('**/', false, true, false)
       ]
