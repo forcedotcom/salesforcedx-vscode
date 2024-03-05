@@ -1,3 +1,31 @@
+# 60.3.1 - March 4, 2024
+
+## Added
+
+#### docs
+
+- Alongside this release, the Einstein for Developers extension release includes a host of new features that we hope you'll test drive. See the Einstein for Developers [change log](https://marketplace.visualstudio.com/items/salesforce.salesforcedx-einstein-gpt/changelog) for more details.
+
+# 60.2.3 - February 29, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue where code lens stopped working for anonymous apex files. Thank you [Mohith Shrivastava](https://github.com/msrivastav13) for creating the issue. ([PR #5468](https://github.com/forcedotcom/salesforcedx-vscode/pull/5468), [ISSUE #5467](https://github.com/forcedotcom/salesforcedx-vscode/issues/5467))
+
+- We made some changes under the hood. ([PR #5452](https://github.com/forcedotcom/salesforcedx-vscode/pull/5452))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5451](https://github.com/forcedotcom/salesforcedx-vscode/pull/5451), [PR #5446](https://github.com/forcedotcom/salesforcedx-vscode/pull/5446))
+
+- We enabled debug logging for libraries that consume the env var SF_LOG_LEVEL. ([PR #5444](https://github.com/forcedotcom/salesforcedx-vscode/pull/5444))
+
+#### salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #5429](https://github.com/forcedotcom/salesforcedx-vscode/pull/5429))
+
 # 60.1.2 - February 22, 2024
 
 ## Fixed

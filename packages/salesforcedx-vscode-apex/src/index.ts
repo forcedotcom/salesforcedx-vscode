@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  getTestResultsFolder,
+  ActivationTracker
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
@@ -48,7 +51,11 @@ import { getTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  const extensionHRStart = process.hrtime();
+  const activationTracker = new ActivationTracker(
+    extensionContext,
+    telemetryService
+  );
+
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
@@ -88,7 +95,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const commands = registerCommands();
   extensionContext.subscriptions.push(commands);
 
-  extensionContext.subscriptions.push(await registerTestView());
+  extensionContext.subscriptions.push(registerTestView());
 
   const exportedApi = {
     getLineBreakpointInfo,
@@ -97,7 +104,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     languageClientUtils
   };
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  void activationTracker.markActivationStop(new Date());
   return exportedApi;
 };
 
@@ -136,11 +143,11 @@ const registerCommands = (): vscode.Disposable => {
     apexDebugMethodRunCodeActionDelegate
   );
   const anonApexRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.force.anon.apex.run.delegate',
+    'sfdx.anon.apex.run.delegate',
     anonApexExecute
   );
   const anonApexDebugDelegateCmd = vscode.commands.registerCommand(
-    'sf.force.anon.apex.debug.delegate',
+    'sfdx.anon.apex.debug.delegate',
     anonApexDebug
   );
   const apexLogGetCmd = vscode.commands.registerCommand(
