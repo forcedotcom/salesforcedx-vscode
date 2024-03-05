@@ -69,6 +69,7 @@
   "running_tasks_title_text": "Running Tasks",
   "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command.",
   "sf_log_level_description": "SF_LOG_LEVEL CLI environment variable value",
+  "telemetry_tag_description": "Specifies the tag to include in telemetry data sent to Salesforce.",
   "show_cli_success_msg_description": "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "start_apex_debug_logging": "SFDX: Turn On Apex Debug Log for Replay Debugger",

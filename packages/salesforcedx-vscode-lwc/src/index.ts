@@ -6,6 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   commands,
@@ -33,7 +34,8 @@ import {
 import { WorkspaceUtils } from './util/workspaceUtils';
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  const extensionHRStart = process.hrtime();
+  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+
   log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
@@ -124,7 +126,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   WorkspaceUtils.instance.init(extensionContext);
 
   // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  void activateTracker.markActivationStop();
 };
 
 export const deactivate = async () => {
