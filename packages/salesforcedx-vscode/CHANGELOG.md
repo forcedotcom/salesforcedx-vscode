@@ -1,3 +1,17 @@
+# 60.3.2 - March 7, 2024
+
+## Added
+
+#### salesforcedx-vscode-lwc
+
+- Add ts files to file watchers ([PR #5423](https://github.com/forcedotcom/salesforcedx-vscode/pull/5423))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Capture complete extension load time ([PR #5397](https://github.com/forcedotcom/salesforcedx-vscode/pull/5397))
+
 # 60.3.1 - March 4, 2024
 
 ## Added
