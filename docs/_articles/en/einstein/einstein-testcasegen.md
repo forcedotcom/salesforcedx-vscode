@@ -5,18 +5,10 @@ lang: en
 
 ## Overview
 
-Unit tests must cover at least 75% of your Apex code, and all of those tests must complete successfully for your code to be deployed or packaged for the Salesforce AppExchange. Use Einstein for Developers to quickly generate unit tests for your Apex classes.
+Unit tests must cover at least 75% of your Apex code, and all of those tests must complete successfully for your code to be deployed or packaged for the Salesforce AppExchange. Use Einstein for Developers to quickly generate unit tests for your Apex classes. Test case generation is enabled by default.
 
 ![Test Case Generation](./images/einstein-tcg.gif)
 
-## Enable or Disable Test Case Generation
-
-To enable or disable the test case generation feature:
-
-1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under **Einstein for Developers**, select **Enable Test Case Generation**.
-
-Test case generation is enabled by default.
 
 ## Generate your First Unit Test
 
