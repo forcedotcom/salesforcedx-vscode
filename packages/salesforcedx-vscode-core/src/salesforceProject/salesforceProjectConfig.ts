@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { isSfdxProjectOpened } from '../predicates';
+import { isSalesforceProjectOpened } from '../predicates';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 
@@ -19,7 +19,7 @@ import { workspaceUtils } from '../util';
  * Class representing the local sfdx-project.json file.
  * Does not contain global values.
  */
-export default class SfdxProjectConfig {
+export default class SalesforceProjectConfig {
   private static instance: SfProjectJson;
   private constructor() {
     throw new Error(
@@ -27,28 +27,31 @@ export default class SfdxProjectConfig {
     );
   }
 
-  private static async initializeSfdxProjectConfig() {
+  private static async initializeSalesforceProjectConfig() {
     if (
-      !SfdxProjectConfig.instance &&
-      isSfdxProjectOpened.apply(vscode.workspace).result
+      !SalesforceProjectConfig.instance &&
+      isSalesforceProjectOpened.apply(vscode.workspace).result
     ) {
-      const sfdxProjectPath = workspaceUtils.getRootWorkspacePath();
+      const salesforceProjectPath = workspaceUtils.getRootWorkspacePath();
       try {
-        const sfdxProject = await SfProject.resolve(sfdxProjectPath);
-        SfdxProjectConfig.instance = await sfdxProject.retrieveSfProjectJson();
+        const salesforceProject = await SfProject.resolve(
+          salesforceProjectPath
+        );
+        SalesforceProjectConfig.instance =
+          await salesforceProject.retrieveSfProjectJson();
         const fileWatcher = vscode.workspace.createFileSystemWatcher(
-          path.join(sfdxProjectPath, SFDX_PROJECT_FILE)
+          path.join(salesforceProjectPath, SFDX_PROJECT_FILE)
         );
         fileWatcher.onDidChange(async () => {
           try {
-            await SfdxProjectConfig.instance.read();
+            await SalesforceProjectConfig.instance.read();
           } catch (error) {
-            SfdxProjectConfig.handleError(error);
+            SalesforceProjectConfig.handleError(error);
             throw error;
           }
         });
       } catch (error) {
-        SfdxProjectConfig.handleError(error);
+        SalesforceProjectConfig.handleError(error);
         throw error;
       }
     }
@@ -68,16 +71,16 @@ export default class SfdxProjectConfig {
   }
 
   public static async getInstance(): Promise<SfProjectJson> {
-    if (!SfdxProjectConfig.instance) {
-      await SfdxProjectConfig.initializeSfdxProjectConfig();
+    if (!SalesforceProjectConfig.instance) {
+      await SalesforceProjectConfig.initializeSalesforceProjectConfig();
     }
-    return SfdxProjectConfig.instance;
+    return SalesforceProjectConfig.instance;
   }
 
   public static async getValue<T extends JsonArray | string | undefined>(
     key: string
   ): Promise<T> {
-    const projectConfig = await SfdxProjectConfig.getInstance();
+    const projectConfig = await SalesforceProjectConfig.getInstance();
     return projectConfig.get(key) as T;
   }
 }

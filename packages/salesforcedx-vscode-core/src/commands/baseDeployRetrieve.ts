@@ -33,9 +33,9 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
 import {
   createComponentCount,
   formatException,
@@ -152,7 +152,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         );
 
         const relativePackageDirs =
-          await SfdxPackageDirectories.getPackageDirectoryPaths();
+          await SalesforcePackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
 
@@ -250,7 +250,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     const defaultOutput = join(
       projectPath,
-      (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
+      (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
     const operation = await components.retrieve({
@@ -287,7 +287,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       DeployRetrieveExecutor.errorCollection.clear();
       SfCommandletExecutor.errorCollection.clear();
       const relativePackageDirs =
-        await SfdxPackageDirectories.getPackageDirectoryPaths();
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
       if (result?.response?.fileProperties !== undefined) {

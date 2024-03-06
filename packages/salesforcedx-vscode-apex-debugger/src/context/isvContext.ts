@@ -42,7 +42,7 @@ export const registerIsvAuthWatcher = (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
   ) {
-    const configPath = projectPaths.sfdxProjectConfig();
+    const configPath = projectPaths.salesforceProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
     /* eslint-disable @typescript-eslint/no-unused-vars */
     isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());

@@ -16,7 +16,7 @@ import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { workspaceUtils } from '../util';
 
-export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
+export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public apply(item: typeof workspace): PredicateResponse {
     if (!workspaceUtils.hasRootWorkspace()) {

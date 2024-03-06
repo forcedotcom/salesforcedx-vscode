@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
@@ -46,7 +46,7 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       try {
         for (const sourcePath of sourcePaths) {
           const isInSfdxPackageDirectory =
-            await SfdxPackageDirectories.isInPackageDirectory(sourcePath);
+            await SalesforcePackageDirectories.isInPackageDirectory(sourcePath);
 
           if (!isInSfdxPackageDirectory) {
             throw nls.localize(

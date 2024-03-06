@@ -165,9 +165,7 @@ export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   }
 }
 
-export abstract class ForceAuthDemoModeExecutor<
-  T
-> extends SfCommandletExecutor<T> {
+export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new CancellationTokenSource();
@@ -206,7 +204,7 @@ export abstract class ForceAuthDemoModeExecutor<
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<AuthParams> {
+export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))

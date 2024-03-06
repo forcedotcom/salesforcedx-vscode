@@ -38,7 +38,7 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = projectPaths.sfdxProjectConfig();
+    const cliConfigPath = projectPaths.salesforceProjectConfig();
     this.cliConfigWatcher =
       vscode.workspace.createFileSystemWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);

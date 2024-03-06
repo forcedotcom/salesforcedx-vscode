@@ -86,9 +86,13 @@ describe('LWC Test Debug - Code Action', () => {
   });
 
   const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
-  const sfdxProjectPath = path.join(root, 'project', 'mockSfdxProject');
+  const salesforceProjectPath = path.join(
+    root,
+    'project',
+    'mockSalesforceProject'
+  );
   const lwcTestExecutablePath = path.join(
-    sfdxProjectPath,
+    salesforceProjectPath,
     'node_modules',
     '.bin',
     'lwc-jest'
@@ -102,7 +106,7 @@ describe('LWC Test Debug - Code Action', () => {
     '__tests__',
     'mockTest.test.js'
   );
-  const testFsPath = path.join(sfdxProjectPath, testRelativePath);
+  const testFsPath = path.join(salesforceProjectPath, testRelativePath);
   const testName = 'mockTestName';
   const testUri = URI.file(testFsPath);
   const testExecutionInfo: TestCaseInfo = {
@@ -122,7 +126,7 @@ describe('LWC Test Debug - Code Action', () => {
       '--testNamePattern',
       'mockTestName'
     ];
-    const cwd = sfdxProjectPath;
+    const cwd = salesforceProjectPath;
 
     it('Should generate debug configuration for single test case', () => {
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
@@ -131,7 +135,7 @@ describe('LWC Test Debug - Code Action', () => {
         type: 'node',
         request: 'launch',
         name: 'Debug LWC test(s)',
-        cwd: sfdxProjectPath,
+        cwd: salesforceProjectPath,
         runtimeExecutable: lwcTestExecutablePath,
         args,
         resolveSourceMapLocations: ['**', '!**/node_modules/**'],

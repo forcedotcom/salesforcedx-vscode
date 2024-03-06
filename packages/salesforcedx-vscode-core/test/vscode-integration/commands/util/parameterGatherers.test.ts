@@ -36,7 +36,7 @@ import {
   SelectLwcComponentDir
 } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../../src/salesforceProject';
 import { workspaceUtils } from '../../../../src/util';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
@@ -294,7 +294,7 @@ describe('Parameter Gatherers', () => {
         workspaceUtils.getRootWorkspacePath()
       );
       const getPackageDirPathsStub = sinon.stub(
-        SfdxPackageDirectories,
+        SalesforcePackageDirectories,
         'getPackageDirectoryPaths'
       );
       const showMenuStub = sinon.stub(selector, 'showMenu');
@@ -333,7 +333,7 @@ describe('Parameter Gatherers', () => {
       );
       const mockComponents = new ComponentSet([component]);
       const getPackageDirPathsStub = sinon.stub(
-        SfdxPackageDirectories,
+        SalesforcePackageDirectories,
         'getPackageDirectoryPaths'
       );
       const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
@@ -377,7 +377,7 @@ describe('Parameter Gatherers', () => {
       );
       const mockComponents = new ComponentSet([component]);
       const getPackageDirPathsStub = sinon.stub(
-        SfdxPackageDirectories,
+        SalesforcePackageDirectories,
         'getPackageDirectoryPaths'
       );
       const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');

@@ -126,12 +126,12 @@ const debugLogsFolder = (): string => {
   return pathToDebugLogsFolder;
 };
 
-const sfdxProjectConfig = (): string => {
-  const pathToSFDXProjectConfig = path.join(
+const salesforceProjectConfig = (): string => {
+  const pathToSalesforceProjectConfig = path.join(
     projectPaths.stateFolder(),
     SF_CONFIG_FILE
   );
-  return pathToSFDXProjectConfig;
+  return pathToSalesforceProjectConfig;
 };
 
 const toolsFolder = (): string => {
@@ -158,7 +158,7 @@ export const projectPaths = {
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
-  sfdxProjectConfig,
+  salesforceProjectConfig,
   toolsFolder,
   lwcTestResultsFolder,
   relativeStateFolder,

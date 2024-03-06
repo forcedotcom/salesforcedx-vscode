@@ -19,8 +19,8 @@ import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { SfdxPackageDirectories } from '../sfdxProject';
 import { workspaceUtils } from '../util';
 
 export interface MetadataContext {
@@ -120,7 +120,7 @@ export class MetadataCacheService {
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
       const packageDirs =
-        await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+        await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,

@@ -28,7 +28,7 @@ export class DebugConfigurationProvider
       userIdFilter: [],
       requestTypeFilter: [],
       entryPointFilter: '',
-      sfdxProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
+      salesforceProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
     } as vscode.DebugConfiguration;
   }
 
@@ -69,8 +69,9 @@ export class DebugConfigurationProvider
     if (config.entryPointFilter === undefined) {
       config.entryPointFilter = '';
     }
-    config.sfdxProject =
-      config.sfdxProject || (folder ? folder.uri.fsPath : '${workspaceRoot}');
+    config.salesforceProject =
+      config.salesforceProject ||
+      (folder ? folder.uri.fsPath : '${workspaceRoot}');
 
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();

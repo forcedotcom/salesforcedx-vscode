@@ -141,7 +141,7 @@
               "userIdFilter": [],
               "requestTypeFilter": [],
               "entryPointFilter": "",
-              "sfdxProject": "^\"\\${workspaceRoot}\""
+              "salesforceProject": "^\"\\${workspaceRoot}\""
             }
           }
         ],
@@ -149,7 +149,7 @@
           "launch": {
             "properties": {
               "required": [
-                "sfdxProject"
+                "salesforceProject"
               ],
               "userIdFilter": {
                 "type": "array",
@@ -191,7 +191,7 @@
                 "description": "%entry_point_filter_text%",
                 "default": ""
               },
-              "sfdxProject": {
+              "salesforceProject": {
                 "type": "string",
                 "description": "%salesforce__text%",
                 "default": "${workspaceRoot}"

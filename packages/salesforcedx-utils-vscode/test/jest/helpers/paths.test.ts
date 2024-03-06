@@ -67,7 +67,7 @@ describe('test project paths', () => {
       expect(projectPaths.stateFolder()).toEqual('');
     });
   });
-  describe('test sfdxProjectConfig', () => {
+  describe('test salesforceProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
     const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SF_CONFIG_FILE);
 
@@ -78,12 +78,12 @@ describe('test project paths', () => {
     });
 
     it('should be defined', () => {
-      expect(projectPaths.sfdxProjectConfig).toBeDefined();
+      expect(projectPaths.salesforceProjectConfig).toBeDefined();
     });
 
     it('should return a path to the config file based on root workspace', () => {
-      const sfdxProjectConfig = projectPaths.sfdxProjectConfig();
-      expect(sfdxProjectConfig).toEqual(FAKE_CONFIG);
+      const salesforceProjectConfig = projectPaths.salesforceProjectConfig();
+      expect(salesforceProjectConfig).toEqual(FAKE_CONFIG);
     });
   });
 

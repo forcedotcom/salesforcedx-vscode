@@ -271,8 +271,8 @@ describe('Org Login Web is based on environment variables', () => {
   });
 });
 
-describe('Force Auth Device Login', () => {
-  class TestForceAuthDeviceLogin extends OrgLoginWebContainerExecutor {
+describe('Org Login Web Container', () => {
+  class TestOrgLoginWebContainer extends OrgLoginWebContainerExecutor {
     public deviceCodeReceived = false;
     public stdOut = '';
 
@@ -282,14 +282,14 @@ describe('Force Auth Device Login', () => {
   }
 
   let sb: sinon.SinonSandbox;
-  let deviceExecutor: TestForceAuthDeviceLogin;
+  let deviceExecutor: TestOrgLoginWebContainer;
   const testResponse: Partial<DeviceCodeResponse> = {
     user_code: '1234',
     verification_uri: 'http://example.com'
   };
 
   beforeEach(() => {
-    deviceExecutor = new TestForceAuthDeviceLogin();
+    deviceExecutor = new TestOrgLoginWebContainer();
 
     sb = sinon.createSandbox();
   });

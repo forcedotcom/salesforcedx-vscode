@@ -78,7 +78,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     new EventEmitter<BaseNode | undefined>();
   private myRequestService: RequestService;
   private orgInfo!: OrgInfo;
-  private sfdxProject: string | null = null;
+  private salesforceProject: string | null = null;
 
   public readonly onDidChangeTreeData: Event<BaseNode | undefined> =
     this._onDidChangeTreeData.event;
@@ -97,9 +97,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       vscode.workspace.workspaceFolders &&
       vscode.workspace.workspaceFolders[0]
     ) {
-      this.sfdxProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      this.salesforceProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
       try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo(this.sfdxProject);
+        this.orgInfo = await new OrgDisplay().getOrgInfo(
+          this.salesforceProject
+        );
       } catch (error) {
         const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize(
@@ -299,7 +301,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       'salesforce.salesforcedx-vscode-core'
     );
     if (sfdxCore && sfdxCore.exports) {
-      const userId = await sfdxCore.exports.getUserId(this.sfdxProject);
+      const userId = await sfdxCore.exports.getUserId(this.salesforceProject);
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
         let errorString;

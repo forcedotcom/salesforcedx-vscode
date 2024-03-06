@@ -235,16 +235,19 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
       cancellationToken
     );
     try {
-      const sfdxProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
-      const sfdxProjectConfig = JSON.parse(
-        fs.readFileSync(sfdxProjectJsonFile, { encoding: 'utf-8' })
+      const salesforceProjectJsonFile = path.join(
+        projectPath,
+        'sfdx-project.json'
       );
-      sfdxProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(
+      const salesforceProjectConfig = JSON.parse(
+        fs.readFileSync(salesforceProjectJsonFile, { encoding: 'utf-8' })
+      );
+      salesforceProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(
         orgNamespaceInfoResponseJson
       );
       fs.writeFileSync(
-        sfdxProjectJsonFile,
-        JSON.stringify(sfdxProjectConfig, null, 2),
+        salesforceProjectJsonFile,
+        JSON.stringify(salesforceProjectConfig, null, 2),
         { encoding: 'utf-8' }
       );
     } catch (error) {
@@ -382,7 +385,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
                 userIdFilter: [],
                 requestTypeFilter: [],
                 entryPointFilter: '',
-                sfdxProject: '${workspaceRoot}',
+                salesforceProject: '${workspaceRoot}',
                 connectType: 'ISV_DEBUGGER'
               }
             ]

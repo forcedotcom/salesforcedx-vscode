@@ -123,7 +123,7 @@ describe('Auth Params Gatherer', () => {
   });
 });
 
-describe('Force Auth Dev Hub is based on environment variables', () => {
+describe('Org Login Web Dev Hub is based on environment variables', () => {
   describe('in demo mode', () => {
     let originalValue: any;
 

@@ -26,7 +26,7 @@ import {
 } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 import {
-  ForceAuthDemoModeExecutor,
+  AuthDemoModeExecutor,
   OrgLoginWebContainerExecutor
 } from './orgLoginWeb';
 
@@ -64,7 +64,7 @@ export class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
+export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> {
   public build(data: AuthDevHubParams): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
