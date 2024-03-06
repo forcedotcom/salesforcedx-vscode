@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { elapsedTime } from './elapsedTime';
+import { LoggerLevel } from '@salesforce/core';
+
 const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';
 const HEADER_FILLER = '─';
@@ -19,6 +22,7 @@ export interface Column {
 }
 
 export class Table {
+  @elapsedTime()
   public createTable(rows: Row[], cols: Column[], title?: string): string {
     if (!rows) {
       throw Error('rows cannot be undefined');
@@ -115,6 +119,7 @@ export class Table {
     return maxColWidths;
   }
 
+  @elapsedTime('elapsedTime', LoggerLevel.TRACE)
   private fillColumn(
     label: string,
     width: number,

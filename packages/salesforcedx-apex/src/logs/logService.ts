@@ -29,6 +29,7 @@ import * as path from 'path';
 import { nls } from '../i18n';
 import { createFile } from '../utils';
 import { TraceFlags } from '../utils/traceFlags';
+import { elapsedTime } from '../utils/elapsedTime';
 
 type StreamingLogMessage = {
   errorName?: string;
@@ -44,6 +45,7 @@ export class LogService {
     this.connection = connection;
   }
 
+  @elapsedTime()
   public async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
     if (
       !(
@@ -62,6 +64,7 @@ export class LogService {
   }
 
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
+  @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
     const logIdList = await this.getLogIds(options);
     const logPaths: string[] = [];
@@ -90,6 +93,7 @@ export class LogService {
     });
   }
 
+  @elapsedTime()
   public async getLogById(logId: string): Promise<LogResult> {
     const baseUrl = this.connection.tooling._baseUrl();
     const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
@@ -97,6 +101,7 @@ export class LogService {
     return { log: response.toString() || '' };
   }
 
+  @elapsedTime()
   public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
     let apexLogQuery = `
         SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
@@ -119,6 +124,7 @@ export class LogService {
     return response.records as LogRecord[];
   }
 
+  @elapsedTime()
   public async tail(org: Org, tailer?: (log: string) => void): Promise<void> {
     this.logger = await Logger.child('apexLogApi', { tag: 'tail' });
     this.logTailer = tailer;
@@ -132,6 +138,7 @@ export class LogService {
     });
   }
 
+  @elapsedTime()
   public async createStreamingClient(org: Org): Promise<StreamingClient> {
     const options = new StreamingClient.DefaultOptions(
       org,
@@ -143,6 +150,7 @@ export class LogService {
     return await StreamingClient.create(options);
   }
 
+  @elapsedTime()
   public async logCallback(message: StreamingLogMessage): Promise<void> {
     if (message.sobject && message.sobject.Id) {
       const log = await this.getLogById(message.sobject.Id);
@@ -152,6 +160,7 @@ export class LogService {
     }
   }
 
+  @elapsedTime()
   private streamingCallback(message: StreamingLogMessage): StatusResult {
     if (message.errorName === LISTENER_ABORTED_ERROR_NAME) {
       return { completed: true };
@@ -169,6 +178,7 @@ export class LogService {
     await flags.ensureTraceFlags(requestedDebugLevel);
   }
 
+  @elapsedTime()
   public async toolingRequest(url: string): Promise<AnyJson> {
     const log = (await this.connection.tooling.request(url)) as AnyJson;
     return log;

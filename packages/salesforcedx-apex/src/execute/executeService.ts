@@ -20,6 +20,7 @@ import { refreshAuth } from '../utils';
 import { encodeBody } from './utils';
 import * as readline from 'readline';
 import { HttpRequest } from 'jsforce';
+import { elapsedTime } from '../utils/elapsedTime';
 
 export class ExecuteService {
   public readonly connection: Connection;
@@ -28,6 +29,7 @@ export class ExecuteService {
     this.connection = connection;
   }
 
+  @elapsedTime()
   public async executeAnonymous(
     options: ApexExecuteOptions
   ): Promise<ExecuteAnonymousResponse> {
@@ -56,6 +58,7 @@ export class ExecuteService {
     }
   }
 
+  @elapsedTime()
   public async getApexCode(options: ApexExecuteOptions): Promise<string> {
     if (options.apexCode) {
       return String(options.apexCode);
@@ -68,6 +71,7 @@ export class ExecuteService {
     }
   }
 
+  @elapsedTime()
   public readApexFile(filepath: string): string {
     if (!existsSync(filepath)) {
       throw new Error(nls.localize('fileNotFoundError', filepath));
@@ -75,6 +79,7 @@ export class ExecuteService {
     return readFileSync(filepath, 'utf8');
   }
 
+  @elapsedTime()
   public async getUserInput(): Promise<string> {
     process.stdout.write(nls.localize('execAnonInputPrompt'));
     return new Promise<string>((resolve, reject) => {
@@ -125,6 +130,7 @@ export class ExecuteService {
     return request;
   }
 
+  @elapsedTime()
   public jsonFormat(soapResponse: SoapResponse): ExecuteAnonymousResponse {
     const execAnonResponse =
       soapResponse[soapEnv][soapBody].executeAnonymousResponse.result;
@@ -159,6 +165,7 @@ export class ExecuteService {
     return formattedResponse;
   }
 
+  @elapsedTime()
   public async connectionRequest(
     requestData: HttpRequest
   ): Promise<SoapResponse> {

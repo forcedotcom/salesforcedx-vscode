@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "ES2020",
+    "target": "ES2022",
     "lib": ["ES2020", "dom"],
     "sourceMap": true,
     "declaration": true,
@@ -10,7 +10,8 @@
     "rootDir": ".",
     "outDir": "lib",
     "preserveConstEnums": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "experimentalDecorators": true
   },
   "exclude": ["node_modules", "lib"]
 }

@@ -22,6 +22,7 @@ import {
   ApexTestQueueItemRecord,
   ApexTestQueueItemStatus
 } from '../tests/types';
+import { elapsedTime } from '../utils/elapsedTime';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
 const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
@@ -163,6 +164,7 @@ export class StreamingClient {
 
   public hasDisconnected = false;
 
+  @elapsedTime()
   public async subscribe(
     action?: () => Promise<string>,
     testRunId?: string
@@ -250,6 +252,7 @@ export class StreamingClient {
     return true;
   }
 
+  @elapsedTime()
   public async handler(
     message?: TestResultMessage,
     runId?: string

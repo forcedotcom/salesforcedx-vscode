@@ -17,6 +17,7 @@ import * as path from 'path';
 import { glob } from 'glob';
 import * as fs from 'fs';
 import { nls } from '../i18n';
+import { elapsedTime } from '../utils/elapsedTime';
 
 const startOfSource = (source: string): number => {
   if (source) {
@@ -97,6 +98,7 @@ export class CoverageReporter {
     private readonly options?: CoverageReporterOptions
   ) {}
 
+  @elapsedTime()
   public generateReports(): void {
     try {
       this.coverageMap = this.buildCoverageMap();
@@ -120,6 +122,7 @@ export class CoverageReporter {
     }
   }
 
+  @elapsedTime()
   private buildCoverageMap(): libCoverage.CoverageMap {
     const pathsToFiles = this.findFullPathToClass(['cls', 'trigger']);
     const coverageMap = libCoverage.createCoverageMap();
@@ -183,6 +186,7 @@ export class CoverageReporter {
     return coverageMap;
   }
 
+  @elapsedTime()
   private findFullPathToClass(listOfExtensions: string[]): string[] {
     const searchPattern = `**/*.{${listOfExtensions.join(',')}}`;
     return glob.sync(searchPattern, { cwd: this.sourceDir });

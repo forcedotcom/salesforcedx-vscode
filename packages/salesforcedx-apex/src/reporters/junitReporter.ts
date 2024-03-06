@@ -10,6 +10,8 @@ import {
   TestResult
 } from '../tests/types';
 import { formatStartTime, msToSecond } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
+import { LoggerLevel } from '@salesforce/core';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
@@ -23,6 +25,7 @@ const timeProperties = [
 // properties not in cli junit spec
 const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
 export class JUnitReporter {
+  @elapsedTime()
   public format(testResult: TestResult): string {
     const { summary, tests } = testResult;
 
@@ -44,6 +47,7 @@ export class JUnitReporter {
     return output;
   }
 
+  @elapsedTime()
   private buildProperties(testResult: TestResult): string {
     let junitProperties = `${tab}${tab}<properties>\n`;
 
@@ -72,6 +76,7 @@ export class JUnitReporter {
     return junitProperties;
   }
 
+  @elapsedTime()
   private buildTestCases(tests: ApexTestResultData[]): string {
     let junitTests = '';
 
@@ -99,6 +104,7 @@ export class JUnitReporter {
     return junitTests;
   }
 
+  @elapsedTime('elapsedTime', LoggerLevel.TRACE)
   private xmlEscape(value: string): string {
     return value
       .replace(/&/g, '&amp;')

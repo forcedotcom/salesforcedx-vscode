@@ -19,6 +19,7 @@ import {
 } from './types';
 import { MILLISECONDS_PER_MINUTE } from './dateUtil';
 import { escapeXml } from './authUtil';
+import { elapsedTime } from './elapsedTime';
 
 export class TraceFlags {
   private connection: Connection;
@@ -27,6 +28,7 @@ export class TraceFlags {
     this.connection = connection;
   }
 
+  @elapsedTime()
   public async ensureTraceFlags(debugLevelName?: string): Promise<boolean> {
     const username = this.connection.getUsername();
     if (!username) {
@@ -60,6 +62,7 @@ export class TraceFlags {
     return true;
   }
 
+  @elapsedTime()
   private async getDebugLevelId(
     debugLevelName: string
   ): Promise<string | undefined> {
@@ -82,6 +85,7 @@ export class TraceFlags {
     return debugLevelId;
   }
 
+  @elapsedTime()
   private async findDebugLevel(
     debugLevelName: string
   ): Promise<string | undefined> {
@@ -93,6 +97,7 @@ export class TraceFlags {
       : undefined;
   }
 
+  @elapsedTime()
   private async updateDebugLevel(id: string): Promise<boolean> {
     const debugLevel = {
       Id: id,
@@ -106,6 +111,7 @@ export class TraceFlags {
     return result.success;
   }
 
+  @elapsedTime()
   private async createDebugLevel(
     debugLevelName: string
   ): Promise<string | undefined> {
@@ -123,6 +129,7 @@ export class TraceFlags {
     return result.success && result.id ? result.id : undefined;
   }
 
+  @elapsedTime()
   private async updateTraceFlag(
     id: string,
     expirationDate: Date
@@ -139,6 +146,7 @@ export class TraceFlags {
     return result.success;
   }
 
+  @elapsedTime()
   private async createTraceFlag(
     userId: string,
     debugLevelId: string,
@@ -176,6 +184,7 @@ export class TraceFlags {
     return expirationDate;
   }
 
+  @elapsedTime()
   private async getUserIdOrThrow(username: string): Promise<IdRecord> {
     const escapedUsername = escapeXml(username);
     const userQuery = `SELECT Id FROM User WHERE username='${escapedUsername}'`;
@@ -187,6 +196,7 @@ export class TraceFlags {
     return userResult.records[0];
   }
 
+  @elapsedTime()
   private async getTraceFlagForUser(
     userId: string
   ): Promise<TraceFlagRecord | undefined> {

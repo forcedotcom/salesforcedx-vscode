@@ -32,6 +32,7 @@ import * as util from 'util';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { CodeCoverage } from './codeCoverage';
 import { HttpRequest } from 'jsforce';
+import { elapsedTime } from '../utils/elapsedTime';
 
 export class AsyncTests {
   public readonly connection: Connection;
@@ -50,6 +51,7 @@ export class AsyncTests {
    * @param progress progress reporter
    * @param token cancellation token
    */
+  @elapsedTime()
   public async runTests(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
@@ -99,6 +101,7 @@ export class AsyncTests {
    * @param codeCoverage should report code coverages
    * @param token cancellation token
    */
+  @elapsedTime()
   public async reportAsyncResults(
     testRunId: string,
     codeCoverage = false,
@@ -138,6 +141,7 @@ export class AsyncTests {
     }
   }
 
+  @elapsedTime()
   public async checkRunStatus(
     testRunId: string,
     progress?: Progress<ApexTestProgressValue>
@@ -196,6 +200,7 @@ export class AsyncTests {
    * @param progress progress reporter
    * @returns
    */
+  @elapsedTime()
   public async formatAsyncResults(
     asyncRunResult: AsyncTestRun,
     commandStartTime: number,
@@ -280,6 +285,7 @@ export class AsyncTests {
     return result;
   }
 
+  @elapsedTime()
   public async getAsyncTestResults(
     testQueueResult: ApexTestQueueItem
   ): Promise<ApexTestResult[]> {
@@ -312,6 +318,7 @@ export class AsyncTests {
     return apexTestResults as ApexTestResult[];
   }
 
+  @elapsedTime()
   private async buildAsyncTestResults(
     apexTestResults: ApexTestResult[]
   ): Promise<{

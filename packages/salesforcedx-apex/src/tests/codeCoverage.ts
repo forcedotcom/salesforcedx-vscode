@@ -16,6 +16,7 @@ import {
 import * as util from 'util';
 import { calculatePercentage, queryAll } from './utils';
 import { QUERY_RECORD_LIMIT } from './constants';
+import { elapsedTime } from '../utils/elapsedTime';
 
 export class CodeCoverage {
   public readonly connection: Connection;
@@ -28,6 +29,7 @@ export class CodeCoverage {
    * Returns the string representation of the org wide coverage percentage for a given username connection from OrgWideCoverage entity
    * @returns Org wide coverage percentage for a given username connection
    */
+  @elapsedTime()
   public async getOrgWideCoverage(): Promise<string> {
     const orgWideCoverageResult = (await this.connection.tooling.query(
       'SELECT PercentCovered FROM ApexOrgWideCoverage'
@@ -45,6 +47,7 @@ export class CodeCoverage {
    * @returns The code coverage information associated with each Apex test class
    * NOTE: a test could cover more than one class, result map should contain a record for each covered class
    */
+  @elapsedTime()
   public async getPerClassCodeCoverage(
     apexTestClassSet: Set<string>
   ): Promise<Map<string, PerClassCoverage[]>> {
@@ -95,6 +98,7 @@ export class CodeCoverage {
    * @param apexClassIdSet Set of ids for Apex classes
    * @returns The aggregate code coverage information for the given set of Apex classes
    */
+  @elapsedTime()
   public async getAggregateCodeCoverage(apexClassIdSet: Set<string>): Promise<{
     codeCoverageResults: CodeCoverageResult[];
     totalLines: number;
@@ -148,6 +152,7 @@ export class CodeCoverage {
     };
   }
 
+  @elapsedTime()
   private async queryPerClassCodeCov(
     apexTestClassSet: Set<string>
   ): Promise<ApexCodeCoverage[]> {
@@ -156,6 +161,7 @@ export class CodeCoverage {
     return this.fetchResults(apexTestClassSet, perClassCodeCovQuery);
   }
 
+  @elapsedTime()
   private async queryAggregateCodeCov(
     apexClassIdSet: Set<string>
   ): Promise<ApexCodeCoverageAggregate[]> {
@@ -164,6 +170,7 @@ export class CodeCoverage {
     return this.fetchResults(apexClassIdSet, codeCoverageQuery);
   }
 
+  @elapsedTime()
   private async fetchResults<
     T extends ApexCodeCoverage | ApexCodeCoverageAggregate
   >(idSet: Set<string>, selectQuery: string): Promise<T[]> {

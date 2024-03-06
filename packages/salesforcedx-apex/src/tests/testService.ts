@@ -29,6 +29,7 @@ import { AsyncTests } from './asyncTests';
 import { SyncTests } from './syncTests';
 import { formatTestErrors } from './diagnosticUtil';
 import { QueryResult } from '../utils/types';
+import { elapsedTime } from '../utils/elapsedTime';
 
 export class TestService {
   private readonly connection: Connection;
@@ -45,6 +46,7 @@ export class TestService {
    * Retrieve all suites in org
    * @returns list of Suites in org
    */
+  @elapsedTime()
   public async retrieveAllSuites(): Promise<
     { id: string; TestSuiteName: string }[]
   > {
@@ -55,6 +57,7 @@ export class TestService {
     return testSuiteRecords.records;
   }
 
+  @elapsedTime()
   private async retrieveSuiteId(
     suitename: string
   ): Promise<string | undefined> {
@@ -73,6 +76,7 @@ export class TestService {
    * @param suitenames names of suites
    * @returns Ids associated with each suite
    */
+  @elapsedTime()
   private async getOrCreateSuiteIds(suitenames: string[]): Promise<string[]> {
     const suiteIds = suitenames.map(async (suite) => {
       const suiteId = await this.retrieveSuiteId(suite);
@@ -94,6 +98,7 @@ export class TestService {
    * @param suiteId id of suite
    * @returns list of test classes in the suite
    */
+  @elapsedTime()
   public async getTestsInSuite(
     suitename?: string,
     suiteId?: string
@@ -120,6 +125,7 @@ export class TestService {
    * @param testClasses list of Apex class names
    * @returns the associated ids for each Apex class
    */
+  @elapsedTime()
   public async getApexClassIds(testClasses: string[]): Promise<string[]> {
     const classIds = testClasses.map(async (testClass) => {
       const apexClass = (await this.connection.tooling.query(
@@ -138,6 +144,7 @@ export class TestService {
    * @param suitename name of suite
    * @param tests tests to be added to suite
    */
+  @elapsedTime()
   public async buildSuite(
     suitename: string,
     testClasses: string[]
@@ -173,6 +180,7 @@ export class TestService {
    * @param codeCoverage should report code coverage
    * @param token cancellation token
    */
+  @elapsedTime()
   public async runTestSynchronous(
     options: SyncTestConfiguration,
     codeCoverage = false,
@@ -189,6 +197,7 @@ export class TestService {
    * @param progress progress reporter
    * @param token cancellation token
    */
+  @elapsedTime()
   public async runTestAsynchronous(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
@@ -211,6 +220,7 @@ export class TestService {
    * @param codeCoverage should report code coverages
    * @param token cancellation token
    */
+  @elapsedTime()
   public async reportAsyncResults(
     testRunId: string,
     codeCoverage = false,
@@ -230,6 +240,7 @@ export class TestService {
    * @param codeCoverage should report code coverage
    * @returns list of result files created
    */
+  @elapsedTime()
   public async writeResultFiles(
     result: TestResult | TestRunIdResult,
     outputDirConfig: OutputDirConfig,
@@ -321,6 +332,7 @@ export class TestService {
   }
 
   // utils to build test run payloads that may contain namespaces
+  @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
@@ -351,6 +363,7 @@ export class TestService {
     }
   }
 
+  @elapsedTime()
   public async buildAsyncPayload(
     testLevel: TestLevel,
     tests?: string,
@@ -375,6 +388,7 @@ export class TestService {
     }
   }
 
+  @elapsedTime()
   private async buildAsyncClassPayload(
     classNames: string
   ): Promise<AsyncTestArrayConfiguration> {
@@ -392,6 +406,7 @@ export class TestService {
     return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
   }
 
+  @elapsedTime()
   private async buildTestPayload(
     testNames: string
   ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {

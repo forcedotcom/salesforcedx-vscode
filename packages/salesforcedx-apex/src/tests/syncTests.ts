@@ -20,6 +20,7 @@ import {
 } from './types';
 import { calculatePercentage } from './utils';
 import { HttpRequest } from 'jsforce';
+import { elapsedTime } from '../utils/elapsedTime';
 
 export class SyncTests {
   public readonly connection: Connection;
@@ -36,6 +37,7 @@ export class SyncTests {
    * @param codeCoverage should report code coverage
    * @param token cancellation token
    */
+  @elapsedTime()
   public async runTests(
     options: SyncTestConfiguration,
     codeCoverage = false,
@@ -68,6 +70,7 @@ export class SyncTests {
     }
   }
 
+  @elapsedTime()
   public async formatSyncResults(
     apiTestResult: SyncTestResult,
     startTime: number,
@@ -143,6 +146,7 @@ export class SyncTests {
     return result;
   }
 
+  @elapsedTime()
   private buildSyncTestResults(apiTestResult: SyncTestResult): {
     apexTestClassIdSet: Set<string>;
     testResults: ApexTestResultData[];

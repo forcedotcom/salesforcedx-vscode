@@ -9,6 +9,7 @@ import {
   ApexTestResultOutcome,
   TestResult
 } from '../tests/types';
+import { elapsedTime } from '../utils/elapsedTime';
 
 export interface TapResult {
   description: string;
@@ -18,6 +19,7 @@ export interface TapResult {
 }
 
 export class TapReporter {
+  @elapsedTime()
   public format(testResult: TestResult, epilog?: string[]): string {
     const results: TapResult[] = this.buildTapResults(testResult);
     const testPointCount = results.length;
@@ -39,6 +41,7 @@ export class TapReporter {
     return out;
   }
 
+  @elapsedTime()
   public buildTapResults(testResult: TestResult): TapResult[] {
     const tapResults: TapResult[] = [];
     testResult.tests.forEach((test: ApexTestResultData, index: number) => {
@@ -55,6 +58,7 @@ export class TapReporter {
     return tapResults;
   }
 
+  @elapsedTime()
   private buildTapDiagnostics(testResult: ApexTestResultData): string[] {
     const message = [];
     if (testResult.outcome !== 'Pass') {
