@@ -36,6 +36,8 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 Windows:
 
+For Windows, ensure you are escaping the path approrpriately, as shown below.
+
 ```json
 {
   "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.2.8-hotspot"
@@ -130,3 +132,7 @@ By default, a JVM allocates up to one fourth of the system's physical memory to 
   "salesforcedx-vscode-apex.java.memory": 4096
 }
 ```
+
+## Troubleshooting
+
+If you see an error message that your Java version is not supported, open the Output tab on the bottom panel of VS Code. Filter by 'Apex'. Also review the 'Problems' tab to see that the Apex Language Server has been able to start.
