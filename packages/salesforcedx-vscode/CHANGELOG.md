@@ -1,3 +1,11 @@
+# 60.3.1 - March 4, 2024
+
+## Added
+
+#### docs
+
+- Alongside this release, the Einstein for Developers extension release includes a host of new features that we hope you'll test drive. See the Einstein for Developers [change log](https://marketplace.visualstudio.com/items/salesforce.salesforcedx-einstein-gpt/changelog) for more details.
+
 # 60.2.3 - February 29, 2024
 
 ## Fixed

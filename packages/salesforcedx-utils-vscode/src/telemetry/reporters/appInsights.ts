@@ -11,6 +11,19 @@ import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { TelemetryReporter } from '../interfaces';
 
+type CommonProperties = {
+  'common.os': string;
+  'common.platformversion': string;
+  'common.cpus'?: string;
+  'common.systemmemory': string;
+  'common.extname': string;
+  'common.extversion': string;
+  'common.vscodemachineid'?: string;
+  'common.vscodesessionid'?: string;
+  'common.vscodeversion'?: string;
+  'common.vscodeuikind'?: string;
+};
+
 export class AppInsights extends Disposable implements TelemetryReporter {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
@@ -19,6 +32,9 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
   private static TELEMETRY_CONFIG_ID = 'telemetry';
   private static TELEMETRY_CONFIG_ENABLED_ID = 'enableTelemetry';
+
+  // user defined tag to add to properties that is defined via setting
+  private telemetryTag: string | undefined;
 
   constructor(
     private extensionId: string,
@@ -30,6 +46,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     if (enableUniqueMetrics) {
       this.uniqueUserMetrics = true;
     }
+    this.setTelemetryTag();
     this.updateUserOptIn(key);
     this.toDispose.push(
       workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
@@ -90,25 +107,26 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     }
   }
 
-  private getCommonProperties(): { [key: string]: string } {
-    const commonProperties = Object.create(null);
-    commonProperties['common.os'] = os.platform();
-    commonProperties['common.platformversion'] = (os.release() || '').replace(
-      /^(\d+)(\.\d+)?(\.\d+)?(.*)/,
-      '$1$2$3'
-    );
+  private getCommonProperties(): CommonProperties {
+    const commonProperties: CommonProperties = {
+      'common.os': os.platform(),
+      'common.platformversion': (os.release() || '').replace(
+        /^(\d+)(\.\d+)?(\.\d+)?(.*)/,
+        '$1$2$3'
+      ),
+      'common.systemmemory': `${(
+        os.totalmem() /
+        (1024 * 1024 * 1024)
+      ).toFixed(2)} GB`,
+      'common.extname': this.extensionId,
+      'common.extversion': this.extensionVersion
+    };
+
     const cpus = os.cpus();
     if (cpus && cpus.length > 0) {
-      commonProperties[
-        'common.cpus'
-      ] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
+      commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
     }
-    commonProperties['common.systemmemory'] = `${(
-      os.totalmem() /
-      (1024 * 1024 * 1024)
-    ).toFixed(2)} GB`;
-    commonProperties['common.extname'] = this.extensionId;
-    commonProperties['common.extversion'] = this.extensionVersion;
+
     if (env) {
       commonProperties['common.vscodemachineid'] = env.machineId;
       commonProperties['common.vscodesessionid'] = env.sessionId;
@@ -117,8 +135,9 @@ export class AppInsights extends Disposable implements TelemetryReporter {
         commonProperties['common.vscodeuikind'] = UIKind[env.uiKind];
       }
     }
+
     return commonProperties;
-  }
+}
 
   public sendTelemetryEvent(
     eventName: string,
@@ -127,15 +146,13 @@ export class AppInsights extends Disposable implements TelemetryReporter {
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       const orgId = WorkspaceContextUtil.getInstance().orgId;
-      if (orgId && properties) {
-        properties.orgId = orgId;
-      } else if (orgId) {
-        properties = { orgId };
-      }
+      let props = properties ? properties : {};
+      props = this.applyTelemetryTag(orgId ? { ...props, orgId } : props);
+
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
         // tslint:disable-next-line:object-literal-shorthand
-        properties,
+        properties: props,
         // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
@@ -154,7 +171,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       error.stack = 'DEPRECATED';
 
       const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const properties = { orgId };
+      const properties = this.applyTelemetryTag({ orgId });
       this.appInsightsClient.trackException({
         exception: error,
         properties,
@@ -178,5 +195,30 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       }
     });
     return flushEventsToAI;
+  }
+
+  /**
+   * Helper to set reporter's telemetryTag from setting salesforcedx-vscode-core.telemetry-tag
+   * @returns string | undefined
+   */
+  private setTelemetryTag(): void {
+    const config = workspace.getConfiguration();
+    this.telemetryTag =
+      config?.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
+  }
+
+  /**
+   * Helper to include telemetryTag in properties if it exists
+   * if not, return properties as is
+   *
+   * @param properties
+   * @returns
+   */
+  private applyTelemetryTag(properties: { [key: string]: string }): {
+    [key: string]: string;
+  } {
+    return this.telemetryTag
+      ? { ...properties, telemetryTag: this.telemetryTag }
+      : properties;
   }
 }
