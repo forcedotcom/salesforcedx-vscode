@@ -434,7 +434,7 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
     const apexVariables: ApexVariable[] = [];
     let offset = 0;
     this.tupleContainers.forEach((container, reference) => {
-      if (offset >= start! && offset < start! + count!) {
+      if (offset >= start && offset < start + count) {
         apexVariables.push(
           new ApexVariable(
             {
