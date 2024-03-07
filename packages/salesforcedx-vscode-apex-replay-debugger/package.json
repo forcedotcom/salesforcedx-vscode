@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "3.0.1",
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.5.5",
     "@salesforce/salesforcedx-apex-replay-debugger": "60.3.1",
     "@salesforce/salesforcedx-utils": "60.3.1",
     "@salesforce/salesforcedx-utils-vscode": "60.3.1",
@@ -65,7 +65,7 @@
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --minify",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/source-tracking --external:applicationinsights --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -105,7 +105,7 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "6.5.2",
+        "@salesforce/core-bundle": "6.5.5",
         "@salesforce/source-tracking": "5.1.11"
       },
       "devDependencies": {}

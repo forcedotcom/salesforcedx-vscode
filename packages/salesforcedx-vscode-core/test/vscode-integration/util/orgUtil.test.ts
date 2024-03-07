@@ -6,7 +6,7 @@
  */
 
 // Imports for testing
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo } from '@salesforce/core-bundle';
 import { expect } from 'chai';
 import { before } from 'mocha';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';

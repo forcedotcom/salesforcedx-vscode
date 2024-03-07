@@ -8,7 +8,7 @@ import {
   ExecuteAnonymousResponse,
   ExecuteService
 } from '@salesforce/apex-node';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   CancelResponse,
   ContinueResponse,

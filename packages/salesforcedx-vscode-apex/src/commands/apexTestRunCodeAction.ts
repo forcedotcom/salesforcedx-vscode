@@ -13,7 +13,7 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { SfProject } from '@salesforce/core';
+import { SfProject } from '@salesforce/core-bundle';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,

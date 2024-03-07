@@ -11,7 +11,7 @@ import {
   Org,
   OrgConfigProperties,
   StateAggregator
-} from '@salesforce/core';
+} from '@salesforce/core-bundle';
 import { workspaceUtils } from '..';
 import {
   SF_CONFIG_DISABLE_TELEMETRY,

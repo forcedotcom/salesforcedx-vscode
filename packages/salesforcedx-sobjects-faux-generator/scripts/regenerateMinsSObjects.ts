@@ -19,7 +19,7 @@ import { SObjectShortDescription } from '../src/describe';
 import { OrgObjectDetailRetriever } from '../src/retriever';
 import { SObject } from '../src/types';
 
-import { Connection, Org } from '@salesforce/core';
+import { Connection, Org } from '@salesforce/core-bundle';
 
 // tslint:disable-next-line:no-floating-promises
 (async () => {

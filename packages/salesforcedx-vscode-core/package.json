@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.5.5",
     "@salesforce/salesforcedx-sobjects-faux-generator": "60.3.1",
     "@salesforce/salesforcedx-utils-vscode": "60.3.1",
     "@salesforce/schemas": "^1.6.1",
@@ -97,7 +97,7 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "6.5.2",
+        "@salesforce/core-bundle": "6.5.5",
         "@salesforce/source-tracking": "5.1.11",
         "@salesforce/templates": "^60.1.0",
         "@salesforce/source-deploy-retrieve": "10.3.3",
@@ -107,7 +107,7 @@
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';

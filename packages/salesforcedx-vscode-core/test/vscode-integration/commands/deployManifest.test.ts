@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core-bundle';
 import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';

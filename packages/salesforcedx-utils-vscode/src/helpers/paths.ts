@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
+import { Global } from '@salesforce/core-bundle';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';

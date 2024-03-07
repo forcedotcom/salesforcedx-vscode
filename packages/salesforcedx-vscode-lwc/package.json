@@ -24,7 +24,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.5.5",
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.7.4",
     "@salesforce/lwc-language-server": "4.7.4",
@@ -77,7 +77,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --loader:.node=file --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/lwc-language-serve --external:@babel/preset-typescript/package.json --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --loader:.node=file --external:vscode --external:@salesforce/source-tracking --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/lwc-language-serve --external:@babel/preset-typescript/package.json --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -115,7 +115,7 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "6.5.2",
+        "@salesforce/core-bundle": "6.5.5",
         "@salesforce/source-tracking": "5.1.11",
         "@salesforce/lightning-lsp-common": "4.7.4",
         "@salesforce/lwc-language-server": "4.7.4"

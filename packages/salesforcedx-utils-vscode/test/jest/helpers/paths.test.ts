@@ -25,7 +25,7 @@ import {
   TOOLS
 } from '../../../src/helpers/paths';
 
-jest.mock('@salesforce/core', () => {
+jest.mock('@salesforce/core-bundle', () => {
   return {
     Global: {
       SFDX_STATE_FOLDER: '.sfdx',
