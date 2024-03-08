@@ -12,6 +12,7 @@ mkdir -p "$TARGET_DIR"
 # Find and copy .vsix files
 find "$SOURCE_DIR" -type d -name 'salesforcedx-vscode*' -print0 | while IFS= read -r -d '' dir; do
     find "$dir" -name '*.vsix' -exec cp {} "$TARGET_DIR" \;
+    # find "$dir" -name '*.vsix' -exec rm {} \;
 done
 
 echo "All .vsix files have been copied to $TARGET_DIR."
