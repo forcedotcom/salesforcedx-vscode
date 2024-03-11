@@ -17,7 +17,7 @@ import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolv
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxPackageDirectories } from '../../sfdxProject';
+import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { workspaceUtils } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 
@@ -38,7 +38,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
     const packageDirs =
-      await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+      await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
     const localSourceComponents = ComponentSet.fromSource({
       fsPaths: packageDirs,
       include: toRetrieve
@@ -58,7 +58,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
 
       if (componentToOpen) {
         const dirPath =
-          (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
+          (await SalesforcePackageDirectories.getDefaultPackageDir()) || '';
         const defaultOutput = path.join(
           workspaceUtils.getRootWorkspacePath(),
           dirPath

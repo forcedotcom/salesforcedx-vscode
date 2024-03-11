@@ -38,10 +38,9 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = projectPaths.sfdxProjectConfig();
-    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      cliConfigPath
-    );
+    const cliConfigPath = projectPaths.salesforceProjectConfig();
+    this.cliConfigWatcher =
+      vscode.workspace.createFileSystemWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
@@ -91,9 +90,7 @@ export class WorkspaceContextUtil {
     const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
 
     if (defaultUsernameOrAlias) {
-      this._username = await ConfigUtil.getUsernameFor(
-        defaultUsernameOrAlias
-      );
+      this._username = await ConfigUtil.getUsernameFor(defaultUsernameOrAlias);
       this._alias =
         defaultUsernameOrAlias !== this._username
           ? defaultUsernameOrAlias
@@ -105,10 +102,13 @@ export class WorkspaceContextUtil {
         this._orgId = '';
         if (error instanceof Error) {
           console.log(
-            'There was an problem getting the orgId of the default org: '
-            , error
+            'There was an problem getting the orgId of the default org: ',
+            error
           );
-          TelemetryService.getInstance().sendException(WORKSPACE_CONTEXT_ORG_ID_ERROR, `name: ${error.name}, message: ${error.message}`);
+          TelemetryService.getInstance().sendException(
+            WORKSPACE_CONTEXT_ORG_ID_ERROR,
+            `name: ${error.name}, message: ${error.message}`
+          );
         }
       }
     } else {

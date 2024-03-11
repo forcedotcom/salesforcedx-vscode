@@ -15,7 +15,7 @@ import * as glob from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxPackageDirectories } from '../../sfdxProject';
+import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
@@ -189,7 +189,8 @@ export class SelectLwcComponentDir
   > {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
@@ -270,7 +271,8 @@ export class SelectOutputDir
   > {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
