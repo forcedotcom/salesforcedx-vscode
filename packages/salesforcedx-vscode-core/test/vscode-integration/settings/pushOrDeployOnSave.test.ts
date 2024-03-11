@@ -11,13 +11,13 @@ import { channelService } from '../../../src/channels';
 import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import {
   DeployQueue,
   fileShouldNotBeDeployed,
   pathIsInPackageDirectory
 } from '../../../src/settings';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
 
 /* tslint:disable:no-unused-expression */
@@ -41,7 +41,7 @@ describe('Push or Deploy on Save', () => {
   describe('pathIsInPackageDirectory', () => {
     it('should return true if the path is in a package directory', async () => {
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.true;
@@ -51,7 +51,7 @@ describe('Push or Deploy on Save', () => {
 
     it('should return false if the path is not in a package directory', async () => {
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(false);
       const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.false;
@@ -63,7 +63,7 @@ describe('Push or Deploy on Save', () => {
       const error = new Error();
       error.name = 'NoPackageDirectoriesFound';
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .throws(error);
       let errorWasThrown = false;
 
@@ -85,7 +85,7 @@ describe('Push or Deploy on Save', () => {
       const error = new Error();
       error.name = 'NoPackageDirectoryPathsFound';
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .throws(error);
       let errorWasThrown = false;
       try {
@@ -236,7 +236,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.deploy.multiple.source.paths'
+        'sfdx.deploy.multiple.source.paths'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;

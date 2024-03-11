@@ -14,7 +14,7 @@ import { nls } from '../../../src/messages';
 import { workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('Force Org Create', () => {
+describe('Org Create', () => {
   describe('Alias Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
     const EVENT_CONTINUE = 'CONTINUE';

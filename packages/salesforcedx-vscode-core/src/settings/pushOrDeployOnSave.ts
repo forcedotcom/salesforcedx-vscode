@@ -12,8 +12,8 @@ import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
 
 import { telemetryService } from '../telemetry';
 
@@ -68,7 +68,7 @@ export class DeployQueue {
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
     vscode.commands.executeCommand(
-      'sfdx.force.source.deploy.multiple.source.paths',
+      'sfdx.deploy.multiple.source.paths',
       toDeploy
     );
   }
@@ -175,7 +175,9 @@ export async function pathIsInPackageDirectory(
   documentPath: string
 ): Promise<boolean> {
   try {
-    return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
+    return await SalesforcePackageDirectories.isInPackageDirectory(
+      documentPath
+    );
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':

@@ -15,9 +15,9 @@ import * as glob from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxPackageDirectories } from '../../sfdxProject';
+import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { workspaceUtils } from '../../util';
-import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
+import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
@@ -118,7 +118,8 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 }
 
 export class SelectFileName
-  implements ParametersGatherer<{ fileName: string }> {
+  implements ParametersGatherer<{ fileName: string }>
+{
   private maxFileNameLength: number;
 
   constructor(maxFileNameLength?: number) {
@@ -149,7 +150,8 @@ export class SelectFileName
 }
 
 export class SelectUsername
-  implements ParametersGatherer<{ username: string }> {
+  implements ParametersGatherer<{ username: string }>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ username: string }>
   > {
@@ -180,13 +182,15 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
 }
 
 export class SelectLwcComponentDir
-  implements ParametersGatherer<{ fileName: string; outputdir: string }> {
+  implements ParametersGatherer<{ fileName: string; outputdir: string }>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>
   > {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
@@ -248,7 +252,8 @@ export class SelectLwcComponentDir
 }
 
 export class SelectOutputDir
-  implements ParametersGatherer<{ outputdir: string }> {
+  implements ParametersGatherer<{ outputdir: string }>
+{
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
   public static readonly defaultOutput = path.join('main', 'default');
@@ -266,7 +271,8 @@ export class SelectOutputDir
   > {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
@@ -340,7 +346,8 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
 }
 
 export class RetrieveComponentOutputGatherer
-  implements ParametersGatherer<LocalComponent[]> {
+  implements ParametersGatherer<LocalComponent[]>
+{
   private describer: RetrieveDescriber;
 
   constructor(describer: RetrieveDescriber) {
@@ -363,14 +370,17 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   }
 }
 
-export class ApexTestTemplateGatherer extends SimpleGatherer<{ template: string }> {
+export class ApexTestTemplateGatherer extends SimpleGatherer<{
+  template: string;
+}> {
   constructor(template: string) {
     super({ template });
   }
 }
 
 export class PromptConfirmGatherer
-  implements ParametersGatherer<{ choice: string }> {
+  implements ParametersGatherer<{ choice: string }>
+{
   private question: string;
 
   constructor(question: string) {

@@ -20,8 +20,8 @@ import { SfdxCommandletExecutor } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import * as diagnostics from '../../../src/diagnostics';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
@@ -56,7 +56,7 @@ jest.mock('../../../src/conflict/metadataCacheService', () => {
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../src/commands/util/timestampConflictChecker');
 jest.mock('../../../src/conflict/timestampConflictDetector');
-jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+jest.mock('../../../src/salesforceProject/salesforceProjectConfig');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
@@ -119,7 +119,7 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     const executor = new TestDeployExecutor(
       'testDeploy',
-      'force_source_deploy_with_sourcepath_beta'
+      'deploy_with_sourcepath_beta'
     );
     (executor as any).setupCancellation = jest.fn();
 
@@ -150,7 +150,7 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     const executor = new TestDeployExecutor(
       'testDeploy',
-      'force_source_deploy_with_sourcepath_beta'
+      'deploy_with_sourcepath_beta'
     );
     (executor as any).setupCancellation = jest.fn();
 
@@ -176,7 +176,7 @@ describe('Deploy Executor', () => {
     DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
     const executor = new TestDeployExecutor(
       'testDeploy',
-      'force_source_deploy_with_sourcepath_beta'
+      'deploy_with_sourcepath_beta'
     );
 
     // Act
@@ -207,7 +207,7 @@ describe('Deploy Executor', () => {
           setPropertiesForFilesDeploy: setPropertiesForFilesDeployMock
         } as any);
       getPackageDirectoryPathsSpy = jest
-        .spyOn(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+        .spyOn(SalesforcePackageDirectories, 'getPackageDirectoryPaths')
         .mockResolvedValue('path/to/foo' as any);
       createOutputSpy = jest
         .spyOn(TestDeployExecutor.prototype as any, 'createOutput')
@@ -241,7 +241,7 @@ describe('Deploy Executor', () => {
 
       const executor = new TestDeployExecutor(
         'testDeploy',
-        'force_source_deploy_with_sourcepath_beta'
+        'deploy_with_sourcepath_beta'
       );
 
       // Act
@@ -276,7 +276,7 @@ describe('Deploy Executor', () => {
         .mockImplementation(jest.fn());
       const executor = new TestDeployExecutor(
         'testDeploy',
-        'force_source_deploy_with_sourcepath_beta'
+        'deploy_with_sourcepath_beta'
       );
 
       // Act
