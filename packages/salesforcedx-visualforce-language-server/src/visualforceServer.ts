@@ -26,6 +26,7 @@ import {
   ColorInformation,
   ColorPresentationRequest,
   DocumentColorRequest,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ServerCapabilities as CPServerCapabilities
 } from 'vscode-languageserver-protocol';
 import {
@@ -52,12 +53,8 @@ import { pushAll } from './utils/arrays';
 nls.config(process.env['VSCODE_NLS_CONFIG']);
 
 namespace TagCloseRequest {
-  export const type: RequestType<
-    TextDocumentPositionParams,
-    string,
-    any,
-    any
-  > = new RequestType('html/tag');
+  export const type: RequestType<TextDocumentPositionParams, string, any, any> =
+    new RequestType('html/tag');
 }
 
 // Create a connection for the server
@@ -114,67 +111,65 @@ const getDocumentSettings = (
 
 // After the server has started the client sends an initilize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilites
-connection.onInitialize(
-  (params: InitializeParams): InitializeResult => {
-    const initializationOptions = params.initializationOptions;
+connection.onInitialize((params: InitializeParams): InitializeResult => {
+  const initializationOptions = params.initializationOptions;
 
-    workspacePath = params.rootPath;
+  workspacePath = params.rootPath;
 
-    languageModes = getLanguageModes(
-      initializationOptions
-        ? initializationOptions.embeddedLanguages
-        : { css: true, javascript: true }
-    );
-    documents.onDidClose(e => {
-      languageModes.onDocumentRemoved(e.document);
-    });
-    connection.onShutdown(() => {
-      languageModes.dispose();
-    });
+  languageModes = getLanguageModes(
+    initializationOptions
+      ? initializationOptions.embeddedLanguages
+      : { css: true, javascript: true }
+  );
+  documents.onDidClose(e => {
+    languageModes.onDocumentRemoved(e.document);
+  });
+  connection.onShutdown(() => {
+    languageModes.dispose();
+  });
 
-    const hasClientCapability = (...keys: string[]) => {
-      let c = params.capabilities;
-      for (let i = 0; c && i < keys.length; i++) {
-        c = c[keys[i]];
-      }
-      return !!c;
-    };
+  const hasClientCapability = (...keys: string[]) => {
+    let c = params.capabilities;
+    for (let i = 0; c && i < keys.length; i++) {
+      c = c[keys[i]];
+    }
+    return !!c;
+  };
 
-    clientSnippetSupport = hasClientCapability(
-      'textDocument',
-      'completion',
-      'completionItem',
-      'snippetSupport'
-    );
-    clientDynamicRegisterSupport = hasClientCapability(
-      'workspace',
-      'symbol',
-      'dynamicRegistration'
-    );
-    scopedSettingsSupport = hasClientCapability('workspace', 'configuration');
-    const capabilities: ServerCapabilities & CPServerCapabilities = {
-      // Tell the client that the server works in FULL text document sync mode
-      textDocumentSync: documents.syncKind,
-      completionProvider: clientSnippetSupport
-        ? {
-            resolveProvider: true,
-            triggerCharacters: ['.', ':', '<', '"', '=', '/', '>']
-          }
-        : null,
-      hoverProvider: true,
-      documentHighlightProvider: true,
-      documentRangeFormattingProvider: false,
-      documentLinkProvider: { resolveProvider: false },
-      documentSymbolProvider: true,
-      definitionProvider: true,
-      signatureHelpProvider: { triggerCharacters: ['('] },
-      referencesProvider: true,
-      colorProvider: true
-    };
+  clientSnippetSupport = hasClientCapability(
+    'textDocument',
+    'completion',
+    'completionItem',
+    'snippetSupport'
+  );
+  clientDynamicRegisterSupport = hasClientCapability(
+    'workspace',
+    'symbol',
+    'dynamicRegistration'
+  );
+  scopedSettingsSupport = hasClientCapability('workspace', 'configuration');
+  const capabilities: ServerCapabilities = {
+    // Tell the client that the server works in FULL text document sync mode
+    textDocumentSync: documents.syncKind,
+    completionProvider: clientSnippetSupport
+      ? {
+          resolveProvider: true,
+          triggerCharacters: ['.', ':', '<', '"', '=', '/', '>']
+        }
+      : null,
+    hoverProvider: true,
+    documentHighlightProvider: true,
+    documentRangeFormattingProvider: false,
+    documentLinkProvider: { resolveProvider: false },
+    documentSymbolProvider: true,
+    definitionProvider: true,
+    signatureHelpProvider: { triggerCharacters: ['('] },
+    referencesProvider: true,
+    colorProvider: true
+  };
 
-    return { capabilities };
-  }
-);
+  return { capabilities };
+});
 
 let formatterRegistration: Thenable<Disposable> = null;
 
