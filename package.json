@@ -48,7 +48,6 @@
     "lerna": "5.5.4",
     "markdown-link-check": "^3.9.3",
     "ncp": "^2.0.0",
-    "npm-force-resolutions": "0.0.10",
     "ovsx": "latest",
     "prettier": "3.0.3",
     "shelljs": "0.8.5",
@@ -60,7 +59,6 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "preinstall": "npx npm-force-resolutions",
     "postinstall": "npm run bootstrap && npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
@@ -118,8 +116,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "resolutions": {
-    "@salesforce/core": "6.7.0"
   }
 }
