@@ -47,9 +47,9 @@ import {
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
@@ -109,11 +109,8 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call lifecycle methods in correct order', async () => {
       const executor = new TestDeployRetrieve();
-      const {
-        doOperationStub,
-        getComponentsStub,
-        postOperationStub
-      } = executor.lifecycle;
+      const { doOperationStub, getComponentsStub, postOperationStub } =
+        executor.lifecycle;
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
@@ -256,9 +253,10 @@ describe('Base Deploy Retrieve Commands', () => {
     const packageDir = 'test-app';
 
     beforeEach(async () => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        packageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([packageDir]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
       setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
@@ -623,9 +621,10 @@ describe('Base Deploy Retrieve Commands', () => {
     }
 
     beforeEach(() => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        packageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([packageDir]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');

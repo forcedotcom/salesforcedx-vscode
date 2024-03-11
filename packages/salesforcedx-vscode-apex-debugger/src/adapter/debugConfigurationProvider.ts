@@ -14,7 +14,8 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider
-  implements vscode.DebugConfigurationProvider {
+  implements vscode.DebugConfigurationProvider
+{
   private sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
@@ -27,7 +28,7 @@ export class DebugConfigurationProvider
       userIdFilter: [],
       requestTypeFilter: [],
       entryPointFilter: '',
-      sfdxProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
+      salesforceProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
     } as vscode.DebugConfiguration;
   }
 
@@ -68,8 +69,9 @@ export class DebugConfigurationProvider
     if (config.entryPointFilter === undefined) {
       config.entryPointFilter = '';
     }
-    config.sfdxProject =
-      config.sfdxProject || (folder ? folder.uri.fsPath : '${workspaceRoot}');
+    config.salesforceProject =
+      config.salesforceProject ||
+      (folder ? folder.uri.fsPath : '${workspaceRoot}');
 
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
@@ -88,7 +90,8 @@ export class DebugConfigurationProvider
 
     if (this.sfdxApex && this.sfdxApex.exports) {
       await this.isLanguageClientReady();
-      config.lineBreakpointInfo = await this.sfdxApex.exports.getLineBreakpointInfo();
+      config.lineBreakpointInfo =
+        await this.sfdxApex.exports.getLineBreakpointInfo();
     }
     return config;
   }

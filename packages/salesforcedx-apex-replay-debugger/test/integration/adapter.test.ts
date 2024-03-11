@@ -112,7 +112,7 @@ describe('Replay debugger adapter - integration', () => {
     );
 
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath,
+      salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
@@ -209,7 +209,7 @@ describe('Replay debugger adapter - integration', () => {
     );
 
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath,
+      salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,

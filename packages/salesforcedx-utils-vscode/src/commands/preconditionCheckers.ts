@@ -14,7 +14,7 @@ import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
 import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
 import { notificationService } from './index';
 
-export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
+export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public apply(item: typeof workspace): PredicateResponse {
     if (!hasRootWorkspace()) {
@@ -35,11 +35,11 @@ export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
   }
 }
 
-export const isSfdxProjectOpened = new IsSfdxProjectOpened();
+export const isSalesforceProjectOpened = new IsSalesforceProjectOpened();
 
 export class SfdxWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
-    const result = isSfdxProjectOpened.apply(workspace);
+    const result = isSalesforceProjectOpened.apply(workspace);
     if (!result.result) {
       notificationService.showErrorMessage(result.message);
       return false;
