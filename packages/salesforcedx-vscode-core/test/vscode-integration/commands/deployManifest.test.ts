@@ -19,7 +19,7 @@ import * as path from 'path';
 import { SinonStub } from 'sinon';
 import { LibraryDeployManifestExecutor } from '../../../src/commands/deployManifest';
 import { WorkspaceContext } from '../../../src/context';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
@@ -59,7 +59,7 @@ describe('Deploy Using Manifest Option', () => {
         .resolves(mockConnection);
 
       env
-        .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+        .stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths')
         .resolves(packageDirs);
 
       env

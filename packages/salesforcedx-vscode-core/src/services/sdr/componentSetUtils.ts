@@ -8,7 +8,7 @@
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { WorkspaceContext } from '../../context/workspaceContext';
-import { SfdxProjectConfig } from '../../sfdxProject';
+import { SalesforceProjectConfig } from '../../salesforceProject';
 
 async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   // For a listing (and order of precedence) of how to retrieve the value of apiVersion,
@@ -49,7 +49,7 @@ async function setSourceApiVersion(componentSet: ComponentSet): Promise<void> {
 
   // Next, attempt to get sourceApiVersion from sfdx-project.json...
   let sourceApiVersion =
-    await SfdxProjectConfig.getValue<string>('sourceApiVersion');
+    await SalesforceProjectConfig.getValue<string>('sourceApiVersion');
   if (!sourceApiVersion) {
     // ...and if sourceApiVersion isn't defined, attempt to get the value from the config aggregator.
     sourceApiVersion = (await ConfigUtil.getUserConfiguredApiVersion())!;

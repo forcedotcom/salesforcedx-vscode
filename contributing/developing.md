@@ -124,7 +124,7 @@ following.
   "userIdFilter": "",
   "requestTypeFilter": "",
   "entryPointFilter": "",
-  "sfdxProject": "${workspaceRoot}",
+  "salesforceProject": "${workspaceRoot}",
   "debugServer": 4711
 }
 ```

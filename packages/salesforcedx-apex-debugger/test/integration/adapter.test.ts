@@ -107,7 +107,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
   it('End-to-end flow', async () => {
     // Launch Apex Debugger session
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath
+      salesforceProject: projectPath
     } as LaunchRequestArguments);
     expect(launchResponse.success).to.equal(true);
     try {

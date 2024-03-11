@@ -183,7 +183,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     new DebugConfigurationProvider()
   );
   const checkpointsView = vscode.window.registerTreeDataProvider(
-    'sfdx.force.view.checkpoint',
+    'sfdx.view.checkpoint',
     checkpointService
   );
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(

@@ -156,8 +156,8 @@ export class ApexDebugForTest extends ApexDebug {
     return super.customRequest(command, response, args);
   }
 
-  public setSfdxProject(projectPath: string): void {
-    this.sfdxProject = projectPath;
+  public setSalesforceProject(projectPath: string): void {
+    this.salesforceProject = projectPath;
   }
 
   public addRequestThread(requestId: string): void {

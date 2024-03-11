@@ -123,7 +123,7 @@ describe('Auth Params Gatherer', () => {
   });
 });
 
-describe('Force Auth Dev Hub is based on environment variables', () => {
+describe('Org Login Web Dev Hub is based on environment variables', () => {
   describe('in demo mode', () => {
     let originalValue: any;
 
@@ -163,7 +163,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
       expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
         .be.true;
       const orgLoginWebCommand = orgLoginWeb.build(
-        ({} as unknown) as AuthDevHubParams
+        {} as unknown as AuthDevHubParams
       );
       expect(orgLoginWebCommand.toCommand()).to.equal(
         'sfdx org:login:web --alias  --set-default-dev-hub'
@@ -176,7 +176,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
       expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
         .be.true;
       const orgLoginWebCommand = orgLoginWeb.build(
-        ({} as unknown) as AuthDevHubParams
+        {} as unknown as AuthDevHubParams
       );
       expect(orgLoginWebCommand.toCommand()).to.equal(
         'sfdx org:login:web --alias  --set-default-dev-hub'
@@ -190,7 +190,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
         createAuthDevHubExecutor() instanceof OrgLoginWebDevHubContainerExecutor
       ).to.be.true;
       const authDevhubLoginCommand = authDevhubLogin.build(
-        ({} as unknown) as AuthDevHubParams
+        {} as unknown as AuthDevHubParams
       );
       expect(authDevhubLoginCommand.toCommand()).to.equal(
         'sfdx org:login:device --alias  --set-default-dev-hub --json --loglevel fatal'

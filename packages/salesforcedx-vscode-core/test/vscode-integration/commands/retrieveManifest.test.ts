@@ -18,7 +18,7 @@ import * as path from 'path';
 import { SinonStub } from 'sinon';
 import { LibraryRetrieveManifestExecutor } from '../../../src/commands/retrieveManifest';
 import { WorkspaceContext } from '../../../src/context';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
@@ -60,10 +60,10 @@ describe('Retrieve with Manifest Option', () => {
       mockConnection = await testData.getConnection();
 
       env
-        .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+        .stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths')
         .resolves(packageDirs);
       env
-        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
+        .stub(SalesforcePackageDirectories, 'getDefaultPackageDir')
         .resolves(packageDirs[0]);
       env
         .stub(WorkspaceContext.prototype, 'getConnection')

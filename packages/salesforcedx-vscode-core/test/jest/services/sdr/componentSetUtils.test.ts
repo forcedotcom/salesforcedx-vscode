@@ -8,8 +8,8 @@
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
+import { SalesforceProjectConfig } from '../../../../src/salesforceProject';
 import { componentSetUtils } from '../../../../src/services/sdr/componentSetUtils';
-import { SfdxProjectConfig } from '../../../../src/sfdxProject';
 
 describe('componentSetUtils', () => {
   afterEach(() => {
@@ -22,11 +22,15 @@ describe('componentSetUtils', () => {
       const componentSet = new ComponentSet();
       componentSet.apiVersion = 'not set';
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue('40.0');
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue('40.0');
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionSpy = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion');
+      const getOrgApiVersionSpy = jest.spyOn(
+        componentSetUtils,
+        'getOrgApiVersion'
+      );
 
       await componentSetUtils.setApiVersion(componentSet);
 
@@ -40,7 +44,9 @@ describe('componentSetUtils', () => {
       const componentSet = new ComponentSet();
       componentSet.apiVersion = 'not set';
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionMock = jest
@@ -59,7 +65,9 @@ describe('componentSetUtils', () => {
       const componentSet = new ComponentSet();
       componentSet.apiVersion = '44.0';
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionMock = jest
@@ -81,9 +89,11 @@ describe('componentSetUtils', () => {
       componentSet.sourceApiVersion = '54.0';
 
       const getValueMock = jest.fn().mockResolvedValue('53.0');
-      SfdxProjectConfig.getValue = getValueMock;
+      SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue('52.0');
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue('52.0');
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionMock = jest
@@ -98,15 +108,17 @@ describe('componentSetUtils', () => {
       expect(getOrgApiVersionMock).not.toHaveBeenCalled();
     });
 
-    it('should validate that sourceApiVersion is set from SfdxProjectConfig when not set via a ComponentSet (metadata file)', async () => {
+    it('should validate that sourceApiVersion is set from SalesforceProjectConfig when not set via a ComponentSet (metadata file)', async () => {
       // *** set/fake componentSet.sourceApiVersion
       const componentSet = new ComponentSet();
       componentSet.sourceApiVersion = undefined;
 
       const getValueMock = jest.fn().mockResolvedValue('53.0');
-      SfdxProjectConfig.getValue = getValueMock;
+      SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionMock = jest
@@ -121,15 +133,17 @@ describe('componentSetUtils', () => {
       expect(getOrgApiVersionMock).not.toHaveBeenCalled();
     });
 
-    it('should validate that sourceApiVersion is set from getUserConfiguredApiVersion when not set through componentSet or SfdxProjectConfig', async () => {
+    it('should validate that sourceApiVersion is set from getUserConfiguredApiVersion when not set through componentSet or SalesforceProjectConfig', async () => {
       // *** set/fake componentSet.sourceApiVersion
       const componentSet = new ComponentSet();
       componentSet.sourceApiVersion = undefined;
 
       const getValueMock = jest.fn().mockResolvedValue(undefined);
-      SfdxProjectConfig.getValue = getValueMock;
+      SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue('52.0');
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue('52.0');
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionMock = jest
@@ -150,9 +164,11 @@ describe('componentSetUtils', () => {
       componentSet.sourceApiVersion = undefined;
 
       const getValueMock = jest.fn().mockResolvedValue(undefined);
-      SfdxProjectConfig.getValue = getValueMock;
+      SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest
+        .fn()
+        .mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
       const getOrgApiVersionMock = jest
@@ -169,7 +185,7 @@ describe('componentSetUtils', () => {
   });
 
   describe('getOrgApiVersion', () => {
-    it('should validate that the Org\'s API version is returned', async () => {
+    it("should validate that the Org's API version is returned", async () => {
       const workspaceContextFake = {
         getConnection: async () => {
           return {

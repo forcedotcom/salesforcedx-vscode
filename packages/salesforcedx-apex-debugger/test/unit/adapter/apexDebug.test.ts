@@ -180,7 +180,7 @@ describe('Interactive debugger adapter - unit', () => {
         .stub(ConfigGet.prototype, 'getConfig')
         .returns({} as Map<string, string>);
       args = {
-        sfdxProject: 'project',
+        salesforceProject: 'project',
         userIdFilter: ['005FAKE1', '005FAKE2', '005FAKE1'],
         entryPointFilter: 'entry',
         requestTypeFilter: [
@@ -559,7 +559,7 @@ describe('Interactive debugger adapter - unit', () => {
         .returns(true);
 
       args = {
-        sfdxProject: 'some/project/path',
+        salesforceProject: 'some/project/path',
         workspaceSettings: {
           proxyUrl: 'http://localhost:443',
           proxyStrictSSL: false,
@@ -584,7 +584,7 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should save connection settings', async () => {
       args = {
-        sfdxProject: 'some/project/path',
+        salesforceProject: 'some/project/path',
         workspaceSettings: {
           connectionTimeoutMs: 60000
         } as WorkspaceSettings,
@@ -644,7 +644,7 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should not save line number mapping', async () => {
       args = {
-        sfdxProject: 'some/project/path',
+        salesforceProject: 'some/project/path',
         workspaceSettings: {
           proxyUrl: 'http://localhost:443',
           proxyStrictSSL: false,
@@ -941,7 +941,7 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(new Set().add(1)));
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
         {} as DebugProtocol.SetBreakpointsResponse,
@@ -996,7 +996,7 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(bpLines));
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
         {} as DebugProtocol.SetBreakpointsResponse,
@@ -1024,7 +1024,7 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(bpLines));
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
         {} as DebugProtocol.SetBreakpointsResponse,
@@ -1052,7 +1052,7 @@ describe('Interactive debugger adapter - unit', () => {
     let runSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -1113,7 +1113,7 @@ describe('Interactive debugger adapter - unit', () => {
     let stepSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -1199,7 +1199,7 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
       lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
     });
@@ -1365,7 +1365,7 @@ describe('Interactive debugger adapter - unit', () => {
       let sessionIdSpy: sinon.SinonStub;
 
       beforeEach(() => {
-        adapter.setSfdxProject('someProjectPath');
+        adapter.setSalesforceProject('someProjectPath');
         lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
         reconcileExceptionBreakpointSpy = sinon
           .stub(BreakpointService.prototype, 'reconcileExceptionBreakpoints')

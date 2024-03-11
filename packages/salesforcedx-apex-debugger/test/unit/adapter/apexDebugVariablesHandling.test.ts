@@ -542,7 +542,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -726,7 +726,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -884,7 +884,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
-      adapter.setSfdxProject('someProjectPath');
+      adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
       resetIdleTimersSpy = sinon.spy(
         ApexDebugForTest.prototype,

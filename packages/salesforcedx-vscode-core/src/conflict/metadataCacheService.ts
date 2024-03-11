@@ -19,8 +19,8 @@ import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { SfdxPackageDirectories } from '../sfdxProject';
 import { workspaceUtils } from '../util';
 
 export interface MetadataContext {
@@ -119,7 +119,8 @@ export class MetadataCacheService {
 
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
-      const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+      const packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
@@ -201,9 +202,10 @@ export class MetadataCacheService {
     }
   }
 
-  private extractResults(
-    result: RetrieveResult
-  ): { components: SourceComponent[]; properties: FileProperties[] } {
+  private extractResults(result: RetrieveResult): {
+    components: SourceComponent[];
+    properties: FileProperties[];
+  } {
     const properties: FileProperties[] = [];
     if (Array.isArray(result.response.fileProperties)) {
       properties.push(...result.response.fileProperties);
@@ -437,17 +439,15 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const operation = await this.cacheService.createRetrieveOperation(
-      components
-    );
+    const operation =
+      await this.cacheService.createRetrieveOperation(components);
     this.setupCancellation(operation, token);
     return operation.pollStatus();
   }
 
   protected async postOperation(result: RetrieveResult | undefined) {
-    const cache:
-      | MetadataCacheResult
-      | undefined = await this.cacheService.processResults(result);
+    const cache: MetadataCacheResult | undefined =
+      await this.cacheService.processResults(result);
     await this.callback(this.username, cache);
   }
 }

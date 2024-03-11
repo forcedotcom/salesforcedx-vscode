@@ -50,7 +50,7 @@ Note: You can use the default license provided to License Management orgs only w
           "name": "Launch Apex Debugger",
           "type": "apex",
           "request": "launch",
-          "sfdxProject": "${workspaceRoot}"
+          "salesforceProject": "${workspaceRoot}"
         }
       ]
       ```
@@ -90,7 +90,7 @@ Add filters to the `"Launch Apex Debugger"` configuration:
     "name": "Launch Apex Debugger",
     "type": "apex",
     "request": "launch",
-    "sfdxProject": "${workspaceRoot}",
+    "salesforceProject": "${workspaceRoot}",
     "userIdFilter": [],
     "requestTypeFilter": [],
     "entryPointFilter": ""

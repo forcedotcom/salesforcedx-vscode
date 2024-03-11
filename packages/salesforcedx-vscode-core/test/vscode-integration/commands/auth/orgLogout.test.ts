@@ -16,7 +16,7 @@ import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo } from '../../../../src/util';
 
-describe('Force Auth Logout All', () => {
+describe('Org Logout All', () => {
   it('Should build the auth logout all command', async () => {
     const authLogoutAll = new OrgLogoutAll();
     const authLogoutAllCommand = authLogoutAll.build({});
@@ -29,7 +29,7 @@ describe('Force Auth Logout All', () => {
   });
 });
 
-describe('Force Auth Logout Default', () => {
+describe('Org Logout Default', () => {
   let sb: SinonSandbox;
   let getUsernameStub: SinonStub;
   let scratchOrgStub: SinonStub;

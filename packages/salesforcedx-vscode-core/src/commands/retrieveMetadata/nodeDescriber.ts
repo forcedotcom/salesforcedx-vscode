@@ -7,7 +7,7 @@
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'path';
 import { BrowserNode } from '../../orgBrowser';
-import { SfdxPackageDirectories } from '../../sfdxProject';
+import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { RetrieveDescriber } from '.';
 
 export abstract class NodeDescriber implements RetrieveDescriber {
@@ -24,7 +24,8 @@ export abstract class NodeDescriber implements RetrieveDescriber {
   protected async buildOutput(node: BrowserNode): Promise<LocalComponent[]> {
     const typeNode = node.getAssociatedTypeNode();
     // TODO: Only create one cmp when cli bug (W-6558000) fixed
-    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const packageDirectories =
+      await SalesforcePackageDirectories.getPackageDirectoryPaths();
     return packageDirectories.map(directory => ({
       fileName: node.fullName,
       outputdir: join(directory, 'main', 'default', typeNode.directoryName!),

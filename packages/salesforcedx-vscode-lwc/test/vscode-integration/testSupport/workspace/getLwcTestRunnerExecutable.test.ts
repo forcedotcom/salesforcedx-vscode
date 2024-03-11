@@ -46,7 +46,11 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
   const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
   describe('SFDX Workspace', () => {
-    const sfdxProjectPath = path.join(root, 'project', 'mockSfdxProject');
+    const salesforceProjectPath = path.join(
+      root,
+      'project',
+      'mockSalesforceProject'
+    );
     beforeEach(() => {
       getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.SFDX);
     });
@@ -54,10 +58,10 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
     it('Should return LWC Test Runner Path when LWC Test Runner is installed and not display error message', () => {
       existsSyncStub.returns(true);
       const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
-        sfdxProjectPath
+        salesforceProjectPath
       );
       expect(lwcTestRunnerExecutable).to.equal(
-        path.join(sfdxProjectPath, 'node_modules', '.bin', 'lwc-jest')
+        path.join(salesforceProjectPath, 'node_modules', '.bin', 'lwc-jest')
       );
       assert.notCalled(notificationStub);
       assert.notCalled(telemetryStub);
@@ -65,7 +69,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
     it('Should display error message when LWC Jest Test Runner is not installed', () => {
       existsSyncStub.returns(false);
-      workspace.getLwcTestRunnerExecutable(sfdxProjectPath);
+      workspace.getLwcTestRunnerExecutable(salesforceProjectPath);
       assert.calledOnce(notificationStub);
       // @ts-ignore
       assert.calledWith(
@@ -96,9 +100,8 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
     it('Should return LWC Test Runner Path when LWC Test Runner is installed and not display error message', () => {
       existsSyncStub.returns(true);
-      const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
-        projectPath
-      );
+      const lwcTestRunnerExecutable =
+        workspace.getLwcTestRunnerExecutable(projectPath);
       expect(lwcTestRunnerExecutable).to.equal(mockLwcTestRunnerPath);
       assert.notCalled(notificationStub);
       assert.notCalled(telemetryStub);

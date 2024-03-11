@@ -30,9 +30,9 @@ import * as deploySourcePath from '../../../src/commands/deploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
 import { WorkspaceContext } from '../../../src/context';
 import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
+  SalesforcePackageDirectories,
+  SalesforceProjectConfig
+} from '../../../src/salesforceProject';
 import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
@@ -78,7 +78,7 @@ describe('Deploy Using Sourcepath Option', () => {
           pollStatus: pollStatusStub
         });
 
-      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      sb.stub(SalesforceProjectConfig, 'getValue').resolves('11.0');
       sb.stub(SourceTrackingService, 'getSourceTracking').resolves({
         ensureLocalTracking: async () => {}
       });
@@ -147,7 +147,7 @@ describe('Deploy Using Sourcepath Option', () => {
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
 
       const flushFilePathsStub = sb
@@ -184,7 +184,7 @@ describe('Deploy Using Sourcepath Option', () => {
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
@@ -217,7 +217,7 @@ describe('Deploy Using Sourcepath Option', () => {
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
@@ -255,7 +255,7 @@ describe('Deploy Using Sourcepath Option', () => {
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const getUriFromActiveEditorStub = sb
         .stub(deploySourcePath, 'getUriFromActiveEditor')
@@ -292,7 +292,7 @@ describe('Deploy Using Sourcepath Option', () => {
           data: filePaths
         });
       const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')

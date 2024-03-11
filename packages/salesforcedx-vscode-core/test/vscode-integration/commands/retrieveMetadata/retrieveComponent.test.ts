@@ -35,7 +35,7 @@ import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/retrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/retrieveMetadata/libraryRetrieveSourcePathExecutor';
 import { WorkspaceContext } from '../../../../src/context';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../../src/salesforceProject';
 import { workspaceUtils } from '../../../../src/util';
 
 const $$ = instantiateContext();
@@ -73,15 +73,19 @@ describe('Retrieve Component(s)', () => {
         mockConnection
       );
 
-      sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
+      sb.stub(SalesforcePackageDirectories, 'getDefaultPackageDir').returns(
         defaultPackageDir
       );
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryFullPaths'
+      ).resolves([
         path.join(workspaceUtils.getRootWorkspacePath(), defaultPackageDir)
       ]);
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        defaultPackageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([defaultPackageDir]);
 
       sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');

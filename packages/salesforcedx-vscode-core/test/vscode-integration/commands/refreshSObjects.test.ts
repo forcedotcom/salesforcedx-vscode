@@ -40,7 +40,7 @@ import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
-describe('ForceGenerateFauxClasses', () => {
+describe('GenerateFauxClasses', () => {
   const sobjectsPath = path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
   describe('initSObjectDefinitions', () => {
     let sandboxStub: SinonSandbox;
@@ -147,7 +147,7 @@ describe('ForceGenerateFauxClasses', () => {
     });
   });
 
-  describe('ForceGenerateFauxClassesExecutor', () => {
+  describe('GenerateFauxClassesExecutor', () => {
     let sandboxStub: SinonSandbox;
     let progressStub: SinonStub;
     let factoryStub: SinonStub;

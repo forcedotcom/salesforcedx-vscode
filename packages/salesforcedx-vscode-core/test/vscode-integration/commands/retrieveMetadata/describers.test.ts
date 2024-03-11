@@ -10,7 +10,7 @@ import { normalize } from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { RetrieveDescriberFactory } from '../../../../src/commands/retrieveMetadata';
 import { BrowserNode, NodeType, orgBrowser } from '../../../../src/orgBrowser';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../../src/salesforceProject';
 
 describe('Retrieve Metadata Describers', () => {
   let packageStub: SinonStub;
@@ -30,7 +30,7 @@ describe('Retrieve Metadata Describers', () => {
   beforeEach(() => {
     env = createSandbox();
     packageStub = env
-      .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+      .stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths')
       .returns(['p1', 'p2']);
     refreshStub = env.stub(orgBrowser, 'refreshAndExpand').callsFake(() => '');
   });

@@ -29,7 +29,7 @@ import {
   MetadataCacheService,
   PathType
 } from '../../../src/conflict/metadataCacheService';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Metadata Cache', () => {
@@ -135,7 +135,7 @@ describe('Metadata Cache', () => {
     beforeEach(() => {
       service = new MetadataCacheService(usernameOrAlias);
       packageStub = sinon
-        .stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths')
+        .stub(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths')
         .resolves([]);
       workspaceStub = stubRootWorkspace(PROJECT_DIR);
     });

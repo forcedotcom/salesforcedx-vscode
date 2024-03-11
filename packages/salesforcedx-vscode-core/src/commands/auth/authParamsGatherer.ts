@@ -13,7 +13,7 @@ import {
 import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
-import { SfdxProjectConfig } from '../../sfdxProject';
+import { SalesforceProjectConfig } from '../../salesforceProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';
@@ -98,7 +98,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    return (await SfdxProjectConfig.getValue('sfdcLoginUrl'));
+    return await SalesforceProjectConfig.getValue('sfdcLoginUrl');
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
@@ -163,7 +163,8 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
 }
 
 export class AccessTokenParamsGatherer
-  implements ParametersGatherer<AccessTokenParams> {
+  implements ParametersGatherer<AccessTokenParams>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AccessTokenParams>
   > {
@@ -194,7 +195,8 @@ export class AccessTokenParamsGatherer
 }
 
 export class ScratchOrgLogoutParamsGatherer
-  implements ParametersGatherer<string> {
+  implements ParametersGatherer<string>
+{
   public constructor(
     public readonly username: string,
     public readonly alias?: string
