@@ -36,7 +36,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 Windows:
 
-For Windows, ensure you are escaping the path approrpriately, as shown below.
+For Windows, ensure you are escaping the path appropriately, as shown below.
 
 ```json
 {
