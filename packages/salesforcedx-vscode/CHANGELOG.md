@@ -4,7 +4,7 @@
 
 #### salesforcedx-utils-vscode
 
-- We fixed an issue where details were not being displayed in the Output tab for conflict and error cases for Push and Pull commands. ([PR #5498](https://github.com/forcedotcom/salesforcedx-vscode/pull/5498))
+- We fixed an issue where conflict and error cases details weren't being displayed in the Output tab for push and pull commands. ([PR #5498](https://github.com/forcedotcom/salesforcedx-vscode/pull/5498))
 
 #### salesforcedx-vscode-core
 
