@@ -4,7 +4,25 @@
 
 #### salesforcedx-utils-vscode
 
-- Push and pull conflicts not shown ([PR #5498](https://github.com/forcedotcom/salesforcedx-vscode/pull/5498))
+- We fixed an issue where details were not being displayed in the Output tab for conflict and error cases for Push and Pull commands. ([PR #5498](https://github.com/forcedotcom/salesforcedx-vscode/pull/5498))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5465](https://github.com/forcedotcom/salesforcedx-vscode/pull/5465))
+
+# 60.3.2 - March 7, 2024
+
+## Added
+
+#### salesforcedx-vscode-lwc
+
+- Add ts files to file watchers ([PR #5423](https://github.com/forcedotcom/salesforcedx-vscode/pull/5423))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Capture complete extension load time ([PR #5397](https://github.com/forcedotcom/salesforcedx-vscode/pull/5397))
 
 # 60.3.1 - March 4, 2024
 
