@@ -1,3 +1,11 @@
+# 60.4.1 - March 14, 2024
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Push and pull conflicts not shown ([PR #5498](https://github.com/forcedotcom/salesforcedx-vscode/pull/5498))
+
 # 60.3.1 - March 4, 2024
 
 ## Added
