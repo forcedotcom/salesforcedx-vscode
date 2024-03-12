@@ -161,7 +161,7 @@ export class QueryUser extends SfCommandletExecutor<{}> {
         `SELECT id FROM User WHERE username='${this.username}'`
       )
       .withJson()
-      .withLogName('force_query_user')
+      .withLogName('query_user')
       .build();
   }
 }
@@ -178,7 +178,7 @@ export class CreateDebugLevel extends SfCommandletExecutor<{}> {
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_create_debug_level')
+      .withLogName('create_debug_level')
       .build();
   }
 }
@@ -205,7 +205,7 @@ export class CreateTraceFlag extends SfCommandletExecutor<{}> {
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_create_trace_flag')
+      .withLogName('create_trace_flag')
       .build();
   }
 }
@@ -223,7 +223,7 @@ export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_update_debug_level')
+      .withLogName('update_debug_level')
       .build();
   }
 }
@@ -243,7 +243,7 @@ export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_update_trace_flag')
+      .withLogName('update_trace_flag')
       .build();
   }
 }
@@ -262,7 +262,7 @@ export class QueryTraceFlag extends SfCommandletExecutor<{}> {
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_query_trace_flag')
+      .withLogName('query_trace_flag')
       .build();
   }
 }

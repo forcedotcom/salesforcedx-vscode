@@ -90,7 +90,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     return new SfCommandBuilder()
       .withDescription(nls.localize('sobjects_refresh'))
       .withArg('sobject definitions refresh')
-      .withLogName('force_generate_faux_classes_create')
+      .withLogName('generate_faux_classes_create')
       .build();
   }
 

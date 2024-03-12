@@ -42,7 +42,7 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
       .withArg('org:logout')
       .withArg('--all')
       .withArg('--no-prompt')
-      .withLogName('force_auth_logout')
+      .withLogName('org_logout')
       .build();
   }
 }

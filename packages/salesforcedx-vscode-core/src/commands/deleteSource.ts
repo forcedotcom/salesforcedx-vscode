@@ -39,7 +39,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
     const commandBuilder = new SfCommandBuilder()
       .withDescription(nls.localize('delete_source_text'))
       .withArg('project:delete:source')
-      .withLogName('force_source_delete')
+      .withLogName('project_delete_source')
       .withFlag('--source-dir', data.filePath)
       .withArg('--no-prompt');
     if (this.isSourceTracked) {

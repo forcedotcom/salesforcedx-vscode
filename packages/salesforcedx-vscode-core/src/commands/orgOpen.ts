@@ -37,7 +37,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
-      .withLogName('force_org_open_default_scratch_org')
+      .withLogName('org_open_default_scratch_org')
       .withArg('--url-only')
       .withJson()
       .build();
@@ -112,7 +112,7 @@ export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
-      .withLogName('force_org_open_default_scratch_org')
+      .withLogName('org_open_default_scratch_org')
       .build();
   }
 }

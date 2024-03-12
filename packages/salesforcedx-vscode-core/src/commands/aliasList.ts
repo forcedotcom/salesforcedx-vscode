@@ -23,7 +23,7 @@ export class AliasList extends SfCommandletExecutor<{}> {
     return new SfCommandBuilder()
       .withDescription(nls.localize('alias_list_text'))
       .withArg('alias:list')
-      .withLogName('force_alias_list')
+      .withLogName('alias_list')
       .build();
   }
 }

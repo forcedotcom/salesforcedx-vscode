@@ -65,7 +65,7 @@ export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelect
       .withFlag('--record-id', data ? data.id : '')
       .withFlag('--values', 'Status="Detach"')
       .withArg('--use-tooling-api')
-      .withLogName('force_debugger_stop')
+      .withLogName('debugger_stop')
       .build();
   }
 }
@@ -82,7 +82,7 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_debugger_query_session')
+      .withLogName('debugger_query_session')
       .build();
   }
 

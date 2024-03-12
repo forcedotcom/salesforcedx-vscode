@@ -58,7 +58,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 
     command
       .withArg(CLI.ORG_LOGIN_DEVICE)
-      .withLogName('force_auth_device_login')
+      .withLogName('org_login_web_container')
       .withFlag('--alias', data.alias)
       .withFlag('--instance-url', data.loginUrl)
       .withArg('--set-default')
@@ -156,7 +156,7 @@ export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
     command
       .withArg(CLI.ORG_LOGIN_WEB)
-      .withLogName('force_auth_web_login')
+      .withLogName('org_login_web')
       .withFlag('--alias', data.alias)
       .withFlag('--instance-url', data.loginUrl)
       .withArg('--set-default');
@@ -214,7 +214,7 @@ export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams
       .withArg('--set-default')
       .withArg('--no-prompt')
       .withJson()
-      .withLogName('force_auth_web_login_demo_mode')
+      .withLogName('org_login_web_demo_mode')
       .build();
   }
 }

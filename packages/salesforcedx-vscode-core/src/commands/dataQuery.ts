@@ -24,11 +24,11 @@ class DataQueryExecutor extends SfCommandletExecutor<{}> {
       .withDescription(nls.localize('data_query_input_text'))
       .withArg('data:query')
       .withFlag('--query', `${data.query}`)
-      .withLogName('force_data_soql_query');
+      .withLogName('data_soql_query');
     if (data.api === ApiType.Tooling) {
       command = command
         .withArg('--use-tooling-api')
-        .withLogName('force_data_soql_query_tooling');
+        .withLogName('data_soql_query_tooling');
     }
     return command.build();
   }

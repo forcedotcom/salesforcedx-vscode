@@ -31,7 +31,7 @@ export class OrgDisplay extends SfCommandletExecutor<{}> {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize('org_display_default_text'))
       .withArg('org:display')
-      .withLogName('force_org_display_default');
+      .withLogName('org_display_default');
     if (this.flag === '--target-org' && data.username) {
       builder
         .withDescription(nls.localize('org_display_username_text'))

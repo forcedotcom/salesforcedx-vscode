@@ -40,7 +40,7 @@ export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExec
       .withArg(CLI.ORG_LOGIN_DEVICE)
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub')
-      .withLogName('force_auth_device_dev_hub')
+      .withLogName('org_login_web_dev_hub_container')
       .withJson();
 
     return command.build();
@@ -57,7 +57,7 @@ export class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
 
     command
       .withArg(CLI.ORG_LOGIN_WEB)
-      .withLogName('force_auth_dev_hub')
+      .withLogName('org_login_web_dev_hub')
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub');
     return command.build();
@@ -73,7 +73,7 @@ export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> 
       .withArg('--set-default-dev-hub')
       .withArg('--no-prompt')
       .withJson()
-      .withLogName('force_auth_dev_hub_demo_mode')
+      .withLogName('org_login_web_dev_hub_demo_mode')
       .build();
   }
 }

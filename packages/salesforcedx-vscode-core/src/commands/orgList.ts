@@ -25,7 +25,7 @@ export class OrgListExecutor extends SfCommandletExecutor<{}> {
       .withArg('org:list')
       .withArg('--clean')
       .withArg('--no-prompt')
-      .withLogName('force_org_list_clean')
+      .withLogName('org_list_clean')
       .build();
   }
 }
