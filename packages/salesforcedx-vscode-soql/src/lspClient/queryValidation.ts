@@ -9,7 +9,7 @@ import { workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 import { QueryRunner } from '../editor/queryRunner';
-import { withSFConnection } from '../sfdx';
+import { withSFConnection } from '../sf';
 
 export function init(client: LanguageClient): LanguageClient {
   client.registerFeature(new QueryValidationFeature());

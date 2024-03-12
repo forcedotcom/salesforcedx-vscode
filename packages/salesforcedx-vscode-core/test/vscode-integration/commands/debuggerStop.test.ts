@@ -65,7 +65,7 @@ describe('Debugger stop command', () => {
       const command = executor.build({});
 
       expect(command.toCommand()).to.equal(
-        "sfdx data:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --use-tooling-api --json"
+        "sf data:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --use-tooling-api --json"
       );
       expect(command.description).to.equal(
         nls.localize('debugger_query_session_text')

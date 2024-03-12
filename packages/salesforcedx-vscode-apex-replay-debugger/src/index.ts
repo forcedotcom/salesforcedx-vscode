@@ -27,7 +27,7 @@ import {
   CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfdxToggleCheckpoint
+  sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -102,13 +102,13 @@ const registerCommands = (): vscode.Disposable => {
     }
   );
 
-  const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
+  const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
     'sf.create.checkpoints',
-    CheckpointService.sfdxCreateCheckpoints
+    CheckpointService.sfCreateCheckpoints
   );
-  const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
+  const sfToggleCheckpointCmd = vscode.commands.registerCommand(
     'sf.toggle.checkpoint',
-    sfdxToggleCheckpoint
+    sfToggleCheckpoint
   );
 
   return vscode.Disposable.from(
@@ -116,8 +116,8 @@ const registerCommands = (): vscode.Disposable => {
     launchFromLogFileCmd,
     launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
-    sfdxCreateCheckpointsCmd,
-    sfdxToggleCheckpointCmd
+    sfCreateCheckpointsCmd,
+    sfToggleCheckpointCmd
   );
 };
 

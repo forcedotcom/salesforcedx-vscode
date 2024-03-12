@@ -19,7 +19,7 @@ describe('Org Create', () => {
     const EVENT_CANCEL = 'CANCEL';
     const EVENT_CONTINUE = 'CONTINUE';
     const TEST_ALIAS = 'testAlias';
-    const TEST_WORKSPACE = 'sfdxsimple'; // FYI: This test uses the workspace created by the system tests to run
+    const TEST_WORKSPACE = 'sfsimple'; // FYI: This test uses the workspace created by the system tests to run
     const TEST_ORG_EXPIRATION_DAYS = '7';
     const TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY = '8';
     const TEST_ORG_EXPIRATION_DAYS_INPUT_FLOAT = '8.2';
@@ -132,7 +132,7 @@ describe('Org Create', () => {
         expirationDays: TEST_ORG_EXPIRATION_DAYS
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx org:create:scratch --definition-file ${CONFIG_FILE} --alias ${TEST_ALIAS} --duration-days ${TEST_ORG_EXPIRATION_DAYS} --set-default --json`
+        `sf org:create:scratch --definition-file ${CONFIG_FILE} --alias ${TEST_ALIAS} --duration-days ${TEST_ORG_EXPIRATION_DAYS} --set-default --json`
       );
       expect(createCommand.description).to.equal(
         nls.localize('org_create_default_scratch_org_text')

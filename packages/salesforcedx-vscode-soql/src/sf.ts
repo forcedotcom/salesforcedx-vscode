@@ -39,7 +39,7 @@ export async function withSFConnection(
 ): Promise<void> {
   try {
     const conn = await workspaceContext.getConnection();
-    return f((conn as unknown) as Connection);
+    return f(conn as unknown as Connection);
   } catch (e) {
     if (showErrorMessage) {
       debouncedShowChannelAndErrorMessage(e);

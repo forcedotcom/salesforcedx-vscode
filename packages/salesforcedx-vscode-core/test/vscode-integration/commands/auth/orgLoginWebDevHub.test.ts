@@ -44,7 +44,7 @@ describe('Org Login Web for Dev Hub', () => {
       alias: TEST_ALIAS
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
+      `sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_dev_hub_text')
@@ -62,7 +62,7 @@ describe('Org Login Web For Dev Hub in Demo  Mode', () => {
       alias: TEST_ALIAS
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json`
+      `sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_dev_hub_text')

@@ -185,7 +185,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectTemplate: projectTemplateEnum.standard
         });
       expect(configureCommand.toCommand()).to.equal(
-        `sfdx config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
+        `sf config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
       expect(configureCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_configure_project')
@@ -204,7 +204,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectTemplate: projectTemplateEnum.standard
         });
       expect(command.toCommand()).to.equal(
-        `sfdx data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
+        `sf data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
@@ -254,7 +254,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
-        `sfdx package:installed:list --target-org ${SESSION_ID} --json`
+        `sf package:installed:list --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_list_installed_packages')

@@ -8,10 +8,7 @@ import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
-import {
-  listMetadata,
-  ListMetadataExecutor
-} from '../../../src/commands';
+import { listMetadata, ListMetadataExecutor } from '../../../src/commands';
 
 describe('List Metadata', () => {
   it('Should build list metadata command', async () => {
@@ -23,7 +20,7 @@ describe('List Metadata', () => {
     );
     const listMetadataCmd = listMetadataExec.build({});
     expect(listMetadataCmd.toCommand()).to.equal(
-      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json`
+      `sf org:list:metadata -m ${metadataType} -o ${defaultUsername} --json`
     );
   });
 
@@ -38,7 +35,7 @@ describe('List Metadata', () => {
     );
     const describeMetadataCmd = listMetadataExec.build({});
     expect(describeMetadataCmd.toCommand()).to.equal(
-      `sfdx org:list:metadata -m ${metadataType} -o ${defaultUsername} --json --folder ${folder}`
+      `sf org:list:metadata -m ${metadataType} -o ${defaultUsername} --json --folder ${folder}`
     );
   });
 

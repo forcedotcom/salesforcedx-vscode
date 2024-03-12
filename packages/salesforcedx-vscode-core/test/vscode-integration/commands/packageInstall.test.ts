@@ -112,7 +112,7 @@ describe('Package Install', () => {
         installationKey: TEST_INSTALLATION_KEY
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx package:install --package ${TEST_PACKAGE_ID} --installation-key ${TEST_INSTALLATION_KEY}`
+        `sf package:install --package ${TEST_PACKAGE_ID} --installation-key ${TEST_INSTALLATION_KEY}`
       );
       expect(createCommand.description).to.equal(
         nls.localize('package_install_text')
@@ -127,7 +127,7 @@ describe('Package Install', () => {
         installationKey: TEST_INSTALLATION_KEY
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx package:install --package ${TEST_PACKAGE_ID}`
+        `sf package:install --package ${TEST_PACKAGE_ID}`
       );
       expect(createCommand.description).to.equal(
         nls.localize('package_install_text')

@@ -115,12 +115,12 @@ const parameterGatherer = new CompositeParametersGatherer(
   new SelectInstallationKey()
 );
 
-const sfdxPackageInstallCommandlet = new SfCommandlet(
+const sfPackageInstallCommandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   new PackageInstallExecutor()
 );
 
 export async function packageInstall() {
-  await sfdxPackageInstallCommandlet.run();
+  await sfPackageInstallCommandlet.run();
 }
