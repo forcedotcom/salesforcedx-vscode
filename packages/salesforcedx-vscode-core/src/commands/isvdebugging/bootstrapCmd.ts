@@ -19,7 +19,6 @@ import {
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import sanitizeFilename from 'sanitize-filename';
 import * as shell from 'shelljs';
 import { URL } from 'url';
@@ -444,9 +443,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      execution.stderrSubject as any as Observable<Error | undefined>
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
