@@ -118,7 +118,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || github.event_name == 'workflow_run' }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'anInitialSuite.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
