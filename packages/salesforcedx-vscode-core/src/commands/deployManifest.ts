@@ -13,7 +13,7 @@ import { TimestampConflictChecker } from '../commands/util/timestampConflictChec
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { DeployExecutor } from './baseDeployRetrieve';
@@ -27,7 +27,8 @@ export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   protected async getComponents(
     response: ContinueResponse<string>
   ): Promise<ComponentSet> {
-    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const packageDirs =
+      await SalesforcePackageDirectories.getPackageDirectoryPaths();
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     const resolveSourcePaths = packageDirs.map(packageDir =>
       join(rootWorkspacePath, packageDir)

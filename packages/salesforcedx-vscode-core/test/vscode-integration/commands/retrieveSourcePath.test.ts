@@ -37,9 +37,9 @@ import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
+  SalesforcePackageDirectories,
+  SalesforceProjectConfig
+} from '../../../src/salesforceProject';
 import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
@@ -76,10 +76,10 @@ describe('Retrieve with Sourcepath Option', () => {
         () => testData.username
       );
 
-      sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
+      sb.stub(SalesforcePackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage
       );
-      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      sb.stub(SalesforceProjectConfig, 'getValue').resolves('11.0');
       sb.stub(SourceTrackingService, 'getSourceTracking');
       sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
       pollStatusStub = sb.stub();
@@ -271,7 +271,7 @@ describe('SourcePathChecker', () => {
 
   it('Should continue when source path is in a package directory', async () => {
     const isInPackageDirectoryStub = sb
-      .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
       .returns(true);
     const pathChecker = new SourcePathChecker();
     const sourcePath = path.join(workspacePath, 'package');
@@ -289,7 +289,7 @@ describe('SourcePathChecker', () => {
 
   it('Should notify user and cancel when source path is not inside of a package directory', async () => {
     const isInPackageDirectoryStub = sb
-      .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
       .returns(false);
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
@@ -308,7 +308,7 @@ describe('SourcePathChecker', () => {
 
   it('Should cancel and notify user if an error occurs when fetching the package directories', async () => {
     const isInPackageDirectoryStub = sb
-      .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
       .throws(new Error());
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({

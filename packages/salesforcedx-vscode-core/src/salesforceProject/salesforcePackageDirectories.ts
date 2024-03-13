@@ -7,12 +7,13 @@
 
 import { JsonArray, JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
-import { SfdxProjectConfig } from '../sfdxProject';
+import { SalesforceProjectConfig } from '../salesforceProject';
 import { workspaceUtils } from '../util';
 
-export default class SfdxPackageDirectories {
+export default class SalesforcePackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {
-    const packageDirectories = await SfdxProjectConfig.getValue<JsonArray>('packageDirectories');
+    const packageDirectories =
+      await SalesforceProjectConfig.getValue<JsonArray>('packageDirectories');
     if (packageDirectories) {
       let packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
@@ -46,16 +47,18 @@ export default class SfdxPackageDirectories {
   }
 
   public static async getPackageDirectoryFullPaths(): Promise<string[]> {
-    const packageDirectoryPaths = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    const sfdxProjectPath = workspaceUtils.getRootWorkspacePath();
+    const packageDirectoryPaths =
+      await SalesforcePackageDirectories.getPackageDirectoryPaths();
+    const salesforceProjectPath = workspaceUtils.getRootWorkspacePath();
     return packageDirectoryPaths.map(packageDirectoryPath =>
-      path.join(sfdxProjectPath, packageDirectoryPath)
+      path.join(salesforceProjectPath, packageDirectoryPath)
     );
   }
 
   public static async isInPackageDirectory(filePath: string): Promise<boolean> {
     let filePathIsInPackageDirectory = false;
-    const packageDirectoryPaths = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+    const packageDirectoryPaths =
+      await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
     for (const packageDirectoryPath of packageDirectoryPaths) {
       if (filePath.startsWith(packageDirectoryPath)) {
         filePathIsInPackageDirectory = true;
@@ -68,7 +71,8 @@ export default class SfdxPackageDirectories {
   public static async getDefaultPackageDir(): Promise<string | undefined> {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
