@@ -278,7 +278,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 </Package>`,
         { encoding: 'utf-8' }
       );
-      console.log('*** Created package.xml for apex retrieve ***');
     } catch (error) {
       console.error(error);
       channelService.appendLine(
@@ -534,7 +533,6 @@ const parameterGatherer = new CompositeParametersGatherer(
       return sanitize(
         forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
-      // return forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_');
     }
     return '';
   }),
