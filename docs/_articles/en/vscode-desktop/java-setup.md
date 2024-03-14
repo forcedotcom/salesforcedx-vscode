@@ -33,7 +33,7 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 ### Oracle Java 17 (Officially Tested)
 
 1. Navigate to the [download page](https://www.oracle.com/java/technologies/downloads/).
-2. Navigate to **Java SE Development Kit 17.0.2 downloads**.
+2. Navigate to **Java SE Development Kit 17.0.10 downloads**.
 3. Click the download link that applies to your OS.
 4. If prompted to log in, use your Oracle account.
 5. Once the file is downloaded open it and complete the installation steps.
