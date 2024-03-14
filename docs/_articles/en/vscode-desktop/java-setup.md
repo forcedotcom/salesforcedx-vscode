@@ -44,7 +44,7 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 
 Update the salesforcedx-vscode-apex.java.home setting to the full pathname of the Java Runtime that is used to launch your Apex server.
 
-1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
+1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Settings...** > **Settings** (macOS).
 2. Search for `apex`.
 3. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do not set it to the Java executable itself.
 
