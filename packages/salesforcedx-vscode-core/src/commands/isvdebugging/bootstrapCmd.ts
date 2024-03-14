@@ -19,7 +19,7 @@ import {
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import sanitizeFilename from 'sanitize-filename';
+import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
@@ -278,6 +278,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 </Package>`,
         { encoding: 'utf-8' }
       );
+      console.log('*** Created package.xml for apex retrieve ***');
     } catch (error) {
       console.error(error);
       channelService.appendLine(
@@ -530,9 +531,10 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl &&
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
-      return sanitizeFilename(
+      return sanitize(
         forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
+      // return forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_');
     }
     return '';
   }),
