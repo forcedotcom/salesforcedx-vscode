@@ -53,7 +53,7 @@ export const messages = {
   unable_to_parse_checkpoint_query_result:
     'チェックポイントのクエリ結果をパースできませんでした。',
   unable_to_retrieve_active_user_for_sf_project:
-    'SFDX プロジェクトの有効なユーザを取得できませんでした。',
+    'Salesforce プロジェクトの有効なユーザを取得できませんでした。',
   unable_to_query_for_existing_checkpoints:
     '既存のチェックポイントをクエリできませんでした。',
   unable_to_load_vscode_core_extension:
