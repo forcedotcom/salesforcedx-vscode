@@ -19,8 +19,7 @@ import {
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
-import sanitizeFilename from 'sanitize-filename';
+import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
@@ -444,9 +443,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      execution.stderrSubject as any as Observable<Error | undefined>
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
@@ -531,7 +530,7 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl &&
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
-      return sanitizeFilename(
+      return sanitize(
         forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
     }
