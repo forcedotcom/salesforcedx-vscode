@@ -130,7 +130,7 @@
       "commandPalette": [
         {
           "command": "sf.create.checkpoints",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.toggle.checkpoint",

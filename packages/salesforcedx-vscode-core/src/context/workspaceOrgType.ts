@@ -58,7 +58,7 @@ function setDefaultUsernameHasChangeTracking(val: boolean) {
 }
 
 function setHasDefaultUsername(val: boolean) {
-  vscode.commands.executeCommand('setContext', 'sf:has_default_username', val);
+  vscode.commands.executeCommand('setContext', 'sf:has_default_org', val);
 }
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {

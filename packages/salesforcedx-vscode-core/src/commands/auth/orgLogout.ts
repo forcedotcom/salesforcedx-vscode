@@ -96,7 +96,7 @@ export async function orgLogoutDefault() {
     notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
     // confirm logout for scratch orgs due to special considerations:
-    // https://developer.salesforce.com/docs/atlas.en-us.sf_dev.meta/sf_dev/sf_dev_auth_logout.htm
+    // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfCommandlet(
       new SfWorkspaceChecker(),
       isScratch

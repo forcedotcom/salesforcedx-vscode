@@ -205,27 +205,27 @@
       "editor/context": [
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.delete.source.current.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
@@ -251,7 +251,7 @@
         },
         {
           "command": "sf.folder.diff",
-          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_default_username"
+          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -303,27 +303,27 @@
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.delete.source",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.project.generate.manifest",
@@ -337,7 +337,7 @@
       "commandPalette": [
         {
           "command": "sf.package.install",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.org.login.web.dev.hub",
@@ -357,7 +357,7 @@
         },
         {
           "command": "sf.org.logout.default",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.open.documentation",
@@ -369,23 +369,23 @@
         },
         {
           "command": "sf.org.open",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.project.retrieve.start",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_username"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_org"
         },
         {
           "command": "sf.project.retrieve.start.ignore.conflicts",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_username"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_org"
         },
         {
           "command": "sf.project.deploy.start",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_username"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_org"
         },
         {
           "command": "sf.project.deploy.start.ignore.conflicts",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_username"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_default_org"
         },
         {
           "command": "sf.view.all.changes",
@@ -437,19 +437,19 @@
         },
         {
           "command": "sf.org.display.default",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.org.display.username",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.data.query.input",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_default_username"
+          "when": "sf:project_opened && !editorHasSelection && sf:has_default_org"
         },
         {
           "command": "sf.data.query.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_default_username"
+          "when": "sf:project_opened && editorHasSelection && sf:has_default_org"
         },
         {
           "command": "sf.project.generate",
@@ -473,11 +473,11 @@
         },
         {
           "command": "sf.start.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_default_username"
+          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_default_org"
         },
         {
           "command": "sf.stop.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_default_username"
+          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_default_org"
         },
         {
           "command": "sf.debug.isv.bootstrap",
@@ -501,19 +501,19 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_default_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_default_org"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_default_org"
         },
         {
           "command": "sf.delete.source",
@@ -521,7 +521,7 @@
         },
         {
           "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.org.delete.username",
@@ -533,7 +533,7 @@
         },
         {
           "command": "sf.delete.source.current.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_default_username"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_default_org"
         },
         {
           "command": "sf.set.default.org",
@@ -597,7 +597,7 @@
         },
         {
           "command": "sf.internal.refreshsobjects",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
@@ -605,11 +605,11 @@
         },
         {
           "command": "sf.metadata.view.type.refresh",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         },
         {
           "command": "sf.metadata.view.component.refresh",
-          "when": "sf:project_opened && sf:has_default_username"
+          "when": "sf:project_opened && sf:has_default_org"
         }
       ]
     },

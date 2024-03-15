@@ -252,10 +252,10 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     } catch (error) {
       console.error(error);
       channelService.appendLine(
-        nls.localize('error_updating_salesforce_', error.toString())
+        nls.localize('error_updating_salesforce_project', error.toString())
       );
       notificationService.showErrorMessage(
-        nls.localize('error_updating_salesforce_', error.toString())
+        nls.localize('error_updating_salesforce_project', error.toString())
       );
       return;
     }
