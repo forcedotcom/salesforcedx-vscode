@@ -7,7 +7,7 @@
 import { GlobPattern } from 'vscode';
 
 /**
- * SF project JSON glob pattern
+ * Salesforce Project JSON glob pattern
  */
 export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern =
   '**/sfdx-project.json';

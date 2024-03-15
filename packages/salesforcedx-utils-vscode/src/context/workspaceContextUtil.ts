@@ -18,7 +18,7 @@ export interface OrgUserInfo {
 
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
- * Manages the context of a workspace during a session with an open SF project.
+ * Manages the context of a workspace during a session with an open Salesforce Project.
  */
 export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;

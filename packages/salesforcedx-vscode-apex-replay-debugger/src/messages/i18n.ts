@@ -53,7 +53,7 @@ export const messages = {
   unable_to_parse_checkpoint_query_result:
     'Unable to parse checkpoint query result',
   unable_to_retrieve_active_user_for_sf_project:
-    'Unable to retrieve active user for sf project',
+    'Unable to retrieve active user for Salesforce Project',
   unable_to_query_for_existing_checkpoints:
     'Unable to query for existing checkpoints',
   unable_to_load_vscode_core_extension:

@@ -47,7 +47,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
   let apexClassUri: string;
 
   beforeAll(async () => {
-    // Generate SF project
+    // Generate Salesforce Project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
     await util.generateSFProject(PROJECT_NAME);

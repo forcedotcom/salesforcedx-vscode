@@ -13,7 +13,7 @@ import { telemetryService } from '../../telemetry';
 import { workspaceService } from './workspaceService';
 
 /**
- * Get the absolute path to LWC Test runner executable, installed in an SF project.
+ * Get the absolute path to LWC Test runner executable, installed in a Salesforce Project.
  * @param cwd path to the workspace folder
  * @returns path to LWC Test runner
  */
