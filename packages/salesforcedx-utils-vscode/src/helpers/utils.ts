@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { realpathSync } from 'fs';
-import { basename } from 'path';
+import { realpathSync, lstatSync } from 'fs';
+import { basename, resolve, dirname } from 'path';
 import { telemetryService } from '../telemetry';
 
 export const isNullOrUndefined = (object: any): object is null | undefined => {
@@ -29,12 +29,13 @@ export const extractJsonObject = (str: string): any => {
 //
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
+
 export const flushFilePath = (filePath: string): string => {
   if (filePath === '') {
     return filePath;
   }
 
-  let nativePath = realpathSync.native(filePath);
+  let nativePath = isSymbolicLink(filePath)? filePath: realpathSync.native(filePath);
   if (/^win32/.test(process.platform)) {
     // The file path on Windows is in the form of "c:\Users\User Name\foo.cls".
     // When called, fs.realpathSync.native() is returning the file path back as
@@ -57,6 +58,21 @@ export const flushFilePath = (filePath: string): string => {
     });
   }
   return nativePath;
+};
+
+const isSymbolicLink = (path: string) => {
+  try {
+    let currentPath = resolve(path);
+    while(currentPath !== '/') {
+      const stats = lstatSync(currentPath);
+      const isLink = stats.isSymbolicLink();
+      if (isLink) return true;
+      currentPath = dirname(currentPath);
+    }
+    return false;
+  } catch (err) {
+      throw new Error('The path does not exist');
+  }
 };
 
 export const flushFilePaths = (filePaths: string[]): string[] => {
