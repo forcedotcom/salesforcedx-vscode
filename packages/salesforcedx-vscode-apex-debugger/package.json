@@ -193,7 +193,7 @@
               },
               "salesforceProject": {
                 "type": "string",
-                "description": "%salesforce__text%",
+                "description": "%salesforce_project_text%",
                 "default": "${workspaceRoot}"
               },
               "trace": {

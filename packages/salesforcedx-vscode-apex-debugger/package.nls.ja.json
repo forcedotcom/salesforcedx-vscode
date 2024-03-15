@@ -2,7 +2,7 @@
   "user_id_filter_text": "デバッグ用にホワイトリストに登録される、リクエストを含むユーザー ID の一覧",
   "request_type_filter_text": "デバッグ用にホワイトリストに登録される Apex 要求種別の一覧",
   "entry_point_filter_text": "デバッグ用にホワイトリストに登録される、エントリポイントに一致する正規表現",
-  "salesforce__text": "SFDX プロジェクトの場所",
+  "salesforce_project_text": "SFDX プロジェクトの場所",
   "launch_snippet_label_text": "Apex デバッガ: 起動",
   "launch_snippet_description_text": "Apex デバッガ を起動する新しい構成",
   "launch_snippet_name": "Apex デバッガ を起動",
