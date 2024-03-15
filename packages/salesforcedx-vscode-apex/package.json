@@ -137,7 +137,7 @@
         },
         "salesforcedx-vscode-apex.java.home": {
           "default": null,
-          "description": "%java_home_description%",
+          "markdownDescription": "%java_home_description%",
           "type": "string"
         },
         "salesforcedx-vscode-apex.java.memory": {
