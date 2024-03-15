@@ -61,9 +61,11 @@ export const flushFilePath = (filePath: string): string => {
 };
 
 const isSymbolicLink = (path: string) => {
+  // regex of windows root path
+  const winRootDir = /^[A-Za-z]:\\$/;
   try {
     let currentPath = resolve(path);
-    while(currentPath !== '/') {
+    while(currentPath !== '/'  && !winRootDir.test(currentPath)) {
       const stats = lstatSync(currentPath);
       const isLink = stats.isSymbolicLink();
       if (isLink) return true;
