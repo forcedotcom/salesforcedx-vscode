@@ -165,14 +165,14 @@
         {
           "command": "sf.create.checkpoints",
           "group": "navigation",
-          "when": "view == sf.force.view.checkpoint && sf:project_opened"
+          "when": "view == sf.view.checkpoint && sf:project_opened"
         }
       ]
     },
     "views": {
       "debug": [
         {
-          "id": "sf.force.view.checkpoint",
+          "id": "sf.view.checkpoint",
           "name": "%view_checkpoints%",
           "when": "sf:project_opened"
         }
