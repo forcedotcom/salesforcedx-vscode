@@ -2,7 +2,7 @@
   "user_id_filter_text": "A list of user IDs with requests allowed for debugging",
   "request_type_filter_text": "A list of Apex request types allowed for debugging",
   "entry_point_filter_text": "A regular expression matching entry points allowed for debugging",
-  "salesforce_project_text": "Location of Salesforce Project",
+  "salesforce_project_text": "Location of SFDX Project",
   "launch_snippet_label_text": "Apex Debugger: Launch",
   "launch_snippet_description_text": "A new configuration for launching Apex Debugger",
   "launch_snippet_name": "Launch Apex Debugger",

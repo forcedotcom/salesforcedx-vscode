@@ -162,7 +162,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
     return;
   }
 
-  const isSFDX = true; // TODO support non Salesforce Projects
+  const isSFDX = true; // TODO support non SFDX Projects
   const isDirectory = fs.lstatSync(resourcePath).isDirectory();
   const componentName = isDirectory
     ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
