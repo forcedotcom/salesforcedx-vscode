@@ -60,7 +60,7 @@ export const flushFilePath = (filePath: string): string => {
   return nativePath;
 };
 
-const isSymbolicLink = (path: string) => {
+export const isSymbolicLink = (path: string) => {
   try {
     let currentPath = resolve(path);
     // track down the path until it is a root path
