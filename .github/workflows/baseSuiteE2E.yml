@@ -188,7 +188,7 @@ jobs:
         lwcLSP,
         deployAndRetrieve,
         apexLSP,
-        runApexTests,
+        runApexTests
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -210,7 +210,7 @@ jobs:
         lwcLSP,
         deployAndRetrieve,
         apexLSP,
-        runApexTests,
+        runApexTests
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -232,7 +232,7 @@ jobs:
         lwcLSP,
         deployAndRetrieve,
         apexLSP,
-        runApexTests,
+        runApexTests
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
