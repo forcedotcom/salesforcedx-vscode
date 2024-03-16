@@ -130,7 +130,7 @@
       "commandPalette": [
         {
           "command": "sf.create.checkpoints",
-          "when": "sf:project_opened && sf:has_default_org"
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.toggle.checkpoint",

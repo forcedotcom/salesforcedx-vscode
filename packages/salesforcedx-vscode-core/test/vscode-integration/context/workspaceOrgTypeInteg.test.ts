@@ -27,7 +27,7 @@ const expectSetHasDefaultUsername = (
 ) => {
   expect(executeCommandStub.getCall(0).args).to.eql([
     'setContext',
-    'sf:has_default_org',
+    'sf:has_target_org',
     hasUsername
   ]);
 };
