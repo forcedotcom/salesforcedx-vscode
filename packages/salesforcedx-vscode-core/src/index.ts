@@ -594,7 +594,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       activateTracker.activationInfo.startActivateHrTime
     );
     MetricsReporter.extensionPackStatus();
-    console.log('SFDX CLI Extension Activated (internal dev mode)');
+    console.log('SF CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
 
@@ -662,7 +662,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
-  console.log('SFDX CLI Extension Activated');
+  console.log('SF CLI Extension Activated');
 
   if (
     vscode.workspace.workspaceFolders &&
@@ -712,7 +712,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
 };
 
 export const deactivate = async (): Promise<void> => {
-  console.log('SFDX CLI Extension Deactivated');
+  console.log('SF CLI Extension Deactivated');
 
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();
