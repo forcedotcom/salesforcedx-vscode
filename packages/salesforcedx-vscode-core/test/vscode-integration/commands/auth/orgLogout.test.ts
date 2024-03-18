@@ -43,7 +43,7 @@ describe('Org Logout Default', () => {
 
   beforeEach(() => {
     sb = createSandbox();
-    getUsernameStub = sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
+    getUsernameStub = sb.stub(OrgAuthInfo, 'getTargetOrgOrAlias');
     scratchOrgStub = sb.stub(OrgAuthInfo, 'isAScratchOrg');
     notificationStub = sb.stub(notificationService, 'showInformationMessage');
     sendExceptionStub = sb.stub(telemetryService, 'sendException');
@@ -63,10 +63,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       sendExceptionStub.called,
       'should not have reported an error'
@@ -85,10 +84,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       notificationStub.called,
       'should not have posted an error message'
@@ -103,10 +101,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       notificationStub.called,
       'should not have posted an error message'
@@ -121,10 +118,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       sendExceptionStub.called,
       'should not have reported an error'

@@ -160,7 +160,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('test-username2@example.com');
       });
 
-      it('should filter the list to only show scratch orgs associated with current default dev hub without an alias', async () => {
+      it('should filter the list to only show scratch orgs associated with current target dev hub without an alias', async () => {
         const authInfoObjects: OrgAuthorization[] = [
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
@@ -180,7 +180,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
 
-      it('should filter the list to only show scratch orgs associated with current default dev hub', async () => {
+      it('should filter the list to only show scratch orgs associated with current target dev hub', async () => {
         const authInfoObjects: OrgAuthorization[] = [
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2

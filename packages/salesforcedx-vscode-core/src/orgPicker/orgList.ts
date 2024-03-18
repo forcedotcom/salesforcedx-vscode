@@ -29,15 +29,15 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.show();
 
     WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
-      this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
+      this.displayTargetOrg(orgInfo.alias || orgInfo.username)
     );
     const { username, alias } = WorkspaceContext.getInstance();
-    this.displayDefaultUsername(alias || username);
+    this.displayTargetOrg(alias || username);
   }
 
-  private displayDefaultUsername(defaultUsernameOrAlias?: string) {
-    if (defaultUsernameOrAlias) {
-      this.statusBarItem.text = `$(plug) ${defaultUsernameOrAlias}`;
+  private displayTargetOrg(targetOrgOrAlias?: string) {
+    if (targetOrgOrAlias) {
+      this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
@@ -58,7 +58,7 @@ export class OrgList implements vscode.Disposable {
   public async filterAuthInfo(
     orgAuthorizations: OrgAuthorization[]
   ): Promise<string[]> {
-    const defaultDevHubUsername = await OrgAuthInfo.getDevHubUsername();
+    const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
     const today = new Date();
@@ -83,7 +83,7 @@ export class OrgList implements vscode.Disposable {
       if (
         authFields &&
         'devHubUsername' in authFields &&
-        authFields.devHubUsername !== defaultDevHubUsername
+        authFields.devHubUsername !== targetDevHub
       ) {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;

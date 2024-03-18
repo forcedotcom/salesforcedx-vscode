@@ -29,7 +29,7 @@ export const messages = {
   notification_show_button_text: 'Show',
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
 
-  error_no_default_username:
+  error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
@@ -43,7 +43,7 @@ export const messages = {
   channel_end: 'ended',
   predicates_no_folder_opened_text:
     'No folder opened. Open a Salesforce DX project in VS Code.',
-  predicates_no_sf_project_found_text:
+  predicates_no_salesforce_project_found_text:
     'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   trace_flags_unknown_user: 'Unknown user',
   trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',

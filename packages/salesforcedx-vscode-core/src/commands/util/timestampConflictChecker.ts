@@ -54,7 +54,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       if (!username) {
         return {
           type: 'CANCEL',
-          msg: nls.localize('conflict_detect_no_default_username')
+          msg: nls.localize('conflict_detect_no_target_org')
         };
       }
 

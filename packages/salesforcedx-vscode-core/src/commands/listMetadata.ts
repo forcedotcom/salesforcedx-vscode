@@ -18,17 +18,17 @@ import { SfCommandletExecutor } from './util';
 
 export class ListMetadataExecutor extends SfCommandletExecutor<string> {
   private metadataType: string;
-  private defaultUsernameOrAlias: string;
+  private targetOrgOrAlias: string;
   private folder?: string;
 
   public constructor(
     metadataType: string,
-    defaultUsernameOrAlias: string,
+    targetOrgOrAlias: string,
     folder?: string
   ) {
     super();
     this.metadataType = metadataType;
-    this.defaultUsernameOrAlias = defaultUsernameOrAlias;
+    this.targetOrgOrAlias = targetOrgOrAlias;
     this.folder = folder;
   }
 
@@ -62,13 +62,13 @@ export class ListMetadataExecutor extends SfCommandletExecutor<string> {
 
 export const listMetadata = async (
   metadataType: string,
-  defaultUsernameOrAlias: string,
+  targetOrgOrAlias: string,
   outputPath: string,
   folder?: string
 ): Promise<string> => {
   const listMetadataExecutor = new ListMetadataExecutor(
     metadataType,
-    defaultUsernameOrAlias,
+    targetOrgOrAlias,
     folder
   );
   const execution = listMetadataExecutor.execute();

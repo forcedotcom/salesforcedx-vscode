@@ -65,7 +65,7 @@ export const messages = {
   language_client_not_ready:
     '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
   unable_to_retrieve_org_info: 'OrgInfo を取得できませんでした。',
-  error_no_default_username:
+  error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し、デフォルトの組織を設定してください。',
   debug_test_exec_name: 'テストをデバッグ',
   debug_test_no_results_found: 'テスト結果が見つかりませんでした',

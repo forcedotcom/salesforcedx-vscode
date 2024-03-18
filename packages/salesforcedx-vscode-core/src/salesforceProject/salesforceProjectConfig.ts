@@ -61,7 +61,7 @@ export default class SalesforceProjectConfig {
     let errorMessage = error.message;
     if (error.name === 'JsonParseError') {
       errorMessage = nls.localize(
-        'error_parsing_salesforce__file',
+        'error_parsing_salesforce_project_file',
         error.path,
         error.message
       );

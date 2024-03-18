@@ -637,7 +637,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    getDefaultUsernameOrAlias: workspaceContextUtils.getDefaultUsernameOrAlias,
+    getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     isCLIInstalled,
     notificationService,

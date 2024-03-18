@@ -90,7 +90,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 }
 
 export async function orgLogoutDefault() {
-  const { username, isScratch, alias, error } = await resolveDefaultUsername();
+  const { username, isScratch, alias, error } = await resolveTargetOrg();
   if (error) {
     telemetryService.sendException(error.name, error.message);
     notificationService.showErrorMessage('Logout failed to run');
@@ -118,13 +118,13 @@ async function removeUsername(username: string) {
   await authRemover.removeAuth(username);
 }
 
-async function resolveDefaultUsername(): Promise<{
+async function resolveTargetOrg(): Promise<{
   username?: string;
   isScratch: boolean;
   alias?: string;
   error?: Error;
 }> {
-  const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+  const usernameOrAlias = await OrgAuthInfo.getTargetOrgOrAlias(false);
   if (usernameOrAlias) {
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
     const alias = username !== usernameOrAlias ? usernameOrAlias : undefined;

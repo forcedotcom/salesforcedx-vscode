@@ -36,15 +36,15 @@ export const sourceDiff = async (sourceUri?: vscode.Uri) => {
     }
   }
 
-  const defaultUsernameorAlias = WorkspaceContext.getInstance().username;
-  if (!defaultUsernameorAlias) {
+  const targetOrgorAlias = WorkspaceContext.getInstance().username;
+  if (!targetOrgorAlias) {
     await notificationService.showErrorMessage(
       nls.localize('missing_default_org')
     );
     return;
   }
   const executor = new MetadataCacheExecutor(
-    defaultUsernameorAlias,
+    targetOrgorAlias,
     nls.localize('source_diff_text'),
     'source_diff',
     handleCacheResults

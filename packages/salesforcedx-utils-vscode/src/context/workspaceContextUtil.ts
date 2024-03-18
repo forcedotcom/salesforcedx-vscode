@@ -64,7 +64,7 @@ export class WorkspaceContextUtil {
 
   public async getConnection(): Promise<Connection> {
     if (!this._username) {
-      throw new Error(nls.localize('error_no_default_username'));
+      throw new Error(nls.localize('error_no_target_org'));
     }
 
     let connection = this.sessionConnections.get(this._username);
@@ -87,14 +87,12 @@ export class WorkspaceContextUtil {
     await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
     StateAggregator.clearInstance();
 
-    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+    const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
 
-    if (defaultUsernameOrAlias) {
-      this._username = await ConfigUtil.getUsernameFor(defaultUsernameOrAlias);
+    if (targetOrgOrAlias) {
+      this._username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
       this._alias =
-        defaultUsernameOrAlias !== this._username
-          ? defaultUsernameOrAlias
-          : undefined;
+        targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
       try {
         const connection = await this.getConnection();
         this._orgId = connection?.getAuthInfoFields().orgId;

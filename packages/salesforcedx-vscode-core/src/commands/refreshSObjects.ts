@@ -195,10 +195,10 @@ export const refreshSObjects = async (source?: SObjectRefreshSource) => {
 export const verifyUsernameAndInitSObjectDefinitions = async (
   projectPath: string
 ) => {
-  const hasDefaultUsernameSet =
+  const hasTargetOrgSet =
     (await WorkspaceContext.getInstance().getConnection()).getUsername() !==
     undefined;
-  if (hasDefaultUsernameSet) {
+  if (hasTargetOrgSet) {
     initSObjectDefinitions(projectPath).catch(e =>
       telemetryService.sendException(e.name, e.message)
     );

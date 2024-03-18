@@ -373,31 +373,31 @@
         },
         {
           "command": "sf.project.retrieve.start",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
         },
         {
           "command": "sf.project.retrieve.start.ignore.conflicts",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
         },
         {
           "command": "sf.project.deploy.start",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
         },
         {
           "command": "sf.project.deploy.start.ignore.conflicts",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
         },
         {
           "command": "sf.view.all.changes",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.view.local.changes",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.view.remote.changes",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:default_username_has_change_tracking"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking"
         },
         {
           "command": "sf.task.stop",

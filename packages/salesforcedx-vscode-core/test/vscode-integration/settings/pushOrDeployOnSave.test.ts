@@ -176,15 +176,13 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should display an error to the user when no target-org is set', async () => {
-      const noDefaultUsernameSetError = new Error();
-      noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
-      getWorkspaceOrgTypeStub.throws(noDefaultUsernameSetError);
+      const noTargetOrgSetError = new Error();
+      noTargetOrgSetError.name = 'NoTargetOrgSet';
+      getWorkspaceOrgTypeStub.throws(noTargetOrgSetError);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
-      const error = nls.localize(
-        'error_push_or_deploy_on_save_no_default_username'
-      );
+      const error = nls.localize('error_push_or_deploy_on_save_no_target_org');
       expect(showErrorMessageStub.calledOnce).to.be.true;
       expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
       expect(appendLineStub.calledOnce).to.be.true;

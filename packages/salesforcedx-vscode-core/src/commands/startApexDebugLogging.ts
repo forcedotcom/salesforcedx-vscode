@@ -118,17 +118,16 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
 }
 
 export async function getUserId(projectPath: string): Promise<string> {
-  const defaultUsernameOrAlias =
-    await workspaceContextUtils.getDefaultUsernameOrAlias();
-  if (!defaultUsernameOrAlias) {
-    const err = nls.localize('error_no_default_username');
+  const targetOrgOrAlias = await workspaceContextUtils.getTargetOrgOrAlias();
+  if (!targetOrgOrAlias) {
+    const err = nls.localize('error_no_target_org');
     telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);
   }
 
-  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+  const username = await OrgAuthInfo.getUsername(targetOrgOrAlias);
   if (!username) {
-    const err = nls.localize('error_no_default_username');
+    const err = nls.localize('error_no_target_org');
     telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);
   }

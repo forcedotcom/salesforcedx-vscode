@@ -94,7 +94,7 @@ describe('GenerateFauxClasses', () => {
       expect(commandletSpy.notCalled).to.be.true;
     });
 
-    it('Should not execute sobject refresh if no default username set', async () => {
+    it('Should not execute sobject refresh if no target org set', async () => {
       existsSyncStub.returns(false);
       getUsernameStub.returns(undefined);
 

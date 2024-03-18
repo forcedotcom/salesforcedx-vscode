@@ -273,7 +273,7 @@ export const messages = {
     'Error setting up push or deploy on save: Your sfdx-project.json file doesn\'t contain a "packageDirectories" property. Add this property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
   error_no_package_directories_paths_found_text:
     'Error setting up push or deploy on save: The "packageDirectories" property in your sfdx-project.json file doesn\'t contain a "path" value. Add a value for the "path" property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
-  error_push_or_deploy_on_save_no_default_username:
+  error_push_or_deploy_on_save_no_target_org:
     'Error running push or deploy on save: No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the changes that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_source_path_not_in_package_directory_text:
     'Error deploying or retrieving source: The file or directory that you tried to deploy or retrieve isn\'t in a package directory that\'s specified in your sfdx-project.json file. Add this location to your "packageDirectories" value, or deploy or retrieve a different file or directory. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
@@ -285,7 +285,7 @@ export const messages = {
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',
-  error_parsing_salesforce__file:
+  error_parsing_salesforce_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
     'Salesforce CLI is not installed. Install it from [%s](%s)',
@@ -315,13 +315,13 @@ export const messages = {
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
   pull_conflicts_error:
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
-  error_no_default_username:
+  error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
-    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
+    'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
-    'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',
+    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.',
   apex_class_message_name: 'Apex Class',
   apex_trigger_message_name: 'Apex Trigger',
   visualforce_component_message_name: 'Visualforce Component',
@@ -608,7 +608,7 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
-  conflict_detect_no_default_username: 'No default username for this project',
+  conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir:
     'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',

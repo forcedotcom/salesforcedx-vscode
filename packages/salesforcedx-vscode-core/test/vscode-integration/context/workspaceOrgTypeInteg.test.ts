@@ -21,7 +21,7 @@ import { OrgAuthInfo } from '../../../src/util';
 
 const sandbox = createSandbox();
 
-const expectSetHasDefaultUsername = (
+const expectSetHasTargetOrg = (
   hasUsername: boolean,
   executeCommandStub: sinon.SinonStub
 ) => {
@@ -32,14 +32,14 @@ const expectSetHasDefaultUsername = (
   ]);
 };
 
-const expectDefaultUsernameHasChangeTracking = (
+const expectTargetOrgHasChangeTracking = (
   hasChangeTracking: boolean,
   executeCommandStub: sinon.SinonStub,
   argOrder?: number
 ) => {
   expect(executeCommandStub.getCall(argOrder ?? 1).args).to.eql([
     'setContext',
-    'sf:default_username_has_change_tracking',
+    'sf:target_org_has_change_tracking',
     hasChangeTracking
   ]);
 };
@@ -50,17 +50,14 @@ describe('workspaceOrgType', () => {
   const scratchOrgUser = 'scratch@org.com';
   let getUsernameStub: Sinon.SinonStub;
   let orgCreateStub: Sinon.SinonStub;
-  let getDefaultUsernameOrAliasStub: Sinon.SinonStub;
+  let getTargetOrgOrAliasStub: Sinon.SinonStub;
   let createStub: Sinon.SinonStub;
   let workspaceContextGetInstanceStub: Sinon.SinonStub;
 
   beforeEach(() => {
     getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
     orgCreateStub = sandbox.stub(Org, 'create');
-    getDefaultUsernameOrAliasStub = sandbox.stub(
-      OrgAuthInfo,
-      'getDefaultUsernameOrAlias'
-    );
+    getTargetOrgOrAliasStub = sandbox.stub(OrgAuthInfo, 'getTargetOrgOrAlias');
     createStub = sandbox.stub(AuthInfo, 'create');
     workspaceContextGetInstanceStub = sandbox.stub(
       WorkspaceContext,
@@ -71,21 +68,21 @@ describe('workspaceOrgType', () => {
   afterEach(() => {
     sandbox.restore();
   });
-  describe('getDefaultUsernameOrAlias', () => {
+  describe('getTargetOrgOrAlias', () => {
     beforeEach(() => {
       workspaceContextGetInstanceStub.returns(mockWorkspaceContext);
     });
     it('returns undefined when no target-org is set', async () => {
-      getDefaultUsernameOrAliasStub.resolves(undefined);
-      expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
+      getTargetOrgOrAliasStub.resolves(undefined);
+      expect(await workspaceContextUtils.getTargetOrgOrAlias()).to.equal(
         undefined
       );
     });
 
     it('returns the target-org when the username is set', async () => {
       const username = 'test@org.com';
-      getDefaultUsernameOrAliasStub.resolves(username);
-      expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
+      getTargetOrgOrAliasStub.resolves(username);
+      expect(await workspaceContextUtils.getTargetOrgOrAlias()).to.equal(
         username
       );
     });
@@ -109,8 +106,8 @@ describe('workspaceOrgType', () => {
     });
 
     it('returns the non-source-tracked org type', async () => {
-      const defaultUsername = 'sandbox@org.com';
-      getUsernameStub.resolves(defaultUsername);
+      const targetOrg = 'sandbox@org.com';
+      getUsernameStub.resolves(targetOrg);
       orgCreateStub.resolves({
         supportsSourceTracking: async () => false
       });
@@ -126,7 +123,7 @@ describe('workspaceOrgType', () => {
       sandbox.restore();
     });
 
-    it('should set sf:default_username_has_change_tracking context to false when no default org is set', async () => {
+    it('should set sf:target_org_has_change_tracking context to false when no default org is set', async () => {
       workspaceContextGetInstanceStub.returns(() => {
         throw new Error('no connection found.');
       });
@@ -138,14 +135,14 @@ describe('workspaceOrgType', () => {
       await workspaceUtil.setupWorkspaceOrgType();
 
       expect(executeCommandStub.calledTwice).to.equal(true);
-      expectSetHasDefaultUsername(false, executeCommandStub);
-      expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
+      expectSetHasTargetOrg(false, executeCommandStub);
+      expectTargetOrgHasChangeTracking(false, executeCommandStub);
 
       executeCommandStub.restore();
     });
 
     describe('setWorkspaceOrgTypeWithOrgType', () => {
-      it('should set sf:default_username_has_change_tracking to true when default org is source-tracked', async () => {
+      it('should set sf:target_org_has_change_tracking to true when default org is source-tracked', async () => {
         const executeCommandStub = sandbox.stub(
           vscode.commands,
           'executeCommand'
@@ -156,12 +153,12 @@ describe('workspaceOrgType', () => {
         );
 
         expect(executeCommandStub.calledOnce).to.equal(true);
-        expectDefaultUsernameHasChangeTracking(true, executeCommandStub, 0);
+        expectTargetOrgHasChangeTracking(true, executeCommandStub, 0);
 
         executeCommandStub.restore();
       });
 
-      it('should set sf:default_username_has_change_tracking to false when the default org is not source-tracked', async () => {
+      it('should set sf:target_org_has_change_tracking to false when the default org is not source-tracked', async () => {
         const executeCommandStub = sandbox.stub(
           vscode.commands,
           'executeCommand'
@@ -172,7 +169,7 @@ describe('workspaceOrgType', () => {
         );
 
         expect(executeCommandStub.calledOnce).to.equal(true);
-        expectDefaultUsernameHasChangeTracking(false, executeCommandStub, 0);
+        expectTargetOrgHasChangeTracking(false, executeCommandStub, 0);
 
         executeCommandStub.restore();
       });

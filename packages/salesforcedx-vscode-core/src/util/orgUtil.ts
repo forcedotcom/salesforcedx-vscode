@@ -116,10 +116,8 @@ export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
   return authInfo.getFields();
 }
 
-export async function getDefaultDevHubUsernameOrAlias(): Promise<
-  string | undefined
-> {
+export async function getTargetDevHubOrAlias(): Promise<string | undefined> {
   if (workspaceUtils.hasRootWorkspace()) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
+    return OrgAuthInfo.getTargetDevHubOrAlias(false);
   }
 }

@@ -36,7 +36,7 @@ describe('SFDX Project predicate', () => {
     const response = isSalesforceProjectOpened.apply(workspace);
     expect(response.result).to.be.false;
     expect(response.message).to.eql(
-      nls.localize('predicates_no_sf_project_found_text')
+      nls.localize('predicates_no_salesforce_project_found_text')
     );
   });
 

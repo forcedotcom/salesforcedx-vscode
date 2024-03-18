@@ -37,7 +37,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
 
 /**
  * These integration tests assume the environment has authenticated to
- * a Dev Hub and it is set as the default Dev Hub.
+ * a Dev Hub and it is set as the target Dev Hub.
  */
 describe.skip('Interactive debugger adapter - integration', () => {
   jest.setTimeout(320000);

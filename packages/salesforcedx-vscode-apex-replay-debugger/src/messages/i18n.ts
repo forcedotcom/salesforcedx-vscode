@@ -65,7 +65,7 @@ export const messages = {
   language_client_not_ready:
     'Unable to retrieve breakpoint info from language server, language server is not ready',
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
-  error_no_default_username:
+  error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',

@@ -119,9 +119,9 @@ export class DeployQueue {
           case 'NamedOrgNotFound':
             displayError(nls.localize('error_fetching_auth_info_text'));
             break;
-          case 'NoDefaultusernameSet':
+          case 'NoTargetOrgSet':
             displayError(
-              nls.localize('error_push_or_deploy_on_save_no_default_username')
+              nls.localize('error_push_or_deploy_on_save_no_target_org')
             );
             break;
           default:

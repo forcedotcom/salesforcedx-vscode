@@ -18,32 +18,28 @@ import { telemetryService } from '../telemetry';
 
 export class OrgAuthInfo {
   public static async getDevHubUsername() {
-    const defaultDevHubUsernameOrAlias =
-      await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
-    let defaultDevHubUsername: string | undefined;
-    if (defaultDevHubUsernameOrAlias) {
-      defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameOrAlias
-      );
+    const targetDevHubOrAlias = await OrgAuthInfo.getTargetDevHubOrAlias(false);
+    let targetDevHub: string | undefined;
+    if (targetDevHubOrAlias) {
+      targetDevHub = await OrgAuthInfo.getUsername(targetDevHubOrAlias);
     }
-    return defaultDevHubUsername;
+    return targetDevHub;
   }
 
-  public static async getDefaultUsernameOrAlias(
+  public static async getTargetOrgOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUsernameOrAlias =
-        await ConfigUtil.getDefaultUsernameOrAlias();
-      if (!defaultUsernameOrAlias) {
+      const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
+      if (!targetOrgOrAlias) {
         displayMessage(
-          nls.localize('error_no_default_username'),
+          nls.localize('error_no_target_org'),
           enableWarning,
           VSCodeWindowTypeEnum.Informational
         );
         return undefined;
       } else {
-        if (await ConfigUtil.isGlobalDefaultUsername()) {
+        if (await ConfigUtil.isGlobalTargetOrg()) {
           displayMessage(
             nls.localize('warning_using_global_username'),
             enableWarning,
@@ -52,30 +48,27 @@ export class OrgAuthInfo {
         }
       }
 
-      return defaultUsernameOrAlias;
+      return targetOrgOrAlias;
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
-        telemetryService.sendException(
-          'get_default_username_alias',
-          err.message
-        );
+        telemetryService.sendException('get_target_org_alias', err.message);
       }
       return undefined;
     }
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(
+  public static async getTargetDevHubOrAlias(
     enableWarning: boolean,
     configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
-      const defaultDevHubUserName =
+      const targetDevHub =
         configSource === ConfigSource.Global
-          ? await ConfigUtil.getGlobalDefaultDevHubUsernameOrAlias()
-          : await ConfigUtil.getDefaultDevHubUsernameOrAlias();
+          ? await ConfigUtil.getGlobalTargetDevHubOrAlias()
+          : await ConfigUtil.getTargetDevHubOrAlias();
 
-      if (!defaultDevHubUserName) {
+      if (!targetDevHub) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
@@ -88,7 +81,7 @@ export class OrgAuthInfo {
         }
         return undefined;
       }
-      return JSON.stringify(defaultDevHubUserName).replace(/"/g, '');
+      return JSON.stringify(targetDevHub).replace(/"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
@@ -122,9 +115,9 @@ export class OrgAuthInfo {
     if (usernameOrAlias) {
       _usernameOrAlias = usernameOrAlias;
     } else {
-      const defaultName = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+      const defaultName = await OrgAuthInfo.getTargetOrgOrAlias(true);
       if (!defaultName) {
-        throw new Error(nls.localize('error_no_default_username'));
+        throw new Error(nls.localize('error_no_target_org'));
       }
       _usernameOrAlias = defaultName;
     }

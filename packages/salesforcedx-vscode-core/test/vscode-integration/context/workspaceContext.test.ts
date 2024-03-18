@@ -136,13 +136,13 @@ describe('WorkspaceContext', () => {
 
   afterEach(() => env.restore());
 
-  it('should load the default username and alias upon initialization', () => {
+  it('should load the target org and alias upon initialization', () => {
     expect(workspaceContext.username).to.equal(testUser);
     expect(workspaceContext.alias).to.equal(testAlias);
     expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
   });
 
-  it('should update default username and alias upon config change', async () => {
+  it('should update target org and alias upon config change', async () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
@@ -155,7 +155,7 @@ describe('WorkspaceContext', () => {
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  it('should update default username and alias to undefined if one is not set', async () => {
+  it('should update target org and alias to undefined if one is not set', async () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
