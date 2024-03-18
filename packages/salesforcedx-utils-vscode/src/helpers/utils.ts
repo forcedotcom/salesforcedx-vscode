@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { realpathSync, lstatSync } from 'fs';
-import { basename, resolve, dirname } from 'path';
+import { basename } from 'path';
 import { telemetryService } from '../telemetry';
 
 export const isNullOrUndefined = (object: any): object is null | undefined => {
@@ -35,7 +34,11 @@ export const flushFilePath = (filePath: string): string => {
     return filePath;
   }
 
-  let nativePath = isSymbolicLink(filePath)? filePath: realpathSync.native(filePath);
+  // let nativePath = realpathSync.native(filePath);
+  // Above is the original assigned nativePath value.
+  // We found that filePath is the correct path and the stale name issue
+  // no longer exists.
+  let nativePath = filePath;
   if (/^win32/.test(process.platform)) {
     // The file path on Windows is in the form of "c:\Users\User Name\foo.cls".
     // When called, fs.realpathSync.native() is returning the file path back as
@@ -58,22 +61,6 @@ export const flushFilePath = (filePath: string): string => {
     });
   }
   return nativePath;
-};
-
-export const isSymbolicLink = (path: string) => {
-  try {
-    let currentPath = resolve(path);
-    // track down the path until it is a root path
-    while(currentPath !== dirname(currentPath)) {
-      const stats = lstatSync(currentPath);
-      const isLink = stats.isSymbolicLink();
-      if (isLink) return true;
-      currentPath = dirname(currentPath);
-    }
-    return false;
-  } catch (err) {
-      throw new Error('The path does not exist');
-  }
 };
 
 export const flushFilePaths = (filePaths: string[]): string[] => {
