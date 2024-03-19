@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { realpathSync } from 'fs';
 import { basename } from 'path';
 import { telemetryService } from '../telemetry';
 
@@ -29,12 +28,17 @@ export const extractJsonObject = (str: string): any => {
 //
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
+
 export const flushFilePath = (filePath: string): string => {
   if (filePath === '') {
     return filePath;
   }
 
-  let nativePath = realpathSync.native(filePath);
+  // let nativePath = realpathSync.native(filePath);
+  // Above is the original assigned nativePath value.
+  // We found that filePath is the correct path and the stale name issue
+  // no longer exists.
+  let nativePath = filePath;
   if (/^win32/.test(process.platform)) {
     // The file path on Windows is in the form of "c:\Users\User Name\foo.cls".
     // When called, fs.realpathSync.native() is returning the file path back as
