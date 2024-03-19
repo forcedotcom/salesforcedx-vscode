@@ -244,7 +244,7 @@ export const messages = {
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
-  error_parsing_salesforce_project_file:
+  error_parsing_sfdx_project_file:
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
@@ -272,7 +272,7 @@ export const messages = {
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
-  error_no_default_devhubusername:
+  error_no_target_dev_hub:
     'デフォルトの Dev Hub 組織が設定されていません。"SFDX: Dev Hub 組織を認証" を実行て組織を設定してください。',
   custom_output_directory: 'ディレクトリを選択',
   warning_using_global_username:

@@ -21,7 +21,7 @@ export function getConflictMessagesFor(
           (inputs as string[]).forEach(input => {
             commands.push(
               new SfCommandBuilder()
-                .withArg('force:source:deploy')
+                .withArg('project:deploy:start')
                 .withFlag('--sourcepath', input)
                 .build()
                 .toString()
@@ -39,7 +39,7 @@ export function getConflictMessagesFor(
         warningMessageKey,
         commandHint: input => {
           return new SfCommandBuilder()
-            .withArg('force:source:deploy')
+            .withArg('project:deploy:start')
             .withFlag('--manifest', input as string)
             .build()
             .toString();

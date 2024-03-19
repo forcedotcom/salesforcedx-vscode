@@ -227,7 +227,7 @@ describe('Push or Deploy on Save', () => {
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call force:source:deploy on multiple paths', async () => {
+    it('should call deploy on multiple paths', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));

@@ -71,7 +71,7 @@ export class OrgAuthInfo {
       if (!targetDevHub) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
-          nls.localize('error_no_default_devhubusername'),
+          nls.localize('error_no_target_org'),
           enableWarning,
           VSCodeWindowTypeEnum.Informational,
           [showButtonText]

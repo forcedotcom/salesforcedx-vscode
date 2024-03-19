@@ -285,7 +285,7 @@ export const messages = {
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',
-  error_parsing_salesforce_project_file:
+  error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
   sfdx_cli_not_found:
     'Salesforce CLI is not installed. Install it from [%s](%s)',
@@ -317,7 +317,7 @@ export const messages = {
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  error_no_default_devhubusername:
+  error_no_target_dev_hub:
     'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
