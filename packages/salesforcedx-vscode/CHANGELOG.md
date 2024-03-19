@@ -1,3 +1,33 @@
+# 60.5.1 - March 21, 2024
+
+## Fixed
+
+#### docs
+
+- Clarify java setup ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
+
+- Sync ja docs with latest en versions ([PR #5504](https://github.com/forcedotcom/salesforcedx-vscode/pull/5504))
+
+#### salesforcedx-utils-vscode
+
+- Support folder with symbol link ([PR #5507](https://github.com/forcedotcom/salesforcedx-vscode/pull/5507))
+
+#### salesforcedx-vscode-apex
+
+- Clarify java setup ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
+
+#### salesforcedx-vscode-core
+
+- Report right command execution status ([PR #5500](https://github.com/forcedotcom/salesforcedx-vscode/pull/5500))
+
+#### salesforcedx-vscode-lightning
+
+- Bump lls to catch pr 584 which Add Edu PostBenefitAssignment adapter ([PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
+
+#### salesforcedx-vscode-lwc
+
+- Bump lls to catch pr 584 which Add Edu PostBenefitAssignment adapter ([PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
+
 # 60.4.1 - March 14, 2024
 
 ## Fixed
