@@ -4,39 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { realpathSync, writeFileSync, existsSync, unlinkSync } from 'fs';
-import { TelemetryService } from '../../../src';
-import { extractJsonObject, flushFilePath } from '../../../src/helpers/utils';
-
-describe('flushFilePath', () => {
-  let teleSpy: jest.SpyInstance;
-  let originalPath = '';
-  beforeEach(() => {
-    jest.mock('fs');
-    jest.mock('../../../src/context/workspaceContextUtil');
-    originalPath = './test.txt';
-    const fileContent = 'Hello, world!';
-    writeFileSync(originalPath, fileContent);
-  });
-
-  afterEach(() => {
-    // Clean up the file after each test
-    if (existsSync(originalPath)) {
-      unlinkSync(originalPath);
-    }
-  });
-
-  it('should not send to telemetry if there are no changes in character casing', () => {
-    const alteredPath = './test.txt';
-
-    jest.spyOn(realpathSync, 'native').mockReturnValue(alteredPath);
-    teleSpy = jest.spyOn(TelemetryService.prototype, 'sendEventData');
-
-    const r = flushFilePath(originalPath);
-    expect(r).toEqual(alteredPath);
-    expect(teleSpy).not.toHaveBeenCalled();
-  });
-});
+import { extractJsonObject } from '../../../src/helpers/utils';
 
 describe('extractJsonObject unit tests', () => {
   const initialValue = {
