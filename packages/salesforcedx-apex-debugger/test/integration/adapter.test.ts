@@ -202,9 +202,9 @@ const execApexNoWait = (
 ): CommandExecution => {
   return new CliCommandExecutor(
     new SfCommandBuilder()
-      .withArg('force:apex:execute')
-      .withFlag('--apexcodefile', apexExecFilePath)
-      .withFlag('--targetusername', userName)
+      .withArg('apex:run')
+      .withFlag('--file', apexExecFilePath)
+      .withFlag('--target-org', userName)
       .withJson()
       .build(),
     { cwd: process.cwd() }

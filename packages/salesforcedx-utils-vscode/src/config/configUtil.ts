@@ -118,11 +118,9 @@ export class ConfigUtil {
     string | undefined
   > {
     const globalConfig = await Config.create({ isGlobal: true });
-    const defaultGlobalDevHubUserName = globalConfig.get(TARGET_DEV_HUB_KEY);
+    const globalTargetDevHub = globalConfig.get(TARGET_DEV_HUB_KEY);
 
-    return defaultGlobalDevHubUserName
-      ? String(defaultGlobalDevHubUserName)
-      : undefined;
+    return globalTargetDevHub ? String(globalTargetDevHub) : undefined;
   }
 
   public static async getAllAliasesFor(username: string): Promise<string[]> {

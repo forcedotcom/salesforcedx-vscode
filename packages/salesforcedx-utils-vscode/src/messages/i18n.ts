@@ -38,7 +38,7 @@ export const messages = {
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/salesforcecli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
   predicates_no_folder_opened_text:
