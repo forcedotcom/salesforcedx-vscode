@@ -19,8 +19,8 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
-import * as vscode from 'vscode';
 import { DebugProtocol } from '@vscode/debugprotocol';
+import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
   registerIsvAuthWatcher,
