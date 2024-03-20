@@ -6,8 +6,6 @@
 
 - We made some clarifications for the Java Home setting in the VSCode settings for the Apex extension and in our docs. ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
 
-- We synced the Japanese version of the CodeBuilder docs with the English version. ([PR #5504](https://github.com/forcedotcom/salesforcedx-vscode/pull/5504))
-
 #### salesforcedx-utils-vscode
 
 - We fixed an issue where users who worked within a symbolic link could not run deploy and retrieve commands. ([PR #5507](https://github.com/forcedotcom/salesforcedx-vscode/pull/5507))
