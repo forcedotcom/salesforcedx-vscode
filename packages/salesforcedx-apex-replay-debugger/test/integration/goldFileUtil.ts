@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import * as fs from 'fs';
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
+import { expect } from 'chai';
+import * as fs from 'fs';
 
 export class GoldFileUtil {
   private readonly delimiter = '====================';
