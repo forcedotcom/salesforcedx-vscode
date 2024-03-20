@@ -8,8 +8,8 @@
 // tslint:disable:no-floating-promises
 
 import { RequestService } from '@salesforce/salesforcedx-utils';
-import { Source } from 'vscode-debugadapter/lib/debugSession';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { Source } from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import {
   ApexDebug,
   ApexDebugStackFrameInfo,

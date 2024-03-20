@@ -20,8 +20,8 @@ import {
   TerminatedEvent,
   Thread,
   Variable
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { MetricError, MetricLaunch } from '..';
 import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
 import {
@@ -352,10 +352,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.StackTraceArguments
   ): void {
     response.body = {
-      stackFrames: this.logContext
-        .getFrames()
-        .slice()
-        .reverse()
+      stackFrames: this.logContext.getFrames().slice().reverse()
     };
     response.success = true;
     this.sendResponse(response);
@@ -518,7 +515,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     const topFrame = this.logContext.getTopFrame();
     if (topFrame && topFrame.source) {
       const topFrameUri = this.convertClientPathToDebugger(
-        topFrame.source.path
+        topFrame.source.path as string
       );
       const topFrameLine = this.convertClientLineToDebugger(topFrame.line);
       if (

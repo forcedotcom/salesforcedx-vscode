@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StackFrame } from 'vscode-debugadapter';
+import { StackFrame } from '@vscode/debugadapter';
 import { ApexVariableContainer } from '../adapter/apexReplayDebug';
 import {
   ApexExecutionOverlayResultCommandSuccess,
@@ -287,10 +287,10 @@ export class HeapDumpService {
     if (
       (outerExtent.typeName.toLowerCase() === LC_APEX_PRIMITIVE_BOOLEAN ||
         this.isCollectionType(outerExtent.typeName)) &&
-      (outerExtent.count > 0 &&
-        outerExtent.extent[0].symbols !== null &&
-        outerExtent.extent[0].symbols!.length > 0 &&
-        outerExtent.extent[0].symbols![0].startsWith(EXTENT_TRIGGER_PREFIX))
+      outerExtent.count > 0 &&
+      outerExtent.extent[0].symbols !== null &&
+      outerExtent.extent[0].symbols!.length > 0 &&
+      outerExtent.extent[0].symbols![0].startsWith(EXTENT_TRIGGER_PREFIX)
     ) {
       return true;
     }

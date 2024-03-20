@@ -16,8 +16,8 @@
     "async-lock": "1.0.0",
     "faye": "1.1.2",
     "request-light": "^0.7.0",
-    "vscode-debugadapter": "1.28.0",
-    "vscode-debugprotocol": "1.28.0"
+    "@vscode/debugadapter": "1.65.0",
+    "@vscode/debugprotocol": "1.65.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "60.5.1",
@@ -52,7 +52,7 @@
     "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
-    "vscode-debugadapter-testsupport": "1.28.0",
+    "@vscode/debugadapter-testsupport": "1.65.0",
     "vscode-uri": "1.0.1"
   },
   "scripts": {

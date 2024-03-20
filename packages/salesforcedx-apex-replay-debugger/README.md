@@ -7,4 +7,4 @@ Apex Debugger.
 ## Resources
 
 - [VS Code Debug Protocol in a Nutshell](https://code.visualstudio.com/docs/extensionAPI/api-debugging)
-- [VS Code Debug Protocol Reference](https://github.com/Microsoft/vscode-debugadapter-node/blob/master/protocol/src/debugProtocol.ts)
+- [VS Code Debug Protocol Reference](https://github.com/Microsoft/@vscode/debugprotocol-node/blob/master/protocol/src/debugProtocol.ts)

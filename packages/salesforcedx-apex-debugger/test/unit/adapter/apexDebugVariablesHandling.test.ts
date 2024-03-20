@@ -8,7 +8,7 @@
 import { RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
+import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
 import {
   ApexDebug,
   ApexDebugStackFrameInfo,

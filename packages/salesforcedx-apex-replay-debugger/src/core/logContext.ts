@@ -11,7 +11,7 @@ import {
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
 import * as path from 'path';
-import { StackFrame } from 'vscode-debugadapter';
+import { StackFrame } from '@vscode/debugadapter';
 import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
@@ -182,7 +182,7 @@ export class LogContext {
     if (
       topFrame &&
       topFrame.source &&
-      topFrame.source.name.toLowerCase().endsWith('.trigger')
+      topFrame.source.name!.toLowerCase().endsWith('.trigger')
     ) {
       return true;
     }
