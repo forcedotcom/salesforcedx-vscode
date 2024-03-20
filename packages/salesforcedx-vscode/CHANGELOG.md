@@ -4,29 +4,23 @@
 
 #### docs
 
-- Clarify java setup ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
+- We made some clarifications for the Java Home setting in the VSCode settings for the Apex extension and in our docs. ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
 
-- Sync ja docs with latest en versions ([PR #5504](https://github.com/forcedotcom/salesforcedx-vscode/pull/5504))
+- We synced the Japanese version of the CodeBuilder docs with the English version. ([PR #5504](https://github.com/forcedotcom/salesforcedx-vscode/pull/5504))
 
 #### salesforcedx-utils-vscode
 
-- Support folder with symbol link ([PR #5507](https://github.com/forcedotcom/salesforcedx-vscode/pull/5507))
-
-#### salesforcedx-vscode-apex
-
-- Clarify java setup ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
+- We fixed an issue where users who worked within a symbolic link could not run deploy and retrieve commands. ([PR #5507](https://github.com/forcedotcom/salesforcedx-vscode/pull/5507))
 
 #### salesforcedx-vscode-core
 
-- Report right command execution status ([PR #5500](https://github.com/forcedotcom/salesforcedx-vscode/pull/5500))
+- We fixed an issue in `SFDX: Create and Set Up Project for ISV Debugging` where error notifications were being displayed for steps that run successfully. ([PR #5500](https://github.com/forcedotcom/salesforcedx-vscode/pull/5500))
 
 #### salesforcedx-vscode-lightning
 
-- Bump lls to catch pr 584 which Add Edu PostBenefitAssignment adapter ([PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
-
 #### salesforcedx-vscode-lwc
 
-- Bump lls to catch pr 584 which Add Edu PostBenefitAssignment adapter ([PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
+- Add Edu PostBenefitAssignment adapter in lightning/industriesEducationPublicApi ([PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
 
 # 60.4.1 - March 14, 2024
 
@@ -87,9 +81,11 @@
 ## Fixed
 
 #### salesforcedx-vscode-apex
+
 - We made some changes under the hood. ([PR #5427](https://github.com/forcedotcom/salesforcedx-vscode/pull/5427), [PR #5442](https://github.com/forcedotcom/salesforcedx-vscode/pull/5442))
 
 #### salesforcedx-vscode-lwc
+
 - We made some changes under the hood. ([PR #5428](https://github.com/forcedotcom/salesforcedx-vscode/pull/5428))
 
 #### salesforcedx-vscode-core
@@ -110,20 +106,19 @@
 
 #### salesforcedx-vscode-apex
 
-- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)). 
+- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)).
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience.  ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
+- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience. ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
 
 - We fixed an issue with the Org Browser so that custom objects with a namespace can now be refreshed. ([PR #5403](https://github.com/forcedotcom/salesforcedx-vscode/pull/5403))
 
 - We no longer show you commands that require a default org when no default org is set. ([PR #5406](https://github.com/forcedotcom/salesforcedx-vscode/pull/5406))
 
 - We migrated some more commands to the new `sf style`. ([PR #5379](https://github.com/forcedotcom/salesforcedx-vscode/pull/5379), [PR #5388](https://github.com/forcedotcom/salesforcedx-vscode/pull/5388))
-
 
 # 59.17.0 - February 7, 2024
 
@@ -148,7 +143,7 @@
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood to make the java version validation more reliable. Thank you [Saranchuk Viktor](https://github.com/Blackbackroom) for creating the issue.
- ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363), [ISSUE #5358](https://github.com/forcedotcom/salesforcedx-vscode/issues/5358))
+  ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363), [ISSUE #5358](https://github.com/forcedotcom/salesforcedx-vscode/issues/5358))
 
 # 59.15.0 - January 26, 2024
 
