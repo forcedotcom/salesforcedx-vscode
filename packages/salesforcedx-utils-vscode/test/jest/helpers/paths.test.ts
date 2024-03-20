@@ -20,7 +20,7 @@ import {
   LWC,
   METADATA,
   ORGS,
-  SF_CONFIG_FILE,
+  SFDX_CONFIG_FILE,
   TEST_RESULTS,
   TOOLS
 } from '../../../src/helpers/paths';
@@ -69,7 +69,7 @@ describe('test project paths', () => {
   });
   describe('test salesforceProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
-    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SF_CONFIG_FILE);
+    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
 
     beforeEach(() => {
       stateFolderStub = jest

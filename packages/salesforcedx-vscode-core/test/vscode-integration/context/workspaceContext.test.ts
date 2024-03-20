@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { SF_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
+import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { decorators } from '../../../src/decorators';
@@ -81,7 +81,7 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     const cliConfigPath = join(
       workspaceUtils.getRootWorkspacePath(),
       SFDX_FOLDER,
-      SF_CONFIG_FILE
+      SFDX_CONFIG_FILE
     );
     this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);

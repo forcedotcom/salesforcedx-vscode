@@ -21,7 +21,7 @@ export const DEBUG = 'debug';
 export const LOGS = 'logs';
 export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
-export const SF_CONFIG_FILE = 'config.json';
+export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export const ensureDirectoryExists = (filePath: string): void => {
   if (fs.existsSync(filePath)) {
@@ -129,7 +129,7 @@ const debugLogsFolder = (): string => {
 const salesforceProjectConfig = (): string => {
   const pathToSalesforceProjectConfig = path.join(
     projectPaths.stateFolder(),
-    SF_CONFIG_FILE
+    SFDX_CONFIG_FILE
   );
   return pathToSalesforceProjectConfig;
 };

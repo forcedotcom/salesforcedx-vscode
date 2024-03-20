@@ -152,7 +152,7 @@ describe('SFDX CLI Configuration utility', () => {
       // Remove the config files that were created for the test
       try {
         const configFile = await ConfigFile.create(
-          Config.getDefaultOptions(false, 'config.json')
+          Config.getDefaultOptions(false, 'sfdx-config.json')
         );
         configFile.unlinkSync(); // delete the sfdx config file that was created for the test
 
