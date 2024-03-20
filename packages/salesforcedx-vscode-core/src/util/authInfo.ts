@@ -71,7 +71,7 @@ export class OrgAuthInfo {
       if (!targetDevHub) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
-          nls.localize('error_no_target_org'),
+          nls.localize('error_no_target_dev_hub'),
           enableWarning,
           VSCodeWindowTypeEnum.Informational,
           [showButtonText]
@@ -85,10 +85,7 @@ export class OrgAuthInfo {
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
-        telemetryService.sendException(
-          'get_default_devhub_username_alias',
-          err.message
-        );
+        telemetryService.sendException('get_target_dev_hub_alias', err.message);
       }
       return undefined;
     }
