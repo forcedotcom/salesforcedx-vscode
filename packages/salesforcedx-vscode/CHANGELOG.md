@@ -4,7 +4,7 @@
 
 #### docs
 
-- We made some clarifications for the Java Home setting in the VSCode settings for the Apex extension and in our docs. ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
+- We made updates to the [Java Setup](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/java-setup) topic to include troubleshooting tips. ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
 
 #### salesforcedx-utils-vscode
 
@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Add Edu PostBenefitAssignment adapter in lightning/industriesEducationPublicApi ([PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
+- We updated some dependencies in language servers to accomodate an external contribution.([PR #584] (https://github.com/forcedotcom/lightning-language-server/pull/584), [PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
 
 # 60.4.1 - March 14, 2024
 
