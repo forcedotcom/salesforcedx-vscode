@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We updated some dependencies in language servers to accomodate an external contribution.([PR #584] (https://github.com/forcedotcom/lightning-language-server/pull/584), [PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
+- We updated some dependencies in language servers to accomodate an external contribution.([PR #584](https://github.com/forcedotcom/lightning-language-server/pull/584), [PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
 
 # 60.4.1 - March 14, 2024
 
