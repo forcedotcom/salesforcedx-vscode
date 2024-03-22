@@ -16,7 +16,6 @@ import {
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
-import { DescribeSObjectResult, Field } from 'jsforce';
 import * as path from 'path';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';

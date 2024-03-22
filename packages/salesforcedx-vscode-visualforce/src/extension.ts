@@ -272,6 +272,6 @@ export const activate = (context: ExtensionContext) => {
 };
 
 export const deactivate = () => {
-  console.log('SFDX Visualforce Extension Deactivated');
+  console.log('Visualforce Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
 };
