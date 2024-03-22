@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: '開始しています: ',
   channel_end_with_exit_code: 'が終了コード %s で終了しました。',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/sfdxcli からインストールしてください。',
+    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/salesforcecli からインストールしてください。',
   channel_end_with_error: 'がエラーで終了しました。%s',
   channel_end: 'が終了しました。',
 
