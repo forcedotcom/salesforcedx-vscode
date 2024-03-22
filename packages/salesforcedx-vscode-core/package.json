@@ -983,6 +983,16 @@
           "default": "fatal",
           "description": "%sf_log_level_description%"
         },
+        "salesforcedx-vscode-core.color-warning-production-org": {
+          "type": "boolean",
+          "default": false,
+          "description": "%color_warning_production_org_description%"
+        },
+        "salesforcedx-vscode-core.color-warning-production-org-color": {
+          "type": "string",
+          "default": "#FF0000",
+          "description": "%color_warning_production_org_color_description%"
+        },
         "salesforcedx-vscode-core.telemetry-tag": {
           "type": "string",
           "default": null,

@@ -18,9 +18,8 @@ import { telemetryService } from '../telemetry';
 
 export class OrgAuthInfo {
   public static async getDevHubUsername() {
-    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-      false
-    );
+    const defaultDevHubUsernameOrAlias =
+      await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
     let defaultDevHubUsername: string | undefined;
     if (defaultDevHubUsernameOrAlias) {
       defaultDevHubUsername = await OrgAuthInfo.getUsername(
@@ -34,7 +33,8 @@ export class OrgAuthInfo {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+      const defaultUsernameOrAlias =
+        await ConfigUtil.getDefaultUsernameOrAlias();
       if (!defaultUsernameOrAlias) {
         displayMessage(
           nls.localize('error_no_default_username'),
@@ -111,6 +111,15 @@ export class OrgAuthInfo {
     const authInfoFields = authInfo.getFields();
     return Promise.resolve(
       typeof authInfoFields.devHubUsername !== 'undefined'
+    );
+  }
+
+  public static async isAProductionOrg(username: string): Promise<boolean> {
+    const authInfo = await AuthInfo.create({ username });
+    const authInfoFields = authInfo.getFields();
+    return Promise.resolve(
+      !authInfoFields.isSandbox &&
+        !authInfoFields.instanceUrl?.includes('sandbox.my.salesforce.com')
     );
   }
 

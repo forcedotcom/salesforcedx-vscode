@@ -5,6 +5,8 @@
   "apex_generate_trigger_text": "SFDX: Create Apex Trigger",
   "apex_generate_unit_test_class_text": "SFDX: Create Apex Unit Test Class",
   "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
+  "color_warning_production_org_color_description": "Specifies the color of the status bar when you're working in a production org. This setting is ignored if \"Color-warning-production-org\" is set to false.",
+  "color_warning_production_org_description": "Change the status bar color to indicate that you're working in a production org",
   "config_list_text": "SFDX: List All Config Variables",
   "config_set_org_text": "SFDX: Set a Default Org",
   "conflict_detect_open_file": "Open File",

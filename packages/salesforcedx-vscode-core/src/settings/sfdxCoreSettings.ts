@@ -21,7 +21,9 @@ import {
   PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED
+  TELEMETRY_ENABLED,
+  COLOR_WARNING_WHEN_PRODUCTION_ORG,
+  COLOR_WARNING_WHEN_PRODUCTION_ORG_COLOR
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -110,6 +112,17 @@ export class SfdxCoreSettings {
     return this.getConfigValue(
       ENV_SF_LOG_LEVEL,
       process.env.SF_LOG_LEVEL ?? 'fatal'
+    );
+  }
+
+  public getColorWarningWhenProductionOrg(): boolean {
+    return this.getConfigValue(COLOR_WARNING_WHEN_PRODUCTION_ORG, false);
+  }
+
+  public getColorWarningWhenProductionOrgColor(): string {
+    return this.getConfigValue(
+      COLOR_WARNING_WHEN_PRODUCTION_ORG_COLOR,
+      '#ff0000'
     );
   }
 

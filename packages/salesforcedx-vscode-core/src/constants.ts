@@ -41,6 +41,9 @@ export const PREFER_DEPLOY_ON_SAVE_ENABLED =
   'push-or-deploy-on-save.preferDeployOnSave';
 export const PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS =
   'push-or-deploy-on-save.ignoreConflictsOnPush';
+export const COLOR_WARNING_WHEN_PRODUCTION_ORG = 'color-warning-production-org';
+export const COLOR_WARNING_WHEN_PRODUCTION_ORG_COLOR =
+  'color-warning-production-org-color';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
