@@ -24,7 +24,7 @@ describe('Progress Notification', () => {
   beforeEach(() => {
     tokenSource = new vscode.CancellationTokenSource();
     execution = new CliCommandExecutor(
-      new SfCommandBuilder().withArg('force').withArg('--help').build(),
+      new SfCommandBuilder().withArg('--help').build(),
       {}
     ).execute(tokenSource.token);
   });

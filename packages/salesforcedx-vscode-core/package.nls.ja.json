@@ -51,7 +51,7 @@
   "project_generate_with_manifest_text": "SFDX: マニフェストファイルを使用してプロジェクトを作成",
   "project_retrieve_start_default_org_text": "SFDX: デフォルトのスクラッチ組織からソースをプル",
   "project_retrieve_start_ignore_conflicts_default_org_text": "SFDX: Pull Source from Default Org and Ignore Conflicts",
-  "push_or_deploy_on_save_enabled_description": "ローカルのソースファイルを保存した際に、自動的に project:deploy:start コマンド (ソースが追跡される組織) または、project:deploy:start コマンド (ソースが追跡されない組織) を実行するかどうかを指定します。",
+  "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically push (for source-tracked orgs) or deploy (for non-source-tracked orgs) when a local source file is saved.",
   "refresh_components_text": "SFDX: コンポーネントを更新",
   "refresh_types_text": "SFDX: メタデータ型を更新",
   "rename_lightning_component_text": "SFDX: Rename Component",

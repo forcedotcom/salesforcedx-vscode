@@ -362,7 +362,7 @@ describe('orgList Tests', () => {
         ).to.equal(true);
       });
 
-      it('should return Continue and call sf:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
+      it('should return Continue and call sf:org:login:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
           '$(plus) ' + nls.localize('org_login_access_token_text')
@@ -384,7 +384,7 @@ describe('orgList Tests', () => {
         );
       });
 
-      it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
+      it('should return Continue and call config:set command if a username/alias is selected', async () => {
         orgListStub.returns(orgsList);
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
