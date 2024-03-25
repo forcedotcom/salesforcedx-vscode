@@ -104,7 +104,8 @@ const getMockVSCode = () => {
         show: jest.fn()
       },
       createStatusBarItem: jest.fn(),
-      createTextEditorDecorationType: jest.fn()
+      createTextEditorDecorationType: jest.fn(),
+      onDidChangeWindowState: jest.fn()
     },
     workspace: {
       getConfiguration: () => {
@@ -176,7 +177,15 @@ const getMockVSCode = () => {
       public constructor() {}
     },
     LanguageStatusSeverity,
-    TreeItemCollapsibleState
+    TreeItemCollapsibleState,
+    ThemeColor: class {
+      public constructor(id: string) {}
+    },
+    ConfigurationTarget: {
+      Global: 1,
+      Workspace: 2,
+      WorkspaceFolder: 3
+    }
   };
 };
 

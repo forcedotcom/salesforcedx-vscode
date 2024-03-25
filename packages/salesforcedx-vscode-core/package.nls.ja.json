@@ -4,6 +4,8 @@
   "apex_generate_class_text": "SFDX: Apex クラスを作成",
   "apex_generate_trigger_text": "SFDX: Apex トリガを作成",
   "cancel_sfdx_command_text": "SFDX: アクティブなコマンドをキャンセル",
+  "color_warning_production_org_color_description": "本番環境で作業しているときのステータスバーの色を指定します。Color-warning-production-org」がfalseに設定されている場合、この設定は無視されます。",
+  "color_warning_production_org_description": "ステータスバーの色を変えて、本番環境で作業していることを示す。",
   "config_list_text": "SFDX: すべての設定変数を一覧表示",
   "config_set_org_text": "SFDX: デフォルトの組織を設定",
   "conflict_detect_open_file": "ファイルを開く",
