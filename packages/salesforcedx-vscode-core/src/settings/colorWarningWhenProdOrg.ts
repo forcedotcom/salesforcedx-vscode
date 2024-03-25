@@ -18,7 +18,7 @@ import { SfdxCoreSettings } from './sfdxCoreSettings';
 export const colorWhenProductionOrg = async () => {
   const baseColorStatusBar = new vscode.ThemeColor('statusBar.background');
 
-  const colorWHenProductionOrgHandler = async () => {
+  const colorWhenProductionOrgHandler = async () => {
     const usernameOrAlias = await getDefaultUsernameOrAlias();
     const settings = SfdxCoreSettings.getInstance();
 
@@ -47,7 +47,7 @@ export const colorWhenProductionOrg = async () => {
   };
 
   WorkspaceContext.getInstance().onOrgChange(() =>
-    colorWHenProductionOrgHandler()
+    colorWhenProductionOrgHandler()
   );
 
   /**
@@ -55,7 +55,7 @@ export const colorWhenProductionOrg = async () => {
    */
   vscode.window.onDidChangeWindowState(async e => {
     if (e.focused) {
-      await colorWHenProductionOrgHandler();
+      await colorWhenProductionOrgHandler();
     } else {
       await vscode.workspace
         .getConfiguration()
@@ -66,5 +66,5 @@ export const colorWhenProductionOrg = async () => {
         );
     }
   });
-  return await colorWHenProductionOrgHandler();
+  return await colorWhenProductionOrgHandler();
 };
