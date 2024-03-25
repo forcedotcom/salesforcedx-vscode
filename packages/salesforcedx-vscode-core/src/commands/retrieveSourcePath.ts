@@ -45,10 +45,10 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       const sourcePaths = inputs.data;
       try {
         for (const sourcePath of sourcePaths) {
-          const isInSfdxPackageDirectory =
+          const isInSalesforcePackageDirectory =
             await SalesforcePackageDirectories.isInPackageDirectory(sourcePath);
 
-          if (!isInSfdxPackageDirectory) {
+          if (!isInSalesforcePackageDirectory) {
             throw nls.localize(
               'error_source_path_not_in_package_directory_text'
             );

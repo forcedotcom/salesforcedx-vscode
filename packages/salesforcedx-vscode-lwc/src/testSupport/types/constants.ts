@@ -26,11 +26,11 @@ export const LWC_TEST_DOCUMENT_SELECTOR = {
 /**
  * Context when LWC Jest Test file is focused
  */
-export const SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sf:lwc_jest_file_focused';
+export const SF_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sf:lwc_jest_file_focused';
 /**
  * Context when LWC Jest Test file is focused and user is currently watching the test
  */
-export const SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
+export const SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
   'sf:lwc_jest_is_watching_focused_file';
 
 /**

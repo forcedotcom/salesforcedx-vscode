@@ -12,7 +12,7 @@ import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { isTestCaseInfo, TestExecutionInfo, TestInfoKind } from '../types';
 import { workspace, workspaceService } from '../workspace';
-import { SfdxTask, taskService } from './taskService';
+import { SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
 export const enum TestRunType {
@@ -180,7 +180,7 @@ export class TestRunner {
    * Create and start a task for test execution.
    * Returns the task wrapper on task creation if successful.
    */
-  public async executeAsSfdxTask(): Promise<SfdxTask | undefined> {
+  public async executeAsSfTask(): Promise<SfTask | undefined> {
     const shellExecutionInfo = this.getShellExecutionInfo();
     if (shellExecutionInfo) {
       const { command, args, workspaceFolder, testResultFsPath } =

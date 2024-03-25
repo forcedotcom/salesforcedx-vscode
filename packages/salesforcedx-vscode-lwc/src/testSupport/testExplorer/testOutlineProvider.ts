@@ -10,8 +10,8 @@ import * as vscode from 'vscode';
 import { lwcTestIndexer } from '../testIndexer';
 import { TestCaseInfo, TestFileInfo } from '../types';
 import {
-  SfdxTestGroupNode,
-  SfdxTestNode,
+  SfTestGroupNode,
+  SfTestNode,
   sortTestNodeByLabel,
   TestNode
 } from './testNode';
@@ -32,7 +32,7 @@ const getLabelFromTestFileInfo = (testFileInfo: TestFileInfo) => {
 /**
  * Test Explorer Tree Data Provider implementation
  */
-export class SfdxTestOutlineProvider
+export class SfTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode>, vscode.Disposable
 {
   private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> =
@@ -88,7 +88,7 @@ export class SfdxTestOutlineProvider
    */
   public async getChildren(element?: TestNode): Promise<TestNode[]> {
     if (element) {
-      if (element instanceof SfdxTestGroupNode) {
+      if (element instanceof SfTestGroupNode) {
         if (element.location) {
           const testInfo = await lwcTestIndexer.findTestInfoFromLwcJestTestFile(
             element.location.uri
@@ -96,7 +96,7 @@ export class SfdxTestOutlineProvider
           if (testInfo) {
             return testInfo.map(testCaseInfo => {
               const testNodeLabel = getLabelFromTestCaseInfo(testCaseInfo);
-              return new SfdxTestNode(testNodeLabel, testCaseInfo);
+              return new SfTestNode(testNodeLabel, testCaseInfo);
             });
           }
         }
@@ -108,7 +108,7 @@ export class SfdxTestOutlineProvider
         return allTestFileInfo
           .map(testFileInfo => {
             const testNodeLabel = getLabelFromTestFileInfo(testFileInfo);
-            const testGroupNode = new SfdxTestGroupNode(
+            const testGroupNode = new SfTestGroupNode(
               testNodeLabel,
               testFileInfo
             );
@@ -130,7 +130,7 @@ export class SfdxTestOutlineProvider
 export const registerLwcTestExplorerTreeView = (
   extensionContext: vscode.ExtensionContext
 ) => {
-  const testOutlineProvider = new SfdxTestOutlineProvider();
+  const testOutlineProvider = new SfTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(
     'sf.lightning.lwc.test.view',
     testOutlineProvider

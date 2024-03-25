@@ -8,25 +8,25 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channel';
 import { nls } from '../../messages';
 
-interface SfdxTaskDefinition extends vscode.TaskDefinition {
+interface SfTaskDefinition extends vscode.TaskDefinition {
   sfTaskId: string;
 }
 
 /**
  * A wrapper over vscode.Task that emits events during task lifecycle
  */
-export class SfdxTask {
+export class SfTask {
   private task: vscode.Task;
   private taskExecution?: vscode.TaskExecution;
-  public onDidStart: vscode.Event<SfdxTask>;
-  public onDidEnd: vscode.Event<SfdxTask>;
+  public onDidStart: vscode.Event<SfTask>;
+  public onDidEnd: vscode.Event<SfTask>;
 
-  private onDidStartEventEmitter: vscode.EventEmitter<SfdxTask>;
-  private onDidEndEventEmitter: vscode.EventEmitter<SfdxTask>;
+  private onDidStartEventEmitter: vscode.EventEmitter<SfTask>;
+  private onDidEndEventEmitter: vscode.EventEmitter<SfTask>;
   constructor(task: vscode.Task) {
     this.task = task;
-    this.onDidStartEventEmitter = new vscode.EventEmitter<SfdxTask>();
-    this.onDidEndEventEmitter = new vscode.EventEmitter<SfdxTask>();
+    this.onDidStartEventEmitter = new vscode.EventEmitter<SfTask>();
+    this.onDidEndEventEmitter = new vscode.EventEmitter<SfTask>();
     this.onDidStart = this.onDidStartEventEmitter.event;
     this.onDidEnd = this.onDidEndEventEmitter.event;
   }
@@ -61,7 +61,7 @@ export class SfdxTask {
  * Task service for creating vscode.Task
  */
 class TaskService {
-  private createdTasks: Map<string, SfdxTask>;
+  private createdTasks: Map<string, SfTask>;
 
   constructor() {
     this.createdTasks = new Map();
@@ -122,8 +122,8 @@ class TaskService {
     taskScope: vscode.WorkspaceFolder | vscode.TaskScope,
     cmd: string,
     args: (string | vscode.ShellQuotedString)[]
-  ): SfdxTask {
-    const taskDefinition: SfdxTaskDefinition = {
+  ): SfTask {
+    const taskDefinition: SfTaskDefinition = {
       type: 'sfLwcTest',
       sfTaskId: taskId
     };
@@ -156,7 +156,7 @@ class TaskService {
     );
     task.presentationOptions.clear = true;
 
-    const sfTask = new SfdxTask(task);
+    const sfTask = new SfTask(task);
     this.createdTasks.set(taskId, sfTask);
     return sfTask;
   }

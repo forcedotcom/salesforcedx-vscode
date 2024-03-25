@@ -38,7 +38,7 @@ export abstract class TestNode extends vscode.TreeItem {
 /**
  * Test Node representing an individual test case.
  */
-export class SfdxTestNode extends TestNode {
+export class SfTestNode extends TestNode {
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
 
@@ -60,7 +60,7 @@ export class SfdxTestNode extends TestNode {
  * Test Group Node representing a test file.
  * By default it's collpased
  */
-export class SfdxTestGroupNode extends TestNode {
+export class SfTestGroupNode extends TestNode {
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
   constructor(

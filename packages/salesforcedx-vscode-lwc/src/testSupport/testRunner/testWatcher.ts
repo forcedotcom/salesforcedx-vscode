@@ -7,15 +7,15 @@
 import * as vscode from 'vscode';
 import { TestExecutionInfo } from '../types';
 import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
-import { SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
-import { SfdxTask } from './taskService';
+import { SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
+import { SfTask } from './taskService';
 import { TestRunner, TestRunType } from './testRunner';
 
 /**
  * Test Watcher class for watching Jest tests
  */
 class TestWatcher {
-  private watchedTests: Map<string, SfdxTask> = new Map();
+  private watchedTests: Map<string, SfTask> = new Map();
 
   /**
    * Start watching tests from provided test execution info
@@ -28,7 +28,7 @@ class TestWatcher {
       FORCE_LWC_TEST_WATCH_LOG_NAME
     );
     try {
-      const sfTask = await testRunner.executeAsSfdxTask();
+      const sfTask = await testRunner.executeAsSfTask();
       if (sfTask) {
         const { testUri } = testExecutionInfo;
         const { fsPath } = testUri;
@@ -94,7 +94,7 @@ class TestWatcher {
     ) {
       vscode.commands.executeCommand(
         'setContext',
-        SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT,
+        SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT,
         this.isWatchingTest(testUri)
       );
     }

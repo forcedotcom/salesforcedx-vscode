@@ -12,7 +12,7 @@ import * as which from 'which';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
-import { SfdxTask } from '../../../../src/testSupport/testRunner/taskService';
+import { SfTask } from '../../../../src/testSupport/testRunner/taskService';
 import { testResultsWatcher } from '../../../../src/testSupport/testRunner/testResultsWatcher';
 import {
   TestFileInfo,
@@ -29,7 +29,7 @@ export { mockPreviewJavaScriptDebugger, unmockPreviewJavaScriptDebugger };
 
 let existsSyncStub: SinonStub<[fs.PathLike], boolean>;
 let whichSyncStub: SinonStub<[string], fs.PathLike>;
-let sfTaskExecuteStub: SinonStub<[], Promise<SfdxTask>>;
+let sfTaskExecuteStub: SinonStub<[], Promise<SfTask>>;
 let activeTextEditorStub: SinonStub<any[], any>;
 let getTempFolderStub: SinonStub<[string, string], string>;
 let watchTestResultsStub: SinonStub<[string], void>;
@@ -79,11 +79,9 @@ export function unmockGetLwcTestRunnerExecutable() {
   }
 }
 
-export function mockSfdxTaskExecute(immediate?: boolean) {
-  sfTaskExecuteStub = stub(SfdxTask.prototype, 'execute');
-  sfTaskExecuteStub.callsFake(async function (
-    this: SfdxTask
-  ): Promise<SfdxTask> {
+export function mockSfTaskExecute(immediate?: boolean) {
+  sfTaskExecuteStub = stub(SfTask.prototype, 'execute');
+  sfTaskExecuteStub.callsFake(async function (this: SfTask): Promise<SfTask> {
     if (immediate) {
       this.notifyEndTask();
       return this;
@@ -98,7 +96,7 @@ export function mockSfdxTaskExecute(immediate?: boolean) {
   });
 }
 
-export function unmockSfdxTaskExecute() {
+export function unmockSfTaskExecute() {
   sfTaskExecuteStub.restore();
 }
 

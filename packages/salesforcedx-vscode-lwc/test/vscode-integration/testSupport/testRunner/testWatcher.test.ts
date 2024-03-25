@@ -11,9 +11,9 @@ import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../../../../src/testSupport/types
 import {
   createMockTestFileInfo,
   mockGetLwcTestRunnerExecutable,
-  mockSfdxTaskExecute,
+  mockSfTaskExecute,
   unmockGetLwcTestRunnerExecutable,
-  unmockSfdxTaskExecute
+  unmockSfTaskExecute
 } from '../mocks';
 import { expect } from 'chai';
 
@@ -30,13 +30,13 @@ describe('Test Watcher', () => {
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
       processHrtimeStub = stub(process, 'hrtime');
-      mockSfdxTaskExecute(true);
+      mockSfTaskExecute(true);
       mockGetLwcTestRunnerExecutable();
     });
     afterEach(() => {
       processHrtimeStub.restore();
       telemetryStub.restore();
-      unmockSfdxTaskExecute();
+      unmockSfTaskExecute();
       unmockGetLwcTestRunnerExecutable();
     });
 
