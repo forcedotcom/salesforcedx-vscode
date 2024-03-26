@@ -14,7 +14,6 @@ import { lwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands
 import {
   lwcTestCaseRun,
   lwcTestFileRun,
-  lwcTestRun,
   lwcTestRunAllTests
 } from '../../../../src/testSupport/commands/lwcTestRunAction';
 import {
