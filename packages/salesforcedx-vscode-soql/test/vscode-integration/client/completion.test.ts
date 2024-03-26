@@ -67,7 +67,7 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
       .then(content => content.toLocaleString());
   }
 });
-const configDir = '.sf';
+const configDir = '.sfdx';
 
 describe('Should do completion', async () => {
   before(() => {
