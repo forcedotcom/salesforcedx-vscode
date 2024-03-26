@@ -1,13 +1,6 @@
 {
   "lightning_lwc_debugger": "Debug: LWC Jest Tests",
   "lightning_lwc_debugger_desc": "Debug configuration for running LWC jest tests in VSCode.",
-  "lightning_lwc_mobile_log_level": "モバイルプレビューする SFDX コマンドを呼び出す際に使用されるログレベル",
-  "lightning_lwc_open_text": "SFDX: ローカルの開発サーバを開く",
-  "lightning_lwc_preferences": "Salesforce Lightning Web Components",
-  "lightning_lwc_preview_text": "SFDX: コンポーネントをローカルでプレビュー",
-  "lightning_lwc_remember_device_description": "最後に使用したモバイルデバイスのターゲットを保存する",
-  "lightning_lwc_start_text": "SFDX: ローカルの開発サーバを起動",
-  "lightning_lwc_stop_text": "SFDX: ローカルの開発サーバを停止",
   "lightning_lwc_test_case_debug_text": "SFDX: Lightning Web コンポーネントのテストケースをデバッグ",
   "lightning_lwc_test_case_run_text": "SFDX: Lightning Web コンポーネントのテストケースを実行",
   "lightning_lwc_test_debug_current_file_text": "SFDX: 現在の Lightning Web コンポーネントのテストファイルをデバッグ",
