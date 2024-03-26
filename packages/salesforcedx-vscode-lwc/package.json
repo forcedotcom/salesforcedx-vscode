@@ -10,30 +10,6 @@
   "categories": [
     "Programming Languages"
   ],
-  "configuration": {
-    "properties": {
-      "salesforcedx-vscode-lwc.preview.logLevel": {
-        "default": "warn",
-        "description": "%lightning_lwc_mobile_log_level%",
-        "enum": [
-          "trace",
-          "debug",
-          "info",
-          "warn",
-          "error",
-          "fatal"
-        ],
-        "type": "string"
-      },
-      "salesforcedx-vscode-lwc.preview.rememberDevice": {
-        "default": true,
-        "description": "%lightning_lwc_remember_device_description%",
-        "type": "boolean"
-      }
-    },
-    "title": "%lightning_lwc_preferences%",
-    "type": "object"
-  },
   "contributes": {
     "commands": [
       {
@@ -141,6 +117,30 @@
         "title": "%lightning_lwc_test_stop_watching_all_tests_text%"
       }
     ],
+    "configuration": {
+      "properties": {
+        "salesforcedx-vscode-lwc.preview.logLevel": {
+          "default": "warn",
+          "description": "%lightning_lwc_mobile_log_level%",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
+          "type": "string"
+        },
+        "salesforcedx-vscode-lwc.preview.rememberDevice": {
+          "default": true,
+          "description": "%lightning_lwc_remember_device_description%",
+          "type": "boolean"
+        }
+      },
+      "title": "%lightning_lwc_preferences%",
+      "type": "object"
+    },
     "debuggers": [
       {
         "configurationSnippets": [
@@ -498,24 +498,5 @@
     "lib",
     "server.js"
   ],
-  "snippets": [
-    {
-      "language": "javascript",
-      "path": "./snippets/lwc-js.json"
-    },
-    {
-      "language": "html",
-      "path": "./snippets/lwc-html.json"
-    }
-  ],
-  "version": "60.6.0",
-  "views": {
-    "test": [
-      {
-        "id": "sf.lightning.lwc.test.view",
-        "name": "%lightning_lwc_test_view_name%",
-        "when": "sf:project_opened || sf:internal_dev"
-      }
-    ]
-  }
+  "version": "60.6.0"
 }
