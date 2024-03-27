@@ -324,7 +324,6 @@
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "6.5.2",
     "@salesforce/salesforcedx-utils-vscode": "60.6.0",
-    "@salesforce/source-deploy-retrieve": "10.3.3",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "shelljs": "0.8.5",
@@ -394,7 +393,6 @@
       "dependencies": {
         "@salesforce/apex-tmlanguage": "1.4.0",
         "@salesforce/core": "6.5.2",
-        "@salesforce/source-deploy-retrieve": "10.3.3",
         "@salesforce/source-tracking": "5.1.11",
         "@salesforce/templates": "^60.1.0",
         "applicationinsights": "1.0.7",
