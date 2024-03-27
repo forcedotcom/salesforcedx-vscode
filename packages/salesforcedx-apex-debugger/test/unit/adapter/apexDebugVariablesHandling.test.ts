@@ -6,9 +6,9 @@
  */
 /* tslint:disable:no-unused-expression */
 import { RequestService } from '@salesforce/salesforcedx-utils';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
 import {
   ApexDebug,
   ApexDebugStackFrameInfo,

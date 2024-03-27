@@ -11,11 +11,11 @@ import {
   CommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
+import { DebugClient } from '@vscode/debugadapter-testsupport';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-import { DebugClient } from 'vscode-debugadapter-testsupport';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';

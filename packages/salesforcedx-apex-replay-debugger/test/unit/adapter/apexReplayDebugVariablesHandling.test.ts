@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Source, StackFrame } from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { Source, StackFrame } from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
 import {
   ApexDebugStackFrameInfo,
@@ -93,9 +93,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
       await adapter.scopesRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.ScopesResponse = sendResponseSpy.getCall(
-        0
-      ).args[0];
+      const actualResponse: DebugProtocol.ScopesResponse =
+        sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.scopes.length).to.equal(0);
     });
@@ -109,9 +108,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       await adapter.scopesRequest(response, args);
 
-      const actualResponse: DebugProtocol.ScopesResponse = sendResponseSpy.getCall(
-        0
-      ).args[0];
+      const actualResponse: DebugProtocol.ScopesResponse =
+        sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.scopes.length).to.equal(3);
       expect(actualResponse.body.scopes[0].name).to.equal('Local');
@@ -177,9 +175,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
     it('Should return no variables for unknown scope', async () => {
       await adapter.variablesRequest(response, args);
 
-      const actualResponse: DebugProtocol.VariablesResponse = sendResponseSpy.getCall(
-        0
-      ).args[0];
+      const actualResponse: DebugProtocol.VariablesResponse =
+        sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.variables.length).to.equal(0);
     });
@@ -198,9 +195,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       await adapter.variablesRequest(response, args);
 
-      const actualResponse: DebugProtocol.VariablesResponse = sendResponseSpy.getCall(
-        0
-      ).args[0];
+      const actualResponse: DebugProtocol.VariablesResponse =
+        sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.variables.length).to.equal(1);
       const apexVariable = actualResponse.body.variables[0];
@@ -440,34 +436,46 @@ describe('Replay debugger adapter variable handling - unit', () => {
         ) as ApexVariableContainer;
         expect(updatedLocRefVariable.variables.size).to.be.eq(7);
         expect(
-          (updatedLocRefVariable.variables.get(
-            'MyBoolean'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'MyBoolean'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('false');
         expect(
-          (updatedLocRefVariable.variables.get(
-            'MyDate'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'MyDate'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('Thu Sep 13 00:00:00 GMT 2018');
         expect(
-          (updatedLocRefVariable.variables.get(
-            'MyDouble'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'MyDouble'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('4.37559');
         expect(
-          (updatedLocRefVariable.variables.get(
-            'MyInteger'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'MyInteger'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('10');
         expect(
-          (updatedLocRefVariable.variables.get(
-            'MyLong'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'MyLong'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('4271993');
         expect(
-          (updatedLocRefVariable.variables.get(
-            'MyString'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'MyString'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq(
           "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
         );
@@ -503,9 +511,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
             .value
         ).to.be.eq("'9/13/2018'");
         expect(
-          (innerApexRefVar.variables.get(
-            'innerVariable'
-          ) as ApexVariableContainer).value
+          (
+            innerApexRefVar.variables.get(
+              'innerVariable'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('null');
       });
 
@@ -649,9 +659,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         expect(updatedLocRefVariable.variables.size).to.be.eq(2);
         expect(
-          (updatedLocRefVariable.variables.get(
-            'someInt'
-          ) as ApexVariableContainer).value
+          (
+            updatedLocRefVariable.variables.get(
+              'someInt'
+            ) as ApexVariableContainer
+          ).value
         ).to.be.eq('5');
         const listChildVar = updatedLocRefVariable.variables.get(
           'cfList'
@@ -778,34 +790,46 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         expect(frameInfo.globals.size).to.eq(8);
         expect(
-          (frameInfo.globals.get(
-            EXTENT_TRIGGER_PREFIX + 'isbefore'
-          ) as ApexVariableContainer).value
+          (
+            frameInfo.globals.get(
+              EXTENT_TRIGGER_PREFIX + 'isbefore'
+            ) as ApexVariableContainer
+          ).value
         ).to.eq('false');
         expect(
-          (frameInfo.globals.get(
-            EXTENT_TRIGGER_PREFIX + 'isdelete'
-          ) as ApexVariableContainer).value
+          (
+            frameInfo.globals.get(
+              EXTENT_TRIGGER_PREFIX + 'isdelete'
+            ) as ApexVariableContainer
+          ).value
         ).to.eq('false');
         expect(
-          (frameInfo.globals.get(
-            EXTENT_TRIGGER_PREFIX + 'isundelete'
-          ) as ApexVariableContainer).value
+          (
+            frameInfo.globals.get(
+              EXTENT_TRIGGER_PREFIX + 'isundelete'
+            ) as ApexVariableContainer
+          ).value
         ).to.eq('false');
         expect(
-          (frameInfo.globals.get(
-            EXTENT_TRIGGER_PREFIX + 'isupdate'
-          ) as ApexVariableContainer).value
+          (
+            frameInfo.globals.get(
+              EXTENT_TRIGGER_PREFIX + 'isupdate'
+            ) as ApexVariableContainer
+          ).value
         ).to.eq('false');
         expect(
-          (frameInfo.globals.get(
-            EXTENT_TRIGGER_PREFIX + 'isafter'
-          ) as ApexVariableContainer).value
+          (
+            frameInfo.globals.get(
+              EXTENT_TRIGGER_PREFIX + 'isafter'
+            ) as ApexVariableContainer
+          ).value
         ).to.eq('true');
         expect(
-          (frameInfo.globals.get(
-            EXTENT_TRIGGER_PREFIX + 'isinsert'
-          ) as ApexVariableContainer).value
+          (
+            frameInfo.globals.get(
+              EXTENT_TRIGGER_PREFIX + 'isinsert'
+            ) as ApexVariableContainer
+          ).value
         ).to.eq('true');
 
         const triggerNew = frameInfo.globals.get(

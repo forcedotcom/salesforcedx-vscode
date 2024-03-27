@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Source } from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { Source } from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
@@ -104,8 +104,8 @@ describe('Debug console', () => {
       adapter.printToDebugConsole('test', source, 5, 'stdout');
 
       expect(sendEventSpy.calledOnce).to.be.true;
-      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
-        .args[0];
+      const outputEvent: DebugProtocol.OutputEvent =
+        sendEventSpy.getCall(0).args[0];
       expect(outputEvent.body.output).to.have.string('test');
       expect(outputEvent.body.category).to.equal('stdout');
       expect(outputEvent.body.line).to.equal(5);
@@ -134,8 +134,8 @@ describe('Debug console', () => {
       adapter.warnToDebugConsole('test');
 
       expect(sendEventSpy.calledOnce).to.be.true;
-      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
-        .args[0];
+      const outputEvent: DebugProtocol.OutputEvent =
+        sendEventSpy.getCall(0).args[0];
       expect(outputEvent.body.output).to.have.string('test');
       expect(outputEvent.body.category).to.equal('console');
     });
@@ -161,8 +161,8 @@ describe('Debug console', () => {
       adapter.errorToDebugConsole('test');
 
       expect(sendEventSpy.calledOnce).to.be.true;
-      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
-        .args[0];
+      const outputEvent: DebugProtocol.OutputEvent =
+        sendEventSpy.getCall(0).args[0];
       expect(outputEvent.body.output).to.have.string('test');
       expect(outputEvent.body.category).to.equal('stderr');
     });
