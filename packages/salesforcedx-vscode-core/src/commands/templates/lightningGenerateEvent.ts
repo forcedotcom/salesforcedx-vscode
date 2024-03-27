@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateEventExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_event_text');
-  public telemetryName = 'force_lightning_event_create';
+  public telemetryName = 'lightning_generate_event';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningEvent;
   public getOutputFileName(data: DirFileNameSelection) {

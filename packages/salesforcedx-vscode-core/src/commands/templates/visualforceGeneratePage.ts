@@ -28,7 +28,7 @@ import {
 
 export class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('visualforce_generate_page_text');
-  public telemetryName = 'force_visualforce_page_create';
+  public telemetryName = 'visualforce_generate_page';
   public metadataTypeName = VISUALFORCE_PAGE_TYPE;
   public templateType = TemplateType.VisualforcePage;
   public getOutputFileName(data: DirFileNameSelection) {

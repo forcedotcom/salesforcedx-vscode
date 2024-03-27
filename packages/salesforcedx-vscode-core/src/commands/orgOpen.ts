@@ -89,7 +89,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
           nls.localize('org_open_default_scratch_org_container_error')
         );
         telemetryService.sendException(
-          'force_org_open_container',
+          'org_open_container',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an error when parsing the org open response ${error}`
         );

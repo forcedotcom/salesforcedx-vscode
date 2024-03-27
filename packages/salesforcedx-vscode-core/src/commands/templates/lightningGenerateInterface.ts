@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_interface_text');
-  public telemetryName = 'force_lightning_interface_create';
+  public telemetryName = 'lightning_generate_interface';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningInterface;
   public getOutputFileName(data: DirFileNameSelection) {

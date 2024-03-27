@@ -91,10 +91,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
             createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
             channelService.appendLine(errorResponse.message);
-            telemetryService.sendException(
-              'force_org_create',
-              errorResponse.message
-            );
+            telemetryService.sendException('org_create', errorResponse.message);
           }
         }
       } catch (err) {

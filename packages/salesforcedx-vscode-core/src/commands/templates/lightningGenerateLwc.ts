@@ -31,7 +31,7 @@ import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
 export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_lwc_text');
-  public telemetryName = 'force_lightning_web_component_create';
+  public telemetryName = 'lightning_generate_lwc';
   public metadataTypeName = LWC_TYPE;
   public templateType = TemplateType.LightningComponent;
   public getOutputFileName(data: DirFileNameSelection) {

@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateAppExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_app_text');
-  public telemetryName = 'force_lightning_app_create';
+  public telemetryName = 'lightning_generate_app';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningApp;
   public getOutputFileName(data: DirFileNameSelection) {

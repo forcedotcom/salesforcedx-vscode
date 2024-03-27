@@ -113,7 +113,7 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(sendCommandEventStub);
     sinon.assert.calledWith(
       sendCommandEventStub,
-      'force_apex_class_create',
+      'apex_generate_class',
       sinon.match.array,
       {
         dirType: 'defaultDir',
@@ -165,7 +165,7 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
       sendExceptionStub,
-      'force_template_create_library',
+      'template_create_library',
       errorMessage
     );
   });
@@ -208,7 +208,7 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
       sendExceptionStub,
-      'force_template_create_library',
+      'template_create_library',
       errorMessage
     );
   });
@@ -271,7 +271,7 @@ export default class TestLwc extends LightningElement {}`
     sinon.assert.calledOnce(sendCommandEventStub);
     sinon.assert.calledWith(
       sendCommandEventStub,
-      'force_lightning_web_component_create',
+      'lightning_generate_lwc',
       sinon.match.array,
       {
         dirType: 'defaultDir',

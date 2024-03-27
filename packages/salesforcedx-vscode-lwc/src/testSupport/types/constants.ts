@@ -36,12 +36,12 @@ export const SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
 /**
  * Run LWC test telemetry log name
  */
-export const LWC_TEST_RUN_LOG_NAME = 'force_lwc_test_run_action';
+export const LWC_TEST_RUN_LOG_NAME = 'lwc_test_run_action';
 /**
  * Debug LWC test telemetry log name
  */
-export const LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
+export const LWC_TEST_DEBUG_LOG_NAME = 'lwc_test_debug_action';
 /**
  * Watch LWC test telemetry log name
  */
-export const FORCE_LWC_TEST_WATCH_LOG_NAME = 'force_lwc_test_watch_action';
+export const FORCE_LWC_TEST_WATCH_LOG_NAME = 'lwc_test_watch_action';

@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_aura_component_text');
-  public telemetryName = 'force_lightning_component_create';
+  public telemetryName = 'lightning_generate_aura_component';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningComponent;
   public getOutputFileName(data: DirFileNameSelection) {

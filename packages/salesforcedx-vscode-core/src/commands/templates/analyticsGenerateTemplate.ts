@@ -30,7 +30,7 @@ import {
 
 export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
   public executionName = nls.localize('analytics_generate_template_text');
-  public telemetryName = 'force_analytics_template_create';
+  public telemetryName = 'analytics_generate_template';
   public metadataTypeName = ANALYTICS_TEMPLATE_TYPE;
   public templateType = TemplateType.AnalyticsTemplate;
   public getFileExtension(): string {

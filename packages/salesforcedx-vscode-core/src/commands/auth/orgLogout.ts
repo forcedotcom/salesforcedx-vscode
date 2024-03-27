@@ -64,7 +64,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
     super(
       nls.localize('org_logout_default_text'),
-      'force_auth_logout_default',
+      'org_logout_default',
       OUTPUT_CHANNEL
     );
   }
