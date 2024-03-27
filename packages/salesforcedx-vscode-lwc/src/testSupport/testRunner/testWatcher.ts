@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { TestExecutionInfo } from '../types';
-import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
+import { LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
 import { SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
 import { SfTask } from './taskService';
 import { TestRunner, TestRunType } from './testRunner';
@@ -25,7 +25,7 @@ class TestWatcher {
     const testRunner = new TestRunner(
       testExecutionInfo,
       TestRunType.WATCH,
-      FORCE_LWC_TEST_WATCH_LOG_NAME
+      LWC_TEST_WATCH_LOG_NAME
     );
     try {
       const sfTask = await testRunner.executeAsSfTask();

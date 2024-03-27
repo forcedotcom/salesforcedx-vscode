@@ -7,7 +7,7 @@
 import { assert, SinonStub, stub } from 'sinon';
 import { telemetryService } from '../../../../src/telemetry';
 import { testWatcher } from '../../../../src/testSupport/testRunner/testWatcher';
-import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import { LWC_TEST_WATCH_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
   mockGetLwcTestRunnerExecutable,
@@ -64,7 +64,7 @@ describe('Test Watcher', () => {
       assert.calledOnce(telemetryStub);
       assert.calledWith(
         telemetryStub,
-        FORCE_LWC_TEST_WATCH_LOG_NAME,
+        LWC_TEST_WATCH_LOG_NAME,
         mockExecutionTime,
         {
           workspaceType: 'SFDX'

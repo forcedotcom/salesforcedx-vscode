@@ -44,4 +44,4 @@ export const LWC_TEST_DEBUG_LOG_NAME = 'lwc_test_debug_action';
 /**
  * Watch LWC test telemetry log name
  */
-export const FORCE_LWC_TEST_WATCH_LOG_NAME = 'lwc_test_watch_action';
+export const LWC_TEST_WATCH_LOG_NAME = 'lwc_test_watch_action';

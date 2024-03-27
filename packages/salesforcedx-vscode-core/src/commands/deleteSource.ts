@@ -114,7 +114,7 @@ export async function deleteSource(sourceUri: vscode.Uri) {
       const errorMessage = nls.localize(
         'delete_source_select_file_or_directory'
       );
-      telemetryService.sendException('delete_source', errorMessage);
+      telemetryService.sendException('project_delete_source', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
