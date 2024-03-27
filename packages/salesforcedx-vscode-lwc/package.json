@@ -2,7 +2,8 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "workspaceContains:../workspace-user.xml",
-    "workspaceContains:**/workspace-user.xml"
+    "workspaceContains:**/workspace-user.xml",
+    "workspaceContains:../workspace.xml"
   ],
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
