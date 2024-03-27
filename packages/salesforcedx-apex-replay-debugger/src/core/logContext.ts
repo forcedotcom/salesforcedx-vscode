@@ -182,7 +182,7 @@ export class LogContext {
     if (
       topFrame &&
       topFrame.source &&
-      topFrame.source.name!.toLowerCase().endsWith('.trigger')
+      topFrame.source.name?.toLowerCase().endsWith('.trigger')
     ) {
       return true;
     }

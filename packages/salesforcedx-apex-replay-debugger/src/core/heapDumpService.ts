@@ -289,8 +289,8 @@ export class HeapDumpService {
         this.isCollectionType(outerExtent.typeName)) &&
       outerExtent.count > 0 &&
       outerExtent.extent[0].symbols !== null &&
-      outerExtent.extent[0].symbols!.length > 0 &&
-      outerExtent.extent[0].symbols![0].startsWith(EXTENT_TRIGGER_PREFIX)
+      outerExtent.extent[0].symbols.length > 0 &&
+      outerExtent.extent[0].symbols[0].startsWith(EXTENT_TRIGGER_PREFIX)
     ) {
       return true;
     }
