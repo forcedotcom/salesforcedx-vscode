@@ -10,11 +10,11 @@ import { Localization, Message } from './localization';
 
 function loadMessageBundle(): Message {
   try {
-    const layer = new Message(messages);
-    return layer;
+    return new Message(messages);
   } catch (e) {
     console.error('Cannot find messages in i18n module');
   }
+  return undefined;
 }
 
 export const nls = new Localization(loadMessageBundle());

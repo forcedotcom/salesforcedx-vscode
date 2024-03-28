@@ -9,8 +9,8 @@ import { Client } from 'faye';
 import { Connection, LoggerLevel } from '@salesforce/core';
 import {
   RetrieveResultsInterval,
-  StreamingErrors,
   StreamMessage,
+  StreamingErrors,
   TestResultMessage
 } from './types';
 import { Progress } from '../common';
@@ -19,7 +19,8 @@ import { elapsedTime, refreshAuth } from '../utils';
 import {
   ApexTestProgressValue,
   ApexTestQueueItem,
-  ApexTestQueueItemRecord
+  ApexTestQueueItemRecord,
+  ApexTestQueueItemStatus
 } from '../tests/types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
@@ -298,10 +299,10 @@ export class StreamingClient {
     if (
       result.records.some(
         (item) =>
-          item.Status === 'Queued' /* ApexTestQueueItemStatus.Queued */ ||
-          item.Status === 'Holding' /* ApexTestQueueItemStatus.Holding */ ||
-          item.Status === 'Preparing' /* ApexTestQueueItemStatus.Preparing */ ||
-          item.Status === 'Processing' /* ApexTestQueueItemStatus.Processing */
+          item.Status === ApexTestQueueItemStatus.Queued ||
+          item.Status === ApexTestQueueItemStatus.Holding ||
+          item.Status === ApexTestQueueItemStatus.Preparing ||
+          item.Status === ApexTestQueueItemStatus.Processing
       )
     ) {
       return null;

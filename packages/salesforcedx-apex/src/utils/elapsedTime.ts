@@ -7,8 +7,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-return */
 
-import { Logger, LoggerLevel } from '@salesforce/core';
-import { LoggerLevelValue } from '@salesforce/core/lib/logger/logger';
+import { Logger, LoggerLevel, LoggerLevelValue } from '@salesforce/core';
 
 const log = (
   level: LoggerLevelValue,

@@ -11,7 +11,8 @@
     "outDir": "lib",
     "preserveConstEnums": true,
     "skipLibCheck": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "noImplicitReturns": true
   },
   "exclude": ["node_modules", "lib"]
 }
