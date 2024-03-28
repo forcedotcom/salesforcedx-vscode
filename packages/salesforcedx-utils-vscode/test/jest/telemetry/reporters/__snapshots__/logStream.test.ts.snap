@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LogStream should write the exception event to the file 1`] = `
+"telemetry/myException {"properties":{"orgId":""},"measurements":{"count":1}}
+"
+`;
+
+exports[`LogStream should write the telemetry event to the file 1`] = `
+"telemetry/myEvent {"properties":{"key":"value"},"measurements":{"count":1}}
+"
+`;

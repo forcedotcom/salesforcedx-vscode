@@ -18,38 +18,37 @@
 export const messages = {
   command_failure: '%s failed to run.',
   command_canceled: '%s was canceled.',
-  force_lightning_lwc_start_text: 'SFDX: Start Local Development Server',
-  force_lightning_lwc_start_not_found:
+  lightning_lwc_start_text: 'SFDX: Start Local Development Server',
+  lightning_lwc_start_not_found:
     'To run this command, install the @salesforce/lwc-dev-server plugin. For more info, see [Set Up LWC Local Development](https://developer.salesforce.com/tools/vscode/en/localdev/set-up-lwc-local-dev).',
-  force_lightning_lwc_start_addr_in_use:
+  lightning_lwc_start_addr_in_use:
     "The local development server can't start because the address is already in use. To fix, try one of these options:\n 1) Stop the local dev server running on any another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n 3) Kill the process running on the specified port.",
-  force_lightning_lwc_inactive_scratch_org:
+  lightning_lwc_inactive_scratch_org:
     'The local development server can\'t start because your scratch org is not active. Run "SFDX: Create a Default Scratch Org" to create a scratch org, or run "SFDX: Set a Default Org" to select an active scratch org.',
-  force_lightning_lwc_start_failed:
+  lightning_lwc_start_failed:
     'The local development server was not able to start.',
-  force_lightning_lwc_start_exited:
+  lightning_lwc_start_exited:
     'The local development server exited unexpectedly with code %s.',
-  force_lightning_lwc_start_already_running:
+  lightning_lwc_start_already_running:
     'The local development server is already running.',
-  force_lightning_lwc_stop_text: 'SFDX: Stop Local Development Server',
-  force_lightning_lwc_stop_not_running:
+  lightning_lwc_stop_text: 'SFDX: Stop Local Development Server',
+  lightning_lwc_stop_not_running:
     'The local development server is not running.',
-  force_lightning_lwc_stop_in_progress: 'Stopping local development server',
-  force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
-  force_lightning_lwc_preview_file_undefined:
+  lightning_lwc_stop_in_progress: 'Stopping local development server',
+  lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
+  lightning_lwc_preview_file_undefined:
     "Can't find the Lightning Web Components module. Check that %s is the correct file path.",
-  force_lightning_lwc_preview_file_nonexist:
+  lightning_lwc_preview_file_nonexist:
     "Can't find the Lightning Web Components module in %s. Check that the module exists.",
-  force_lightning_lwc_preview_unsupported:
+  lightning_lwc_preview_unsupported:
     "Something's not right with the filepath. The local development server doesn't recognize the Lightning Web Components module '%s.'",
-  force_lightning_lwc_preview_container_mode:
+  lightning_lwc_preview_container_mode:
     'This command is only available in Salesforce Extensions for desktop because it requires local installs.',
-  force_lightning_lwc_open_text:
-    'SFDX: Open Local Development Server in Browser',
+  lightning_lwc_open_text: 'SFDX: Open Local Development Server in Browser',
   prompt_option_open_browser: 'Open Browser',
   prompt_option_restart: 'Restart',
-  force_lwc_test_run_description_text: 'Run LWC test(s)',
-  force_lightning_lwc_test_navigate_to_test:
+  lwc_test_run_description_text: 'Run LWC test(s)',
+  lightning_lwc_test_navigate_to_test:
     'SFDX: Navigate to Lightning Web Component Test',
   no_lwc_jest_found_text:
     'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
@@ -63,47 +62,42 @@ export const messages = {
   default_task_name: 'LWC Test',
   task_windows_command_prompt_messaging:
     'Default shell for running tasks is set to cmd.exe',
-  force_lightning_lwc_no_mobile_plugin:
+  lightning_lwc_no_mobile_plugin:
     'To run this command, install the @salesforce/lwc-dev-mobile plugin.',
-  force_lightning_lwc_platform_selection:
+  lightning_lwc_platform_selection:
     'Select the platform for previewing the component',
-  force_lightning_lwc_android_target_default:
+  lightning_lwc_android_target_default:
     'Enter a name for the Android emulator (leave blank for default)',
-  force_lightning_lwc_ios_target_default:
+  lightning_lwc_ios_target_default:
     'Enter a name for the iOS simulator (leave blank for default)',
-  force_lightning_lwc_android_target_remembered:
+  lightning_lwc_android_target_remembered:
     "Enter a name for the Android emulator (leave blank for '%s')",
-  force_lightning_lwc_ios_target_remembered:
+  lightning_lwc_ios_target_remembered:
     "Enter a name for the iOS simulator (leave blank for '%s')",
-  force_lightning_lwc_operation_cancelled:
-    'Preview operation cancelled by user.',
-  force_lightning_lwc_ios_label: 'Use iOS Simulator',
-  force_lightning_lwc_ios_description: 'Preview component on iOS',
-  force_lightning_lwc_android_label: 'Use Android Emulator',
-  force_lightning_lwc_android_description: 'Preview component on Android',
-  force_lightning_lwc_android_failure: "Failed to start Android Emulator '%s'.",
-  force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
-  force_lightning_lwc_android_start: "Starting Android Emulator '%s'.",
-  force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
-  force_lightning_lwc_browserapp_label: 'Browser',
-  force_lightning_lwc_browserapp_description: 'Your mobile browser.',
-  force_lightning_lwc_preview_create_virtual_device_label: 'New...',
-  force_lightning_lwc_preview_create_virtual_device_detail:
-    'Create a Virtual Device',
-  force_lightning_lwc_preview_select_virtual_device:
-    'Select a Virtual Device...',
-  force_lightning_lwc_preview_select_target_app:
-    'Select a Target Application...',
-  force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
-  force_lightning_lwc_preview_desktop_description:
+  lightning_lwc_operation_cancelled: 'Preview operation cancelled by user.',
+  lightning_lwc_ios_label: 'Use iOS Simulator',
+  lightning_lwc_ios_description: 'Preview component on iOS',
+  lightning_lwc_android_label: 'Use Android Emulator',
+  lightning_lwc_android_description: 'Preview component on Android',
+  lightning_lwc_android_failure: "Failed to start Android Emulator '%s'.",
+  lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
+  lightning_lwc_android_start: "Starting Android Emulator '%s'.",
+  lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
+  lightning_lwc_browserapp_label: 'Browser',
+  lightning_lwc_browserapp_description: 'Your mobile browser.',
+  lightning_lwc_preview_create_virtual_device_label: 'New...',
+  lightning_lwc_preview_create_virtual_device_detail: 'Create a Virtual Device',
+  lightning_lwc_preview_select_virtual_device: 'Select a Virtual Device...',
+  lightning_lwc_preview_select_target_app: 'Select a Target Application...',
+  lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
+  lightning_lwc_preview_desktop_description:
     'Preview component on desktop browser',
   lwc_output_channel_name: 'LWC Extension',
-  force_lightning_lwc_no_redhat_extension_found:
+  lightning_lwc_no_redhat_extension_found:
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
-  force_lightning_lwc_deprecated_redhat_extension:
+  lightning_lwc_deprecated_redhat_extension:
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
-  force_lightning_lwc_redhat_extension_regression:
+  lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
-  force_lightning_lwc_fail_redhat_extension:
-    'Failed to setup Red Hat XML extension'
+  lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension'
 };

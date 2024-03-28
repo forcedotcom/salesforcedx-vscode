@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "60.0.0",
+  "version": "60.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -18,7 +18,7 @@
     "theme": "light"
   },
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Programming Languages"
@@ -40,9 +40,9 @@
     "jsforce": "2.0.0-beta.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "60.0.0",
-    "@salesforce/salesforcedx-test-utils-vscode": "60.0.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.0.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "60.6.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.6.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "2.0.9",
@@ -103,8 +103,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onCommand:soql.builder.toggle"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "out/src",
   "serverPath": [
@@ -197,7 +196,7 @@
       "commandPalette": [
         {
           "command": "soql.builder.open.new",
-          "when": "sfdx:project_opened"
+          "when": "sf:project_opened"
         },
         {
           "command": "soql.builder.toggle",

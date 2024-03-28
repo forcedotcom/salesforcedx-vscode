@@ -53,7 +53,10 @@ export class ProjectDeployStartResultParser {
         message: this.response.message ?? 'Push failed. ',
         name: this.response.name ?? 'DeployFailed',
         status: this.response.status,
-        files: this.response.data ?? this.response.result.files
+        files: (this.response.data ?? this.response.result.files).filter(
+          (file: { state: string }) =>
+            file.state === 'Failed' || file.state === 'Conflict'
+        )
       } as ProjectDeployStartErrorResponse;
     }
   }

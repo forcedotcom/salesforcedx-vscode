@@ -66,19 +66,19 @@ export {
   initSObjectDefinitions
 } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
-export { forceSourceDeployManifest } from './forceSourceDeployManifest';
+export { deployManifest } from './deployManifest';
 export {
   LibraryDeploySourcePathExecutor,
-  forceSourceDeploySourcePaths
-} from './forceSourceDeploySourcePath';
+  deploySourcePaths
+} from './deploySourcePath';
 export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
-export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
-export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
+export { retrieveManifest } from './retrieveManifest';
+export { retrieveComponent } from './retrieveMetadata';
 export {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker,
-  forceSourceRetrieveSourcePaths
-} from './forceSourceRetrieveSourcePath';
+  retrieveSourcePaths
+} from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
 export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';

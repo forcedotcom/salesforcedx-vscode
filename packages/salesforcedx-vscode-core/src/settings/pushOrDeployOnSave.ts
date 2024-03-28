@@ -12,8 +12,8 @@ import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SalesforcePackageDirectories } from '../salesforceProject';
+import { salesforceCoreSettings } from '../settings';
 
 import { telemetryService } from '../telemetry';
 
@@ -67,18 +67,15 @@ export class DeployQueue {
   }
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    vscode.commands.executeCommand(
-      'sfdx.force.source.deploy.multiple.source.paths',
-      toDeploy
-    );
+    vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy);
   }
 
   private async executePushCommand() {
     const ignoreConflictsCommand =
-      sfdxCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
+      salesforceCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
         ? '.ignore.conflicts'
         : '';
-    const command = `sfdx.project.deploy.start${ignoreConflictsCommand}`;
+    const command = `sf.project.deploy.start${ignoreConflictsCommand}`;
     vscode.commands.executeCommand(command);
   }
 
@@ -90,7 +87,7 @@ export class DeployQueue {
       let deployType: string = '';
       try {
         const preferDeployOnSaveEnabled =
-          sfdxCoreSettings.getPreferDeployOnSaveEnabled();
+          salesforceCoreSettings.getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
           await this.executeDeployCommand(toDeploy);
           deployType = 'Deploy';
@@ -122,9 +119,9 @@ export class DeployQueue {
           case 'NamedOrgNotFound':
             displayError(nls.localize('error_fetching_auth_info_text'));
             break;
-          case 'NoDefaultusernameSet':
+          case 'NoTargetOrgSet':
             displayError(
-              nls.localize('error_push_or_deploy_on_save_no_default_username')
+              nls.localize('error_push_or_deploy_on_save_no_target_org')
             );
             break;
           default:
@@ -145,7 +142,7 @@ export async function registerPushOrDeployOnSave() {
     async (textDocument: vscode.TextDocument) => {
       const documentUri = textDocument.uri;
       if (
-        sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
+        salesforceCoreSettings.getPushOrDeployOnSaveEnabled() &&
         !(await ignorePath(documentUri.fsPath))
       ) {
         await DeployQueue.get().enqueue(documentUri);
@@ -175,7 +172,9 @@ export async function pathIsInPackageDirectory(
   documentPath: string
 ): Promise<boolean> {
   try {
-    return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
+    return await SalesforcePackageDirectories.isInPackageDirectory(
+      documentPath
+    );
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':

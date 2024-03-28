@@ -34,7 +34,7 @@ describe('Org Login Web', () => {
       loginUrl: TEST_URL
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
+      `sf org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_org_text')
@@ -50,7 +50,7 @@ describe('Org Login Web in Demo Mode', () => {
       loginUrl: TEST_URL
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json --loglevel fatal`
+      `sf org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_org_text')
@@ -262,7 +262,7 @@ describe('Org Login Web is based on environment variables', () => {
         loginUrl: TEST_URL
       });
       expect(orgLoginWebCommand.toCommand()).to.equal(
-        `sfdx org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json --loglevel fatal`
+        `sf org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json`
       );
       expect(orgLoginWebCommand.description).to.equal(
         nls.localize('org_login_web_authorize_org_text')
@@ -271,8 +271,8 @@ describe('Org Login Web is based on environment variables', () => {
   });
 });
 
-describe('Force Auth Device Login', () => {
-  class TestForceAuthDeviceLogin extends OrgLoginWebContainerExecutor {
+describe('Org Login Web Container', () => {
+  class TestOrgLoginWebContainer extends OrgLoginWebContainerExecutor {
     public deviceCodeReceived = false;
     public stdOut = '';
 
@@ -282,14 +282,14 @@ describe('Force Auth Device Login', () => {
   }
 
   let sb: sinon.SinonSandbox;
-  let deviceExecutor: TestForceAuthDeviceLogin;
+  let deviceExecutor: TestOrgLoginWebContainer;
   const testResponse: Partial<DeviceCodeResponse> = {
     user_code: '1234',
     verification_uri: 'http://example.com'
   };
 
   beforeEach(() => {
-    deviceExecutor = new TestForceAuthDeviceLogin();
+    deviceExecutor = new TestOrgLoginWebContainer();
 
     sb = sinon.createSandbox();
   });
@@ -307,8 +307,8 @@ describe('Force Auth Device Login', () => {
     expect(openExternal.called).to.be.true;
     expect(deviceExecutor.deviceCodeReceived).to.be.true;
 
-    const uri: vscode.Uri = (openExternal.getCall(0)
-      .args as unknown) as vscode.Uri;
+    const uri: vscode.Uri = openExternal.getCall(0)
+      .args as unknown as vscode.Uri;
     const targetUrl = uri.toString();
     expect(targetUrl).to.contain(testResponse.verification_uri);
     expect(targetUrl).to.contain(testResponse.user_code);

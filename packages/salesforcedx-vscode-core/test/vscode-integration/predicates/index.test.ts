@@ -12,11 +12,11 @@ import { SinonStub, stub } from 'sinon';
 import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { isSfdxProjectOpened } from '../../../src/predicates';
+import { isSalesforceProjectOpened } from '../../../src/predicates';
 import { workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('SFDX project predicate', () => {
+describe('SFDX Project predicate', () => {
   let mExistsSync: SinonStub;
 
   beforeEach(() => {
@@ -33,10 +33,10 @@ describe('SFDX project predicate', () => {
       )
       .returns(false);
 
-    const response = isSfdxProjectOpened.apply(workspace);
+    const response = isSalesforceProjectOpened.apply(workspace);
     expect(response.result).to.be.false;
     expect(response.message).to.eql(
-      nls.localize('predicates_no_sfdx_project_found_text')
+      nls.localize('predicates_no_salesforce_project_found_text')
     );
   });
 
@@ -47,7 +47,7 @@ describe('SFDX project predicate', () => {
       )
       .returns(true);
 
-    const response = isSfdxProjectOpened.apply(workspace);
+    const response = isSalesforceProjectOpened.apply(workspace);
     expect(response.result).to.be.true;
   });
 });

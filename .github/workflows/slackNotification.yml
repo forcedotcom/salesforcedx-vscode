@@ -30,6 +30,9 @@ on:
       testsBranch:
         description: Branch from the E2E Automation Tests repo
         type: string
+      vscodeVersion:
+        description: VSCode version that the tests were run on
+        type: string
     secrets:
       IDEE_RELEASE_SLACK_WEBHOOK:
         required: true
@@ -100,6 +103,7 @@ jobs:
           payload: |
             {
               "category": "${{ inputs.title }}",
+              "vscodeVersion": "${{ inputs.vscodeVersion }}",
               "branch": "${{ github.ref_name }}",
               "testsBranch": "${{ inputs.testsBranch }}",
               "summary": "${{ inputs.summary }}",

@@ -14,7 +14,7 @@ describe('Project Retrieve Start', () => {
     const projectRetrieveStartNoFlag = new ProjectRetrieveStartExecutor();
     const projectRetrieveStartCommand = projectRetrieveStartNoFlag.build({});
     expect(projectRetrieveStartCommand.toCommand()).to.equal(
-      'sfdx project:retrieve:start --json'
+      'sf project:retrieve:start --json'
     );
     expect(projectRetrieveStartCommand.description).to.equal(
       nls.localize('project_retrieve_start_default_org_text')
@@ -27,7 +27,7 @@ describe('Project Retrieve Start', () => {
     );
     const projectRetrieveStartCommand = sourcePullOverwrite.build({});
     expect(projectRetrieveStartCommand.toCommand()).to.equal(
-      'sfdx project:retrieve:start --json --ignore-conflicts'
+      'sf project:retrieve:start --json --ignore-conflicts'
     );
     expect(projectRetrieveStartCommand.description).to.equal(
       nls.localize('project_retrieve_start_ignore_conflicts_default_org_text')

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode';
+import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
 import { ExtensionMode, window } from 'vscode';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
@@ -25,7 +25,7 @@ describe('Telemetry', () => {
         .spyOn(window, 'showInformationMessage')
         .mockResolvedValue(undefined);
       settings = jest
-        .spyOn(SfdxCoreSettings.prototype, 'getTelemetryEnabled')
+        .spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled')
         .mockReturnValue(true);
       teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
       cliSpy = jest
@@ -46,9 +46,9 @@ describe('Telemetry', () => {
 
       await telemetryService.initializeService(mockExtensionContext);
 
-      const telemetryReporter = telemetryService.getReporter();
+      const telemetryReporters = telemetryService.getReporters();
 
-      expect(typeof telemetryReporter).toEqual('undefined');
+      expect(telemetryReporters.length).toEqual(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
@@ -96,13 +96,10 @@ describe('Telemetry', () => {
         .spyOn(window, 'showInformationMessage')
         .mockResolvedValue(undefined);
       settings = jest
-        .spyOn(SfdxCoreSettings.prototype, 'getTelemetryEnabled')
+        .spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled')
         .mockReturnValue(true);
-      reporter = jest.spyOn(TelemetryReporter.prototype, 'sendTelemetryEvent');
-      exceptionEvent = jest.spyOn(
-        TelemetryReporter.prototype,
-        'sendExceptionEvent'
-      );
+      reporter = jest.spyOn(AppInsights.prototype, 'sendTelemetryEvent');
+      exceptionEvent = jest.spyOn(AppInsights.prototype, 'sendExceptionEvent');
       teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
       cliSpy = jest
         .spyOn(telemetryService, 'checkCliTelemetry')
@@ -161,9 +158,9 @@ describe('Telemetry', () => {
 
       await telemetryService.initializeService(mockExtensionContext);
 
-      const telemetryReporter = telemetryService.getReporter() as TelemetryReporter;
+      const telemetryReporters = telemetryService.getReporters();
 
-      expect(typeof telemetryReporter).not.toEqual('undefined');
+      expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
   });

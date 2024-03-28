@@ -48,7 +48,7 @@ VS Code で初めて Apex デバッガを使用するときは、次の設定手
           "name": "Launch Apex Debugger",
           "type": "apex",
           "request": "launch",
-          "sfdxProject": "${workspaceRoot}"
+          "salesforceProject": "${workspaceRoot}"
         }
       ]
       ```
@@ -88,7 +88,7 @@ VS Code を閉じると、すべての例外ブレークポイントが削除さ
     "name": "Launch Apex Debugger",
     "type": "apex",
     "request": "launch",
-    "sfdxProject": "${workspaceRoot}"
+    "salesforceProject": "${workspaceRoot}"
     "userIdFilter": [],
     "requestTypeFilter": [],
     "entryPointFilter": ""

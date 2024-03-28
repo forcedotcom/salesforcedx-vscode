@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilities to interface the SFDX libraries with VS Code",
-  "version": "60.0.0",
+  "version": "60.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
@@ -42,7 +42,7 @@
     "typescript": "^5.2.2"
   },
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "scripts": {
     "compile": "tsc -p ./",

@@ -39,15 +39,11 @@ export function registerConflictView(): Disposable {
   const viewItems: Disposable[] = [];
 
   viewItems.push(
-    commands.registerCommand('sfdx.force.conflict.diff', entry =>
-      conflictDiff(entry)
-    )
+    commands.registerCommand('sf.conflict.diff', entry => conflictDiff(entry))
   );
 
   viewItems.push(
-    commands.registerCommand('sfdx.force.conflict.open', entry =>
-      openResource(entry)
-    )
+    commands.registerCommand('sf.conflict.open', entry => openResource(entry))
   );
 
   return Disposable.from(...viewItems);
@@ -70,6 +66,6 @@ function openResource(node: ConflictNode) {
   const file = node.conflict;
   if (file) {
     const local = Uri.file(path.join(file.localPath, file.localRelPath));
-    window.showTextDocument(local).then(() => { });
+    window.showTextDocument(local).then(() => {});
   }
 }

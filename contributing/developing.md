@@ -124,7 +124,7 @@ following.
   "userIdFilter": "",
   "requestTypeFilter": "",
   "entryPointFilter": "",
-  "sfdxProject": "${workspaceRoot}",
+  "salesforceProject": "${workspaceRoot}",
   "debugServer": 4711
 }
 ```
@@ -153,9 +153,10 @@ this command.
 ### `npm run compile`
 
 This invokes typescript compiler on the packages in the monorepo using [typescript project references](https://www.typescriptlang.org/docs/handbook/project-references.html).
-  - `npm run compile:watch` invokes typescript compiler to watch for changes in the background and compile only changed code and its dependencies. This would not invoke the post compile steps such as webpack or copying file artifacts.
-  - `npm run compile:clean` cleans previously compiled artifacts and invokes compile
-  - `npm run check:typescript-project-references` validates typescript project references and would error if there are any missing references
+
+- `npm run compile:watch` invokes typescript compiler to watch for changes in the background and compile only changed code and its dependencies. This would not invoke the post compile steps such as webpack or copying file artifacts.
+- `npm run compile:clean` cleans previously compiled artifacts and invokes compile
+- `npm run check:typescript-project-references` validates typescript project references and would error if there are any missing references
 
 ### `npm run clean`
 
@@ -196,13 +197,17 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
 
 ### `npm run check:peer-deps`
+
 This runs [check-peer-dependencies](https://www.npmjs.com/package/check-peer-dependencies) which
+
 > Checks peer dependencies of the current NodeJS package. Offers solutions for any that are unmet.
 
 Add any missing peer dependencies identified to the package's dev dependency.
 
 ### `npm run vsix:install`
+
 This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
+
 - The installation would overwrite any installed packages in insiders with same name and version (under `~/.vscode-insiders/extensions`).
 - To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
 
@@ -215,3 +220,23 @@ The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8
 ### .nvmrc
 
 Our nvmrc specifies the minimum node version required to run the project.
+
+### Development Mode Local Telemetry Logging
+
+During development and quality assurance testing, it can be helpful to validate telemetry events by logging to a local file when running the extension in Development Mode. Enable local dev mode telemetry logging using an advanced setting in your settings.json file:
+
+> "salesforcedx-vscode-core.advanced": {
+> "localTelemetryLogging": "true"
+> }
+
+With the above configuration, all extensions that use the telemetry module from the salesforcedx-vscode-core extension will log telemetry events to a local file at the project root.
+
+### Production Mode Local Telemetry Logging
+
+When the extension is running in Production mode, telemetry events can also be streamed to a local file. This can be helpful when debugging the built extensions or when debugging on a User's machine.
+
+With the following environment variables present, VS Code will log telemetry events to a local file at a location specified by your configuration:
+
+> VSCODE_LOGS=path/to/local/telemetry/file
+
+> VSCODE_LOG_LEVEL=trace

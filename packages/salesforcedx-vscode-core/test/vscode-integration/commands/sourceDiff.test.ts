@@ -20,7 +20,7 @@ import { sourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
 import {
   FilePathGatherer,
-  SfdxWorkspaceChecker
+  SfWorkspaceChecker
 } from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
@@ -36,8 +36,8 @@ import { telemetryService } from '../../../src/telemetry';
 
 const sandbox = createSandbox();
 
-describe('Force Source Diff', () => {
-  describe('Force Source File Diff', () => {
+describe('Diff', () => {
+  describe('File Diff', () => {
     const mockAlias = 'vscodeOrg';
     const mockUsername = 'admin@ut-sandbox.org';
     const mockFilePath = path.join(
@@ -69,7 +69,7 @@ describe('Force Source Diff', () => {
           return mockAlias;
         });
       workspaceCheckerStub = sandbox.stub(
-        SfdxWorkspaceChecker.prototype,
+        SfWorkspaceChecker.prototype,
         'check'
       );
       workspaceCheckerStub.returns(true);
@@ -190,7 +190,7 @@ describe('Force Source Diff', () => {
     });
   });
 
-  describe('Force Source Folder Diff', () => {
+  describe('Folder Diff', () => {
     let notificationStub: SinonStub;
     let diffOneFileStub: SinonSpy;
     let diffFolderStub: SinonSpy;

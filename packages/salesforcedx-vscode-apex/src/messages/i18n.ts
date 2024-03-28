@@ -27,7 +27,6 @@ export const messages = {
     'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting:
     'Apex Language Server has stopped. Restarting… %d of 5',
-  apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
@@ -41,30 +40,29 @@ export const messages = {
   colorizer_no_code_coverage_current_file:
     'No code coverage information was found for file %s. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs',
-  force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
-  force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
-  force_apex_log_list_text: 'Getting Apex debug logs',
-  force_apex_test_run_all_test_label: 'All Tests',
-  force_apex_test_run_all_local_test_label: 'All Local Tests',
-  force_apex_test_run_all_tests_description_text:
-    'Runs all tests in the current org',
-  force_apex_test_run_all_local_tests_description_text:
+  apex_log_get_text: 'SFDX: Get Apex Debug Logs',
+  apex_log_get_no_logs_text: 'No Apex debug logs were found',
+  apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
+  apex_log_list_text: 'Getting Apex debug logs',
+  apex_test_run_all_test_label: 'All Tests',
+  apex_test_run_all_local_test_label: 'All Local Tests',
+  apex_test_run_all_tests_description_text: 'Runs all tests in the current org',
+  apex_test_run_all_local_tests_description_text:
     'Runs all tests in the current org except the ones that originate from installed managed packages',
-  force_apex_test_run_description_text: 'Run Apex test(s)',
-  force_apex_test_run_codeAction_no_class_test_param_text:
+  apex_test_run_description_text: 'Run Apex test(s)',
+  apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',
-  force_apex_test_run_codeAction_no_method_test_param_text:
+  apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
-  force_apex_test_run_text: 'SFDX: Run Apex Tests',
-  force_test_view_loading_message: 'Loading Apex tests ...',
-  force_test_view_no_tests_message: 'No Apex Tests Found',
-  force_test_view_show_error_title: 'Show Error',
-  force_test_view_no_tests_description:
+  apex_test_run_text: 'SFDX: Run Apex Tests',
+  test_view_loading_message: 'Loading Apex tests ...',
+  test_view_no_tests_message: 'No Apex Tests Found',
+  test_view_show_error_title: 'Show Error',
+  test_view_no_tests_description:
     "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
@@ -78,10 +76,10 @@ export const messages = {
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
     'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) or [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) to run the extensions. For more information, see [Set Your Java Version](%s).',
-  wrong_java_version_short:
-    'Unsupported Java version',
-  java_version_check_command_failed: 'Running java command %s failed with error: %s',
-  force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
+  wrong_java_version_short: 'Unsupported Java version',
+  java_version_check_command_failed:
+    'Running java command %s failed with error: %s',
+  apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
@@ -90,8 +88,10 @@ export const messages = {
     'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
   terminate_processes: 'Terminate Processes',
   terminate_show_processes: 'Show Processes',
-  terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
-  terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
+  terminate_failed:
+    'Failed to terminate Apex Language Server process PID: %d: %s',
+  terminated_orphaned_process:
+    'Terminated Apex Language Server process PID: %d',
   terminated_orphaned_processes: 'Terminated %d orphaned processes.',
   unknown_error: 'Unknown error',
   process_id: 'Process ID',
@@ -101,6 +101,7 @@ export const messages = {
   yes: 'Yes',
   cancel: 'Cancel',
   terminate_processes_title: 'Terminate Orphaned Processes',
-  orphan_process_advice: "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
+  orphan_process_advice:
+    "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
   unknown: 'Unknown'
 };

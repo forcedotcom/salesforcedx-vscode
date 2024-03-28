@@ -19,7 +19,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryService } from '../telemetry/telemetry';
+import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -60,22 +60,22 @@ export class ConfigUtil {
     return apiVersion ? String(apiVersion) : undefined;
   }
 
-  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+  public static async getTargetOrgOrAlias(): Promise<string | undefined> {
     try {
       const configAggregator =
         await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-      const defaultUsernameOrAlias =
+      const targetOrgOrAlias =
         configAggregator.getPropertyValue(TARGET_ORG_KEY);
-      if (!defaultUsernameOrAlias) {
+      if (!targetOrgOrAlias) {
         return undefined;
       }
 
-      return JSON.stringify(defaultUsernameOrAlias).replace(/"/g, '');
+      return JSON.stringify(targetOrgOrAlias).replace(/"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
         TelemetryService.getInstance().sendException(
-          'get_default_username_alias',
+          'get_target_org_alias',
           err.message
         );
       }
@@ -83,7 +83,7 @@ export class ConfigUtil {
     }
   }
 
-  public static async isGlobalDefaultUsername(): Promise<boolean> {
+  public static async isGlobalTargetOrg(): Promise<boolean> {
     const configSource: ConfigSource =
       await ConfigUtil.getConfigSource(TARGET_ORG_KEY);
     return configSource === ConfigSource.Global;
@@ -107,25 +107,20 @@ export class ConfigUtil {
     return isTelemetryDisabled === 'true';
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(): Promise<
-    string | undefined
-  > {
+  public static async getTargetDevHubOrAlias(): Promise<string | undefined> {
     const configAggregator =
       await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultDevHubUserName =
-      configAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
-    return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
+    const targetDevHub = configAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
+    return targetDevHub ? String(targetDevHub) : undefined;
   }
 
-  public static async getGlobalDefaultDevHubUsernameOrAlias(): Promise<
+  public static async getGlobalTargetDevHubOrAlias(): Promise<
     string | undefined
   > {
     const globalConfig = await Config.create({ isGlobal: true });
-    const defaultGlobalDevHubUserName = globalConfig.get(TARGET_DEV_HUB_KEY);
+    const globalTargetDevHub = globalConfig.get(TARGET_DEV_HUB_KEY);
 
-    return defaultGlobalDevHubUserName
-      ? String(defaultGlobalDevHubUserName)
-      : undefined;
+    return globalTargetDevHub ? String(globalTargetDevHub) : undefined;
   }
 
   public static async getAllAliasesFor(username: string): Promise<string[]> {
@@ -143,29 +138,28 @@ export class ConfigUtil {
    * @returns The username for the configured Org if it exists.
    */
   public static async getUsername(): Promise<string | undefined> {
-    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
-    if (!defaultUsernameOrAlias) {
+    const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
+    if (!targetOrgOrAlias) {
       return;
     }
 
-    const username = await this.getUsernameFor(defaultUsernameOrAlias);
+    const username = await this.getUsernameFor(targetOrgOrAlias);
     return username ? String(username) : undefined;
   }
 
   /**
-   * Get the username of the default dev hub for the project.
+   * Get the username of the target dev hub for the project.
    *
-   * @returns The username for the configured default dev hub
+   * @returns The username for the configured target dev hub
    * Org if it exists.
    */
   public static async getDevHubUsername(): Promise<string | undefined> {
-    const defaultDevHubUsernameOrAlias =
-      await ConfigUtil.getDefaultDevHubUsernameOrAlias();
-    if (!defaultDevHubUsernameOrAlias) {
+    const targetDevHubOrAlias = await ConfigUtil.getTargetDevHubOrAlias();
+    if (!targetDevHubOrAlias) {
       return;
     }
 
-    const username = await this.getUsernameFor(defaultDevHubUsernameOrAlias);
+    const username = await this.getUsernameFor(targetDevHubOrAlias);
     return username ? String(username) : undefined;
   }
 
@@ -195,7 +189,7 @@ export class ConfigUtil {
     }
   }
 
-  public static async setDefaultUsernameOrAlias(
+  public static async setTargetOrgOrAlias(
     usernameOrAlias: string
   ): Promise<void> {
     const originalDirectory = process.cwd();

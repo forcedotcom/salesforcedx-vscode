@@ -112,7 +112,7 @@ export interface LaunchRequestArguments
   userIdFilter?: string[];
   requestTypeFilter?: string[];
   entryPointFilter?: string;
-  sfdxProject: string;
+  salesforceProject: string;
   connectType?: string;
   workspaceSettings: WorkspaceSettings;
   lineBreakpointInfo?: LineBreakpointInfo[];
@@ -434,7 +434,7 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
     const apexVariables: ApexVariable[] = [];
     let offset = 0;
     this.tupleContainers.forEach((container, reference) => {
-      if (offset >= start! && offset < start! + count!) {
+      if (offset >= start && offset < start + count) {
         apexVariables.push(
           new ApexVariable(
             {
@@ -541,7 +541,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected mySessionService!: SessionService;
   protected myBreakpointService!: BreakpointService;
   protected myStreamingService = StreamingService.getInstance();
-  protected sfdxProject!: string;
+  protected salesforceProject!: string;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 
@@ -664,10 +664,10 @@ export class ApexDebug extends LoggingDebugSession {
     this.initBreakpointSessionServices(args);
     this.setValidBreakpointLines(args);
     this.setupLogger(args);
-    this.sfdxProject = args.sfdxProject;
+    this.salesforceProject = args.salesforceProject;
     this.log(
       TRACE_CATEGORY_LAUNCH,
-      `launchRequest: sfdxProject=${args.sfdxProject}`
+      `launchRequest: salesforceProject=${args.salesforceProject}`
     );
 
     if (!this.myBreakpointService.hasLineNumberMapping()) {
@@ -677,7 +677,7 @@ export class ApexDebug extends LoggingDebugSession {
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
         const config = await new ConfigGet().getConfig(
-          args.sfdxProject,
+          args.salesforceProject,
           SF_CONFIG_ISV_DEBUGGER_SID,
           SF_CONFIG_ISV_DEBUGGER_URL
         );
@@ -693,20 +693,22 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(args.sfdxProject);
+        const orgInfo = await new OrgDisplay().getOrgInfo(
+          args.salesforceProject
+        );
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
 
       const isStreamingConnected = await this.connectStreaming(
-        args.sfdxProject
+        args.salesforceProject
       );
       if (!isStreamingConnected) {
         return this.sendResponse(response);
       }
 
       const sessionId = await this.mySessionService
-        .forProject(args.sfdxProject)
+        .forProject(args.salesforceProject)
         .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
@@ -724,7 +726,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }
     } catch (error) {
-      this.tryToParseSfdxError(response, error);
+      this.tryToParseSfError(response, error);
     }
     this.sendResponse(response);
   }
@@ -810,7 +812,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
           }
         } catch (error) {
-          this.tryToParseSfdxError(response, error);
+          this.tryToParseSfError(response, error);
         }
       } else {
         response.success = true;
@@ -840,7 +842,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
             const knownBps =
               await this.myBreakpointService.reconcileLineBreakpoints(
-                this.sfdxProject,
+                this.salesforceProject,
                 uri,
                 this.mySessionService.getSessionId(),
                 args.lines!.map(line => this.convertClientLineToDebugger(line))
@@ -1100,7 +1102,7 @@ export class ApexDebug extends LoggingDebugSession {
           try {
             await this.lock.acquire('exception-breakpoint', async () => {
               return this.myBreakpointService.reconcileExceptionBreakpoints(
-                this.sfdxProject,
+                this.salesforceProject,
                 this.mySessionService.getSessionId(),
                 requestArgs.exceptionInfo
               );
@@ -1492,7 +1494,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public tryToParseSfdxError(
+  public tryToParseSfError(
     response: DebugProtocol.Response,
     error?: any
   ): void {

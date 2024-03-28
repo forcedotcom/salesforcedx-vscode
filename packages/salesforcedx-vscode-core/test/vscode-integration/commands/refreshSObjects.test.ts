@@ -20,7 +20,7 @@ import {
   notificationService,
   ProgressNotification,
   projectPaths,
-  SfdxCommandlet
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
 import { expect } from 'chai';
@@ -40,7 +40,7 @@ import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
-describe('ForceGenerateFauxClasses', () => {
+describe('GenerateFauxClasses', () => {
   const sobjectsPath = path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
   describe('initSObjectDefinitions', () => {
     let sandboxStub: SinonSandbox;
@@ -58,7 +58,7 @@ describe('ForceGenerateFauxClasses', () => {
       sandboxStub
         .stub(WorkspaceContext.prototype, 'getConnection')
         .resolves({ getUsername: getUsernameStub });
-      commandletSpy = sandboxStub.stub(SfdxCommandlet.prototype, 'run');
+      commandletSpy = sandboxStub.stub(SfCommandlet.prototype, 'run');
       notificationStub = sandboxStub.stub(
         notificationService,
         'showInformationMessage'
@@ -94,7 +94,7 @@ describe('ForceGenerateFauxClasses', () => {
       expect(commandletSpy.notCalled).to.be.true;
     });
 
-    it('Should not execute sobject refresh if no default username set', async () => {
+    it('Should not execute sobject refresh if no target org set', async () => {
       existsSyncStub.returns(false);
       getUsernameStub.returns(undefined);
 
@@ -147,7 +147,7 @@ describe('ForceGenerateFauxClasses', () => {
     });
   });
 
-  describe('ForceGenerateFauxClassesExecutor', () => {
+  describe('GenerateFauxClassesExecutor', () => {
     let sandboxStub: SinonSandbox;
     let progressStub: SinonStub;
     let factoryStub: SinonStub;

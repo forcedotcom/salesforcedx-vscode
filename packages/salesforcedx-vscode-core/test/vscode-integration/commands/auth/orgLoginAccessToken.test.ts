@@ -12,7 +12,7 @@ import {
   AccessTokenParamsGatherer,
   orgLoginAccessToken
 } from '../../../../src/commands';
-import { SfdxWorkspaceChecker } from '../../../../src/commands/util';
+import { SfWorkspaceChecker } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 
 const sandbox = createSandbox();
@@ -28,10 +28,7 @@ describe('Org Login Access Token', () => {
   const mockInstanceUrl = 'https://na42.salesforce.com';
 
   beforeEach(() => {
-    workspaceCheckerStub = sandbox.stub(
-      SfdxWorkspaceChecker.prototype,
-      'check'
-    );
+    workspaceCheckerStub = sandbox.stub(SfWorkspaceChecker.prototype, 'check');
     workspaceCheckerStub.returns(true);
     accessTokenParamsGathererStub = sandbox.stub(
       AccessTokenParamsGatherer.prototype,

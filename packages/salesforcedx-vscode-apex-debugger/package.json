@@ -14,23 +14,23 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.0.0",
+  "version": "60.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "60.0.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.0.0",
+    "@salesforce/salesforcedx-apex-debugger": "60.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.6.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.0.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.6.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -141,7 +141,7 @@
               "userIdFilter": [],
               "requestTypeFilter": [],
               "entryPointFilter": "",
-              "sfdxProject": "^\"\\${workspaceRoot}\""
+              "salesforceProject": "^\"\\${workspaceRoot}\""
             }
           }
         ],
@@ -149,7 +149,7 @@
           "launch": {
             "properties": {
               "required": [
-                "sfdxProject"
+                "salesforceProject"
               ],
               "userIdFilter": {
                 "type": "array",
@@ -191,9 +191,9 @@
                 "description": "%entry_point_filter_text%",
                 "default": ""
               },
-              "sfdxProject": {
+              "salesforceProject": {
                 "type": "string",
-                "description": "%sfdx_project_text%",
+                "description": "%salesforce_project_text%",
                 "default": "${workspaceRoot}"
               },
               "trace": {
@@ -220,14 +220,14 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint",
-          "when": "sfdx:project_opened"
+          "command": "sf.debug.exception.breakpoint",
+          "when": "sf:project_opened"
         }
       ]
     },
     "commands": [
       {
-        "command": "sfdx.debug.exception.breakpoint",
+        "command": "sf.debug.exception.breakpoint",
         "title": "%exception_breakpoint_command_text%"
       }
     ]
