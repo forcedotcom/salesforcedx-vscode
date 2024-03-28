@@ -9,7 +9,7 @@ import * as util from '@salesforce/salesforcedx-test-utils-vscode/out/src/orgUti
 import {
   CliCommandExecutor,
   CommandExecution,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -37,7 +37,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
 
 /**
  * These integration tests assume the environment has authenticated to
- * a Dev Hub and it is set as the default Dev Hub.
+ * a Dev Hub and it is set as the target Dev Hub.
  */
 describe.skip('Interactive debugger adapter - integration', () => {
   jest.setTimeout(320000);
@@ -47,7 +47,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
   let apexClassUri: string;
 
   beforeAll(async () => {
-    // Generate SF project
+    // Generate SFDX Project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
     await util.generateSFProject(PROJECT_NAME);
@@ -201,10 +201,10 @@ const execApexNoWait = (
   userName: string
 ): CommandExecution => {
   return new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:apex:execute')
-      .withFlag('--apexcodefile', apexExecFilePath)
-      .withFlag('--targetusername', userName)
+    new SfCommandBuilder()
+      .withArg('apex:run')
+      .withFlag('--file', apexExecFilePath)
+      .withFlag('--target-org', userName)
       .withJson()
       .build(),
     { cwd: process.cwd() }

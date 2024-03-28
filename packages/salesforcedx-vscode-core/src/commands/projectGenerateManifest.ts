@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { workspaceUtils } from '../util';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
 const DEFAULT_MANIFEST = 'package.xml';
@@ -75,8 +75,8 @@ export async function projectGenerateManifest(
   } as vscode.InputBoxOptions;
   const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
+    const commandlet = new SfCommandlet(
+      new SfWorkspaceChecker(),
       new FilePathGatherer(sourceUri),
       new GenerateManifestExecutor(sourcePaths, responseText)
     );

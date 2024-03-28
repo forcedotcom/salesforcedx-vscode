@@ -7,19 +7,19 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
   FlagParameter,
   SelectUsername,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class OrgDisplay extends SfdxCommandletExecutor<{}> {
+export class OrgDisplay extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -28,10 +28,10 @@ export class OrgDisplay extends SfdxCommandletExecutor<{}> {
   }
 
   public build(data: { username?: string }): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withDescription(nls.localize('org_display_default_text'))
       .withArg('org:display')
-      .withLogName('force_org_display_default');
+      .withLogName('org_display_default');
     if (this.flag === '--target-org' && data.username) {
       builder
         .withDescription(nls.localize('org_display_username_text'))
@@ -41,7 +41,7 @@ export class OrgDisplay extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 
 export async function orgDisplay(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
@@ -50,7 +50,7 @@ export async function orgDisplay(this: FlagParameter<string>) {
     ? new SelectUsername()
     : new EmptyParametersGatherer();
   const executor = new OrgDisplay(flag);
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor

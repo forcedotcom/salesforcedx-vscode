@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   CommandOutput,
   RequestService,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
@@ -113,7 +113,7 @@ export class BreakpointService {
     line: number
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
+      new SfCommandBuilder()
         .withArg('data:create:record')
         .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag(
@@ -145,7 +145,7 @@ export class BreakpointService {
     breakpointId: string
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
+      new SfCommandBuilder()
         .withArg('data:delete:record')
         .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag('--record-id', breakpointId)
@@ -229,7 +229,7 @@ export class BreakpointService {
     typeref: string
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
+      new SfCommandBuilder()
         .withArg('data:create:record')
         .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag(

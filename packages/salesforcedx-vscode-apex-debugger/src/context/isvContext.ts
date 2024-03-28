@@ -21,7 +21,7 @@ export const setupGlobalDefaultUserIsvAuth = async () => {
 
     await vscode.commands.executeCommand(
       'setContext',
-      'sfdx:isv_debug_project',
+      'sf:isv_debug_project',
       isvDebugProject
     );
 

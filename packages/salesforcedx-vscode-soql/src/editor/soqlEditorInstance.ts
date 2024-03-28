@@ -20,7 +20,7 @@ import {
   retrieveSObject,
   retrieveSObjects,
   workspaceContext
-} from '../sfdx';
+} from '../sf';
 import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
 
@@ -249,7 +249,7 @@ export class SOQLEditorInstance {
     const queryText = this.document.getText();
     const conn = await workspaceContext.getConnection();
     const queryData = await new QueryRunner(
-      (conn as unknown) as Connection
+      conn as unknown as Connection
     ).runQuery(queryText);
     this.openQueryDataView(queryData);
     this.runQueryDone();

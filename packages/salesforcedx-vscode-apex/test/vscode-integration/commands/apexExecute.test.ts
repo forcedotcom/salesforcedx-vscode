@@ -73,7 +73,7 @@ describe('Apex Execute', () => {
 
     executeCommandStub = sb
       .stub(vscode.commands, 'executeCommand')
-      .withArgs('sfdx.launch.replay.debugger.logfile.path')
+      .withArgs('sf.launch.replay.debugger.logfile.path')
       .returns(true);
   });
 

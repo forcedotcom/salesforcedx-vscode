@@ -39,11 +39,11 @@ export function registerConflictView(): Disposable {
   const viewItems: Disposable[] = [];
 
   viewItems.push(
-    commands.registerCommand('sfdx.conflict.diff', entry => conflictDiff(entry))
+    commands.registerCommand('sf.conflict.diff', entry => conflictDiff(entry))
   );
 
   viewItems.push(
-    commands.registerCommand('sfdx.conflict.open', entry => openResource(entry))
+    commands.registerCommand('sf.conflict.open', entry => openResource(entry))
   );
 
   return Disposable.from(...viewItems);

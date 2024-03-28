@@ -11,7 +11,7 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { OrgLogoutAll, orgLogoutDefault } from '../../../../src/commands';
-import { SfdxCommandlet } from '../../../../src/commands/util';
+import { SfCommandlet } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo } from '../../../../src/util';
@@ -21,7 +21,7 @@ describe('Org Logout All', () => {
     const authLogoutAll = new OrgLogoutAll();
     const authLogoutAllCommand = authLogoutAll.build({});
     expect(authLogoutAllCommand.toCommand()).to.equal(
-      'sfdx org:logout --all --no-prompt'
+      'sf org:logout --all --no-prompt'
     );
     expect(authLogoutAllCommand.description).to.equal(
       nls.localize('org_logout_all_text')
@@ -43,11 +43,11 @@ describe('Org Logout Default', () => {
 
   beforeEach(() => {
     sb = createSandbox();
-    getUsernameStub = sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
+    getUsernameStub = sb.stub(OrgAuthInfo, 'getTargetOrgOrAlias');
     scratchOrgStub = sb.stub(OrgAuthInfo, 'isAScratchOrg');
     notificationStub = sb.stub(notificationService, 'showInformationMessage');
     sendExceptionStub = sb.stub(telemetryService, 'sendException');
-    commandletStub = sb.stub(SfdxCommandlet.prototype, 'run');
+    commandletStub = sb.stub(SfCommandlet.prototype, 'run');
     inputMessageStub = sb.stub(vscode.window, 'showInformationMessage');
     authRemoverStub = sb.stub(AuthRemover, 'create');
   });
@@ -63,10 +63,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       sendExceptionStub.called,
       'should not have reported an error'
@@ -85,10 +84,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       notificationStub.called,
       'should not have posted an error message'
@@ -103,10 +101,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       notificationStub.called,
       'should not have posted an error message'
@@ -121,10 +118,9 @@ describe('Org Logout Default', () => {
 
     await orgLogoutDefault();
 
-    expect(
-      getUsernameStub.called,
-      'should have requested default username'
-    ).to.equal(true);
+    expect(getUsernameStub.called, 'should have requested target org').to.equal(
+      true
+    );
     expect(
       sendExceptionStub.called,
       'should not have reported an error'

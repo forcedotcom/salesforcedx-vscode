@@ -34,7 +34,7 @@ describe('Org Login Web', () => {
       loginUrl: TEST_URL
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
+      `sf org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_org_text')
@@ -50,7 +50,7 @@ describe('Org Login Web in Demo Mode', () => {
       loginUrl: TEST_URL
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json --loglevel fatal`
+      `sf org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_org_text')
@@ -262,7 +262,7 @@ describe('Org Login Web is based on environment variables', () => {
         loginUrl: TEST_URL
       });
       expect(orgLoginWebCommand.toCommand()).to.equal(
-        `sfdx org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json --loglevel fatal`
+        `sf org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json`
       );
       expect(orgLoginWebCommand.description).to.equal(
         nls.localize('org_login_web_authorize_org_text')

@@ -15,7 +15,7 @@ export interface Command {
   toCommand(): string;
 }
 
-export { CommandBuilder, SfdxCommandBuilder } from './commandBuilder';
+export { CommandBuilder, SfCommandBuilder } from './commandBuilder';
 export {
   CliCommandExecution,
   CliCommandExecutor,

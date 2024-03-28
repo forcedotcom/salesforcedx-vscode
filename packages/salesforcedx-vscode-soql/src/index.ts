@@ -11,7 +11,7 @@ import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { workspaceContext, channelService } from './sfdx';
+import { workspaceContext, channelService } from './sf';
 import { telemetryService } from './telemetry';
 
 export const activate = async (

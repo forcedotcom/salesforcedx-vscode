@@ -9,14 +9,14 @@ import { componentUtil } from '@salesforce/lightning-lsp-common';
 import {
   CliCommandExecutor,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   EmptyParametersGatherer,
   isSFContainerMode,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -104,8 +104,8 @@ export const platformOptions: PreviewQuickPickItem[] = [
 
 const logName = 'lightning_lwc_preview';
 const commandName = nls.localize('lightning_lwc_preview_text');
-const sfdxDeviceListCommand = 'force:lightning:local:device:list';
-const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
+const sfDeviceListCommand = 'force:lightning:local:device:list';
+const sfMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
 export const lightningLwcPreview = async (sourceUri: vscode.Uri) => {
@@ -162,7 +162,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
     return;
   }
 
-  const isSFDX = true; // TODO support non SFDX projects
+  const isSFDX = true; // TODO support non SFDX Projects
   const isDirectory = fs.lstatSync(resourcePath).isDirectory();
   const componentName = isDirectory
     ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
@@ -265,14 +265,14 @@ const startServer = async (
 ) => {
   if (!DevServerService.instance.isServerHandlerRegistered()) {
     console.log(`${logName}: server was not running, starting...`);
-    const preconditionChecker = new SfdxWorkspaceChecker();
+    const preconditionChecker = new SfWorkspaceChecker();
     const parameterGatherer = new EmptyParametersGatherer();
     const executor = new LightningLwcStartExecutor({
       openBrowser: isDesktop,
       componentName
     });
 
-    const commandlet = new SfdxCommandlet(
+    const commandlet = new SfCommandlet(
       preconditionChecker,
       parameterGatherer,
       executor
@@ -332,8 +332,8 @@ const selectTargetDevice = async (
   }
 
   const deviceListOutput = new CommandOutput();
-  const deviceListCommand = new SfdxCommandBuilder()
-    .withArg(sfdxDeviceListCommand)
+  const deviceListCommand = new SfCommandBuilder()
+    .withArg(sfDeviceListCommand)
     .withFlag('-p', platformSelection.platformName)
     .withJson()
     .build();
@@ -392,7 +392,7 @@ const selectTargetDevice = async (
     const error = String(e) || '';
     if (
       deviceListExecutionExitCode === 127 ||
-      error.includes('not a sfdx command')
+      error.includes('not a sf command')
     ) {
       showError(
         new Error(nls.localize('lightning_lwc_no_mobile_plugin')),
@@ -532,9 +532,9 @@ const executeMobilePreview = async (
 ) => {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
 
-  let commandBuilder = new SfdxCommandBuilder()
+  let commandBuilder = new SfCommandBuilder()
     .withDescription(commandName)
-    .withArg(sfdxMobilePreviewCommand)
+    .withArg(sfMobilePreviewCommand)
     .withFlag('-p', platformSelection.platformName)
     .withFlag('-t', targetDevice)
     .withFlag('-n', componentName)

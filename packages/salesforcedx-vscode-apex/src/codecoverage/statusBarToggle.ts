@@ -9,7 +9,7 @@ import { Disposable, StatusBarItem, window } from 'vscode';
 import { nls } from '../messages';
 
 export class StatusBarToggle implements Disposable {
-  private static readonly toggleCodeCovCommand = 'sfdx.apex.toggle.colorizer';
+  private static readonly toggleCodeCovCommand = 'sf.apex.toggle.colorizer';
   private static readonly showIcon = '$(three-bars)';
   private static readonly hideIcon = '$(tasklist)';
   private static readonly toolTip = nls.localize(

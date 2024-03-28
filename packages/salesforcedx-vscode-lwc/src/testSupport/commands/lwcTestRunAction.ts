@@ -28,7 +28,7 @@ export const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
     LWC_TEST_RUN_LOG_NAME
   );
   try {
-    return await testRunner.executeAsSfdxTask();
+    return await testRunner.executeAsSfTask();
   } catch (error) {
     console.error(error);
   }

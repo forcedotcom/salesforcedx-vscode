@@ -19,15 +19,12 @@ describe('Describe Metadata', () => {
     const describeMetadataExec = new DescribeMetadataExecutor();
     const describeMetadataCmd = describeMetadataExec.build({});
     expect(describeMetadataCmd.toCommand()).to.equal(
-      'sfdx org:list:metadata-types --json'
+      'sf org:list:metadata-types --json'
     );
   });
 
   it('Should write a file with metadata describe output', async () => {
-    const execStub = sinon.stub(
-      DescribeMetadataExecutor.prototype,
-      'execute'
-    );
+    const execStub = sinon.stub(DescribeMetadataExecutor.prototype, 'execute');
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
 
     const outputFolder = './test/folder/';

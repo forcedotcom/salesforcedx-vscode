@@ -101,7 +101,7 @@ describe('Apex Generate Class', () => {
     sinon.assert.calledOnce(sendCommandEventStub);
     sinon.assert.calledWith(
       sendCommandEventStub,
-      'force_apex_class_create',
+      'apex_generate_class',
       sinon.match.array,
       {
         dirType: 'defaultDir',
@@ -136,7 +136,7 @@ describe('Apex Generate Class', () => {
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
       sendExceptionStub,
-      'force_template_create_library',
+      'template_create_library',
       errorMessage
     );
   });

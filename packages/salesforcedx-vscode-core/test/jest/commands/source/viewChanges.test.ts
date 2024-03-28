@@ -9,17 +9,17 @@ import {
   viewLocalChanges,
   viewRemoteChanges
 } from '../../../../src/commands';
-import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
+import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 
 describe('viewChanges', () => {
   let runMock: jest.Mock<any, any>;
-  let sfdxCommandletMocked: jest.SpyInstance<any, any>;
+  let sfCommandletMocked: jest.SpyInstance<any, any>;
 
   beforeEach(() => {
     // Arrange
     runMock = jest.fn();
-    sfdxCommandletMocked = jest
-      .spyOn(commandlet, 'SfdxCommandlet')
+    sfCommandletMocked = jest
+      .spyOn(commandlet, 'SfCommandlet')
       .mockImplementation((): any => {
         return {
           run: runMock
@@ -33,8 +33,8 @@ describe('viewChanges', () => {
       await viewAllChanges();
 
       // Assert
-      expect(sfdxCommandletMocked).toHaveBeenCalledTimes(1);
-      expect(sfdxCommandletMocked.mock.calls[0][2].options).toEqual({
+      expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
+      expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
         local: true,
         remote: true
       });
@@ -46,8 +46,8 @@ describe('viewChanges', () => {
     it('should get local changes', async () => {
       await viewLocalChanges();
 
-      expect(sfdxCommandletMocked).toHaveBeenCalledTimes(1);
-      expect(sfdxCommandletMocked.mock.calls[0][2].options).toEqual({
+      expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
+      expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
         local: true,
         remote: false
       });
@@ -59,8 +59,8 @@ describe('viewChanges', () => {
     it('should get remote changes', async () => {
       await viewRemoteChanges();
 
-      expect(sfdxCommandletMocked).toHaveBeenCalledTimes(1);
-      expect(sfdxCommandletMocked.mock.calls[0][2].options).toEqual({
+      expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
+      expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
         local: false,
         remote: true
       });

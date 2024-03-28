@@ -15,7 +15,7 @@ import {
   SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
 import { nls } from '../messages';
-import { channelService, isDefaultOrgSet } from '../sfdx';
+import { channelService, isDefaultOrgSet } from '../sf';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 

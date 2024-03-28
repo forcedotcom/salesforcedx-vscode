@@ -16,7 +16,7 @@ import {
   VSCODE_BINARY_PATH
 } from '../src/spectron/application';
 
-const TITLE = 'force:apex:execute UI commands Tests';
+const TITLE = 'apex:run UI commands Tests';
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const ANONYMOUS_APEX_CODE = `List<Account> acc = [SELECT Id, Name FROM Account Limit 2]; System.debug(acc);`;
 

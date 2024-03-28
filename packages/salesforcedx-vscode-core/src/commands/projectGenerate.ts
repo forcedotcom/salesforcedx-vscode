@@ -22,7 +22,7 @@ import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateComma
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
-  SfdxCommandlet
+  SfCommandlet
 } from './util';
 
 export enum projectTemplateEnum {
@@ -53,7 +53,7 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
   }
 
   public executionName = nls.localize('project_generate_text');
-  public telemetryName = 'force_project_create';
+  public telemetryName = 'project_generate';
   public templateType = TemplateType.Project;
   public getOutputFileName(data: ProjectNameAndPathAndTemplate) {
     return data.projectName;
@@ -223,7 +223,7 @@ const pathExistsChecker = new PathExistsChecker();
 
 export async function sfProjectGenerate() {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor();
-  const sfProjectGenerateCommandlet = new SfdxCommandlet(
+  const sfProjectGenerateCommandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createTemplateExecutor,
@@ -236,7 +236,7 @@ export async function projectGenerateWithManifest() {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor({
     isProjectWithManifest: true
   });
-  const projectGenerateWithManifestCommandlet = new SfdxCommandlet(
+  const projectGenerateWithManifestCommandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createTemplateExecutor,

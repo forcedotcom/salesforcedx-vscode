@@ -41,12 +41,8 @@ import { telemetryService } from './telemetry';
 
 // tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
-  export const type: RequestType<
-    TextDocumentPositionParams,
-    string,
-    any,
-    any
-  > = new RequestType('html/tag');
+  export const type: RequestType<TextDocumentPositionParams, string, any, any> =
+    new RequestType('html/tag');
 }
 
 export const activate = (context: ExtensionContext) => {
@@ -109,9 +105,8 @@ export const activate = (context: ExtensionContext) => {
           document: TextDocument
         ): Thenable<ColorInformation[]> => {
           const params: DocumentColorParams = {
-            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
-              document
-            )
+            textDocument:
+              client.code2ProtocolConverter.asTextDocumentIdentifier(document)
           };
           return client
             .sendRequest(DocumentColorRequest.type, params)
@@ -135,9 +130,10 @@ export const activate = (context: ExtensionContext) => {
           colorContext: { document: TextDocument; range: Range }
         ): Thenable<ColorPresentation[]> => {
           const params: ColorPresentationParams = {
-            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
-              colorContext.document
-            ),
+            textDocument:
+              client.code2ProtocolConverter.asTextDocumentIdentifier(
+                colorContext.document
+              ),
             range: client.code2ProtocolConverter.asRange(colorContext.range),
             color
           };
@@ -162,10 +158,11 @@ export const activate = (context: ExtensionContext) => {
       toDispose.push(disposable);
 
       const tagRequestor = (document: TextDocument, position: Position) => {
-        const param = client.code2ProtocolConverter.asTextDocumentPositionParams(
-          document,
-          position
-        );
+        const param =
+          client.code2ProtocolConverter.asTextDocumentPositionParams(
+            document,
+            position
+          );
         return client.sendRequest(TagCloseRequest.type, param);
       };
       disposable = activateTagClosing(
@@ -181,7 +178,8 @@ export const activate = (context: ExtensionContext) => {
     });
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
-      increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
+      increaseIndentPattern:
+        /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
       decreaseIndentPattern: /^\s*(<\/(?!html)[-_.A-Za-z0-9]+\b[^>]*>|-->|\})/
     },
     wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+[{\]}\\|;:'",.<>/\s]+)/g,
@@ -259,14 +257,14 @@ export const activate = (context: ExtensionContext) => {
   });
 
   // Telemetry
-  const sfdxCoreExtension = extensions.getExtension(
+  const salesforceCoreExtension = extensions.getExtension(
     'salesforce.salesforcedx-vscode-core'
   );
 
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
     telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporters(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      salesforceCoreExtension.exports.telemetryService.getReporters(),
+      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 
@@ -274,6 +272,6 @@ export const activate = (context: ExtensionContext) => {
 };
 
 export const deactivate = () => {
-  console.log('SFDX Visualforce Extension Deactivated');
+  console.log('Visualforce Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
 };

@@ -14,8 +14,8 @@ import {
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfWorkspaceChecker,
   TraceFlags,
   getYYYYMMddHHmmssDateFormat,
   hasRootWorkspace,
@@ -148,7 +148,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
     }
 
     await vscode.commands.executeCommand(
-      'sfdx.launch.replay.debugger.logfile.path',
+      'sf.launch.replay.debugger.logfile.path',
       logFilePath
     );
 
@@ -253,8 +253,8 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
 }
 
 export const anonApexExecute = async () => {
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new AnonApexGatherer(),
     new AnonApexLibraryExecuteExecutor(false)
   );
@@ -263,8 +263,8 @@ export const anonApexExecute = async () => {
 };
 
 export const anonApexDebug = async () => {
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new AnonApexGatherer(),
     new AnonApexLibraryExecuteExecutor(true)
   );

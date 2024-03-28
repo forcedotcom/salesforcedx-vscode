@@ -81,7 +81,7 @@ export class MetadataCacheService {
    * Specify the base project path and a component path that will define the metadata to cache for the project.
    *
    * @param componentPath A path referring to a project folder or an individual component resource
-   * @param projectPath The base path of an sfdx project
+   * @param projectPath The base path of a SFDX Project
    */
   public initialize(
     componentPath: string,
@@ -98,7 +98,7 @@ export class MetadataCacheService {
    *
    * @param componentPath A path referring to a project folder, an individual component resource
    * or a manifest file
-   * @param projectPath The base path of an sfdx project
+   * @param projectPath The base path of a SFDX Project
    * @param isManifest Whether the componentPath references a manifest file
    * @returns MetadataCacheResult describing the project and cache folders
    */

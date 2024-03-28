@@ -16,8 +16,8 @@ import {
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
@@ -28,7 +28,7 @@ import {
 
 export class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('visualforce_generate_page_text');
-  public telemetryName = 'force_visualforce_page_create';
+  public telemetryName = 'visualforce_generate_page';
   public metadataTypeName = VISUALFORCE_PAGE_TYPE;
   public templateType = TemplateType.VisualforcePage;
   public getOutputFileName(data: DirFileNameSelection) {
@@ -51,8 +51,8 @@ const metadataTypeGatherer = new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE);
 
 export async function visualforceGeneratePage() {
   const createTemplateExecutor = new LibraryVisualforceGeneratePageExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,

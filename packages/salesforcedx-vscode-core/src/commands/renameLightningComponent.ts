@@ -19,7 +19,7 @@ import { format } from 'util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { SfCommandlet, SfWorkspaceChecker } from './util';
 
 const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
@@ -66,8 +66,8 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
 export async function renameLightningComponent(sourceUri: vscode.Uri) {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
+    const commandlet = new SfCommandlet(
+      new SfWorkspaceChecker(),
       new GetComponentName(sourceFsPath),
       new RenameLwcComponentExecutor(sourceFsPath)
     );

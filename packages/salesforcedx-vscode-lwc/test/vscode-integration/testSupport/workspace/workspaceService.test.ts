@@ -52,12 +52,12 @@ describe('Workspace Service Unit Tests', () => {
       );
     });
 
-    it('should set sfdx:internal_dev to false', () => {
+    it('should set sf:internal_dev to false', () => {
       assert.calledOnce(executeCommandStub);
       assert.calledWith(
         executeCommandStub,
         'setContext',
-        'sfdx:internal_dev',
+        'sf:internal_dev',
         false
       );
     });
@@ -92,12 +92,12 @@ describe('Workspace Service Unit Tests', () => {
       );
     });
 
-    it('should set sfdx:internal_dev to true', () => {
+    it('should set sf:internal_dev to true', () => {
       assert.calledOnce(executeCommandStub);
       assert.calledWith(
         executeCommandStub,
         'setContext',
-        'sfdx:internal_dev',
+        'sf:internal_dev',
         true
       );
     });
@@ -135,12 +135,12 @@ describe('Workspace Service Unit Tests', () => {
       );
     });
 
-    it('should set sfdx:internal_dev to true', () => {
+    it('should set sf:internal_dev to true', () => {
       assert.calledOnce(executeCommandStub);
       assert.calledWith(
         executeCommandStub,
         'setContext',
-        'sfdx:internal_dev',
+        'sf:internal_dev',
         true
       );
     });

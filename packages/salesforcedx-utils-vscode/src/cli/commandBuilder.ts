@@ -58,11 +58,8 @@ export class CommandBuilder {
     return this;
   }
 
-  public withJson(logLevel: boolean = true): CommandBuilder {
+  public withJson(): CommandBuilder {
     this.args.push('--json');
-    if (logLevel) {
-      this.args.push('--loglevel', 'fatal');
-    }
     return this;
   }
 
@@ -76,8 +73,8 @@ export class CommandBuilder {
   }
 }
 
-export class SfdxCommandBuilder extends CommandBuilder {
+export class SfCommandBuilder extends CommandBuilder {
   public constructor() {
-    super('sfdx');
+    super('sf');
   }
 }

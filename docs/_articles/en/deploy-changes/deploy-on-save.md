@@ -29,7 +29,7 @@ When you enable deploy on save for your project:
 
 - If there isn’t an active deployment and no files are queued for deployment, a file save triggers an immediate deployment.
 
-If you enable deploy on save while working against a source-tracked org, every time you save a file, **SFDX: Push Source to Default Org** is initiated and runs `project:deploy:start` under the hood. For non-source-tracked orgs, every file save initiates **SFDX: Deploy Source to Org**, which runs `force:source:deploy`.
+If you enable deploy on save while working against a source-tracked org, every time you save a file, **SFDX: Push Source to Default Org** is initiated and runs `project:deploy:start` under the hood. For non-source-tracked orgs, every file save initiates **SFDX: Deploy Source to Org**.
 
 ## Detect Conflicts At Sync
 

@@ -75,7 +75,7 @@ describe('Quick launch apex tests', () => {
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] });
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
-    createCheckpointStub = sb.stub(CheckpointService, 'sfdxCreateCheckpoints');
+    createCheckpointStub = sb.stub(CheckpointService, 'sfCreateCheckpoints');
     oneOrMoreActiveCheckpointsStub = sb.stub(
       CheckpointService.prototype,
       'hasOneOrMoreActiveCheckpoints'

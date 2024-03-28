@@ -7,9 +7,9 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import * as sfdx from '../../src/sfdx';
+import * as sf from '../../src/sf';
 
-describe('sfdx utils', () => {
+describe('sf utils', () => {
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
@@ -25,17 +25,14 @@ describe('sfdx utils', () => {
       it(`should ${
         showErrorMessage ? '' : 'not '
       }display an error, channel log, and send telemetry if can not get connection to org when showErrorMessage=${showErrorMessage}`, async () => {
-        sandbox.stub(sfdx.workspaceContext, 'getConnection').throws();
+        sandbox.stub(sf.workspaceContext, 'getConnection').throws();
         const vscodeErrorMessageSpy = sandbox.spy(
           vscode.window,
           'showErrorMessage'
         );
-        const channelServiceSpy = sandbox.spy(
-          sfdx.channelService,
-          'appendLine'
-        );
-        await sfdx.withSFConnection(async () => {}, showErrorMessage);
-        sfdx.debouncedShowChannelAndErrorMessage.flush();
+        const channelServiceSpy = sandbox.spy(sf.channelService, 'appendLine');
+        await sf.withSFConnection(async () => {}, showErrorMessage);
+        sf.debouncedShowChannelAndErrorMessage.flush();
         const errorCount = showErrorMessage ? 1 : 0;
         expect(vscodeErrorMessageSpy.callCount).to.equal(errorCount);
         expect(channelServiceSpy.callCount).to.equal(errorCount);

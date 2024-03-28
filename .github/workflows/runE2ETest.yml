@@ -79,19 +79,19 @@ jobs:
         run: |
           npm install
         working-directory: salesforcedx-vscode-automation-tests
-      - name: Install the SFDX CLI
-        run: npm install -g sfdx-cli
+      - name: Install the Salesforce CLI
+        run: npm install -g @salesforce/cli
       - name: Verify CLI
         shell: bash
         run: |
           set -e
-          sfdx version
-          SFDX_CLI_VERSION=$(sfdx version)
-          if [[ ((`echo $SFDX_CLI_VERSION | grep -c "sfdx-cli/"` > 0))]]
+          sf version
+          SF_CLI_VERSION=$(sf version)
+          if [[ ((`echo $SF_CLI_VERSION | grep -c "@salesforce/cli/"` > 0))]]
           then
-            echo "sfdx-cli installed -" $SFDX_CLI_VERSION
+            echo "@salesforce/cli installed -" $SF_CLI_VERSION
           else
-            echo "The sfdx-cli installation could not be verified"
+            echo "The @salesforce/cli installation could not be verified"
             exit 1
           fi
       - name: Run headless test

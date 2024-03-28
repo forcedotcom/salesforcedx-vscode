@@ -75,7 +75,7 @@ export type DirFileNameSelection = {
   /**
    * used for selecting the different apex unit test templates
    */
-  template?: 'ApexUnitTest'|'BasicUnitTest';
+  template?: 'ApexUnitTest' | 'BasicUnitTest';
 };
 
 /**

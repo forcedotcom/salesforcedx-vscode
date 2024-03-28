@@ -7,13 +7,13 @@
 import { assert, SinonStub, stub } from 'sinon';
 import { telemetryService } from '../../../../src/telemetry';
 import { testWatcher } from '../../../../src/testSupport/testRunner/testWatcher';
-import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import { LWC_TEST_WATCH_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
   mockGetLwcTestRunnerExecutable,
-  mockSfdxTaskExecute,
+  mockSfTaskExecute,
   unmockGetLwcTestRunnerExecutable,
-  unmockSfdxTaskExecute
+  unmockSfTaskExecute
 } from '../mocks';
 import { expect } from 'chai';
 
@@ -30,13 +30,13 @@ describe('Test Watcher', () => {
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
       processHrtimeStub = stub(process, 'hrtime');
-      mockSfdxTaskExecute(true);
+      mockSfTaskExecute(true);
       mockGetLwcTestRunnerExecutable();
     });
     afterEach(() => {
       processHrtimeStub.restore();
       telemetryStub.restore();
-      unmockSfdxTaskExecute();
+      unmockSfTaskExecute();
       unmockGetLwcTestRunnerExecutable();
     });
 
@@ -64,7 +64,7 @@ describe('Test Watcher', () => {
       assert.calledOnce(telemetryStub);
       assert.calledWith(
         telemetryStub,
-        FORCE_LWC_TEST_WATCH_LOG_NAME,
+        LWC_TEST_WATCH_LOG_NAME,
         mockExecutionTime,
         {
           workspaceType: 'SFDX'

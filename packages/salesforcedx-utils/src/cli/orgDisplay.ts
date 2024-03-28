@@ -8,15 +8,12 @@
 import { OrgInfo } from '../types';
 import { CliCommandExecutor } from './cliCommandExecutor';
 import { CommandOutput } from './commandOutput';
-import { SfdxCommandBuilder } from './sfdxCommandBuilder';
+import { SfCommandBuilder } from './sfCommandBuilder';
 
 export class OrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('org:display')
-        .withJson()
-        .build(),
+      new SfCommandBuilder().withArg('org:display').withJson().build(),
       { cwd: projectPath }
     ).execute();
 

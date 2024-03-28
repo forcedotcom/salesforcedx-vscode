@@ -10,7 +10,7 @@
 import {
   CliCommandExecutor,
   CommandBuilder,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
@@ -29,27 +29,21 @@ describe('Task View', () => {
     it('Should add a command to its internal queue', () => {
       taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute()
       );
 
       expect(taskViewService.getChildren()).to.have.lengthOf(1);
       expect(taskViewService.getChildren()[0].label).to.be.equal(
-        nls.localize('task_view_running_message', 'sfdx force --help')
+        nls.localize('task_view_running_message', 'sf force --help')
       );
     });
 
     it('Should fire an event when a command is added', async () => {
       taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute()
       );
@@ -68,10 +62,7 @@ describe('Task View', () => {
     it('Should remove a command from its internal queue when present', () => {
       const task = taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute()
       );
@@ -84,19 +75,13 @@ describe('Task View', () => {
     it('Should not remove a command from its internal queue when not present', () => {
       taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute()
       );
       taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute()
       );
@@ -112,10 +97,7 @@ describe('Task View', () => {
       const tokenSource = new CancellationTokenSource();
       const task = taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute(tokenSource.token),
         tokenSource
@@ -131,10 +113,7 @@ describe('Task View', () => {
     it('Should terminate LRU task if no specific task provided', () => {
       taskViewService.addCommandExecution(
         new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withArg('force')
-            .withArg('--help')
-            .build(),
+          new SfCommandBuilder().withArg('--help').build(),
           {}
         ).execute()
       );
@@ -151,10 +130,7 @@ describe('Task View', () => {
     it('Should remove itself from Task View once terminated', async () => {
       const taskViewService = new TaskViewService();
       const execution = new CliCommandExecutor(
-        new SfdxCommandBuilder()
-          .withArg('force')
-          .withArg('--help')
-          .build(),
+        new SfCommandBuilder().withArg('--help').build(),
         {}
       ).execute();
       taskViewService.addCommandExecution(execution);
@@ -173,7 +149,7 @@ describe('Task View', () => {
     it('Should remove itself from Task View if erroneous', async () => {
       const taskViewService = new TaskViewService();
       const execution = new CliCommandExecutor(
-        new CommandBuilder('sfdx_').build(),
+        new CommandBuilder('sf_').build(),
         {}
       ).execute();
       taskViewService.addCommandExecution(execution);

@@ -7,7 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
@@ -16,30 +16,27 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-class DataQueryExecutor extends SfdxCommandletExecutor<{}> {
+class DataQueryExecutor extends SfCommandletExecutor<{}> {
   public build(data: QueryAndApiInputs): Command {
-    let command = new SfdxCommandBuilder()
+    let command = new SfCommandBuilder()
       .withDescription(nls.localize('data_query_input_text'))
       .withArg('data:query')
       .withFlag('--query', `${data.query}`)
-      .withLogName('force_data_soql_query');
+      .withLogName('data_soql_query');
     if (data.api === ApiType.Tooling) {
       command = command
         .withArg('--use-tooling-api')
-        .withLogName('force_data_soql_query_tooling');
+        .withLogName('data_soql_query_tooling');
     }
     return command.build();
   }
 }
 
 export class GetQueryAndApiInputs
-  implements ParametersGatherer<QueryAndApiInputs> {
+  implements ParametersGatherer<QueryAndApiInputs>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<QueryAndApiInputs>
   > {
@@ -103,12 +100,12 @@ export enum ApiType {
   Tooling
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function dataQuery(explorerDir?: any) {
   const parameterGatherer = new GetQueryAndApiInputs();
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     new DataQueryExecutor()

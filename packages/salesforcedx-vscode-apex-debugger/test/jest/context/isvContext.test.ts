@@ -10,7 +10,7 @@ import { registerIsvAuthWatcher } from '../../../src/context';
 
 describe('isvContext unit test', () => {
   describe('registerIsvAuthWatcher', () => {
-    const fakePath = '/here/is/a/fake/sfdx-config.json';
+    const fakePath = '/here/is/a/fake/config.json';
     let extensionContext: any;
     let salesforceProjectConfigStub: jest.SpyInstance;
     let pushSpy: jest.SpyInstance;

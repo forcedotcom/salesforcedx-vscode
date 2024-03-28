@@ -15,7 +15,7 @@ describe('Project Deploy Start', () => {
     const projectDeployStartNoFlag = new ProjectDeployStartExecutor();
     const projectDeployStartCommand = projectDeployStartNoFlag.build({});
     expect(projectDeployStartCommand.toCommand()).to.equal(
-      `sfdx ${projectDeployStartNoFlag.params.command} ${commonParams}`
+      `sf ${projectDeployStartNoFlag.params.command} ${commonParams}`
     );
     expect(projectDeployStartCommand.description).to.equal(
       nls.localize('project_deploy_start_default_org_text')
@@ -30,7 +30,7 @@ describe('Project Deploy Start', () => {
       {}
     );
     expect(projectDeployStartCommand.toCommand()).to.equal(
-      `sfdx ${projectDeployStartIgnoreConflicts.params.command} ${commonParams} --ignore-conflicts`
+      `sf ${projectDeployStartIgnoreConflicts.params.command} ${commonParams} --ignore-conflicts`
     );
     expect(projectDeployStartCommand.description).to.equal(
       nls.localize('project_deploy_start_ignore_conflicts_default_org_text')

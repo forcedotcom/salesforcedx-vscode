@@ -10,13 +10,13 @@ import {
   Command,
   notificationService,
   ProgressNotification,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
@@ -46,7 +46,7 @@ export interface LightningLwcStartOptions {
   componentName?: string;
 }
 
-export class LightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
+export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
   private readonly options: LightningLwcStartOptions;
   private errorHint?: string;
 
@@ -57,7 +57,7 @@ export class LightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
   public build(): Command {
     return (
-      new SfdxCommandBuilder()
+      new SfCommandBuilder()
         .withDescription(commandName)
         .withArg('force:lightning:lwc:start')
         .withLogName(logName)
@@ -230,11 +230,11 @@ export const lightningLwcStart = async () => {
     }
   }
 
-  const preconditionChecker = new SfdxWorkspaceChecker();
+  const preconditionChecker = new SfWorkspaceChecker();
   const parameterGatherer = new EmptyParametersGatherer();
   const executor = new LightningLwcStartExecutor();
 
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     preconditionChecker,
     parameterGatherer,
     executor

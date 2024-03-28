@@ -12,14 +12,14 @@ import {
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
+import { salesforceCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_aura_component_text');
-  public telemetryName = 'force_lightning_component_create';
+  public telemetryName = 'lightning_generate_aura_component';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningComponent;
   public getOutputFileName(data: DirFileNameSelection) {
@@ -45,7 +45,7 @@ export class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTe
     return AURA_COMPONENT_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
-    const internal = sfdxCoreSettings.getInternalDev();
+    const internal = salesforceCoreSettings.getInternalDev();
     const templateOptions: LightningComponentOptions = {
       outputdir: data.outputdir,
       componentname: data.fileName,
@@ -64,8 +64,8 @@ const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 export async function lightningGenerateAuraComponent() {
   const createTemplateExecutor =
     new LibraryLightningGenerateAuraComponentExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,
@@ -81,7 +81,7 @@ export async function internalLightningGenerateAuraComponent(sourceUri: Uri) {
   const createTemplateExecutor =
     new LibraryLightningGenerateAuraComponentExecutor();
 
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer<DirFileNameSelection>(
       fileNameGatherer,

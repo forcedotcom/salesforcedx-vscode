@@ -17,9 +17,9 @@ import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 
 export const sourceDiff = async (sourceUri?: vscode.Uri) => {
   if (!sourceUri) {
@@ -36,20 +36,20 @@ export const sourceDiff = async (sourceUri?: vscode.Uri) => {
     }
   }
 
-  const defaultUsernameorAlias = WorkspaceContext.getInstance().username;
-  if (!defaultUsernameorAlias) {
+  const targetOrgorAlias = WorkspaceContext.getInstance().username;
+  if (!targetOrgorAlias) {
     await notificationService.showErrorMessage(
       nls.localize('missing_default_org')
     );
     return;
   }
   const executor = new MetadataCacheExecutor(
-    defaultUsernameorAlias,
+    targetOrgorAlias,
     nls.localize('source_diff_text'),
     'source_diff',
     handleCacheResults
   );
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     new FilePathGatherer(sourceUri),
     executor
@@ -80,8 +80,8 @@ export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
     return;
   }
 
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
     new MetadataCacheExecutor(
       username,

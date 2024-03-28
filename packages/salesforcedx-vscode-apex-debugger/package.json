@@ -193,7 +193,7 @@
               },
               "salesforceProject": {
                 "type": "string",
-                "description": "%sfdx_project_text%",
+                "description": "%salesforce_project_text%",
                 "default": "${workspaceRoot}"
               },
               "trace": {
@@ -220,14 +220,14 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint",
-          "when": "sfdx:project_opened"
+          "command": "sf.debug.exception.breakpoint",
+          "when": "sf:project_opened"
         }
       ]
     },
     "commands": [
       {
-        "command": "sfdx.debug.exception.breakpoint",
+        "command": "sf.debug.exception.breakpoint",
         "title": "%exception_breakpoint_command_text%"
       }
     ]

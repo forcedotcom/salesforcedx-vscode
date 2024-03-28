@@ -21,10 +21,10 @@ import {
   ParametersGatherer,
   ProgressNotification,
   projectPaths,
-  SfdxCommandBuilder,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandBuilder,
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -83,14 +83,14 @@ export class SObjectRefreshGatherer
   }
 }
 
-export class RefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
+export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
   private static isActive = false;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('sobjects_refresh'))
       .withArg('sobject definitions refresh')
-      .withLogName('force_generate_faux_classes_create')
+      .withLogName('generate_faux_classes_create')
       .build();
   }
 
@@ -180,11 +180,11 @@ export class RefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 
 export const refreshSObjects = async (source?: SObjectRefreshSource) => {
   const parameterGatherer = new SObjectRefreshGatherer(source);
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     new RefreshSObjectsExecutor()
@@ -195,10 +195,10 @@ export const refreshSObjects = async (source?: SObjectRefreshSource) => {
 export const verifyUsernameAndInitSObjectDefinitions = async (
   projectPath: string
 ) => {
-  const hasDefaultUsernameSet =
+  const hasTargetOrgSet =
     (await WorkspaceContext.getInstance().getConnection()).getUsername() !==
     undefined;
-  if (hasDefaultUsernameSet) {
+  if (hasTargetOrgSet) {
     initSObjectDefinitions(projectPath).catch(e =>
       telemetryService.sendException(e.name, e.message)
     );

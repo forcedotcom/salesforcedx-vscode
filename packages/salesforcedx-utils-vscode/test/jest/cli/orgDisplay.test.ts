@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxCommandBuilder } from '../../../src/cli/commandBuilder';
+import { SfCommandBuilder } from '../../../src/cli/commandBuilder';
 import { CliCommandExecutor } from '../../../src/cli/commandExecutor';
 import { CommandOutput } from '../../../src/cli/commandOutput';
 import {
@@ -17,7 +17,7 @@ jest.mock('../../../src/cli/commandExecutor');
 jest.mock('../../../src/cli/commandBuilder');
 jest.mock('../../../src/cli/commandOutput');
 
-const sfdxCommandBuilderMock = jest.mocked(SfdxCommandBuilder);
+const sfCommandBuilderMock = jest.mocked(SfCommandBuilder);
 const commandOutputMock = jest.mocked(CommandOutput);
 const cliCommandExecutorMock = jest.mocked(CliCommandExecutor);
 
@@ -46,14 +46,14 @@ describe('orgDisplay Unit Tests.', () => {
   describe('getOrgInfo()', () => {
     beforeEach(() => {
       withArgsMock = jest.fn();
-      (sfdxCommandBuilderMock.prototype.withArg as any).mockReturnValue({
+      (sfCommandBuilderMock.prototype.withArg as any).mockReturnValue({
         execute: jest.fn().mockReturnValue({ fake: 'execution' }),
         withArg: withArgsMock,
         withJson: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue(fakeCommandOuput)
       });
-      (sfdxCommandBuilderMock.prototype.withJson as any).mockReturnValue(
-        SfdxCommandBuilder.prototype
+      (sfCommandBuilderMock.prototype.withJson as any).mockReturnValue(
+        SfCommandBuilder.prototype
       );
       (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(
         JSON.stringify({
@@ -68,10 +68,10 @@ describe('orgDisplay Unit Tests.', () => {
 
       expect(result).toEqual(fakeOrgInfo);
 
-      expect(sfdxCommandBuilderMock).toHaveBeenCalled();
-      const mockSfdxCommandBuilder = sfdxCommandBuilderMock.mock.instances[0];
-      expect(mockSfdxCommandBuilder.withArg).toHaveBeenCalledTimes(1);
-      expect(mockSfdxCommandBuilder.withArg).toHaveBeenCalledWith(
+      expect(sfCommandBuilderMock).toHaveBeenCalled();
+      const mockSfCommandBuilder = sfCommandBuilderMock.mock.instances[0];
+      expect(mockSfCommandBuilder.withArg).toHaveBeenCalledTimes(1);
+      expect(mockSfCommandBuilder.withArg).toHaveBeenCalledWith(
         ORG_DISPLAY_COMMAND
       );
 

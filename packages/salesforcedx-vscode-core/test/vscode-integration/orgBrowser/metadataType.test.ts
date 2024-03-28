@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CommandOutput,
+  projectPaths
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -16,21 +19,22 @@ import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {
-  let getDefaultUsernameStub: SinonStub;
+  let getTargetOrgStub: SinonStub;
   let getUsernameStub: SinonStub;
   let metadataFolderStub: SinonStub;
   const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-  const metadataDirectoryPath = 'test/path/.sfdx/orgs/test-username1@example.com/metadata';
+  const metadataDirectoryPath =
+    'test/path/.sfdx/orgs/test-username1@example.com/metadata';
   const typeUtil = new TypeUtils();
   beforeEach(() => {
-    getDefaultUsernameStub = stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
+    getTargetOrgStub = stub(OrgAuthInfo, 'getTargetOrgOrAlias');
     getUsernameStub = stub(OrgAuthInfo, 'getUsername');
     metadataFolderStub = stub(projectPaths, 'metadataFolder').returns(
       metadataDirectoryPath
     );
   });
   afterEach(() => {
-    getDefaultUsernameStub.restore();
+    getTargetOrgStub.restore();
     getUsernameStub.restore();
   });
 
@@ -83,9 +87,9 @@ describe('build metadata types list', () => {
     const data = JSON.stringify({
       status: 0,
       result: {
-        metadataObjects: Array.from(
-          TypeUtils.UNSUPPORTED_TYPES
-        ).map(xmlName => ({ xmlName }))
+        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(
+          xmlName => ({ xmlName })
+        )
       }
     });
     const types = await typeUtil.buildTypesList(data, undefined);

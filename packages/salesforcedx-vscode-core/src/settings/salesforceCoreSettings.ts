@@ -26,14 +26,14 @@ import {
 /**
  * A centralized location for interacting with sfdx-core settings.
  */
-export class SfdxCoreSettings {
-  private static instance: SfdxCoreSettings;
+export class SalesforceCoreSettings {
+  private static instance: SalesforceCoreSettings;
 
   public static getInstance() {
-    if (!SfdxCoreSettings.instance) {
-      SfdxCoreSettings.instance = new SfdxCoreSettings();
+    if (!SalesforceCoreSettings.instance) {
+      SalesforceCoreSettings.instance = new SalesforceCoreSettings();
     }
-    return SfdxCoreSettings.instance;
+    return SalesforceCoreSettings.instance;
   }
 
   /**

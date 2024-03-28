@@ -16,12 +16,12 @@ import {
   DeployExecutor,
   DeployRetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
-import { SfdxCommandletExecutor } from '../../../src/commands/util';
+import { SfCommandletExecutor } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import * as diagnostics from '../../../src/diagnostics';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
-import { DeployQueue, sfdxCoreSettings } from '../../../src/settings';
+import { DeployQueue, salesforceCoreSettings } from '../../../src/settings';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
   return {
@@ -106,7 +106,7 @@ describe('Deploy Executor', () => {
       .spyOn(dummyComponentSet, 'deploy')
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
-      sfdxCoreSettings,
+      salesforceCoreSettings,
       'getEnableSourceTrackingForDeployAndRetrieve'
     );
   });
@@ -233,9 +233,9 @@ describe('Deploy Executor', () => {
         DeployRetrieveExecutor.errorCollection,
         'clear'
       );
-      SfdxCommandletExecutor.errorCollection = MockErrorCollection as any;
-      const sfdxCommandletExecutorClearSpy = jest.spyOn(
-        SfdxCommandletExecutor.errorCollection,
+      SfCommandletExecutor.errorCollection = MockErrorCollection as any;
+      const sfCommandletExecutorClearSpy = jest.spyOn(
+        SfCommandletExecutor.errorCollection,
         'clear'
       );
 
@@ -256,7 +256,7 @@ describe('Deploy Executor', () => {
         mockDeployResult
       );
       expect(deployRetrieveExecutorClearSpy).toHaveBeenCalled();
-      expect(sfdxCommandletExecutorClearSpy).toHaveBeenCalled();
+      expect(sfCommandletExecutorClearSpy).toHaveBeenCalled();
       expect(unlockSpy).toHaveBeenCalled();
       expect(mockUnlock).toHaveBeenCalled();
     });

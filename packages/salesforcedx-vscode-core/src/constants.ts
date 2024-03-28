@@ -64,7 +64,7 @@ export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
-export const ORG_OPEN_COMMAND = 'sfdx.org.open';
+export const ORG_OPEN_COMMAND = 'sf.org.open';
 export const PROJECT_RETRIEVE_START_LOG_NAME =
   'project_retrieve_start_default_scratch_org';
 export const PROJECT_DEPLOY_START_LOG_NAME =

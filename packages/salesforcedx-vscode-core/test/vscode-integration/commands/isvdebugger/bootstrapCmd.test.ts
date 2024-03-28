@@ -166,7 +166,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
+        `sf project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_create_project')
@@ -185,7 +185,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectTemplate: projectTemplateEnum.standard
         });
       expect(configureCommand.toCommand()).to.equal(
-        `sfdx config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
+        `sf config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
       expect(configureCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_configure_project')
@@ -204,7 +204,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectTemplate: projectTemplateEnum.standard
         });
       expect(command.toCommand()).to.equal(
-        `sfdx data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json --loglevel fatal`
+        `sf data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
@@ -236,7 +236,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
+        `sf project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_retrieve_org_source')
@@ -254,7 +254,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
-        `sfdx package:installed:list --target-org ${SESSION_ID} --json --loglevel fatal`
+        `sf package:installed:list --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_list_installed_packages')
@@ -276,7 +276,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageName
       );
       expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
+        `sf project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)

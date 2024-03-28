@@ -17,11 +17,7 @@ import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
-import {
-  LibraryPathsGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string[]
@@ -49,10 +45,10 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       const sourcePaths = inputs.data;
       try {
         for (const sourcePath of sourcePaths) {
-          const isInSfdxPackageDirectory =
+          const isInSalesforcePackageDirectory =
             await SalesforcePackageDirectories.isInPackageDirectory(sourcePath);
 
-          if (!isInSfdxPackageDirectory) {
+          if (!isInSalesforcePackageDirectory) {
             throw nls.localize(
               'error_source_path_not_in_package_directory_text'
             );
@@ -109,8 +105,8 @@ export const retrieveSourcePaths = async (
     uris.push(sourceUri);
   }
 
-  const commandlet = new SfdxCommandlet<string[]>(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet<string[]>(
+    new SfWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
     new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()

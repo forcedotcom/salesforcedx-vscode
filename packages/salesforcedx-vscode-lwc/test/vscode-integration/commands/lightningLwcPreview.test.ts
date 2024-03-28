@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -13,7 +13,7 @@ import {
   CommandBuilder,
   CommandExecution,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
@@ -45,8 +45,8 @@ import {
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 
-const sfdxDeviceListCommand = 'force:lightning:local:device:list';
-const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
+const sfDeviceListCommand = 'force:lightning:local:device:list';
+const sfMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'preview.rememberDevice';
 const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
@@ -299,9 +299,9 @@ describe('lightningLwcPreview - lwcPreview ', () => {
       WorkspaceUtils.prototype,
       'getGlobalStore'
     );
-    cmdWithArgSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withArg');
-    cmdWithFlagSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withFlag');
-    mockExecution = new MockExecution(new SfdxCommandBuilder().build());
+    cmdWithArgSpy = sandbox.spy(SfCommandBuilder.prototype, 'withArg');
+    cmdWithFlagSpy = sandbox.spy(SfCommandBuilder.prototype, 'withFlag');
+    mockExecution = new MockExecution(new SfCommandBuilder().build());
     mobileExecutorStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
     mobileExecutorStub.returns(mockExecution);
     commandOutputStub = sinon.stub(CommandOutput.prototype, 'getCmdResult');
@@ -436,7 +436,7 @@ describe('lightningLwcPreview - lwcPreview ', () => {
       }
     } as fs.Stats);
     showQuickPickStub.resolves(desktopQuickPick);
-    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+    const commandletStub = sandbox.stub(SfCommandlet.prototype, 'run');
     await lwcPreview(mockLwcFilePathUri);
 
     sinon.assert.calledOnce(commandletStub);
@@ -465,7 +465,7 @@ describe('lightningLwcPreview - lwcPreview ', () => {
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(isAndroid ? androidQuickPick : iOSQuickPick);
     showInputBoxStub.resolves('');
-    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+    const commandletStub = sandbox.stub(SfCommandlet.prototype, 'run');
     await lwcPreview(mockLwcFilePathUri);
 
     if (isAndroid) {
@@ -478,8 +478,8 @@ describe('lightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(showInputBoxStub);
     sinon.assert.calledOnce(commandletStub);
     expect(cmdWithArgSpy.callCount).to.equal(2);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
-    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
@@ -605,8 +605,8 @@ describe('lightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithArgSpy.callCount).to.equal(2);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
-    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
@@ -659,8 +659,8 @@ describe('lightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithArgSpy.callCount).to.equal(2);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
-    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
@@ -959,7 +959,7 @@ describe('lightningLwcPreview - lwcPreview ', () => {
     showInputBoxStub.resolves('');
 
     commandOutputStub.returns(
-      Promise.reject(`${sfdxDeviceListCommand} is not a sfdx command.`)
+      Promise.reject(`${sfDeviceListCommand} is not a sf command.`)
     );
 
     await lwcPreview(mockLwcFilePathUri);
@@ -1000,8 +1000,8 @@ describe('lightningLwcPreview - lwcPreview ', () => {
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithArgSpy.callCount).to.equal(2);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
-    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',

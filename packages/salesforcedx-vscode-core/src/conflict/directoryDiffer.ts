@@ -138,13 +138,13 @@ export const diffFolder = (cache: MetadataCacheResult, username: string) => {
  * It matches the correspondent file in compoennt.
  * @param localFile local file
  * @param remoteComponent remote source component
- * @param defaultUsernameorAlias username/org info to show in diff
+ * @param targetOrgorAlias username/org info to show in diff
  * @returns {Promise<void>}
  */
 export const diffOneFile = async (
   localFile: string,
   remoteComponent: SourceComponent,
-  defaultUsernameorAlias: string
+  targetOrgorAlias: string
 ): Promise<void> => {
   const filePart = path.basename(localFile);
 
@@ -164,7 +164,7 @@ export const diffOneFile = async (
           localUri,
           nls.localize(
             'source_diff_title',
-            defaultUsernameorAlias,
+            targetOrgorAlias,
             filePart,
             filePart
           )

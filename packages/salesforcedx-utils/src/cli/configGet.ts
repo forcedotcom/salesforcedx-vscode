@@ -7,7 +7,7 @@
 
 import { CliCommandExecutor } from './cliCommandExecutor';
 import { CommandOutput } from './commandOutput';
-import { SfdxCommandBuilder } from './sfdxCommandBuilder';
+import { SfCommandBuilder } from './sfCommandBuilder';
 /**
  * @deprecated
  * NOTE: This code is deprecated in favor of using ConfigUtil.ts
@@ -17,7 +17,7 @@ export class ConfigGet {
     projectPath: string,
     ...keys: string[]
   ): Promise<Map<string, string>> {
-    const commandBuilder = new SfdxCommandBuilder().withArg('config:get');
+    const commandBuilder = new SfCommandBuilder().withArg('config:get');
     keys.forEach(key => commandBuilder.withArg(key));
 
     const execution = new CliCommandExecutor(

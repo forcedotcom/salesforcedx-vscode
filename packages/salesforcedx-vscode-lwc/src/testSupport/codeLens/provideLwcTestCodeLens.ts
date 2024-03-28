@@ -48,7 +48,7 @@ export const provideLwcTestCodeLens = async (
       };
       const runTestTitle = nls.localize('run_test_title');
       const runTestCaseCommand: Command = {
-        command: 'sfdx.lightning.lwc.test.case.run',
+        command: 'sf.lightning.lwc.test.case.run',
         title: runTestTitle,
         tooltip: runTestTitle,
         arguments: [{ testExecutionInfo }]
@@ -57,7 +57,7 @@ export const provideLwcTestCodeLens = async (
 
       const debugTestTitle = nls.localize('debug_test_title');
       const debugTestCaseCommand: Command = {
-        command: 'sfdx.lightning.lwc.test.case.debug',
+        command: 'sf.lightning.lwc.test.case.debug',
         title: debugTestTitle,
         tooltip: debugTestTitle,
         arguments: [{ testExecutionInfo }]

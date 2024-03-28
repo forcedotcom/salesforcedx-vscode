@@ -6,17 +6,17 @@
  */
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecutor';
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 function getCommandletFor(
   executor: SourceTrackingGetStatusExecutor
-): SfdxCommandlet<{}> {
-  return new SfdxCommandlet(workspaceChecker, parameterGatherer, executor);
+): SfCommandlet<{}> {
+  return new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 }
 
 export async function viewAllChanges() {

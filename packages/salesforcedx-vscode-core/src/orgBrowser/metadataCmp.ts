@@ -151,7 +151,7 @@ export class ComponentUtils {
     return jsonResult;
   }
 
-  // todo: remove defaultOrg (default username) arg
+  // todo: remove defaultOrg (target org) arg
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,

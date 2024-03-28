@@ -19,11 +19,11 @@ import {
   createMockTestFileInfo,
   mockActiveTextEditorUri,
   mockGetLwcTestRunnerExecutable,
-  mockSfdxTaskExecute,
+  mockSfTaskExecute,
   mockTestResultWatcher,
   unmockActiveTextEditorUri,
   unmockGetLwcTestRunnerExecutable,
-  unmockSfdxTaskExecute,
+  unmockSfTaskExecute,
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
@@ -42,7 +42,7 @@ describe('LWC Test Run - Code Action', () => {
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
       processHrtimeStub = stub(process, 'hrtime');
-      mockSfdxTaskExecute(true);
+      mockSfTaskExecute(true);
       mockGetLwcTestRunnerExecutable();
     });
 
@@ -50,7 +50,7 @@ describe('LWC Test Run - Code Action', () => {
       telemetryStub.restore();
       processHrtimeStub.restore();
       unmockGetLwcTestRunnerExecutable();
-      unmockSfdxTaskExecute();
+      unmockSfTaskExecute();
     });
 
     it('Should send telemetry for running tests', async () => {

@@ -15,14 +15,14 @@ import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from '../../../../src/commands/templates';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 
 describe('Internal Command Utilities', () => {
   describe('Internal Workspace Checker', () => {
     let settings: SinonStub;
 
     beforeEach(() => {
-      settings = stub(SfdxCoreSettings.prototype, 'getInternalDev');
+      settings = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     });
 
     afterEach(() => {

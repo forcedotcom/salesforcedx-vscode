@@ -32,7 +32,7 @@ describe('breakpointService Unit Tests.', () => {
       } as any;
     });
 
-    jest.spyOn(sfUtils, 'SfdxCommandBuilder').mockImplementation(() => {
+    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(() => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return {
         withArg: jest.fn().mockReturnThis(),
@@ -221,7 +221,6 @@ describe('breakpointService Unit Tests.', () => {
   });
 
   describe('createLineBreakpoint()', () => {
-
     it('Should resolve to breakpointId if found.', async () => {
       getCmdResultMock.mockResolvedValue(
         JSON.stringify({
@@ -302,10 +301,7 @@ describe('breakpointService Unit Tests.', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       expect(
-        breakpointService.deleteBreakpoint(
-          'fake/project/path',
-          bpId
-        )
+        breakpointService.deleteBreakpoint('fake/project/path', bpId)
       ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
@@ -319,10 +315,7 @@ describe('breakpointService Unit Tests.', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       expect(
-        breakpointService.deleteBreakpoint(
-          'fake/project/path',
-          bpId
-        )
+        breakpointService.deleteBreakpoint('fake/project/path', bpId)
       ).rejects.toEqual(expectedResults);
       expect(executeMock).toHaveBeenCalled();
       expect(getCmdResultMock).toHaveBeenCalled();
@@ -333,14 +326,19 @@ describe('breakpointService Unit Tests.', () => {
     const fakeUri = 'fake/project/path';
     beforeEach(() => {
       jest.spyOn(breakpointService, 'deleteBreakpoint').mockResolvedValue(bpId);
-      jest.spyOn(breakpointService, 'createLineBreakpoint').mockResolvedValue(bpId);
+      jest
+        .spyOn(breakpointService, 'createLineBreakpoint')
+        .mockResolvedValue(bpId);
       jest.spyOn(breakpointService, 'getTyperefFor').mockReturnValue('typeref');
     });
 
     it('Should delete breakpoint if known and not in clientLines.', async () => {
-      (breakpointService as any).lineBreakpointCache.set(fakeUri, [{
-        line: 1,
-        breakpointId: bpId + '1'}]);
+      (breakpointService as any).lineBreakpointCache.set(fakeUri, [
+        {
+          line: 1,
+          breakpointId: bpId + '1'
+        }
+      ]);
 
       await breakpointService.reconcileLineBreakpoints(
         'fake/project/path',
@@ -348,13 +346,19 @@ describe('breakpointService Unit Tests.', () => {
         'test',
         [2, 3]
       );
-      expect(breakpointService.deleteBreakpoint).toHaveBeenCalledWith('fake/project/path', bpId + '1');
+      expect(breakpointService.deleteBreakpoint).toHaveBeenCalledWith(
+        'fake/project/path',
+        bpId + '1'
+      );
     });
 
     it('Should create a breakpoint if typeref is found .', async () => {
-      (breakpointService as any).lineBreakpointCache.set(fakeUri, [{
-        line: 1,
-        breakpointId: bpId + '1'}]);
+      (breakpointService as any).lineBreakpointCache.set(fakeUri, [
+        {
+          line: 1,
+          breakpointId: bpId + '1'
+        }
+      ]);
 
       await breakpointService.reconcileLineBreakpoints(
         'fake/project/path',
@@ -362,10 +366,19 @@ describe('breakpointService Unit Tests.', () => {
         'test',
         [2, 3]
       );
-      expect(breakpointService.createLineBreakpoint).toHaveBeenCalledWith('fake/project/path', 'test', 'typeref', 2);
-      expect(breakpointService.createLineBreakpoint).toHaveBeenCalledWith('fake/project/path', 'test', 'typeref', 3);
+      expect(breakpointService.createLineBreakpoint).toHaveBeenCalledWith(
+        'fake/project/path',
+        'test',
+        'typeref',
+        2
+      );
+      expect(breakpointService.createLineBreakpoint).toHaveBeenCalledWith(
+        'fake/project/path',
+        'test',
+        'typeref',
+        3
+      );
     });
-
   });
 
   describe('createExceptionBreakpoint()', () => {
@@ -424,17 +437,19 @@ describe('breakpointService Unit Tests.', () => {
 
   describe('reconcileExceptionBreakpoints()', () => {
     beforeEach(() => {
-      jest.spyOn(breakpointService, 'deleteBreakpoint').mockResolvedValue(undefined);
-      jest.spyOn(breakpointService, 'createExceptionBreakpoint').mockResolvedValue(bpId);
+      jest
+        .spyOn(breakpointService, 'deleteBreakpoint')
+        .mockResolvedValue(undefined);
+      jest
+        .spyOn(breakpointService, 'createExceptionBreakpoint')
+        .mockResolvedValue(bpId);
       (breakpointService as any).exceptionBreakpointCache = {
         get: jest.fn().mockReturnValue('test'),
         set: jest.fn(),
         delete: jest.fn()
       };
-
     });
     it('Should delete breakpoint if known and never.', async () => {
-
       await breakpointService.reconcileExceptionBreakpoints(
         'fake/project/path',
         'fakeSessionId',
@@ -444,13 +459,22 @@ describe('breakpointService Unit Tests.', () => {
           breakMode: 'never'
         }
       );
-      expect(breakpointService.deleteBreakpoint).toHaveBeenCalledWith('fake/project/path', 'test');
-      expect((breakpointService as any).exceptionBreakpointCache.delete).toHaveBeenCalledWith('test');
-      expect((breakpointService as any).exceptionBreakpointCache.set).not.toHaveBeenCalled();
+      expect(breakpointService.deleteBreakpoint).toHaveBeenCalledWith(
+        'fake/project/path',
+        'test'
+      );
+      expect(
+        (breakpointService as any).exceptionBreakpointCache.delete
+      ).toHaveBeenCalledWith('test');
+      expect(
+        (breakpointService as any).exceptionBreakpointCache.set
+      ).not.toHaveBeenCalled();
     });
 
     it('Should create breakpoint if not known and always.', async () => {
-      (breakpointService as any).exceptionBreakpointCache.get.mockReturnValue(undefined);
+      (breakpointService as any).exceptionBreakpointCache.get.mockReturnValue(
+        undefined
+      );
       await breakpointService.reconcileExceptionBreakpoints(
         'fake/project/path',
         'fakeSessionId',
@@ -461,24 +485,34 @@ describe('breakpointService Unit Tests.', () => {
         }
       );
       expect(breakpointService.deleteBreakpoint).not.toHaveBeenCalled();
-      expect(breakpointService.createExceptionBreakpoint).toHaveBeenCalledWith('fake/project/path', 'fakeSessionId', 'test');
-      expect((breakpointService as any).exceptionBreakpointCache.delete).not.toHaveBeenCalled();
-      expect((breakpointService as any).exceptionBreakpointCache.set).toHaveBeenCalledWith('test', bpId);
+      expect(breakpointService.createExceptionBreakpoint).toHaveBeenCalledWith(
+        'fake/project/path',
+        'fakeSessionId',
+        'test'
+      );
+      expect(
+        (breakpointService as any).exceptionBreakpointCache.delete
+      ).not.toHaveBeenCalled();
+      expect(
+        (breakpointService as any).exceptionBreakpointCache.set
+      ).toHaveBeenCalledWith('test', bpId);
     });
   });
 
   describe('clearSavedBreakpoints()', () => {
     it('Should clear saved breakpoints.', () => {
-      const fakeMapOne = new Map<string,string>();
+      const fakeMapOne = new Map<string, string>();
       fakeMapOne.set('test', 'test');
       (breakpointService as any).lineBreakpointCache = fakeMapOne;
-      const fakeMapTwo = new Map<string,string>();
+      const fakeMapTwo = new Map<string, string>();
       fakeMapOne.set('test2', 'test2');
       (breakpointService as any).exceptionBreakpointCache = fakeMapTwo;
 
       breakpointService.clearSavedBreakpoints();
       expect((breakpointService as any).lineBreakpointCache.size).toEqual(0);
-      expect((breakpointService as any).exceptionBreakpointCache.size).toEqual(0);
+      expect((breakpointService as any).exceptionBreakpointCache.size).toEqual(
+        0
+      );
     });
   });
 });

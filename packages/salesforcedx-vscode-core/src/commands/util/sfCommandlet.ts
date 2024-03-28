@@ -13,11 +13,11 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
-import { sfdxCoreSettings } from '../../settings';
+import { salesforceCoreSettings } from '../../settings';
 import { CommandletExecutor } from './commandletExecutor';
 import { EmptyPostChecker } from './emptyPostChecker';
 
-export class SfdxCommandlet<T> {
+export class SfCommandlet<T> {
   private readonly prechecker: PreconditionChecker;
   private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
@@ -40,7 +40,7 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
-    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+    if (salesforceCoreSettings.getEnableClearOutputBeforeEachCommand()) {
       channelService.clear();
     }
     if (await this.prechecker.check()) {

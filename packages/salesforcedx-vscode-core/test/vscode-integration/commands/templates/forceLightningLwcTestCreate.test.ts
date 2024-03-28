@@ -29,7 +29,7 @@ describe('Force Lightning Web Component Test Create', () => {
 
     if (fullFilepath) {
       expect(lwcCreateTestCommand.toCommand()).to.equal(
-        `sfdx force:lightning:lwc:test:create --filepath ${fullFilepath}`
+        `sf force:lightning:lwc:test:create --filepath ${fullFilepath}`
       );
       expect(lwcCreateTestCommand.description).to.equal(
         nls.localize('force_lightning_lwc_test_create_text')

@@ -145,9 +145,9 @@ const getActivationMode = (): string => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
-    commands.registerCommand('sfdx.lightning.lwc.start', lightningLwcStart),
-    commands.registerCommand('sfdx.lightning.lwc.stop', lightningLwcStop),
-    commands.registerCommand('sfdx.lightning.lwc.open', lightningLwcOpen),
-    commands.registerCommand('sfdx.lightning.lwc.preview', lightningLwcPreview)
+    commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
+    commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
+    commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
+    commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
 };

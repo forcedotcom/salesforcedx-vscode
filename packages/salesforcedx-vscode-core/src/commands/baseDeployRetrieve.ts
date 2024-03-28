@@ -35,11 +35,11 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { DeployQueue, sfdxCoreSettings } from '../settings';
+import { DeployQueue, salesforceCoreSettings } from '../settings';
 import {
   createComponentCount,
   formatException,
-  SfdxCommandletExecutor
+  SfCommandletExecutor
 } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -123,7 +123,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;
     const sourceTrackingEnabled =
-      sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+      salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
       const sourceTracking = await SourceTrackingService.getSourceTracking(
         projectPath,
@@ -164,7 +164,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           );
         } else {
           DeployRetrieveExecutor.errorCollection.clear();
-          SfdxCommandletExecutor.errorCollection.clear();
+          SfCommandletExecutor.errorCollection.clear();
         }
       }
     } finally {
@@ -237,7 +237,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     const sourceTrackingEnabled =
-      sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+      salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
@@ -285,7 +285,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     if (result) {
       DeployRetrieveExecutor.errorCollection.clear();
-      SfdxCommandletExecutor.errorCollection.clear();
+      SfCommandletExecutor.errorCollection.clear();
       const relativePackageDirs =
         await SalesforcePackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);

@@ -7,7 +7,7 @@
 import { GlobPattern } from 'vscode';
 
 /**
- * SFDX project JSON glob pattern
+ * SFDX Project JSON glob pattern
  */
 export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern =
   '**/sfdx-project.json';
@@ -26,22 +26,22 @@ export const LWC_TEST_DOCUMENT_SELECTOR = {
 /**
  * Context when LWC Jest Test file is focused
  */
-export const SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sfdx:lwc_jest_file_focused';
+export const SF_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sf:lwc_jest_file_focused';
 /**
  * Context when LWC Jest Test file is focused and user is currently watching the test
  */
-export const SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
-  'sfdx:lwc_jest_is_watching_focused_file';
+export const SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
+  'sf:lwc_jest_is_watching_focused_file';
 
 /**
  * Run LWC test telemetry log name
  */
-export const LWC_TEST_RUN_LOG_NAME = 'force_lwc_test_run_action';
+export const LWC_TEST_RUN_LOG_NAME = 'lwc_test_run_action';
 /**
  * Debug LWC test telemetry log name
  */
-export const LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
+export const LWC_TEST_DEBUG_LOG_NAME = 'lwc_test_debug_action';
 /**
  * Watch LWC test telemetry log name
  */
-export const FORCE_LWC_TEST_WATCH_LOG_NAME = 'force_lwc_test_watch_action';
+export const LWC_TEST_WATCH_LOG_NAME = 'lwc_test_watch_action';
