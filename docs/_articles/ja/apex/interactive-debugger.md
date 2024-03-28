@@ -37,7 +37,7 @@ VS Code で初めて Apex デバッガを使用するときは、次の設定手
    1. **[割り当てを追加]** をクリックします。
    1. 権限セットを割り当てるユーザを選択して、**[割り当て]** をクリックします。
    1. **[完了]** をクリックします。
-1. **省略可能**: VS Code で、**[SFDX: Pull Source from Default Scratch Org \(SFDX: デフォルトのスクラッチ組織からソースをプル\)]** を実行します。次に、新しい権限セットをソース制御リポジトリに追加します。Salesforce DX プロジェクトに権限セットのコピーがある場合は、`sfdx org:assign:permset -n Your_Perm_Set_Name` を実行してスクラッチ組織ユーザに権限を割り当てることができます。
+1. **省略可能**: VS Code で、**[SFDX: Pull Source from Default Scratch Org \(SFDX: デフォルトのスクラッチ組織からソースをプル\)]** を実行します。次に、新しい権限セットをソース制御リポジトリに追加します。Salesforce DX プロジェクトに権限セットのコピーがある場合は、`sf org assign permset --name Your_Perm_Set_Name` を実行してスクラッチ組織ユーザに権限を割り当てることができます。
 1. VS Code で、Apex デバッガの起動設定を作成します。
    1. [Debug \(デバッグ\)] ビューを開くには、VS Code の [Activity Bar \(アクティビティバー\)] で、バグアイコン \(フロート表示テキスト: [Debug \(デバッグ\)]\) をクリックします。
    1. `launch.json` ファイルを作成するには、ギアアイコン \(フロート表示テキスト: [Configure or Fix launch.json \(launch.json の設定または修正\)]\) をクリックして、**[Apex Debugger \(Apex デバッガ\)]** を選択します\(このファイルをすでに作成している場合は、ギアアイコンをクリックするとファイルが開きます\)。
