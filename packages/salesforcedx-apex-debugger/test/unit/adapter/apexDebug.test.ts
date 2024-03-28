@@ -346,8 +346,8 @@ describe('Interactive debugger adapter - unit', () => {
 
       args.connectType = 'ISV_DEBUGGER';
       const config = new Map<string, string>();
-      config.set('isvDebuggerSid', '123');
-      config.set('isvDebuggerUrl', 'instanceurl');
+      config.set('org-isv-debugger-sid', '123');
+      config.set('org-isv-debugger-url', 'instanceurl');
       configGetSpy.returns(config);
 
       await adapter.launchRequest(initializedResponse, args);
