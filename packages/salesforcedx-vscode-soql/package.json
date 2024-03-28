@@ -196,7 +196,7 @@
       "commandPalette": [
         {
           "command": "soql.builder.open.new",
-          "when": "sfdx:project_opened"
+          "when": "sf:project_opened"
         },
         {
           "command": "soql.builder.toggle",

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { ConflictDetectionMessages } from '../commands/util';
 
 export function getConflictMessagesFor(
@@ -20,8 +20,8 @@ export function getConflictMessagesFor(
           const commands: string[] = [];
           (inputs as string[]).forEach(input => {
             commands.push(
-              new SfdxCommandBuilder()
-                .withArg('force:source:deploy')
+              new SfCommandBuilder()
+                .withArg('project:deploy:start')
                 .withFlag('--sourcepath', input)
                 .build()
                 .toString()
@@ -38,8 +38,8 @@ export function getConflictMessagesFor(
       {
         warningMessageKey,
         commandHint: input => {
-          return new SfdxCommandBuilder()
-            .withArg('force:source:deploy')
+          return new SfCommandBuilder()
+            .withArg('project:deploy:start')
             .withFlag('--manifest', input as string)
             .build()
             .toString();

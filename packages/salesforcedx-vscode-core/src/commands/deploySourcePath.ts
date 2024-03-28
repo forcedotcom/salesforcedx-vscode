@@ -14,11 +14,7 @@ import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
-import {
-  LibraryPathsGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
@@ -74,8 +70,8 @@ export const deploySourcePaths = async (
   const messages = getConflictMessagesFor('deploy_with_sourcepath_beta');
 
   if (messages) {
-    const commandlet = new SfdxCommandlet<string[]>(
-      new SfdxWorkspaceChecker(),
+    const commandlet = new SfCommandlet<string[]>(
+      new SfWorkspaceChecker(),
       new LibraryPathsGatherer(uris),
       new LibraryDeploySourcePathExecutor(),
       new CompositePostconditionChecker(

@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
+import { salesforceCoreSettings } from '../settings';
 
 /**
  * A centralized location for all notification functionalities.
@@ -64,12 +64,12 @@ export class NotificationService {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
     this.reportExecutionStatus(
       execution.command.toString(),
-      (execution.processExitSubject as any) as Observable<number | undefined>,
+      execution.processExitSubject as any as Observable<number | undefined>,
       cancellationToken
     );
     this.reportExecutionError(
       execution.command.toString(),
-      (execution.processErrorSubject as any) as Observable<Error | undefined>
+      execution.processErrorSubject as any as Observable<Error | undefined>
     );
   }
 
@@ -111,7 +111,7 @@ export class NotificationService {
       'notification_successful_execution_text',
       executionName
     );
-    if (sfdxCoreSettings.getShowCLISuccessMsg()) {
+    if (salesforceCoreSettings.getShowCLISuccessMsg()) {
       const showButtonText = nls.localize('notification_show_button_text');
       const showOnlyStatusBarButtonText = nls.localize(
         'notification_show_in_status_bar_button_text'
@@ -125,7 +125,7 @@ export class NotificationService {
         channelService.showChannelOutput();
       }
       if (selection && selection === showOnlyStatusBarButtonText) {
-        await sfdxCoreSettings.updateShowCLISuccessMsg(false);
+        await salesforceCoreSettings.updateShowCLISuccessMsg(false);
       }
     } else {
       vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);

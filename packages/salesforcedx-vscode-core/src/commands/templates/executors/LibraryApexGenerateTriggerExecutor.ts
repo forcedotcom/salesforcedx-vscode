@@ -13,7 +13,7 @@ import { APEX_TRIGGER_TYPE } from '../metadataTypeConstants';
 
 export class LibraryApexGenerateTriggerExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('apex_generate_trigger_text');
-  public telemetryName = 'force_apex_trigger_create';
+  public telemetryName = 'apex_generate_trigger';
   public metadataTypeName = APEX_TRIGGER_TYPE;
   public templateType = TemplateType.ApexTrigger;
   public getOutputFileName(data: DirFileNameSelection) {

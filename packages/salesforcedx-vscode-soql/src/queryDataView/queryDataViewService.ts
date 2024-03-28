@@ -24,7 +24,7 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { nls } from '../messages';
-import { channelService } from '../sfdx';
+import { channelService } from '../sf';
 import {
   FileFormat,
   QueryDataFileService as FileService

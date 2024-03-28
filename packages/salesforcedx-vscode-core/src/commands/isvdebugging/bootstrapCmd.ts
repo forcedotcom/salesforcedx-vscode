@@ -14,7 +14,7 @@ import {
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
@@ -36,8 +36,8 @@ import {
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
-  SfdxCommandlet,
-  SfdxCommandletExecutor
+  SfCommandlet,
+  SfCommandletExecutor
 } from '../util';
 // below uses require due to bundling restrictions
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
@@ -56,7 +56,7 @@ export const ISVDEBUGGER = 'isvdebuggermdapitmp';
 export const INSTALLED_PACKAGES = 'installed-packages';
 export const PACKAGE_XML = 'package.xml';
 
-export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
+export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   public readonly relativeMetadataTempPath = path.join(
     projectPaths.relativeToolsFolder(),
     ISVDEBUGGER
@@ -76,7 +76,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('isv_debug_bootstrap_create_project'))
       .withArg('project:generate')
       .withFlag('--name', data.projectName)
@@ -87,7 +87,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('isv_debug_bootstrap_configure_project'))
       .withArg('config:set')
       .withArg(`org-isv-debugger-sid=${data.sessionId}`)
@@ -100,7 +100,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public buildQueryForOrgNamespacePrefixCommand(
     data: IsvDebugBootstrapConfig
   ): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(
         nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       )
@@ -129,7 +129,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public buildRetrieveOrgSourceCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('isv_debug_bootstrap_retrieve_org_source'))
       .withArg('project:retrieve:start')
       .withFlag('--manifest', this.relativeApexPackageXmlPath)
@@ -141,7 +141,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public buildPackageInstalledListAsJsonCommand(
     data: IsvDebugBootstrapConfig
   ): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(
         nls.localize('isv_debug_bootstrap_list_installed_packages')
       )
@@ -156,7 +156,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     data: IsvDebugBootstrapConfig,
     packageName: string
   ): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(
         nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
       )
@@ -252,10 +252,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     } catch (error) {
       console.error(error);
       channelService.appendLine(
-        nls.localize('error_updating_sfdx_project', error.toString())
+        nls.localize('error_updating_salesforce_project', error.toString())
       );
       notificationService.showErrorMessage(
-        nls.localize('error_updating_sfdx_project', error.toString())
+        nls.localize('error_updating_salesforce_project', error.toString())
       );
       return;
     }
@@ -541,7 +541,7 @@ const parameterGatherer = new CompositeParametersGatherer(
 const pathExistsChecker = new PathExistsChecker();
 
 const executor = new IsvDebugBootstrapExecutor();
-const commandlet = new SfdxCommandlet(
+const commandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor,

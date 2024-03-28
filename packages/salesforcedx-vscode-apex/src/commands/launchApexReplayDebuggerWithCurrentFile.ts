@@ -12,9 +12,9 @@ import {
   fileExtensionsMatch,
   fileUtils,
   notificationService,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -68,7 +68,7 @@ const isAnonymousApexFile = (sourceUri: vscode.Uri): boolean => {
 };
 
 const launchReplayDebuggerLogFile = async (sourceUri: vscode.Uri) => {
-  await vscode.commands.executeCommand('sfdx.launch.replay.debugger.logfile', {
+  await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {
     fsPath: sourceUri.fsPath
   });
 };
@@ -93,8 +93,8 @@ const getApexTestClassName = async (
 };
 
 const launchAnonymousApexReplayDebugger = async () => {
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new EmptyParametersGatherer(),
     new AnonApexLaunchReplayDebuggerExecutor()
   );
@@ -103,12 +103,12 @@ const launchAnonymousApexReplayDebugger = async () => {
 
 const launchApexReplayDebugger = async (apexTestClassName: string) => {
   // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
-  await vscode.commands.executeCommand('sfdx.test.view.debugTests', {
+  await vscode.commands.executeCommand('sf.test.view.debugTests', {
     name: apexTestClassName
   });
 };
 
-export class AnonApexLaunchReplayDebuggerExecutor extends SfdxCommandletExecutor<{}> {
+export class AnonApexLaunchReplayDebuggerExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     return new CommandBuilder(
       nls.localize('launch_apex_replay_debugger_with_selected_file')

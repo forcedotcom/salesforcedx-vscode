@@ -21,15 +21,15 @@ import {
   SelectOutputDir,
   SimpleGatherer
 } from '../../../../src/commands/util/parameterGatherers';
-import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
-import { SfdxWorkspaceChecker } from '../../../../src/commands/util/sfdxWorkspaceChecker';
+import * as commandlet from '../../../../src/commands/util/sfCommandlet';
+import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
 jest.mock(
   '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor'
 );
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
-jest.mock('../../../../src/commands/util/sfdxWorkspaceChecker');
+jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
 jest.mock('../../../../src/commands/util/timestampConflictChecker');
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
@@ -38,7 +38,7 @@ const selectOutputDirMocked = jest.mocked(SelectOutputDir);
 const libraryApexGenerateUnitTestClassExecutorMocked = jest.mocked(
   LibraryApexGenerateUnitTestClassExecutor
 );
-const sfdxWorkspaceCheckerMocked = jest.mocked(SfdxWorkspaceChecker);
+const sfWorkspaceCheckerMocked = jest.mocked(SfWorkspaceChecker);
 const compositeParametersGathererMocked = jest.mocked(
   CompositeParametersGatherer
 );
@@ -47,14 +47,14 @@ const simpleGathererMocked = jest.mocked(SimpleGatherer);
 
 describe('apexGenerateUnitTestClass Unit Tests.', () => {
   let runMock: jest.Mock<any, any>;
-  let sfdxCommandletMocked: jest.SpyInstance<any, any>;
+  let sfCommandletMocked: jest.SpyInstance<any, any>;
 
   beforeEach(() => {
     runMock = jest.fn();
-    // Note that the entire sfdxCommandlet module can not be mocked like the other modules b/c
+    // Note that the entire sfCommandlet module can not be mocked like the other modules b/c
     // there are multiple exports there that cause issues if not available.
-    sfdxCommandletMocked = jest
-      .spyOn(commandlet, 'SfdxCommandlet')
+    sfCommandletMocked = jest
+      .spyOn(commandlet, 'SfCommandlet')
       .mockImplementation((): any => {
         return {
           run: runMock
@@ -70,8 +70,8 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
     expect(selectOutputDirMocked).toHaveBeenCalledWith(APEX_CLASS_DIRECTORY);
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
-    expect(sfdxCommandletMocked).toHaveBeenCalled();
-    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
+    expect(sfCommandletMocked).toHaveBeenCalled();
+    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
@@ -87,8 +87,8 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
     expect(simpleGathererMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
-    expect(sfdxCommandletMocked).toHaveBeenCalled();
-    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
+    expect(sfCommandletMocked).toHaveBeenCalled();
+    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
@@ -102,8 +102,8 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
     expect(selectOutputDirMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
-    expect(sfdxCommandletMocked).toHaveBeenCalled();
-    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
+    expect(sfCommandletMocked).toHaveBeenCalled();
+    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
@@ -118,13 +118,15 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
     expect(selectOutputDirMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
     expect(libraryApexGenerateUnitTestClassExecutorMocked).toHaveBeenCalled();
-    expect(sfdxCommandletMocked).toHaveBeenCalled();
-    expect(sfdxWorkspaceCheckerMocked).toHaveBeenCalled();
+    expect(sfCommandletMocked).toHaveBeenCalled();
+    expect(sfWorkspaceCheckerMocked).toHaveBeenCalled();
     expect(compositeParametersGathererMocked).toHaveBeenCalled();
     expect(overwriteComponentPromptMocked).toHaveBeenCalled();
     expect(runMock).toHaveBeenCalled();
     expect(simpleGathererMocked).toHaveBeenCalled();
     expect(simpleGathererMocked).toHaveBeenCalledTimes(3);
-    expect(simpleGathererMocked.mock.calls[2]).toEqual([{template: 'BasicUnitTest'}]);
+    expect(simpleGathererMocked.mock.calls[2]).toEqual([
+      { template: 'BasicUnitTest' }
+    ]);
   });
 });

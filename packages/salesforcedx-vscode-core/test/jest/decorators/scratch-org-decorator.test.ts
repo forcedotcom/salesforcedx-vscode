@@ -15,7 +15,7 @@ describe('scratch org decorator', () => {
   const browserIcon = '$(browser)';
   const openOrgCommand = ORG_OPEN_COMMAND;
   let createFileSystemWatcherMock: jest.SpyInstance;
-  let getDefaultUsernameOrAliasMock: jest.SpyInstance;
+  let getTargetOrgOrAliasMock: jest.SpyInstance;
   let createStatusBarItemMock: jest.SpyInstance;
   const mockStatusBarItem: any = {};
   let mockWatcher: any;
@@ -30,21 +30,20 @@ describe('scratch org decorator', () => {
       onDidChange: jest.fn(),
       onDidCreate: jest.fn()
     };
-    createStatusBarItemMock = (vscode.window
-      .createStatusBarItem as any).mockReturnValue(mockStatusBarItem);
-    createFileSystemWatcherMock = (vscode.workspace
-      .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
-    getDefaultUsernameOrAliasMock = jest.spyOn(
-      ConfigUtil,
-      'getDefaultUsernameOrAlias'
-    );
+    createStatusBarItemMock = (
+      vscode.window.createStatusBarItem as any
+    ).mockReturnValue(mockStatusBarItem);
+    createFileSystemWatcherMock = (
+      vscode.workspace.createFileSystemWatcher as any
+    ).mockReturnValue(mockWatcher);
+    getTargetOrgOrAliasMock = jest.spyOn(ConfigUtil, 'getTargetOrgOrAlias');
   });
 
   describe('show Org', () => {
-    it('should show the browser icon in the status bar when a default username is set', async () => {
-      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
+    it('should show the browser icon in the status bar when a target org is set', async () => {
+      getTargetOrgOrAliasMock.mockResolvedValue(testUser);
       await decorators.showOrg();
-      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      expect(getTargetOrgOrAliasMock).toHaveBeenCalled();
       expect(createStatusBarItemMock).toHaveBeenCalled();
       expect(mockStatusBarItem.tooltip).toEqual(
         nls.localize('status_bar_open_org_tooltip')
@@ -53,24 +52,24 @@ describe('scratch org decorator', () => {
       expect(mockStatusBarItem.show).toHaveBeenCalled();
       expect(mockStatusBarItem.text).toEqual(browserIcon);
     });
-    it('should not show the browser icon in the status bar when a default username is not set', async () => {
+    it('should not show the browser icon in the status bar when a target org is not set', async () => {
       await decorators.showOrg();
-      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      expect(getTargetOrgOrAliasMock).toHaveBeenCalled();
       expect(createStatusBarItemMock).not.toHaveBeenCalled();
       expect(mockStatusBarItem.tooltip).toEqual('');
       expect(mockStatusBarItem.command).toEqual('');
       expect(mockStatusBarItem.show).not.toHaveBeenCalled();
       expect(mockStatusBarItem.text).toEqual('');
     });
-    it('should dispose and set to undefined the status bar when a default username is not set and the status bar exists', async () => {
-      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
+    it('should dispose and set to undefined the status bar when a target org is not set and the status bar exists', async () => {
+      getTargetOrgOrAliasMock.mockResolvedValue(testUser);
       await decorators.showOrg();
-      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      expect(getTargetOrgOrAliasMock).toHaveBeenCalled();
       expect(createStatusBarItemMock).toHaveBeenCalled();
 
-      getDefaultUsernameOrAliasMock.mockResolvedValue(undefined);
+      getTargetOrgOrAliasMock.mockResolvedValue(undefined);
       await decorators.showOrg();
-      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalledTimes(2);
+      expect(getTargetOrgOrAliasMock).toHaveBeenCalledTimes(2);
       expect(createStatusBarItemMock).toHaveBeenCalledTimes(1);
       expect(mockStatusBarItem.dispose).toHaveBeenCalled();
     });

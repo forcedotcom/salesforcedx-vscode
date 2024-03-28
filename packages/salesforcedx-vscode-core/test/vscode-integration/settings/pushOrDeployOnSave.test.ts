@@ -17,7 +17,7 @@ import {
   fileShouldNotBeDeployed,
   pathIsInPackageDirectory
 } from '../../../src/settings';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { telemetryService } from '../../../src/telemetry';
 
 /* tslint:disable:no-unused-expression */
@@ -115,7 +115,7 @@ describe('Push or Deploy on Save', () => {
       );
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
       sandbox
-        .stub(SfdxCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
+        .stub(SalesforceCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
         .returns(false);
     });
 
@@ -176,15 +176,13 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should display an error to the user when no target-org is set', async () => {
-      const noDefaultUsernameSetError = new Error();
-      noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
-      getWorkspaceOrgTypeStub.throws(noDefaultUsernameSetError);
+      const noTargetOrgSetError = new Error();
+      noTargetOrgSetError.name = 'NoTargetOrgSet';
+      getWorkspaceOrgTypeStub.throws(noTargetOrgSetError);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
-      const error = nls.localize(
-        'error_push_or_deploy_on_save_no_default_username'
-      );
+      const error = nls.localize('error_push_or_deploy_on_save_no_target_org');
       expect(showErrorMessageStub.calledOnce).to.be.true;
       expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
       expect(appendLineStub.calledOnce).to.be.true;
@@ -195,7 +193,7 @@ describe('Push or Deploy on Save', () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
-          SfdxCoreSettings.prototype,
+          SalesforceCoreSettings.prototype,
           'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(false);
@@ -204,7 +202,7 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.project.deploy.start'
+        'sf.project.deploy.start'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
@@ -214,7 +212,7 @@ describe('Push or Deploy on Save', () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
-          SfdxCoreSettings.prototype,
+          SalesforceCoreSettings.prototype,
           'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(true);
@@ -223,20 +221,20 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.project.deploy.start.ignore.conflicts'
+        'sf.project.deploy.start.ignore.conflicts'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call force:source:deploy on multiple paths', async () => {
+    it('should call deploy on multiple paths', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.deploy.multiple.source.paths'
+        'sf.deploy.multiple.source.paths'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;

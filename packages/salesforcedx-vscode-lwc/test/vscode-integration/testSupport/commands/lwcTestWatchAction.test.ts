@@ -17,20 +17,20 @@ import {
   createMockTestFileInfo,
   mockActiveTextEditorUri,
   mockGetLwcTestRunnerExecutable,
-  mockSfdxTaskExecute,
+  mockSfTaskExecute,
   unmockActiveTextEditorUri,
   unmockGetLwcTestRunnerExecutable,
-  unmockSfdxTaskExecute
+  unmockSfTaskExecute
 } from '../mocks';
 
 describe('LWC Test Watch Action', () => {
   beforeEach(() => {
     mockGetLwcTestRunnerExecutable();
-    mockSfdxTaskExecute();
+    mockSfTaskExecute();
   });
   afterEach(() => {
     unmockGetLwcTestRunnerExecutable();
-    unmockSfdxTaskExecute();
+    unmockSfTaskExecute();
     testWatcher.stopWatchingAllTests();
   });
 

@@ -10,35 +10,35 @@ import {
   CliCommandExecutor,
   Command,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { workspaceUtils } from '../util';
-import { SfdxCommandletExecutor } from './util';
+import { SfCommandletExecutor } from './util';
 
-export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
+export class ListMetadataExecutor extends SfCommandletExecutor<string> {
   private metadataType: string;
-  private defaultUsernameOrAlias: string;
+  private targetOrgOrAlias: string;
   private folder?: string;
 
   public constructor(
     metadataType: string,
-    defaultUsernameOrAlias: string,
+    targetOrgOrAlias: string,
     folder?: string
   ) {
     super();
     this.metadataType = metadataType;
-    this.defaultUsernameOrAlias = defaultUsernameOrAlias;
+    this.targetOrgOrAlias = targetOrgOrAlias;
     this.folder = folder;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withArg('org:list:metadata')
       .withFlag('-m', this.metadataType)
       .withLogName('list_metadata')
-      .withJson(false);
+      .withJson();
 
     if (this.folder) {
       builder.withFlag('--folder', this.folder);
@@ -62,13 +62,13 @@ export class ListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
 export const listMetadata = async (
   metadataType: string,
-  defaultUsernameOrAlias: string,
+  targetOrgOrAlias: string,
   outputPath: string,
   folder?: string
 ): Promise<string> => {
   const listMetadataExecutor = new ListMetadataExecutor(
     metadataType,
-    defaultUsernameOrAlias,
+    targetOrgOrAlias,
     folder
   );
   const execution = listMetadataExecutor.execute();

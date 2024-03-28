@@ -28,7 +28,7 @@ import {
   FileSelection,
   FileSelector,
   SelectOutputDir,
-  SfdxCommandlet,
+  SfCommandlet,
   SimpleGatherer
 } from '../../../../src/commands/util';
 import {
@@ -100,7 +100,7 @@ describe('Parameter Gatherers', () => {
 
     it('Should call executor if composite gatherer is CONTINUE', async () => {
       let executed = false;
-      const commandlet = new SfdxCommandlet(
+      const commandlet = new SfCommandlet(
         new (class {
           public check(): boolean {
             return true;
@@ -128,7 +128,7 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should not call executor if composite gatherer is CANCEL', async () => {
-      const commandlet = new SfdxCommandlet(
+      const commandlet = new SfCommandlet(
         new (class {
           public check(): boolean {
             return true;

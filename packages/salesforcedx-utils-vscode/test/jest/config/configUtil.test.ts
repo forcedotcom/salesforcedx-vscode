@@ -8,7 +8,7 @@ import { Config, Org, StateAggregator } from '@salesforce/core';
 import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
-describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlias', () => {
+describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', () => {
   const fakeOriginalDirectory = 'test/directory';
   const fakeWorkspace = 'test/workspace/';
 
@@ -49,7 +49,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
 
   it('should set provided username or alias as default configs', async () => {
     const username = 'vscodeOrgs';
-    await ConfigUtil.setDefaultUsernameOrAlias(username);
+    await ConfigUtil.setTargetOrgOrAlias(username);
     expect(orgStub).toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(TARGET_ORG_KEY, username);
     expect(writeMock).toHaveBeenCalled();
@@ -57,7 +57,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
 
   it('should change the current working directory to the original working directory', async () => {
     const username = 'vscodeO';
-    await ConfigUtil.setDefaultUsernameOrAlias(username);
+    await ConfigUtil.setTargetOrgOrAlias(username);
     expect(workspacePathStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenCalledTimes(2);
     expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
@@ -66,7 +66,7 @@ describe('testing setDefaultUsernameOrAlias and private method setUsernameOrAlia
 
   it('should be able to set username or alias to an empty string', async () => {
     const username = '';
-    await ConfigUtil.setDefaultUsernameOrAlias(username);
+    await ConfigUtil.setTargetOrgOrAlias(username);
     expect(orgStub).not.toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(TARGET_ORG_KEY, username);
     expect(writeMock).toHaveBeenCalled();
