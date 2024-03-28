@@ -6,6 +6,7 @@
  */
 import {
   ApexTestProgressValue,
+  ApexTestResultData,
   HumanReporter,
   Progress,
   ResultFormat,
@@ -13,7 +14,8 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { SfProject } from '@salesforce/core';
+import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
+import { NamedPackageDir, SfProject } from '@salesforce/core';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
@@ -24,10 +26,7 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -108,24 +107,28 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     return result.summary.outcome === 'Passed';
   }
 
-  private async handleDiagnostics(result: TestResult) {
+  private async handleDiagnostics(result: TestResult): Promise<void> {
     ApexLibraryTestRunExecutor.diagnostics.clear();
     const projectPath = getRootWorkspacePath();
     const project = await SfProject.resolve(projectPath);
-    const defaultPackage = project.getDefaultPackage().fullPath;
 
-    result.tests.forEach(test => {
-      if (test.diagnostic) {
-        const diagnostic = test.diagnostic;
-        const components = ComponentSet.fromSource(defaultPackage);
-        const testClassCmp = components
-          .getSourceComponents({
-            fullName: test.apexClass.name,
-            type: 'ApexClass'
-          })
-          .first() as SourceComponent;
-        const componentPath = testClassCmp.content;
+    const testsWithDiagnostics = result.tests.filter(test => test.diagnostic);
+    if (testsWithDiagnostics.length === 0) {
+      return;
+    }
 
+    const correlatedArtifacts = await this.mapApexArtifactToFilesystem(
+      testsWithDiagnostics,
+      project.getPackageDirectories()
+    );
+
+    testsWithDiagnostics.forEach(test => {
+      const diagnostic = test.diagnostic as ApexDiagnostic;
+      const componentPath = correlatedArtifacts.get(
+        test.apexClass.fullName ?? test.apexClass.name
+      );
+
+      if (componentPath) {
         const vscDiagnostic: vscode.Diagnostic = {
           message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
           severity: vscode.DiagnosticSeverity.Error,
@@ -136,12 +139,10 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
           )
         };
 
-        if (componentPath) {
-          ApexLibraryTestRunExecutor.diagnostics.set(
-            vscode.Uri.file(componentPath),
-            [vscDiagnostic]
-          );
-        }
+        ApexLibraryTestRunExecutor.diagnostics.set(
+          vscode.Uri.file(componentPath),
+          [vscDiagnostic]
+        );
       }
     });
   }
@@ -152,6 +153,61 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       column > 0 ? column - 1 : 0
     );
     return new vscode.Range(pos, pos);
+  }
+
+  private async mapApexArtifactToFilesystem(
+    tests: ApexTestResultData[],
+    packageDirectories: NamedPackageDir[]
+  ): Promise<Map<string, string>> {
+    // Create a map to store the correlated artifacts
+    const correlatedArtifacts: Map<string, string> = new Map();
+
+    // Iterate over each test in the ApexTestResultData array
+    for (const test of tests) {
+      // Get the name of the test without the extension
+      const testName = test.apexClass.fullName ?? test.apexClass.name;
+      // Add the test name to the set
+      correlatedArtifacts.set(testName, 'unknown');
+    }
+
+    const workspaceFolder = vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders[0]
+      : undefined;
+    if (!workspaceFolder) {
+      return correlatedArtifacts;
+    }
+
+    const patterns = packageDirectories.map(pkgDir => {
+      const relativePath = path.relative(
+        workspaceFolder.uri.fsPath,
+        pkgDir.fullPath
+      );
+      return `${relativePath}/**/*.cls`;
+    });
+
+    const findFilesPromises = patterns.map(pattern => {
+      return vscode.workspace.findFiles(pattern, '**/node_modules/**');
+    });
+
+    const filesWithDuplicates = (await Promise.all(findFilesPromises)).flat();
+
+    // Remove duplicates
+    const files = Array.from(
+      new Set(filesWithDuplicates.map(file => file.toString()))
+    )
+    .map(filePath => vscode.Uri.parse(filePath));
+
+    // Iterate over each file found
+    for (const file of files) {
+      // Get the base name of the file without the extension
+      const fileName = path.basename(file.fsPath, '.cls');
+
+      // If the file name is in the testNames set, add it to the correlatedArtifacts map
+      if (correlatedArtifacts.has(fileName)) {
+        correlatedArtifacts.set(fileName, file.fsPath);
+      }
+    }
+    return correlatedArtifacts;
   }
 }
 
