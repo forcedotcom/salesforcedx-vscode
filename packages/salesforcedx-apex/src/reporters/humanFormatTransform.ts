@@ -1,90 +1,106 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { elapsedTime, Row, Table } from '../utils';
+import { Row, TableWriteableStream } from '../utils/tableWritableStream';
 import {
   ApexTestResultData,
   ApexTestResultOutcome,
-  CodeCoverageResult,
   TestResult
 } from '../tests';
 import { nls } from '../i18n';
+import { Readable, ReadableOptions } from 'node:stream';
+import { elapsedTime } from '../utils';
 import { LoggerLevel } from '@salesforce/core';
+import { EOL } from 'os';
 
-export class HumanReporter {
-  @elapsedTime()
-  public format(testResult: TestResult, detailedCoverage: boolean): string {
-    let tbResult = this.formatSummary(testResult);
-    if (!testResult.codecoverage || !detailedCoverage) {
-      tbResult += this.formatTestResults(testResult.tests);
-    }
+export class HumanFormatTransform extends Readable {
+  constructor(
+    private readonly testResult: TestResult,
+    private readonly detailedCoverage: boolean,
+    options?: ReadableOptions
+  ) {
+    super(options);
+    this.testResult = testResult;
+    this.detailedCoverage ??= false;
+  }
 
-    if (testResult.codecoverage) {
-      if (detailedCoverage) {
-        tbResult += this.formatDetailedCov(testResult);
-      }
-      tbResult += this.formatCodeCov(testResult.codecoverage);
-    }
-    return tbResult;
+  _read(): void {
+    this.format();
+    this.push(null); // Indicates end of data
   }
 
   @elapsedTime()
-  private formatSummary(testResult: TestResult): string {
-    const tb = new Table();
+  public format(): void {
+    this.formatSummary();
+    if (!this.testResult.codecoverage || !this.detailedCoverage) {
+      this.formatTestResults();
+    }
+
+    if (this.testResult.codecoverage) {
+      if (this.detailedCoverage) {
+        this.formatDetailedCov();
+      }
+      this.formatCodeCov();
+    }
+  }
+
+  @elapsedTime()
+  private formatSummary(): void {
+    const tb = new TableWriteableStream(this);
 
     // Summary Table
     const summaryRowArray: Row[] = [
       {
         name: nls.localize('outcome'),
-        value: testResult.summary.outcome
+        value: this.testResult.summary.outcome
       },
       {
         name: nls.localize('testsRan'),
-        value: String(testResult.summary.testsRan)
+        value: String(this.testResult.summary.testsRan)
       },
       {
         name: nls.localize('passRate'),
-        value: testResult.summary.passRate
+        value: this.testResult.summary.passRate
       },
       {
         name: nls.localize('failRate'),
-        value: testResult.summary.failRate
+        value: this.testResult.summary.failRate
       },
       {
         name: nls.localize('skipRate'),
-        value: testResult.summary.skipRate
+        value: this.testResult.summary.skipRate
       },
       {
         name: nls.localize('testRunId'),
-        value: testResult.summary.testRunId
+        value: this.testResult.summary.testRunId
       },
       {
         name: nls.localize('testExecutionTime'),
-        value: `${testResult.summary.testExecutionTimeInMs} ms`
+        value: `${this.testResult.summary.testExecutionTimeInMs} ms`
       },
       {
         name: nls.localize('orgId'),
-        value: testResult.summary.orgId
+        value: this.testResult.summary.orgId
       },
       {
         name: nls.localize('username'),
-        value: testResult.summary.username
+        value: this.testResult.summary.username
       },
-      ...(testResult.summary.orgWideCoverage
+      ...(this.testResult.summary.orgWideCoverage
         ? [
             {
               name: nls.localize('orgWideCoverage'),
-              value: String(testResult.summary.orgWideCoverage)
+              value: String(this.testResult.summary.orgWideCoverage)
             }
           ]
         : [])
     ];
 
-    return tb.createTable(
+    tb.createTable(
       summaryRowArray,
       [
         {
@@ -98,10 +114,10 @@ export class HumanReporter {
   }
 
   @elapsedTime()
-  private formatTestResults(tests: ApexTestResultData[]): string {
-    const tb = new Table();
+  private formatTestResults(): void {
+    const tb = new TableWriteableStream(this);
     const testRowArray: Row[] = [];
-    tests.forEach(
+    this.testResult.tests.forEach(
       (elem: {
         fullName: string;
         outcome: ApexTestResultOutcome;
@@ -123,8 +139,8 @@ export class HumanReporter {
       }
     );
 
-    let testResultTable = '\n\n';
-    testResultTable += tb.createTable(
+    this.push(`${EOL}${EOL}`);
+    tb.createTable(
       testRowArray,
       [
         {
@@ -137,14 +153,13 @@ export class HumanReporter {
       ],
       nls.localize('testResultsHeader')
     );
-    return testResultTable;
   }
 
   @elapsedTime()
-  private formatDetailedCov(testResult: TestResult): string {
-    const tb = new Table();
+  private formatDetailedCov(): void {
+    const tb = new TableWriteableStream(this);
     const testRowArray: Row[] = [];
-    testResult.tests.forEach((elem: ApexTestResultData) => {
+    this.testResult.tests.forEach((elem: ApexTestResultData) => {
       const msg = elem.stackTrace
         ? `${elem.message}\n${elem.stackTrace}`
         : elem.message;
@@ -172,8 +187,8 @@ export class HumanReporter {
       }
     });
 
-    let detailedCovTable = '\n\n';
-    detailedCovTable += tb.createTable(
+    this.push('\n\n');
+    tb.createTable(
       testRowArray,
       [
         {
@@ -195,16 +210,15 @@ export class HumanReporter {
         { key: 'msg', label: nls.localize('msgColHeader') },
         { key: 'runtime', label: nls.localize('runtimeColHeader') }
       ],
-      nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
+      nls.localize('detailedCodeCovHeader', [this.testResult.summary.testRunId])
     );
-    return detailedCovTable;
   }
 
-  @elapsedTime()
-  private formatCodeCov(codeCoverages: CodeCoverageResult[]): string {
-    const tb = new Table();
+  @elapsedTime('elapsedTime', LoggerLevel.TRACE)
+  private formatCodeCov(): void {
+    const tb = new TableWriteableStream(this);
     const codeCovRowArray: Row[] = [];
-    codeCoverages.forEach(
+    this.testResult.codecoverage.forEach(
       (elem: {
         name: string;
         percentage: string;
@@ -218,8 +232,8 @@ export class HumanReporter {
       }
     );
 
-    let codeCovTable = '\n\n';
-    codeCovTable += tb.createTable(
+    this.push('\n\n');
+    tb.createTable(
       codeCovRowArray,
       [
         {
@@ -237,7 +251,6 @@ export class HumanReporter {
       ],
       nls.localize('codeCovHeader')
     );
-    return codeCovTable;
   }
 
   @elapsedTime('elapsedTime', LoggerLevel.TRACE)

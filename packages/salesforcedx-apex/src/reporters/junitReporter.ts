@@ -8,10 +8,10 @@ import {
   ApexTestResultData,
   ApexTestResultOutcome,
   TestResult
-} from '../tests/types';
-import { formatStartTime, msToSecond } from '../utils';
-import { elapsedTime } from '../utils/elapsedTime';
+} from '../tests';
+import { elapsedTime, formatStartTime, msToSecond } from '../utils';
 import { LoggerLevel } from '@salesforce/core';
+import { isEmpty } from '../narrowing';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
@@ -52,7 +52,7 @@ export class JUnitReporter {
     let junitProperties = `${tab}${tab}<properties>\n`;
 
     Object.entries(testResult.summary).forEach(([key, value]) => {
-      if (this.isEmpty(value) || skippedProperties.includes(key)) {
+      if (isEmpty(value) || skippedProperties.includes(key)) {
         return;
       }
 
@@ -90,7 +90,7 @@ export class JUnitReporter {
         testCase.outcome === ApexTestResultOutcome.Fail ||
         testCase.outcome === ApexTestResultOutcome.CompileFail
       ) {
-        let message = this.isEmpty(testCase.message) ? '' : testCase.message;
+        let message = isEmpty(testCase.message) ? '' : testCase.message;
         message = this.xmlEscape(message);
         junitTests += `${tab}${tab}${tab}<failure message="${message}">`;
         if (testCase.stackTrace) {
@@ -112,16 +112,5 @@ export class JUnitReporter {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
-  }
-
-  private isEmpty(value: string | number): boolean {
-    if (
-      value === null ||
-      value === undefined ||
-      (typeof value === 'string' && value.length === 0)
-    ) {
-      return true;
-    }
-    return false;
   }
 }

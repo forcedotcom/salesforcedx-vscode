@@ -6,14 +6,16 @@
  */
 import { expect } from 'chai';
 import { JUnitReporter } from '../../src';
-import {
+import { getTestData } from './testResults';
+
+const {
   testResults,
   junitResult,
   junitSuccess,
   junitCodeCov,
   junitMissingVal,
   successResult
-} from './testResults';
+} = getTestData();
 
 describe('JUnit Reporter Tests', () => {
   const reporter = new JUnitReporter();

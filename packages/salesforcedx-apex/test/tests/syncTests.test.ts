@@ -29,8 +29,8 @@ import {
   syncResult,
   syncTestResultSimple,
   syncTestResultWithFailures
-} from './testData';
-import { JUnitReporter } from '../../src';
+} from '../testData';
+import { JUnitFormatTransformer } from '../../src';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'assert';
 import { SyncTests } from '../../src/tests/syncTests';
@@ -75,7 +75,7 @@ describe('Run Apex tests synchronously', () => {
     createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createStreamStub.returns(new stream.PassThrough() as any);
-    junitSpy = sandboxStub.spy(JUnitReporter.prototype, 'format');
+    junitSpy = sandboxStub.spy(JUnitFormatTransformer.prototype, 'format');
     formatSpy = sandboxStub.spy(diagnosticUtil, 'formatTestErrors');
   });
 

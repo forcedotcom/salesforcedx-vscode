@@ -6,5 +6,6 @@
     "reporter": "./test/combinedTestReporter.js",
     "reporter-options": "mochaFile=./test-results/test-results.xml",
     "colors": true,
-    "exit": true
+    "exit": true,
+    "timeout": 20000
 }

@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { Table } from '../../src/utils';
+import { Table } from '../../src';
 
 describe('Table Utils', () => {
   it('Should create a string with the correct formatting and number of Rows and Columns', () => {

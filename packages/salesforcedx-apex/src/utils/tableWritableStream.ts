@@ -1,21 +1,32 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { Readable } from 'node:stream';
 import { elapsedTime } from './elapsedTime';
 import { LoggerLevel } from '@salesforce/core';
-import { Column, Row } from './types';
-
 const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';
 const HEADER_FILLER = '─';
 
-export class Table {
+export interface Row {
+  [column: string]: string;
+}
+
+export interface Column {
+  key: string;
+  label: string;
+}
+
+export class TableWriteableStream {
+  constructor(private readonly stream: Readable) {
+    this.stream = stream;
+  }
+
   @elapsedTime()
-  public createTable(rows: Row[], cols: Column[], title?: string): string {
+  public createTable(rows: Row[], cols: Column[], title?: string): void {
     if (!rows) {
       throw Error('rows cannot be undefined');
     }
@@ -23,7 +34,6 @@ export class Table {
       throw Error('columns cannot be undefined');
     }
     const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
-    let table = title ? `=== ${title}` : '';
 
     let columnHeader = '';
     let headerSeparator = '';
@@ -42,7 +52,9 @@ export class Table {
     });
 
     if (columnHeader && headerSeparator) {
-      table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
+      this.stream.push(
+        `${title ? `=== ${title}\n` : ''}${columnHeader}\n${headerSeparator}\n`
+      );
     }
 
     rows.forEach((row) => {
@@ -62,9 +74,6 @@ export class Table {
                 isLastCol
               );
             } else {
-              // If the cell is multiline, add an additional line to the table
-              // and pad it to the beginning of the current column.
-              // Only add col separator padding once to additional line.
               outputRow +=
                 '\n' +
                 this.fillColumn('', rowWidth, COLUMN_FILLER, true) +
@@ -73,12 +82,11 @@ export class Table {
           }
         });
       });
-      table += outputRow + '\n';
+      this.stream.push(outputRow + '\n');
     });
-
-    return table;
   }
 
+  @elapsedTime()
   private calculateMaxColumnWidths(
     rows: Row[],
     cols: Column[]

@@ -27,12 +27,13 @@ import {
   TestResult,
   TestRunIdResult
 } from './types';
-import { calculatePercentage, isValidTestRunID, queryAll } from './utils';
+import { calculatePercentage, queryAll } from './utils';
 import * as util from 'util';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { CodeCoverage } from './codeCoverage';
 import { HttpRequest } from 'jsforce';
 import { elapsedTime } from '../utils/elapsedTime';
+import { isValidTestRunID } from '../narrowing';
 
 export class AsyncTests {
   public readonly connection: Connection;

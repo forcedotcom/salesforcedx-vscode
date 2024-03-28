@@ -58,7 +58,7 @@ describe('Streaming API Client', () => {
   it('should build a valid streaming url', () => {
     const streamClient = new StreamingClient(mockConnection);
     const result = streamClient.getStreamURL('https://na1.salesforce.com/');
-    expect(result).to.equal('https://na1.salesforce.com/cometd/36.0');
+    expect(result).to.equal('https://na1.salesforce.com/cometd/50.0');
   });
 
   it('should initialize Faye Client', () => {

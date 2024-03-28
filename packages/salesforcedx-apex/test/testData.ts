@@ -13,7 +13,7 @@ import {
   ApexTestRunResultStatus,
   SyncTestResult,
   TestResult
-} from '../../src/tests/types';
+} from '../src/tests/types';
 
 export const syncTestResultSimple: SyncTestResult = {
   apexLogId: '07Lxx00000cxy6YUAQ',
