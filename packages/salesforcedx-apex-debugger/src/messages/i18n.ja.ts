@@ -42,5 +42,7 @@ export const messages = {
   invalid_isv_project_config:
     'ISV デバッグ用のプロジェクト設定が無効か未完了です。設定の Apex デバッガのページに戻り、新しいパートナーデバッグセッションを開始し、再実行してください。',
   unexpected_error_help_text:
-    'デバッガセッションを起動する際に予期せぬエラーが発生しました。詳細は、デバッグコンソールを参照してください。'
+    'デバッガセッションを起動する際に予期せぬエラーが発生しました。詳細は、デバッグコンソールを参照してください。',
+  isv_debugger_launched_successfully:
+    'ISV Debugger has been launched successfully.'
 };

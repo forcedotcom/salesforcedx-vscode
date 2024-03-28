@@ -13,6 +13,7 @@ import {
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
+import { telemetryService } from '@salesforce/salesforcedx-utils-vscode/src/telemetry';
 import * as os from 'os';
 import { basename } from 'path';
 import {
@@ -688,10 +689,12 @@ export class ApexDebug extends LoggingDebugSession {
           typeof isvDebuggerUrl === 'undefined'
         ) {
           response.message = nls.localize('invalid_isv_project_config');
+          telemetryService.sendException(nls.localize('invalid_isv_project_config'), response.message);
           return this.sendResponse(response);
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
+        telemetryService.sendEventData(nls.localize('isv_debugger_launched_successfully'));
       } else {
         const orgInfo = await new OrgDisplay().getOrgInfo(
           args.salesforceProject
