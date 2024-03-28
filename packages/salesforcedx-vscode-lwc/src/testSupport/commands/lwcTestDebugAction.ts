@@ -33,9 +33,9 @@ export const getDebugConfiguration = (
   args: string[],
   cwd: string
 ): vscode.DebugConfiguration => {
-  const sfdxDebugSessionId = uuid.v4();
+  const sfDebugSessionId = uuid.v4();
   const debugConfiguration: vscode.DebugConfiguration = {
-    sfdxDebugSessionId,
+    sfDebugSessionId,
     type: 'node',
     request: 'launch',
     name: 'Debug LWC test(s)',
@@ -114,9 +114,9 @@ export const lwcTestDebugActiveTextEditorTest = async () => {
  */
 export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
-  const { sfdxDebugSessionId } = configuration;
+  const { sfDebugSessionId } = configuration;
   const startTime = process.hrtime();
-  debugSessionStartTimes.set(sfdxDebugSessionId, startTime);
+  debugSessionStartTimes.set(sfDebugSessionId, startTime);
 };
 
 /**
@@ -127,9 +127,7 @@ export const handleDidTerminateDebugSession = (
   session: vscode.DebugSession
 ) => {
   const { configuration } = session;
-  const startTime = debugSessionStartTimes.get(
-    configuration.sfdxDebugSessionId
-  );
+  const startTime = debugSessionStartTimes.get(configuration.sfDebugSessionId);
   if (Array.isArray(startTime)) {
     telemetryService.sendCommandEvent(LWC_TEST_DEBUG_LOG_NAME, startTime, {
       workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()

@@ -131,7 +131,7 @@ describe('LWC Test Debug - Code Action', () => {
     it('Should generate debug configuration for single test case', () => {
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
       expect(debugConfiguration).to.deep.equal({
-        sfdxDebugSessionId: mockUuid,
+        sfDebugSessionId: mockUuid,
         type: 'node',
         request: 'launch',
         name: 'Debug LWC test(s)',
@@ -216,7 +216,7 @@ describe('LWC Test Debug - Code Action', () => {
         port: 9229,
         request: 'launch',
         runtimeExecutable: lwcTestExecutablePath,
-        sfdxDebugSessionId: mockUuid,
+        sfDebugSessionId: mockUuid,
         type: 'node'
       };
 
@@ -262,7 +262,7 @@ describe('LWC Test Debug - Code Action', () => {
         port: 9229,
         request: 'launch',
         runtimeExecutable: lwcTestExecutablePath,
-        sfdxDebugSessionId: mockUuid,
+        sfDebugSessionId: mockUuid,
         type: 'node'
       });
       unmockActiveTextEditorUri();

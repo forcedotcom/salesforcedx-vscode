@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: '開始しています: ',
   channel_end_with_exit_code: 'が終了コード %s で終了しました。',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/sfdxcli からインストールしてください。',
+    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/salesforcecli からインストールしてください。',
   channel_end_with_error: 'がエラーで終了しました。%s',
   channel_end: 'が終了しました。',
 
@@ -196,7 +196,7 @@ export const messages = {
   error_extracting_org_source:
     'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
-  error_updating_sfdx_project: 'sfdx-project.json の更新中にエラー: %s',
+  error_updating_sf_project: 'sfdx-project.json の更新中にエラー: %s',
   error_writing_installed_package_info:
     'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
@@ -217,7 +217,7 @@ export const messages = {
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
-    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
+    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sf data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sf data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
   auth_project_label: 'プロジェクトのデフォルト',
   auth_project_detail: 'sfdx-project.json で定義されたログインURL を使用',
   auth_prod_label: '本番環境',
@@ -237,7 +237,7 @@ export const messages = {
     '保存時のプッシュまたはデプロイ設定中にエラー: sfdx-project.json ファイルに "packageDirectories" プロパティが含まれていません。このプロパティを追加するか、もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   error_no_package_directories_paths_found_text:
     '保存時のプッシュまたはデプロイ設定中にエラー: sfdx-project.json ファイルの "packageDirectories" プロパティに "path" の値が含まれていません。"path" プロパティへ値を追加するか、もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
-  error_push_or_deploy_on_save_no_default_username:
+  error_push_or_deploy_on_save_no_target_org:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_source_path_not_in_package_directory_text:
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
@@ -270,9 +270,9 @@ export const messages = {
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
   pull_conflicts_error:
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
-  error_no_default_username:
+  error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
-  error_no_default_devhubusername:
+  error_no_target_dev_hub:
     'デフォルトの Dev Hub 組織が設定されていません。"SFDX: Dev Hub 組織を認証" を実行て組織を設定してください。',
   custom_output_directory: 'ディレクトリを選択',
   warning_using_global_username:
@@ -499,7 +499,7 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
-  conflict_detect_no_default_username:
+  conflict_detect_no_target_org:
     'このプロジェクトにはデフォルトのユーザ名がありません',
   conflict_detect_no_default_package_dir:
     'このプロジェクトにはデフォルトのパッケージディレクトリがありません',

@@ -23,8 +23,8 @@ import {
   getRootWorkspacePath,
   getTestResultsFolder,
   LibraryCommandletExecutor,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -213,8 +213,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
 const apexTestRunCodeAction = async (tests: string[]) => {
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests);
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new EmptyParametersGatherer(),
     testRunExecutor
   );
@@ -237,13 +237,13 @@ const getTempFolder = (): string => {
 
 // redirects to run-all-tests cmd
 export const apexDebugClassRunCodeActionDelegate = (testClass: string) => {
-  void vscode.commands.executeCommand('sfdx.test.view.debugTests', {
+  void vscode.commands.executeCommand('sf.test.view.debugTests', {
     name: testClass
   });
 };
 
 export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
-  void vscode.commands.executeCommand('sfdx.apex.test.class.run', testClass);
+  void vscode.commands.executeCommand('sf.apex.test.class.run', testClass);
 };
 
 // evaluate test class param: if not provided, apply cached value
@@ -281,10 +281,10 @@ export const apexTestClassRunCodeAction = async (testClass: string) => {
 
 // redirects to run-test-method cmd
 export const apexTestMethodRunCodeActionDelegate = (testMethod: string) => {
-  void vscode.commands.executeCommand('sfdx.apex.test.method.run', testMethod);
+  void vscode.commands.executeCommand('sf.apex.test.method.run', testMethod);
 };
 export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
-  void vscode.commands.executeCommand('sfdx.test.view.debugSingleTest', {
+  void vscode.commands.executeCommand('sf.test.view.debugSingleTest', {
     name: testMethod
   });
 };

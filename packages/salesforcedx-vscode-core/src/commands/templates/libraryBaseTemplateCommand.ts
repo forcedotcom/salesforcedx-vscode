@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-
 import { ConfigUtil, Properties } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -19,7 +18,6 @@ import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
-
 
 import {
   CommandletExecutor,
@@ -37,7 +35,8 @@ interface ExecutionResult {
  * Base class for all template commands
  */
 export abstract class LibraryBaseTemplateCommand<T>
-  implements CommandletExecutor<T> {
+  implements CommandletExecutor<T>
+{
   private _metadataType: MetadataInfo | undefined;
   protected showChannelOutput = true;
 
@@ -95,7 +94,7 @@ export abstract class LibraryBaseTemplateCommand<T>
           };
         } catch (error) {
           telemetryService.sendException(
-            'force_template_create_library',
+            'template_create_library',
             error.message
           );
           return {

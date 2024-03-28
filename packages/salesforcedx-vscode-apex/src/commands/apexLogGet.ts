@@ -13,8 +13,8 @@ import {
   optionYYYYMMddHHmmss,
   ParametersGatherer,
   projectPaths,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -139,8 +139,8 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const apexLogGet = async (explorerDir?: any) => {
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new LogFileSelector(),
     new ApexLibraryGetLogsExecutor()
   );

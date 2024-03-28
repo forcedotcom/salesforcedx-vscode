@@ -13,7 +13,7 @@ import { APEX_CLASS_TYPE } from '../metadataTypeConstants';
 
 export class LibraryApexGenerateClassExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('apex_generate_class_text');
-  public telemetryName = 'force_apex_class_create';
+  public telemetryName = 'apex_generate_class';
   public metadataTypeName = APEX_CLASS_TYPE;
   public templateType = TemplateType.ApexClass;
   public getOutputFileName(data: DirFileNameSelection) {

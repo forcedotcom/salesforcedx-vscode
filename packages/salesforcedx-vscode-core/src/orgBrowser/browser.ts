@@ -41,7 +41,7 @@ export class OrgBrowser {
   }
 
   public async init(extensionContext: ExtensionContext) {
-    const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+    const username = await OrgAuthInfo.getTargetOrgOrAlias(false);
     this._dataProvider = new MetadataOutlineProvider(username);
     this._treeView = window.createTreeView(OrgBrowser.VIEW_ID, {
       treeDataProvider: this._dataProvider,

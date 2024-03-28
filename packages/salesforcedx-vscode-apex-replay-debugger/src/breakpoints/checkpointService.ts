@@ -297,11 +297,13 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
-    const sfdxCore = vscode.extensions.getExtension(
+    const salesforceCoreExtension = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-core'
     );
-    if (sfdxCore && sfdxCore.exports) {
-      const userId = await sfdxCore.exports.getUserId(this.salesforceProject);
+    if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+      const userId = await salesforceCoreExtension.exports.getUserId(
+        this.salesforceProject
+      );
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
         let errorString;
@@ -408,7 +410,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         }
       } else {
         const errorMessage = nls.localize(
-          'unable_to_retrieve_active_user_for_sfdx_project'
+          'unable_to_retrieve_active_user_for_sf_project'
         );
         writeToDebuggerOutputWindow(
           errorMessage,
@@ -436,7 +438,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   //    c. set the typeRef on each checkpoint (requires the source/line information)
   // 3. Remove any existing checkpoints
   // 4. Create the new checkpoints
-  public static async sfdxCreateCheckpoints(): Promise<boolean> {
+  public static async sfCreateCheckpoints(): Promise<boolean> {
     // In-spite of waiting for the lock, we still want subsequent calls to immediately return
     // from this if checkpoints are already being created instead of stacking them up.
     if (!creatingCheckpoints) {
@@ -448,7 +450,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // The status message isn't changing, call to localize it once and use the localized string in the
     // progress report.
     const localizedProgressMessage = nls.localize(
-      'sfdx_update_checkpoints_in_org'
+      'sf_update_checkpoints_in_org'
     );
     // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
     try {
@@ -579,7 +581,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       if (updateError) {
         errorMsg = nls.localize(
           'checkpoint_upload_error_wrap_up_message',
-          nls.localize('sfdx_update_checkpoints_in_org')
+          nls.localize('sf_update_checkpoints_in_org')
         );
         writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
       }
@@ -967,7 +969,7 @@ let creatingCheckpoints = false;
 //    that may be on the checkpoint are the condition (which needs to get set to Checkpoint)
 //    and the logMessage. The logMessage is scrapped since this ends up being taken over by
 //    checkpoints for user input SOQL or Apex.
-export const sfdxToggleCheckpoint = async () => {
+export const sfToggleCheckpoint = async () => {
   if (creatingCheckpoints) {
     writeToDebuggerOutputWindow(
       nls.localize('checkpoint_upload_in_progress'),
@@ -1018,7 +1020,7 @@ export const sfdxToggleCheckpoint = async () => {
   return;
 };
 
-// This methods was broken out of sfdxToggleCheckpoint for testing purposes.
+// This methods was broken out of sfToggleCheckpoint for testing purposes.
 const fetchActiveEditorUri = (): vscode.Uri | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -1026,7 +1028,7 @@ const fetchActiveEditorUri = (): vscode.Uri | undefined => {
   }
 };
 
-// This methods was broken out of sfdxToggleCheckpoint for testing purposes.
+// This methods was broken out of sfToggleCheckpoint for testing purposes.
 const fetchActiveSelectionLineNumber = (): number | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.selection) {

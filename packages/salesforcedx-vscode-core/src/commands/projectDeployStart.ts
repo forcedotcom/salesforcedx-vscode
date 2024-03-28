@@ -13,7 +13,7 @@ import {
   ProjectDeployStartResultParser,
   ProjectDeployStartResult,
   Row,
-  SfdxCommandBuilder,
+  SfCommandBuilder,
   Table,
   TelemetryBuilder,
   workspaceUtils
@@ -30,9 +30,9 @@ import {
   CommandParams,
   EmptyParametersGatherer,
   FlagParameter,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
 export enum DeployType {
@@ -49,7 +49,7 @@ export const pushCommand: CommandParams = {
   logName: { default: 'project_deploy_start_default_scratch_org' }
 };
 
-export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
+export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
   public constructor(
     flag?: string,
@@ -65,10 +65,10 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
-      .withJson(false)
+      .withJson()
       .withLogName(this.params.logName.default);
     if (this.flag === '--ignore-conflicts') {
       builder.withArg(this.flag);
@@ -133,7 +133,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
       const telemetry = new TelemetryBuilder();
       let success = false;
       try {
-        SfdxCommandletExecutor.errorCollection.clear();
+        SfCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
         if (stdOut) {
           const pushParser = new ProjectDeployStartResultParser(stdOut);
@@ -144,7 +144,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
               errors,
               workspacePath,
               execFilePathOrPaths,
-              SfdxCommandletExecutor.errorCollection
+              SfCommandletExecutor.errorCollection
             );
           } else {
             success = true;
@@ -152,7 +152,7 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
           this.outputResult(pushParser);
         }
       } catch (e) {
-        SfdxCommandletExecutor.errorCollection.clear();
+        SfCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
         if (e.name !== 'ProjectDeployStartParserFail') {
           e.message =
@@ -257,13 +257,13 @@ export class ProjectDeployStartExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function projectDeployStart(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ProjectDeployStartExecutor(flag, pushCommand);
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor

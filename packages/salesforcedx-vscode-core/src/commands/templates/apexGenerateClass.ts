@@ -14,8 +14,8 @@ import {
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { ApexTestTemplateGatherer } from '../util/parameterGatherers';
@@ -53,8 +53,8 @@ export const apexGenerateClass = async () => {
   const gatherers = getParamGatherers();
 
   const createTemplateExecutor = new LibraryApexGenerateClassExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       gatherers.metadataTypeGatherer,
       gatherers.fileNameGatherer,

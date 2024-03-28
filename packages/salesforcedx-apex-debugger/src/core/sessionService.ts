@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   CommandOutput,
   RequestService,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 
 export class SessionService {
@@ -59,7 +59,7 @@ export class SessionService {
 
   public async start(): Promise<string> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
+      new SfCommandBuilder()
         .withArg('data:create:record')
         .withFlag('--sobject', 'ApexDebuggerSession')
         .withFlag(
@@ -95,7 +95,7 @@ export class SessionService {
 
   public async stop(): Promise<string> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
+      new SfCommandBuilder()
         .withArg('data:update:record')
         .withFlag('--sobject', 'ApexDebuggerSession')
         .withFlag('--record-id', this.sessionId)
