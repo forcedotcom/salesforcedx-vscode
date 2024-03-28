@@ -26,4 +26,4 @@ jobs:
       - name: Generate CHANGELOG
         run: npm run changelog
       - id: result
-        run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
+        run: echo "result=${{ job.status }}" >> "$GITHUB_OUTPUT"

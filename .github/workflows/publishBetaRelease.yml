@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: getVersion
-        run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
+        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> "$GITHUB_OUTPUT"
       - run: echo "Release Version is ${{ steps.getVersion.outputs.version }}"
 
   create_git_tag:
@@ -76,7 +76,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: version
-        run: echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ env.VERSION }}" >> "$GITHUB_OUTPUT"
 
   slack_notification:
     if: ${{ always() }}

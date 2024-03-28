@@ -33,15 +33,15 @@ jobs:
           ref: 'main'
       - id: getMainVersion
         run: |
-          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> "$GITHUB_OUTPUT"
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
       - id: getGusBuild
         run: | 
-          echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> "$GITHUB_OUTPUT"
       - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
       - id: getScheduledBuild
         run: | 
-          echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> "$GITHUB_OUTPUT"
       - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
 
   ctc-open:

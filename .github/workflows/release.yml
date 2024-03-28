@@ -25,7 +25,7 @@ jobs:
           ref: 'main'
       - id: getMainVersion
         run: |
-          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> "$GITHUB_OUTPUT"
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
 
   release:
