@@ -692,13 +692,9 @@ export class ApexDebug extends LoggingDebugSession {
           console.log(
             '***' + nls.localize('invalid_isv_project_config') + '***'
           );
-          // TelemetryService.getInstance().sendException(
-          //   nls.localize('invalid_isv_project_config'),
-          //   response.message
-          // );
           TelemetryService.getInstance().sendException(
-            'dummy failure name',
-            'dummy failure message'
+            nls.localize('invalid_isv_project_config'),
+            response.message
           );
           return this.sendResponse(response);
         }
@@ -707,9 +703,6 @@ export class ApexDebug extends LoggingDebugSession {
         console.log(
           '***' + nls.localize('isv_debugger_launched_successfully') + '***'
         );
-        // TelemetryService.getInstance().sendEventData(
-        //   nls.localize('isv_debugger_launched_successfully')
-        // );
         TelemetryService.getInstance().sendEventData('dummy success message');
       } else {
         const orgInfo = await new OrgDisplay().getOrgInfo(
