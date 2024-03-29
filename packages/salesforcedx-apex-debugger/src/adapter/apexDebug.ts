@@ -676,59 +676,84 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
+        console.log('1');
         const config = await new ConfigGet().getConfig(
           args.salesforceProject,
           SF_CONFIG_ISV_DEBUGGER_SID,
           SF_CONFIG_ISV_DEBUGGER_URL
         );
+        console.log('2');
         const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
         const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
+        console.log('3');
         if (
           typeof isvDebuggerSid === 'undefined' ||
           typeof isvDebuggerUrl === 'undefined'
         ) {
+          console.log('4');
           response.message = nls.localize('invalid_isv_project_config');
+          console.log('5');
           return this.sendResponse(response);
         }
+        console.log('6');
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
+        console.log('7');
       } else {
+        console.log('8');
         const orgInfo = await new OrgDisplay().getOrgInfo(
           args.salesforceProject
         );
+        console.log('9');
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
+        console.log('10');
       }
 
+      console.log('11');
       const isStreamingConnected = await this.connectStreaming(
         args.salesforceProject
       );
       if (!isStreamingConnected) {
+        console.log('12');
         return this.sendResponse(response);
       }
 
+      console.log('13');
       const sessionId = await this.mySessionService
         .forProject(args.salesforceProject)
         .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
         .start();
+      console.log('14');
       if (this.mySessionService.isConnected()) {
+        console.log('15');
         response.success = true;
+        console.log('16');
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
         );
+        console.log('17');
         this.sendEvent(new InitializedEvent());
+        console.log('18');
         this.resetIdleTimer();
+        console.log('19');
       } else {
+        console.log('20');
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
         );
+        console.log('21');
       }
     } catch (error) {
+      console.log('22');
       this.tryToParseSfError(response, error);
+      console.log('23');
     }
+    console.log('24');
     this.sendResponse(response);
+    console.log('25');
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {
