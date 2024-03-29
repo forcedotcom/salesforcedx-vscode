@@ -689,11 +689,13 @@ export class ApexDebug extends LoggingDebugSession {
           typeof isvDebuggerUrl === 'undefined'
         ) {
           response.message = nls.localize('invalid_isv_project_config');
+          console.log('***' + nls.localize('invalid_isv_project_config') + '***');
           TelemetryService.getInstance().sendException(nls.localize('invalid_isv_project_config'), response.message);
           return this.sendResponse(response);
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
+        console.log('***' + nls.localize('isv_debugger_launched_successfully') + '***');
         TelemetryService.getInstance().sendEventData(nls.localize('isv_debugger_launched_successfully'));
       } else {
         const orgInfo = await new OrgDisplay().getOrgInfo(
