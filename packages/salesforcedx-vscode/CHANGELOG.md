@@ -1,3 +1,21 @@
+# 60.7.0 - April 3, 2024
+
+## Fixed
+
+#### docs
+
+- Revert "Revert " update "sfdx" examples in docs to their "sf" equivalents…" ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435))
+
+- Last of sfdx ([PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466))
+
+#### salesforcedx-vscode-apex
+
+- Update jar with sf style commands ([PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
+
+#### salesforcedx-vscode-core
+
+- Last of sfdx ([PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466))
+
 # 60.5.1 - March 21, 2024
 
 ## Fixed
