@@ -1,0 +1,16 @@
+name: publish apex-node-bundle
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Set the branch to use for release'
+        type: string
+        required: false
+        default: 'main'
+
+jobs:
+  call-release-workflow:
+    uses: forcedotcom/bundle-publish-scripts/.github/workflows/releaseWithCoreBundle.yml@main
+    secrets: inherit
+    with:
+      branch: ${{ inputs.branch }}
