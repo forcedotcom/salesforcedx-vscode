@@ -42,6 +42,7 @@ export const getDebuggerType = async (
   if (type === LIVESHARE_DEBUGGER_TYPE) {
     type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
   }
+  console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} in getDebuggerType() type = [' + type + ']');
   return type;
 };
 
@@ -243,7 +244,7 @@ const notifyDebuggerSessionFileChanged = (): void => {
 export const activate = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<void> => {
-  console.log('Apex Debugger Extension Activated');
+  console.log('Apex Debugger Extension Activated 1');
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
@@ -264,7 +265,9 @@ export const activate = async (
       try {
         registerIsvAuthWatcher(extensionContext);
         await setupGlobalDefaultUserIsvAuth();
+        console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} try registerIsvAuthWatcher succeeded');
       } catch (e) {
+        console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} try registerIsvAuthWatcher failed');
         console.error(e);
         vscode.window.showWarningMessage(
           nls.localize('isv_debug_config_environment_error')
