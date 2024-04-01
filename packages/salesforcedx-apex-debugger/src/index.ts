@@ -26,3 +26,12 @@ export interface WorkspaceSettings {
   connectionTimeoutMs: number;
   setBreakpointTimeoutMs: number;
 }
+
+import { ExtensionContext } from 'vscode';
+import { telemetryService } from './telemetry';
+
+export const activate = async (
+  extensionContext: ExtensionContext
+): Promise<void> => {
+  telemetryService.initializeService(extensionContext);
+};
