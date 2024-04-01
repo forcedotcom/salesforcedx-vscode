@@ -83,7 +83,7 @@ import {
   WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
+// import { telemetryService } from '../telemetry';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -699,7 +699,7 @@ export class ApexDebug extends LoggingDebugSession {
           response.message = nls.localize('invalid_isv_project_config');
           this.warnToDebugConsole('5');
           this.errorToDebugConsole('5');
-          telemetryService.sendException(nls.localize('invalid_isv_project_config'), response.message);
+          // telemetryService.sendException(nls.localize('invalid_isv_project_config'), response.message);
           this.warnToDebugConsole('after error case telemetry');
           this.errorToDebugConsole('after error case telemetry');
           return this.sendResponse(response);
@@ -710,7 +710,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.accessToken = isvDebuggerSid;
         this.warnToDebugConsole('7');
         this.errorToDebugConsole('7');
-        telemetryService.sendEventData(nls.localize('isv_debugger_launched_successfully'));
+        // telemetryService.sendEventData(nls.localize('isv_debugger_launched_successfully'));
         this.warnToDebugConsole('after success case telemetry');
         this.errorToDebugConsole('after success case telemetry');
       } else {
