@@ -180,7 +180,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/apex-node": "3.0.1",
+    "@salesforce/apex-node": "4.0.2",
     "@salesforce/core": "6.5.2",
     "@salesforce/salesforcedx-apex-replay-debugger": "60.7.0",
     "@salesforce/salesforcedx-utils": "60.7.0",
