@@ -541,15 +541,15 @@
     picocolors "^1.0.0"
     tslib "^2.6.0"
 
-"@salesforce/core@^6.5.1":
-  version "6.5.3"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-6.5.3.tgz#b1ceef7947b9046ab23e78e73851115fec86f4f9"
-  integrity sha512-L4I2LrGyuXbNDCkoQdrMQ2sR/nhNIgRMLgpYNpOARZFIWKUsnjgBLVpUui+knCzjrQsOMoSwev+W0vp17iT76w==
+"@salesforce/core@^6.7.4":
+  version "6.7.4"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-6.7.4.tgz#7afb6b37a391f4af4473257e4b2fbafe9a0f24ed"
+  integrity sha512-zB/dnhz/x9Kw6r1Ub6Uawc1zFHF84RfERv3UTcdZPtaaEodUQpZSu9avAUaGGEufWaNjPK+RRSgeZ1tG67g8qg==
   dependencies:
-    "@salesforce/kit" "^3.0.15"
+    "@salesforce/kit" "^3.1.0"
     "@salesforce/schemas" "^1.6.1"
     "@salesforce/ts-types" "^2.0.9"
-    "@types/semver" "^7.5.6"
+    "@types/semver" "^7.5.8"
     ajv "^8.12.0"
     change-case "^4.1.2"
     faye "^1.4.0"
@@ -558,17 +558,17 @@
     jsforce "^2.0.0-beta.29"
     jsonwebtoken "9.0.2"
     jszip "3.10.1"
-    pino "^8.18.0"
+    pino "^8.19.0"
     pino-abstract-transport "^1.1.0"
     pino-pretty "^10.3.1"
     proper-lockfile "^4.1.2"
-    semver "^7.5.4"
+    semver "^7.6.0"
     ts-retry-promise "^0.7.1"
 
-"@salesforce/kit@^3.0.15":
-  version "3.0.15"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.0.15.tgz#713df3f5767f874c70a2e731c7cb5ba677989559"
-  integrity sha512-XkA8jsuLvVnyP460dAbU3pBFP2IkmmmsVxMQVifcKKbNWaIBbZBzAfj+vdaQfnvZyflLhsrFT3q2xkb0vHouPg==
+"@salesforce/kit@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.1.0.tgz#aa42533084c676e865f0f9c1907a16fb6f74dee7"
+  integrity sha512-X2d9O/U2wdQBXIrtVqQdMwo872Cv+qkYFzF0W+AQKG/LEe9cngnOzUVDYNkGD9tq3jcl+oenHXYuVDpkMhxTwA==
   dependencies:
     "@salesforce/ts-types" "^2.0.9"
     tslib "^2.6.2"
@@ -756,10 +756,15 @@
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.1.tgz#d3357479a0fdfdd5907fe67e17e0a85c906e1301"
   integrity sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==
 
-"@types/semver@^7.5.0", "@types/semver@^7.5.6":
+"@types/semver@^7.5.0":
   version "7.5.7"
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.5.7.tgz#326f5fdda70d13580777bcaa1bc6fa772a5aef0e"
   integrity sha512-/wdoPq1QqkSj9/QOeKkFquEuPzQbHTWAMPH/PaUMB+JuR31lXhlWXRZ52IpfDYVlDOUBvX09uBrPwxGT1hjNBg==
+
+"@types/semver@^7.5.8":
+  version "7.5.8"
+  resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.5.8.tgz#8268a8c57a3e4abd25c165ecd36237db7948a55e"
+  integrity sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==
 
 "@types/sinon@^17.0.1":
   version "17.0.2"
@@ -3905,10 +3910,10 @@ pino-std-serializers@^6.0.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-6.2.2.tgz#d9a9b5f2b9a402486a5fc4db0a737570a860aab3"
   integrity sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==
 
-pino@^8.18.0:
-  version "8.18.0"
-  resolved "https://registry.yarnpkg.com/pino/-/pino-8.18.0.tgz#f2bfbb4e827ed2049ee1e88372268efdcd1505f6"
-  integrity sha512-Mz/gKiRyuXu4HnpHgi1YWdHQCoWMufapzooisvFn78zl4dZciAxS+YeRkUxXl1ee/SzU80YCz1zpECCh4oC6Aw==
+pino@^8.19.0:
+  version "8.19.0"
+  resolved "https://registry.yarnpkg.com/pino/-/pino-8.19.0.tgz#ccc15ef736f103ec02cfbead0912bc436dc92ce4"
+  integrity sha512-oswmokxkav9bADfJ2ifrvfHUwad6MLp73Uat0IkQWY3iAw5xTRoznXbXksZs8oaOUMpmhVWD+PZogNzllWpJaA==
   dependencies:
     atomic-sleep "^1.0.0"
     fast-redact "^3.1.1"
@@ -4279,6 +4284,13 @@ semver@^6.0.0, semver@^6.3.0, semver@^6.3.1:
   version "6.3.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
+
+semver@^7.6.0:
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.0.tgz#1a46a4db4bffcccd97b743b5005c8325f23d4e2d"
+  integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
+  dependencies:
+    lru-cache "^6.0.0"
 
 sentence-case@^3.0.4:
   version "3.0.4"
