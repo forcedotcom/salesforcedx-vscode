@@ -31,3 +31,13 @@ export interface Metric {
   subject: string;
   type: string;
 }
+
+// Type guard to check if the object conforms to Metric
+export const isMetric = (object: any): object is Metric => (
+  object !== null &&
+  typeof object === 'object' &&
+  'subject' in object &&
+  typeof object.subject === 'string' &&
+  'type' in object &&
+  typeof object.type === 'string'
+);

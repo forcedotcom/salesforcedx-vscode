@@ -6,7 +6,7 @@
  */
 
 import {
-  Metric
+  isMetric
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import {
   DEBUGGER_TYPE,
@@ -253,8 +253,8 @@ const registerDebugHandlers = (): vscode.Disposable => {
           return;
         }
 
-        if (event.event === SEND_METRIC_EVENT && event.body) {
-          const metricArgs = event.body as Metric;
+        if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
+          const metricArgs = event.body;
           telemetryService.sendEvent(
             metricArgs.subject,
             metricArgs.type
