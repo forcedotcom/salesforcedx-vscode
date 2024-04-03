@@ -34,6 +34,7 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { MetricError, MetricLaunch, MetricSuccess } from '..';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,
@@ -65,6 +66,9 @@ import {
   HOTSWAP_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
+  SEND_METRIC_ERROR_EVENT,
+  SEND_METRIC_LAUNCH_EVENT,
+  SEND_METRIC_SUCCESS_EVENT,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
@@ -83,7 +87,6 @@ import {
   WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -670,6 +673,11 @@ export class ApexDebug extends LoggingDebugSession {
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: salesforceProject=${args.salesforceProject}`
     );
+    this.sendEvent(
+      new Event(SEND_METRIC_LAUNCH_EVENT, {
+        subject: `launchRequest: salesforceProject=${args.salesforceProject}`
+      } as MetricLaunch)
+    );
 
     if (!this.myBreakpointService.hasLineNumberMapping()) {
       response.message = nls.localize('session_language_server_error_text');
@@ -699,11 +707,11 @@ export class ApexDebug extends LoggingDebugSession {
           response.message = nls.localize('invalid_isv_project_config');
           this.warnToDebugConsole('5');
           this.errorToDebugConsole('5');
-          try {
-            telemetryService.sendException(nls.localize('invalid_isv_project_config'), response.message);
-          } catch {
-            this.errorToDebugConsole('cannot send telemetry to AppInsights for failure case');
-          }
+          this.sendEvent(
+            new Event(SEND_METRIC_ERROR_EVENT, {
+              subject: nls.localize('invalid_isv_project_config')
+            } as MetricError)
+          );
           this.warnToDebugConsole('after error case telemetry');
           this.errorToDebugConsole('after error case telemetry');
           return this.sendResponse(response);
@@ -714,11 +722,11 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.accessToken = isvDebuggerSid;
         this.warnToDebugConsole('7');
         this.errorToDebugConsole('7');
-        try {
-          telemetryService.sendEventData(nls.localize('isv_debugger_launched_successfully'));
-        } catch {
-          this.errorToDebugConsole('cannot send telemetry to AppInsights for success case');
-        }
+        this.sendEvent(
+          new Event(SEND_METRIC_SUCCESS_EVENT, {
+            subject: nls.localize('isv_debugger_launched_successfully')
+          } as MetricSuccess)
+        );
         this.warnToDebugConsole('after success case telemetry');
         this.errorToDebugConsole('after success case telemetry');
       } else {

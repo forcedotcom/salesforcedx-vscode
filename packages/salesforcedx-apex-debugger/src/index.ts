@@ -27,11 +27,14 @@ export interface WorkspaceSettings {
   setBreakpointTimeoutMs: number;
 }
 
-// import { ExtensionContext } from 'vscode';
-// import { telemetryService } from './telemetry';
+export interface MetricLaunch {
+  subject: string;
+}
 
-// export const activate = async (
-//   extensionContext: ExtensionContext
-// ): Promise<void> => {
-//   telemetryService.initializeService(extensionContext);
-// };
+export interface MetricError {
+  subject: string;
+}
+
+export interface MetricSuccess {
+  subject: string;
+}

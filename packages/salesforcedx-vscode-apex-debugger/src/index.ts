@@ -6,6 +6,11 @@
  */
 
 import {
+  MetricError,
+  MetricLaunch,
+  MetricSuccess
+} from '@salesforce/salesforcedx-apex-debugger/out/src';
+import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
@@ -14,6 +19,9 @@ import {
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
+  SEND_METRIC_ERROR_EVENT,
+  SEND_METRIC_LAUNCH_EVENT,
+  SEND_METRIC_SUCCESS_EVENT,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
@@ -46,6 +54,7 @@ export const getDebuggerType = async (
   return type;
 };
 
+// ideally the sendEvent would be caught here and the telemetry could get printed
 const registerCommands = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
@@ -241,14 +250,51 @@ const notifyDebuggerSessionFileChanged = (): void => {
   }
 };
 
+const registerDebugHandlers = (): vscode.Disposable => {
+  const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
+    async event => {
+      if (event && event.session) {
+        const type = await getDebuggerType(event.session);
+        if (type !== DEBUGGER_TYPE) {
+          return;
+        }
+
+        console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} inside registerDebugHandlers()');
+        if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
+          console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} case SEND_METRIC_LAUNCH_EVENT');
+          const metricLaunchArgs = event.body as MetricLaunch;
+          telemetryService.sendLaunchEvent(
+            metricLaunchArgs.subject
+          );
+        } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
+          console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} case SEND_METRIC_ERROR_EVENT');
+          const metricErrorArgs = event.body as MetricError;
+          telemetryService.sendErrorEvent(
+            metricErrorArgs.subject
+          );
+        } else if (event.event === SEND_METRIC_SUCCESS_EVENT && event.body) {
+          console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} case SEND_METRIC_SUCCESS_EVENT');
+          const metricSuccessArgs = event.body as MetricSuccess;
+          telemetryService.sendSuccessEvent(
+            metricSuccessArgs.subject
+          );
+        }
+      }
+    }
+  );
+
+  return vscode.Disposable.from(customEventHandler);
+};
+
 export const activate = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<void> => {
   console.log('Apex Debugger Extension Activated 1');
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
+  const debugHandlers = registerDebugHandlers();
   const fileWatchers = registerFileWatchers();
-  extensionContext.subscriptions.push(commands, fileWatchers);
+  extensionContext.subscriptions.push(commands, fileWatchers, debugHandlers);
   extensionContext.subscriptions.push(
     vscode.debug.registerDebugConfigurationProvider(
       'apex',
