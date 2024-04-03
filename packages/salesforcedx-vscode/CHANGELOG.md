@@ -8,7 +8,8 @@
 
 #### salesforcedx-vscode-core
 
-- The transition of all commands and flags to the updated `sf-style` format is now complete. ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
+- We completed the transition from Salesforce CLI sfdx commands to sf (v2) commands. All sfdx commands and flags have been updated to their sf equivalents. **Action Required**: Users must install the sf (v2) Salesforce CLI to continue working with the Salesforce Extension Pack. You can learn more about the migration process in the Salesforce CLI Setup Guide.
+If you run Salesforce CLI commands in the terminal, use the newer sf commands. See the Salesforce CLI Command Reference and Migration Guide. ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
 
 
 # 60.5.1 - March 21, 2024
