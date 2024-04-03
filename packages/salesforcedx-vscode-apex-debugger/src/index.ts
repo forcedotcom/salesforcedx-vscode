@@ -247,7 +247,7 @@ const notifyDebuggerSessionFileChanged = (): void => {
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
-      if (event && event.session) {
+      if (event?.session) {
         const type = await getDebuggerType(event.session);
         if (type !== DEBUGGER_TYPE) {
           return;
