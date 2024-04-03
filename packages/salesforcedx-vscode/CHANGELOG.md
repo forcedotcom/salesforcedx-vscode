@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- The transition of all commands and flags to the updated `sf-style` format is now complete. ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466))
+- The transition of all commands and flags to the updated `sf-style` format is now complete. ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
 
 
 # 60.5.1 - March 21, 2024
