@@ -50,11 +50,9 @@ export const getDebuggerType = async (
   if (type === LIVESHARE_DEBUGGER_TYPE) {
     type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
   }
-  console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} in getDebuggerType() type = [' + type + ']');
   return type;
 };
 
-// ideally the sendEvent would be caught here and the telemetry could get printed
 const registerCommands = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
@@ -259,21 +257,17 @@ const registerDebugHandlers = (): vscode.Disposable => {
           return;
         }
 
-        console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} inside registerDebugHandlers()');
         if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
-          console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} case SEND_METRIC_LAUNCH_EVENT');
           const metricLaunchArgs = event.body as MetricLaunch;
           telemetryService.sendLaunchEvent(
             metricLaunchArgs.subject
           );
         } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
-          console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} case SEND_METRIC_ERROR_EVENT');
           const metricErrorArgs = event.body as MetricError;
           telemetryService.sendErrorEvent(
             metricErrorArgs.subject
           );
         } else if (event.event === SEND_METRIC_SUCCESS_EVENT && event.body) {
-          console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} case SEND_METRIC_SUCCESS_EVENT');
           const metricSuccessArgs = event.body as MetricSuccess;
           telemetryService.sendSuccessEvent(
             metricSuccessArgs.subject
@@ -289,7 +283,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 export const activate = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<void> => {
-  console.log('Apex Debugger Extension Activated 1');
+  console.log('Apex Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
@@ -311,9 +305,7 @@ export const activate = async (
       try {
         registerIsvAuthWatcher(extensionContext);
         await setupGlobalDefaultUserIsvAuth();
-        console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} try registerIsvAuthWatcher succeeded');
       } catch (e) {
-        console.log('{packages/salesforcedx-vscode-apex-debugger/src/index.ts} try registerIsvAuthWatcher failed');
         console.error(e);
         vscode.window.showWarningMessage(
           nls.localize('isv_debug_config_environment_error')

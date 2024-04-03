@@ -685,123 +685,69 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        this.warnToDebugConsole('1');
-        this.errorToDebugConsole('1');
         const config = await new ConfigGet().getConfig(
           args.salesforceProject,
           SF_CONFIG_ISV_DEBUGGER_SID,
           SF_CONFIG_ISV_DEBUGGER_URL
         );
-        this.warnToDebugConsole('2');
-        this.errorToDebugConsole('2');
         const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = config.get('dummy_value');
-        this.warnToDebugConsole('3');
-        this.errorToDebugConsole('3');
+        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
         if (
           typeof isvDebuggerSid === 'undefined' ||
           typeof isvDebuggerUrl === 'undefined'
         ) {
-          this.warnToDebugConsole('4');
-          this.errorToDebugConsole('4');
           response.message = nls.localize('invalid_isv_project_config');
-          this.warnToDebugConsole('5');
-          this.errorToDebugConsole('5');
           this.sendEvent(
             new Event(SEND_METRIC_ERROR_EVENT, {
               subject: nls.localize('invalid_isv_project_config')
             } as MetricError)
           );
-          this.warnToDebugConsole('after error case telemetry');
-          this.errorToDebugConsole('after error case telemetry');
           return this.sendResponse(response);
         }
-        this.warnToDebugConsole('6');
-        this.errorToDebugConsole('6');
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
-        this.warnToDebugConsole('7');
-        this.errorToDebugConsole('7');
         this.sendEvent(
           new Event(SEND_METRIC_SUCCESS_EVENT, {
             subject: nls.localize('isv_debugger_launched_successfully')
           } as MetricSuccess)
         );
-        this.warnToDebugConsole('after success case telemetry');
-        this.errorToDebugConsole('after success case telemetry');
       } else {
-        this.warnToDebugConsole('8');
-        this.errorToDebugConsole('8');
         const orgInfo = await new OrgDisplay().getOrgInfo(
           args.salesforceProject
         );
-        this.warnToDebugConsole('9');
-        this.errorToDebugConsole('9');
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
-        this.warnToDebugConsole('10');
-        this.errorToDebugConsole('10');
       }
 
-      this.warnToDebugConsole('11');
-      this.errorToDebugConsole('11');
       const isStreamingConnected = await this.connectStreaming(
         args.salesforceProject
       );
       if (!isStreamingConnected) {
-        this.warnToDebugConsole('12');
-        this.errorToDebugConsole('12');
         return this.sendResponse(response);
       }
 
-      this.warnToDebugConsole('13');
-      this.errorToDebugConsole('13');
       const sessionId = await this.mySessionService
         .forProject(args.salesforceProject)
         .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
         .start();
-        this.warnToDebugConsole('14');
-        this.errorToDebugConsole('14');
       if (this.mySessionService.isConnected()) {
-        this.warnToDebugConsole('15');
-        this.errorToDebugConsole('15');
         response.success = true;
-        this.warnToDebugConsole('16');
-        this.errorToDebugConsole('16');
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
         );
-        this.warnToDebugConsole('17');
-        this.errorToDebugConsole('17');
         this.sendEvent(new InitializedEvent());
-        this.warnToDebugConsole('18');
-        this.errorToDebugConsole('18');
         this.resetIdleTimer();
-        this.warnToDebugConsole('19');
-        this.errorToDebugConsole('19');
       } else {
-        this.warnToDebugConsole('20');
-        this.errorToDebugConsole('20');
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
         );
-        this.warnToDebugConsole('21');
-        this.errorToDebugConsole('21');
       }
     } catch (error) {
-      this.warnToDebugConsole('22');
-      this.errorToDebugConsole('22');
       this.tryToParseSfError(response, error);
-      this.warnToDebugConsole('23');
-      this.errorToDebugConsole('23');
     }
-    this.warnToDebugConsole('24');
-    this.errorToDebugConsole('24');
     this.sendResponse(response);
-    this.warnToDebugConsole('25');
-    this.errorToDebugConsole('25');
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {

@@ -21,7 +21,6 @@ export class DebugConfigurationProvider
   );
 
   public static getConfig(folder: vscode.WorkspaceFolder | undefined) {
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} inside getConfig()');
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -38,7 +37,6 @@ export class DebugConfigurationProvider
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} inside provideDebugConfigurations()');
     return [DebugConfigurationProvider.getConfig(folder)];
   }
 
@@ -48,7 +46,6 @@ export class DebugConfigurationProvider
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} inside resolveDebugConfiguration()');
     return this.asyncDebugConfig(folder, config).catch(async err => {
       return vscode.window
         .showErrorMessage(err.message, { modal: true })
@@ -60,29 +57,21 @@ export class DebugConfigurationProvider
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration
   ): Promise<vscode.DebugConfiguration | undefined> {
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} inside asyncDebugConfig()');
     config.name = config.name || nls.localize('config_name_text');
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.name = [' + config.name + ']');
     config.type = config.type || DEBUGGER_TYPE;
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.type = [' + config.type + ']');
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.request = [' + config.request + ']');
     if (config.userIdFilter === undefined) {
       config.userIdFilter = [];
     }
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.userIdFilter = [' + config.userIdFilter + ']');
     if (config.requestTypeFilter === undefined) {
       config.requestTypeFilter = [];
     }
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.requestTypeFilter = [' + config.requestTypeFilter + ']');
     if (config.entryPointFilter === undefined) {
       config.entryPointFilter = '';
     }
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.entryPointFilter = [' + config.entryPointFilter + ']');
     config.salesforceProject =
       config.salesforceProject ||
       (folder ? folder.uri.fsPath : '${workspaceRoot}');
-    console.log('{packages/salesforcedx-vscode-apex-debugger/src/adapter/debugConfigurationProvider.ts} config.salesforceProject = [' + config.salesforceProject + ']');
 
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
