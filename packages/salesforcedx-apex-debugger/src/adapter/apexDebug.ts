@@ -34,7 +34,6 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-// import { MetricError, MetricLaunch, MetricSuccess } from '..';
 import { Metric } from '..';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
@@ -67,9 +66,6 @@ import {
   HOTSWAP_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
-  // SEND_METRIC_ERROR_EVENT,
-  // SEND_METRIC_LAUNCH_EVENT,
-  // SEND_METRIC_SUCCESS_EVENT,
   SEND_METRIC_EVENT,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
@@ -675,11 +671,6 @@ export class ApexDebug extends LoggingDebugSession {
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: salesforceProject=${args.salesforceProject}`
     );
-    // this.sendEvent(
-    //   new Event(SEND_METRIC_LAUNCH_EVENT, {
-    //     subject: `launchRequest: salesforceProject=${args.salesforceProject}`
-    //   } as MetricLaunch)
-    // );
     this.sendEvent(
       new Event(SEND_METRIC_EVENT, {
         subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
@@ -705,11 +696,6 @@ export class ApexDebug extends LoggingDebugSession {
           typeof isvDebuggerUrl === 'undefined'
         ) {
           response.message = nls.localize('invalid_isv_project_config');
-          // this.sendEvent(
-          //   new Event(SEND_METRIC_ERROR_EVENT, {
-          //     subject: nls.localize('invalid_isv_project_config')
-          //   } as MetricError)
-          // );
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('invalid_isv_project_config'),
@@ -720,11 +706,6 @@ export class ApexDebug extends LoggingDebugSession {
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
-        // this.sendEvent(
-        //   new Event(SEND_METRIC_SUCCESS_EVENT, {
-        //     subject: nls.localize('isv_debugger_launched_successfully')
-        //   } as MetricSuccess)
-        // );
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('isv_debugger_launched_successfully'),
