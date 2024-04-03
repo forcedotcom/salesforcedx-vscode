@@ -695,7 +695,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole('2');
         this.errorToDebugConsole('2');
         const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
+        const isvDebuggerUrl = config.get('dummy_value');
         this.warnToDebugConsole('3');
         this.errorToDebugConsole('3');
         if (
