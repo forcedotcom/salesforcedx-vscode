@@ -27,7 +27,7 @@ export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
     ) {
       return PredicateResponse.of(
         false,
-        nls.localize('predicates_no_sfdx_project_found_text')
+        nls.localize('predicates_no_salesforce_project_found_text')
       );
     } else {
       return PredicateResponse.true();
@@ -37,7 +37,7 @@ export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
 
 export const isSalesforceProjectOpened = new IsSalesforceProjectOpened();
 
-export class SfdxWorkspaceChecker implements PreconditionChecker {
+export class SfWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
     const result = isSalesforceProjectOpened.apply(workspace);
     if (!result.result) {

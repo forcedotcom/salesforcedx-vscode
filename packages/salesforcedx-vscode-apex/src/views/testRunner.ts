@@ -7,8 +7,8 @@
 
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfWorkspaceChecker,
   getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as events from 'events';
@@ -41,7 +41,7 @@ export class ApexTestRunner {
   ) {
     this.testOutline = testOutline;
     this.eventsEmitter = eventsEmitter || new events.EventEmitter();
-    this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
+    this.eventsEmitter.on('sf:update_selection', this.updateSelection);
   }
 
   public showErrorMessage(test: TestNode) {
@@ -79,7 +79,7 @@ export class ApexTestRunner {
 
     if (testNode.location) {
       vscode.window.showTextDocument(testNode.location.uri).then(() => {
-        this.eventsEmitter.emit('sfdx:update_selection', position);
+        this.eventsEmitter.emit('sf:update_selection', position);
       });
     }
   }
@@ -135,8 +135,8 @@ export class ApexTestRunner {
     } else if (testRunType === TestRunType.Method) {
       await apexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
+    const commandlet = new SfCommandlet(
+      new SfWorkspaceChecker(),
       new EmptyParametersGatherer(),
       new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
     );

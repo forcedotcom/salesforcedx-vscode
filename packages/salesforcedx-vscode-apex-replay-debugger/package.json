@@ -18,24 +18,24 @@
     ],
     "commands": [
       {
-        "command": "sfdx.toggle.checkpoint",
-        "title": "%sfdx_toggle_checkpoint%"
+        "command": "sf.toggle.checkpoint",
+        "title": "%sf_toggle_checkpoint%"
       },
       {
-        "command": "sfdx.create.checkpoints",
+        "command": "sf.create.checkpoints",
         "icon": {
           "dark": "images/dark/cloud-upload.svg",
           "light": "images/light/cloud-upload.svg"
         },
-        "title": "%sfdx_update_checkpoints_in_org%",
-        "when": "sfdx:project_opened"
+        "title": "%sf_update_checkpoints_in_org%",
+        "when": "sf:project_opened"
       },
       {
-        "command": "sfdx.launch.replay.debugger.last.logfile",
+        "command": "sf.launch.replay.debugger.last.logfile",
         "title": "%launch_from_last_log_file%"
       },
       {
-        "command": "sfdx.test.view.debugTests",
+        "command": "sf.test.view.debugTests",
         "icon": {
           "dark": "resources/dark/debug.svg",
           "light": "resources/light/debug.svg"
@@ -43,7 +43,7 @@
         "title": "%run_tests_and_debug%"
       },
       {
-        "command": "sfdx.test.view.debugSingleTest",
+        "command": "sf.test.view.debugSingleTest",
         "icon": {
           "dark": "resources/dark/debug.svg",
           "light": "resources/light/debug.svg"
@@ -129,69 +129,69 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.create.checkpoints",
-          "when": "sfdx:project_opened && sfdx:has_default_username"
+          "command": "sf.create.checkpoints",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sfdx.toggle.checkpoint",
-          "when": "sfdx:project_opened && editorLangId == 'apex'"
+          "command": "sf.toggle.checkpoint",
+          "when": "sf:project_opened && editorLangId == 'apex'"
         },
         {
-          "command": "sfdx.launch.replay.debugger.last.logfile",
-          "when": "sfdx:project_opened && !inDebugMode"
+          "command": "sf.launch.replay.debugger.last.logfile",
+          "when": "sf:project_opened && !inDebugMode"
         },
         {
-          "command": "sfdx.test.view.debugTests",
+          "command": "sf.test.view.debugTests",
           "when": "false"
         },
         {
-          "command": "sfdx.test.view.debugSingleTest",
+          "command": "sf.test.view.debugSingleTest",
           "when": "false"
         }
       ],
       "view/item/context": [
         {
-          "command": "sfdx.test.view.debugTests",
+          "command": "sf.test.view.debugTests",
           "group": "inline",
-          "when": "view == sfdx.test.view && viewItem =~ /apexTestGroup/"
+          "when": "view == sf.test.view && viewItem =~ /apexTestGroup/"
         },
         {
-          "command": "sfdx.test.view.debugSingleTest",
+          "command": "sf.test.view.debugSingleTest",
           "group": "inline",
-          "when": "view == sfdx.test.view && viewItem =~ /(apexTest)(_.*|\\b)/"
+          "when": "view == sf.test.view && viewItem =~ /(apexTest)(_.*|\\b)/"
         }
       ],
       "view/title": [
         {
-          "command": "sfdx.create.checkpoints",
+          "command": "sf.create.checkpoints",
           "group": "navigation",
-          "when": "view == sfdx.view.checkpoint && sfdx:project_opened"
+          "when": "view == sf.view.checkpoint && sf:project_opened"
         }
       ]
     },
     "views": {
       "debug": [
         {
-          "id": "sfdx.view.checkpoint",
+          "id": "sf.view.checkpoint",
           "name": "%view_checkpoints%",
-          "when": "sfdx:project_opened"
+          "when": "sf:project_opened"
         }
       ]
     }
   },
   "dependencies": {
-    "@salesforce/apex-node": "3.0.1",
+    "@salesforce/apex-node": "4.0.2",
     "@salesforce/core": "6.5.2",
-    "@salesforce/salesforcedx-apex-replay-debugger": "60.6.0",
-    "@salesforce/salesforcedx-utils": "60.6.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.6.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "60.7.0",
+    "@salesforce/salesforcedx-utils": "60.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.7.0",
     "async-lock": "1.0.0",
     "request-light": "^0.7.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "description": "Replay Apex execution from Apex Debug Log",
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.6.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.7.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "4.3.3",
@@ -279,5 +279,5 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "version": "60.6.0"
+  "version": "60.7.0"
 }

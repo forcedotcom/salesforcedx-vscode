@@ -44,7 +44,7 @@ describe('Org Login Web for Dev Hub', () => {
       alias: TEST_ALIAS
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
+      `sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_dev_hub_text')
@@ -62,7 +62,7 @@ describe('Org Login Web For Dev Hub in Demo  Mode', () => {
       alias: TEST_ALIAS
     });
     expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sfdx org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json --loglevel fatal`
+      `sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json`
     );
     expect(orgLoginWebCommand.description).to.equal(
       nls.localize('org_login_web_authorize_dev_hub_text')
@@ -166,7 +166,7 @@ describe('Org Login Web Dev Hub is based on environment variables', () => {
         {} as unknown as AuthDevHubParams
       );
       expect(orgLoginWebCommand.toCommand()).to.equal(
-        'sfdx org:login:web --alias  --set-default-dev-hub'
+        'sf org:login:web --alias  --set-default-dev-hub'
       );
     });
 
@@ -179,7 +179,7 @@ describe('Org Login Web Dev Hub is based on environment variables', () => {
         {} as unknown as AuthDevHubParams
       );
       expect(orgLoginWebCommand.toCommand()).to.equal(
-        'sfdx org:login:web --alias  --set-default-dev-hub'
+        'sf org:login:web --alias  --set-default-dev-hub'
       );
     });
 
@@ -193,7 +193,7 @@ describe('Org Login Web Dev Hub is based on environment variables', () => {
         {} as unknown as AuthDevHubParams
       );
       expect(authDevhubLoginCommand.toCommand()).to.equal(
-        'sfdx org:login:device --alias  --set-default-dev-hub --json --loglevel fatal'
+        'sf org:login:device --alias  --set-default-dev-hub --json'
       );
       expect(authDevhubLoginCommand.description).to.equal(
         nls.localize('org_login_web_authorize_dev_hub_text')

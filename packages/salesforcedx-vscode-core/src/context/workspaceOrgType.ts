@@ -40,33 +40,29 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
 }
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
-  setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
+  setTargetOrgHasChangeTracking(orgType === OrgType.SourceTracked);
 }
 
-export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
-  setHasDefaultUsername(!!defaultUsernameOrAlias);
+export async function setupWorkspaceOrgType(targetOrgOrAlias?: string) {
+  setHasTargetOrg(!!targetOrgOrAlias);
   const orgType = await getWorkspaceOrgType();
   setWorkspaceOrgTypeWithOrgType(orgType);
 }
 
-function setDefaultUsernameHasChangeTracking(val: boolean) {
+function setTargetOrgHasChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
-    'sfdx:default_username_has_change_tracking',
+    'sf:target_org_has_change_tracking',
     val
   );
 }
 
-function setHasDefaultUsername(val: boolean) {
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:has_default_username',
-    val
-  );
+function setHasTargetOrg(val: boolean) {
+  vscode.commands.executeCommand('setContext', 'sf:has_target_org', val);
 }
 
-export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
+export async function getTargetOrgOrAlias(): Promise<string | undefined> {
   if (workspaceUtils.hasRootWorkspace()) {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+    return await OrgAuthInfo.getTargetOrgOrAlias(true);
   }
 }

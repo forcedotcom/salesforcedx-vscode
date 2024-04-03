@@ -11,7 +11,7 @@ import {
   ContinueResponse,
   isRecordIdFormat,
   ParametersGatherer,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
@@ -19,8 +19,8 @@ import { nls } from '../messages';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
-  SfdxCommandlet,
-  SfdxCommandletExecutor
+  SfCommandlet,
+  SfCommandletExecutor
 } from './util';
 
 type packageInstallOptions = {
@@ -28,7 +28,7 @@ type packageInstallOptions = {
   installationKey: string;
 };
 
-export class PackageInstallExecutor extends SfdxCommandletExecutor<PackageIdAndInstallationKey> {
+export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
   private readonly options: packageInstallOptions;
 
   public constructor(options = { packageId: '', installationKey: '' }) {
@@ -37,7 +37,7 @@ export class PackageInstallExecutor extends SfdxCommandletExecutor<PackageIdAndI
   }
 
   public build(data: PackageIdAndInstallationKey): Command {
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withDescription(nls.localize('package_install_text'))
       .withArg('package:install')
       .withFlag('--package', data.packageId)
@@ -115,12 +115,12 @@ const parameterGatherer = new CompositeParametersGatherer(
   new SelectInstallationKey()
 );
 
-const sfdxPackageInstallCommandlet = new SfdxCommandlet(
+const sfPackageInstallCommandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   new PackageInstallExecutor()
 );
 
 export async function packageInstall() {
-  await sfdxPackageInstallCommandlet.run();
+  await sfPackageInstallCommandlet.run();
 }

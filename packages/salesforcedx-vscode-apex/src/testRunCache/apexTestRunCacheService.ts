@@ -54,7 +54,7 @@ class ApexTestRunCacheService {
     // added to 'recently used'
     await vscode.commands.executeCommand(
       'setContext',
-      'sfdx:has_cached_test_class',
+      'sf:has_cached_test_class',
       true
     );
     this.lastClassTestParam = test;
@@ -65,7 +65,7 @@ class ApexTestRunCacheService {
     // added to 'recently used'
     await vscode.commands.executeCommand(
       'setContext',
-      'sfdx:has_cached_test_method',
+      'sf:has_cached_test_method',
       true
     );
     this.lastMethodTestParam = test;

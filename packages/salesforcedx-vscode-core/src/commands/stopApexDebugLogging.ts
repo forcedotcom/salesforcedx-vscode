@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   Command,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
@@ -22,13 +22,9 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { developerLogTraceFlag } from '.';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class StopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
+export class StopApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     return deleteTraceFlag();
   }
@@ -73,7 +69,7 @@ export async function turnOffLogging(): Promise<void> {
 
 function deleteTraceFlag(): Command {
   const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
-  return new SfdxCommandBuilder()
+  return new SfCommandBuilder()
     .withDescription(nls.localize('stop_apex_debug_logging'))
     .withArg('data:delete:record')
     .withFlag('--sobject', 'TraceFlag')
@@ -90,10 +86,10 @@ class ActiveLogging implements ParametersGatherer<{}> {
     return { type: 'CANCEL' };
   }
 }
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new ActiveLogging();
 const executor = new StopApexDebugLoggingExecutor();
-const commandlet = new SfdxCommandlet(
+const commandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor

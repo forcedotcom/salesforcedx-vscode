@@ -18,8 +18,8 @@ import {
   CompositeParametersGatherer,
   PathStrategyFactory,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
@@ -30,7 +30,7 @@ import {
 
 export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
   public executionName = nls.localize('analytics_generate_template_text');
-  public telemetryName = 'force_analytics_template_create';
+  public telemetryName = 'analytics_generate_template';
   public metadataTypeName = ANALYTICS_TEMPLATE_TYPE;
   public templateType = TemplateType.AnalyticsTemplate;
   public getFileExtension(): string {
@@ -85,8 +85,8 @@ const parameterGatherer = new CompositeParametersGatherer(
 
 export async function analyticsGenerateTemplate() {
   const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     parameterGatherer,
     createTemplateExecutor
   );

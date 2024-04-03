@@ -44,7 +44,7 @@ export class TraceFlags {
   public async ensureTraceFlags(): Promise<boolean> {
     const username = this.connection.getUsername();
     if (!username) {
-      throw new Error(nls.localize('error_no_default_username'));
+      throw new Error(nls.localize('error_no_target_org'));
     }
 
     const userRecord = await this.getUserIdOrThrow(username);
@@ -144,7 +144,9 @@ export class TraceFlags {
     )) as DataRecordResult;
 
     if (result.success && result.id) {
-      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
+      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(
+        result.id
+      );
       return result.id;
     } else {
       return undefined;
@@ -187,9 +189,8 @@ export class TraceFlags {
       FROM TraceFlag
       WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'
     `;
-    const traceFlagResult = await this.connection.tooling.query<
-      TraceFlagRecord
-    >(traceFlagQuery);
+    const traceFlagResult =
+      await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
     if (traceFlagResult.totalSize > 0) {
       return traceFlagResult.records[0];

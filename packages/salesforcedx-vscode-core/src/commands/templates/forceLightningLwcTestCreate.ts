@@ -8,7 +8,7 @@ import {
   Command,
   DirFileNameSelection,
   LocalComponent,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { nls } from '../../messages';
@@ -17,8 +17,8 @@ import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   PathStrategyFactory,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
@@ -33,7 +33,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
 
   public build(data: DirFileNameSelection): Command {
     this.metadata = LWC_TYPE;
-    const builder = new SfdxCommandBuilder()
+    const builder = new SfCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
       .withArg('force:lightning:lwc:test:create')
       .withFlag(
@@ -56,8 +56,8 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
 const filePathGatherer = new SelectLwcComponentDir();
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 export async function forceLightningLwcTestCreate() {
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       filePathGatherer

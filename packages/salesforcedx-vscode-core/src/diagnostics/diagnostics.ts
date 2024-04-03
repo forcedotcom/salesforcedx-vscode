@@ -12,7 +12,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { SfdxCommandletExecutor } from '../commands/util';
+import { SfCommandletExecutor } from '../commands/util';
 
 const notApplicable = 'N/A';
 
@@ -105,7 +105,7 @@ export const handleDeployDiagnostics = (
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection => {
   errorCollection.clear();
-  SfdxCommandletExecutor.errorCollection.clear();
+  SfCommandletExecutor.errorCollection.clear();
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 

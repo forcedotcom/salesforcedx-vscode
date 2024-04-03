@@ -12,14 +12,14 @@ import {
 import { LightningEventOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
+import { salesforceCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateEventExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_event_text');
-  public telemetryName = 'force_lightning_event_create';
+  public telemetryName = 'lightning_generate_event';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningEvent;
   public getOutputFileName(data: DirFileNameSelection) {
@@ -45,7 +45,7 @@ export class LibraryLightningGenerateEventExecutor extends LibraryBaseTemplateCo
     return AURA_EVENT_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
-    const internal = sfdxCoreSettings.getInternalDev();
+    const internal = salesforceCoreSettings.getInternalDev();
     const templateOptions: LightningEventOptions = {
       outputdir: data.outputdir,
       eventname: data.fileName,
@@ -62,8 +62,8 @@ const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export async function lightningGenerateEvent() {
   const createTemplateExecutor = new LibraryLightningGenerateEventExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,
@@ -77,7 +77,7 @@ export async function lightningGenerateEvent() {
 
 export async function internalLightningGenerateEvent(sourceUri: Uri) {
   const createTemplateExecutor = new LibraryLightningGenerateEventExecutor();
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
