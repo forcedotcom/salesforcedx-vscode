@@ -26,3 +26,4 @@ export const TRIGGER_EXCEPTION_PREFIX = '__sfdc_trigger/';
 export const SEND_METRIC_LAUNCH_EVENT = 'sendMetricLaunch';
 export const SEND_METRIC_ERROR_EVENT = 'sendMetricError';
 export const SEND_METRIC_SUCCESS_EVENT = 'sendMetricSuccess';
+export const SEND_METRIC_EVENT = 'sendMetric';

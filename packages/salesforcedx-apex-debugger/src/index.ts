@@ -27,14 +27,19 @@ export interface WorkspaceSettings {
   setBreakpointTimeoutMs: number;
 }
 
-export interface MetricLaunch {
-  subject: string;
-}
+// export interface MetricLaunch {
+//   subject: string;
+// }
 
-export interface MetricError {
-  subject: string;
-}
+// export interface MetricError {
+//   subject: string;
+// }
 
-export interface MetricSuccess {
+// export interface MetricSuccess {
+//   subject: string;
+// }
+
+export interface Metric {
   subject: string;
+  type: string;
 }

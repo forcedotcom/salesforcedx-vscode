@@ -66,34 +66,45 @@ export class TelemetryService {
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 
-  public sendLaunchEvent(launchMsg: string): void {
-    if (this.reporters !== undefined && this.isTelemetryEnabled) {
-      this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent('launchDebuggerSession', {
-          extensionName: EXTENSION_NAME,
-          launchMessage: launchMsg
-        });
-      });
-    }
-  }
+  // public sendLaunchEvent(launchMsg: string): void {
+  //   if (this.reporters !== undefined && this.isTelemetryEnabled) {
+  //     this.reporters.forEach(reporter => {
+  //       reporter.sendTelemetryEvent('launchDebuggerSession', {
+  //         extensionName: EXTENSION_NAME,
+  //         launchMessage: launchMsg
+  //       });
+  //     });
+  //   }
+  // }
 
-  public sendErrorEvent(errorMsg: string): void {
-    if (this.reporters !== undefined && this.isTelemetryEnabled) {
-      this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent('error', {
-          extensionName: EXTENSION_NAME,
-          errorMessage: errorMsg
-        });
-      });
-    }
-  }
+  // public sendErrorEvent(errorMsg: string): void {
+  //   if (this.reporters !== undefined && this.isTelemetryEnabled) {
+  //     this.reporters.forEach(reporter => {
+  //       reporter.sendTelemetryEvent('error', {
+  //         extensionName: EXTENSION_NAME,
+  //         errorMessage: errorMsg
+  //       });
+  //     });
+  //   }
+  // }
 
-  public sendSuccessEvent(successMsg: string): void {
+  // public sendSuccessEvent(successMsg: string): void {
+  //   if (this.reporters !== undefined && this.isTelemetryEnabled) {
+  //     this.reporters.forEach(reporter => {
+  //       reporter.sendTelemetryEvent('success', {
+  //         extensionName: EXTENSION_NAME,
+  //         successMessage: successMsg
+  //       });
+  //     });
+  //   }
+  // }
+
+  public sendEvent(msg: string, type: string): void {
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
       this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent('success', {
+        reporter.sendTelemetryEvent(type, {
           extensionName: EXTENSION_NAME,
-          successMessage: successMsg
+          message: msg
         });
       });
     }

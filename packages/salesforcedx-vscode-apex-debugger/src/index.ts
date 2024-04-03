@@ -6,9 +6,10 @@
  */
 
 import {
-  MetricError,
-  MetricLaunch,
-  MetricSuccess
+  // MetricError,
+  // MetricLaunch,
+  // MetricSuccess,
+  Metric
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import {
   DEBUGGER_TYPE,
@@ -19,9 +20,10 @@ import {
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
-  SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT,
-  SEND_METRIC_SUCCESS_EVENT,
+  // SEND_METRIC_ERROR_EVENT,
+  // SEND_METRIC_LAUNCH_EVENT,
+  // SEND_METRIC_SUCCESS_EVENT,
+  SEND_METRIC_EVENT,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
@@ -257,20 +259,26 @@ const registerDebugHandlers = (): vscode.Disposable => {
           return;
         }
 
-        if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
-          const metricLaunchArgs = event.body as MetricLaunch;
-          telemetryService.sendLaunchEvent(
-            metricLaunchArgs.subject
-          );
-        } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
-          const metricErrorArgs = event.body as MetricError;
-          telemetryService.sendErrorEvent(
-            metricErrorArgs.subject
-          );
-        } else if (event.event === SEND_METRIC_SUCCESS_EVENT && event.body) {
-          const metricSuccessArgs = event.body as MetricSuccess;
-          telemetryService.sendSuccessEvent(
-            metricSuccessArgs.subject
+        // if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
+        //   const metricLaunchArgs = event.body as MetricLaunch;
+        //   telemetryService.sendLaunchEvent(
+        //     metricLaunchArgs.subject
+        //   );
+        // } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
+        //   const metricErrorArgs = event.body as MetricError;
+        //   telemetryService.sendErrorEvent(
+        //     metricErrorArgs.subject
+        //   );
+        // } else if (event.event === SEND_METRIC_SUCCESS_EVENT && event.body) {
+        //   const metricSuccessArgs = event.body as MetricSuccess;
+        //   telemetryService.sendSuccessEvent(
+        //     metricSuccessArgs.subject
+        //   );
+        if (event.event === SEND_METRIC_EVENT && event.body) {
+          const metricArgs = event.body as Metric;
+          telemetryService.sendEvent(
+            metricArgs.subject,
+            metricArgs.type
           );
         }
       }
