@@ -706,12 +706,6 @@ export class ApexDebug extends LoggingDebugSession {
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
-        this.sendEvent(
-          new Event(SEND_METRIC_EVENT, {
-            subject: nls.localize('isv_debugger_launched_successfully'),
-            type: 'startIsvDebuggerSuccess'
-          } as Metric)
-        );
       } else {
         const orgInfo = await new OrgDisplay().getOrgInfo(
           args.salesforceProject
@@ -738,6 +732,16 @@ export class ApexDebug extends LoggingDebugSession {
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
         );
+        // telemetry for the case where the ISV debugger started successfully
+        // TODO: add telemetry for the case where the forceIde:// URL is expired
+        if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('isv_debugger_launched_successfully'),
+              type: 'startIsvDebuggerSuccess'
+            } as Metric)
+          );
+        }
         this.sendEvent(new InitializedEvent());
         this.resetIdleTimer();
       } else {
