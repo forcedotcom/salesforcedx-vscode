@@ -714,32 +714,20 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
 
-      this.warnToDebugConsole('1');
       const isStreamingConnected = await this.connectStreaming(
         args.salesforceProject
       );
-      this.warnToDebugConsole('2');
       if (!isStreamingConnected) {
-        // this.sendEvent(
-        //   new Event(SEND_METRIC_EVENT, {
-        //     subject: nls.localize('isv_debugger_session_expired'),
-        //     type: 'startIsvDebuggerExpired'
-        //   } as Metric)
-        // );
-        this.warnToDebugConsole('3');
         return this.sendResponse(response);
       }
 
-      this.warnToDebugConsole('4');
       const sessionId = await this.mySessionService
         .forProject(args.salesforceProject)
         .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
         .start();
-      this.warnToDebugConsole('5');
       if (this.mySessionService.isConnected()) {
-        this.warnToDebugConsole('6');
         response.success = true;
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
@@ -766,20 +754,20 @@ export class ApexDebug extends LoggingDebugSession {
         this.sendEvent(new InitializedEvent());
         this.resetIdleTimer();
       } else {
-        this.warnToDebugConsole('7');
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
         );
-        this.warnToDebugConsole('8');
       }
     } catch (error) {
-      this.warnToDebugConsole('9');
       this.tryToParseSfError(response, error);
-      this.warnToDebugConsole('10');
+      this.sendEvent(
+        new Event(SEND_METRIC_EVENT, {
+          subject: nls.localize('isv_debugger_session_expired'),
+          type: 'startIsvDebuggerExpired'
+        } as Metric)
+      );
     }
-    this.warnToDebugConsole('11');
     this.sendResponse(response);
-    this.warnToDebugConsole('12');
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {
