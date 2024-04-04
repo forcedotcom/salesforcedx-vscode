@@ -34,7 +34,6 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { Metric } from '..';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,
@@ -675,7 +674,7 @@ export class ApexDebug extends LoggingDebugSession {
       new Event(SEND_METRIC_EVENT, {
         subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
         type: 'launchApexDebugger'
-      } as Metric)
+      })
     );
 
     if (!this.myBreakpointService.hasLineNumberMapping()) {
@@ -700,7 +699,7 @@ export class ApexDebug extends LoggingDebugSession {
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('invalid_isv_project_config'),
               type: 'startIsvDebuggerError'
-            } as Metric)
+            })
           );
           return this.sendResponse(response);
         }
@@ -710,7 +709,7 @@ export class ApexDebug extends LoggingDebugSession {
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('isv_debugger_launched_successfully'),
             type: 'startIsvDebuggerSuccess'
-          } as Metric)
+          })
         );
       } else {
         const orgInfo = await new OrgDisplay().getOrgInfo(
