@@ -151,7 +151,6 @@ const registerDebugHandlers = (): vscode.Disposable => {
           return;
         }
 
-        // try to follow this path for the interactive debugger
         if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
           const metricLaunchArgs = event.body as MetricLaunch;
           telemetryService.sendLaunchEvent(
