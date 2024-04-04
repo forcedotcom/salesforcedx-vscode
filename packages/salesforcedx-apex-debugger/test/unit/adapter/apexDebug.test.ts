@@ -238,7 +238,8 @@ describe('Interactive debugger adapter - unit', () => {
       expect(
         (adapter.getEvents()[1] as OutputEvent).body.output
       ).to.have.string(nls.localize('session_started_text', sessionId));
-      expect(adapter.getEvents()[2].event).to.equal('initialized');
+      expect(adapter.getEvents()[2].event).to.equal('sendMetric'); // interactive debugger started successfully
+      expect(adapter.getEvents()[3].event).to.equal('initialized');
       expect(sessionUserFilterSpy.calledOnce).to.equal(true);
       expect(sessionEntryFilterSpy.calledOnce).to.equal(true);
       expect(sessionRequestFilterSpy.calledOnce).to.equal(true);
@@ -360,11 +361,11 @@ describe('Interactive debugger adapter - unit', () => {
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
       expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
-      expect(adapter.getEvents()[1].event).to.equal('sendMetric'); // success case for starting ISV debugger
-      expect(adapter.getEvents()[2].event).to.equal('output');
+      expect(adapter.getEvents()[1].event).to.equal('output');
       expect(
-        (adapter.getEvents()[2] as OutputEvent).body.output
+        (adapter.getEvents()[1] as OutputEvent).body.output
       ).to.have.string(nls.localize('session_started_text', sessionId));
+      expect(adapter.getEvents()[2].event).to.equal('sendMetric'); // ISV debugger started successfully
       expect(adapter.getEvents()[3].event).to.equal('initialized');
       expect(sessionUserFilterSpy.calledOnce).to.equal(true);
       expect(sessionEntryFilterSpy.calledOnce).to.equal(true);
