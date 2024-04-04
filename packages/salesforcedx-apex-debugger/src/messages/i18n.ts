@@ -42,5 +42,9 @@ export const messages = {
   unexpected_error_help_text:
     'An unexpected error occurred while launching the debugger session. Refer to the Debug Console for details.',
   isv_debugger_launched_successfully:
-    'ISV Debugger has been launched successfully.'
+    'ISV Debugger has been launched successfully.',
+  interactive_debugger_launched_successfully:
+    'Interactive Debugger has been launched successfully.',
+  isv_debugger_session_expired:
+    'The forceIde:// URL of the ISV debugger session is expired.'
 };

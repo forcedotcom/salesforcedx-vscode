@@ -699,7 +699,7 @@ export class ApexDebug extends LoggingDebugSession {
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('invalid_isv_project_config'),
-              type: 'startIsvDebuggerError'
+              type: 'startIsvDebuggerConfigError'
             } as Metric)
           );
           return this.sendResponse(response);
@@ -718,6 +718,12 @@ export class ApexDebug extends LoggingDebugSession {
         args.salesforceProject
       );
       if (!isStreamingConnected) {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize('isv_debugger_session_expired'),
+            type: 'startIsvDebuggerExpired'
+          } as Metric)
+        );
         return this.sendResponse(response);
       }
 
@@ -739,6 +745,15 @@ export class ApexDebug extends LoggingDebugSession {
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('isv_debugger_launched_successfully'),
               type: 'startIsvDebuggerSuccess'
+            } as Metric)
+          );
+        }
+        // telemetry for the case where the interactive debugger started successfully
+        else {
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('interactive_debugger_launched_successfully'),
+              type: 'startInteractiveDebuggerSuccess'
             } as Metric)
           );
         }
