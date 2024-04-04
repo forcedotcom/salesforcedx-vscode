@@ -254,9 +254,10 @@ const registerDebugHandlers = (): vscode.Disposable => {
         }
 
         if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
+          const metricArgs = event.body;
           telemetryService.sendEvent(
-            event.body.subject,
-            event.body.type
+            metricArgs.subject,
+            metricArgs.type
           );
         }
       }

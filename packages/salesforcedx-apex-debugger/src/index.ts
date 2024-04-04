@@ -27,8 +27,13 @@ export interface WorkspaceSettings {
   setBreakpointTimeoutMs: number;
 }
 
+export interface Metric {
+  subject: string;
+  type: string;
+}
+
 // Type guard to check if the object conforms to Metric
-export const isMetric = (object: any) => (
+export const isMetric = (object: any): object is Metric => (
   object !== null &&
   typeof object === 'object' &&
   'subject' in object &&
