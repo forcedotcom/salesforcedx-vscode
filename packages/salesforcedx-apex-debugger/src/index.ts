@@ -36,6 +36,7 @@ export interface Metric {
 export const isMetric = (object: any): object is Metric => (
   object !== null &&
   typeof object === 'object' &&
+  object.length === 2 &&
   'subject' in object &&
   typeof object.subject === 'string' &&
   'type' in object &&
