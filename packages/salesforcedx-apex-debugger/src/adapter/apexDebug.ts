@@ -674,7 +674,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendEvent(
       new Event(SEND_METRIC_EVENT, {
         subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
-        type: 'launch'
+        type: 'launchApexDebugger'
       } as Metric)
     );
 
@@ -699,7 +699,7 @@ export class ApexDebug extends LoggingDebugSession {
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('invalid_isv_project_config'),
-              type: 'error'
+              type: 'startIsvDebuggerError'
             } as Metric)
           );
           return this.sendResponse(response);
@@ -709,7 +709,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('isv_debugger_launched_successfully'),
-            type: 'success'
+            type: 'startIsvDebuggerSuccess'
           } as Metric)
         );
       } else {

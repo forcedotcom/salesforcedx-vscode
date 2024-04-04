@@ -233,7 +233,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
-      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
       expect(adapter.getEvents()[1].event).to.equal('output');
       expect(
         (adapter.getEvents()[1] as OutputEvent).body.output
@@ -279,7 +279,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getResponse(0).message).to.equal(
         nls.localize('session_no_entity_access_text')
       );
-      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
       expect(adapter.getEvents()[1].event).to.equal('output');
       expect(
         (adapter.getEvents()[1] as OutputEvent).body.output
@@ -306,7 +306,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy.called).to.equal(false);
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getEvents().length).to.equal(1); // value is 1 because the launch button is clicked
+      expect(adapter.getEvents().length).to.equal(1); // value is 1 because the Launch Apex Debugger button is clicked
       expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
@@ -327,7 +327,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getResponse(0).message).to.equal(
         nls.localize('session_language_server_error_text')
       );
-      expect(adapter.getEvents().length).to.equal(1); // value is 1 because the launch button is clicked
+      expect(adapter.getEvents().length).to.equal(1); // value is 1 because the Launch Apex Debugger button is clicked
       expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
@@ -359,8 +359,8 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
-      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch
-      expect(adapter.getEvents()[1].event).to.equal('sendMetric'); // success
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
+      expect(adapter.getEvents()[1].event).to.equal('sendMetric'); // success case for starting ISV debugger
       expect(adapter.getEvents()[2].event).to.equal('output');
       expect(
         (adapter.getEvents()[2] as OutputEvent).body.output
