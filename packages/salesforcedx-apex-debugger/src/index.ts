@@ -34,11 +34,7 @@ export interface Metric {
 
 // Type guard to check if the object conforms to Metric
 export const isMetric = (input: unknown): input is Metric => (
-  input !== null &&
-  typeof input === 'object' &&
-  Object.keys(input).length === 2 &&
-  'subject' in input &&
-  typeof input.subject === 'string' &&
-  'type' in input &&
-  typeof input.type === 'string'
+  !!input &&
+  Object.keys(input).every(key => ['subject', 'type'].includes(key)) &&
+  Object.values(input).every(value => typeof value === 'string')
 );
