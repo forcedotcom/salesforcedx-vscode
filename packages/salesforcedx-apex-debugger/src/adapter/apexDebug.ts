@@ -34,7 +34,6 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { Metric } from '..';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,
@@ -675,7 +674,7 @@ export class ApexDebug extends LoggingDebugSession {
       new Event(SEND_METRIC_EVENT, {
         subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
         type: 'launchApexDebugger'
-      } as Metric)
+      })
     );
 
     if (!this.myBreakpointService.hasLineNumberMapping()) {
@@ -701,7 +700,7 @@ export class ApexDebug extends LoggingDebugSession {
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('invalid_isv_project_config'),
               type: 'startIsvDebuggerConfigError'
-            } as Metric)
+            })
           );
           return this.sendResponse(response);
         }
@@ -739,7 +738,7 @@ export class ApexDebug extends LoggingDebugSession {
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('isv_debugger_launched_successfully'),
               type: 'startIsvDebuggerSuccess'
-            } as Metric)
+            })
           );
         }
         // telemetry for the case where the interactive debugger started successfully
@@ -748,7 +747,7 @@ export class ApexDebug extends LoggingDebugSession {
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('interactive_debugger_launched_successfully'),
               type: 'startInteractiveDebuggerSuccess'
-            } as Metric)
+            })
           );
         }
         this.sendEvent(new InitializedEvent());
@@ -766,7 +765,7 @@ export class ApexDebug extends LoggingDebugSession {
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('isv_debugger_session_authentication_invalid'),
             type: 'startIsvDebuggerAuthenticationInvalid'
-          } as Metric)
+          })
         );
       }
       // telemetry for invalid org-isv-debugger-url
@@ -775,7 +774,7 @@ export class ApexDebug extends LoggingDebugSession {
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('org_isv_debugger_url_invalid'),
             type: 'startIsvDebuggerOrgIsvDebuggerUrlInvalid'
-          } as Metric)
+          })
         );
       }
       // telemetry for general error
@@ -784,7 +783,7 @@ export class ApexDebug extends LoggingDebugSession {
           new Event(SEND_METRIC_EVENT, {
             subject: String(error),
             type: 'startApexDebuggerGeneralError'
-          } as Metric)
+          })
         );
       }
     }
