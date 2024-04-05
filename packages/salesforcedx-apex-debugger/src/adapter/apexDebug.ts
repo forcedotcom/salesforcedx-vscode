@@ -696,6 +696,7 @@ export class ApexDebug extends LoggingDebugSession {
           typeof isvDebuggerUrl === 'undefined'
         ) {
           response.message = nls.localize('invalid_isv_project_config');
+          // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
               subject: nls.localize('invalid_isv_project_config'),
@@ -733,7 +734,6 @@ export class ApexDebug extends LoggingDebugSession {
           nls.localize('session_started_text', sessionId)
         );
         // telemetry for the case where the ISV debugger started successfully
-        // TODO: add telemetry for the case where the forceIde:// URL is expired
         if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
@@ -759,9 +759,8 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }
     } catch (error) {
-      this.warnToDebugConsole('*** error = [' + error + '] ***');
       this.tryToParseSfError(response, error);
-      // expired session or invalid org-isv-debugger-sid (authentication error)
+      // telemetry for expired session or invalid org-isv-debugger-sid (authentication error)
       if (error === undefined) {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
@@ -770,7 +769,7 @@ export class ApexDebug extends LoggingDebugSession {
           } as Metric)
         );
       }
-      // invalid org-isv-debugger-url
+      // telemetry for invalid org-isv-debugger-url
       else if (String(error) === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
@@ -779,7 +778,7 @@ export class ApexDebug extends LoggingDebugSession {
           } as Metric)
         );
       }
-      // general error
+      // telemetry for general error
       else {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
@@ -789,7 +788,6 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }
     }
-    this.warnToDebugConsole('*** response = [' + response.message + '] ***');
     this.sendResponse(response);
   }
 
@@ -1560,61 +1558,42 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.Response,
     error?: any
   ): void {
-    this.warnToDebugConsole('1');
     if (!error) {
       return;
     }
-    this.warnToDebugConsole('2');
     try {
-      this.warnToDebugConsole('3');
       response.success = false;
-      this.warnToDebugConsole('4');
       const errorObj = extractJsonObject(error);
-      this.warnToDebugConsole('5');
       if (errorObj && errorObj.message) {
-        this.warnToDebugConsole('6');
         const errorMessage: string = errorObj.message;
-        this.warnToDebugConsole('7');
         if (
           errorMessage.includes(
             'entity type cannot be inserted: Apex Debugger Session'
           )
         ) {
-          this.warnToDebugConsole('8');
           response.message = nls.localize('session_no_entity_access_text');
-          this.warnToDebugConsole('9');
         } else {
-          this.warnToDebugConsole('10');
           response.message = errorMessage;
-          this.warnToDebugConsole('11');
         }
         if (errorObj.action) {
-          this.warnToDebugConsole('12');
           this.errorToDebugConsole(
             `${nls.localize('command_error_help_text')}:${os.EOL}${
               errorObj.action
             }`
           );
-          this.warnToDebugConsole('13');
         }
       } else {
-        this.warnToDebugConsole('14');
         response.message = nls.localize('unexpected_error_help_text');
-        this.warnToDebugConsole('15');
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
         );
-        this.warnToDebugConsole('16');
       }
     } catch (e) {
-      this.warnToDebugConsole('17');
       response.message =
         response.message || nls.localize('unexpected_error_help_text');
-      this.warnToDebugConsole('18');
       this.errorToDebugConsole(
         `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
       );
-      this.warnToDebugConsole('19');
     }
   }
 
