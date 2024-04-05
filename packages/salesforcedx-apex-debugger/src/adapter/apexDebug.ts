@@ -760,13 +760,35 @@ export class ApexDebug extends LoggingDebugSession {
       }
     } catch (error) {
       this.warnToDebugConsole('*** error = [' + error + '] ***');
-      this.tryToParseSfError(response, error);
-      this.sendEvent(
-        new Event(SEND_METRIC_EVENT, {
-          subject: nls.localize('isv_debugger_session_expired'),
-          type: 'startIsvDebuggerExpired'
-        } as Metric)
-      );
+      // expired session or invalid org-isv-debugger-sid (authentication error)
+      if (error === 'undefined') {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize('isv_debugger_session_authentication_invalid'),
+            type: 'startIsvDebuggerAuthenticationInvalid'
+          } as Metric)
+        );
+      }
+      // invalid org-isv-debugger-url
+      else if (error === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
+        this.tryToParseSfError(response, error);
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize('org_isv_debugger_url_invalid'),
+            type: 'startIsvDebuggerOrgIsvDebuggerUrlInvalid'
+          } as Metric)
+        );
+      }
+      // general error
+      else {
+        this.tryToParseSfError(response, error);
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: error,
+            type: 'startApexDebuggerGeneralError'
+          } as Metric)
+        );
+      }
     }
     this.warnToDebugConsole('*** response = [' + response.message + '] ***');
     this.sendResponse(response);

@@ -45,6 +45,8 @@ export const messages = {
     'ISV Debugger has been launched successfully.',
   interactive_debugger_launched_successfully:
     'Interactive Debugger has been launched successfully.',
-  isv_debugger_session_expired:
-    'The forceIde:// URL of the ISV debugger session is expired.'
+  isv_debugger_session_authentication_invalid:
+    'The forceIde:// URL of the ISV debugger session is expired or the config variable org-isv-debugger-sid has an invalid value.',
+  org_isv_debugger_url_invalid:
+    'The config variable org-isv-debugger-url has an invalid value.'
 };
