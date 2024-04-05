@@ -761,7 +761,7 @@ export class ApexDebug extends LoggingDebugSession {
     } catch (error) {
       this.warnToDebugConsole('*** error = [' + error + '] ***');
       // expired session or invalid org-isv-debugger-sid (authentication error)
-      if (error === 'undefined') {
+      if (error === undefined) {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('isv_debugger_session_authentication_invalid'),
@@ -770,7 +770,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }
       // invalid org-isv-debugger-url
-      else if (error === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
+      else if (String(error) === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
         this.tryToParseSfError(response, error);
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
@@ -784,7 +784,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.tryToParseSfError(response, error);
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
-            subject: error,
+            subject: String(error),
             type: 'startApexDebuggerGeneralError'
           } as Metric)
         );
