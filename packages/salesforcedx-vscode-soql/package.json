@@ -32,7 +32,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.7.4",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
@@ -82,7 +82,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core-bundle --external:@salesforce/source-tracking-bundle  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
     "build": "npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint .",
@@ -138,8 +138,8 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
-        "@salesforce/core": "6.5.2",
-        "@salesforce/source-tracking": "5.1.11",
+        "@salesforce/core-bundle": "6.7.4",
+        "@salesforce/source-tracking-bundle": "5.2.2",
         "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "0.2.0",
         "@salesforce/soql-data-view": "0.1.0",

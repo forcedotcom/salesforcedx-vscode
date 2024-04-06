@@ -24,12 +24,12 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.7.4",
     "@salesforce/salesforcedx-sobjects-faux-generator": "60.7.0",
     "@salesforce/salesforcedx-utils-vscode": "60.7.0",
     "@salesforce/schemas": "^1.6.1",
-    "@salesforce/source-deploy-retrieve": "10.3.3",
-    "@salesforce/templates": "^60.1.0",
+    "@salesforce/source-deploy-retrieve-bundle": "10.9.0",
+    "@salesforce/templates-bundle": "60.1.1-beta",
     "@salesforce/ts-types": "2.0.9",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
@@ -96,17 +96,17 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "6.5.2",
-        "@salesforce/source-tracking": "5.1.11",
-        "@salesforce/templates": "^60.1.0",
-        "@salesforce/source-deploy-retrieve": "10.3.3",
+        "@salesforce/core-bundle": "6.7.4",
+        "@salesforce/source-tracking-bundle": "5.2.2",
+        "@salesforce/templates-bundle": "60.1.1-beta",
+        "@salesforce/source-deploy-retrieve-bundle": "10.9.0",
         "shelljs": "0.8.5"
       },
       "devDependencies": {}
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core-bundle --external:applicationinsights --external:shelljs --external:@salesforce/source-tracking-bundle --external:@salesforce/templates-bundle --external:@salesforce/source-deploy-retrieve-bundle --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

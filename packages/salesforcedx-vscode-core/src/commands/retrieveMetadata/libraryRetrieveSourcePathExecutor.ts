@@ -12,8 +12,8 @@ import {
 import {
   ComponentSet,
   RetrieveResult
-} from '@salesforce/source-deploy-retrieve';
-import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
+} from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentLike } from '@salesforce/source-deploy-retrieve-bundle/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';

@@ -320,9 +320,9 @@
     }
   },
   "dependencies": {
-    "@salesforce/apex-node": "4.0.2",
+    "@salesforce/apex-node-bundle": "4.0.2",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.7.4",
     "@salesforce/salesforcedx-utils-vscode": "60.7.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
@@ -392,9 +392,9 @@
     "packageUpdates": {
       "dependencies": {
         "@salesforce/apex-tmlanguage": "1.4.0",
-        "@salesforce/core": "6.5.2",
-        "@salesforce/source-tracking": "5.1.11",
-        "@salesforce/templates": "^60.1.0",
+        "@salesforce/core-bundle": "6.7.4",
+        "@salesforce/source-tracking-bundle": "5.2.2",
+        "@salesforce/templates-bundle": "60.1.1-beta",
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5"
       },
@@ -410,7 +410,7 @@
   },
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve --external:@salesforce/source-tracking --minify",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core-bundle --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve-bundle --external:@salesforce/source-tracking-bundle --minify",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",

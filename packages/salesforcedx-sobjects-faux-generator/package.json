@@ -10,7 +10,7 @@
   },
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core-bundle": "6.7.4",
     "@salesforce/salesforcedx-utils-vscode": "60.7.0",
     "jsforce": "2.0.0-beta.29",
     "shelljs": "0.8.5"

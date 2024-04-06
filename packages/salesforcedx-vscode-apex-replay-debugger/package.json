@@ -180,8 +180,8 @@
     }
   },
   "dependencies": {
-    "@salesforce/apex-node": "4.0.2",
-    "@salesforce/core": "6.5.2",
+    "@salesforce/apex-node-bundle": "4.0.2",
+    "@salesforce/core-bundle": "6.7.4",
     "@salesforce/salesforcedx-apex-replay-debugger": "60.7.0",
     "@salesforce/salesforcedx-utils": "60.7.0",
     "@salesforce/salesforcedx-utils-vscode": "60.7.0",
@@ -248,8 +248,8 @@
     ],
     "packageUpdates": {
       "dependencies": {
-        "@salesforce/core": "6.5.2",
-        "@salesforce/source-tracking": "5.1.11",
+        "@salesforce/core-bundle": "6.7.4",
+        "@salesforce/source-tracking-bundle": "5.2.2",
         "applicationinsights": "1.0.7"
       },
       "devDependencies": {},
@@ -263,7 +263,7 @@
   },
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --minify",
+    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core-bundle --external:@salesforce/source-tracking-bundle --external:applicationinsights --minify",
     "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",

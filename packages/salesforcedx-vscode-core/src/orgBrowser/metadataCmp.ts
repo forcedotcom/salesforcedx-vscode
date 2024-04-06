@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   isNullOrUndefined,
   projectPaths,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce/api/metadata';
 import * as path from 'path';

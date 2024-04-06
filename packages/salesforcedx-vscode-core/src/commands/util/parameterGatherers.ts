@@ -10,7 +10,7 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import * as glob from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
