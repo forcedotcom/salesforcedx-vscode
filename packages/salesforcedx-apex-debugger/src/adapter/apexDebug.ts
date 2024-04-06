@@ -66,6 +66,7 @@ import {
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
   SEND_METRIC_EVENT,
+  SEND_TRIAL_EVENT,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
@@ -674,6 +675,12 @@ export class ApexDebug extends LoggingDebugSession {
       new Event(SEND_METRIC_EVENT, {
         subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
         type: 'launchApexDebugger'
+      })
+    );
+    this.sendEvent(
+      new Event(SEND_TRIAL_EVENT, {
+        subject: 'trial event for launch',
+        type: 'launchApexDebuggerTrial'
       })
     );
 

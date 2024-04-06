@@ -15,7 +15,7 @@ import {
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
-  SEND_METRIC_EVENT,
+  // SEND_METRIC_EVENT,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
@@ -251,7 +251,8 @@ const registerDebugHandlers = (): vscode.Disposable => {
           return;
         }
 
-        if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
+        // if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
+        if (isMetric(event.body)) {
           const metricArgs = event.body;
           telemetryService.sendEvent(
             metricArgs.subject,

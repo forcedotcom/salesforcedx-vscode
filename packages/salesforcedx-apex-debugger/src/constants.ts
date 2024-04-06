@@ -24,3 +24,4 @@ export const EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER = 'never';
 export const SALESFORCE_EXCEPTION_PREFIX = 'com/salesforce/api/exception/';
 export const TRIGGER_EXCEPTION_PREFIX = '__sfdc_trigger/';
 export const SEND_METRIC_EVENT = 'sendMetric';
+export const SEND_TRIAL_EVENT = 'trialMetric';
