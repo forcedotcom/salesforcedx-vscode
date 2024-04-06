@@ -254,7 +254,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
         // if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
         if (isMetric(event.body)) {
           const metricArgs = event.body;
-          telemetryService.sendEvent(
+          telemetryService.sendMetricEvent(
             metricArgs.subject,
             metricArgs.type
           );

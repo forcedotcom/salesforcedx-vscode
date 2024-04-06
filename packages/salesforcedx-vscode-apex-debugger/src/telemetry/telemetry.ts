@@ -66,12 +66,12 @@ export class TelemetryService {
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 
-  public sendEvent(msg: string, type: string): void {
+  public sendMetricEvent(subject: string, type: string): void {
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
       this.reporters.forEach(reporter => {
         reporter.sendTelemetryEvent(type, {
           extensionName: EXTENSION_NAME,
-          message: msg
+          message: subject
         });
       });
     }
