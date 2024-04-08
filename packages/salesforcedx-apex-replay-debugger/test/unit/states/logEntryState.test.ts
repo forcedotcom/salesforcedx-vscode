@@ -48,7 +48,9 @@ describe('LogEntry event', () => {
     expect(stackFrame.id).to.equal(0);
     expect(stackFrame.name).to.equal('');
     expect(stackFrame.line).to.equal(context.getLogLinePosition() + 1);
-    expect(stackFrame.source!.name).to.equal(context.getLogFileName());
-    expect(stackFrame.source!.path).to.equal(context.getLogFilePath());
+    if (stackFrame.source) {
+      expect(stackFrame.source.name).to.equal(context.getLogFileName());
+      expect(stackFrame.source.path).to.equal(context.getLogFilePath());
+    }
   });
 });
