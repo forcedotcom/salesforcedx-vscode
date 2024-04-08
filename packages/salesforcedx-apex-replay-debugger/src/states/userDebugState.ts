@@ -32,7 +32,7 @@ export class UserDebugState implements DebugLogState {
         .getSession()
         .warnToDebugConsole(
           this.message,
-          frame.source as Source,
+          frame.source instanceof Source ? frame.source : undefined,
           frame.name === EXEC_ANON_SIGNATURE
             ? logContext.getExecAnonScriptLocationInDebugLog(this.line)
             : this.line

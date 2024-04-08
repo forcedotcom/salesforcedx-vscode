@@ -598,9 +598,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         `${msg}${EOL}`,
         category
       );
-      if (sourceFile) {
-        event.body.source = sourceFile;
-      }
+      event.body.source = sourceFile;
       event.body.line = sourceLine;
       event.body.column = 0;
       this.sendEvent(event);
