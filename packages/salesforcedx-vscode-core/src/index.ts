@@ -239,7 +239,7 @@ const registerCommands = (
     apexGenerateClass
   );
   const apexGenerateUnitTestClassCmd = vscode.commands.registerCommand(
-    'sf.apex.generate.unit.test.class',
+    'sfdx.apex.generate.unit.test.class',
     apexGenerateUnitTestClass
   );
   const analyticsGenerateTemplateCmd = vscode.commands.registerCommand(
@@ -620,7 +620,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   void vscode.commands.executeCommand(
     'setContext',
-    'sf:project_opened',
+    'sfdx:project_opened',
     salesforceProjectOpened
   );
 

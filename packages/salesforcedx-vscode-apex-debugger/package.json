@@ -221,7 +221,7 @@
       "commandPalette": [
         {
           "command": "sf.debug.exception.breakpoint",
-          "when": "sf:project_opened"
+          "when": "sfdx:project_opened"
         }
       ]
     },

@@ -194,19 +194,19 @@
       "commandPalette": [
         {
           "command": "sf.anon.apex.execute.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
+          "when": "sfdx:project_opened && editorHasSelection && sf:has_target_org"
         },
         {
           "command": "sf.anon.apex.execute.document",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
+          "when": "sfdx:project_opened && !editorHasSelection && sf:has_target_org"
         },
         {
           "command": "sf.apex.log.get",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.apex.test.last.class.run",
-          "when": "sf:project_opened && sf:has_cached_test_class && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_cached_test_class && sf:has_target_org"
         },
         {
           "command": "sf.apex.test.class.run",
@@ -218,23 +218,23 @@
         },
         {
           "command": "sf.apex.test.last.method.run",
-          "when": "sf:project_opened && sf:has_cached_test_method && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_cached_test_method && sf:has_target_org"
         },
         {
           "command": "sf.apex.test.run",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.apex.test.suite.run",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.apex.test.suite.create",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.apex.test.suite.add",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.test.view.runClassTests",
@@ -305,7 +305,7 @@
         {
           "id": "sf.test.view",
           "name": "%test_view_name%",
-          "when": "sf:project_opened"
+          "when": "sfdx:project_opened"
         }
       ]
     },

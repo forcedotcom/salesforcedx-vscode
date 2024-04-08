@@ -28,7 +28,7 @@
           "light": "images/light/cloud-upload.svg"
         },
         "title": "%sf_update_checkpoints_in_org%",
-        "when": "sf:project_opened"
+        "when": "sfdx:project_opened"
       },
       {
         "command": "sf.launch.replay.debugger.last.logfile",
@@ -130,15 +130,15 @@
       "commandPalette": [
         {
           "command": "sf.create.checkpoints",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sfdx:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.toggle.checkpoint",
-          "when": "sf:project_opened && editorLangId == 'apex'"
+          "when": "sfdx:project_opened && editorLangId == 'apex'"
         },
         {
           "command": "sf.launch.replay.debugger.last.logfile",
-          "when": "sf:project_opened && !inDebugMode"
+          "when": "sfdx:project_opened && !inDebugMode"
         },
         {
           "command": "sf.test.view.debugTests",
@@ -165,7 +165,7 @@
         {
           "command": "sf.create.checkpoints",
           "group": "navigation",
-          "when": "view == sf.view.checkpoint && sf:project_opened"
+          "when": "view == sf.view.checkpoint && sfdx:project_opened"
         }
       ]
     },
@@ -174,7 +174,7 @@
         {
           "id": "sf.view.checkpoint",
           "name": "%view_checkpoints%",
-          "when": "sf:project_opened"
+          "when": "sfdx:project_opened"
         }
       ]
     }

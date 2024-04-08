@@ -177,19 +177,19 @@
       "commandPalette": [
         {
           "command": "sf.lightning.lwc.start",
-          "when": "sf:project_opened"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sf.lightning.lwc.stop",
-          "when": "sf:project_opened"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sf.lightning.lwc.open",
-          "when": "sf:project_opened"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         },
         {
           "command": "sf.lightning.lwc.test.file.run",
@@ -213,11 +213,11 @@
         },
         {
           "command": "sf.lightning.lwc.test.runAllTests",
-          "when": "sf:project_opened || sf:internal_dev"
+          "when": "sfdx:project_opened || sf:internal_dev"
         },
         {
           "command": "sf.lightning.lwc.test.refreshTestExplorer",
-          "when": "sf:project_opened || sf:internal_dev"
+          "when": "sfdx:project_opened || sf:internal_dev"
         },
         {
           "command": "sf.lightning.lwc.test.editorTitle.run",
@@ -237,13 +237,13 @@
         },
         {
           "command": "sf.lightning.lwc.test.stopWatchingAllTests",
-          "when": "sf:project_opened || sf:internal_dev"
+          "when": "sfdx:project_opened || sf:internal_dev"
         }
       ],
       "editor/context": [
         {
           "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "editor/title": [
@@ -271,13 +271,13 @@
       "editor/title/context": [
         {
           "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.lightning.lwc.preview",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+(\\/[^\\/]+\\.(html|css|js))?$/"
         }
       ],
       "view/item/context": [
@@ -334,7 +334,7 @@
         {
           "id": "sf.lightning.lwc.test.view",
           "name": "%lightning_lwc_test_view_name%",
-          "when": "sf:project_opened || sf:internal_dev"
+          "when": "sfdx:project_opened || sf:internal_dev"
         }
       ]
     }
