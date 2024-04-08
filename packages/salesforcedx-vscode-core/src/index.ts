@@ -328,7 +328,7 @@ const registerCommands = (
     dataQuery
   );
   const projectGenerateCmd = vscode.commands.registerCommand(
-    'sf.project.generate',
+    'sfdx.project.generate',
     sfProjectGenerate
   );
 

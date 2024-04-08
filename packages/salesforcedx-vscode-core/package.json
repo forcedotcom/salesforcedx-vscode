@@ -452,7 +452,7 @@
           "when": "sfdx:project_opened && editorHasSelection && sf:has_target_org"
         },
         {
-          "command": "sf.project.generate",
+          "command": "sfdx.project.generate",
           "when": "!sf:internal_dev"
         },
         {
@@ -775,7 +775,7 @@
         "title": "%data_query_selection_text%"
       },
       {
-        "command": "sf.project.generate",
+        "command": "sfdx.project.generate",
         "title": "%project_generate_text%"
       },
       {
