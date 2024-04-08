@@ -63,7 +63,8 @@ describe('User debug event', () => {
   it('Should link to anonymous specific frame', () => {
     const frame = {
       name: EXEC_ANON_SIGNATURE,
-      source: { name: 'foo.log' } as Source
+      // eslint-disable-next-line no-global-assign
+      source: new Source('foo.log')
     } as StackFrame;
     context.getFrames().push(frame);
     context.getExecAnonScriptMapping().set(2, 5);
@@ -87,7 +88,7 @@ describe('User debug event', () => {
   it('Should use line number in log line', () => {
     const frame = {
       name: 'foo',
-      source: { name: 'foo.cls' } as Source
+      source: new Source('foo.log')
     } as StackFrame;
     context.getFrames().push(frame);
     const state = new UserDebugState([
