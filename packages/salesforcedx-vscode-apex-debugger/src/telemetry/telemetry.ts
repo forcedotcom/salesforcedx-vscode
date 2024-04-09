@@ -69,14 +69,20 @@ export class TelemetryService {
   }
 
   public sendMetricEvent(event: DebugSessionCustomEvent): void {
+    console.log('C');
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      console.log('D');
       this.reporters.forEach(reporter => {
+        console.log('E');
         if (isMetric(event.body)) {
+          console.log('F');
           const metricArgs = event.body;
+          console.log('G');
           reporter.sendTelemetryEvent(metricArgs.eventName, {
             extensionName: EXTENSION_NAME,
             message: metricArgs.message
           });
+          console.log('H');
         }
       });
     }
