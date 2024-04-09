@@ -74,6 +74,12 @@ export class TelemetryService {
       console.log('D');
       this.reporters.forEach(reporter => {
         console.log('E');
+        console.log('*** event.body = ' + event.body + '***');
+        console.log(
+          '*** event.body.eventName = ' + event.body.eventName + '***'
+        );
+        console.log('*** event.body.message = ' + event.body.message + '***');
+        console.log('*** typeof(event.body) = ' + typeof event.body + '***');
         if (isMetric(event.body)) {
           console.log('F');
           const metricArgs = event.body;
@@ -84,7 +90,10 @@ export class TelemetryService {
           });
           console.log('H');
         }
+        console.log('I');
       });
+      console.log('J');
     }
+    console.log('K');
   }
 }
