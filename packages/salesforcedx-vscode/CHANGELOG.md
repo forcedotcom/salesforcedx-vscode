@@ -6,7 +6,7 @@
 
 - We added detailed elapsed time debug log data as an investigative step in trying to diagnose commands that are taking a long time to run. ([PR #349](https://github.com/forcedotcom/salesforcedx-apex/pull/349))
 
-- We modified testService.writeFiles() to use streams in order to handle very large test results that were causing string length violations when running JSON.stringify for JSON results. ([PR #352](https://github.com/forcedotcom/salesforcedx-apex/pull/352))
+- We now use streams to handle Apex test results, which prevents string length violation errors for very large test results. ([PR #352](https://github.com/forcedotcom/salesforcedx-apex/pull/352))
 
 ## Fixed
 
