@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isMetric } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as util from 'util';
+import { DebugSessionCustomEvent } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
@@ -66,13 +68,16 @@ export class TelemetryService {
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 
-  public sendMetricEvent(subject: string, type: string): void {
+  public sendMetricEvent(event: DebugSessionCustomEvent): void {
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
       this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent(type, {
-          extensionName: EXTENSION_NAME,
-          message: subject
-        });
+        if (isMetric(event.body)) {
+          const metricArgs = event.body;
+          reporter.sendTelemetryEvent(metricArgs.eventName, {
+            extensionName: EXTENSION_NAME,
+            message: metricArgs.message
+          });
+        }
       });
     }
   }
