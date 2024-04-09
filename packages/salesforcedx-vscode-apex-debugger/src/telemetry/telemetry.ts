@@ -77,13 +77,16 @@ export class TelemetryService {
         console.log('E');
         console.log('*** event.body = ' + JSON.stringify(event.body) + '***');
         console.log(
-          '*** event.body.eventName = ' + event.body.type + '***'
+          '*** event.body.type = ' + event.body.type + '***'
         );
-        console.log('*** event.body.message = ' + event.body.subject + '***');
+        console.log('*** event.body.subject = ' + event.body.subject + '***');
         console.log('*** typeof(event.body) = ' + typeof event.body + '***');
-        if (isMetric(event.body)) {
+        if (isMetric(event.body)) { // The isMetric() type guard converts event.body to Metric
           console.log('F');
           const metricArgs = event.body;
+          console.log('### metricArgs = ' + JSON.stringify(metricArgs));
+          console.log('### metricArgs.eventName = ' + metricArgs.eventName);
+          console.log('### metricArgs.message = ' + metricArgs.message);
           console.log('G');
           reporter.sendTelemetryEvent(metricArgs.eventName, {
             extensionName: EXTENSION_NAME,
