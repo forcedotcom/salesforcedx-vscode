@@ -37,12 +37,12 @@ export interface Metric {
 // Type guard to check if the object conforms to Metric
 export const isMetric = (input: unknown): input is Metric => {
   console.log('--- typeof(input) = ' + typeof input + '---');
-  console.log('--- input = ' + String(input) + '---');
+  console.log('--- input = ' + JSON.stringify(input) + '---');
   console.log('!!input = ' + !!input);
   console.log(
     'Object.keys(input).every = ' +
       Object.keys(input as Object).every(key =>
-        ['message', 'eventName'].includes(key)
+        ['subject', 'type'].includes(key)
       )
   );
   console.log(
@@ -51,7 +51,7 @@ export const isMetric = (input: unknown): input is Metric => {
   );
   return (
     !!input &&
-    Object.keys(input).every(key => ['message', 'eventName'].includes(key)) &&
+    Object.keys(input).every(key => ['subject', 'type'].includes(key)) &&
     Object.values(input).every(value => typeof value === 'string')
   );
 };

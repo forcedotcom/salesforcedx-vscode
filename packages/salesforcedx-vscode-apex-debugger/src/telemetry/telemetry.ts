@@ -74,7 +74,7 @@ export class TelemetryService {
       console.log('D');
       this.reporters.forEach(reporter => {
         console.log('E');
-        console.log('*** event.body = ' + event.body + '***');
+        console.log('*** event.body = ' + JSON.stringify(event.body) + '***');
         console.log(
           '*** event.body.eventName = ' + event.body.eventName + '***'
         );
