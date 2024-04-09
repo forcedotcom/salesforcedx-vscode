@@ -6,6 +6,7 @@
  */
 
 // import { isMetric } from '@salesforce/salesforcedx-apex-debugger/out/src';
+import { isMetric } from '@salesforce/salesforcedx-apex-debugger/src';
 import * as util from 'util';
 import { DebugSessionCustomEvent } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
@@ -76,20 +77,20 @@ export class TelemetryService {
         console.log('E');
         console.log('*** event.body = ' + JSON.stringify(event.body) + '***');
         console.log(
-          '*** event.body.eventName = ' + event.body.eventName + '***'
+          '*** event.body.eventName = ' + event.body.type + '***'
         );
-        console.log('*** event.body.message = ' + event.body.message + '***');
+        console.log('*** event.body.message = ' + event.body.subject + '***');
         console.log('*** typeof(event.body) = ' + typeof event.body + '***');
-        // if (isMetric(event.body)) {
-        console.log('F');
-        const metricArgs = event.body;
-        console.log('G');
-        reporter.sendTelemetryEvent(metricArgs.eventName, {
-          extensionName: EXTENSION_NAME,
-          message: metricArgs.message
-        });
-        console.log('H');
-        // }
+        if (isMetric(event.body)) {
+          console.log('F');
+          const metricArgs = event.body;
+          console.log('G');
+          reporter.sendTelemetryEvent(metricArgs.eventName, {
+            extensionName: EXTENSION_NAME,
+            message: metricArgs.message
+          });
+          console.log('H');
+        }
         console.log('I');
       });
       console.log('J');
