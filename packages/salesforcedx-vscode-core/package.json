@@ -536,7 +536,7 @@
           "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_target_org"
         },
         {
-          "command": "sf.set.default.org",
+          "command": "sfdx.set.default.org",
           "when": "sfdx:project_opened"
         },
         {
@@ -831,7 +831,7 @@
         "title": "%delete_source_this_source_text%"
       },
       {
-        "command": "sf.set.default.org",
+        "command": "sfdx.set.default.org",
         "title": "%config_set_org_text%"
       },
       {

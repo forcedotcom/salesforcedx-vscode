@@ -490,7 +490,7 @@ const registerOrgPickerCommands = (
   orgListParam: OrgList
 ): vscode.Disposable => {
   const setDefaultOrgCmd = vscode.commands.registerCommand(
-    'sf.set.default.org',
+    'sfdx.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(setDefaultOrgCmd);
