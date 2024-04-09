@@ -1,5 +1,19 @@
 # 60.8.0 - April 10, 2024
 
+## Added
+
+#### forcedotcom/salesforcedx-apex
+
+- We added detailed elapsed time debug log data as an investigative step in trying to diagnose commands that are taking a long time to run. ([PR #349](https://github.com/forcedotcom/salesforcedx-apex/pull/349))
+
+- We modified testService.writeFiles() to use streams in order to handle very large test results that were causing string length violations when running JSON.stringify for JSON results. ([PR #352](https://github.com/forcedotcom/salesforcedx-apex/pull/352))
+
+## Fixed
+
+#### forcedotcom/salesforcedx-apex
+
+- We added guards that properly deal with an undefined test summary when formatting Apex test run results. ([PR #354](https://github.com/forcedotcom/salesforcedx-apex/pull/354))
+
 # 60.7.0 - April 3, 2024
 
 ## Fixed
@@ -11,8 +25,7 @@
 #### salesforcedx-vscode-core
 
 - We completed the transition from Salesforce CLI sfdx commands to sf (v2) commands. All sfdx commands and flags have been updated to their sf equivalents. **Action Required**: Users must install the sf (v2) Salesforce CLI to continue working with the Salesforce Extension Pack. You can learn more about the migration process in the [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_move_to_sf_v2.htm).
-If you run Salesforce CLI commands in the terminal, use the newer sf commands. See the [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_unified.htm) and [Migration Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_migrate.htm). ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
-
+  If you run Salesforce CLI commands in the terminal, use the newer sf commands. See the [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_unified.htm) and [Migration Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_migrate.htm). ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
 
 # 60.5.1 - March 21, 2024
 
