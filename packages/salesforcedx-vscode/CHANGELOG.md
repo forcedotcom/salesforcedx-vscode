@@ -4,7 +4,7 @@
 
 #### forcedotcom/salesforcedx-apex
 
-- We added detailed elapsed time debug log data as an investigative step in trying to diagnose commands that are taking a long time to run. ([PR #349](https://github.com/forcedotcom/salesforcedx-apex/pull/349))
+- We added detailed elapsed time debug log data as an investigative step in trying to diagnose Apex test commands that are taking a long time to run. ([PR #349](https://github.com/forcedotcom/salesforcedx-apex/pull/349))
 
 - We now use streams to handle Apex test results, which prevents string length violation errors for very large test results. ([PR #352](https://github.com/forcedotcom/salesforcedx-apex/pull/352))
 
