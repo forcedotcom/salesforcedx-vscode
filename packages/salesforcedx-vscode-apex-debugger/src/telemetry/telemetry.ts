@@ -69,38 +69,18 @@ export class TelemetryService {
   }
 
   public sendMetricEvent(event: DebugSessionCustomEvent): void {
-    console.log('C');
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
-      console.log('D');
       this.reporters.forEach(reporter => {
-        console.log('E');
-        console.log('*** event.body = ' + JSON.stringify(event.body) + '***');
-        console.log(
-          '*** event.body.type = ' + event.body.type + '***'
-        );
-        console.log('*** event.body.subject = ' + event.body.subject + '***');
-        console.log('*** typeof(event.body) = ' + typeof event.body + '***');
-        // if (isMetric(event.body)) { // The isMetric() type guard converts event.body to Metric
-          console.log('F');
-          // const metricArgs = event.body;
-          const metricArgs = {
-            eventName: event.body.type,
-            message: event.body.subject
-          };
-          console.log('### metricArgs = ' + JSON.stringify(metricArgs));
-          console.log('### metricArgs.eventName = ' + metricArgs.eventName);
-          console.log('### metricArgs.message = ' + metricArgs.message);
-          console.log('G');
-          reporter.sendTelemetryEvent(metricArgs.eventName, {
-            extensionName: EXTENSION_NAME,
-            message: metricArgs.message
-          });
-          console.log('H');
-        // }
-        console.log('I');
+        // NOTE: We already know that event.body matches the structure defined in Metric; however, it still contains the original keys of 'type' and 'subject'. Create a new object to convert the 'type' and 'subject' keys in the original Event to 'eventName' and 'message'. metricArgs will have a structure that 100% conforms to Metric and thus contains key names that match the arguments to pass in sendTelemetryEvent().
+        const metricArgs = {
+          eventName: event.body.type,
+          message: event.body.subject
+        };
+        reporter.sendTelemetryEvent(metricArgs.eventName, {
+          extensionName: EXTENSION_NAME,
+          message: metricArgs.message
+        });
       });
-      console.log('J');
     }
-    console.log('K');
   }
 }
