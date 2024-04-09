@@ -6,7 +6,6 @@
  */
 
 // import { isMetric } from '@salesforce/salesforcedx-apex-debugger/out/src';
-import { isMetric } from '@salesforce/salesforcedx-apex-debugger/src';
 import * as util from 'util';
 import { DebugSessionCustomEvent } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
@@ -81,9 +80,13 @@ export class TelemetryService {
         );
         console.log('*** event.body.subject = ' + event.body.subject + '***');
         console.log('*** typeof(event.body) = ' + typeof event.body + '***');
-        if (isMetric(event.body)) { // The isMetric() type guard converts event.body to Metric
+        // if (isMetric(event.body)) { // The isMetric() type guard converts event.body to Metric
           console.log('F');
-          const metricArgs = event.body;
+          // const metricArgs = event.body;
+          const metricArgs = {
+            eventName: event.body.type,
+            message: event.body.subject
+          };
           console.log('### metricArgs = ' + JSON.stringify(metricArgs));
           console.log('### metricArgs.eventName = ' + metricArgs.eventName);
           console.log('### metricArgs.message = ' + metricArgs.message);
@@ -93,7 +96,7 @@ export class TelemetryService {
             message: metricArgs.message
           });
           console.log('H');
-        }
+        // }
         console.log('I');
       });
       console.log('J');
