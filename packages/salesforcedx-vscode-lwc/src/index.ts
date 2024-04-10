@@ -9,23 +9,14 @@ import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
-  commands,
   ConfigurationTarget,
-  Disposable,
   ExtensionContext,
   workspace,
   WorkspaceConfiguration
 } from 'vscode';
-import {
-  lightningLwcOpen,
-  lightningLwcPreview,
-  lightningLwcStart,
-  lightningLwcStop
-} from './commands';
 import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
-import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import {
   activateLwcTestSupport,
@@ -74,8 +65,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // If activationMode === always, ignore workspace type and continue activating
 
   // register commands
-  const ourCommands = registerCommands(extensionContext);
-  extensionContext.subscriptions.push(ourCommands);
 
   // If we get here, we either passed autodetect validation or activationMode == always
   log('Lightning Web Components Extension Activated');
@@ -129,25 +118,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   void activateTracker.markActivationStop();
 };
 
-export const deactivate = async () => {
-  if (DevServerService.instance.isServerHandlerRegistered()) {
-    await DevServerService.instance.stopServer();
-  }
-  log('Lightning Web Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
-};
-
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') || 'autodetect'; // default to autodetect
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
-  return Disposable.from(
-    commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
-    commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
-    commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
-    commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
-  );
 };
