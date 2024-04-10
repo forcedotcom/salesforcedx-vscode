@@ -6,6 +6,7 @@
  */
 
 import * as util from 'util';
+import { DebugSessionCustomEvent } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
@@ -64,5 +65,21 @@ export class TelemetryService {
   private getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
+  }
+
+  public sendMetricEvent(event: DebugSessionCustomEvent): void {
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        // NOTE: We already know that event.body matches the structure defined in Metric; however, it still contains the original keys of 'type' and 'subject'. Create a new object to convert the 'type' and 'subject' keys in the original Event to 'eventName' and 'message'. metricArgs will have a structure that 100% conforms to Metric and thus contains key names that match the arguments to pass in sendTelemetryEvent().
+        const metricArgs = {
+          eventName: event.body.type,
+          message: event.body.subject
+        };
+        reporter.sendTelemetryEvent(metricArgs.eventName, {
+          extensionName: EXTENSION_NAME,
+          message: metricArgs.message
+        });
+      });
+    }
   }
 }

@@ -65,6 +65,7 @@ import {
   HOTSWAP_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
+  SEND_METRIC_EVENT,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
@@ -669,7 +670,12 @@ export class ApexDebug extends LoggingDebugSession {
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: salesforceProject=${args.salesforceProject}`
     );
-
+    this.sendEvent(
+      new Event(SEND_METRIC_EVENT, {
+        subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
+        type: 'launchApexDebugger'
+      })
+    );
     if (!this.myBreakpointService.hasLineNumberMapping()) {
       response.message = nls.localize('session_language_server_error_text');
       return this.sendResponse(response);
@@ -688,6 +694,13 @@ export class ApexDebug extends LoggingDebugSession {
           typeof isvDebuggerUrl === 'undefined'
         ) {
           response.message = nls.localize('invalid_isv_project_config');
+          // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('invalid_isv_project_config'),
+              type: 'startIsvDebuggerConfigError'
+            })
+          );
           return this.sendResponse(response);
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
@@ -718,6 +731,24 @@ export class ApexDebug extends LoggingDebugSession {
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
         );
+        // telemetry for the case where the ISV debugger started successfully
+        if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('isv_debugger_launched_successfully'),
+              type: 'startIsvDebuggerSuccess'
+            })
+          );
+        }
+        // telemetry for the case where the interactive debugger started successfully
+        else {
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('interactive_debugger_launched_successfully'),
+              type: 'startInteractiveDebuggerSuccess'
+            })
+          );
+        }
         this.sendEvent(new InitializedEvent());
         this.resetIdleTimer();
       } else {
@@ -727,6 +758,33 @@ export class ApexDebug extends LoggingDebugSession {
       }
     } catch (error) {
       this.tryToParseSfError(response, error);
+      // telemetry for expired session or invalid org-isv-debugger-sid (authentication error)
+      if (error === undefined) {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize('isv_debugger_session_authentication_invalid'),
+            type: 'startIsvDebuggerAuthenticationInvalid'
+          })
+        );
+      }
+      // telemetry for invalid org-isv-debugger-url
+      else if (String(error) === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize('org_isv_debugger_url_invalid'),
+            type: 'startIsvDebuggerOrgIsvDebuggerUrlInvalid'
+          })
+        );
+      }
+      // telemetry for general error
+      else {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: String(error),
+            type: 'startApexDebuggerGeneralError'
+          })
+        );
+      }
     }
     this.sendResponse(response);
   }
