@@ -680,10 +680,8 @@ export class ApexDebug extends LoggingDebugSession {
       response.message = nls.localize('session_language_server_error_text');
       return this.sendResponse(response);
     }
-    this.warnToDebugConsole('A');
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        this.warnToDebugConsole('B');
         const config = await new ConfigGet().getConfig(
           args.salesforceProject,
           SF_CONFIG_ISV_DEBUGGER_SID,
@@ -691,7 +689,6 @@ export class ApexDebug extends LoggingDebugSession {
         );
         const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
         const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
-        this.warnToDebugConsole('C');
         if (
           typeof isvDebuggerSid === 'undefined' ||
           typeof isvDebuggerUrl === 'undefined'
@@ -704,30 +701,24 @@ export class ApexDebug extends LoggingDebugSession {
               type: 'startIsvDebuggerConfigError'
             })
           );
-          this.warnToDebugConsole('D');
           return this.sendResponse(response);
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
-        this.warnToDebugConsole('E');
       } else {
         const orgInfo = await new OrgDisplay().getOrgInfo(
           args.salesforceProject
         );
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
-        this.warnToDebugConsole('F');
       }
 
-      this.warnToDebugConsole('G');
       const isStreamingConnected = await this.connectStreaming(
         args.salesforceProject
       );
       if (!isStreamingConnected) {
-        this.warnToDebugConsole('H');
         return this.sendResponse(response);
       }
-      this.warnToDebugConsole('I');
 
       const sessionId = await this.mySessionService
         .forProject(args.salesforceProject)
@@ -735,15 +726,11 @@ export class ApexDebug extends LoggingDebugSession {
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
         .start();
-      this.warnToDebugConsole('J');
       if (this.mySessionService.isConnected()) {
-        this.warnToDebugConsole('K');
         response.success = true;
-        this.warnToDebugConsole('L');
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
         );
-        this.warnToDebugConsole('M');
         // telemetry for the case where the ISV debugger started successfully
         if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
           this.sendEvent(
@@ -752,7 +739,6 @@ export class ApexDebug extends LoggingDebugSession {
               type: 'startIsvDebuggerSuccess'
             })
           );
-          this.warnToDebugConsole('N');
         }
         // telemetry for the case where the interactive debugger started successfully
         else {
@@ -762,23 +748,16 @@ export class ApexDebug extends LoggingDebugSession {
               type: 'startInteractiveDebuggerSuccess'
             })
           );
-          this.warnToDebugConsole('O');
         }
-        this.warnToDebugConsole('P');
         this.sendEvent(new InitializedEvent());
-        this.warnToDebugConsole('Q');
         this.resetIdleTimer();
-        this.warnToDebugConsole('R');
       } else {
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
         );
-        this.warnToDebugConsole('S');
       }
     } catch (error) {
-      this.warnToDebugConsole('T');
       this.tryToParseSfError(response, error);
-      this.warnToDebugConsole('U');
       // telemetry for expired session or invalid org-isv-debugger-sid (authentication error)
       if (error === undefined) {
         this.sendEvent(
@@ -787,7 +766,6 @@ export class ApexDebug extends LoggingDebugSession {
             type: 'startIsvDebuggerAuthenticationInvalid'
           })
         );
-        this.warnToDebugConsole('V');
       }
       // telemetry for invalid org-isv-debugger-url
       else if (String(error) === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
@@ -797,7 +775,6 @@ export class ApexDebug extends LoggingDebugSession {
             type: 'startIsvDebuggerOrgIsvDebuggerUrlInvalid'
           })
         );
-        this.warnToDebugConsole('W');
       }
       // telemetry for general error
       else {
@@ -807,12 +784,9 @@ export class ApexDebug extends LoggingDebugSession {
             type: 'startApexDebuggerGeneralError'
           })
         );
-        this.warnToDebugConsole('X');
       }
     }
-    this.warnToDebugConsole('Y');
     this.sendResponse(response);
-    this.warnToDebugConsole('Z');
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {
