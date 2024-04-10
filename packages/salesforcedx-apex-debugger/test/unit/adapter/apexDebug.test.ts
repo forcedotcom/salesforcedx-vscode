@@ -382,6 +382,45 @@ describe('Interactive debugger adapter - unit', () => {
       expect(resetIdleTimersSpy.calledOnce).to.equal(true);
     });
 
+    // TODO: ISV debugger config error case
+    it('Should popup error message when org-isv-debugger-sid and/or org-isv-debugger-url config variables are not set (ISV debugger)', async () => {
+      const sessionId = '07aFAKE';
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      args.connectType = 'ISV_DEBUGGER';
+      const config = new Map<string, string>();
+      config.set('nonexistent-sid', '123');
+      config.set('nonexistent-url', 'instanceurl');
+      configGetSpy.returns(config);
+
+      await adapter.launchRequest(initializedResponse, args);
+
+      expect(adapter.getRequestService().accessToken).to.equal(undefined);
+      expect(adapter.getRequestService().instanceUrl).to.equal(undefined);
+
+      expect(sessionStartSpy.calledOnce).to.equal(false); // false because the session doesn't start if the error message pops up
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal(
+        nls.localize('invalid_isv_project_config')
+      );
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
+      expect(adapter.getEvents()[1].event).to.equal('sendMetric'); // ISV debugger failed to launch because nonexistent config variables were set
+
+      // The idle timer is not reset during the failure case because the afterEach() block, which contains `resetIdleTimersSpy.restore();`, is not reached.
+      expect(resetIdleTimersSpy.calledOnce).to.equal(false);
+    });
+
     it('Should configure tracing with boolean', async () => {
       const sessionId = '07aFAKE';
       sessionPrintToDebugSpy = sinon
