@@ -20,7 +20,7 @@ import { sourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
 import {
   FilePathGatherer,
-  SfdxWorkspaceChecker
+  SfWorkspaceChecker
 } from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
@@ -69,7 +69,7 @@ describe('Diff', () => {
           return mockAlias;
         });
       workspaceCheckerStub = sandbox.stub(
-        SfdxWorkspaceChecker.prototype,
+        SfWorkspaceChecker.prototype,
         'check'
       );
       workspaceCheckerStub.returns(true);

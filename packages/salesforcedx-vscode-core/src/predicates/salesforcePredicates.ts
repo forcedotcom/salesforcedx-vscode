@@ -31,7 +31,7 @@ export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
     ) {
       return PredicateResponse.of(
         false,
-        nls.localize('predicates_no_sfdx_project_found_text')
+        nls.localize('predicates_no_salesforce_project_found_text')
       );
     } else {
       return PredicateResponse.true();

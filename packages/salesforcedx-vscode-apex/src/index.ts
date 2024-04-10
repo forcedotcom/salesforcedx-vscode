@@ -113,86 +113,86 @@ const registerCommands = (): vscode.Disposable => {
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
   const apexToggleColorizerCmd = vscode.commands.registerCommand(
-    'sfdx.apex.toggle.colorizer',
+    'sf.apex.toggle.colorizer',
     () => colorizer.toggleCoverage()
   );
 
   // Customer-facing commands
   const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.class.run.delegate',
+    'sf.apex.test.class.run.delegate',
     apexTestClassRunCodeActionDelegate
   );
   const apexTestLastClassRunCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.last.class.run',
+    'sf.apex.test.last.class.run',
     apexTestClassRunCodeAction
   );
   const apexTestClassRunCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.class.run',
+    'sf.apex.test.class.run',
     apexTestClassRunCodeAction
   );
   const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.method.run.delegate',
+    'sf.apex.test.method.run.delegate',
     apexTestMethodRunCodeActionDelegate
   );
   const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.apex.debug.class.run.delegate',
+    'sf.apex.debug.class.run.delegate',
     apexDebugClassRunCodeActionDelegate
   );
   const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.apex.debug.method.run.delegate',
+    'sf.apex.debug.method.run.delegate',
     apexDebugMethodRunCodeActionDelegate
   );
   const anonApexRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.anon.apex.run.delegate',
+    'sf.anon.apex.run.delegate',
     anonApexExecute
   );
   const anonApexDebugDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.anon.apex.debug.delegate',
+    'sf.anon.apex.debug.delegate',
     anonApexDebug
   );
   const apexLogGetCmd = vscode.commands.registerCommand(
-    'sfdx.apex.log.get',
+    'sf.apex.log.get',
     apexLogGet
   );
   const apexTestLastMethodRunCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.last.method.run',
+    'sf.apex.test.last.method.run',
     apexTestMethodRunCodeAction
   );
   const apexTestMethodRunCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.method.run',
+    'sf.apex.test.method.run',
     apexTestMethodRunCodeAction
   );
   const apexTestSuiteCreateCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.suite.create',
+    'sf.apex.test.suite.create',
     apexTestSuiteCreate
   );
   const apexTestSuiteRunCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.suite.run',
+    'sf.apex.test.suite.run',
     apexTestSuiteRun
   );
   const apexTestSuiteAddCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.suite.add',
+    'sf.apex.test.suite.add',
     apexTestSuiteAdd
   );
   const apexTestRunCmd = vscode.commands.registerCommand(
-    'sfdx.apex.test.run',
+    'sf.apex.test.run',
     apexTestRun
   );
   const anonApexExecuteDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.anon.apex.execute.document',
+    'sf.anon.apex.execute.document',
     anonApexExecute
   );
   const anonApexDebugDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.apex.debug.document',
+    'sf.apex.debug.document',
     anonApexDebug
   );
   const anonApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sfdx.anon.apex.execute.selection',
+    'sf.anon.apex.execute.selection',
     anonApexExecute
   );
   const launchApexReplayDebuggerWithCurrentFileCmd =
     vscode.commands.registerCommand(
-      'sfdx.launch.apex.replay.debugger.with.current.file',
+      'sf.launch.apex.replay.debugger.with.current.file',
       launchApexReplayDebuggerWithCurrentFile
     );
 
@@ -229,44 +229,44 @@ const registerTestView = (): vscode.Disposable => {
   const testViewItems = new Array<vscode.Disposable>();
 
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.test.view',
+    'sf.test.view',
     testOutlineProvider
   );
   testViewItems.push(testProvider);
 
   // Run Test Button on Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.test.view.run', () =>
+    vscode.commands.registerCommand('sf.test.view.run', () =>
       testRunner.runAllApexTests()
     )
   );
   // Show Error Message command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.test.view.showError', test =>
+    vscode.commands.registerCommand('sf.test.view.showError', test =>
       testRunner.showErrorMessage(test)
     )
   );
   // Show Definition command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.test.view.goToDefinition', test =>
+    vscode.commands.registerCommand('sf.test.view.goToDefinition', test =>
       testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.test.view.runClassTests', test =>
+    vscode.commands.registerCommand('sf.test.view.runClassTests', test =>
       testRunner.runApexTests([test.name], TestRunType.Class)
     )
   );
   // Run Single Test command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.test.view.runSingleTest', test =>
+    vscode.commands.registerCommand('sf.test.view.runSingleTest', test =>
       testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.test.view.refresh', () => {
+    vscode.commands.registerCommand('sf.test.view.refresh', () => {
       if (languageClientUtils.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }

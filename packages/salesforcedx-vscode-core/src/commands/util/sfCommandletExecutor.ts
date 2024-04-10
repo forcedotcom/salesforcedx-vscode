@@ -27,9 +27,7 @@ import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import { CommandletExecutor } from './commandletExecutor';
 
-export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T>
-{
+export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   public static errorCollection =
     vscode.languages.createDiagnosticCollection('push-errors');
   protected showChannelOutput = true;

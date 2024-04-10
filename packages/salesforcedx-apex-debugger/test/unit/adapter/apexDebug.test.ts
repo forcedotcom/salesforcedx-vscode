@@ -27,7 +27,6 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import {
-  ApexDebug,
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
@@ -1580,20 +1579,20 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not log without an error', () => {
-      adapter.tryToParseSfdxError({} as DebugProtocol.Response);
+      adapter.tryToParseSfError({} as DebugProtocol.Response);
 
       expect(adapter.getEvents().length).to.equal(0);
     });
 
     it('Should not log error without an error message', () => {
-      adapter.tryToParseSfdxError(response, {});
+      adapter.tryToParseSfError(response, {});
       expect(response.message).to.equal(
         nls.localize('unexpected_error_help_text')
       );
     });
 
     it('Should error to console with unexpected error schema', () => {
-      adapter.tryToParseSfdxError(
+      adapter.tryToParseSfError(
         {} as DebugProtocol.Response,
         '{"subject":"There was an error", "action":"Try again"}'
       );
@@ -1607,7 +1606,7 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should error to console with non JSON', () => {
-      adapter.tryToParseSfdxError(
+      adapter.tryToParseSfError(
         {} as DebugProtocol.Response,
         'There was an error"}'
       );

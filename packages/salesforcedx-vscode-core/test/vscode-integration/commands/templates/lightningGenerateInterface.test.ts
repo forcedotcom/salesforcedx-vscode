@@ -17,7 +17,7 @@ import {
   lightningGenerateInterface
 } from '../../../../src/commands/templates/lightningGenerateInterface';
 import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -31,7 +31,10 @@ describe('Lightning Generate Interface', () => {
   let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(SfdxCoreSettings.prototype, 'getInternalDev');
+    getInternalDevStub = stub(
+      SalesforceCoreSettings.prototype,
+      'getInternalDev'
+    );
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');

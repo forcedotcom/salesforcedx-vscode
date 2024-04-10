@@ -32,9 +32,8 @@ import {
 
 describe('Test View with namespace', () => {
   let testOutline: ApexTestOutlineProvider;
-  const apexNamespacedTestInfo: ApexTestMethod[] = generateApexTestMethod(
-    'tester'
-  );
+  const apexNamespacedTestInfo: ApexTestMethod[] =
+    generateApexTestMethod('tester');
 
   describe('Get Tests and Create Tree', () => {
     it('Should create one test and one class when using namespace', () => {
@@ -205,7 +204,7 @@ describe('Test View with namespace', () => {
 
       // make sure we emit the update_selection event with the correct position
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         testRange
       ]);
     });
@@ -222,7 +221,7 @@ describe('Test View with namespace', () => {
       await testRunner.showErrorMessage(testNode);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         lineFailure - 1
       ]);
     });
@@ -234,7 +233,7 @@ describe('Test View with namespace', () => {
       await testRunner.showErrorMessage(testClass);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         lineFailure - 1
       ]);
     });

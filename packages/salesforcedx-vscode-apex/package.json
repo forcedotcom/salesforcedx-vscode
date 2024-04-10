@@ -11,35 +11,35 @@
   "contributes": {
     "commands": [
       {
-        "command": "sfdx.anon.apex.execute.document",
+        "command": "sf.anon.apex.execute.document",
         "title": "%anon_apex_execute_document_text%"
       },
       {
-        "command": "sfdx.anon.apex.execute.selection",
+        "command": "sf.anon.apex.execute.selection",
         "title": "%anon_apex_execute_selection_text%"
       },
       {
-        "command": "sfdx.apex.log.get",
+        "command": "sf.apex.log.get",
         "title": "%apex_log_get_text%"
       },
       {
-        "command": "sfdx.apex.test.run",
+        "command": "sf.apex.test.run",
         "title": "%apex_test_run_text%"
       },
       {
-        "command": "sfdx.apex.test.suite.run",
+        "command": "sf.apex.test.suite.run",
         "title": "%apex_test_suite_run_text%"
       },
       {
-        "command": "sfdx.apex.test.suite.create",
+        "command": "sf.apex.test.suite.create",
         "title": "%apex_test_suite_create_text%"
       },
       {
-        "command": "sfdx.apex.test.suite.add",
+        "command": "sf.apex.test.suite.add",
         "title": "%apex_test_suite_build_text%"
       },
       {
-        "command": "sfdx.test.view.run",
+        "command": "sf.test.view.run",
         "icon": {
           "dark": "resources/dark/play-button.svg",
           "light": "resources/light/play-button.svg"
@@ -47,7 +47,7 @@
         "title": "%run_tests_title%"
       },
       {
-        "command": "sfdx.test.view.refresh",
+        "command": "sf.test.view.refresh",
         "icon": {
           "dark": "resources/dark/refresh.svg",
           "light": "resources/light/refresh.svg"
@@ -55,7 +55,7 @@
         "title": "%refresh_test_title%"
       },
       {
-        "command": "sfdx.test.view.showError",
+        "command": "sf.test.view.showError",
         "icon": {
           "dark": "resources/dark/document/notRun.svg",
           "light": "resources/light/document/notRun.svg"
@@ -63,7 +63,7 @@
         "title": "%show_error_title%"
       },
       {
-        "command": "sfdx.test.view.goToDefinition",
+        "command": "sf.test.view.goToDefinition",
         "icon": {
           "dark": "resources/dark/document/notRun.svg",
           "light": "resources/light/document/notRun.svg"
@@ -71,7 +71,7 @@
         "title": "%go_to_definition_title%"
       },
       {
-        "command": "sfdx.test.view.runClassTests",
+        "command": "sf.test.view.runClassTests",
         "icon": {
           "dark": "resources/dark/play-button.svg",
           "light": "resources/light/play-button.svg"
@@ -79,7 +79,7 @@
         "title": "%run_tests_title%"
       },
       {
-        "command": "sfdx.test.view.runSingleTest",
+        "command": "sf.test.view.runSingleTest",
         "icon": {
           "dark": "resources/dark/play-button.svg",
           "light": "resources/light/play-button.svg"
@@ -87,19 +87,19 @@
         "title": "%run_single_test_title%"
       },
       {
-        "command": "sfdx.apex.test.last.class.run",
+        "command": "sf.apex.test.last.class.run",
         "title": "%apex_test_last_class_run_text%"
       },
       {
-        "command": "sfdx.apex.test.class.run",
+        "command": "sf.apex.test.class.run",
         "title": "%apex_test_class_run_text%"
       },
       {
-        "command": "sfdx.apex.test.method.run",
+        "command": "sf.apex.test.method.run",
         "title": "%apex_test_method_run_text%"
       },
       {
-        "command": "sfdx.apex.test.last.method.run",
+        "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
       }
     ],
@@ -137,7 +137,7 @@
         },
         "salesforcedx-vscode-apex.java.home": {
           "default": null,
-          "description": "%java_home_description%",
+          "markdownDescription": "%java_home_description%",
           "type": "string"
         },
         "salesforcedx-vscode-apex.java.memory": {
@@ -193,104 +193,104 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.anon.apex.execute.selection",
-          "when": "sfdx:project_opened && editorHasSelection && sfdx:has_default_username"
+          "command": "sf.anon.apex.execute.selection",
+          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
         },
         {
-          "command": "sfdx.anon.apex.execute.document",
-          "when": "sfdx:project_opened && !editorHasSelection && sfdx:has_default_username"
+          "command": "sf.anon.apex.execute.document",
+          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.log.get",
-          "when": "sfdx:project_opened && sfdx:has_default_username"
+          "command": "sf.apex.log.get",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.test.last.class.run",
-          "when": "sfdx:project_opened && sfdx:has_cached_test_class && sfdx:has_default_username"
+          "command": "sf.apex.test.last.class.run",
+          "when": "sf:project_opened && sf:has_cached_test_class && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.test.class.run",
+          "command": "sf.apex.test.class.run",
           "when": "false"
         },
         {
-          "command": "sfdx.apex.test.method.run",
+          "command": "sf.apex.test.method.run",
           "when": "false"
         },
         {
-          "command": "sfdx.apex.test.last.method.run",
-          "when": "sfdx:project_opened && sfdx:has_cached_test_method && sfdx:has_default_username"
+          "command": "sf.apex.test.last.method.run",
+          "when": "sf:project_opened && sf:has_cached_test_method && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.test.run",
-          "when": "sfdx:project_opened && sfdx:has_default_username"
+          "command": "sf.apex.test.run",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.test.suite.run",
-          "when": "sfdx:project_opened && sfdx:has_default_username"
+          "command": "sf.apex.test.suite.run",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.test.suite.create",
-          "when": "sfdx:project_opened && sfdx:has_default_username"
+          "command": "sf.apex.test.suite.create",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sfdx.apex.test.suite.add",
-          "when": "sfdx:project_opened && sfdx:has_default_username"
+          "command": "sf.apex.test.suite.add",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sfdx.test.view.runClassTests",
+          "command": "sf.test.view.runClassTests",
           "when": "false"
         },
         {
-          "command": "sfdx.test.view.runSingleTest",
+          "command": "sf.test.view.runSingleTest",
           "when": "false"
         },
         {
-          "command": "sfdx.test.view.goToDefinition",
+          "command": "sf.test.view.goToDefinition",
           "when": "false"
         },
         {
-          "command": "sfdx.test.view.showError",
+          "command": "sf.test.view.showError",
           "when": "false"
         },
         {
-          "command": "sfdx.test.view.run",
+          "command": "sf.test.view.run",
           "when": "false"
         },
         {
-          "command": "sfdx.test.view.refresh",
+          "command": "sf.test.view.refresh",
           "when": "false"
         }
       ],
       "view/item/context": [
         {
-          "command": "sfdx.test.view.showError",
-          "when": "view == sfdx.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
+          "command": "sf.test.view.showError",
+          "when": "view == sf.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
         },
         {
-          "command": "sfdx.test.view.goToDefinition",
-          "when": "view == sfdx.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
+          "command": "sf.test.view.goToDefinition",
+          "when": "view == sf.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
         },
         {
-          "command": "sfdx.test.view.runClassTests",
+          "command": "sf.test.view.runClassTests",
           "group": "inline",
-          "when": "view == sfdx.test.view && viewItem =~ /apexTestGroup/"
+          "when": "view == sf.test.view && viewItem =~ /apexTestGroup/"
         },
         {
-          "command": "sfdx.test.view.runSingleTest",
+          "command": "sf.test.view.runSingleTest",
           "group": "inline",
-          "when": "view == sfdx.test.view && viewItem =~ /(apexTest)(_.*|\\b)/"
+          "when": "view == sf.test.view && viewItem =~ /(apexTest)(_.*|\\b)/"
         }
       ],
       "view/title": [
         {
-          "command": "sfdx.test.view.run",
+          "command": "sf.test.view.run",
           "group": "navigation",
-          "when": "view == sfdx.test.view"
+          "when": "view == sf.test.view"
         },
         {
-          "command": "sfdx.test.view.refresh",
+          "command": "sf.test.view.refresh",
           "group": "navigation",
-          "when": "view == sfdx.test.view"
+          "when": "view == sf.test.view"
         }
       ]
     },
@@ -303,9 +303,9 @@
     "views": {
       "test": [
         {
-          "id": "sfdx.test.view",
+          "id": "sf.test.view",
           "name": "%test_view_name%",
-          "when": "sfdx:project_opened"
+          "when": "sf:project_opened"
         }
       ]
     },
@@ -320,11 +320,10 @@
     }
   },
   "dependencies": {
-    "@salesforce/apex-node": "3.0.1",
+    "@salesforce/apex-node": "4.0.2",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "6.5.2",
-    "@salesforce/salesforcedx-utils-vscode": "60.4.1",
-    "@salesforce/source-deploy-retrieve": "10.3.3",
+    "@salesforce/salesforcedx-utils-vscode": "60.8.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "shelljs": "0.8.5",
@@ -333,7 +332,7 @@
   },
   "description": "Provides code-editing features for the Apex programming language",
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.4.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.8.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
@@ -394,7 +393,6 @@
       "dependencies": {
         "@salesforce/apex-tmlanguage": "1.4.0",
         "@salesforce/core": "6.5.2",
-        "@salesforce/source-deploy-retrieve": "10.3.3",
         "@salesforce/source-tracking": "5.1.11",
         "@salesforce/templates": "^60.1.0",
         "applicationinsights": "1.0.7",
@@ -428,5 +426,5 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "version": "60.4.1"
+  "version": "60.8.0"
 }

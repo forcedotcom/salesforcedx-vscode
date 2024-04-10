@@ -6,14 +6,14 @@
  */
 
 import { OrgInfo } from '@salesforce/salesforcedx-utils';
-import * as sfdx from '../../src/sfdx';
+import * as sf from '../../src/sf';
 
-describe('sfdx utils', () => {
+describe('sf utils', () => {
   let debouncedShowChannelAndErrorMessageSpy;
 
   beforeEach(() => {
     debouncedShowChannelAndErrorMessageSpy = jest
-      .spyOn(sfdx, 'debouncedShowChannelAndErrorMessage')
+      .spyOn(sf, 'debouncedShowChannelAndErrorMessage')
       .mockImplementation(() => Promise.resolve());
   });
 
@@ -26,7 +26,7 @@ describe('sfdx utils', () => {
       it(`should ${
         showErrorMessage ? '' : 'not '
       } show error message when showErrorMessage=${showErrorMessage}`, async () => {
-        await sfdx.withSFConnection(jest.fn(), showErrorMessage);
+        await sf.withSFConnection(jest.fn(), showErrorMessage);
 
         expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
           showErrorMessage ? 1 : 0
@@ -44,7 +44,7 @@ describe('sfdx utils', () => {
       const maybeNot = isDefaultOrgSet ? '' : 'not ';
 
       it(`should ${maybeNot} show connection error message when default org is ${maybeNot} set`, async () => {
-        await sfdx.onOrgChangeDefaultHandler(orgInfo);
+        await sf.onOrgChangeDefaultHandler(orgInfo);
 
         expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
           isDefaultOrgSet ? 1 : 0

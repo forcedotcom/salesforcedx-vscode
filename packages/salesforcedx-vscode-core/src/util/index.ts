@@ -19,6 +19,6 @@ export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 export {
   checkForExpiredOrgs,
   getAuthFieldsFor,
-  getDefaultDevHubUsernameOrAlias,
+  getTargetDevHubOrAlias,
   setUpOrgExpirationWatcher
 } from './orgUtil';

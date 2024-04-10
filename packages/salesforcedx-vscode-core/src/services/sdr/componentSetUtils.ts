@@ -17,7 +17,7 @@ async function setApiVersion(componentSet: ComponentSet): Promise<void> {
   // https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_apiversion.htm
 
   // Check the SFDX configuration to see if there is an overridden api version.
-  // Project level local sfdx-config takes precedence over global sfdx-config at system level.
+  // Project level local config takes precedence over global config at system level.
   const userConfiguredApiVersion =
     await ConfigUtil.getUserConfiguredApiVersion();
   if (userConfiguredApiVersion) {

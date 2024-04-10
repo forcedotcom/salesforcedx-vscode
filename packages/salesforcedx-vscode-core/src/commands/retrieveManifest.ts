@@ -15,7 +15,7 @@ import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import { RetrieveExecutor } from './baseDeployRetrieve';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   constructor() {
@@ -57,8 +57,8 @@ export async function retrieveManifest(explorerPath: vscode.Uri) {
     }
   }
 
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
     new LibraryRetrieveManifestExecutor()
   );

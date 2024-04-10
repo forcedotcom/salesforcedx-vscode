@@ -11,7 +11,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
-import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
+import { SfCommandlet, SfWorkspaceChecker } from '../util';
 import {
   AccessTokenParams,
   AccessTokenParamsGatherer
@@ -61,11 +61,11 @@ export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<Acces
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AccessTokenParamsGatherer();
 
 export async function orgLoginAccessToken() {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     new OrgLoginAccessTokenExecutor()

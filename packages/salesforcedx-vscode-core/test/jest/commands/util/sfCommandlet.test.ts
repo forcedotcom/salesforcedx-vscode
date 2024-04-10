@@ -42,7 +42,7 @@ const pushCommand: CommandParams = {
 
 const flag = '';
 
-describe('SfdxCommandletExecutor', () => {
+describe('SfCommandletExecutor', () => {
   let appendLineMock: jest.SpyInstance;
 
   beforeEach(() => {

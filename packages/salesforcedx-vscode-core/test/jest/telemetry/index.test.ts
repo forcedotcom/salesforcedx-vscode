@@ -6,7 +6,7 @@
  */
 import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
 import { ExtensionMode, window } from 'vscode';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
@@ -25,7 +25,7 @@ describe('Telemetry', () => {
         .spyOn(window, 'showInformationMessage')
         .mockResolvedValue(undefined);
       settings = jest
-        .spyOn(SfdxCoreSettings.prototype, 'getTelemetryEnabled')
+        .spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled')
         .mockReturnValue(true);
       teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
       cliSpy = jest
@@ -96,7 +96,7 @@ describe('Telemetry', () => {
         .spyOn(window, 'showInformationMessage')
         .mockResolvedValue(undefined);
       settings = jest
-        .spyOn(SfdxCoreSettings.prototype, 'getTelemetryEnabled')
+        .spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled')
         .mockReturnValue(true);
       reporter = jest.spyOn(AppInsights.prototype, 'sendTelemetryEvent');
       exceptionEvent = jest.spyOn(AppInsights.prototype, 'sendExceptionEvent');

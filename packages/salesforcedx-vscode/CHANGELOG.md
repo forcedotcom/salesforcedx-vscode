@@ -1,3 +1,54 @@
+# 60.8.0 - April 10, 2024
+
+## Added
+
+#### forcedotcom/salesforcedx-apex
+
+- We added detailed elapsed time debug log data as an investigative step in trying to diagnose Apex test commands that are taking a long time to run. ([PR #349](https://github.com/forcedotcom/salesforcedx-apex/pull/349))
+
+- We now use streams to handle Apex test results, which prevents string length violation errors for very large test results. ([PR #352](https://github.com/forcedotcom/salesforcedx-apex/pull/352))
+
+## Fixed
+
+#### forcedotcom/salesforcedx-apex
+
+- We added guards that properly deal with an undefined test summary when formatting Apex test run results. ([PR #354](https://github.com/forcedotcom/salesforcedx-apex/pull/354))
+
+# 60.7.0 - April 3, 2024
+
+## Fixed
+
+#### docs
+
+#### salesforcedx-vscode-apex
+
+#### salesforcedx-vscode-core
+
+- We completed the transition from Salesforce CLI sfdx commands to sf (v2) commands. All sfdx commands and flags have been updated to their sf equivalents. **Action Required**: Users must install the sf (v2) Salesforce CLI to continue working with the Salesforce Extension Pack. You can learn more about the migration process in the [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_move_to_sf_v2.htm).
+  If you run Salesforce CLI commands in the terminal, use the newer sf commands. See the [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_unified.htm) and [Migration Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_migrate.htm). ([PR #5435](https://github.com/forcedotcom/salesforcedx-vscode/pull/5435), [PR #5466](https://github.com/forcedotcom/salesforcedx-vscode/pull/5466), [PR #5523](https://github.com/forcedotcom/salesforcedx-vscode/pull/5523))
+
+# 60.5.1 - March 21, 2024
+
+## Fixed
+
+#### docs
+
+- We made updates to the [Java Setup](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/java-setup) topic to include troubleshooting tips. ([PR #5502](https://github.com/forcedotcom/salesforcedx-vscode/pull/5502))
+
+#### salesforcedx-utils-vscode
+
+- We fixed an issue where users who worked within a symbolic link could not run deploy and retrieve commands. ([PR #5507](https://github.com/forcedotcom/salesforcedx-vscode/pull/5507))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue in `SFDX: Create and Set Up Project for ISV Debugging` where error notifications were being displayed for steps that run successfully. ([PR #5500](https://github.com/forcedotcom/salesforcedx-vscode/pull/5500))
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+- We updated some dependencies to accommodate an external contribution. ([PR #584](https://github.com/forcedotcom/lightning-language-server/pull/584), [PR #5505](https://github.com/forcedotcom/salesforcedx-vscode/pull/5505))
+
 # 60.4.1 - March 14, 2024
 
 ## Fixed
@@ -57,9 +108,11 @@
 ## Fixed
 
 #### salesforcedx-vscode-apex
+
 - We made some changes under the hood. ([PR #5427](https://github.com/forcedotcom/salesforcedx-vscode/pull/5427), [PR #5442](https://github.com/forcedotcom/salesforcedx-vscode/pull/5442))
 
 #### salesforcedx-vscode-lwc
+
 - We made some changes under the hood. ([PR #5428](https://github.com/forcedotcom/salesforcedx-vscode/pull/5428))
 
 #### salesforcedx-vscode-core
@@ -80,20 +133,19 @@
 
 #### salesforcedx-vscode-apex
 
-- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)). 
+- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)).
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience.  ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
+- We fixed an issue so that logging out of the default org results in a single notification, making for a more pleasant user experience. ([PR #5407](https://github.com/forcedotcom/salesforcedx-vscode/pull/5407))
 
 - We fixed an issue with the Org Browser so that custom objects with a namespace can now be refreshed. ([PR #5403](https://github.com/forcedotcom/salesforcedx-vscode/pull/5403))
 
 - We no longer show you commands that require a default org when no default org is set. ([PR #5406](https://github.com/forcedotcom/salesforcedx-vscode/pull/5406))
 
 - We migrated some more commands to the new `sf style`. ([PR #5379](https://github.com/forcedotcom/salesforcedx-vscode/pull/5379), [PR #5388](https://github.com/forcedotcom/salesforcedx-vscode/pull/5388))
-
 
 # 59.17.0 - February 7, 2024
 
@@ -118,7 +170,7 @@
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood to make the java version validation more reliable. Thank you [Saranchuk Viktor](https://github.com/Blackbackroom) for creating the issue.
- ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363), [ISSUE #5358](https://github.com/forcedotcom/salesforcedx-vscode/issues/5358))
+  ([PR #5363](https://github.com/forcedotcom/salesforcedx-vscode/pull/5363), [ISSUE #5358](https://github.com/forcedotcom/salesforcedx-vscode/issues/5358))
 
 # 59.15.0 - January 26, 2024
 

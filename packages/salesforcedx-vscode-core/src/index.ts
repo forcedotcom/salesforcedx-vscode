@@ -87,9 +87,9 @@ import {
   FlagParameter,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './commands/util';
 import {
   PersistentStorageService,
@@ -114,7 +114,7 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
-import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
+import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { MetricsReporter } from './telemetry/MetricsReporter';
@@ -136,255 +136,252 @@ const registerCommands = (
 ): vscode.Disposable => {
   // Customer-facing commands
   const orgLoginAccessTokenCmd = vscode.commands.registerCommand(
-    'sfdx.org.login.access.token',
+    'sf.org.login.access.token',
     orgLoginAccessToken
   );
   const orgLoginWebCmd = vscode.commands.registerCommand(
-    'sfdx.org.login.web',
+    'sf.org.login.web',
     orgLoginWeb
   );
   const orgLoginWebDevHubCmd = vscode.commands.registerCommand(
-    'sfdx.org.login.web.dev.hub',
+    'sf.org.login.web.dev.hub',
     orgLoginWebDevHub
   );
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orgLogoutAllCmd = vscode.commands.registerCommand(
-    'sfdx.org.logout.all',
+    'sf.org.logout.all',
     orgLogoutAll
   );
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orgLogoutDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.org.logout.default',
+    'sf.org.logout.default',
     orgLogoutDefault
   );
   const openDocumentationCmd = vscode.commands.registerCommand(
-    'sfdx.open.documentation',
+    'sf.open.documentation',
     openDocumentation
   );
   const orgCreateCmd = vscode.commands.registerCommand(
-    'sfdx.org.create',
+    'sf.org.create',
     orgCreate
   );
   const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
   const deleteSourceCmd = vscode.commands.registerCommand(
-    'sfdx.delete.source',
+    'sf.delete.source',
     deleteSource
   );
   const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.delete.source.current.file',
+    'sf.delete.source.current.file',
     deleteSource
   );
   const deployCurrentSourceFileCmd = vscode.commands.registerCommand(
-    'sfdx.deploy.current.source.file',
+    'sf.deploy.current.source.file',
     deploySourcePaths
   );
   const deployInManifestCmd = vscode.commands.registerCommand(
-    'sfdx.deploy.in.manifest',
+    'sf.deploy.in.manifest',
     deployManifest
   );
   const deployMultipleSourcePathsCmd = vscode.commands.registerCommand(
-    'sfdx.deploy.multiple.source.paths',
+    'sf.deploy.multiple.source.paths',
     deploySourcePaths
   );
   const deploySourcePathCmd = vscode.commands.registerCommand(
-    'sfdx.deploy.source.path',
+    'sf.deploy.source.path',
     deploySourcePaths
   );
   const projectRetrieveStartCmd = vscode.commands.registerCommand(
-    'sfdx.project.retrieve.start',
+    'sf.project.retrieve.start',
     projectRetrieveStart
   );
   const projectDeployStartCmd = vscode.commands.registerCommand(
-    'sfdx.project.deploy.start',
+    'sf.project.deploy.start',
     projectDeployStart
   );
   const projectRetrieveStartIgnoreConflictsCmd =
     vscode.commands.registerCommand(
-      'sfdx.project.retrieve.start.ignore.conflicts',
+      'sf.project.retrieve.start.ignore.conflicts',
       projectRetrieveStart,
       flagIgnoreConflicts
     );
   const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
-    'sfdx.project.deploy.start.ignore.conflicts',
+    'sf.project.deploy.start.ignore.conflicts',
     projectDeployStart,
     flagIgnoreConflicts
   );
   const retrieveCmd = vscode.commands.registerCommand(
-    'sfdx.retrieve.source.path',
+    'sf.retrieve.source.path',
     retrieveSourcePaths
   );
   const retrieveCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.retrieve.current.source.file',
+    'sf.retrieve.current.source.file',
     retrieveSourcePaths
   );
   const retrieveInManifestCmd = vscode.commands.registerCommand(
-    'sfdx.retrieve.in.manifest',
+    'sf.retrieve.in.manifest',
     retrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
-    'sfdx.view.all.changes',
+    'sf.view.all.changes',
     viewAllChanges
   );
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
-    'sfdx.view.local.changes',
+    'sf.view.local.changes',
     viewLocalChanges
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
-    'sfdx.view.remote.changes',
+    'sf.view.remote.changes',
     viewRemoteChanges
   );
-  const taskStopCmd = vscode.commands.registerCommand(
-    'sfdx.task.stop',
-    taskStop
-  );
+  const taskStopCmd = vscode.commands.registerCommand('sf.task.stop', taskStop);
   const apexGenerateClassCmd = vscode.commands.registerCommand(
-    'sfdx.apex.generate.class',
+    'sf.apex.generate.class',
     apexGenerateClass
   );
   const apexGenerateUnitTestClassCmd = vscode.commands.registerCommand(
-    'sfdx.apex.generate.unit.test.class',
+    'sf.apex.generate.unit.test.class',
     apexGenerateUnitTestClass
   );
   const analyticsGenerateTemplateCmd = vscode.commands.registerCommand(
-    'sfdx.analytics.generate.template',
+    'sf.analytics.generate.template',
     analyticsGenerateTemplate
   );
   const visualforceGenerateComponentCmd = vscode.commands.registerCommand(
-    'sfdx.visualforce.generate.component',
+    'sf.visualforce.generate.component',
     visualforceGenerateComponent
   );
   const visualforceGeneratePageCmd = vscode.commands.registerCommand(
-    'sfdx.visualforce.generate.page',
+    'sf.visualforce.generate.page',
     visualforceGeneratePage
   );
 
   const lightningGenerateAppCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.generate.app',
+    'sf.lightning.generate.app',
     lightningGenerateApp
   );
 
   const lightningGenerateAuraComponentCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.generate.aura.component',
+    'sf.lightning.generate.aura.component',
     lightningGenerateAuraComponent
   );
 
   const lightningGenerateEventCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.generate.event',
+    'sf.lightning.generate.event',
     lightningGenerateEvent
   );
 
   const lightningGenerateInterfaceCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.generate.interface',
+    'sf.lightning.generate.interface',
     lightningGenerateInterface
   );
 
   const lightningGenerateLwcCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.generate.lwc',
+    'sf.lightning.generate.lwc',
     lightningGenerateLwc
   );
 
   const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.test.create',
+    'sf.force.lightning.lwc.test.create',
     forceLightningLwcTestCreate
   );
 
   const debuggerStopCmd = vscode.commands.registerCommand(
-    'sfdx.debugger.stop',
+    'sf.debugger.stop',
     debuggerStop
   );
   const configListCmd = vscode.commands.registerCommand(
-    'sfdx.config.list',
+    'sf.config.list',
     configList
   );
   const forceAliasListCmd = vscode.commands.registerCommand(
-    'sfdx.alias.list',
+    'sf.alias.list',
     aliasList
   );
   const orgDeleteDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.org.delete.default',
+    'sf.org.delete.default',
     orgDelete
   );
   const orgDeleteUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.org.delete.username',
+    'sf.org.delete.username',
     orgDelete,
     { flag: '--target-org' }
   );
   const orgDisplayDefaultCmd = vscode.commands.registerCommand(
-    'sfdx.org.display.default',
+    'sf.org.display.default',
     orgDisplay
   );
   const orgDisplayUsernameCmd = vscode.commands.registerCommand(
-    'sfdx.org.display.username',
+    'sf.org.display.username',
     orgDisplay,
     { flag: '--target-org' }
   );
   const orgListCleanCmd = vscode.commands.registerCommand(
-    'sfdx.org.list.clean',
+    'sf.org.list.clean',
     orgList
   );
   const dataQueryInputCmd = vscode.commands.registerCommand(
-    'sfdx.data.query.input',
+    'sf.data.query.input',
     dataQuery
   );
   const dataQuerySelectionCmd = vscode.commands.registerCommand(
-    'sfdx.data.query.selection',
+    'sf.data.query.selection',
     dataQuery
   );
   const projectGenerateCmd = vscode.commands.registerCommand(
-    'sfdx.project.generate',
+    'sf.project.generate',
     sfProjectGenerate
   );
 
   const packageInstallCmd = vscode.commands.registerCommand(
-    'sfdx.package.install',
+    'sf.package.install',
     packageInstall
   );
   const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
-    'sfdx.project.generate.with.manifest',
+    'sf.project.generate.with.manifest',
     projectGenerateWithManifest
   );
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand(
-    'sfdx.apex.generate.trigger',
+    'sf.apex.generate.trigger',
     apexGenerateTrigger
   );
 
   const startApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.start.apex.debug.logging',
+    'sf.start.apex.debug.logging',
     startApexDebugLogging
   );
 
   const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sfdx.stop.apex.debug.logging',
+    'sf.stop.apex.debug.logging',
     stopApexDebugLogging
   );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand(
-    'sfdx.debug.isv.bootstrap',
+    'sf.debug.isv.bootstrap',
     isvDebugBootstrap
   );
 
   const configSetCmd = vscode.commands.registerCommand(
-    'sfdx.config.set',
+    'sf.config.set',
     configSet
   );
 
-  const diffFile = vscode.commands.registerCommand('sfdx.diff', sourceDiff);
+  const diffFile = vscode.commands.registerCommand('sf.diff', sourceDiff);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const diffFolder = vscode.commands.registerCommand(
-    'sfdx.folder.diff',
+    'sf.folder.diff',
     sourceFolderDiff
   );
 
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
-    'sfdx.internal.refreshsobjects',
+    'sf.internal.refreshsobjects',
     refreshSObjects
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const renameLightningComponentCmd = vscode.commands.registerCommand(
-    'sfdx.rename.lightning.component',
+    'sf.rename.lightning.component',
     renameLightningComponent
   );
 
@@ -455,28 +452,28 @@ const registerInternalDevCommands = (
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable => {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.generate.app',
+    'sf.internal.lightning.generate.app',
     internalLightningGenerateApp
   );
 
   const internalLightningGenerateAuraComponentCmd =
     vscode.commands.registerCommand(
-      'sfdx.internal.lightning.generate.aura.component',
+      'sf.internal.lightning.generate.aura.component',
       internalLightningGenerateAuraComponent
     );
 
   const internalLightningGenerateEventCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.generate.event',
+    'sf.internal.lightning.generate.event',
     internalLightningGenerateEvent
   );
 
   const internalLightningGenerateInterfaceCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.generate.interface',
+    'sf.internal.lightning.generate.interface',
     internalLightningGenerateInterface
   );
 
   const internalLightningGenerateLwcCmd = vscode.commands.registerCommand(
-    'sfdx.internal.lightning.generate.lwc',
+    'sf.internal.lightning.generate.lwc',
     internalLightningGenerateLwc
   );
 
@@ -489,9 +486,11 @@ const registerInternalDevCommands = (
   );
 };
 
-const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => {
+const registerOrgPickerCommands = (
+  orgListParam: OrgList
+): vscode.Disposable => {
   const setDefaultOrgCmd = vscode.commands.registerCommand(
-    'sfdx.set.default.org',
+    'sf.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
   return vscode.Disposable.from(setDefaultOrgCmd);
@@ -503,41 +502,44 @@ const setupOrgBrowser = async (
   await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
-    'sfdx.metadata.view.type.refresh',
+    'sf.metadata.view.type.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.metadata.view.component.refresh',
+    'sf.metadata.view.component.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.retrieve.component',
+    'sf.retrieve.component',
     async (trigger: RetrieveMetadataTrigger) => {
       await retrieveComponent(trigger);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.retrieve.open.component',
+    'sf.retrieve.open.component',
     async (trigger: RetrieveMetadataTrigger) => {
       await retrieveComponent(trigger, true);
     }
   );
 
   vscode.commands.registerCommand(
-    'sfdx.project.generate.manifest',
+    'sf.project.generate.manifest',
     projectGenerateManifest
   );
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+  const activateTracker = new ActivationTracker(
+    extensionContext,
+    telemetryService
+  );
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
@@ -558,19 +560,15 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.tasks.view',
+    'sf.tasks.view',
     taskViewService
   );
   extensionContext.subscriptions.push(treeDataProvider);
 
   // Set internal dev context
-  const internalDev = sfdxCoreSettings.getInternalDev();
+  const internalDev = salesforceCoreSettings.getInternalDev();
 
-  void vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:internal_dev',
-    internalDev
-  );
+  vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   if (internalDev) {
     // Internal Dev commands
@@ -585,16 +583,18 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       notificationService,
       OrgAuthInfo,
       ProgressNotification,
-      SfdxCommandlet,
-      SfdxCommandletExecutor,
-      sfdxCoreSettings,
-      SfdxWorkspaceChecker,
+      SfCommandlet,
+      SfCommandletExecutor,
+      salesforceCoreSettings,
+      SfWorkspaceChecker,
       telemetryService
     };
 
-    telemetryService.sendExtensionActivationEvent(activateTracker.activationInfo.startActivateHrTime);
+    telemetryService.sendExtensionActivationEvent(
+      activateTracker.activationInfo.startActivateHrTime
+    );
     MetricsReporter.extensionPackStatus();
-    console.log('SFDX CLI Extension Activated (internal dev mode)');
+    console.log('SF CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
 
@@ -614,13 +614,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   }
   void vscode.commands.executeCommand(
     'setContext',
-    'sfdx:replay_debugger_extension',
+    'sf:replay_debugger_extension',
     replayDebuggerExtensionInstalled
   );
 
   void vscode.commands.executeCommand(
     'setContext',
-    'sfdx:project_opened',
+    'sf:project_opened',
     salesforceProjectOpened
   );
 
@@ -637,7 +637,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    getDefaultUsernameOrAlias: workspaceContextUtils.getDefaultUsernameOrAlias,
+    getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     isCLIInstalled,
     notificationService,
@@ -645,10 +645,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     ProgressNotification,
     SelectFileName,
     SelectOutputDir,
-    SfdxCommandlet,
-    SfdxCommandletExecutor,
-    sfdxCoreSettings,
-    SfdxWorkspaceChecker,
+    SfCommandlet,
+    SfCommandletExecutor,
+    salesforceCoreSettings,
+    SfWorkspaceChecker,
     WorkspaceContext,
     taskViewService,
     telemetryService,
@@ -662,7 +662,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
-  console.log('SFDX CLI Extension Activated');
+  console.log('SF CLI Extension Activated');
 
   if (
     vscode.workspace.workspaceFolders &&
@@ -711,8 +711,8 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   }
 };
 
-export const deactivate =  async (): Promise<void> => {
-  console.log('SFDX CLI Extension Deactivated');
+export const deactivate = async (): Promise<void> => {
+  console.log('SF CLI Extension Deactivated');
 
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();

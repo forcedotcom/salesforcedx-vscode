@@ -14,11 +14,11 @@ import { createSandbox, SinonSandbox } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import {
   CommandletExecutor,
-  SfdxCommandlet
+  SfCommandlet
 } from '../../../../src/commands/util';
-import { sfdxCoreSettings } from '../../../../src/settings';
+import { salesforceCoreSettings } from '../../../../src/settings';
 
-describe('SfdxCommandlet', () => {
+describe('SfCommandlet', () => {
   let sandbox: SinonSandbox;
   beforeEach(() => {
     sandbox = createSandbox();
@@ -27,7 +27,7 @@ describe('SfdxCommandlet', () => {
     sandbox.restore();
   });
   it('Should not proceed if checker fails', async () => {
-    const commandlet = new SfdxCommandlet(
+    const commandlet = new SfCommandlet(
       new (class {
         public check(): boolean {
           return false;
@@ -49,7 +49,7 @@ describe('SfdxCommandlet', () => {
   });
 
   it('Should not call executor if gatherer is CANCEL', async () => {
-    const commandlet = new SfdxCommandlet(
+    const commandlet = new SfCommandlet(
       new (class {
         public check(): boolean {
           return true;
@@ -72,7 +72,7 @@ describe('SfdxCommandlet', () => {
 
   it('Should call executor if gatherer is CONTINUE', async () => {
     let executed = false;
-    const commandlet = new SfdxCommandlet(
+    const commandlet = new SfCommandlet(
       new (class {
         public check(): boolean {
           return true;
@@ -98,10 +98,10 @@ describe('SfdxCommandlet', () => {
 
   it('Should clear channel if user preference is set to true', async () => {
     sandbox
-      .stub(sfdxCoreSettings, 'getEnableClearOutputBeforeEachCommand')
+      .stub(salesforceCoreSettings, 'getEnableClearOutputBeforeEachCommand')
       .returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
-    const commandlet = new SfdxCommandlet(
+    const commandlet = new SfCommandlet(
       new (class {
         public check(): boolean {
           return true;
@@ -123,10 +123,10 @@ describe('SfdxCommandlet', () => {
 
   it('Should not clear channel if user preference is set to false', async () => {
     sandbox
-      .stub(sfdxCoreSettings, 'getEnableClearOutputBeforeEachCommand')
+      .stub(salesforceCoreSettings, 'getEnableClearOutputBeforeEachCommand')
       .returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
-    const commandlet = new SfdxCommandlet(
+    const commandlet = new SfCommandlet(
       new (class {
         public check(): boolean {
           return true;

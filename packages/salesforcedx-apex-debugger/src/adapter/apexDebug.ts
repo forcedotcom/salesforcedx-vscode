@@ -726,7 +726,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }
     } catch (error) {
-      this.tryToParseSfdxError(response, error);
+      this.tryToParseSfError(response, error);
     }
     this.sendResponse(response);
   }
@@ -812,7 +812,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
           }
         } catch (error) {
-          this.tryToParseSfdxError(response, error);
+          this.tryToParseSfError(response, error);
         }
       } else {
         response.success = true;
@@ -1494,7 +1494,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public tryToParseSfdxError(
+  public tryToParseSfError(
     response: DebugProtocol.Response,
     error?: any
   ): void {

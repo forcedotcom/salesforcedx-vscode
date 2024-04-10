@@ -20,8 +20,8 @@ import {
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SFDX_FOLDER,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -229,11 +229,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new TestsSelector();
 
 export const apexTestRun = async () => {
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ApexLibraryTestRunExecutor()
