@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// import { isMetric } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as util from 'util';
 import { DebugSessionCustomEvent } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
