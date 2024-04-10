@@ -421,61 +421,9 @@ describe('Interactive debugger adapter - unit', () => {
       expect(resetIdleTimersSpy.calledOnce).to.equal(false);
     });
 
-    // Testing an expired forceIde:// URL would require StreamingClient to invoke subscribeReject(), which is not feasible in Jest. Therefore, this test is indistinguishable from the success case.
-    //  it('Should popup error message forceIde:// URL for debugging session is expired (ISV debugger)', async () => {
-    //   const sessionId = '07aFAKE';
-    //   sessionStartSpy = sinon
-    //     .stub(SessionService.prototype, 'start')
-    //     .returns(Promise.resolve(sessionId));
-    //   sessionConnectedSpy = sinon
-    //     .stub(SessionService.prototype, 'isConnected')
-    //     .returns(true);
-    //   streamingSubscribeSpy = sinon
-    //     .stub(StreamingService.prototype, 'subscribe')
-    //     .returns(Promise.resolve(true));
-    //   breakpointHasLineNumberMappingSpy = sinon
-    //     .stub(BreakpointService.prototype, 'hasLineNumberMapping')
-    //     .returns(true);
+    // Testing an expired forceIde:// URL would require StreamingClient to invoke subscribeReject(), which is not feasible in Jest. Therefore, the test for the expired session is indistinguishable from the success case.
 
-    //   args.connectType = 'ISV_DEBUGGER';
-    //   const config = new Map<string, string>();
-    //   config.set('org-isv-debugger-sid', '123');
-    //   config.set('org-isv-debugger-url', 'instanceurl');
-    //   configGetSpy.returns(config);
-
-    //   await adapter.launchRequest(initializedResponse, args);
-
-    //   expect(adapter.getRequestService().accessToken).to.equal('123');
-    //   expect(adapter.getRequestService().instanceUrl).to.equal('instanceurl');
-    // });
-
-    // This test case cannot be realized by Jest because Jest cannot validate whether the org-isv-debugger-sid and org-isv-debugger-url config variables are set to the correct values. Therefore, Jest cannot distinguish this case from the case where ISV Debugger starts successfully.
-    // it('Should popup error message when org-isv-debugger-url config variable is set to the wrong value (ISV debugger)', async () => {
-    //   const sessionId = '07aFAKE';
-    //   sessionStartSpy = sinon
-    //     .stub(SessionService.prototype, 'start')
-    //     .returns(Promise.resolve(sessionId));
-    //   sessionConnectedSpy = sinon
-    //     .stub(SessionService.prototype, 'isConnected')
-    //     .returns(true);
-    //   streamingSubscribeSpy = sinon
-    //     .stub(StreamingService.prototype, 'subscribe')
-    //     .returns(Promise.resolve(true));
-    //   breakpointHasLineNumberMappingSpy = sinon
-    //     .stub(BreakpointService.prototype, 'hasLineNumberMapping')
-    //     .returns(true);
-
-    //   args.connectType = 'ISV_DEBUGGER';
-    //   const config = new Map<string, string>();
-    //   config.set('org-isv-debugger-sid', 'wrong-123');
-    //   config.set('org-isv-debugger-url', 'wrong-instanceurl');
-    //   configGetSpy.returns(config);
-
-    //   await adapter.launchRequest(initializedResponse, args);
-
-    //   expect(adapter.getRequestService().accessToken).to.not.equal('123');
-    //   expect(adapter.getRequestService().instanceUrl).to.not.equal('instanceurl');
-    // });
+    // The test case for org-isv-debugger-url config variable set to the wrong value cannot be realized by Jest because Jest cannot validate whether the org-isv-debugger-sid and org-isv-debugger-url config variables are set to the correct values. Therefore, Jest cannot distinguish this case from the case where ISV Debugger starts successfully.
 
     it('Should configure tracing with boolean', async () => {
       const sessionId = '07aFAKE';
