@@ -64,6 +64,7 @@ import {
   DebuggerMessage,
   SessionService,
   StreamingClientInfo,
+  StreamingClient,
   StreamingEvent,
   StreamingService
 } from '../../../src/core';
@@ -214,7 +215,7 @@ describe('Interactive debugger adapter - unit', () => {
       }
     });
 
-    it('Should launch successfully', async () => {
+    it('Should launch successfully (interactive debugger)', async () => {
       const sessionId = '07aFAKE';
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
@@ -233,11 +234,13 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
-      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
+      expect(adapter.getEvents()[1].event).to.equal('output');
       expect(
-        (adapter.getEvents()[0] as OutputEvent).body.output
+        (adapter.getEvents()[1] as OutputEvent).body.output
       ).to.have.string(nls.localize('session_started_text', sessionId));
-      expect(adapter.getEvents()[1].event).to.equal('initialized');
+      expect(adapter.getEvents()[2].event).to.equal('sendMetric'); // interactive debugger started successfully
+      expect(adapter.getEvents()[3].event).to.equal('initialized');
       expect(sessionUserFilterSpy.calledOnce).to.equal(true);
       expect(sessionEntryFilterSpy.calledOnce).to.equal(true);
       expect(sessionRequestFilterSpy.calledOnce).to.equal(true);
@@ -278,9 +281,10 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getResponse(0).message).to.equal(
         nls.localize('session_no_entity_access_text')
       );
-      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
+      expect(adapter.getEvents()[1].event).to.equal('output');
       expect(
-        (adapter.getEvents()[0] as OutputEvent).body.output
+        (adapter.getEvents()[1] as OutputEvent).body.output
       ).to.have.string('Try again');
       expect(resetIdleTimersSpy.called).to.equal(false);
     });
@@ -304,7 +308,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy.called).to.equal(false);
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getEvents().length).to.equal(0);
+      expect(adapter.getEvents().length).to.equal(1); // value is 1 because the Launch Apex Debugger button is clicked
       expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
@@ -325,11 +329,11 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getResponse(0).message).to.equal(
         nls.localize('session_language_server_error_text')
       );
-      expect(adapter.getEvents().length).to.equal(0);
+      expect(adapter.getEvents().length).to.equal(1); // value is 1 because the Launch Apex Debugger button is clicked
       expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
-    it('Should launch successfully for ISV project', async () => {
+    it('Should launch successfully for ISV project (ISV debugger)', async () => {
       const sessionId = '07aFAKE';
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
@@ -357,11 +361,13 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
-      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
+      expect(adapter.getEvents()[1].event).to.equal('output');
       expect(
-        (adapter.getEvents()[0] as OutputEvent).body.output
+        (adapter.getEvents()[1] as OutputEvent).body.output
       ).to.have.string(nls.localize('session_started_text', sessionId));
-      expect(adapter.getEvents()[1].event).to.equal('initialized');
+      expect(adapter.getEvents()[2].event).to.equal('sendMetric'); // ISV debugger started successfully
+      expect(adapter.getEvents()[3].event).to.equal('initialized');
       expect(sessionUserFilterSpy.calledOnce).to.equal(true);
       expect(sessionEntryFilterSpy.calledOnce).to.equal(true);
       expect(sessionRequestFilterSpy.calledOnce).to.equal(true);
@@ -376,6 +382,48 @@ describe('Interactive debugger adapter - unit', () => {
       ]);
       expect(resetIdleTimersSpy.calledOnce).to.equal(true);
     });
+
+    it('Should popup error message when org-isv-debugger-sid and/or org-isv-debugger-url config variables are not set (ISV debugger)', async () => {
+      const sessionId = '07aFAKE';
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      args.connectType = 'ISV_DEBUGGER';
+      const config = new Map<string, string>();
+      config.set('nonexistent-sid', '123');
+      config.set('nonexistent-url', 'instanceurl');
+      configGetSpy.returns(config);
+
+      await adapter.launchRequest(initializedResponse, args);
+
+      expect(adapter.getRequestService().accessToken).to.equal(undefined);
+      expect(adapter.getRequestService().instanceUrl).to.equal(undefined);
+
+      expect(sessionStartSpy.calledOnce).to.equal(false); // false because the session doesn't start if the error message pops up
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal(
+        nls.localize('invalid_isv_project_config')
+      );
+      expect(adapter.getEvents()[0].event).to.equal('sendMetric'); // launch Apex debugger
+      expect(adapter.getEvents()[1].event).to.equal('sendMetric'); // ISV debugger failed to launch because nonexistent config variables were set
+
+      // The idle timer is not reset during the failure case because the afterEach() block, which contains `resetIdleTimersSpy.restore();`, is not reached.
+      expect(resetIdleTimersSpy.calledOnce).to.equal(false);
+    });
+
+    // Testing an expired forceIde:// URL would require StreamingClient to invoke subscribeReject(), which is not feasible in Jest. Therefore, the test for the expired session is indistinguishable from the success case.
+
+    // The test case for org-isv-debugger-url config variable set to the wrong value cannot be realized by Jest because Jest cannot validate whether the org-isv-debugger-sid and org-isv-debugger-url config variables are set to the correct values. Therefore, Jest cannot distinguish this case from the case where ISV Debugger starts successfully.
 
     it('Should configure tracing with boolean', async () => {
       const sessionId = '07aFAKE';
