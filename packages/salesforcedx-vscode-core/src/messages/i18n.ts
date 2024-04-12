@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/salesforcecli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
@@ -106,17 +106,17 @@ export const messages = {
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',
   view_all_changes_text: 'View All Changes (Local and in Default Org)',
-  force_source_deploy_text: 'SFDX: Deploy Source to Org',
-  force_source_deploy_select_file_or_directory:
+  deploy_text: 'SFDX: Deploy Source to Org',
+  deploy_select_file_or_directory:
     'You can run SFDX: Deploy Source to Org only on a source file or directory.',
-  force_source_deploy_select_manifest:
+  deploy_select_manifest:
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
-  force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
-  force_source_retrieve_display_text: 'Retrieve Source from Org',
-  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
-  force_source_retrieve_select_file_or_directory:
+  retrieve_text: 'SFDX: Retrieve Source from Org',
+  retrieve_display_text: 'Retrieve Source from Org',
+  retrieve_and_open_display_text: 'Retrieve and Open Source',
+  retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
-  force_source_retrieve_select_manifest:
+  retrieve_select_manifest:
     'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   delete_source_text: 'SFDX: Delete from Project and Org',
   delete_source_manifest_unsupported_message:
@@ -227,7 +227,7 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
-  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
+  error_updating_salesforce_project: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
@@ -253,7 +253,7 @@ export const messages = {
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
   invalid_debug_level_id_error:
-    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
+    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sf data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sf data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
   auth_project_label: 'Project Default',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_prod_label: 'Production',
@@ -273,7 +273,7 @@ export const messages = {
     'Error setting up push or deploy on save: Your sfdx-project.json file doesn\'t contain a "packageDirectories" property. Add this property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
   error_no_package_directories_paths_found_text:
     'Error setting up push or deploy on save: The "packageDirectories" property in your sfdx-project.json file doesn\'t contain a "path" value. Add a value for the "path" property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
-  error_push_or_deploy_on_save_no_default_username:
+  error_push_or_deploy_on_save_no_target_org:
     'Error running push or deploy on save: No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the changes that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_source_path_not_in_package_directory_text:
     'Error deploying or retrieving source: The file or directory that you tried to deploy or retrieve isn\'t in a package directory that\'s specified in your sfdx-project.json file. Add this location to your "packageDirectories" value, or deploy or retrieve a different file or directory. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
@@ -315,13 +315,13 @@ export const messages = {
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
   pull_conflicts_error:
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
-  error_no_default_username:
+  error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  error_no_default_devhubusername:
-    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
+  error_no_target_dev_hub:
+    'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
-    'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',
+    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.',
   apex_class_message_name: 'Apex Class',
   apex_trigger_message_name: 'Apex Trigger',
   visualforce_component_message_name: 'Visualforce Component',
@@ -608,7 +608,7 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
-  conflict_detect_no_default_username: 'No default username for this project',
+  conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir:
     'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',

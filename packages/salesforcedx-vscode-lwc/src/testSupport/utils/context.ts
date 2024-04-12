@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 
 import { testWatcher } from '../testRunner/testWatcher';
-import { SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT } from '../types/constants';
+import { SF_LWC_JEST_FILE_FOCUSED_CONTEXT } from '../types/constants';
 import { isLwcJestTest } from './isLwcJestTest';
 
 /**
@@ -18,7 +18,7 @@ const setLwcJestFileFocusedContext = (textEditor?: vscode.TextEditor) => {
   if (textEditor) {
     vscode.commands.executeCommand(
       'setContext',
-      SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT,
+      SF_LWC_JEST_FILE_FOCUSED_CONTEXT,
       !!isLwcJestTest(textEditor.document)
     );
 
@@ -26,7 +26,7 @@ const setLwcJestFileFocusedContext = (textEditor?: vscode.TextEditor) => {
   } else {
     vscode.commands.executeCommand(
       'setContext',
-      SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT,
+      SF_LWC_JEST_FILE_FOCUSED_CONTEXT,
       false
     );
   }
@@ -41,10 +41,9 @@ export const startWatchingEditorFocusChange = (
   extensionContext: vscode.ExtensionContext
 ) => {
   setLwcJestFileFocusedContext(vscode.window.activeTextEditor);
-  const handleDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor(
-    textEditor => {
+  const handleDidChangeActiveTextEditor =
+    vscode.window.onDidChangeActiveTextEditor(textEditor => {
       setLwcJestFileFocusedContext(textEditor);
-    }
-  );
+    });
   extensionContext.subscriptions.push(handleDidChangeActiveTextEditor);
 };

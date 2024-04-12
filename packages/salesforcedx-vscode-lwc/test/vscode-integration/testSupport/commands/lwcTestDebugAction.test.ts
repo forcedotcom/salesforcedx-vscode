@@ -86,9 +86,13 @@ describe('LWC Test Debug - Code Action', () => {
   });
 
   const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
-  const sfdxProjectPath = path.join(root, 'project', 'mockSfdxProject');
+  const salesforceProjectPath = path.join(
+    root,
+    'project',
+    'mockSalesforceProject'
+  );
   const lwcTestExecutablePath = path.join(
-    sfdxProjectPath,
+    salesforceProjectPath,
     'node_modules',
     '.bin',
     'lwc-jest'
@@ -102,7 +106,7 @@ describe('LWC Test Debug - Code Action', () => {
     '__tests__',
     'mockTest.test.js'
   );
-  const testFsPath = path.join(sfdxProjectPath, testRelativePath);
+  const testFsPath = path.join(salesforceProjectPath, testRelativePath);
   const testName = 'mockTestName';
   const testUri = URI.file(testFsPath);
   const testExecutionInfo: TestCaseInfo = {
@@ -122,16 +126,16 @@ describe('LWC Test Debug - Code Action', () => {
       '--testNamePattern',
       'mockTestName'
     ];
-    const cwd = sfdxProjectPath;
+    const cwd = salesforceProjectPath;
 
     it('Should generate debug configuration for single test case', () => {
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
       expect(debugConfiguration).to.deep.equal({
-        sfdxDebugSessionId: mockUuid,
+        sfDebugSessionId: mockUuid,
         type: 'node',
         request: 'launch',
         name: 'Debug LWC test(s)',
-        cwd: sfdxProjectPath,
+        cwd: salesforceProjectPath,
         runtimeExecutable: lwcTestExecutablePath,
         args,
         resolveSourceMapLocations: ['**', '!**/node_modules/**'],
@@ -212,7 +216,7 @@ describe('LWC Test Debug - Code Action', () => {
         port: 9229,
         request: 'launch',
         runtimeExecutable: lwcTestExecutablePath,
-        sfdxDebugSessionId: mockUuid,
+        sfDebugSessionId: mockUuid,
         type: 'node'
       };
 
@@ -258,7 +262,7 @@ describe('LWC Test Debug - Code Action', () => {
         port: 9229,
         request: 'launch',
         runtimeExecutable: lwcTestExecutablePath,
-        sfdxDebugSessionId: mockUuid,
+        sfDebugSessionId: mockUuid,
         type: 'node'
       });
       unmockActiveTextEditorUri();

@@ -23,7 +23,7 @@ You can retrieve source for a manifest, source files, directories, or folders:
   - With a source file open in the editor, right-click in the editing pane and select **SFDX: Retrieve This Source from Org**.
   - With a source file open in the editor, open the Command Palette and run **SFDX: Retrieve This Source from Org**.
 
-When you select an item to retrieve source, only the existing nested items in the directory structure are retrieved. For example, if you retrieve source for the `classes` folder, the Apex classes that **currently exist in that directory** are retrieved. The command doesn’t retrieve all the Apex classes in the org; it updates only the classes that exist in the folder. To retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve the source using the manifest file. You could also use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.
+When you select an item to retrieve source, only the existing nested items in the directory structure are retrieved. For example, if you retrieve source for the `classes` folder, the Apex classes that **currently exist in that directory** are retrieved. The command doesn’t retrieve all the Apex classes in the org; it updates only the classes that exist in the folder. To retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve the source using the manifest file. You could also use a terminal to run `sf project retrieve start --metadata ApexClass:YourApexClass`.
 
 You can also use [Org Browser](./en/user-guide/development-models/#create-project-and-use-org-browser) to retrieve source.
 

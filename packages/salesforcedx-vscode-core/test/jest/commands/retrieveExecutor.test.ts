@@ -14,9 +14,9 @@ import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { sfdxCoreSettings } from '../../../src/settings';
+import { salesforceCoreSettings } from '../../../src/settings';
 
-jest.mock('../../../src/sfdxProject/sfdxProjectConfig');
+jest.mock('../../../src/salesforceProject/salesforceProjectConfig');
 
 jest.mock('../../../src/conflict/metadataCacheService');
 
@@ -79,7 +79,7 @@ describe('Retrieve Executor', () => {
       'getWorkspaceOrgType'
     );
     getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
-      sfdxCoreSettings,
+      salesforceCoreSettings,
       'getEnableSourceTrackingForDeployAndRetrieve'
     );
   });

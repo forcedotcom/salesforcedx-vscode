@@ -14,11 +14,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.1.2",
+  "version": "60.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.82.0"
   },
   "scripts": {
     "vscode:package": "vsce package --no-dependencies",

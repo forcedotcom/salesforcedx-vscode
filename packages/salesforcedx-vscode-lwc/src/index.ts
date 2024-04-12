@@ -6,6 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   commands,
@@ -16,10 +17,10 @@ import {
   WorkspaceConfiguration
 } from 'vscode';
 import {
-  forceLightningLwcOpen,
-  forceLightningLwcPreview,
-  forceLightningLwcStart,
-  forceLightningLwcStop
+  lightningLwcOpen,
+  lightningLwcPreview,
+  lightningLwcStart,
+  lightningLwcStop
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -33,7 +34,8 @@ import {
 import { WorkspaceUtils } from './util/workspaceUtils';
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  const extensionHRStart = process.hrtime();
+  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+
   log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
@@ -124,7 +126,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   WorkspaceUtils.instance.init(extensionContext);
 
   // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  void activateTracker.markActivationStop();
 };
 
 export const deactivate = async () => {
@@ -143,21 +145,9 @@ const getActivationMode = (): string => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.start',
-      forceLightningLwcStart
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.stop',
-      forceLightningLwcStop
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.open',
-      forceLightningLwcOpen
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.preview',
-      forceLightningLwcPreview
-    )
+    commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
+    commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
+    commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
+    commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
 };

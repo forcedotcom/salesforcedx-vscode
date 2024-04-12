@@ -118,10 +118,10 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || github.event_name == 'workflow_run' }}
+      automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'anInitialSuite.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
-      runId: ${{ inputs.runId }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   authentication:
@@ -132,18 +132,18 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'authentication.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
-      runId: ${{ inputs.runId }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   lwcLSP:
-    if: ${{ inputs.templates || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.lwcLsp || github.event_name == 'workflow_run' }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'lwcLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
-      runId: ${{ inputs.runId }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   deployAndRetrieve:
@@ -154,7 +154,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'deployAndRetrieve.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
-      runId: ${{ inputs.runId }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   apexLSP:
@@ -165,7 +165,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'apexLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
-      runId: ${{ inputs.runId }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   runApexTests:
@@ -176,7 +176,7 @@ jobs:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'runApexTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
-      runId: ${{ inputs.runId }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   slack_success_notification:
@@ -188,14 +188,14 @@ jobs:
         lwcLSP,
         deployAndRetrieve,
         apexLSP,
-        runApexTests,
+        runApexTests
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Base E2E Test Suite'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -210,14 +210,14 @@ jobs:
         lwcLSP,
         deployAndRetrieve,
         apexLSP,
-        runApexTests,
+        runApexTests
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Base E2E Test Suite'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -232,14 +232,14 @@ jobs:
         lwcLSP,
         deployAndRetrieve,
         apexLSP,
-        runApexTests,
+        runApexTests
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Base E2E Test Suite'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.82.3' }}
+      testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'

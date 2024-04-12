@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from './sfdx';
+import { channelService } from './sf';
 import { telemetryService } from './telemetry';
 
 export function getDocumentName(document: vscode.TextDocument): string {

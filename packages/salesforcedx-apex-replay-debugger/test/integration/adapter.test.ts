@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DebugClient } from '@vscode/debugadapter-testsupport';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as path from 'path';
-import { DebugClient } from 'vscode-debugadapter-testsupport';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import {
   ApexReplayDebug,
@@ -112,7 +112,7 @@ describe('Replay debugger adapter - integration', () => {
     );
 
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath,
+      salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
@@ -209,7 +209,7 @@ describe('Replay debugger adapter - integration', () => {
     );
 
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath,
+      salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,

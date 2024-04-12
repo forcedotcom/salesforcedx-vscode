@@ -54,7 +54,8 @@ export class ProjectRetrieveStartResultParser {
         name: this.response.name ?? 'RetrieveFailed',
         status: this.response.status,
         files: (this.response.data ?? this.response.result.files).filter(
-          (file: { state: string }) => file.state === 'Failed'
+          (file: { state: string }) =>
+            file.state === 'Failed' || file.state === 'Conflict'
         )
       } as ProjectRetrieveStartErrorResponse;
     }

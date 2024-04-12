@@ -20,9 +20,7 @@ import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { ProgressNotification, notificationService } from './index';
 
-export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T>
-{
+export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();

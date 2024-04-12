@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from './commandBuilder';
+import { SfCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
@@ -28,10 +28,7 @@ export interface OrgInfo {
 export class OrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg(ORG_DISPLAY_COMMAND)
-        .withJson()
-        .build(),
+      new SfCommandBuilder().withArg(ORG_DISPLAY_COMMAND).withJson().build(),
       { cwd: projectPath }
     ).execute();
 

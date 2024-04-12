@@ -8,7 +8,7 @@ import { TestContext } from '@salesforce/core/lib/testSetup';
 import {
   fileUtils,
   notificationService,
-  SfdxCommandlet
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
@@ -110,18 +110,18 @@ describe('Launch Replay Debugger', () => {
 
     expect(executeCommandSpy.called).to.equal(true);
     expect(
-      executeCommandSpy.calledWith('sfdx.launch.replay.debugger.logfile')
+      executeCommandSpy.calledWith('sf.launch.replay.debugger.logfile')
     ).to.equal(true);
   });
 
-  it('should call SfdxCommandlet.run() if file is an anon apex file', async () => {
+  it('should call SfCommandlet.run() if file is an anon apex file', async () => {
     sb.stub(vscode.window, 'activeTextEditor').get(() => ({
       document: {
         uri: vscode.Uri.file('foo.apex')
       }
     }));
 
-    const runStub = sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
+    const runStub = sb.stub(SfCommandlet.prototype, 'run').returns(undefined);
 
     await launchApexReplayDebuggerWithCurrentFile();
 
@@ -141,7 +141,7 @@ describe('Launch Replay Debugger', () => {
       'foo.cls'
     );
 
-    sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
+    sb.stub(SfCommandlet.prototype, 'run').returns(undefined);
 
     flushFilePathStub.returns('foo.cls');
 
@@ -152,7 +152,7 @@ describe('Launch Replay Debugger', () => {
     await launchApexReplayDebuggerWithCurrentFile();
 
     expect(executeCommandSpy.called).to.equal(true);
-    expect(executeCommandSpy.calledWith('sfdx.test.view.debugTests')).to.equal(
+    expect(executeCommandSpy.calledWith('sf.test.view.debugTests')).to.equal(
       true
     );
   });

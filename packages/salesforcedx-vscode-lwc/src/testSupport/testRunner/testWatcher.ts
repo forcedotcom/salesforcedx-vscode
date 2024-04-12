@@ -6,16 +6,16 @@
  */
 import * as vscode from 'vscode';
 import { TestExecutionInfo } from '../types';
-import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
-import { SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
-import { SfdxTask } from './taskService';
+import { LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
+import { SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
+import { SfTask } from './taskService';
 import { TestRunner, TestRunType } from './testRunner';
 
 /**
  * Test Watcher class for watching Jest tests
  */
 class TestWatcher {
-  private watchedTests: Map<string, SfdxTask> = new Map();
+  private watchedTests: Map<string, SfTask> = new Map();
 
   /**
    * Start watching tests from provided test execution info
@@ -25,20 +25,20 @@ class TestWatcher {
     const testRunner = new TestRunner(
       testExecutionInfo,
       TestRunType.WATCH,
-      FORCE_LWC_TEST_WATCH_LOG_NAME
+      LWC_TEST_WATCH_LOG_NAME
     );
     try {
-      const sfdxTask = await testRunner.executeAsSfdxTask();
-      if (sfdxTask) {
+      const sfTask = await testRunner.executeAsSfTask();
+      if (sfTask) {
         const { testUri } = testExecutionInfo;
         const { fsPath } = testUri;
-        sfdxTask.onDidEnd(() => {
+        sfTask.onDidEnd(() => {
           this.watchedTests.delete(fsPath);
           this.setWatchingContext(testUri);
         });
-        this.watchedTests.set(fsPath, sfdxTask);
+        this.watchedTests.set(fsPath, sfTask);
         this.setWatchingContext(testUri);
-        return sfdxTask;
+        return sfTask;
       }
     } catch (error) {
       console.error(error);
@@ -94,7 +94,7 @@ class TestWatcher {
     ) {
       vscode.commands.executeCommand(
         'setContext',
-        SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT,
+        SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT,
         this.isWatchingTest(testUri)
       );
     }
