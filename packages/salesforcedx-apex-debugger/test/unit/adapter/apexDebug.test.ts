@@ -7,24 +7,24 @@
 // This is only done in tests because we are mocking things
 // tslint:disable:no-floating-promises
 import {
-  DEFAULT_CONNECTION_TIMEOUT_MS,
   ConfigGet,
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   OrgDisplay,
   OrgInfo,
   RequestService
 } from '@salesforce/salesforcedx-utils';
-import * as AsyncLock from 'async-lock';
-import { expect } from 'chai';
-import * as os from 'os';
-import * as sinon from 'sinon';
 import {
   OutputEvent,
   Source,
   StackFrame,
   StoppedEvent,
   ThreadEvent
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
+import * as AsyncLock from 'async-lock';
+import { expect } from 'chai';
+import * as os from 'os';
+import * as sinon from 'sinon';
 import Uri from 'vscode-uri';
 import {
   ApexDebugStackFrameInfo,
@@ -2142,7 +2142,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal('stopped');
-      const threadEvent = adapter.getEvents()[1] as StoppedEvent;
+      const threadEvent = adapter.getEvents()[1] as ThreadEvent;
       expect(threadEvent.body.reason).to.equal('');
       expect(threadEvent.body.threadId).to.equal(1);
     });
