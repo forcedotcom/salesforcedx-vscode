@@ -179,11 +179,7 @@ export class LogContext {
 
   public isRunningApexTrigger(): boolean {
     const topFrame = this.getTopFrame();
-    if (
-      topFrame &&
-      topFrame.source &&
-      topFrame.source.name?.toLowerCase().endsWith('.trigger')
-    ) {
+    if (topFrame?.source?.name?.toLowerCase().endsWith('.trigger')) {
       return true;
     }
     return false;

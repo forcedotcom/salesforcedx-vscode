@@ -63,7 +63,6 @@ describe('User debug event', () => {
   it('Should link to anonymous specific frame', () => {
     const frame = {
       name: EXEC_ANON_SIGNATURE,
-      // eslint-disable-next-line no-global-assign
       source: new Source('foo.log')
     } as StackFrame;
     context.getFrames().push(frame);
