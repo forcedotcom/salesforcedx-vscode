@@ -31,7 +31,7 @@ export class TestResultStringifyStream extends Readable {
     // outer curly
     this.push('{');
     // summary
-    this.push(`"summary": ${JSON.stringify(summary)},`);
+    this.push(`"summary":${JSON.stringify(summary)},`);
 
     this.buildTests();
     this.buildCodeCoverage();
@@ -47,19 +47,19 @@ export class TestResultStringifyStream extends Readable {
     const numberOfTests = this.testResult.tests.length - 1;
     this.testResult.tests.forEach((test, index) => {
       const { perClassCoverage, ...testRest } = test;
-      this.push(`${JSON.stringify(testRest).slice(0, -1)},`);
+      this.push(`${JSON.stringify(testRest).slice(0, -1)}`);
       if (perClassCoverage) {
         const numberOfPerClassCoverage = perClassCoverage.length - 1;
-        this.push('"perClassCoverage": [');
+        this.push(',"perClassCoverage":[');
         perClassCoverage.forEach((pcc, index) => {
           const { coverage, ...coverageRest } = pcc;
-          this.push(`${JSON.stringify(coverageRest).slice(0, -1)},`);
-          this.push(`"coverage": ${JSON.stringify(coverage)}}`);
+          this.push(`${JSON.stringify(coverageRest).slice(0, -1)}`);
+          this.push(`,"coverage":${JSON.stringify(coverage)}}`);
           if (numberOfPerClassCoverage !== index) {
             this.push(',');
           }
         });
-        this.push('],');
+        this.push(']');
       }
       // close the tests
       this.push('}');
@@ -78,8 +78,8 @@ export class TestResultStringifyStream extends Readable {
       const numberOfCodeCoverage = this.testResult.codecoverage.length - 1;
       this.testResult.codecoverage.forEach((coverage, index) => {
         const { coveredLines, uncoveredLines, ...theRest } = coverage;
-        this.push(`${JSON.stringify(theRest).slice(0, -1)},`);
-        this.push('"coveredLines":[');
+        this.push(`${JSON.stringify(theRest).slice(0, -1)}`);
+        this.push(',"coveredLines":[');
         pushArrayToStream(coveredLines, this);
         this.push('],"uncoveredLines":[');
         pushArrayToStream(uncoveredLines, this);

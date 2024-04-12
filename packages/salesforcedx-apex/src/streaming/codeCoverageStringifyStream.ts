@@ -65,10 +65,10 @@ export class CodeCoverageStringifyStream extends Transform {
     const { coverage, ...theRest } = perClassCoverage;
     // stringify all properties except coverage and strip off the closing '}'
     this.push(JSON.stringify(theRest).slice(0, -1));
-    this.push(',"coverage": {');
-    this.push('"coveredLines": [');
+    this.push(',"coverage":{');
+    this.push('"coveredLines":[');
     pushArrayToStream(coverage.coveredLines ?? [], this);
-    this.push('],"uncoveredLines": [');
+    this.push('],"uncoveredLines":[');
     pushArrayToStream(coverage.uncoveredLines ?? [], this);
     this.push(']}}');
 

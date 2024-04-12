@@ -28,6 +28,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(json));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
@@ -43,15 +44,18 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(json));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
 
-  it('should handle complex objects ending with a key/array', (done) => {
+  it('should handle complex objects and arrays without dangling commas', (done) => {
     const json = {
       key1: 'value1',
-      key2: { key3: 'value3' },
-      key4: ['value4', 'value5']
+      key2: { key3: 'value3', key5: ['value6', ['value7', 'value8', null]] },
+      key4: ['value4', 'value5', null],
+      // @ts-ignore
+      key6: { key7: 'value7', key8: null }
     };
     const stream = JSONStringifyStream.from(json);
 
@@ -62,6 +66,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(json));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
@@ -81,6 +86,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(json));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
@@ -96,6 +102,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(value));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
@@ -111,6 +118,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(value));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
@@ -126,6 +134,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(value));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
@@ -141,6 +150,7 @@ describe('JSONStringifyStream', () => {
 
     stream.on('end', () => {
       expect(result).to.equal(JSON.stringify(value));
+      expect(() => JSON.parse(result)).to.not.throw();
       done();
     });
   });
