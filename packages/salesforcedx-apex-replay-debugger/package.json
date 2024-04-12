@@ -14,8 +14,8 @@
   ],
   "dependencies": {
     "@salesforce/salesforcedx-utils": "60.8.0",
-    "vscode-debugadapter": "1.28.0",
-    "vscode-debugprotocol": "1.28.0",
+    "@vscode/debugadapter": "1.65.0",
+    "@vscode/debugprotocol": "1.65.0",
     "vscode-uri": "1.0.1"
   },
   "devDependencies": {
@@ -46,7 +46,7 @@
     "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
-    "vscode-debugadapter-testsupport": "1.28.0"
+    "@vscode/debugadapter-testsupport": "1.65.0"
   },
   "scripts": {
     "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts  --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",

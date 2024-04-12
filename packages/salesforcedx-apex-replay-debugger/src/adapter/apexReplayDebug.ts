@@ -20,8 +20,8 @@ import {
   TerminatedEvent,
   Thread,
   Variable
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { MetricError, MetricLaunch } from '..';
 import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
 import {
@@ -247,7 +247,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: LaunchRequestArguments
   ): Promise<void> {
     let lineBreakpointInfoAvailable = false;
-    if (args && args.lineBreakpointInfo) {
+    if (args?.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
       breakpointUtil.createMappingsFromLineBreakpointInfo(
         args.lineBreakpointInfo
@@ -307,7 +307,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.trace = args.trace.split(',').map(category => category.trim());
       this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
     }
-    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+    if (this.trace?.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
       logger.setup(Logger.LogLevel.Verbose, false);
     } else {
       logger.setup(Logger.LogLevel.Stop, false);
@@ -352,10 +352,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.StackTraceArguments
   ): void {
     response.body = {
-      stackFrames: this.logContext
-        .getFrames()
-        .slice()
-        .reverse()
+      stackFrames: this.logContext.getFrames().slice().reverse()
     };
     response.success = true;
     this.sendResponse(response);
@@ -516,15 +513,15 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   protected shouldStopForBreakpoint(): boolean {
     const topFrame = this.logContext.getTopFrame();
-    if (topFrame && topFrame.source) {
-      const topFrameUri = this.convertClientPathToDebugger(
-        topFrame.source.path
-      );
-      const topFrameLine = this.convertClientLineToDebugger(topFrame.line);
-      if (
-        this.breakpoints.has(topFrameUri) &&
-        this.breakpoints.get(topFrameUri)!.indexOf(topFrameLine) !== -1
-      ) {
+    const sourcePath = topFrame?.source?.path ?? null;
+    const topFrameLine = topFrame?.line ?? null;
+    if (sourcePath && topFrameLine) {
+      const topFrameUri = this.convertClientPathToDebugger(sourcePath);
+      const topFrameLineDebugger =
+        this.convertClientLineToDebugger(topFrameLine);
+
+      const breakpointsForUri = this.breakpoints.get(topFrameUri) ?? []; // Use empty array if breakpoints for the URI are undefined
+      if (breakpointsForUri.includes(topFrameLineDebugger)) {
         this.sendEvent(
           new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID)
         );
@@ -596,7 +593,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     sourceLine?: number,
     category = 'stdout'
   ): void {
-    if (msg && msg.length !== 0) {
+    if (msg?.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(
         `${msg}${EOL}`,
         category

@@ -6,21 +6,18 @@
  */
 
 import {
-  extractJsonObject,
   ConfigGet,
   OrgDisplay,
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_URL,
+  extractJsonObject
 } from '@salesforce/salesforcedx-utils';
-import * as os from 'os';
-import { basename } from 'path';
 import {
   DebugSession,
   Event,
   Handles,
   InitializedEvent,
-  logger,
   Logger,
   LoggingDebugSession,
   OutputEvent,
@@ -31,9 +28,12 @@ import {
   TerminatedEvent,
   Thread,
   ThreadEvent,
-  Variable
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+  Variable,
+  logger
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
+import * as os from 'os';
+import { basename } from 'path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,

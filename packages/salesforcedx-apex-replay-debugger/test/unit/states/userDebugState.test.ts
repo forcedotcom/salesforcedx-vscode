@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Source, StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import { EOL } from 'os';
 import * as sinon from 'sinon';
-import { StackFrame } from 'vscode-debugadapter';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
@@ -63,7 +63,7 @@ describe('User debug event', () => {
   it('Should link to anonymous specific frame', () => {
     const frame = {
       name: EXEC_ANON_SIGNATURE,
-      source: { name: 'foo.log' }
+      source: new Source('foo.log')
     } as StackFrame;
     context.getFrames().push(frame);
     context.getExecAnonScriptMapping().set(2, 5);
@@ -87,7 +87,7 @@ describe('User debug event', () => {
   it('Should use line number in log line', () => {
     const frame = {
       name: 'foo',
-      source: { name: 'foo.cls' }
+      source: new Source('foo.log')
     } as StackFrame;
     context.getFrames().push(frame);
     const state = new UserDebugState([

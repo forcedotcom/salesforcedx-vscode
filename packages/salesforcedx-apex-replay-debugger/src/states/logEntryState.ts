@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Source, StackFrame } from 'vscode-debugadapter';
+import { Source, StackFrame } from '@vscode/debugadapter';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 

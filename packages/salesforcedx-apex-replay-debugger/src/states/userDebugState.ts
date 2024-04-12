@@ -9,6 +9,7 @@ import { EOL } from 'os';
 import { EXEC_ANON_SIGNATURE } from '../constants';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
+import { Source } from '@vscode/debugadapter';
 
 export class UserDebugState implements DebugLogState {
   private readonly line: number;
@@ -31,7 +32,7 @@ export class UserDebugState implements DebugLogState {
         .getSession()
         .warnToDebugConsole(
           this.message,
-          frame.source,
+          frame.source instanceof Source ? frame.source : undefined,
           frame.name === EXEC_ANON_SIGNATURE
             ? logContext.getExecAnonScriptLocationInDebugLog(this.line)
             : this.line
