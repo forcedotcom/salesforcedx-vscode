@@ -372,7 +372,7 @@
     }
   ],
   "dependencies": {
-    "@salesforce/core": "6.5.2",
+    "@salesforce/core": "6.7.4",
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.8.0",
     "@salesforce/lwc-language-server": "4.8.0",
@@ -451,7 +451,7 @@
     ],
     "packageUpdates": {
       "dependencies": {
-        "@salesforce/core": "6.5.2",
+        "@salesforce/core": "6.7.4",
         "@salesforce/lightning-lsp-common": "4.8.0",
         "@salesforce/lwc-language-server": "4.8.0",
         "@salesforce/source-tracking": "5.1.11",
