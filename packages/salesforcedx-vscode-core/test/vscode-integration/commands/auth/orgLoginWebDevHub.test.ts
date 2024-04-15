@@ -10,7 +10,7 @@ import {
   instantiateContext,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core/testSetup';
 import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
