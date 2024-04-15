@@ -181,7 +181,7 @@
   },
   "dependencies": {
     "@salesforce/apex-node": "4.0.5",
-    "@salesforce/core": "6.7.4",
+    "@salesforce/core": "7.2.0",
     "@salesforce/salesforcedx-apex-replay-debugger": "60.9.0",
     "@salesforce/salesforcedx-utils": "60.9.0",
     "@salesforce/salesforcedx-utils-vscode": "60.9.0",
@@ -248,7 +248,7 @@
     ],
     "packageUpdates": {
       "dependencies": {
-        "@salesforce/core": "6.7.4",
+        "@salesforce/core": "7.2.0",
         "@salesforce/source-tracking": "5.1.11",
         "applicationinsights": "1.0.7"
       },

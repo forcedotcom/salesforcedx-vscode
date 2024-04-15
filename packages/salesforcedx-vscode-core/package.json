@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "6.7.4",
+    "@salesforce/core": "7.2.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "60.9.0",
     "@salesforce/salesforcedx-utils-vscode": "60.9.0",
     "@salesforce/schemas": "^1.6.1",
@@ -96,7 +96,7 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "6.7.4",
+        "@salesforce/core": "7.2.0",
         "@salesforce/source-tracking": "5.1.11",
         "@salesforce/templates": "^60.1.0",
         "@salesforce/source-deploy-retrieve": "10.3.3",
