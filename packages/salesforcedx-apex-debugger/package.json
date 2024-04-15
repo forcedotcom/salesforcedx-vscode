@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "60.8.0",
+  "version": "60.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -12,15 +12,15 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "60.8.0",
+    "@salesforce/salesforcedx-utils": "60.9.0",
+    "@vscode/debugadapter": "1.65.0",
+    "@vscode/debugprotocol": "1.65.0",
     "async-lock": "1.0.0",
     "faye": "1.1.2",
-    "request-light": "^0.7.0",
-    "@vscode/debugadapter": "1.65.0",
-    "@vscode/debugprotocol": "1.65.0"
+    "request-light": "^0.7.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.8.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.9.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
@@ -30,6 +30,7 @@
     "@types/sinon": "^2.3.7",
     "@typescript-eslint/eslint-plugin": "6.9.0",
     "@typescript-eslint/parser": "6.9.0",
+    "@vscode/debugadapter-testsupport": "1.65.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "eslint": "8.52.0",
@@ -52,7 +53,6 @@
     "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
-    "@vscode/debugadapter-testsupport": "1.65.0",
     "vscode-uri": "1.0.1"
   },
   "scripts": {
