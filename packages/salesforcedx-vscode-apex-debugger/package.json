@@ -97,7 +97,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/core": "7.2.0",
-        "@salesforce/source-tracking": "5.1.11"
+        "@salesforce/source-tracking": "6.0.2"
       },
       "devDependencies": {}
     }
