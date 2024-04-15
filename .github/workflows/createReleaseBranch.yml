@@ -54,11 +54,11 @@ jobs:
           echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
           node scripts/create-release-branch.js
       - id: result
-        run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
+        run: echo "result=${{ job.status }}" >> "$GITHUB_OUTPUT"
       - id: version
-        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> "$GITHUB_OUTPUT"
       - id: branch
-        run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+        run: echo "branch=release/v${{ steps.version.outputs.version }}" >> "$GITHUB_OUTPUT"
       - run: echo "Release Version is ${{ steps.version.outputs.version }}"
       - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
       - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”

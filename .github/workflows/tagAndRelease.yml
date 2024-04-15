@@ -105,7 +105,7 @@ jobs:
           git push origin develop
       - id: complete
         run: |
-         echo "status=complete" >> $GITHUB_OUTPUT
+         echo "status=complete" >> "$GITHUB_OUTPUT"
       - id: finish
         run: |
          echo "VSCode Tag and Release Success"
