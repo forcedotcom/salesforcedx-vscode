@@ -37,6 +37,7 @@ describe('ActivationTracker', () => {
 
     telemetryService = {
       sendActivationEventInfo: jest.fn(),
+      sendExtensionActivationEvent: jest.fn(),
       getEndHRTime: jest.fn(() => 3.141)
     } as unknown as TelemetryService;
   });
@@ -74,5 +75,38 @@ describe('ActivationTracker', () => {
     expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
       tracker.activationInfo
     );
+  });
+  it('should not sendActivationEventInfo when loadStartDate is undefined', async () => {
+    const mockExtensionInfo = {
+      isActive: true,
+      path: '/path/to/extension',
+      kind: ExtensionKind.Workspace,
+      uri: Uri.parse('file:///path/to/extension'),
+      loadStartDate: undefined
+    };
+
+    (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);
+    tracker = new ActivationTracker(extensionContext, telemetryService);
+    await tracker.markActivationStop();
+
+    expect(telemetryService.sendActivationEventInfo).not.toHaveBeenCalled();
+  });
+  it('should not sendActivationEventInfo when loadStartDate is after activateEndDate', async () => {
+    const dateOneMonthFromNow = new Date();
+    dateOneMonthFromNow.setMonth(dateOneMonthFromNow.getMonth() + 1);
+
+    const mockExtensionInfo = {
+      isActive: true,
+      path: '/path/to/extension',
+      kind: ExtensionKind.Workspace,
+      uri: Uri.parse('file:///path/to/extension'),
+      loadStartDate: dateOneMonthFromNow
+    };
+
+    (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);
+    tracker = new ActivationTracker(extensionContext, telemetryService);
+    await tracker.markActivationStop();
+
+    expect(telemetryService.sendActivationEventInfo).not.toHaveBeenCalled();
   });
 });
