@@ -77,12 +77,13 @@ describe('ActivationTracker', () => {
     );
   });
   it('should not sendActivationEventInfo when loadStartDate is undefined', async () => {
+    const loadStartDate: Date | undefined = undefined;
     const mockExtensionInfo = {
       isActive: true,
       path: '/path/to/extension',
       kind: ExtensionKind.Workspace,
       uri: Uri.parse('file:///path/to/extension'),
-      loadStartDate: undefined
+      loadStartDate
     };
 
     (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);

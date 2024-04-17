@@ -60,7 +60,7 @@ export class ActivationTracker {
     let extensionActivationTime = -1;
     if (
       extensionInfo?.loadStartDate &&
-      activateEndDate.getTime() <= extensionInfo.loadStartDate.getTime()
+      activateEndDate.getTime() >= extensionInfo.loadStartDate.getTime()
     ) {
       // subtract activateEndDate from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
       extensionActivationTime =
