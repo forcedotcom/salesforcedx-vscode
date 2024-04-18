@@ -20,7 +20,7 @@ import {
   SimpleGatherer
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { ApexTestTemplateGatherer } from '../util/parameterGatherers';
+import { ApexTestTemplateGatherer, FileNameParameter, MetadataTypeParameter, OutputDirParameter } from '../util/parameterGatherers';
 import { LibraryApexGenerateClassExecutor } from './executors/LibraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
@@ -29,13 +29,13 @@ import {
   APEX_TEST_TEMPLATE
 } from './metadataTypeConstants';
 
-let fileNameGatherer: ParametersGatherer<any> | undefined;
-let outputDirGatherer: ParametersGatherer<any> | undefined;
-let metadataTypeGatherer: ParametersGatherer<any> | undefined;
+let fileNameGatherer: ParametersGatherer<FileNameParameter> | undefined;
+let outputDirGatherer: ParametersGatherer<OutputDirParameter> | undefined;
+let metadataTypeGatherer: ParametersGatherer<MetadataTypeParameter> | undefined;
 let templateGatherer: ParametersGatherer<any> | undefined;
 
 export const getParamGatherers = () => {
-  fileNameGatherer ??= new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+  fileNameGatherer ??=  new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
   outputDirGatherer ??= new SelectOutputDir(APEX_CLASS_DIRECTORY);
   metadataTypeGatherer ??= new MetadataTypeGatherer(APEX_CLASS_TYPE);
   templateGatherer ??= new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);
@@ -54,7 +54,7 @@ export const apexGenerateClass = async (sourceUri?: vscode.Uri) => {
   const gatherers = getParamGatherers();
 
   if (sourceUri) {
-    gatherers.outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
+    gatherers.outputDirGatherer = new SimpleGatherer<OutputDirParameter>({
       outputdir: sourceUri.fsPath
     });
   }

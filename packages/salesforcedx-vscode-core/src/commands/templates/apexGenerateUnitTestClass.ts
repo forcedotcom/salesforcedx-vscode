@@ -21,6 +21,10 @@ import { getParamGatherers } from './apexGenerateClass';
 import { LibraryApexGenerateUnitTestClassExecutor } from './executors/LibraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from './metadataTypeConstants';
 
+type OutputDirParameter = {
+  outputdir: string;
+};
+
 // if called from a file's context menu, will deliver the clicked file URI and an array of selected files
 // if called from the command pallet args will be empty
 export const apexGenerateUnitTestClass = async (
@@ -30,18 +34,16 @@ export const apexGenerateUnitTestClass = async (
 ) => {
   const gatherers = getParamGatherers();
 
-  let outputDirGatherer: ParametersGatherer<any>;
+  let outputDirGatherer: ParametersGatherer<OutputDirParameter>;
   if (outputDirectory) {
-    if (typeof outputDirectory === 'string') {
-      outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
-        outputdir: outputDirectory
-      });
-    } else {
-      // must be a vscode.Uri because we were called from the directory context menu
-      outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
-        outputdir: outputDirectory.fsPath
-      });
-    }
+    outputDirGatherer =
+      typeof outputDirectory === 'string'
+        ? new SimpleGatherer<OutputDirParameter>({
+            outputdir: outputDirectory
+          })
+        : new SimpleGatherer<OutputDirParameter>({
+            outputdir: outputDirectory.fsPath
+          });
   } else {
     outputDirGatherer = gatherers.outputDirGatherer;
   }
