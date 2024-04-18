@@ -394,7 +394,7 @@
         "@salesforce/apex-tmlanguage": "1.4.0",
         "@salesforce/core": "7.2.0",
         "@salesforce/source-tracking": "6.0.2",
-        "@salesforce/templates": "^60.1.0",
+        "@salesforce/templates": "^60.1.2",
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5"
       },
