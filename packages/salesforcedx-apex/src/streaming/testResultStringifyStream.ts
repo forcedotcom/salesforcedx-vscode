@@ -68,13 +68,13 @@ export class TestResultStringifyStream extends Readable {
       }
     });
 
-    this.push('],');
+    this.push(']');
   }
 
   @elapsedTime()
   buildCodeCoverage(): void {
     if (this.testResult.codecoverage) {
-      this.push('"codecoverage":[');
+      this.push(',"codecoverage":[');
       const numberOfCodeCoverage = this.testResult.codecoverage.length - 1;
       this.testResult.codecoverage.forEach((coverage, index) => {
         const { coveredLines, uncoveredLines, ...theRest } = coverage;

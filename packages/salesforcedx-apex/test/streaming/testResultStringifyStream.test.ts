@@ -136,30 +136,58 @@ describe('TestResultStringifyStream', () => {
     };
   });
 
-  it('should transform TestResult into a JSON string with no tests and no coverage', (done) => {
+  it('should transform TestResult into a JSON string with empty tests and no coverage', (done) => {
     let output = '';
+    const emptyTestsNoCoverage = structuredClone(testResult);
+    delete emptyTestsNoCoverage.codecoverage;
     // Initialize the stream with the testResult
-    stream = new TestResultStringifyStream(testResult);
+    stream = new TestResultStringifyStream(emptyTestsNoCoverage);
 
     stream.on('data', (chunk: string) => {
       output += chunk;
     });
 
     stream.on('end', () => {
-      const expectedOutput = JSON.stringify(testResult);
+      expect(() => JSON.parse(output)).to.not.throw();
+      const expectedOutput = JSON.stringify(emptyTestsNoCoverage);
       expect(output).to.equal(expectedOutput);
       done();
     });
 
     stream._read();
   });
-  it('should transform TestResult into a JSON string', (done) => {
+  it('should transform TestResult into a JSON string with tests and no coverage', (done) => {
     let output = '';
-    tests[0].perClassCoverage = [perClassCoverageData[0]];
-    tests[1].perClassCoverage = perClassCoverageData;
+    const testsWithoutCoverage = structuredClone(tests);
     const resultsWithTests = {
       ...testResult,
-      tests,
+      tests: testsWithoutCoverage
+    };
+    delete resultsWithTests.codecoverage;
+    // Initialize the stream with the testResult
+    stream = new TestResultStringifyStream(resultsWithTests);
+
+    stream.on('data', (chunk: string) => {
+      output += chunk;
+    });
+
+    stream.on('end', () => {
+      expect(() => JSON.parse(output)).to.not.throw();
+      const expectedOutput = JSON.stringify(resultsWithTests);
+      expect(output).to.equal(expectedOutput);
+      done();
+    });
+
+    stream._read();
+  });
+  it('should transform TestResult into a JSON string with tests and coverage both present', (done) => {
+    let output = '';
+    const testsWithCoverage = structuredClone(tests);
+    testsWithCoverage[0].perClassCoverage = [perClassCoverageData[0]];
+    testsWithCoverage[1].perClassCoverage = perClassCoverageData;
+    const resultsWithTests = {
+      ...testResult,
+      tests: testsWithCoverage,
       codecoverage: coverageData
     };
     // Initialize the stream with the testResult
@@ -170,6 +198,7 @@ describe('TestResultStringifyStream', () => {
     });
 
     stream.on('end', () => {
+      expect(() => JSON.parse(output)).to.not.throw();
       const expectedOutput = JSON.stringify(resultsWithTests);
       expect(output).to.equal(expectedOutput);
       done();
