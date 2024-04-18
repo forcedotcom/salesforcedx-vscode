@@ -8,9 +8,9 @@ import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 
-export interface ExtendedQueryData extends QueryResult<JsonMap> {
+export type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;
-}
+};
 
 export function extendQueryData(
   queryText: string,

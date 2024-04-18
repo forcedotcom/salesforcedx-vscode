@@ -25,10 +25,10 @@ import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
 
 // TODO: This should be exported from soql-builder-ui
-export interface SoqlEditorEvent {
+export type SoqlEditorEvent = {
   type: string;
   payload?: string | string[] | JsonMap;
-}
+};
 
 // TODO: This should be shared with soql-builder-ui
 export enum MessageType {

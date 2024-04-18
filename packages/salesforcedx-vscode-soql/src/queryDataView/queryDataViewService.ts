@@ -32,10 +32,10 @@ import {
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
-export interface DataViewEvent {
+export type DataViewEvent = {
   type: string;
   format?: FileFormat;
-}
+};
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;

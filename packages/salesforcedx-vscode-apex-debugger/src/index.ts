@@ -94,15 +94,15 @@ const registerCommands = (): vscode.Disposable => {
   );
 };
 
-export interface ExceptionBreakpointItem extends vscode.QuickPickItem {
+export type ExceptionBreakpointItem = vscode.QuickPickItem & {
   typeref: string;
   breakMode: DebugProtocol.ExceptionBreakMode;
   uri?: string;
-}
+};
 
-interface BreakModeItem extends vscode.QuickPickItem {
+type BreakModeItem = vscode.QuickPickItem & {
   breakMode: DebugProtocol.ExceptionBreakMode;
-}
+};
 
 const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   {

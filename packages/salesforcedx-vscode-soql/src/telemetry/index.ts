@@ -22,10 +22,10 @@ export async function stopTelemetry(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
 }
 
-export interface TelemetryModelJson extends JsonMap {
+export type TelemetryModelJson = JsonMap & {
   fields: number;
   orderBy: number;
   limit: number;
   errors: number;
   unsupported: number;
-}
+};

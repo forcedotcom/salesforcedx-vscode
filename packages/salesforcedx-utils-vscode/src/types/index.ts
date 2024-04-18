@@ -21,42 +21,42 @@ import { Event } from 'vscode';
 
 // Precondition checking
 ////////////////////////
-export interface PreconditionChecker {
+export type PreconditionChecker = {
   check(): Promise<boolean> | boolean;
-}
+};
 
-export interface PostconditionChecker<T> {
+export type PostconditionChecker<T> = {
   check(
     inputs: ContinueResponse<T> | CancelResponse
   ): Promise<ContinueResponse<T> | CancelResponse>;
-}
+};
 
 // Input gathering
 //////////////////
-export interface ContinueResponse<T> {
+export type ContinueResponse<T> = {
   type: 'CONTINUE';
   data: T;
-}
+};
 
-export interface CancelResponse {
+export type CancelResponse = {
   type: 'CANCEL';
   msg?: string;
-}
+};
 
-export interface ParametersGatherer<T> {
+export type ParametersGatherer<T> = {
   gather(): Promise<CancelResponse | ContinueResponse<T>>;
-}
+};
 
 // Execution
 //////////////////
-export interface FlagParameter<T> {
+export type FlagParameter<T> = {
   flag: T;
-}
+};
 
-export interface CommandletExecutor<T> {
+export type CommandletExecutor<T> = {
   execute(response: ContinueResponse<T>): void;
   readonly onDidFinishExecution?: Event<[number, number]>;
-}
+};
 
 // Selection
 ////////////

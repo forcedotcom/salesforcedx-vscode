@@ -24,24 +24,24 @@ import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
 
-interface CommandMetric {
+type CommandMetric = {
   extensionName: string;
   commandName: string;
   executionTime?: string;
-}
+};
 
-export interface Measurements {
+export type Measurements = {
   [key: string]: number;
-}
+};
 
-export interface Properties {
+export type Properties = {
   [key: string]: string;
-}
+};
 
-export interface TelemetryData {
+export type TelemetryData = {
   properties?: Properties;
   measurements?: Measurements;
-}
+};
 
 export class TelemetryBuilder {
   private properties?: Properties;
@@ -97,7 +97,9 @@ export class TelemetryService {
    * @param extensionName extension name
    */
   public static getInstance(extensionName?: string) {
-    return TelemetryServiceProvider.getInstance(extensionName);
+    return TelemetryServiceProvider.getInstance(
+      extensionName ?? 'salesforcedx-vscode-core'
+    );
   }
   /**
    * Cached promise to check if CLI telemetry config is enabled

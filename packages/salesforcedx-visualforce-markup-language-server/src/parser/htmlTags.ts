@@ -53,7 +53,7 @@ export function isEmptyElement(e: string): boolean {
   );
 }
 
-export interface IHTMLTagProvider {
+export type IHTMLTagProvider = {
   getId(): string;
   isApplicable(languageId: string);
   collectTags(collector: (tag: string, label: string) => void): void;
@@ -66,11 +66,11 @@ export interface IHTMLTagProvider {
     attribute: string,
     collector: (value: string) => void
   ): void;
-}
+};
 
-export interface ITagSet {
+export type ITagSet = {
   [tag: string]: TagSpecification;
-}
+};
 
 export class TagSpecification {
   public readonly documentation: string;
@@ -82,9 +82,9 @@ export class TagSpecification {
   }
 }
 
-export interface IValueSets {
+export type IValueSets = {
   [tag: string]: string[];
-}
+};
 
 function localize(key: string, description: string): string {
   return description;

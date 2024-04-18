@@ -9,10 +9,10 @@ import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export interface ComponentDiff {
+export type ComponentDiff = {
   projectPath: string;
   cachePath: string;
-}
+};
 
 /**
  * Finds the file paths of files that differ for a component stored in two locations
@@ -33,7 +33,7 @@ export function diffComponents(
   if (projectComponent.xml) {
     projectPaths.push(projectComponent.xml);
   }
-  const projectRoot = projectComponent.content ?? (projectComponent.xml ?? '');
+  const projectRoot = projectComponent.content ?? projectComponent.xml ?? '';
   for (const file of projectPaths) {
     const key = path.relative(projectRoot, file);
     projectIndex.set(key, file);
@@ -44,7 +44,7 @@ export function diffComponents(
   if (cacheComponent.xml) {
     cachePaths.push(cacheComponent.xml);
   }
-  const cacheRoot = cacheComponent.content ?? (cacheComponent.xml ?? '');
+  const cacheRoot = cacheComponent.content ?? cacheComponent.xml ?? '';
   for (const file of cachePaths) {
     const key = path.relative(cacheRoot, file);
     cacheIndex.set(key, file);

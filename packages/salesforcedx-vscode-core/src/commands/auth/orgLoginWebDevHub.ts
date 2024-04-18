@@ -102,9 +102,9 @@ export class AuthDevHubParamsGatherer
   }
 }
 
-export interface AuthDevHubParams {
+export type AuthDevHubParams = {
   alias: string;
-}
+};
 
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();

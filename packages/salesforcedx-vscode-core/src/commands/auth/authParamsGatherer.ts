@@ -20,16 +20,16 @@ export const PRODUCTION_URL = 'https://login.salesforce.com';
 export const SANDBOX_URL = 'https://test.salesforce.com';
 export const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
-export interface AuthParams {
+export type AuthParams = {
   alias: string;
   loginUrl: string;
-}
+};
 
-export interface AccessTokenParams {
+export type AccessTokenParams = {
   alias: string;
   instanceUrl: string;
   accessToken: string;
-}
+};
 
 async function inputInstanceUrl() {
   const instanceUrlInputOptions = {

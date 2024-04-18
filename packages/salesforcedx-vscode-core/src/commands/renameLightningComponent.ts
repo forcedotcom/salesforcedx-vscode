@@ -74,9 +74,9 @@ export async function renameLightningComponent(sourceUri: vscode.Uri) {
     await commandlet.run();
   }
 }
-export interface ComponentName {
+export type ComponentName = {
   name?: string;
-}
+};
 export class GetComponentName implements ParametersGatherer<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {

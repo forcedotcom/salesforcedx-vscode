@@ -8,9 +8,9 @@
 import { extractJsonObject } from '../helpers';
 
 /**
- * Interface that stores information about a successful diff operation
+ * Type that stores information about a successful diff operation
  */
-export interface DiffSuccessResponse {
+export type DiffSuccessResponse = {
   /**
    * Request status e.g. 0 = Success
    */
@@ -32,12 +32,12 @@ export interface DiffSuccessResponse {
      */
     fileName: string;
   };
-}
+};
 
 /**
- * Interface that stores information about an unsuccessful diff operation
+ * Type that stores information about an unsuccessful diff operation
  */
-export interface DiffErrorResponse {
+export type DiffErrorResponse = {
   /**
    * Name of the command that was executed e.g. Diff
    */
@@ -66,7 +66,7 @@ export interface DiffErrorResponse {
    * Array of warnings provided by the command
    */
   warnings: any[];
-}
+};
 
 export class DiffResultParser {
   private response: any;

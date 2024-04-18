@@ -33,16 +33,16 @@ import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 
-interface TestRunResult {
+type TestRunResult = {
   logFileId?: string;
   message?: string;
   success: boolean;
-}
+};
 
-interface LogFileRetrieveResult {
+type LogFileRetrieveResult = {
   filePath?: string;
   success: boolean;
-}
+};
 
 export class QuickLaunch {
   public async debugTest(

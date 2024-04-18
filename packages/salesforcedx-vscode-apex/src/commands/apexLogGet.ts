@@ -23,10 +23,10 @@ import { nls } from '../messages';
 
 const LOG_DIRECTORY = projectPaths.debugLogsFolder();
 
-interface ApexDebugLogItem extends vscode.QuickPickItem {
+type ApexDebugLogItem = vscode.QuickPickItem & {
   id: string;
   startTime: string;
-}
+};
 
 export type ApexDebugLogIdStartTime = {
   id: string;

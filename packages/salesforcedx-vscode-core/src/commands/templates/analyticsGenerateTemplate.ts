@@ -56,10 +56,10 @@ export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplat
 
 export type TemplateAndDir = DirFileNameSelection & Template;
 
-export interface Template {
+export type Template = {
   // fileName is the templateName
   fileName: string;
-}
+};
 
 export class SelectProjectTemplate implements ParametersGatherer<Template> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Template>> {
