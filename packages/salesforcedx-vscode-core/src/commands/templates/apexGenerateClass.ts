@@ -9,13 +9,15 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  SimpleGatherer
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { ApexTestTemplateGatherer } from '../util/parameterGatherers';
@@ -27,20 +29,20 @@ import {
   APEX_TEST_TEMPLATE
 } from './metadataTypeConstants';
 
-let initialized = false;
-let fileNameGatherer: ParametersGatherer<any>;
-let outputDirGatherer: ParametersGatherer<any>;
-let metadataTypeGatherer: ParametersGatherer<any>;
-let templateGatherer: ParametersGatherer<any>;
+let fileNameGatherer: ParametersGatherer<any> | undefined;
+let outputDirGatherer: ParametersGatherer<any> | undefined;
+let metadataTypeGatherer: ParametersGatherer<any> | undefined;
+let templateGatherer: ParametersGatherer<any> | undefined;
 
 export const getParamGatherers = () => {
-  if (!initialized) {
-    fileNameGatherer = new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
-    outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
-    metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
-    templateGatherer = new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);
-    initialized = true;
-  }
+  fileNameGatherer =
+    fileNameGatherer ?? new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+  outputDirGatherer =
+    outputDirGatherer ?? new SelectOutputDir(APEX_CLASS_DIRECTORY);
+  metadataTypeGatherer =
+    metadataTypeGatherer ?? new MetadataTypeGatherer(APEX_CLASS_TYPE);
+  templateGatherer =
+    templateGatherer ?? new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);
   return {
     fileNameGatherer,
     outputDirGatherer,
@@ -49,8 +51,17 @@ export const getParamGatherers = () => {
   };
 };
 
-export const apexGenerateClass = async () => {
+// if called from a file's context menu, will deliver the clicked file URI,
+// ignoring an additional arg that is array of selected
+// if called from the command pallet args will be empty
+export const apexGenerateClass = async (sourceUri?: vscode.Uri) => {
   const gatherers = getParamGatherers();
+
+  if (sourceUri) {
+    gatherers.outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
+      outputdir: sourceUri.fsPath
+    });
+  }
 
   const createTemplateExecutor = new LibraryApexGenerateClassExecutor();
   const commandlet = new SfCommandlet(
@@ -64,4 +75,11 @@ export const apexGenerateClass = async () => {
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
+};
+
+export const clearGathererCache = () => {
+  fileNameGatherer = undefined;
+  outputDirGatherer = undefined;
+  metadataTypeGatherer = undefined;
+  templateGatherer = undefined;
 };

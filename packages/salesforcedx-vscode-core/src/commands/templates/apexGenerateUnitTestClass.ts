@@ -8,6 +8,7 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -20,12 +21,30 @@ import { getParamGatherers } from './apexGenerateClass';
 import { LibraryApexGenerateUnitTestClassExecutor } from './executors/LibraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from './metadataTypeConstants';
 
+// if called from a file's context menu, will deliver the clicked file URI and an array of selected files
+// if called from the command pallet args will be empty
 export const apexGenerateUnitTestClass = async (
-  unitFileToCreate?: string,
-  unitFileDirectory?: string,
+  outputDirectory?: string | vscode.Uri,
+  unitFileToCreate?: string | vscode.Uri[],
   template?: 'BasicUnitTest' | 'ApexUnitTest'
 ) => {
   const gatherers = getParamGatherers();
+
+  let outputDirGatherer: ParametersGatherer<any>;
+  if (outputDirectory) {
+    if (typeof outputDirectory === 'string') {
+      outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
+        outputdir: outputDirectory
+      });
+    } else {
+      // must be a vscode.Uri because we were called from the directory context menu
+      outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
+        outputdir: outputDirectory.fsPath
+      });
+    }
+  } else {
+    outputDirGatherer = gatherers.outputDirGatherer;
+  }
 
   // When called from the context menu in the explorer unexpected values are passed in for unitFileToCreate and unitFileDirectory.
   let fileNameGatherer: ParametersGatherer<any>;
@@ -35,15 +54,6 @@ export const apexGenerateUnitTestClass = async (
     });
   } else {
     fileNameGatherer = gatherers.fileNameGatherer;
-  }
-
-  let outputDirGatherer: ParametersGatherer<any>;
-  if (unitFileDirectory && typeof unitFileDirectory === 'string') {
-    outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
-      outputdir: unitFileDirectory
-    });
-  } else {
-    outputDirGatherer = gatherers.outputDirGatherer;
   }
 
   let templateTypeGatherer: ParametersGatherer<any>;
