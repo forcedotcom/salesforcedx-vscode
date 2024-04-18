@@ -35,14 +35,10 @@ let metadataTypeGatherer: ParametersGatherer<any> | undefined;
 let templateGatherer: ParametersGatherer<any> | undefined;
 
 export const getParamGatherers = () => {
-  fileNameGatherer =
-    fileNameGatherer ?? new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
-  outputDirGatherer =
-    outputDirGatherer ?? new SelectOutputDir(APEX_CLASS_DIRECTORY);
-  metadataTypeGatherer =
-    metadataTypeGatherer ?? new MetadataTypeGatherer(APEX_CLASS_TYPE);
-  templateGatherer =
-    templateGatherer ?? new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);
+  fileNameGatherer ??= new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+  outputDirGatherer ??= new SelectOutputDir(APEX_CLASS_DIRECTORY);
+  metadataTypeGatherer ??= new MetadataTypeGatherer(APEX_CLASS_TYPE);
+  templateGatherer ??= new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);
   return {
     fileNameGatherer,
     outputDirGatherer,
