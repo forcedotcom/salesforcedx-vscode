@@ -320,7 +320,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/apex-node": "4.0.5",
+    "@salesforce/apex-node": "4.0.6",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "6.7.4",
     "@salesforce/salesforcedx-utils-vscode": "60.9.0",
