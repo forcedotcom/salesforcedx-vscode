@@ -912,7 +912,7 @@
         "title": "%rename_lightning_component_text%"
       },
       {
-        "command": "vscode.core.services.get.logger",
+        "command": "sf.vscode.core.logger.get.instance",
         "title": "%vscode_core_services_get_logger%"
       }
     ],

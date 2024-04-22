@@ -114,6 +114,7 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
+import { getCoreLoggerService } from './services/getCoreLoggerService';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
@@ -125,7 +126,6 @@ import {
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-import { getCoreLoggerService } from './services/getCoreLoggerService';
 
 const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'

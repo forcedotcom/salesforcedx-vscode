@@ -11,30 +11,36 @@ import {
   FieldValue,
   Fields,
   ILogger,
-  LogLine
+  LogLine,
+  LoggerLevelValue
 } from '@salesforce/vscode-service-provider';
 
 export class CoreLoggerService implements ILogger {
+  private level: LoggerLevelValue = 0;
+  public constructor(private loggerName: string) {
+    this.loggerName = loggerName;
+  }
   getName(): string {
-    throw new Error('Method not implemented.');
+    return this.loggerName;
   }
-  getLevel(): number {
-    throw new Error('Method not implemented.');
+  getLevel(): LoggerLevelValue {
+    return this.level;
   }
-  setLevel(level?: number | undefined): ILogger {
-    throw new Error('Method not implemented.');
+  setLevel(level?: LoggerLevelValue): ILogger {
+    this.level = level ?? 0;
+    return this;
   }
   shouldLog(level: number): boolean {
-    throw new Error('Method not implemented.');
+    return true;
   }
   getBufferedRecords(): LogLine[] {
-    throw new Error('Method not implemented.');
+    return [];
   }
   readLogContentsAsText(): string {
-    throw new Error('Method not implemented.');
+    return '';
   }
   child(name: string, fields?: Fields | undefined): ILogger {
-    throw new Error('Method not implemented.');
+    return new CoreLoggerService(`${this.getName()}.childLogger`);
   }
   addField(name: string, value: FieldValue): ILogger {
     throw new Error('Method not implemented.');
@@ -60,5 +66,5 @@ export class CoreLoggerService implements ILogger {
 }
 
 export const getCoreLoggerService = (loggerName: string): ILogger => {
-  return new CoreLoggerService();
+  return new CoreLoggerService(loggerName);
 };
