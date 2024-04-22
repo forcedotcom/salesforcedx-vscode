@@ -125,6 +125,7 @@ import {
   setUpOrgExpirationWatcher
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+import { getCoreLoggerService } from './services/getCoreLoggerService';
 
 const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
@@ -385,6 +386,11 @@ const registerCommands = (
     renameLightningComponent
   );
 
+  const getCoreLoggerServiceCmd = vscode.commands.registerCommand(
+    'sf.rename.lightning.component',
+    getCoreLoggerService
+  );
+
   return vscode.Disposable.from(
     renameLightningComponentCmd,
     diffFolder,
@@ -443,7 +449,8 @@ const registerCommands = (
     orgLoginWebDevHubCmd,
     orgLogoutAllCmd,
     orgLogoutDefaultCmd,
-    orgOpenCmd
+    orgOpenCmd,
+    getCoreLoggerServiceCmd
   );
 };
 
