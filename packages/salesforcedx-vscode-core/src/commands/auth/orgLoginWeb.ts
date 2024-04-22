@@ -219,18 +219,18 @@ export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams
   }
 }
 
-export async function promptLogOutForProdOrg() {
+export const promptLogOutForProdOrg = async () => {
   await new SfCommandlet(
     new SfWorkspaceChecker(),
     new DemoModePromptGatherer(),
     OrgLogoutAll.withoutShowingChannel()
   ).run();
-}
+};
 
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createOrgLoginWebExecutor(): SfCommandletExecutor<{}> {
+export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();
@@ -239,13 +239,13 @@ export function createOrgLoginWebExecutor(): SfCommandletExecutor<{}> {
     default:
       return new OrgLoginWebExecutor();
   }
-}
+};
 
-export async function orgLoginWeb() {
+export const orgLoginWeb = async () => {
   const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createOrgLoginWebExecutor()
   );
   await commandlet.run();
-}
+};

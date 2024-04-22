@@ -17,7 +17,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 
-export async function openDocumentation() {
+export const openDocumentation = (): void => {
   let docUrl = '';
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -44,5 +44,5 @@ export async function openDocumentation() {
     docUrl = nls.localize('default_doc_url');
   }
 
-  await vscode.env.openExternal(vscode.Uri.parse(docUrl));
-}
+  void vscode.env.openExternal(vscode.Uri.parse(docUrl));
+};

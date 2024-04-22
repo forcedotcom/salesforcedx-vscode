@@ -37,6 +37,6 @@ const commandlet = new SfCommandlet(
   executor
 );
 
-export async function configList() {
+export const configList = async (): Promise<void> => {
   await commandlet.run();
-}
+};
