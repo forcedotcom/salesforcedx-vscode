@@ -8,7 +8,8 @@ lang: en
 Salesforce Code Builder is a web-based integrated development environment that has all the power and flexibility of Visual Studio Code, Salesforce Extensions for VS Code, and Salesforce CLI in your web browser. Code Builder provides a modern developer experience for all developers, regardless of expertise level. Code Builder makes it easy for admins and developers alike to work in the cloud without having to worry about downloading software, setup or your machine specs. With Code Builder, you can work from anywhere. Bookmark your development environment to return to it, or access the link from a different machine. Unlike a desktop IDE, Code Builder saves your work for you without you explicitly having to do so.
 
 Code Builder is development environment that can be spun up quickly, and is custom to your Salesforce org and your specified project. Through Code Builder, access your favorite Salesforce languages and frameworks, such as Apex, SOQL, Visualforce, Aura, and Lightning Web Components. Access rich developer tools such as debuggers for Apex, linting, and so on.
-You can install Code Builder as a managed package in any supported Salesforce org edition.
+
+You can install Code Builder as a managed package in [supported Salesforce editions](cb-cb-setup.md).
 
 ![Code Builder Welcome Page](./images/codebuilder_welcome.png)
 

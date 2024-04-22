@@ -5,9 +5,11 @@ lang: en
 
 Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a supported Salesforce edition.
 
-### Required Editions
+### Supported Editions
 
 **Available in**: Lightning Experience in Enterprise, Performance, Professional, and Unlimited Editions.
+
+Code Builder isn't available in sandboxes. However, during the development lifecycle, you can deploy code from Code Builder in a supported edition to a sandbox.
 
 **Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Code Builder is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
