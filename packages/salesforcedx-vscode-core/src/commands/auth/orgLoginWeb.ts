@@ -185,7 +185,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
     );
 
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -241,7 +241,7 @@ export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   }
 };
 
-export const orgLoginWeb = async () => {
+export const orgLoginWeb = async (): Promise<void> => {
   const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
