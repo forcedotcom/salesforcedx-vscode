@@ -1,3 +1,15 @@
+# 60.10.0 - April 24, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Bump apex-node for dangling comma fix ([PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Bump apex-node for dangling comma fix ([PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
+
 # 60.9.0 - April 17, 2024
 
 ## Added
