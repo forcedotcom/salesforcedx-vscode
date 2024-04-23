@@ -42,7 +42,7 @@ export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   }
 }
 
-export const retrieveManifest = (explorerPath: vscode.Uri): void => {
+export const retrieveManifest = async (explorerPath: vscode.Uri): Promise<void> => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {
@@ -62,5 +62,5 @@ export const retrieveManifest = (explorerPath: vscode.Uri): void => {
     new FilePathGatherer(explorerPath),
     new LibraryRetrieveManifestExecutor()
   );
-  void commandlet.run();
+  await commandlet.run();
 };
