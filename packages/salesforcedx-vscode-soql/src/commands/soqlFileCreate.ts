@@ -6,14 +6,10 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  BUILDER_VIEW_TYPE,
-  EDITOR_VIEW_TYPE,
-  OPEN_WITH_COMMAND
-} from '../constants';
+import { BUILDER_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { telemetryService } from '../telemetry';
 
-export async function soqlOpenNew(): Promise<void> {
+export const soqlOpenNew = (): Promise<void> => {
   telemetryService.sendCommandEvent('soql_builder_open_new', process.hrtime());
 
   if (vscode.workspace) {
@@ -24,10 +20,11 @@ export async function soqlOpenNew(): Promise<void> {
     });
 
     // open with SOQL builder
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
       OPEN_WITH_COMMAND,
       newUri,
       BUILDER_VIEW_TYPE
     );
   }
-}
+  return Promise.resolve();
+};

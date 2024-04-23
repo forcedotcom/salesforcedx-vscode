@@ -22,21 +22,21 @@ export const channelService = ChannelService.getInstance(
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();
 
-function showChannelAndErrorMessage(e: any) {
+const showChannelAndErrorMessage = (e: string) => {
   channelService.appendLine(e);
   const message = nls.localize('error_connection');
-  vscode.window.showErrorMessage(message);
-}
+  void vscode.window.showErrorMessage(message);
+};
 
 export const debouncedShowChannelAndErrorMessage = debounce(
   showChannelAndErrorMessage,
   1000
 );
 
-export async function withSFConnection(
+export const withSFConnection = async (
   f: (conn: Connection) => void,
   showErrorMessage = true
-): Promise<void> {
+): Promise<void> => {
   try {
     const conn = await workspaceContext.getConnection();
     return f(conn as unknown as Connection);
@@ -45,9 +45,9 @@ export async function withSFConnection(
       debouncedShowChannelAndErrorMessage(e);
     }
   }
-}
+};
 
-export async function retrieveSObjects(): Promise<string[]> {
+export const retrieveSObjects = async (): Promise<string[]> => {
   let foundSObjectNames: string[] = [];
   await withSFConnection(async conn => {
     const describeGlobalResult = await conn.describeGlobal$();
@@ -60,32 +60,32 @@ export async function retrieveSObjects(): Promise<string[]> {
   });
 
   return foundSObjectNames;
-}
+};
 
-export async function retrieveSObject(
+export const retrieveSObject = async (
   sobjectName: string
-): Promise<DescribeSObjectResult> {
+): Promise<DescribeSObjectResult> => {
   let name: DescribeSObjectResult;
   await withSFConnection(async conn => {
     name = await conn.describe$(sobjectName);
   });
   return name;
-}
+};
 
-export async function onOrgChangeDefaultHandler(orgInfo: any) {
+export const onOrgChangeDefaultHandler = async (
+  orgInfo: any
+): Promise<void> => {
   const showErrorMessage = !!orgInfo.username;
   await withSFConnection(conn => {
     conn.describeGlobal$.clear();
     conn.describe$.clear();
   }, showErrorMessage);
-}
+};
 
 workspaceContext.onOrgChange(onOrgChangeDefaultHandler);
 
-export function onOrgChange(f: (orgInfo: any) => Promise<void>): void {
+export const onOrgChange = (f: (orgInfo: any) => Promise<void>): void => {
   workspaceContext.onOrgChange(f);
-}
+};
 
-export function isDefaultOrgSet(): boolean {
-  return !!workspaceContext.username;
-}
+export const isDefaultOrgSet = (): boolean => !!workspaceContext.username;

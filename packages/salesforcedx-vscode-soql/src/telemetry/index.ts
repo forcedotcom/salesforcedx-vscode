@@ -10,17 +10,18 @@ import * as vscode from 'vscode';
 
 export const telemetryService = TelemetryService.getInstance();
 
-export async function startTelemetry(
+export const startTelemetry = async (
   extensionContext: vscode.ExtensionContext,
   hrtime: [number, number]
-): Promise<void> {
+): Promise<void> => {
   await telemetryService.initializeService(extensionContext);
   telemetryService.sendExtensionActivationEvent(hrtime);
-}
+};
 
-export async function stopTelemetry(): Promise<void> {
+export const stopTelemetry = (): Promise<void> => {
   telemetryService.sendExtensionDeactivationEvent();
-}
+  return Promise.resolve();
+};
 
 export interface TelemetryModelJson extends JsonMap {
   fields: number;
