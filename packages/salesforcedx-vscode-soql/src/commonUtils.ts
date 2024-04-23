@@ -16,7 +16,7 @@ export const getDocumentName = (document: vscode.TextDocument): string => {
 };
 
 const hasRootWorkspace = (ws: typeof vscode.workspace = vscode.workspace) => {
-  return ws?.workspaceFolders && ws?.workspaceFolders.length > 0;
+  return ws?.workspaceFolders?.length > 0;
 };
 
 const getRootWorkspace = (): vscode.WorkspaceFolder => {
