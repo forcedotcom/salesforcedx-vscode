@@ -5,7 +5,7 @@
 #### salesforcedx-vscode-lwc
 
 - We now support the lightning_UrlAddressable enumeration in LWC components.  Thank you 
-[chiragpaliwal](https://github.com/chiragpaliwal) ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
+[chiragpaliwal](https://github.com/chiragpaliwal) for this new feature. ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
 
 ## Fixed
 
