@@ -4,7 +4,7 @@ lang: en
 ---
 
 ## Workspace Settings
-To edit your workspace settings, select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS). For information about configuring your settings, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
+To edit your workspace settings, select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Settings** > **Settings** (macOS). For information about configuring your settings, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
 
 ## Extension Settings
 We use extension settings to provide access to beta features and other customizations.
