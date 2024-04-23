@@ -4,23 +4,23 @@
 
 #### salesforcedx-vscode-lwc
 
-- We now support the lightning_UrlAddressable enumeration in LWC components.  Thank you 
-[chiragpaliwal](https://github.com/chiragpaliwal) for this new feature. ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
+- We now support the `lightning_UrlAddressable` enumeration type in LWC components. Thank you 
+[Mike Senn](https://github.com/mpsenn) for this contribution. ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
 
 ## Fixed
-
-#### salesforcedx-vscode-apex
-#### salesforcedx-vscode-apex-replay-debugger
-#### salesforcedx-vscode-core
-
-- Bump apex-node for dangling comma fix ([PR #5537](https://github.com/forcedotcom/salesforcedx-vscode/pull/5537),[PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
 
 #### salesforcedx-apex-debugger
 #### salesforcedx-utils
 #### salesforcedx-utils-vscode
 #### salesforcedx-vscode-apex-debugger
 
-- We fixed an issue where the ISV Debugger throws a project configuration error when 'Launch Apex Debugger' button is clicked.  Now you should be able to start the ISV Debugger with no issues.  Let us know about any issues you face with the ISV Debugger, and happy debugging! ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
+- We fixed an issue where the ISV Debugger threw a project configuration error when you clicked the **Launch Apex Debugger** button.  Now you should be able to start the debugger without any issues. We'd love to hear your feedback on the ISV Debugger, and happy debugging! ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
+
+#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-apex-replay-debugger
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5537](https://github.com/forcedotcom/salesforcedx-vscode/pull/5537),[PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
 
 # 60.8.0 - April 10, 2024
 
