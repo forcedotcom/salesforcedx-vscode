@@ -10,29 +10,29 @@ import * as vscode from 'vscode';
 import { channelService } from './sf';
 import { telemetryService } from './telemetry';
 
-export function getDocumentName(document: vscode.TextDocument): string {
+export const getDocumentName = (document: vscode.TextDocument): string => {
   const documentPath = document.uri.fsPath;
   return path.basename(documentPath) || '';
-}
+};
 
-function hasRootWorkspace(ws: typeof vscode.workspace = vscode.workspace) {
-  return ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;
-}
+const hasRootWorkspace = (ws: typeof vscode.workspace = vscode.workspace) => {
+  return ws?.workspaceFolders && ws?.workspaceFolders.length > 0;
+};
 
-function getRootWorkspace(): vscode.WorkspaceFolder {
+const getRootWorkspace = (): vscode.WorkspaceFolder => {
   return hasRootWorkspace()
     ? (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[])[0]
     : ({} as vscode.WorkspaceFolder);
-}
+};
 
-export function getRootWorkspacePath(): string {
+export const getRootWorkspacePath = (): string => {
   return getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '';
-}
+};
 
-export async function trackErrorWithTelemetry(
+export const trackErrorWithTelemetry = (
   problemId: string,
   error: string
-): Promise<void> {
+): Promise<void> => {
   try {
     telemetryService.sendException(
       `soql_error_${problemId.toLocaleLowerCase()}`,
@@ -41,4 +41,5 @@ export async function trackErrorWithTelemetry(
   } catch (err) {
     channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
   }
-}
+  return Promise.resolve();
+};
