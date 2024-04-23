@@ -1,44 +1,26 @@
 # 60.10.0 - April 24, 2024
 
-## Fixed
-
-#### salesforcedx-vscode-apex
-
-- Bump apex-node for dangling comma fix ([PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- Bump apex-node for dangling comma fix ([PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
-
-# 60.9.0 - April 17, 2024
-
 ## Added
 
 #### salesforcedx-vscode-lwc
 
-- Add lightning__UrlAddressable enumeration ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
+- We now support the lightning_UrlAddressable enumeration in LWC components.  Thank you 
+[chiragpaliwal](https://github.com/chiragpaliwal) ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
 
 ## Fixed
 
-#### salesforcedx-apex-debugger
-
-- ISV Debugger no longer throws project configuration error when 'Launch Apex Debugger' button is clicked ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
-
-#### salesforcedx-utils
-
-- ISV Debugger no longer throws project configuration error when 'Launch Apex Debugger' button is clicked ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
-
-#### salesforcedx-utils-vscode
-
-- ISV Debugger no longer throws project configuration error when 'Launch Apex Debugger' button is clicked ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
-
-#### salesforcedx-vscode-apex-debugger
-
-- ISV Debugger no longer throws project configuration error when 'Launch Apex Debugger' button is clicked ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
-
+#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-apex-replay-debugger
 #### salesforcedx-vscode-core
 
-- Bump apex-node apply json dangling comma bug ([PR #5537](https://github.com/forcedotcom/salesforcedx-vscode/pull/5537))
+- Bump apex-node for dangling comma fix ([PR #5537](https://github.com/forcedotcom/salesforcedx-vscode/pull/5537),[PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
+
+#### salesforcedx-apex-debugger
+#### salesforcedx-utils
+#### salesforcedx-utils-vscode
+#### salesforcedx-vscode-apex-debugger
+
+- We fixed an issue where the ISV Debugger throws a project configuration error when 'Launch Apex Debugger' button is clicked.  Now you should be able to start the ISV Debugger with no issues.  Let us know about any issues you face with the ISV Debugger, and happy debugging! ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
 
 # 60.8.0 - April 10, 2024
 
