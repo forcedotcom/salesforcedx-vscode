@@ -20,11 +20,13 @@ import {
   ApexTestProgressValue,
   ApexTestQueueItem,
   ApexTestQueueItemRecord,
-  ApexTestQueueItemStatus
+  ApexTestQueueItemStatus,
+  TestRunIdResult
 } from '../tests/types';
+import { Duration } from '@salesforce/kit';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
-const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
+export const DEFAULT_STREAMING_TIMEOUT_SEC = 14400;
 
 export interface AsyncTestRun {
   runId: string;
@@ -44,9 +46,8 @@ export class StreamingClient {
   // that is exported from jsforce.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private client: any;
-  private conn: Connection;
+  private readonly conn: Connection;
   private progress?: Progress<ApexTestProgressValue>;
-  private apiVersion = '36.0';
   public subscribedTestRunId: string;
   private subscribedTestRunIdDeferred = new Deferred<string>();
   public get subscribedTestRunIdPromise(): Promise<string> {
@@ -74,7 +75,7 @@ export class StreamingClient {
     this.progress = progress;
     const streamUrl = this.getStreamURL(this.conn.instanceUrl);
     this.client = new Client(streamUrl, {
-      timeout: DEFAULT_STREAMING_TIMEOUT_MS
+      timeout: DEFAULT_STREAMING_TIMEOUT_SEC
     });
 
     this.client.on('transport:up', () => {
@@ -166,10 +167,21 @@ export class StreamingClient {
   @elapsedTime()
   public async subscribe(
     action?: () => Promise<string>,
-    testRunId?: string
-  ): Promise<AsyncTestRun> {
+    testRunId?: string,
+    timeout?: Duration
+  ): Promise<AsyncTestRun | TestRunIdResult> {
     return new Promise((subscriptionResolve, subscriptionReject) => {
       let intervalId: NodeJS.Timeout;
+      // start timeout
+      const timeoutId = setTimeout(
+        () => {
+          this.disconnect();
+          clearInterval(intervalId);
+          subscriptionResolve({ testRunId });
+        },
+        timeout?.milliseconds ?? DEFAULT_STREAMING_TIMEOUT_SEC * 1000
+      );
+
       try {
         this.client.subscribe(
           TEST_RESULT_CHANNEL,
@@ -179,6 +191,7 @@ export class StreamingClient {
             if (result) {
               this.disconnect();
               clearInterval(intervalId);
+              clearTimeout(timeoutId);
               subscriptionResolve({
                 runId: this.subscribedTestRunId,
                 queueItem: result
@@ -199,6 +212,7 @@ export class StreamingClient {
                   if (result) {
                     this.disconnect();
                     clearInterval(intervalId);
+                    clearTimeout(timeoutId);
                     subscriptionResolve({
                       runId: this.subscribedTestRunId,
                       queueItem: result
@@ -210,6 +224,7 @@ export class StreamingClient {
             .catch((e) => {
               this.disconnect();
               clearInterval(intervalId);
+              clearTimeout(timeoutId);
               subscriptionReject(e);
             });
         } else {
@@ -222,6 +237,7 @@ export class StreamingClient {
               if (result) {
                 this.disconnect();
                 clearInterval(intervalId);
+                clearTimeout(timeoutId);
                 subscriptionResolve({
                   runId: this.subscribedTestRunId,
                   queueItem: result
@@ -232,6 +248,7 @@ export class StreamingClient {
         }
       } catch (e) {
         this.disconnect();
+        clearTimeout(timeoutId);
         clearInterval(intervalId);
         subscriptionReject(e);
       }

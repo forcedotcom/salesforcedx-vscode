@@ -7,7 +7,7 @@
 
 import { Connection } from '@salesforce/core';
 import { NamespaceInfo } from './types';
-import { QueryResult } from 'jsforce';
+import type { QueryResult } from '@jsforce/jsforce-node';
 
 export function calculatePercentage(dividend: number, divisor: number): string {
   let percentage = '0%';

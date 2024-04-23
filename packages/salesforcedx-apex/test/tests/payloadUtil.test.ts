@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { expect } from 'chai';
 import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { nls } from '../../src/i18n';

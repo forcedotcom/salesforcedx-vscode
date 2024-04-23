@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { StreamingClient } from '../../src/streaming';
 import { Deferred } from '../../src/streaming/streamingClient';
@@ -21,6 +21,7 @@ import {
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import { EventEmitter } from 'events';
+import { Duration } from '@salesforce/kit';
 
 // The type defined in jsforce doesn't have all Faye client methods.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -509,6 +510,32 @@ describe('Streaming API Client', () => {
     assert.calledOnce(mockToolingQuery);
   });
 
+  it('should return the run id, disconnect and clear interval on timeout', async () => {
+    sandboxStub.stub(ApexFayeClient.prototype, 'subscribe');
+    const disconnectStub = sandboxStub.stub(
+      ApexFayeClient.prototype,
+      'disconnect'
+    );
+    const mockRunId = '707xx0000AGQ3jbQQD';
+
+    const setIntervalStub = sandboxStub.stub(global, 'setInterval');
+    setIntervalStub.callsFake((callback: Function) => callback.call(null));
+    const clearIntervalStub = sandboxStub.stub(global, 'clearInterval');
+
+    const streamClient = new StreamingClient(mockConnection);
+    const result = await streamClient.subscribe(
+      () => Promise.resolve(mockRunId),
+      mockRunId,
+      Duration.milliseconds(10)
+    );
+
+    expect(result).to.eql({
+      testRunId: mockRunId
+    });
+    assert.calledOnce(disconnectStub);
+    assert.calledOnce(clearIntervalStub);
+  });
+
   it('should return the results, disconnect and clear interval on test completion', async () => {
     sandboxStub.stub(ApexFayeClient.prototype, 'subscribe');
     const disconnectStub = sandboxStub.stub(
@@ -533,6 +560,7 @@ describe('Streaming API Client', () => {
     const setIntervalStub = sandboxStub.stub(global, 'setInterval');
     setIntervalStub.callsFake((callback: Function) => callback.call(null));
     const clearIntervalStub = sandboxStub.stub(global, 'clearInterval');
+    const clearTimeoutStub = sandboxStub.stub(global, 'clearTimeout');
 
     const streamClient = new StreamingClient(mockConnection);
     const result = await streamClient.subscribe(() =>
@@ -546,5 +574,6 @@ describe('Streaming API Client', () => {
     assert.calledOnce(mockToolingQuery);
     assert.calledOnce(disconnectStub);
     assert.calledOnce(clearIntervalStub);
+    assert.calledOnce(clearTimeoutStub);
   });
 });

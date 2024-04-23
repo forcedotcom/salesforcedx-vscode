@@ -36,6 +36,7 @@ import { JSONStringifyStream, TestResultStringifyStream } from '../streaming';
 import { CodeCoverageStringifyStream } from '../streaming/codeCoverageStringifyStream';
 import { elapsedTime } from '../utils';
 import { isTestResult, isValidApexClassID } from '../narrowing';
+import { Duration } from '@salesforce/kit';
 
 export class TestService {
   private readonly connection: Connection;
@@ -209,14 +210,16 @@ export class TestService {
     codeCoverage = false,
     immediatelyReturn = false,
     progress?: Progress<ApexTestProgressValue>,
-    token?: CancellationToken
+    token?: CancellationToken,
+    timeout?: Duration
   ): Promise<TestResult | TestRunIdResult> {
     return await this.asyncService.runTests(
       options,
       codeCoverage,
       immediatelyReturn,
       progress,
-      token
+      token,
+      timeout
     );
   }
 

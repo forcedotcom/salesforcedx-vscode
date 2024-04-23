@@ -30,8 +30,8 @@ import { calculatePercentage, queryAll } from './utils';
 import * as util from 'util';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { CodeCoverage } from './codeCoverage';
-import { HttpRequest } from 'jsforce';
 import { isValidTestRunID } from '../narrowing';
+import { Duration } from '@salesforce/kit';
 
 const finishedStatuses = [
   ApexTestRunResultStatus.Aborted,
@@ -57,6 +57,7 @@ export class AsyncTests {
    * @param exitOnTestRunId should not wait for test run to complete, return test run id immediately
    * @param progress progress reporter
    * @param token cancellation token
+   * @param timeout Duration to wait before returning a TestRunIdResult
    */
   @elapsedTime()
   public async runTests(
@@ -64,7 +65,8 @@ export class AsyncTests {
     codeCoverage = false,
     exitOnTestRunId = false,
     progress?: Progress<ApexTestProgressValue>,
-    token?: CancellationToken
+    token?: CancellationToken,
+    timeout?: Duration
   ): Promise<TestResult | TestRunIdResult> {
     try {
       const sClient = new StreamingClient(this.connection, progress);
@@ -87,8 +89,17 @@ export class AsyncTests {
       if (token && token.isCancellationRequested) {
         return null;
       }
+      const asyncRunResult = await sClient.subscribe(
+        undefined,
+        testRunId,
+        timeout
+      );
 
-      const asyncRunResult = await sClient.subscribe(undefined, testRunId);
+      if ('testRunId' in asyncRunResult) {
+        // timeout, return the id
+        return { testRunId };
+      }
+
       const runResult = await this.checkRunStatus(asyncRunResult.runId);
       return await this.formatAsyncResults(
         asyncRunResult,
@@ -124,7 +135,9 @@ export class AsyncTests {
       if (runResult.testsComplete) {
         queueItem = await sClient.handler(undefined, testRunId);
       } else {
-        queueItem = (await sClient.subscribe(undefined, testRunId)).queueItem;
+        queueItem = (
+          (await sClient.subscribe(undefined, testRunId)) as AsyncTestRun
+        ).queueItem;
         runResult = await this.checkRunStatus(testRunId);
       }
 
@@ -426,17 +439,14 @@ export class AsyncTests {
   ): () => Promise<string> {
     const requestTestRun = async (): Promise<string> => {
       const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
-      const request: HttpRequest = {
-        method: 'POST',
-        url,
-        body: JSON.stringify(options),
-        headers: { 'content-type': 'application/json' }
-      };
 
       try {
-        const testRunId = (await this.connection.tooling.request(
-          request
-        )) as string;
+        const testRunId = await this.connection.tooling.request<string>({
+          method: 'POST',
+          url,
+          body: JSON.stringify(options),
+          headers: { 'content-type': 'application/json' }
+        });
         return Promise.resolve(testRunId);
       } catch (e) {
         return Promise.reject(e);

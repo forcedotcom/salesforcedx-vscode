@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "Node16",
     "target": "ES2022",
     "lib": ["ES2020", "dom"],
     "sourceMap": true,
     "declaration": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Node16",
     "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "lib",

@@ -8,7 +8,7 @@ import * as fsUtil from '../../src/utils/fileSystemHandler';
 import { createSandbox, SinonStub } from 'sinon';
 import { expect } from 'chai';
 import { join } from 'path';
-import * as fs from 'fs';
+import fs from 'fs';
 
 const sb = createSandbox();
 

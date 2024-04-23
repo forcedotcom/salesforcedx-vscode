@@ -14,17 +14,12 @@ import {
 import { Duration } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
 import {
-  LOG_TIMER_LENGTH_MINUTES,
   LISTENER_ABORTED_ERROR_NAME,
+  LOG_TIMER_LENGTH_MINUTES,
   MAX_NUM_LOGS,
   STREAMING_LOG_TOPIC
 } from './constants';
-import {
-  ApexLogGetOptions,
-  LogQueryResult,
-  LogRecord,
-  LogResult
-} from './types';
+import { ApexLogGetOptions, LogRecord, LogResult } from './types';
 import * as path from 'path';
 import { nls } from '../i18n';
 import { createFile } from '../utils';
@@ -97,7 +92,7 @@ export class LogService {
   public async getLogById(logId: string): Promise<LogResult> {
     const baseUrl = this.connection.tooling._baseUrl();
     const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
-    const response = (await this.connection.tooling.request(url)) as AnyJson;
+    const response = await this.connection.tooling.request<AnyJson>(url);
     return { log: response.toString() || '' };
   }
 
@@ -118,10 +113,8 @@ export class LogService {
       apexLogQuery += ` LIMIT ${numberOfLogs}`;
     }
 
-    const response = (await this.connection.tooling.query(
-      apexLogQuery
-    )) as LogQueryResult;
-    return response.records as LogRecord[];
+    return (await this.connection.tooling.query<LogRecord>(apexLogQuery))
+      .records;
   }
 
   @elapsedTime()

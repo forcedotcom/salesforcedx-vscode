@@ -7,7 +7,7 @@
 import { Connection } from '@salesforce/core';
 import { JsonCollection } from '@salesforce/ts-types';
 import { xmlCharMap } from './types';
-import { HttpRequest } from 'jsforce';
+import type { HttpRequest } from '@jsforce/jsforce-node';
 
 export async function refreshAuth(
   connection: Connection

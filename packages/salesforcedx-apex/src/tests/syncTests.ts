@@ -19,7 +19,7 @@ import {
   TestResult
 } from './types';
 import { calculatePercentage } from './utils';
-import { HttpRequest } from 'jsforce';
+import type { HttpRequest } from '@jsforce/jsforce-node';
 import { elapsedTime } from '../utils/elapsedTime';
 
 export class SyncTests {

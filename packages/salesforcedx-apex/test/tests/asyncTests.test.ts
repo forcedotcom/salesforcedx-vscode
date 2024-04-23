@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as sinon from 'sinon';
 import { Connection, Logger } from '@salesforce/core';
 import { elapsedTime } from '../../src/utils';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { assert, expect } from 'chai';
-import {
+import sinon, {
   assert as sinonAssert,
   createSandbox,
   SinonSandbox,
@@ -57,8 +56,8 @@ import {
   skippedTestData
 } from '../testData';
 import { join } from 'path';
-import * as stream from 'stream';
-import * as fs from 'fs';
+import stream from 'stream';
+import fs from 'fs';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';

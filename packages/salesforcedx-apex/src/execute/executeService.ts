@@ -7,19 +7,19 @@
 import { Connection } from '@salesforce/core';
 import { existsSync, readFileSync } from 'fs';
 import {
-  ExecuteAnonymousResponse,
+  action,
   ApexExecuteOptions,
-  SoapResponse,
-  soapEnv,
+  ExecuteAnonymousResponse,
   soapBody,
+  soapEnv,
   soapHeader,
-  action
+  SoapResponse
 } from './types';
 import { nls } from '../i18n';
 import { refreshAuth } from '../utils';
 import { encodeBody } from './utils';
 import * as readline from 'readline';
-import { HttpRequest } from 'jsforce';
+import type { HttpRequest } from '@jsforce/jsforce-node';
 import { elapsedTime } from '../utils/elapsedTime';
 
 export class ExecuteService {
@@ -121,14 +121,12 @@ export class ExecuteService {
       'content-type': 'text/xml',
       soapaction: action
     };
-    const request: HttpRequest = {
+    return {
       method: 'POST',
       url: postEndpoint,
       body,
       headers: requestHeaders
     };
-
-    return request;
   }
 
   @elapsedTime()
@@ -170,6 +168,6 @@ export class ExecuteService {
   public async connectionRequest(
     requestData: HttpRequest
   ): Promise<SoapResponse> {
-    return (await this.connection.request(requestData)) as SoapResponse;
+    return this.connection.request(requestData);
   }
 }
