@@ -387,7 +387,7 @@ const registerCommands = (
   );
 
   const getCoreLoggerServiceCmd = vscode.commands.registerCommand(
-    'sf.rename.lightning.component',
+    'sf.vscode.core.logger.get.instance',
     getCoreLoggerService
   );
 

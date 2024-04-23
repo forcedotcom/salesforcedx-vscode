@@ -611,6 +611,10 @@
         {
           "command": "sf.metadata.view.component.refresh",
           "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.vscode.core.logger.get.instance",
+          "when": "false"
         }
       ]
     },
