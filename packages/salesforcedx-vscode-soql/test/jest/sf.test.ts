@@ -22,7 +22,7 @@ describe('sf utils', () => {
   });
 
   describe('withSFConnection', () => {
-    function run(showErrorMessage: boolean) {
+    const run = (showErrorMessage: boolean) => {
       it(`should ${
         showErrorMessage ? '' : 'not '
       } show error message when showErrorMessage=${showErrorMessage}`, async () => {
@@ -32,14 +32,14 @@ describe('sf utils', () => {
           showErrorMessage ? 1 : 0
         );
       });
-    }
+    };
 
     run(true);
     run(false);
   });
 
   describe('onOrgChangeDefaultHandler', () => {
-    function run(orgInfo: OrgInfo) {
+    const run = (orgInfo: OrgInfo) => {
       const isDefaultOrgSet = !!orgInfo.username;
       const maybeNot = isDefaultOrgSet ? '' : 'not ';
 
@@ -50,7 +50,7 @@ describe('sf utils', () => {
           isDefaultOrgSet ? 1 : 0
         );
       });
-    }
+    };
 
     run({ username: 'x' } as OrgInfo);
     run({ username: undefined } as OrgInfo);
