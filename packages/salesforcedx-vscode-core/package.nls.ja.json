@@ -72,5 +72,6 @@
   "view_local_changes_text": "SFDX: ローカルの変更を表示",
   "view_remote_changes_text": "SFDX: デフォルトのスクラッチ組織内の変更を表示",
   "visualforce_generate_component_text": "SFDX: Visualforce コンポーネントを作成",
-  "visualforce_generate_page_text": "SFDX: Visualforce ページを作成"
+  "visualforce_generate_page_text": "SFDX: Visualforce ページを作成",
+  "vscode_core_services_get_logger": "salesforcedx-vscode-core ロガーサービスを取得する"
 }
