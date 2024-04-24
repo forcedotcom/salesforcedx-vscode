@@ -31,6 +31,7 @@
     "@salesforce/source-deploy-retrieve": "10.3.3",
     "@salesforce/templates": "^60.1.0",
     "@salesforce/ts-types": "2.0.9",
+    "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -610,6 +611,10 @@
         {
           "command": "sf.metadata.view.component.refresh",
           "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.vscode.core.logger.get.instance",
+          "when": "false"
         }
       ]
     },
@@ -909,6 +914,10 @@
       {
         "command": "sf.rename.lightning.component",
         "title": "%rename_lightning_component_text%"
+      },
+      {
+        "command": "sf.vscode.core.logger.get.instance",
+        "title": "%vscode_core_services_get_logger%"
       }
     ],
     "configuration": {
