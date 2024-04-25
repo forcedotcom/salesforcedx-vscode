@@ -121,6 +121,6 @@ const sfPackageInstallCommandlet = new SfCommandlet(
   new PackageInstallExecutor()
 );
 
-export async function packageInstall() {
+export const packageInstall = async (): Promise<void> => {
   await sfPackageInstallCommandlet.run();
-}
+};

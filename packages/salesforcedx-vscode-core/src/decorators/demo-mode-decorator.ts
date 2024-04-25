@@ -10,7 +10,7 @@ import { nls } from '../../src/messages';
 
 let demoModeStatusBar: StatusBarItem;
 
-export function showDemoMode() {
+export const showDemoMode = () => {
   if (!demoModeStatusBar) {
     demoModeStatusBar = window.createStatusBarItem(
       StatusBarAlignment.Right,
@@ -20,4 +20,4 @@ export function showDemoMode() {
     demoModeStatusBar.tooltip = nls.localize('demo_mode_status_tooltip');
     demoModeStatusBar.show();
   }
-}
+};
