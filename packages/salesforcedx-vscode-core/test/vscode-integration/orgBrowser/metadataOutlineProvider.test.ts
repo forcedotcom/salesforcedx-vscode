@@ -609,15 +609,15 @@ describe('load folder node when folder-type metadata type is selected', () => {
 });
 
 // Can't compare nodes w/ deep.equal because of circular parent node reference
-function compareNodes(actual: BrowserNode[], expected: any[]) {
+const compareNodes = (actual: BrowserNode[], expected: any[]) => {
   expected.forEach((node, index) => {
     Object.keys(node).forEach(key => {
       expect((actual[index] as any)[key]).to.equal(node[key]);
     });
   });
-}
+};
 
-function getExpected(label1: string, label2: string, nodetype: NodeType) {
+const getExpected = (label1: string, label2: string, nodetype: NodeType) => {
   return [
     {
       label: label1,
@@ -630,9 +630,9 @@ function getExpected(label1: string, label2: string, nodetype: NodeType) {
       type: nodetype
     }
   ];
-}
+};
 
-function getMetadataObject(label1: string) {
+const getMetadataObject = (label1: string) => {
   return {
     xmlName: label1,
     directoryName: 'testDirectory',
@@ -641,7 +641,7 @@ function getMetadataObject(label1: string) {
     metaFile: false,
     label: label1
   };
-}
+};
 
 describe('parse errors and throw with appropriate message', () => {
   it('should return default message when given a dirty json', async () => {

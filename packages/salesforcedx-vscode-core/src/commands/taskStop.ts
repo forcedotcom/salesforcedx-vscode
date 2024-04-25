@@ -7,7 +7,7 @@
 
 import { Task, taskViewService } from '../statuses';
 
-export function taskStop(task: Task) {
+export const taskStop = (task: Task): void => {
   if (task instanceof Task) {
     // See https://github.com/Microsoft/vscode-docs/blob/master/docs/extensionAPI/extension-points.md#contributesmenus
     // For best case inference efforts on what to pass in
@@ -15,4 +15,4 @@ export function taskStop(task: Task) {
   } else {
     taskViewService.terminateTask();
   }
-}
+};
