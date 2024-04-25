@@ -15,7 +15,7 @@ import { nls } from './../messages';
 
 let statusBarItem: StatusBarItem;
 
-export function showTraceFlagExpiration(expirationDate: Date) {
+export const showTraceFlagExpiration = (expirationDate: Date): void => {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 40);
   }
@@ -32,12 +32,12 @@ export function showTraceFlagExpiration(expirationDate: Date) {
     expirationDate.toLocaleDateString(undefined, optionMMddYYYY)
   );
   statusBarItem.show();
-}
+};
 
-export function hideTraceFlagExpiration() {
+export const hideTraceFlagExpiration = (): void => {
   statusBarItem.hide();
-}
+};
 
-export function disposeTraceFlagExpiration() {
+export const disposeTraceFlagExpiration = (): void => {
   statusBarItem.dispose();
-}
+};

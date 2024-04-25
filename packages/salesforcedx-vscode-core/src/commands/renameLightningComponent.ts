@@ -55,7 +55,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
         return true;
       } catch (err) {
         const errorMessage = nls.localize(RENAME_ERROR);
-        notificationService.showErrorMessage(errorMessage);
+        void notificationService.showErrorMessage(errorMessage);
         throw err;
       }
     }
@@ -63,7 +63,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
   }
 }
 
-export async function renameLightningComponent(sourceUri: vscode.Uri) {
+export const renameLightningComponent = (sourceUri: vscode.Uri): void => {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
     const commandlet = new SfCommandlet(
@@ -71,9 +71,10 @@ export async function renameLightningComponent(sourceUri: vscode.Uri) {
       new GetComponentName(sourceFsPath),
       new RenameLwcComponentExecutor(sourceFsPath)
     );
-    await commandlet.run();
+    void commandlet.run();
   }
-}
+};
+
 export interface ComponentName {
   name?: string;
 }
@@ -97,19 +98,22 @@ export class GetComponentName implements ParametersGatherer<ComponentName> {
   }
 }
 
-export async function inputGuard(
+export const inputGuard = async (
   sourceFsPath: string,
   newName: string
-): Promise<string> {
+): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
     newName = newName.charAt(0).toLowerCase() + newName.slice(1);
   }
   CreateUtil.checkInputs(newName);
   return newName;
-}
+};
 
-async function renameComponent(sourceFsPath: string, newName: string) {
+const renameComponent = async (
+  sourceFsPath: string,
+  newName: string
+): Promise<void> => {
   const componentPath = await getComponentPath(sourceFsPath);
   const componentName = getComponentName(componentPath);
   await checkForDuplicateName(componentPath, newName);
@@ -140,10 +144,12 @@ async function renameComponent(sourceFsPath: string, newName: string) {
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
   await fs.promises.rename(componentPath, newComponentPath);
-  notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
-}
+  void notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
+};
 
-export function getLightningComponentDirectory(sourceFsPath: string): string {
+export const getLightningComponentDirectory = (
+  sourceFsPath: string
+): string => {
   const directories = sourceFsPath.split(path.sep);
   const rootDir = directories.includes(LWC) ? LWC : AURA;
   const lwcDirectoryIndex = directories.lastIndexOf(rootDir);
@@ -151,32 +157,34 @@ export function getLightningComponentDirectory(sourceFsPath: string): string {
     directories.splice(lwcDirectoryIndex + 2);
   }
   return directories.join(path.sep);
-}
+};
 
-async function getComponentPath(sourceFsPath: string): Promise<string> {
+const getComponentPath = async (sourceFsPath: string): Promise<string> => {
   const stats = await fs.promises.stat(sourceFsPath);
   let dirname = stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
   dirname = getLightningComponentDirectory(dirname);
   return dirname;
-}
+};
 
-function getComponentName(componentPath: string): string {
-  return path.basename(componentPath);
-}
+const getComponentName = (componentPath: string): string =>
+  path.basename(componentPath);
 
-async function checkForDuplicateName(componentPath: string, newName: string) {
+const checkForDuplicateName = async (
+  componentPath: string,
+  newName: string
+) => {
   const isNameDuplicate = await isDuplicate(componentPath, newName);
   if (isNameDuplicate) {
     const errorMessage = nls.localize(RENAME_INPUT_DUP_ERROR);
-    notificationService.showErrorMessage(errorMessage);
+    void notificationService.showErrorMessage(errorMessage);
     throw new Error(format(errorMessage));
   }
-}
+};
 
-async function isDuplicate(
+const isDuplicate = async (
   componentPath: string,
   newName: string
-): Promise<boolean> {
+): Promise<boolean> => {
   // A LWC component can't share the same name as a Aura component
   const componentPathDirName = path.dirname(componentPath);
   let lwcPath: string;
@@ -193,16 +201,16 @@ async function isDuplicate(
   return (
     allLwcComponents.includes(newName) || allAuraComponents.includes(newName)
   );
-}
+};
 
 /**
  * check duplicate name under current component directory and __tests__ directory to avoid file loss
  */
-async function checkForDuplicateInComponent(
+const checkForDuplicateInComponent = async (
   componentPath: string,
   newName: string,
   items: string[]
-) {
+) => {
   let allFiles = items;
   if (items.includes(TEST_FOLDER)) {
     const testFiles = await fs.promises.readdir(
@@ -213,41 +221,31 @@ async function checkForDuplicateInComponent(
   const allFileNames = getOnlyFileNames(allFiles);
   if (allFileNames.includes(newName)) {
     const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
-    notificationService.showErrorMessage(errorMessage);
+    void notificationService.showErrorMessage(errorMessage);
     throw new Error(format(errorMessage));
   }
-}
+};
 
-function getOnlyFileNames(allFiles: string[]) {
+const getOnlyFileNames = (allFiles: string[]) => {
   return allFiles.map(file => {
-    const split = file ? file.split('.') : '';
-    if (split.length <= 1) {
-      return '';
-    } else {
-      return split[0];
-    }
+    const split = file?.split('.');
+    return split?.length > 1 ? split[0] : '';
   });
-}
+};
 
-export function isNameMatch(
+export const isNameMatch = (
   item: string,
   componentName: string,
   componentPath: string
-): boolean {
+): boolean => {
   const isLwc = isLwcComponent(componentPath);
-  let regularExp: RegExp;
-  if (isLwc) {
-    regularExp = new RegExp(
-      `${componentName}\\.(html|js|js-meta.xml|css|svg|test.js)`
-    );
-  } else {
-    regularExp = new RegExp(
-      `${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`
-    );
-  }
+  const regularExp = isLwc
+    ? new RegExp(`${componentName}\\.(html|js|js-meta.xml|css|svg|test.js)`)
+    : new RegExp(
+        `${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`
+      );
   return Boolean(item.match(regularExp));
-}
+};
 
-function isLwcComponent(componentPath: string): boolean {
-  return path.basename(path.dirname(componentPath)) === LWC;
-}
+const isLwcComponent = (componentPath: string): boolean =>
+  path.basename(path.dirname(componentPath)) === LWC;

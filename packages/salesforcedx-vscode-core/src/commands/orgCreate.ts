@@ -191,11 +191,11 @@ const parameterGatherer = new CompositeParametersGatherer(
   new AliasGatherer()
 );
 
-export async function orgCreate() {
+export const orgCreate = (): void => {
   const commandlet = new SfCommandlet(
     preconditionChecker,
     parameterGatherer,
     new OrgCreateExecutor()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

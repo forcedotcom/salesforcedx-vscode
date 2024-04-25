@@ -13,25 +13,21 @@ import { workspace, WorkspaceFolder } from 'vscode';
  * work from the mock information you pass in.
  */
 
-export function stubRootWorkspace(path: string): SinonStub {
+export const stubRootWorkspace = (path: string): SinonStub => {
   return stubWorkspace(generateMockRootWorkspace(path));
-}
+};
 
-export function stubWorkspace(stubObj: WorkspaceFolder[]): SinonStub {
-  return stub(workspace, 'workspaceFolders').get(
-    function getWorkspaceFolders() {
-      return stubObj;
-    }
-  );
-}
+export const stubWorkspace = (stubObj: WorkspaceFolder[]): SinonStub => {
+  return stub(workspace, 'workspaceFolders').get(() => stubObj);
+};
 
-export function generateMockRootWorkspace(path: string): WorkspaceFolder[] {
-  return ([
+export const generateMockRootWorkspace = (path: string): WorkspaceFolder[] => {
+  return [
     {
       name: 'test',
       uri: {
         fsPath: path
       }
     }
-  ] as unknown) as WorkspaceFolder[];
-}
+  ] as unknown as WorkspaceFolder[];
+};

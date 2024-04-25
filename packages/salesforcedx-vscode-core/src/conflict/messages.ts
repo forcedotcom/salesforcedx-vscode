@@ -7,9 +7,9 @@
 import { SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { ConflictDetectionMessages } from '../commands/util';
 
-export function getConflictMessagesFor(
+export const getConflictMessagesFor = (
   logName: string
-): ConflictDetectionMessages | undefined {
+): ConflictDetectionMessages | undefined => {
   const warningMessageKey = 'conflict_detect_conflicts_during_deploy';
   const messagesByLogName: Map<string, ConflictDetectionMessages> = new Map([
     [
@@ -53,4 +53,4 @@ export function getConflictMessagesFor(
     throw new Error(`No conflict messages found for ${logName}`);
   }
   return conflictMessages;
-}
+};

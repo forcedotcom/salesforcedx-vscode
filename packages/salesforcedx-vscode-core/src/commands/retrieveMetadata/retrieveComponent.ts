@@ -11,10 +11,10 @@ import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
 import { RetrieveMetadataTrigger } from './retrieveMetadataTrigger';
 
-export async function retrieveComponent(
+export const retrieveComponent = (
   trigger: RetrieveMetadataTrigger,
   openAfterRetrieve: boolean = false
-) {
+): void => {
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
@@ -22,5 +22,5 @@ export async function retrieveComponent(
     new LibraryRetrieveSourcePathExecutor(openAfterRetrieve),
     new OverwriteComponentPrompt()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

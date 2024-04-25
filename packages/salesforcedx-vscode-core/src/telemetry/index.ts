@@ -11,7 +11,7 @@ import { nls } from '../messages';
 
 export const telemetryService = TelemetryService.getInstance();
 
-export function showTelemetryMessage(extensionContext: ExtensionContext) {
+export const showTelemetryMessage = async (extensionContext: ExtensionContext) => {
   const messageAlreadyPrompted = extensionContext.globalState.get(
     TELEMETRY_GLOBAL_VALUE
   );
@@ -22,17 +22,17 @@ export function showTelemetryMessage(extensionContext: ExtensionContext) {
       'telemetry_legal_dialog_message',
       TELEMETRY_OPT_OUT_LINK
     );
-    window
+    await window
       .showInformationMessage(showMessage, showButtonText)
       .then(selection => {
         // Open disable telemetry link
         if (selection && selection === showButtonText) {
-          commands.executeCommand(
+          void commands.executeCommand(
             'vscode.open',
             Uri.parse(TELEMETRY_OPT_OUT_LINK)
           );
         }
       });
-    extensionContext.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
+    void extensionContext.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
-}
+};

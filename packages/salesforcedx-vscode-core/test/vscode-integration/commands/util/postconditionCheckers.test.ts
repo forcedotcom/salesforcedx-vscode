@@ -416,7 +416,7 @@ describe('Postcondition Checkers', () => {
       });
     });
 
-    async function doPrompt(components: LocalComponent[], actions: any[]) {
+    const doPrompt = async (components: LocalComponent[], actions: any[]) => {
       components.forEach((component, index) => {
         pathExists(true, component, '.t-meta.xml');
         if (index < actions.length) {
@@ -428,9 +428,9 @@ describe('Postcondition Checkers', () => {
         type: 'CONTINUE',
         data: components
       });
-    }
+    };
 
-    function generateComponents(count: number) {
+    const generateComponents = (count: number) => {
       const data = [];
       for (let i = 1; i <= count; i++) {
         data.push({
@@ -441,19 +441,19 @@ describe('Postcondition Checkers', () => {
         });
       }
       return data;
-    }
+    };
 
-    function pathExists(
+    const pathExists = (
       value: boolean,
       forComponent: LocalComponent,
       withExtension: string
-    ) {
+    ) => {
       const path = join(
         workspaceUtils.getRootWorkspacePath(),
         `package/tests/${forComponent.fileName}${withExtension}`
       );
       existsStub.withArgs(path).returns(value);
-    }
+    };
   });
 
   describe('TimestampConflictChecker', () => {

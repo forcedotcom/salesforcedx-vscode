@@ -108,13 +108,13 @@ export class MockExtensionContext implements ExtensionContext {
     this.workspaceState = new MockMemento(false);
     this.secrets = {
       onDidChange: {} as any,
-      get(key: string): Thenable<string | undefined> {
+      get: (key: string): Thenable<string | undefined> => {
         return Promise.resolve(undefined);
       },
-      store(key: string, value: string): Thenable<void> {
+      store: (key: string, value: string): Thenable<void> => {
         return Promise.resolve();
       },
-      delete(key: string): Thenable<void> {
+      delete: (key: string): Thenable<void> => {
         return Promise.resolve();
       }
     };

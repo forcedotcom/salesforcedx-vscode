@@ -287,6 +287,5 @@ describe('Project Generate Manifest', () => {
   });
 });
 
-function generateRandomSuffix() {
-  return (Date.now() + Math.round(Math.random() * 1000)).toString();
-}
+const generateRandomSuffix = () =>
+  (Date.now() + Math.round(Math.random() * 1000)).toString();

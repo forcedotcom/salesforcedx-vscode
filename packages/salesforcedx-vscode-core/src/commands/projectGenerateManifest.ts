@@ -60,10 +60,10 @@ export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> 
   }
 }
 
-export async function projectGenerateManifest(
+export const projectGenerateManifest =  async (
   sourceUri: vscode.Uri,
   uris: vscode.Uri[] | undefined
-) {
+): Promise<void> => {
   if (!uris || uris.length < 1) {
     uris = [];
     uris.push(sourceUri);
@@ -82,18 +82,18 @@ export async function projectGenerateManifest(
     );
     await commandlet.run();
   }
-}
+};
 
-async function openUntitledDocument(packageXML: string) {
+const openUntitledDocument = async (packageXML: string): Promise<void> => {
   const newManifest = await vscode.workspace.openTextDocument({
     content: packageXML,
     language: 'xml'
   });
 
-  vscode.window.showTextDocument(newManifest);
-}
+  void vscode.window.showTextDocument(newManifest);
+};
 
-function saveDocument(response: string, packageXML: string) {
+const saveDocument = async (response: string, packageXML: string): Promise<void> => {
   const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
   const manifestPath = join(workspaceUtils.getRootWorkspacePath(), 'manifest');
@@ -104,22 +104,21 @@ function saveDocument(response: string, packageXML: string) {
   checkForDuplicateManifest(saveLocation, fileName);
 
   fs.writeFileSync(saveLocation, packageXML);
-  vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
-    vscode.window.showTextDocument(newManifest);
+  await vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
+    void vscode.window.showTextDocument(newManifest);
   });
-}
+};
 
-function checkForDuplicateManifest(saveLocation: string, fileName: string) {
+const checkForDuplicateManifest = (saveLocation: string, fileName: string): void => {
   if (fs.existsSync(saveLocation)) {
-    vscode.window.showErrorMessage(
+    void vscode.window.showErrorMessage(
       format(nls.localize('manifest_input_dupe_error'), fileName)
     );
     throw new Error(
       format(nls.localize('manifest_input_dupe_error'), fileName)
     );
   }
-}
+};
 
-function appendExtension(input: string) {
-  return parse(input).name?.concat('.xml');
-}
+const appendExtension = (input: string): string =>
+  parse(input).name?.concat('.xml');

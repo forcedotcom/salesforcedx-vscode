@@ -266,16 +266,16 @@ describe('GenerateFauxClasses', () => {
       }
     });
 
-    async function doExecute(
+    const doExecute = async (
       source: SObjectRefreshSource,
       category?: SObjectCategory
-    ) {
+    ) => {
       const executor = new RefreshSObjectsExecutor();
       await executor.execute({
         type: 'CONTINUE',
         data: { category: category || SObjectCategory.ALL, source }
       });
-    }
+    };
   });
 
   describe('SObjectRefreshGatherer', () => {

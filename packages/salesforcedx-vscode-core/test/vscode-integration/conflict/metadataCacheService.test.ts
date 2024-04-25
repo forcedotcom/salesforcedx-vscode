@@ -269,12 +269,14 @@ describe('Metadata Cache', () => {
     });
   });
 
-  async function handleCacheResults(
+  const handleCacheResults = (
     username: string,
     cache?: MetadataCacheResult
-  ): Promise<void> {}
+  ): Promise<void> => {
+    return Promise.resolve();
+  };
 
-  function loadMockCache(cachePath: string): RetrieveResult {
+  const loadMockCache = (cachePath: string): RetrieveResult => {
     const props: FileProperties[] = [
       {
         id: '1',
@@ -302,7 +304,7 @@ describe('Metadata Cache', () => {
     const cacheComps = ComponentSet.fromSource(cachePath);
     const results = new RetrieveResult(response, cacheComps);
     return results;
-  }
+  };
 
   describe('Static Methods', () => {
     const compOne = {

@@ -117,7 +117,7 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export async function getUserId(projectPath: string): Promise<string> {
+export const getUserId = async (projectPath: string): Promise<string> => {
   const targetOrgOrAlias = await workspaceContextUtils.getTargetOrgOrAlias();
   if (!targetOrgOrAlias) {
     const err = nls.localize('error_no_target_org');
@@ -144,7 +144,7 @@ export async function getUserId(projectPath: string): Promise<string> {
   } catch (e) {
     return Promise.reject(result);
   }
-}
+};
 
 export class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
@@ -266,7 +266,7 @@ export class QueryTraceFlag extends SfCommandletExecutor<{}> {
   }
 }
 
-export async function startApexDebugLogging() {
+export const startApexDebugLogging = async (): Promise<void> => {
   const executor = new StartApexDebugLoggingExecutor();
   const commandlet = new SfCommandlet(
     workspaceChecker,
@@ -274,4 +274,4 @@ export async function startApexDebugLogging() {
     executor
   );
   await commandlet.run();
-}
+};

@@ -100,7 +100,7 @@ export class ConfirmationAndSourcePathGatherer
   }
 }
 
-export async function deleteSource(sourceUri: vscode.Uri) {
+export const deleteSource = async (sourceUri: vscode.Uri) => {
   let isSourceTracked: boolean = false;
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   if (orgType === OrgType.SourceTracked) {
@@ -115,7 +115,7 @@ export async function deleteSource(sourceUri: vscode.Uri) {
         'delete_source_select_file_or_directory'
       );
       telemetryService.sendException('project_delete_source', errorMessage);
-      notificationService.showErrorMessage(errorMessage);
+      void notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -128,4 +128,4 @@ export async function deleteSource(sourceUri: vscode.Uri) {
     new DeleteSourceExecutor(isSourceTracked)
   );
   await commandlet.run();
-}
+};

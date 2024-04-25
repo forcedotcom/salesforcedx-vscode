@@ -43,7 +43,7 @@ export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   }
 }
 
-export async function deployManifest(manifestUri: vscode.Uri) {
+export const deployManifest = async (manifestUri: vscode.Uri) => {
   if (!manifestUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {
@@ -51,7 +51,7 @@ export async function deployManifest(manifestUri: vscode.Uri) {
     } else {
       const errorMessage = nls.localize('deploy_select_manifest');
       telemetryService.sendException('deploy_with_manifest', errorMessage);
-      notificationService.showErrorMessage(errorMessage);
+      void notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
       return;
@@ -69,4 +69,4 @@ export async function deployManifest(manifestUri: vscode.Uri) {
     );
     await commandlet.run();
   }
-}
+};

@@ -7,7 +7,7 @@
 
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 
-export function createComponentCount(components: Iterable<MetadataComponent>) {
+export const createComponentCount = (components: Iterable<MetadataComponent>) => {
   const quantities: { [type: string]: number } = {};
   for (const component of components) {
     const { name: typeName } = component.type;
@@ -18,4 +18,4 @@ export function createComponentCount(components: Iterable<MetadataComponent>) {
     type,
     quantity: quantities[type]
   }));
-}
+};

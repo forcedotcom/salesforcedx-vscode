@@ -54,7 +54,7 @@ const metadataTypeGatherer = new MetadataTypeGatherer(
   VISUALFORCE_COMPONENT_TYPE
 );
 
-export async function visualforceGenerateComponent() {
+export const visualforceGenerateComponent = (): void => {
   const createTemplateExecutor =
     new LibraryVisualforceGenerateComponentExecutor();
   const commandlet = new SfCommandlet(
@@ -67,5 +67,5 @@ export async function visualforceGenerateComponent() {
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

@@ -137,7 +137,7 @@ export class DeployQueue {
   }
 }
 
-export async function registerPushOrDeployOnSave() {
+export const registerPushOrDeployOnSave = () => {
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
       const documentUri = textDocument.uri;
@@ -149,28 +149,25 @@ export async function registerPushOrDeployOnSave() {
       }
     }
   );
-}
+};
 
-function displayError(message: string) {
-  notificationService.showErrorMessage(message);
+const displayError = (message: string) => {
+  void notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
   telemetryService.sendException(
     'push_deploy_on_save_queue',
     'DeployOnSaveError: Documents were queued but a deployment was not triggered'
   );
-}
+};
 
-async function ignorePath(documentPath: string) {
-  return (
-    fileShouldNotBeDeployed(documentPath) ||
-    !(await pathIsInPackageDirectory(documentPath))
-  );
-}
+const ignorePath = async (documentPath: string): Promise<boolean> =>
+  fileShouldNotBeDeployed(documentPath) ||
+  !(await pathIsInPackageDirectory(documentPath));
 
-export async function pathIsInPackageDirectory(
+export const pathIsInPackageDirectory = async (
   documentPath: string
-): Promise<boolean> {
+): Promise<boolean> => {
   try {
     return await SalesforcePackageDirectories.isInPackageDirectory(
       documentPath
@@ -191,20 +188,16 @@ export async function pathIsInPackageDirectory(
     displayError(error.message);
     throw error;
   }
-}
+};
 
-export function fileShouldNotBeDeployed(fsPath: string) {
-  return isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
-}
+export const fileShouldNotBeDeployed = (fsPath: string): boolean =>
+  isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 
-function isDotFile(fsPath: string) {
-  return path.basename(fsPath).startsWith('.');
-}
+const isDotFile = (fsPath: string): boolean =>
+  path.basename(fsPath).startsWith('.');
 
-function isSoql(fsPath: string) {
-  return path.basename(fsPath).endsWith('.soql');
-}
+const isSoql = (fsPath: string): boolean =>
+  path.basename(fsPath).endsWith('.soql');
 
-function isAnonApex(fsPath: string) {
-  return path.basename(fsPath).endsWith('.apex');
-}
+const isAnonApex = (fsPath: string): boolean =>
+  path.basename(fsPath).endsWith('.apex');
