@@ -79,5 +79,6 @@
   "view_local_changes_text": "SFDX: View Local Changes",
   "view_remote_changes_text": "SFDX: View Changes in Default Org",
   "visualforce_generate_component_text": "SFDX: Create Visualforce Component",
-  "visualforce_generate_page_text": "SFDX: Create Visualforce Page"
+  "visualforce_generate_page_text": "SFDX: Create Visualforce Page",
+  "vscode_core_services_get_logger": "Get salesforcedx-vscode-core logger service"
 }
