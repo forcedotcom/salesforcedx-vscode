@@ -97,9 +97,7 @@ export class TelemetryService {
    * @param extensionName extension name
    */
   public static getInstance(extensionName?: string) {
-    return TelemetryServiceProvider.getInstance(
-      extensionName ?? 'salesforcedx-vscode-core'
-    );
+    return TelemetryServiceProvider.getInstance(extensionName);
   }
   /**
    * Cached promise to check if CLI telemetry config is enabled
