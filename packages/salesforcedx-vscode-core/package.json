@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.9.0",
+  "version": "60.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,12 +25,13 @@
   ],
   "dependencies": {
     "@salesforce/core": "6.7.4",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "60.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.9.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "60.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.10.0",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "10.3.3",
     "@salesforce/templates": "^60.1.0",
     "@salesforce/ts-types": "2.0.9",
+    "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -40,7 +41,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.10.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -610,6 +611,10 @@
         {
           "command": "sf.metadata.view.component.refresh",
           "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.vscode.core.logger.get.instance",
+          "when": "false"
         }
       ]
     },
@@ -909,6 +914,10 @@
       {
         "command": "sf.rename.lightning.component",
         "title": "%rename_lightning_component_text%"
+      },
+      {
+        "command": "sf.vscode.core.logger.get.instance",
+        "title": "%vscode_core_services_get_logger%"
       }
     ],
     "configuration": {

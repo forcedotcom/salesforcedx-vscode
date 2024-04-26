@@ -12,12 +12,12 @@ export interface ExtendedQueryData extends QueryResult<JsonMap> {
   columnData: ColumnData;
 }
 
-export function extendQueryData(
+export const extendQueryData = (
   queryText: string,
   queryData: QueryResult<JsonMap>
-): ExtendedQueryData {
+): ExtendedQueryData => {
   return {
     ...queryData,
     columnData: new SelectAnalyzer(queryText).getColumnData()
   };
-}
+};

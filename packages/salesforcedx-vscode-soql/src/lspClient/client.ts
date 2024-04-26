@@ -18,13 +18,13 @@ import * as queryValidation from './queryValidation';
 
 let client: LanguageClient;
 
-export function clearDiagnostics(): void {
+export const clearDiagnostics = (): void => {
   client?.diagnostics?.clear();
-}
+};
 
-export async function startLanguageClient(
+export const startLanguageClient = async (
   extensionContext: ExtensionContext
-): Promise<void> {
+): Promise<void> => {
   // path to language server module
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
@@ -65,11 +65,11 @@ export async function startLanguageClient(
   client.start();
   await client.onReady();
   client = queryValidation.afterStart(client);
-}
+};
 
-export function stopLanguageClient(): Thenable<void> | undefined {
+export const stopLanguageClient = (): Thenable<void> | undefined => {
   if (!client) {
     return undefined;
   }
   return client.stop();
-}
+};
