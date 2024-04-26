@@ -83,12 +83,12 @@ const parameterGatherer = new CompositeParametersGatherer(
   outputDirGatherer
 );
 
-export async function analyticsGenerateTemplate() {
+export const analyticsGenerateTemplate = (): void => {
   const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     parameterGatherer,
     createTemplateExecutor
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

@@ -22,10 +22,10 @@ export type ComponentDiff = {
  * @param cacheRoot The common root of all files in the cacheComponent
  * @returns An array of file paths, where each element corresponds to one file that differs
  */
-export function diffComponents(
+export const diffComponents = (
   projectComponent: SourceComponent,
   cacheComponent: SourceComponent
-): ComponentDiff[] {
+): ComponentDiff[] => {
   const diffs: ComponentDiff[] = [];
 
   const projectIndex = new Map<string, string>();
@@ -58,10 +58,10 @@ export function diffComponents(
   });
 
   return diffs;
-}
+};
 
-function filesDiffer(projectPath: string, cachePath: string): boolean {
+const filesDiffer = (projectPath: string, cachePath: string): boolean => {
   const bufferOne = fs.readFileSync(projectPath);
   const bufferTwo = fs.readFileSync(cachePath);
   return !bufferOne.equals(bufferTwo);
-}
+};

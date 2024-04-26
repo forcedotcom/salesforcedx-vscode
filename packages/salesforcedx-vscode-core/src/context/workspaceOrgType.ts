@@ -22,7 +22,7 @@ export enum OrgType {
  * because it has been the most consistently accurate solution here.
  * @returns OrgType (SourceTracked or NonSourceTracked) of the current default org
  */
-export async function getWorkspaceOrgType(): Promise<OrgType> {
+export const getWorkspaceOrgType = async (): Promise<OrgType> => {
   const workspaceContext = WorkspaceContext.getInstance();
   let connection;
   try {
@@ -37,32 +37,33 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
   const org = await Org.create({ connection });
   const isSourceTracked = await org.supportsSourceTracking();
   return isSourceTracked ? OrgType.SourceTracked : OrgType.NonSourceTracked;
-}
+};
 
-export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
+export const setWorkspaceOrgTypeWithOrgType = (orgType: OrgType): void => {
   setTargetOrgHasChangeTracking(orgType === OrgType.SourceTracked);
-}
+};
 
-export async function setupWorkspaceOrgType(targetOrgOrAlias?: string) {
+export const setupWorkspaceOrgType = async (targetOrgOrAlias?: string) => {
   setHasTargetOrg(!!targetOrgOrAlias);
   const orgType = await getWorkspaceOrgType();
   setWorkspaceOrgTypeWithOrgType(orgType);
-}
+};
 
-function setTargetOrgHasChangeTracking(val: boolean) {
-  vscode.commands.executeCommand(
+const setTargetOrgHasChangeTracking = (val: boolean): void => {
+  void vscode.commands.executeCommand(
     'setContext',
     'sf:target_org_has_change_tracking',
     val
   );
-}
+};
 
-function setHasTargetOrg(val: boolean) {
-  vscode.commands.executeCommand('setContext', 'sf:has_target_org', val);
-}
+const setHasTargetOrg = (val: boolean): void => {
+  void vscode.commands.executeCommand('setContext', 'sf:has_target_org', val);
+};
 
-export async function getTargetOrgOrAlias(): Promise<string | undefined> {
+export const getTargetOrgOrAlias = (): Promise<string | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {
-    return await OrgAuthInfo.getTargetOrgOrAlias(true);
+    return OrgAuthInfo.getTargetOrgOrAlias(true);
   }
-}
+  return Promise.resolve(undefined);
+};

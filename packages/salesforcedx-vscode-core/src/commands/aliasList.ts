@@ -37,6 +37,6 @@ const commandlet = new SfCommandlet(
   executor
 );
 
-export async function aliasList() {
+export const aliasList = async (): Promise<void> => {
   await commandlet.run();
-}
+};

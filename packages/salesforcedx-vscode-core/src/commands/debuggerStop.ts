@@ -51,8 +51,8 @@ export class IdGatherer implements ParametersGatherer<IdSelection> {
     this.sessionIdToUpdate = sessionIdToUpdate;
   }
 
-  public async gather(): Promise<ContinueResponse<IdSelection>> {
-    return { type: 'CONTINUE', data: { id: this.sessionIdToUpdate } };
+  public gather(): Promise<ContinueResponse<IdSelection>> {
+    return Promise.resolve({ type: 'CONTINUE', data: { id: this.sessionIdToUpdate } });
   }
 }
 
@@ -101,7 +101,7 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
     });
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -122,7 +122,7 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
           await sessionDetachCommandlet.run();
         }
       } else {
-        notificationService.showInformationMessage(
+        void notificationService.showInformationMessage(
           nls.localize('debugger_stop_none_found_text')
         );
       }
@@ -133,11 +133,11 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
   }
 }
 
-export async function debuggerStop() {
+export const debuggerStop = async () => {
   const sessionStopCommandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new EmptyParametersGatherer(),
     new StopActiveDebuggerSessionExecutor()
   );
   await sessionStopCommandlet.run();
-}
+};
