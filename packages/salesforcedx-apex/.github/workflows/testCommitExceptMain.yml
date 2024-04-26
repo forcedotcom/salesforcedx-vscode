@@ -6,3 +6,20 @@ on:
 jobs:
   unit-tests:
     uses: salesforcecli/github-workflows/.github/workflows/unitTest.yml@main
+  xNuts:
+    needs: unit-tests
+    name: external NUTs
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest']
+    with:
+      packageName: '@salesforce/apex-node'
+      externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-apex'
+      ignoreScripts: true
+      os: ${{ matrix.os }}
+      preSwapCommands: 'yarn upgrade @salesforce/core; npx yarn-deduplicate; yarn install'
+      preExternalBuildCommands: 'npm why @salesforce/core --json'
+      useCache: false
+    secrets: inherit
