@@ -38,6 +38,14 @@ jest.mock('@salesforce/core', () => {
 
     StateAggregator: {
       clearInstance: jest.fn() // no-op function
+    },
+
+    AuthInfo: {
+      create: jest.fn() // no-op function
+    },
+
+    Connection: {
+      create: jest.fn() // no-op function
     }
   };
 });
