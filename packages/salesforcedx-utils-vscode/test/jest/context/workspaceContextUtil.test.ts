@@ -20,8 +20,7 @@ jest.mock('@salesforce/core', () => {
     Logger: {
       childFromRoot: () => {
         return {
-          debug: () => {} // no-op function
-          // Add other methods as needed
+          debug: jest.fn()
         };
       }
     },
@@ -37,15 +36,15 @@ jest.mock('@salesforce/core', () => {
     SfError: class{},
 
     StateAggregator: {
-      clearInstance: jest.fn() // no-op function
+      clearInstance: jest.fn()
     },
 
     AuthInfo: {
-      create: jest.fn() // no-op function
+      create: jest.fn()
     },
 
     Connection: {
-      create: jest.fn() // no-op function
+      create: jest.fn()
     }
   };
 });
