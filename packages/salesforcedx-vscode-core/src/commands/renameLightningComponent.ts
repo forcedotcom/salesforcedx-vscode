@@ -73,7 +73,7 @@ export const renameLightningComponent = (sourceUri: vscode.Uri): void => {
     );
     void commandlet.run();
   }
-}
+};
 export type ComponentName = {
   name?: string;
 };
