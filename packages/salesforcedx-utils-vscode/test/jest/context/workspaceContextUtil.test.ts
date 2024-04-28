@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Messages, SfError, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import {
   ConfigAggregatorProvider,
@@ -26,15 +26,19 @@ jest.mock('@salesforce/core', () => {
       }
     },
 
-    Messages: jest.fn().mockImplementation((elephant: string, giraffe: string, zebra: Map<string, string>) => {
+    Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => {
       return {
-        loadMessages: jest.fn((elephant1, giraffe1) => {
-          return `Mocked message for elephant: ${elephant1} and giraffe: ${giraffe1}`;
+        loadMessages: jest.fn((arg4, arg5) => {
+          return `Mocked message for arg4: ${arg4} and arg5: ${arg5}`;
         })
       };
     }),
 
-    SfError: class{}
+    SfError: class{},
+
+    StateAggregator: {
+      clearInstance: jest.fn() // no-op function
+    }
   };
 });
 jest.mock('../../../src/config/configUtil');
