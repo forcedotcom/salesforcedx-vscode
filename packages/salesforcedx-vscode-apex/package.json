@@ -323,7 +323,7 @@
     "@salesforce/apex-node": "6.0.0",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core": "7.3.1",
-    "@salesforce/salesforcedx-utils-vscode": "60.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.11.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "shelljs": "0.8.5",
@@ -332,7 +332,7 @@
   },
   "description": "Provides code-editing features for the Apex programming language",
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.11.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
@@ -426,5 +426,5 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "version": "60.10.0"
+  "version": "60.11.0"
 }
