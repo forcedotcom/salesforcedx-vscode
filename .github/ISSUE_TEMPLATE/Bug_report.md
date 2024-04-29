@@ -43,3 +43,5 @@ _Feel free to attach a screenshot_.
 **OS and version**:
 
 **VS Code version**:
+
+**Most recent version of the extensions where this was working**:
