@@ -28,28 +28,28 @@ export {
 export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
 
-export async function setupConflictView(
+export const setupConflictView = async (
   extensionContext: ExtensionContext
-): Promise<void> {
+): Promise<void> => {
   const view = conflictView;
   await view.init(extensionContext);
-}
+};
 
-export function registerConflictView(): Disposable {
+export const registerConflictView = (): Disposable => {
   const viewItems: Disposable[] = [];
 
   viewItems.push(
-    commands.registerCommand('sf.conflict.diff', entry => conflictDiff(entry))
+    commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry))
   );
 
   viewItems.push(
-    commands.registerCommand('sf.conflict.open', entry => openResource(entry))
+    commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry))
   );
 
   return Disposable.from(...viewItems);
-}
+};
 
-function conflictDiff(file: ConflictFile) {
+const conflictDiff = (file: ConflictFile) => {
   const local = Uri.file(path.join(file.localPath, file.localRelPath));
   const remote = Uri.file(path.join(file.remotePath, file.remoteRelPath));
 
@@ -59,13 +59,13 @@ function conflictDiff(file: ConflictFile) {
     file.fileName,
     file.fileName
   );
-  commands.executeCommand('vscode.diff', remote, local, title);
-}
+  void commands.executeCommand('vscode.diff', remote, local, title);
+};
 
-function openResource(node: ConflictNode) {
+const openResource = (node: ConflictNode): void => {
   const file = node.conflict;
   if (file) {
     const local = Uri.file(path.join(file.localPath, file.localRelPath));
-    window.showTextDocument(local).then(() => {});
+    void window.showTextDocument(local).then(() => {});
   }
-}
+};

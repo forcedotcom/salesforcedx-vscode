@@ -13,13 +13,12 @@ import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecut
 
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-function getCommandletFor(
+const getCommandletFor = (
   executor: SourceTrackingGetStatusExecutor
-): SfCommandlet<{}> {
-  return new SfCommandlet(workspaceChecker, parameterGatherer, executor);
-}
+): SfCommandlet<{}> =>
+  new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
-export async function viewAllChanges() {
+export const viewAllChanges = (): void => {
   const executionName = 'view_all_changes_text';
   const logName = 'view_all_changes';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
@@ -27,10 +26,10 @@ export async function viewAllChanges() {
     remote: true
   });
   const commandlet = getCommandletFor(executor);
-  await commandlet.run();
-}
+  void commandlet.run();
+};
 
-export async function viewLocalChanges() {
+export const viewLocalChanges = (): void => {
   const executionName = 'view_local_changes_text';
   const logName = 'view_local_changes';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
@@ -38,10 +37,10 @@ export async function viewLocalChanges() {
     remote: false
   });
   const commandlet = getCommandletFor(executor);
-  await commandlet.run();
-}
+  void commandlet.run();
+};
 
-export async function viewRemoteChanges() {
+export const viewRemoteChanges = (): void => {
   const executionName = 'view_remote_changes_text';
   const logName = 'view_remote_changes';
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
@@ -49,5 +48,5 @@ export async function viewRemoteChanges() {
     remote: true
   });
   const commandlet = getCommandletFor(executor);
-  await commandlet.run();
-}
+  void commandlet.run();
+};
