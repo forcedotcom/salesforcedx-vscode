@@ -76,7 +76,7 @@ jobs:
         run: echo ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }}
       - name: Validate VSCE Personal Access Token
         run: |
-          vsce login salesforce
+          npx vsce login salesforce
           ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }}
       # - run: find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
       # - run: echo "SUCCESSFULLY published"
