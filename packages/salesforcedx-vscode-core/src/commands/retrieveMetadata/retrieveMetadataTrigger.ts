@@ -10,9 +10,9 @@ import { RetrieveDescriber } from './retrieveDescriber';
 /**
  * An object capable of triggering the force:source:retrieve metadata command
  */
-export interface RetrieveMetadataTrigger {
+export type RetrieveMetadataTrigger = {
   /**
    * The RetrieveDescriber to use for the retrieve execution
    */
   describer(): RetrieveDescriber;
-}
+};

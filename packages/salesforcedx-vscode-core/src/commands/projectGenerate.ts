@@ -87,17 +87,17 @@ export type ProjectNameAndPathAndTemplate = ProjectName &
   ProjectURI &
   ProjectTemplate;
 
-export interface ProjectURI {
+export type ProjectURI = {
   projectUri: string;
-}
+};
 
-export interface ProjectName {
+export type ProjectName = {
   projectName: string;
-}
+};
 
-export interface ProjectTemplate {
+export type ProjectTemplate = {
   projectTemplate: string;
-}
+};
 
 export class SelectProjectTemplate
   implements ParametersGatherer<ProjectTemplate>

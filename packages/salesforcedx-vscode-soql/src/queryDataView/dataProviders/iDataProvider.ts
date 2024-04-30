@@ -7,9 +7,9 @@
 
 import { JsonMap } from '@salesforce/ts-types';
 
-export interface DataProvider {
+export type DataProvider = {
   fileExtension: string;
   documentName: string;
   getFileName(): string;
   getFileContent(query: string, data: JsonMap[]): string;
-}
+};

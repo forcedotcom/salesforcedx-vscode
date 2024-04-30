@@ -8,29 +8,29 @@ import { Connection } from '@salesforce/core';
 import { TraceFlagsRemover } from '../helpers';
 import { nls } from '../messages';
 
-interface UserRecord {
+type UserRecord = {
   Id: string;
-}
+};
 
-interface DebugLevelRecord {
+type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
-}
+};
 
-interface TraceFlagRecord {
+type TraceFlagRecord = {
   Id: string;
   LogType: string;
   DebugLevelId: string;
   StartDate: Date | undefined;
   ExpirationDate: Date | undefined;
   DebugLevel: DebugLevelRecord;
-}
+};
 
-interface DataRecordResult {
+type DataRecordResult = {
   id?: string;
   errors?: any[];
   success: boolean;
-}
+};
 
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;

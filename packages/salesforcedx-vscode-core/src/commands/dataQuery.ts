@@ -90,10 +90,10 @@ export class GetQueryAndApiInputs
   }
 }
 
-export interface QueryAndApiInputs {
+export type QueryAndApiInputs = {
   query: string;
   api: ApiType;
-}
+};
 
 export enum ApiType {
   REST,

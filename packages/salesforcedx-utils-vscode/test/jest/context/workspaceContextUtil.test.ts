@@ -15,7 +15,39 @@ import {
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages';
-jest.mock('@salesforce/core');
+jest.mock('@salesforce/core', () => {
+  return {
+    Logger: {
+      childFromRoot: () => {
+        return {
+          debug: jest.fn()
+        };
+      }
+    },
+
+    Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => {
+      return {
+        loadMessages: jest.fn((arg4, arg5) => {
+          return `Mocked message for arg4: ${arg4} and arg5: ${arg5}`;
+        })
+      };
+    }),
+
+    SfError: class{},
+
+    StateAggregator: {
+      clearInstance: jest.fn()
+    },
+
+    AuthInfo: {
+      create: jest.fn()
+    },
+
+    Connection: {
+      create: jest.fn()
+    }
+  };
+});
 jest.mock('../../../src/config/configUtil');
 
 const authInfoMock = jest.mocked(AuthInfo);

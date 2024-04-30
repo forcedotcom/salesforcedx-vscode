@@ -11,18 +11,18 @@ import { DEFAULT_AIKEY } from '../packages/salesforcedx-utils-vscode/src/constan
 
 const promisifiedExec = promisify(exec);
 
-interface InstallTelemetryData {
+type InstallTelemetryData = {
   // To align with the properties property for appInsightsClient.trackEvent
   [key: string]: string;
   install: string;
   ratingcount: string;
   marketplace: string;
   'common.extname': string;
-}
+};
 
 // These properties match the values provided in the statistics array from the
 // vsce cli output
-interface InstallTelemetryDataMS extends InstallTelemetryData {
+type InstallTelemetryDataMS = InstallTelemetryData & {
   averagerating: string;
   trendingdaily: string;
   trendingmonthly: string;
@@ -30,7 +30,7 @@ interface InstallTelemetryDataMS extends InstallTelemetryData {
   updateCount: string;
   weightedRating: string;
   downloadCount: string;
-}
+};
 
 type TelemetryData = InstallTelemetryData | InstallTelemetryDataMS;
 

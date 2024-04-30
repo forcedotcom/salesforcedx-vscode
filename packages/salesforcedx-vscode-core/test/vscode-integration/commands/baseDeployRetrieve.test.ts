@@ -10,7 +10,7 @@ import {
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core/testSetup';
 import {
   ConfigUtil,
   ContinueResponse,

@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DescribeSObjectResult, QueryResult } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
-import { DescribeSObjectResult, QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
@@ -25,10 +25,10 @@ import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
 
 // TODO: This should be exported from soql-builder-ui
-export interface SoqlEditorEvent {
+export type SoqlEditorEvent = {
   type: string;
   payload?: string | string[] | JsonMap;
-}
+};
 
 // TODO: This should be shared with soql-builder-ui
 export enum MessageType {
