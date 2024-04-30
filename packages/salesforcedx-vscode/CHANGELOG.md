@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We fixed an issue where an abstract method wasn't correctly parsed and displayed in the Outline view. ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555))
+- An abstract method is now correctly displayed in the Outline view. ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555))
 
 # 60.10.0 - April 24, 2024
 
