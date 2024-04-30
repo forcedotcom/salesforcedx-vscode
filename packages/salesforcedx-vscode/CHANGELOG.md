@@ -4,7 +4,7 @@
 
 #### salesforcedx-utils-vscode
 
-- We made some changes undee the hood. ([PR #5540](https://github.com/forcedotcom/salesforcedx-vscode/pull/5540))
+- We made some changes under the hood. ([PR #5540](https://github.com/forcedotcom/salesforcedx-vscode/pull/5540))
 
 #### salesforcedx-vscode-apex
 
