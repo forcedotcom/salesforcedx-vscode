@@ -2,17 +2,13 @@
 
 ## Fixed
 
-#### docs
-
-- Update codebuilder usage in sandboxes ([PR #5549](https://github.com/forcedotcom/salesforcedx-vscode/pull/5549))
-
 #### salesforcedx-utils-vscode
 
-- Prevent negative extension activations times ([PR #5540](https://github.com/forcedotcom/salesforcedx-vscode/pull/5540))
+- We made some changes undee the hood. ([PR #5540](https://github.com/forcedotcom/salesforcedx-vscode/pull/5540))
 
 #### salesforcedx-vscode-apex
 
-- Fix handling of abstract methods in outline ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555))
+- We made some changes undee the hood. ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555))
 
 # 60.10.0 - April 24, 2024
 
