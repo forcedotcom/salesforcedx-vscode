@@ -9,52 +9,52 @@ on:
     
 jobs:
 
-  publish-start-notification:
-    name: "Publish in MS Marketplace Start Notification"
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: "Publish in MS Marketplace waiting for approval in github."
-      notification: "New Release triggered publish build and job is ready for approval."
-      type: "notification"
-      workflow: "publishVSCode.yml"
+  # publish-start-notification:
+  #   name: "Publish in MS Marketplace Start Notification"
+  #   uses: ./.github/workflows/slackNotification.yml
+  #   secrets: inherit
+  #   with:
+  #     title: "Publish in MS Marketplace waiting for approval in github."
+  #     notification: "New Release triggered publish build and job is ready for approval."
+  #     type: "notification"
+  #     workflow: "publishVSCode.yml"
   
-  prepare-environment-from-main:
-    name: 'Get Release Version'
-    runs-on: ubuntu-latest
-    environment: publish
-    outputs:
-      RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
-      GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
-      SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: 'main'
-      - id: getMainVersion
-        run: |
-          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
-      - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
-      - id: getGusBuild
-        run: | 
-          echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
-      - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
-      - id: getScheduledBuild
-        run: | 
-          echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
-      - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
+  # prepare-environment-from-main:
+  #   name: 'Get Release Version'
+  #   runs-on: ubuntu-latest
+  #   environment: publish
+  #   outputs:
+  #     RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
+  #     GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
+  #     SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         ref: 'main'
+  #     - id: getMainVersion
+  #       run: |
+  #         echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+  #     - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
+  #     - id: getGusBuild
+  #       run: | 
+  #         echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+  #     - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
+  #     - id: getScheduledBuild
+  #       run: | 
+  #         echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
+  #     - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
 
-  ctc-open:
-    needs: [ prepare-environment-from-main ]
-    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
-    secrets: inherit
+  # ctc-open:
+  #   needs: [ prepare-environment-from-main ]
+  #   uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
+  #   secrets: inherit
 
   publish:
-    needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
+    # needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
     runs-on: ubuntu-latest
     env: 
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
-      PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
+      PUBLISH_VERSION: '60.11.1'
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps: 
       - name: Checkout
@@ -82,19 +82,19 @@ jobs:
       # - run: echo "SUCCESSFULLY published"
       - run: echo "ELEPHANT!"
 
-  ctcCloseSuccess:
-    needs: [ctc-open, publish]
-    if: needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
-    secrets: inherit
-    with:
-      changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
+  # ctcCloseSuccess:
+  #   needs: [ctc-open, publish]
+  #   if: needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
+  #   uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+  #   secrets: inherit
+  #   with:
+  #     changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
 
-  ctcCloseFail:
-    needs: [ctc-open, publish]
-    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
-    secrets: inherit
-    with:
-      changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
-      status: Not Implemented
+  # ctcCloseFail:
+  #   needs: [ctc-open, publish]
+  #   if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
+  #   uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+  #   secrets: inherit
+  #   with:
+  #     changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
+  #     status: Not Implemented
