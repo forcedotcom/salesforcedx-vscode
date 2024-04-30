@@ -73,7 +73,7 @@ jobs:
         run: ls -R ./extensions
       - run: npm ci
       - run: |
-          find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
+          npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath './extensions/salesforcedx-vscode-apex-60.11.1.vsix';
           echo $?;
       # - run: echo "SUCCESSFULLY published"
       - run: echo "ELEPHANT!"
