@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We made some changes undee the hood. ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555))
+- We fixed an issue where an empty abstract class wasn't correctly parsed and displayed in the Outline view. ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555))
 
 # 60.10.0 - April 24, 2024
 
