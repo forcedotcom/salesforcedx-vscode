@@ -28,13 +28,13 @@ export enum ApexDebuggerEventType {
   SystemWarning
 }
 
-export interface StreamingEvent {
+export type StreamingEvent = {
   createdDate: string;
   replayId: number;
   type: string;
-}
+};
 
-export interface ApexDebuggerEvent {
+export type ApexDebuggerEvent = {
   SessionId: string;
   RequestId?: string;
   BreakpointId?: string;
@@ -43,12 +43,12 @@ export interface ApexDebuggerEvent {
   FileName?: string;
   Line?: number;
   Stacktrace?: string;
-}
+};
 
-export interface DebuggerMessage {
+export type DebuggerMessage = {
   event: StreamingEvent;
   sobject: ApexDebuggerEvent;
-}
+};
 
 export class StreamingClientInfo {
   public readonly channel: string;

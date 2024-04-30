@@ -41,24 +41,24 @@ export const enum PlatformName {
   iOS = 'iOS'
 }
 
-interface IOSSimulatorDevice {
+type IOSSimulatorDevice = {
   name: string;
   udid: string;
   state: string;
   runtimeId: string;
   isAvailable: boolean;
-}
+};
 
-interface AndroidVirtualDevice {
+type AndroidVirtualDevice = {
   name: string;
   displayName: string;
   deviceName: string;
   path: string;
   target: string;
   api: string;
-}
+};
 
-interface PreviewQuickPickItem extends vscode.QuickPickItem {
+type PreviewQuickPickItem = vscode.QuickPickItem & {
   label: string;
   detail: string;
   alwaysShow: boolean;
@@ -66,11 +66,11 @@ interface PreviewQuickPickItem extends vscode.QuickPickItem {
   id: PreviewPlatformType;
   defaultTargetName: string;
   platformName: keyof typeof PlatformName;
-}
+};
 
-export interface DeviceQuickPickItem extends vscode.QuickPickItem {
+export type DeviceQuickPickItem = vscode.QuickPickItem & {
   name: string;
-}
+};
 
 export const platformOptions: PreviewQuickPickItem[] = [
   {

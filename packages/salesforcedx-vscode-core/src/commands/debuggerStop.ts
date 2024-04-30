@@ -28,20 +28,20 @@ import {
   SfWorkspaceChecker
 } from './util';
 
-interface QueryResponse {
+type QueryResponse = {
   status: number;
   result: QueryResult;
-}
+};
 
-interface QueryResult {
+type QueryResult = {
   size: number;
   totalSize: number;
   records: QueryRecord[];
-}
+};
 
-interface QueryRecord {
+type QueryRecord = {
   Id: string;
-}
+};
 
 export type IdSelection = { id: string };
 export class IdGatherer implements ParametersGatherer<IdSelection> {

@@ -11,30 +11,32 @@
  * 2. Input those responses into {@link http://json2ts.com/} to generate Typescript interfaces.
  * 3. Remove duplicate interfaces that are used in more than one response object.
  * 4. Fixed bogus generated interface ReferenceEnum
+ *
+ * NOTE: These interfaces were converted to types during the Core v6 -> v7 upgrade to conform to new standards.
  */
-export interface DebuggerResponse {
+export type DebuggerResponse = {
   referencesResponse: ReferencesResponse;
   frameResponse: FrameResponse;
   stateResponse: StateResponse;
-}
+};
 
-export interface ReferencesResponse {
+export type ReferencesResponse = {
   references: References;
-}
+};
 
-export interface FrameResponse {
+export type FrameResponse = {
   frame: Frame;
-}
+};
 
-export interface StateResponse {
+export type StateResponse = {
   state: State;
-}
+};
 
-export interface References {
+export type References = {
   references: Reference[];
-}
+};
 
-export interface Reference {
+export type Reference = {
   type: string;
   id: number;
   typeRef: string;
@@ -44,79 +46,79 @@ export interface Reference {
   offset?: number;
   value?: Value[];
   tuple?: Tuple[];
-}
+};
 
-export interface Value {
+export type Value = {
   name: string;
   declaredTypeRef: string;
   nameForMessages: string;
   ref?: number;
   value?: string;
-}
+};
 
-export interface Field extends Value {
+export type Field = Value & {
   index: number;
-}
+};
 
-export interface Tuple {
+export type Tuple = {
   key: Value;
   value: Value;
-}
+};
 
-export interface Frame {
+export type Frame = {
   locals: Locals;
   statics: Statics;
   globals: Globals;
   stackFrame: StackFrame;
   references?: References;
-}
+};
 
-export interface Locals {
+export type Locals = {
   frameNumber: number;
   local: LocalValue[];
-}
+};
 
-export interface LocalValue extends Value {
+export type LocalValue = Value & {
   slot: number;
-}
+};
 
-export interface Statics {
+export type Statics = {
   typeRef: string;
   static: Value[];
-}
+};
 
-export interface Globals {
+export type Globals = {
   global: Value[];
-}
+};
 
-export interface StackFrame {
+export type StackFrame = {
   typeRef: string;
   fullName: string;
   lineNumber: number;
   frameNumber: number;
-}
+};
 
-export interface State {
+export type State = {
   locals: Locals;
   statics: Statics;
   globals: Globals;
   stack: Stack;
   references?: References;
-}
+};
 
-export interface Stack {
+export type Stack = {
   stackFrame: StackFrame[];
-}
+};
 
-export interface DebuggerRequest {
+export type DebuggerRequest = {
   getReferencesRequest: GetReferenceRequest;
-}
+};
 
-export interface GetReferenceRequest {
+export type GetReferenceRequest = {
   reference: ReferenceRequest[];
-}
+};
 
-export interface ReferenceRequest {
+export type ReferenceRequest = {
   reference: number;
   offset?: number;
-}
+};

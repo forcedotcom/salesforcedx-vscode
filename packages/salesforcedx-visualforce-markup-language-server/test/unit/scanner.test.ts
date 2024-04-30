@@ -15,11 +15,11 @@ import {
 } from '../../src/parser/htmlScanner';
 
 describe('HTML Scanner', () => {
-  interface Token {
+  type Token = {
     offset: number;
     type: TokenType;
     content?: string;
-  }
+  };
 
   const assertTokens = (tests: { input: string; tokens: Token[] }[]) => {
     let scannerState = ScannerState.WithinContent;

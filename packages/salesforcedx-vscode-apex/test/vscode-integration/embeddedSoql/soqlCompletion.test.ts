@@ -33,12 +33,12 @@ import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
-interface JavaApexLocation {
+type JavaApexLocation = {
   startIndex: number;
   endIndex: number;
   line: number;
   column: number;
-}
+};
 const createApexLSPSpecialSOQLCompletionItem = (
   soqlText: string,
   location: JavaApexLocation
@@ -124,9 +124,8 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       expect(items.length).to.equal(1);
       expect(items[0]).to.equal(FAKE_SOQL_COMPLETION_ITEM);
       const virtualDocUri = executeCommandSpy.lastCall.args[1];
-      const soqlVirtualDoc = await vscode.workspace.openTextDocument(
-        virtualDocUri
-      );
+      const soqlVirtualDoc =
+        await vscode.workspace.openTextDocument(virtualDocUri);
       expect(soqlVirtualDoc.getText()).to.equal(soqlCode.replace('|', ''));
     });
   });
@@ -182,7 +181,10 @@ const prepareFile = async (
   return { doc: await activate(fileUri), position };
 };
 
-const getCursorPosition  =(text: string, cursorChar: string = '|'): Position => {
+const getCursorPosition = (
+  text: string,
+  cursorChar: string = '|'
+): Position => {
   for (const [line, lineText] of text.split('\n').entries()) {
     const column = lineText.indexOf(cursorChar);
     if (column >= 0) return new Position(line, column);

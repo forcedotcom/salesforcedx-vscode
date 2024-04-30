@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { QueryResult } from '@jsforce/jsforce-node';
 import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -20,9 +20,9 @@ describe('Query Data File Service', () => {
     totalSize: 1,
     records: [{ Id: '123' }]
   };
-  const document = ({
+  const document = {
     uri: { fsPath: '/path/to/file' }
-  } as unknown) as vscode.TextDocument;
+  } as unknown as vscode.TextDocument;
 
   it('should save the file and return the file path', async () => {
     const format = FileFormat.JSON;

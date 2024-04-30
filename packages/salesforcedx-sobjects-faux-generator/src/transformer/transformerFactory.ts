@@ -27,9 +27,9 @@ import {
 } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 
-export interface CancellationToken {
+export type CancellationToken = {
   isCancellationRequested: boolean;
-}
+};
 
 export class SObjectTransformerFactory {
   public static async create(
@@ -90,13 +90,15 @@ export class SObjectTransformerFactory {
   }
 
   public static async createConnection(): Promise<Connection> {
-    const userApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
+    const userApiVersionOverride =
+      await ConfigUtil.getUserConfiguredApiVersion();
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     const connection = await workspaceContextUtil.getConnection();
     const connectionForSourceApiVersion = await Connection.create({
       authInfo: await AuthInfo.create({ username: connection.getUsername() })
     });
-    const sourceApiVersion = await SObjectTransformerFactory.getSourceApiVersion();
+    const sourceApiVersion =
+      await SObjectTransformerFactory.getSourceApiVersion();
     // precedence user override > project config > connection default
     connectionForSourceApiVersion.setApiVersion(
       userApiVersionOverride || sourceApiVersion || connection.getApiVersion()

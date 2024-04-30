@@ -5,6 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface FlagParameter<T> {
+export type FlagParameter<T> = {
   flag?: T;
-}
+};

@@ -196,7 +196,7 @@ export enum ScannerState {
   BeforeAttributeValue
 }
 
-export interface Scanner {
+export type Scanner = {
   scan(): TokenType;
   getTokenType(): TokenType;
   getTokenOffset(): number;
@@ -205,7 +205,7 @@ export interface Scanner {
   getTokenText(): string;
   getTokenError(): string;
   getScannerState(): ScannerState;
-}
+};
 
 const htmlScriptContents = {
   'text/x-handlebars-template': true

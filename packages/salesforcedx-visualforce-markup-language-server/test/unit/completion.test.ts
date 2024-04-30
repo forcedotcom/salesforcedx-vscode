@@ -15,13 +15,13 @@ import {
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
-export interface ItemDescription {
+export type ItemDescription = {
   label: string;
   documentation?: string;
   kind?: CompletionItemKind;
   resultText?: string;
   notAvailable?: boolean;
-}
+};
 
 describe('HTML Completion', () => {
   const assertCompletion = (

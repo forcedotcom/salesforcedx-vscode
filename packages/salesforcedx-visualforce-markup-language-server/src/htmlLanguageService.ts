@@ -44,7 +44,7 @@ export {
   DocumentLink
 };
 
-export interface HTMLFormatConfiguration {
+export type HTMLFormatConfiguration = {
   tabSize?: number;
   insertSpaces?: boolean;
   wrapLineLength?: number;
@@ -61,14 +61,14 @@ export interface HTMLFormatConfiguration {
   indentHandlebars?: boolean;
   endWithNewline?: boolean;
   extraLiners?: string;
-}
+};
 
-export interface CompletionConfiguration {
+export type CompletionConfiguration = {
   [provider: string]: boolean;
   hideAutoCompleteProposals?: boolean;
-}
+};
 
-export interface Node {
+export type Node = {
   tag: string;
   start: number;
   end: number;
@@ -76,7 +76,7 @@ export interface Node {
   children: Node[];
   parent: Node;
   attributes?: { [name: string]: string };
-}
+};
 
 export enum TokenType {
   StartCommentTag,
@@ -117,7 +117,7 @@ export enum ScannerState {
   BeforeAttributeValue
 }
 
-export interface Scanner {
+export type Scanner = {
   scan(): TokenType;
   getTokenType(): TokenType;
   getTokenOffset(): number;
@@ -126,7 +126,7 @@ export interface Scanner {
   getTokenText(): string;
   getTokenError(): string;
   getScannerState(): ScannerState;
-}
+};
 
 export declare type HTMLDocument = {
   roots: Node[];
@@ -134,11 +134,11 @@ export declare type HTMLDocument = {
   findNodeAt(offset: number): Node;
 };
 
-export interface DocumentContext {
+export type DocumentContext = {
   resolveReference(ref: string, base?: string): string;
-}
+};
 
-export interface LanguageService {
+export type LanguageService = {
   createScanner(input: string): Scanner;
   parseHTMLDocument(document: TextDocument): HTMLDocument;
   findDocumentHighlights(
@@ -175,7 +175,7 @@ export interface LanguageService {
     position: Position,
     htmlDocument: HTMLDocument
   ): string;
-}
+};
 
 export function getLanguageService(): LanguageService {
   return {

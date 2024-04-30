@@ -106,8 +106,7 @@ export type TraceCategory =
   | 'breakpoints'
   | 'streaming';
 
-export interface LaunchRequestArguments
-  extends DebugProtocol.LaunchRequestArguments {
+export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   // comma separated list of trace selectors (see TraceCategory)
   trace?: boolean | string;
   userIdFilter?: string[];
@@ -117,11 +116,11 @@ export interface LaunchRequestArguments
   connectType?: string;
   workspaceSettings: WorkspaceSettings;
   lineBreakpointInfo?: LineBreakpointInfo[];
-}
+};
 
-export interface SetExceptionBreakpointsArguments {
+export type SetExceptionBreakpointsArguments = {
   exceptionInfo: ExceptionBreakpointInfo;
-}
+};
 
 export class ApexDebugStackFrameInfo {
   public readonly requestId: string;
@@ -245,7 +244,7 @@ export class ApexVariable extends Variable {
 
 export type FilterType = 'named' | 'indexed' | 'all';
 
-export interface VariableContainer {
+export type VariableContainer = {
   expand(
     session: ApexDebug,
     filter: FilterType,
@@ -254,7 +253,7 @@ export interface VariableContainer {
   ): Promise<ApexVariable[]>;
 
   getNumberOfChildren(): number | undefined;
-}
+};
 
 export type ScopeType = 'local' | 'static' | 'global';
 
@@ -744,7 +743,9 @@ export class ApexDebug extends LoggingDebugSession {
         else {
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
-              subject: nls.localize('interactive_debugger_launched_successfully'),
+              subject: nls.localize(
+                'interactive_debugger_launched_successfully'
+              ),
               type: 'startInteractiveDebuggerSuccess'
             })
           );
@@ -762,13 +763,18 @@ export class ApexDebug extends LoggingDebugSession {
       if (error === undefined) {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
-            subject: nls.localize('isv_debugger_session_authentication_invalid'),
+            subject: nls.localize(
+              'isv_debugger_session_authentication_invalid'
+            ),
             type: 'startIsvDebuggerAuthenticationInvalid'
           })
         );
       }
       // telemetry for invalid org-isv-debugger-url
-      else if (String(error) === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
+      else if (
+        String(error) ===
+        "TypeError: Cannot read properties of undefined (reading 'pathname')"
+      ) {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('org_isv_debugger_url_invalid'),

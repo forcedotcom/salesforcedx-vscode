@@ -8,9 +8,9 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channel';
 import { nls } from '../../messages';
 
-interface SfTaskDefinition extends vscode.TaskDefinition {
+type SfTaskDefinition = vscode.TaskDefinition & {
   sfTaskId: string;
-}
+};
 
 /**
  * A wrapper over vscode.Task that emits events during task lifecycle

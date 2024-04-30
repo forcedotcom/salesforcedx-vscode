@@ -6,7 +6,7 @@
  */
 import { ExecuteService } from '@salesforce/apex-node';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import {
   ChannelService,
   ContinueResponse,

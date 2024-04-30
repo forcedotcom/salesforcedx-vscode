@@ -171,10 +171,10 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     };
   }
 }
-export interface Alias {
+export type Alias = {
   alias: string;
   expirationDays: string;
-}
+};
 
 export type AliasAndFileSelection = Alias & FileSelection;
 

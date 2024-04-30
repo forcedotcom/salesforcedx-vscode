@@ -10,12 +10,12 @@ export enum ActionScriptEnum {
   SOQL = 'SOQL'
 }
 
-export interface OrgInfoError {
+export type OrgInfoError = {
   message: string;
   status: number;
   name: string;
   warnings: string[];
-}
+};
 
 export {
   ApexExecutionOverlayResultCommand,

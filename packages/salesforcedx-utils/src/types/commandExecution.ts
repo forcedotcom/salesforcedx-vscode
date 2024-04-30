@@ -14,11 +14,11 @@ import { Command } from './command';
  * If we ever use a different executor, this class should be refactored and abstracted
  * to take an event emitter/observable instead of child_proces.
  */
-export interface CommandExecution {
+export type CommandExecution = {
   readonly command: Command;
   readonly cancellationToken?: CancellationToken;
   readonly processExitSubject: Observable<number | undefined>;
   readonly processErrorSubject: Observable<Error | undefined>;
   readonly stdoutSubject: Observable<Buffer | string>;
   readonly stderrSubject: Observable<Buffer | string>;
-}
+};

@@ -39,12 +39,12 @@ import {
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
-export interface DeviceCodeResponse {
+export type DeviceCodeResponse = {
   user_code: string;
   device_code: string;
   interval: number;
   verification_uri: string;
-}
+};
 
 export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;

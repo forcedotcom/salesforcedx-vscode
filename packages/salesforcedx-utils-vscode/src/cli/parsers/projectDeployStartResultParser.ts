@@ -9,7 +9,7 @@ import { extractJsonObject } from '../../helpers';
 
 export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
-export interface ProjectDeployStartResult {
+export type ProjectDeployStartResult = {
   columnNumber?: string;
   error?: string;
   filePath: string;
@@ -17,22 +17,22 @@ export interface ProjectDeployStartResult {
   lineNumber?: string;
   state?: string;
   type: string;
-}
+};
 
-export interface ProjectDeployStartErrorResponse {
+export type ProjectDeployStartErrorResponse = {
   message: string;
   name: string;
   status: number;
   files: ProjectDeployStartResult[];
   warnings: any[];
-}
+};
 
-export interface ProjectDeployStartSuccessResponse {
+export type ProjectDeployStartSuccessResponse = {
   status: number;
   result: {
     files: ProjectDeployStartResult[];
   };
-}
+};
 
 export class ProjectDeployStartResultParser {
   private response: any;

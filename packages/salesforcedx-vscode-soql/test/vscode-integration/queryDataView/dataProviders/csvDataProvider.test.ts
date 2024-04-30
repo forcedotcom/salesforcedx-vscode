@@ -9,11 +9,11 @@ import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { CsvDataProvider } from '../../../../src/queryDataView/dataProviders/csvDataProvider';
 
-interface TestQuery {
+type TestQuery = {
   queryText: string;
   queryResults: JsonMap[];
   csvOutput: string[];
-}
+};
 
 const attributes = {
   type: 'type',
@@ -34,11 +34,7 @@ const simpleQuery: TestQuery = {
       B: 'd'
     }
   ],
-  csvOutput: [
-    'A,B',
-    'a,b',
-    'c,d'
-  ]
+  csvOutput: ['A,B', 'a,b', 'c,d']
 };
 const childToParentRel: TestQuery = {
   queryText: 'SELECT A, B.X FROM C',
@@ -60,11 +56,7 @@ const childToParentRel: TestQuery = {
       }
     }
   ],
-  csvOutput: [
-    'A,B.X',
-    'a,b',
-    'c,d'
-  ]
+  csvOutput: ['A,B.X', 'a,b', 'c,d']
 };
 const parentToChildRel: TestQuery = {
   queryText: 'SELECT A, (SELECT X FROM B) FROM C',
@@ -92,12 +84,7 @@ const parentToChildRel: TestQuery = {
       }
     }
   ],
-  csvOutput: [
-    'A,B.X',
-    'a,',
-    'c,b',
-    'c,d'
-  ]
+  csvOutput: ['A,B.X', 'a,', 'c,b', 'c,d']
 };
 const aggFn: TestQuery = {
   queryText: 'SELECT A, MIN(B) FROM C GROUP BY A',
@@ -113,11 +100,7 @@ const aggFn: TestQuery = {
       expr0: 10
     }
   ],
-  csvOutput: [
-    'A,MIN(B)',
-    'a,5',
-    'c,10'
-  ]
+  csvOutput: ['A,MIN(B)', 'a,5', 'c,10']
 };
 const alias: TestQuery = {
   queryText: 'SELECT A, MIN(B) min FROM C GROUP BY A',
@@ -133,11 +116,7 @@ const alias: TestQuery = {
       min: 10
     }
   ],
-  csvOutput: [
-    'A,min',
-    'a,5',
-    'c,10'
-  ]
+  csvOutput: ['A,min', 'a,5', 'c,10']
 };
 
 describe('CsvDataProvider', () => {
@@ -160,5 +139,10 @@ describe('CsvDataProvider', () => {
 
 function testQuery(q: TestQuery): void {
   const provider = new CsvDataProvider('x.soql');
-  expect(provider.getFileContent(q.queryText, q.queryResults).split('\n').map(s => s.trim())).deep.eq(q.csvOutput);
+  expect(
+    provider
+      .getFileContent(q.queryText, q.queryResults)
+      .split('\n')
+      .map(s => s.trim())
+  ).deep.eq(q.csvOutput);
 }

@@ -11,29 +11,29 @@ import {
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
 
-export interface BatchRequests {
+export type BatchRequests = {
   batchRequests: BatchRequest[];
-}
+};
 
-export interface BatchRequest {
+export type BatchRequest = {
   method: RestHttpMethodEnum;
   url: string;
-}
+};
 
-export interface BatchDeleteResponse {
+export type BatchDeleteResponse = {
   hasErrors: boolean;
   results: BatchDeleteResult[];
-}
+};
 
-export interface BatchDeleteResult {
+export type BatchDeleteResult = {
   statusCode: number;
   result: SingleResult[] | null;
-}
+};
 
-export interface SingleResult {
+export type SingleResult = {
   errorCode: string;
   message: string;
-}
+};
 
 export class BatchDeleteExistingOverlayActionCommand extends BaseCommand {
   private readonly requests: BatchRequests;

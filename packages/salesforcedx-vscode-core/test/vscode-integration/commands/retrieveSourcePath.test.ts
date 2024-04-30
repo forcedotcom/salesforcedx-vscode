@@ -11,7 +11,7 @@ import {
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core/testSetup';
 import {
   CancelResponse,
   ContinueResponse,

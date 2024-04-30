@@ -23,11 +23,11 @@ import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { workspaceUtils } from '../util';
 
-export interface MetadataContext {
+export type MetadataContext = {
   baseDirectory: string;
   commonRoot: string;
   components: SourceComponent[];
-}
+};
 
 export const enum PathType {
   Folder = 'folder',
@@ -36,7 +36,7 @@ export const enum PathType {
   Unknown = 'unknown'
 }
 
-export interface MetadataCacheResult {
+export type MetadataCacheResult = {
   selectedPath: string;
   selectedType: PathType;
 
@@ -44,18 +44,18 @@ export interface MetadataCacheResult {
   cache: MetadataContext;
   project: MetadataContext;
   properties: FileProperties[];
-}
+};
 
-export interface CorrelatedComponent {
+export type CorrelatedComponent = {
   cacheComponent: SourceComponent;
   projectComponent: SourceComponent;
   lastModifiedDate: string;
-}
+};
 
-interface RecomposedComponent {
+type RecomposedComponent = {
   component?: SourceComponent;
   children: Map<string, SourceComponent>;
-}
+};
 
 const STATE_FOLDER = projectPaths.relativeStateFolder();
 

@@ -26,10 +26,10 @@ import {
   SourcePathStrategy
 } from '../util';
 
-interface ExecutionResult {
+type ExecutionResult = {
   output?: string;
   error?: Error;
-}
+};
 
 /**
  * Base class for all template commands

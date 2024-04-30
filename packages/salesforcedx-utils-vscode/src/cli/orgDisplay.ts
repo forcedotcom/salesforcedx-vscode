@@ -10,7 +10,7 @@ import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
 export const ORG_DISPLAY_COMMAND = 'org:display';
-export interface OrgInfo {
+export type OrgInfo = {
   username: string;
   devHubId: string;
   id: string;
@@ -23,7 +23,7 @@ export interface OrgInfo {
   accessToken: string;
   instanceUrl: string;
   clientId: string;
-}
+};
 
 export class OrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {

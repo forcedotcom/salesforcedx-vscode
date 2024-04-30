@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DescribeSObjectResult } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
 import {
   ChannelService,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from './messages';
 

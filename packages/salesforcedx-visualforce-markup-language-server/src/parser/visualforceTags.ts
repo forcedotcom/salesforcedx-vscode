@@ -22,9 +22,9 @@ class VisualforceTagSpecification extends TagSpecification {
   }
 }
 
-interface VisualforceTagSet {
+type VisualforceTagSet = {
   [tag: string]: VisualforceTagSpecification;
-}
+};
 
 export function getVisualforceTagProvider(): IHTMLTagProvider {
   const valueSets: IValueSets = {

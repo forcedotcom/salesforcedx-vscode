@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult, Field } from 'jsforce';
-import { ChildRelationship } from 'jsforce/lib/api/soap/schema';
-export { ChildRelationship};
+import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node';
+import { ChildRelationship } from '@jsforce/jsforce-node/lib/api/soap/schema';
+export { ChildRelationship };
 
 export type SObjectField = Pick<
   Field,

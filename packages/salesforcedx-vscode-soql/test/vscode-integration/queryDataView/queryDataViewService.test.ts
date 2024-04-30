@@ -7,7 +7,7 @@
 
 import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import { QueryResult } from 'jsforce';
+import { QueryResult } from '@jsforce/jsforce-node';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../../../src/commonUtils';
@@ -34,10 +34,11 @@ describe('Query Data View Service', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
-      'sfdc-test',
-      new MockTextDocumentProvider()
-    );
+    docProviderDisposable =
+      vscode.workspace.registerTextDocumentContentProvider(
+        'sfdc-test',
+        new MockTextDocumentProvider()
+      );
     mockTextDocument = await vscode.workspace.openTextDocument(
       vscode.Uri.parse('sfdc-test:test/examples/soql/mocksoql.soql')
     );
@@ -72,7 +73,10 @@ describe('Query Data View Service', () => {
     expect(postMessageSpy.callCount).equal(1);
 
     const postMessageArgs = postMessageSpy.args[0][0];
-    expect(postMessageArgs.data).to.eql({ columnData: mockColumnData, ...mockQueryData });
+    expect(postMessageArgs.data).to.eql({
+      columnData: mockColumnData,
+      ...mockQueryData
+    });
     expect(postMessageArgs.documentName).equal(
       getDocumentName(mockTextDocument)
     );

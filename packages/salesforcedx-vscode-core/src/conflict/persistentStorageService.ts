@@ -17,9 +17,9 @@ import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 
-interface ConflictFileProperties {
+type ConflictFileProperties = {
   lastModifiedDate: string;
-}
+};
 
 export class PersistentStorageService {
   private storage: Memento;

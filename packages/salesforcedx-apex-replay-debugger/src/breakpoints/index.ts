@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface LineBreakpointInfo {
+export type LineBreakpointInfo = {
   uri: string;
   typeref: string;
   lines: number[];
-}
+};
+
 export { BreakpointUtil } from './breakpointUtil';
 import { BreakpointUtil } from './breakpointUtil';
 export const breakpointUtil = BreakpointUtil.getInstance();

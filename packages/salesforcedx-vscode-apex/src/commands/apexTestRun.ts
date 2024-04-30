@@ -55,9 +55,9 @@ export enum TestType {
   Suite,
   Class
 }
-export interface ApexTestQuickPickItem extends QuickPickItem {
+export type ApexTestQuickPickItem = QuickPickItem & {
   type: TestType;
-}
+};
 
 export class TestsSelector
   implements ParametersGatherer<ApexTestQuickPickItem>

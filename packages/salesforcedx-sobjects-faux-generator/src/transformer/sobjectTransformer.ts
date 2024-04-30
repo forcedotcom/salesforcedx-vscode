@@ -25,9 +25,9 @@ import {
   SObjectRefreshResult
 } from '../types';
 
-export interface CancellationToken {
+export type CancellationToken = {
   isCancellationRequested: boolean;
-}
+};
 
 export type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];

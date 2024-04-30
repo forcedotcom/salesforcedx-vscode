@@ -12,13 +12,13 @@ export const BASE_FILE_EXTENSION = 'js';
 export const DEFAULT_LOCALE = 'en';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 
-export interface Config {
+export type Config = {
   locale: string;
-}
+};
 
-export interface LocalizationProvider {
+export type LocalizationProvider = {
   localize(label: string, ...args: any[]): string;
-}
+};
 
 export class Localization implements LocalizationProvider {
   private readonly delegate: Message;

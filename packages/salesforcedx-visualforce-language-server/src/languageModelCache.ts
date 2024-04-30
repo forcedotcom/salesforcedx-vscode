@@ -7,11 +7,11 @@
 
 import { TextDocument } from 'vscode-languageserver';
 
-export interface LanguageModelCache<T> {
+export type LanguageModelCache<T> = {
   get(document: TextDocument): T;
   onDocumentRemoved(document: TextDocument): void;
   dispose(): void;
-}
+};
 
 export const getLanguageModelCache = <T>(
   maxEntries: number,

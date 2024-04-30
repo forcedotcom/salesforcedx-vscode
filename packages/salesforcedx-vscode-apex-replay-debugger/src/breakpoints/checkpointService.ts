@@ -62,14 +62,14 @@ const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 
 // These are the action script types for the ApexExecutionOverlayAction.
-export interface ApexExecutionOverlayAction {
+export type ApexExecutionOverlayAction = {
   ActionScript: string;
   ActionScriptType: ActionScriptEnum;
   ExecutableEntityName: string | undefined;
   IsDumpingHeap: boolean;
   Iteration: number;
   Line: number;
-}
+};
 
 export class CheckpointService implements TreeDataProvider<BaseNode> {
   private static instance: CheckpointService;

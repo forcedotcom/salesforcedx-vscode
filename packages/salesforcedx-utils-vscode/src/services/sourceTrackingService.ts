@@ -52,9 +52,7 @@ export class SourceTrackingService {
     return sourceStatusSummary.format();
   }
 
-  private static async getSourceTrackingForCurrentProject(): Promise<
-    SourceTracking
-  > {
+  private static async getSourceTrackingForCurrentProject(): Promise<SourceTracking> {
     const rootWorkspacePath = getRootWorkspacePath();
     const workspaceContext = WorkspaceContextUtil.getInstance();
     const connection = await workspaceContext.getConnection();
@@ -70,7 +68,7 @@ export class SourceTrackingService {
 type StatusActualState = 'Deleted' | 'Add' | 'Changed' | 'Unchanged';
 type StatusOrigin = 'Local' | 'Remote';
 
-interface StatusResult {
+type StatusResult = {
   state: string;
   fullName: string;
   type: string;
@@ -79,15 +77,15 @@ interface StatusResult {
   conflict?: boolean;
   actualState?: StatusActualState;
   origin: StatusOrigin;
-}
+};
 
-interface FormattedStatusResult {
+type FormattedStatusResult = {
   state: string;
   fullName: string;
   type: string;
   filePath?: string;
   ignored?: string;
-}
+};
 
 export class SourceStatusSummary {
   constructor(private statusOutputRows: StatusOutputRow[]) {}
@@ -181,7 +179,7 @@ class StatusResultsTable {
     );
 
     const table: string = new Table().createTable(
-      (this.statusResults as unknown) as Row[],
+      this.statusResults as unknown as Row[],
       this.columns
     );
 

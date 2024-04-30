@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export interface IBeautifyHTMLOptions {
+export type IBeautifyHTMLOptions = {
   /**
    * indent <head> and <body> sections
    * default false
@@ -100,10 +100,10 @@ export interface IBeautifyHTMLOptions {
    * end of line character to use
    */
   eol?: string;
-}
+};
 
-export interface IBeautifyHTML {
+export type IBeautifyHTML = {
   (value: string, options: IBeautifyHTMLOptions): string;
-}
+};
 
 export declare var html_beautify: IBeautifyHTML;
