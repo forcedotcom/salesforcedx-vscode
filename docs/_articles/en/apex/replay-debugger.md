@@ -61,7 +61,7 @@ When you’ve stepped through all the logged events, the debugging session ends.
 
 Keep these considerations and known issues in mind when working with Apex Replay Debugger.
 
-- Before you start using the debugger, make sure that the version of the `.cls` or `.trigger` file you used to generate the log that you're debugging, is the same as the file you're working with. Otherwise, not all breakpoints will be hit during debugging. 
+- To hit all the breakpoints correctly when you launch the replay debugger from a log file, make sure that the `.cls` or `.trigger` file you used to generate the log is identical to the file with which you're working. 
 - You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use [ISV Customer Debugger](./en/apex/isv-debugger).
 - You can replay only one debug log at a time. This limitation can make it difficult to debug asynchronous Apex, which produces multiple debug logs.
 - Be sure to start a debugging session soon after uploading your checkpoints, because checkpoints expire after 30 minutes.
