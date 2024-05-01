@@ -81,8 +81,7 @@ jobs:
       #     done
       #     echo $?;
       - run: |
-          set -e
-          find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
+          find ./extensions -type f -name "*.vsix" -exec sh -c 'npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath "$1" || exit 1' -- {} \;
           echo $?;
       # - run: echo "SUCCESSFULLY published"
       - run: echo "ELEPHANT!"
