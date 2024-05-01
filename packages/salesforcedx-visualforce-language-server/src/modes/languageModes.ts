@@ -32,7 +32,6 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 
-
 import {
   getLanguageModelCache,
   LanguageModelCache
@@ -46,17 +45,17 @@ import { getJavascriptMode } from './javascriptMode';
 
 export { ColorInformation, ColorPresentation };
 
-export interface Settings {
+export type Settings = {
   css?: any;
   visualforce?: any;
   javascript?: any;
-}
+};
 
-export interface SettingProvider {
+export type SettingProvider = {
   getDocumentSettings(textDocument: TextDocument): Thenable<Settings>;
-}
+};
 
-export interface LanguageMode {
+export type LanguageMode = {
   configure?: (options: Settings) => void;
   doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
   doComplete?: (
@@ -96,9 +95,9 @@ export interface LanguageMode {
   getId();
   dispose(): void;
   onDocumentRemoved(document: TextDocument): void;
-}
+};
 
-export interface LanguageModes {
+export type LanguageModes = {
   getModeAtPosition(document: TextDocument, position: Position): LanguageMode;
   getModesInRange(document: TextDocument, range: Range): LanguageModeRange[];
   getAllModes(): LanguageMode[];
@@ -106,12 +105,12 @@ export interface LanguageModes {
   getMode(languageId: string): LanguageMode;
   onDocumentRemoved(document: TextDocument): void;
   dispose(): void;
-}
+};
 
-export interface LanguageModeRange extends Range {
+export type LanguageModeRange = Range & {
   mode: LanguageMode;
   attributeValue?: boolean;
-}
+};
 
 export const getLanguageModes = (supportedLanguages: {
   [languageId: string]: boolean;
@@ -147,7 +146,10 @@ export const getLanguageModes = (supportedLanguages: {
       }
       return null;
     },
-    getModesInRange: (document: TextDocument, range: Range): LanguageModeRange[] => {
+    getModesInRange: (
+      document: TextDocument,
+      range: Range
+    ): LanguageModeRange[] => {
       return documentRegions
         .get(document)
         .getLanguageRanges(range)

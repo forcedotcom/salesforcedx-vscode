@@ -171,10 +171,10 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     };
   }
 }
-export interface Alias {
+export type Alias = {
   alias: string;
   expirationDays: string;
-}
+};
 
 export type AliasAndFileSelection = Alias & FileSelection;
 
@@ -191,11 +191,11 @@ const parameterGatherer = new CompositeParametersGatherer(
   new AliasGatherer()
 );
 
-export async function orgCreate() {
+export const orgCreate = (): void => {
   const commandlet = new SfCommandlet(
     preconditionChecker,
     parameterGatherer,
     new OrgCreateExecutor()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

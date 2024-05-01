@@ -20,9 +20,9 @@ const cross_spawn = require('cross-spawn');
 const kill = require('tree-kill');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-export interface CancellationToken {
+export type CancellationToken = {
   isCancellationRequested: boolean;
-}
+};
 
 export class GlobalCliEnvironment {
   public static readonly environmentVariables = new Map<string, string>();
@@ -69,9 +69,9 @@ export class CliCommandExecutor {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
       ? CliCommandExecutor.patchEnv(
-        options,
-        GlobalCliEnvironment.environmentVariables
-      )
+          options,
+          GlobalCliEnvironment.environmentVariables
+        )
       : options;
   }
 
@@ -109,14 +109,14 @@ export class CompositeCliCommandExecutor {
  * If we ever use a different executor, this class should be refactored and abstracted
  * to take an event emitter/observable instead of child_proces.
  */
-export interface CommandExecution {
+export type CommandExecution = {
   readonly command: Command;
   readonly cancellationToken?: CancellationToken;
   readonly processExitSubject: Observable<number | undefined>;
   readonly processErrorSubject: Observable<Error | undefined>;
   readonly stdoutSubject: Observable<Buffer | string>;
   readonly stderrSubject: Observable<Buffer | string>;
-}
+};
 
 export class CompositeCliCommandExecution implements CommandExecution {
   public readonly command: Command;
@@ -208,19 +208,13 @@ export class CliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(
-      childProcess,
-      'exit'
-    );
+    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
-    this.processErrorSubject = Observable.fromEvent(
-      childProcess,
-      'error'
-    );
+    this.processErrorSubject = Observable.fromEvent(childProcess, 'error');
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();

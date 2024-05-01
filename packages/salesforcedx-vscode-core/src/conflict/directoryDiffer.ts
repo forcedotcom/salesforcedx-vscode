@@ -16,30 +16,30 @@ import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { MetadataCacheResult } from './metadataCacheService';
 
-export interface TimestampFileProperties {
+export type TimestampFileProperties = {
   localRelPath: string;
   remoteRelPath: string;
   localLastModifiedDate?: string | undefined;
   remoteLastModifiedDate?: string | undefined;
-}
+};
 
-export interface DirectoryDiffResults {
+export type DirectoryDiffResults = {
   different: Set<TimestampFileProperties>;
   localRoot: string;
   remoteRoot: string;
   scannedLocal?: number;
   scannedRemote?: number;
-}
+};
 
-export interface DirectoryDiffer {
+export type DirectoryDiffer = {
   diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults;
-}
+};
 
-interface FileStats {
+type FileStats = {
   filename: string;
   subdir: string;
   relPath: string;
-}
+};
 
 export class CommonDirDirectoryDiffer implements DirectoryDiffer {
   constructor() {}

@@ -60,9 +60,7 @@ describe('Internal Command Utilities', () => {
       existsSyncStub.returns(true);
       const testDir = path.join('path', 'to', 'outside', 'dir');
       lstatSyncStub.returns({
-        isDirectory() {
-          return true;
-        }
+        isDirectory: () => true
       });
 
       const folderPathGatherer = new FileInternalPathGatherer(
@@ -79,9 +77,7 @@ describe('Internal Command Utilities', () => {
       existsSyncStub.returns(true);
       const testDir = Uri.parse('file:///path/to/outside/dir');
       lstatSyncStub.returns({
-        isDirectory() {
-          return false;
-        }
+        isDirectory: () => false
       });
 
       const folderPathGatherer = new FileInternalPathGatherer(testDir);
@@ -93,9 +89,7 @@ describe('Internal Command Utilities', () => {
       existsSyncStub.returns(false);
       const testDir = Uri.parse('file:///path/to/outside/dir');
       lstatSyncStub.returns({
-        isDirectory() {
-          return false;
-        }
+        isDirectory: () => false
       });
 
       const folderPathGatherer = new FileInternalPathGatherer(testDir);

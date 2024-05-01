@@ -11,10 +11,10 @@ import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-export interface OrgUserInfo {
+export type OrgUserInfo = {
   username?: string;
   alias?: string;
-}
+};
 
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**

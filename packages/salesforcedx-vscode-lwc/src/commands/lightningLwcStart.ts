@@ -39,12 +39,12 @@ export const enum errorHints {
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
 }
 
-export interface LightningLwcStartOptions {
+export type LightningLwcStartOptions = {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
   /** component name to preview in the browser */
   componentName?: string;
-}
+};
 
 export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
   private readonly options: LightningLwcStartOptions;

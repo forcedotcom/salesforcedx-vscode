@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  DescribeGlobalResult,
+  DescribeSObjectResult,
+  Field
+} from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
-import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';

@@ -10,7 +10,7 @@ import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 /**
  * Provides information for force.source.retrieve.component execution
  */
-export interface RetrieveDescriber {
+export type RetrieveDescriber = {
   /**
    * Builds the force:source:retrieve metadata argument
    * @param data optional data to use while building the argument
@@ -23,4 +23,4 @@ export interface RetrieveDescriber {
    * @returns local representations of components
    */
   gatherOutputLocations(): Promise<LocalComponent[]>;
-}
+};

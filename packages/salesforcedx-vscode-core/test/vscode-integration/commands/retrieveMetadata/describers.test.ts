@@ -81,18 +81,14 @@ describe('Retrieve Metadata Describers', () => {
     });
   });
 
-  function generateComponents(count: number): LocalComponent[] {
-    const components = [];
-    for (let i = 1; i <= count; i++) {
-      for (let j = 1; j <= 2; j++) {
-        components.push({
-          fileName: `Test${i}`,
-          outputdir: normalize(`p${j}/main/default/tests`),
-          type: 'TestType',
-          suffix: '.t'
-        });
-      }
-    }
-    return components;
-  }
+  const generateComponents = (count: number): LocalComponent[] => {
+    return Array.from({ length: count }, (_, i) => i + 1).flatMap(i =>
+      Array.from({ length: 2 }, (_, j) => j + 1).map(j => ({
+        fileName: `Test${i}`,
+        outputdir: normalize(`p${j}/main/default/tests`),
+        type: 'TestType',
+        suffix: '.t'
+      }))
+    );
+  };
 });

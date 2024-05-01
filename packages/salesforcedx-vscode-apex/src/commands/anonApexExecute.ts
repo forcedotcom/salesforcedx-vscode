@@ -28,11 +28,11 @@ import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
-interface ApexExecuteParameters {
+type ApexExecuteParameters = {
   apexCode?: string;
   fileName?: string;
   selection?: vscode.Range;
-}
+};
 
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters>

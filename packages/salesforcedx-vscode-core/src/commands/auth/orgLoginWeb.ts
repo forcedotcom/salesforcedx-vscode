@@ -39,12 +39,12 @@ import {
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
-export interface DeviceCodeResponse {
+export type DeviceCodeResponse = {
   user_code: string;
   device_code: string;
   interval: number;
   verification_uri: string;
-}
+};
 
 export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
@@ -185,7 +185,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
     );
 
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -219,18 +219,18 @@ export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams
   }
 }
 
-export async function promptLogOutForProdOrg() {
+export const promptLogOutForProdOrg = async () => {
   await new SfCommandlet(
     new SfWorkspaceChecker(),
     new DemoModePromptGatherer(),
     OrgLogoutAll.withoutShowingChannel()
   ).run();
-}
+};
 
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createOrgLoginWebExecutor(): SfCommandletExecutor<{}> {
+export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();
@@ -239,13 +239,13 @@ export function createOrgLoginWebExecutor(): SfCommandletExecutor<{}> {
     default:
       return new OrgLoginWebExecutor();
   }
-}
+};
 
-export async function orgLoginWeb() {
+export const orgLoginWeb = async (): Promise<void> => {
   const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createOrgLoginWebExecutor()
   );
   await commandlet.run();
-}
+};

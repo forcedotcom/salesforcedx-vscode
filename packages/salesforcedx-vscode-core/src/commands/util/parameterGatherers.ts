@@ -22,6 +22,22 @@ import { RetrieveDescriber } from '../retrieveMetadata';
 export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
 
+export type FileNameParameter = {
+  fileName: string;
+};
+
+export type OutputDirParameter = {
+  outputdir: string;
+};
+
+export type MetadataTypeParameter = {
+  type: string;
+};
+
+export type ApexTestTemplateParameter = {
+  template: string;
+};
+
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: ParametersGatherer<any>[];
   public constructor(...gatherers: ParametersGatherer<any>[]) {
@@ -49,8 +65,8 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
 }
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return { type: CONTINUE, data: {} };
+  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    return Promise.resolve({ type: CONTINUE, data: {} });
   }
 }
 
@@ -118,7 +134,7 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 }
 
 export class SelectFileName
-  implements ParametersGatherer<{ fileName: string }>
+  implements ParametersGatherer<FileNameParameter>
 {
   private maxFileNameLength: number;
 
@@ -252,7 +268,7 @@ export class SelectLwcComponentDir
 }
 
 export class SelectOutputDir
-  implements ParametersGatherer<{ outputdir: string }>
+  implements ParametersGatherer<OutputDirParameter>
 {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
@@ -267,7 +283,7 @@ export class SelectOutputDir
   }
 
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ outputdir: string }>
+    CancelResponse | ContinueResponse<OutputDirParameter>
   > {
     let packageDirs: string[] = [];
     try {
@@ -337,11 +353,11 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
     this.input = input;
   }
 
-  public async gather(): Promise<ContinueResponse<T>> {
-    return {
+  public gather(): Promise<ContinueResponse<T>> {
+    return Promise.resolve({
       type: CONTINUE,
       data: this.input
-    };
+    });
   }
 }
 
@@ -370,9 +386,7 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   }
 }
 
-export class ApexTestTemplateGatherer extends SimpleGatherer<{
-  template: string;
-}> {
+export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
   constructor(template: string) {
     super({ template });
   }

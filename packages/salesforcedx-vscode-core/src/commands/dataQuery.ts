@@ -90,10 +90,10 @@ export class GetQueryAndApiInputs
   }
 }
 
-export interface QueryAndApiInputs {
+export type QueryAndApiInputs = {
   query: string;
   api: ApiType;
-}
+};
 
 export enum ApiType {
   REST,
@@ -103,12 +103,12 @@ export enum ApiType {
 const workspaceChecker = new SfWorkspaceChecker();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function dataQuery(explorerDir?: any) {
+export const dataQuery = (explorerDir?: any): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     new DataQueryExecutor()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

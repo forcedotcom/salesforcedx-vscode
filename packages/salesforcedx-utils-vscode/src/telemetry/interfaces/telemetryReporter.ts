@@ -4,7 +4,7 @@
  *--------------------------------------------------------*/
 'use strict';
 
-export interface TelemetryReporter {
+export type TelemetryReporter = {
   sendTelemetryEvent(
     eventName: string,
     properties?: { [key: string]: string },
@@ -18,4 +18,4 @@ export interface TelemetryReporter {
   ): void;
 
   dispose(): Promise<any>;
-}
+};

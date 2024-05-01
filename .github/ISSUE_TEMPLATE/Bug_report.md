@@ -38,8 +38,10 @@ _Feel free to attach a screenshot_.
 
 **Salesforce Extension Version in VS Code**:
 
-**SFDX CLI Version**:
+**Salesforce CLI Version**:
 
 **OS and version**:
 
 **VS Code version**:
+
+**Most recent version of the extensions where this was working**:

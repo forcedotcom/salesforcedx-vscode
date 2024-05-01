@@ -139,12 +139,12 @@ enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-function displayMessage(
+const displayMessage = (
   output: string,
   enableWarning?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum,
   items?: string[]
-) {
+): Thenable<string | undefined> | undefined => {
   if (enableWarning !== undefined && !enableWarning) {
     return;
   }
@@ -164,4 +164,4 @@ function displayMessage(
       }
     }
   }
-}
+};

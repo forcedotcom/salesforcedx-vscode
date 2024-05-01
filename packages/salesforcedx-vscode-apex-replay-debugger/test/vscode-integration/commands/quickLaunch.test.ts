@@ -11,7 +11,7 @@ import {
   TestResult
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import {
   ContinueResponse,
   notificationService,

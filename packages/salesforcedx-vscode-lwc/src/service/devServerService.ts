@@ -11,9 +11,9 @@ import {
   DEV_SERVER_PREVIEW_ROUTE
 } from '../commands/commandConstants';
 
-export interface ServerHandler {
+export type ServerHandler = {
   stop(): Promise<void>;
-}
+};
 
 export class DevServerService {
   private static _instance: DevServerService;

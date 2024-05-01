@@ -10,7 +10,7 @@ import {
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core/testSetup';
 import { SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';

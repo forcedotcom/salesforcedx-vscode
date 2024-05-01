@@ -43,14 +43,14 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
 const AdmZip = require('adm-zip');
 
-export interface InstalledPackageInfo {
+export type InstalledPackageInfo = {
   id: string;
   name: string;
   namespace: string;
   versionId: string;
   versionName: string;
   versionNumber: string;
-}
+};
 
 export const ISVDEBUGGER = 'isvdebuggermdapitmp';
 export const INSTALLED_PACKAGES = 'installed-packages';
@@ -455,11 +455,11 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate &
   ForceIdeUri;
 
-export interface ForceIdeUri {
+export type ForceIdeUri = {
   loginUrl: string;
   sessionId: string;
   orgName: string;
-}
+};
 
 export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public static readonly uriValidator = (value: string) => {
@@ -548,6 +548,6 @@ const commandlet = new SfCommandlet(
   pathExistsChecker
 );
 
-export async function isvDebugBootstrap() {
+export const isvDebugBootstrap = async (): Promise<void> => {
   await commandlet.run();
-}
+};

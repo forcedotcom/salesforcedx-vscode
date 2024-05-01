@@ -22,10 +22,10 @@ import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
 
 export { SObject, SObjectField };
 
-export interface OrgDataSource {
+export type OrgDataSource = {
   retrieveSObjectsList(): Promise<string[]>;
   retrieveSObject(sobjectName: string): Promise<SObject | undefined>;
-}
+};
 
 export class FileSystemOrgDataSource implements OrgDataSource {
   private getLocalDatapath(): string | undefined {

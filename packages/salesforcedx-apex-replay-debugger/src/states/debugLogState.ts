@@ -7,6 +7,6 @@
 
 import { LogContext } from '../core/logContext';
 
-export interface DebugLogState {
+export type DebugLogState = {
   handle(logFile: LogContext): boolean;
-}
+};

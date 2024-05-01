@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface ConflictDetectionMessages {
+export type ConflictDetectionMessages = {
   warningMessageKey: string;
   commandHint: (input: string | string[]) => string;
-}
+};

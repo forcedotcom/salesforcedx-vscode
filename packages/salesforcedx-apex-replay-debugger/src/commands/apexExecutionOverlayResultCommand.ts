@@ -8,12 +8,12 @@
 import { BaseCommand } from '@salesforce/salesforcedx-utils';
 import { SOBJECTS_URL } from '../constants';
 
-export interface ApexExecutionOverlayResultCommandFailure {
+export type ApexExecutionOverlayResultCommandFailure = {
   message: string;
   errorCode: string;
-}
+};
 
-export interface ApexExecutionOverlayResultCommandSuccess {
+export type ApexExecutionOverlayResultCommandSuccess = {
   attributes: Attributes;
   Id: string;
   IsDeleted: boolean;
@@ -36,55 +36,55 @@ export interface ApexExecutionOverlayResultCommandSuccess {
   ActionScriptType: string;
   ClassName: string;
   Namespace: string;
-}
+};
 
-export interface HeapDump {
+export type HeapDump = {
   className: string;
   extents: HeapDumpExtents[];
   heapDumpDate: Date;
   namespace: string;
-}
+};
 
-export interface HeapDumpExtents {
+export type HeapDumpExtents = {
   collectionType: string | null;
   count: number;
   definition: HeapDumpCollectionTypeDefinition[];
   extent: HeapDumpExtent[];
   totalSize: number;
   typeName: string;
-}
+};
 
-export interface HeapDumpCollectionTypeDefinition {
+export type HeapDumpCollectionTypeDefinition = {
   name: string;
   type: string;
-}
+};
 
-export interface HeapDumpExtent {
+export type HeapDumpExtent = {
   address: string;
   size: number;
   isStatic: boolean;
   symbols: string[] | null;
   value: HeapDumpExtentValue;
-}
+};
 
 // The Extent value has to be an any. The value can be a single value of varying
 // types or an array of values of varying types from a collection.
-export interface HeapDumpExtentValue {
+export type HeapDumpExtentValue = {
   value?: any;
   entry?: HeapDumpExtentValueEntry[];
-}
+};
 
-export interface HeapDumpExtentValueEntry {
+export type HeapDumpExtentValueEntry = {
   keyDisplayValue: string;
   value: HeapDumpExtentValue;
-}
+};
 
-export interface HeapDumpApexResult {
+export type HeapDumpApexResult = {
   apexError: string | null;
   apexExecutionResult: HeapDumpApexExecutionResult | null;
-}
+};
 
-export interface HeapDumpApexExecutionResult {
+export type HeapDumpApexExecutionResult = {
   column: number;
   compileProblem: string | null;
   compiled: boolean;
@@ -92,24 +92,24 @@ export interface HeapDumpApexExecutionResult {
   exceptionStackTrace: string | null;
   line: number;
   success: boolean;
-}
+};
 
 // If the queryError is returned then the queryMetadata and queryResult will both be null.
-export interface HeapDumpSOQLResult {
+export type HeapDumpSOQLResult = {
   queryError: string | null;
   queryMetadata: HeapDumpSOQLResultQueryMetadata | null;
   queryResult: HeapDumpSOQLResultQueryResult[] | null;
-}
+};
 
-export interface HeapDumpSOQLResultQueryMetadata {
+export type HeapDumpSOQLResultQueryMetadata = {
   columnMetadata: HeapDumpSOQLResultColumnMetadata[];
   entityName: string;
   groupBy: boolean;
   idSelected: boolean;
   keyPrefix: string;
-}
+};
 
-export interface HeapDumpSOQLResultColumnMetadata {
+export type HeapDumpSOQLResultColumnMetadata = {
   aggregate: boolean;
   apexType: string;
   booleanType: boolean;
@@ -122,7 +122,7 @@ export interface HeapDumpSOQLResultColumnMetadata {
   numberType: boolean;
   textType: boolean;
   updatable: boolean;
-}
+};
 
 // A note about the HeapDumpSOQLResultQueryResult. The fields from a SOQL
 // query will be the fields that the user asked for. For instance if Id,
@@ -130,15 +130,15 @@ export interface HeapDumpSOQLResultColumnMetadata {
 // through the HeapDumpSOQLResult.queryResult['Id'|'Name'|'AccountNumber'].
 // The field name strings would be accessed through the ColumnMetadata returned
 // with the query.
-export interface HeapDumpSOQLResultQueryResult {
+export type HeapDumpSOQLResultQueryResult = {
   attributes: Attributes;
   [fields: string]: any;
-}
+};
 
-export interface Attributes {
+export type Attributes = {
   type: string;
   url: string;
-}
+};
 
 export class ApexExecutionOverlayResultCommand extends BaseCommand {
   private readonly commandName = 'ApexExecutionOverlayResult';

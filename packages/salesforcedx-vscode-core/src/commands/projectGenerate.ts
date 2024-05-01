@@ -87,17 +87,17 @@ export type ProjectNameAndPathAndTemplate = ProjectName &
   ProjectURI &
   ProjectTemplate;
 
-export interface ProjectURI {
+export type ProjectURI = {
   projectUri: string;
-}
+};
 
-export interface ProjectName {
+export type ProjectName = {
   projectName: string;
-}
+};
 
-export interface ProjectTemplate {
+export type ProjectTemplate = {
   projectTemplate: string;
-}
+};
 
 export class SelectProjectTemplate
   implements ParametersGatherer<ProjectTemplate>
@@ -221,7 +221,7 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 const pathExistsChecker = new PathExistsChecker();
 
-export async function sfProjectGenerate() {
+export const sfProjectGenerate = async () => {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor();
   const sfProjectGenerateCommandlet = new SfCommandlet(
     workspaceChecker,
@@ -230,9 +230,9 @@ export async function sfProjectGenerate() {
     pathExistsChecker
   );
   await sfProjectGenerateCommandlet.run();
-}
+};
 
-export async function projectGenerateWithManifest() {
+export const projectGenerateWithManifest = async (): Promise<void> => {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor({
     isProjectWithManifest: true
   });
@@ -243,4 +243,4 @@ export async function projectGenerateWithManifest() {
     pathExistsChecker
   );
   await projectGenerateWithManifestCommandlet.run();
-}
+};

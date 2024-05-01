@@ -53,13 +53,13 @@ export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndIns
 
 export type PackageIdAndInstallationKey = PackageID & InstallationKey;
 
-export interface PackageID {
+export type PackageID = {
   packageId: string;
-}
+};
 
-export interface InstallationKey {
+export type InstallationKey = {
   installationKey: string;
-}
+};
 
 export class SelectPackageID implements ParametersGatherer<PackageID> {
   public async gather(): Promise<CancelResponse | ContinueResponse<PackageID>> {
@@ -121,6 +121,6 @@ const sfPackageInstallCommandlet = new SfCommandlet(
   new PackageInstallExecutor()
 );
 
-export async function packageInstall() {
+export const packageInstall = async (): Promise<void> => {
   await sfPackageInstallCommandlet.run();
-}
+};

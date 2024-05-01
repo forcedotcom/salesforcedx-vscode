@@ -79,9 +79,9 @@ class LwcTestPathStrategy implements SourcePathStrategy {
   }
 }
 
-export interface SourcePathStrategy {
+export type SourcePathStrategy = {
   getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
-}
+};
 
 export class PathStrategyFactory {
   public static createDefaultStrategy(): DefaultPathStrategy {

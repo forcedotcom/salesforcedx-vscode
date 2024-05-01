@@ -372,11 +372,11 @@
     }
   ],
   "dependencies": {
-    "@salesforce/core": "6.7.4",
+    "@salesforce/core": "7.3.1",
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.8.0",
     "@salesforce/lwc-language-server": "4.8.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.11.0",
     "ajv": "6.12.6",
     "applicationinsights": "1.0.7",
     "jest-editor-support": "^30.1.0",
@@ -389,7 +389,7 @@
   },
   "description": "Provides code-editing features for Lightning Web Components",
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.11.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -451,10 +451,10 @@
     ],
     "packageUpdates": {
       "dependencies": {
-        "@salesforce/core": "6.7.4",
+        "@salesforce/core": "7.3.1",
         "@salesforce/lightning-lsp-common": "4.8.0",
         "@salesforce/lwc-language-server": "4.8.0",
-        "@salesforce/source-tracking": "5.1.11",
+        "@salesforce/source-tracking": "6.0.4",
         "applicationinsights": "1.0.7"
       },
       "devDependencies": {},
@@ -498,5 +498,5 @@
     "lib",
     "server.js"
   ],
-  "version": "60.10.0"
+  "version": "60.11.0"
 }

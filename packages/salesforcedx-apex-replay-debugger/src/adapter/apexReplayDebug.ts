@@ -52,14 +52,13 @@ export enum Step {
   Run
 }
 
-export interface LaunchRequestArguments
-  extends DebugProtocol.LaunchRequestArguments {
+export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
   lineBreakpointInfo?: LineBreakpointInfo[];
   projectPath: string | undefined;
-}
+};
 
 export class ApexVariable extends Variable {
   public readonly type: string;
