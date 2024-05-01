@@ -73,7 +73,7 @@ jobs:
         run: ls -R ./extensions
       - run: npm ci
       - run: |
-          find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -o -I {} npx vsce publish --pat "${VSCE_PERSONAL_ACCESS_TOKEN}" --packagePath "{}"
+          find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} npx vsce publish --pat "${VSCE_PERSONAL_ACCESS_TOKEN}" --packagePath "{}"
           echo $?;
       # - run: echo "SUCCESSFULLY published"
       - run: echo "ELEPHANT!"
