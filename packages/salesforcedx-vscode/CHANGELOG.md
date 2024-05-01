@@ -1,3 +1,15 @@
+# 60.11.0 - May 1, 2024
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We made some changes under the hood. ([PR #5540](https://github.com/forcedotcom/salesforcedx-vscode/pull/5540))
+
+#### salesforcedx-vscode-apex
+
+- An abstract method is now correctly displayed in the Outline view. ([PR #5555](https://github.com/forcedotcom/salesforcedx-vscode/pull/5555), [ISSUE #5553](https://github.com/forcedotcom/salesforcedx-vscode/issues/5553))
+
 # 60.10.0 - April 24, 2024
 
 ## Added
