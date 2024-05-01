@@ -75,10 +75,14 @@ jobs:
       # - run: |
       #     npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath './extensions/salesforcedx-vscode-apex-60.11.1.vsix';
       #     echo $?;
+      # - run: |
+      #     find ./extensions -type f -name "*.vsix" -print0 | while IFS= read -r -d '' file; do
+      #     npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath "$file" || exit 1
+      #     done
+      #     echo $?;
       - run: |
-          find ./extensions -type f -name "*.vsix" -print0 | while IFS= read -r -d '' file; do
-          npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath "$file" || exit 1
-          done
+          set -e
+          find ./extensions -type f -name "*.vsix" -exec npx vsce publish --pat ${{ env.VSCE_PERSONAL_ACCESS_TOKEN }} --packagePath {} \;
           echo $?;
       # - run: echo "SUCCESSFULLY published"
       - run: echo "ELEPHANT!"
