@@ -74,7 +74,6 @@ jobs:
       - run: npm ci
       - run: |
           cmd=$(find . -type f -name "*.vsix" -print0 | xargs -0 printf 'npx vsce publish --pat "%s" --packagePath "%s" && ' "${VSCE_PERSONAL_ACCESS_TOKEN}" | sed 's/ && $//')&&[ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
-      - run: echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
