@@ -19,33 +19,26 @@ const getCommandletFor = (
   new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
 export const viewAllChanges = (): void => {
-  const executionName = 'view_all_changes_text';
-  const logName = 'view_all_changes';
-  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
-    local: true,
-    remote: true
-  });
-  const commandlet = getCommandletFor(executor);
-  void commandlet.run();
+  viewChanges('view_remote_changes_text', 'view_remote_changes', true, true);
 };
 
 export const viewLocalChanges = (): void => {
-  const executionName = 'view_local_changes_text';
-  const logName = 'view_local_changes';
-  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
-    local: true,
-    remote: false
-  });
-  const commandlet = getCommandletFor(executor);
-  void commandlet.run();
+  viewChanges('view_local_changes_text', 'view_local_changes', true, false);
 };
 
 export const viewRemoteChanges = (): void => {
-  const executionName = 'view_remote_changes_text';
-  const logName = 'view_remote_changes';
+  viewChanges('view_remote_changes_text', 'view_remote_changes', false, true);
+};
+
+const viewChanges = (
+  executionName: string,
+  logName: string,
+  local: boolean,
+  remote: boolean
+): void => {
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
-    local: false,
-    remote: true
+    local,
+    remote
   });
   const commandlet = getCommandletFor(executor);
   void commandlet.run();
