@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     env: 
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
-      PUBLISH_VERSION: '60.11.1'
+      PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps: 
       - name: Checkout
