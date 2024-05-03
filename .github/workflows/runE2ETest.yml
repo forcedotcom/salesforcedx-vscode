@@ -99,7 +99,7 @@ jobs:
         with:
           run: |
             npm run setup
-            npm install -g @salesforce/sfdx-lwc-jest
+            npm install @salesforce/sfdx-lwc-jest --save-dev
             npm run automation-tests
           working-directory: salesforcedx-vscode-automation-tests
         env:
