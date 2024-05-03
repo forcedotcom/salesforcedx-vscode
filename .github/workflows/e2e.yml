@@ -109,10 +109,10 @@ jobs:
   #     runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   # LSP_E2E_tests_min_vscode_version:
-  #   if: ${{ github.event_name == 'workflow_run' }}
+  #   if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
   #   uses: ./.github/workflows/lspE2E.yml
   #   secrets: inherit
   #   with:
-  #     automationBranch: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+  #     automationBranch: ${{ inputs.automationBranch || 'develop' }}
   #     vscodeVersion: ${{ '1.82.3' }}
   #     runId: ${{ inputs.runId || github.event.workflow_run.id }}
