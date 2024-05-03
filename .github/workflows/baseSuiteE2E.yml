@@ -114,7 +114,7 @@ on:
 
 jobs:
   anInitialSuite:
-    if: ${{ inputs.anInitialSuite || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.anInitialSuite || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -125,7 +125,7 @@ jobs:
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   authentication:
-    if: ${{ inputs.authentication || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.authentication || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -136,7 +136,7 @@ jobs:
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   lwcLSP:
-    if: ${{ inputs.lwcLsp || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.lwcLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -147,7 +147,7 @@ jobs:
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   deployAndRetrieve:
-    if: ${{ inputs.deployAndRetrieve || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.deployAndRetrieve || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -158,7 +158,7 @@ jobs:
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   apexLSP:
-    if: ${{ inputs.apexLsp || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.apexLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
@@ -169,7 +169,7 @@ jobs:
       os: ${{ inputs.os || '["ubuntu-latest"]' }}
 
   runApexTests:
-    if: ${{ inputs.runApexTests || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.runApexTests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
