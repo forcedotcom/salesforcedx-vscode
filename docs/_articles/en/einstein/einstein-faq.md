@@ -17,7 +17,7 @@ See [Trusted AI from Salesforce](https://www.salesforceairesearch.com/trusted-ai
 
 **Will my code ever be shared outside of my development environment?**
 
-No. Salesforce treats your code as confidential information under your Main Service Agreement (MSA) and doesn't disclose it to other Salesforce customers or anyone outside of Salesforce. Some of your code and entity schema can be used to improve Einstein for Developers and train CodeGen. Due to the nature of machine learning, Einstein for Developers can generate output that resembles code that was used to train the model.
+No. Salesforce treats your code as confidential information under your Main Service Agreement (MSA) and doesn't disclose it to other Salesforce customers or anyone outside of Salesforce. Due to the nature of machine learning, Einstein for Developers can generate output that resembles code that was used to train the model.
 
 **I still have some security concerns, what if my code contains proprietary info?**
 
