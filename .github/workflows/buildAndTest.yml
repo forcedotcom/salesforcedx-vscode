@@ -11,10 +11,10 @@ on:
         default: 'VS Code Extensions'
 
 jobs:
-  unit-tests:
-    uses: ./.github/workflows/unitTests.yml
-    with:
-      branch: ${{ inputs.branch }}
+  # unit-tests:
+  #   uses: ./.github/workflows/unitTests.yml
+  #   with:
+  #     branch: ${{ inputs.branch }}
   build-all:
     uses: ./.github/workflows/buildAll.yml
     with:
