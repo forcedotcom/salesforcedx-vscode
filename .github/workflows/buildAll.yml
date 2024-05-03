@@ -21,7 +21,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
-      - run: exit 1
       - run: npm ci
       - run: npm --version
       - run: node --version

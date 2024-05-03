@@ -21,13 +21,13 @@ jobs:
         run: |
           echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
       - run: echo "Main Release Version is ${{ steps.getMainVersion.outputs.version }}"
-  # build-and-test:
-  #   uses: ./.github/workflows/buildAndTest.yml
-  #   needs: [get-version]
-  #   with:
-  #     branch: 'main'
-  #     label: ${{ needs.get-version.outputs.RELEASE_VERSION }}
-  # release:
-  #   needs: [build-and-test]
-  #   secrets: inherit
-  #   uses: ./.github/workflows/release.yml
+  build-and-test:
+    uses: ./.github/workflows/buildAndTest.yml
+    needs: [get-version]
+    with:
+      branch: 'main'
+      label: ${{ needs.get-version.outputs.RELEASE_VERSION }}
+  release:
+    needs: [build-and-test]
+    secrets: inherit
+    uses: ./.github/workflows/release.yml
