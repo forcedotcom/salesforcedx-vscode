@@ -5,7 +5,7 @@ lang: en
 
 ## Organize Your VS Code Extensions by Development Task
 
-> **NOTE**: Because Code Builder is a web-based, this tip is not of relevance if Code Builder is your development environment of choice.
+> **NOTE**: Because Code Builder is a web-based, this tip isn’t of relevance if Code Builder is your development environment of choice.
 
 Organizing your VS Code extensions by development task can help you avoid having extensions provide functionality that’s not useful for the task at hand. Having only the extensions that you need helps minimize the VS Code startup time and ensures that shortcut keys don’t interfere with one another. Here’s how to set up VS Code to launch with only the extensions for working with Salesforce.
 
@@ -63,12 +63,12 @@ Quickly search and open files. using the keyboard shortcut ⌘P.
 Open the Command Palette using the keyboard shortcut ⇧⌘P. Type "SFDX" to view a list of commands available commands in your Salesforce project.
 
 ## Use the Extensions View 
-Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of VS Code or run the **View: Extensions** command (⇧⌘X). Search for an extension. On an extension's details page can look up a lot of information such as it's dependencies, feature details, settings and change log.  
+Bring up the Extensions view by clicking the Extensions icon in the Activity Bar on the side of VS Code or run the **View: Extensions** command (⇧⌘X). Search for an extension. On an extension's details page can look up a lot of information such as it's dependencies, feature details, settings, and change log.  
 
 ## Some Useful Commands
 
 **Show Running Extensions**
-Open the Command Palette and type "show running..." and find and run the **Developer:Show Running Extensions** command to view all the extensions currently running in your VS Code session. You can see the start-up time for each extension. Right click on an extension and select **Report Issue** to quickly create an issue on the extension's GitHub repository. 
+Open the Command Palette and type "show running..." and find and run the **Developer:Show Running Extensions** command to view all the extensions currently running in your VS Code session. You can see the start-up time for each extension. Right click an extension and select **Report Issue** to quickly create an issue on the extension's GitHub repository. 
 **Toogle Developer Tools**
 Run **Developer:Toggle Tools** to view and understand the underpinnings of your VS Code sessions. From here you can grab any error messages that you'd like to include in an issue or a communication. 
 
