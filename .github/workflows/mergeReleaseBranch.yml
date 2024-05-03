@@ -72,12 +72,12 @@ jobs:
           git rebase -Xtheirs origin/release/v${{env.RELEASE_VERSION}}
           git push origin main
         
-  slack-prepublish-notification:
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    needs: [merge-release-branch]
-    with:
-      title: "Release branch successfully merged for ${{inputs.releaseBranch}}"
-      notification: "Release branch successfully merged."
-      type: "notification"
-      workflow: "mergeReleaseBranch.yml"
+  # slack-prepublish-notification:
+  #   uses: ./.github/workflows/slackNotification.yml
+  #   secrets: inherit
+  #   needs: [merge-release-branch]
+  #   with:
+  #     title: "Release branch successfully merged for ${{inputs.releaseBranch}}"
+  #     notification: "Release branch successfully merged."
+  #     type: "notification"
+  #     workflow: "mergeReleaseBranch.yml"
