@@ -12,7 +12,7 @@
 
 #### docs
 
-- Update replay debugger content ([PR #5566](https://github.com/forcedotcom/salesforcedx-vscode/pull/5566))
+- We updated the replay debugger content with some helpful information. ([PR #5566](https://github.com/forcedotcom/salesforcedx-vscode/pull/5566))
 
 # 60.11.0 - May 1, 2024
 
