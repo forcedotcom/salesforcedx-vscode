@@ -19,7 +19,7 @@ const getCommandletFor = (
   new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
 export const viewAllChanges = (): void => {
-  viewChanges('view_remote_changes_text', 'view_remote_changes', true, true);
+  viewChanges('view_all_changes_text', 'view_all_changes', true, true);
 };
 
 export const viewLocalChanges = (): void => {
