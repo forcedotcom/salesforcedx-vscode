@@ -4,9 +4,9 @@
 
 #### salesforcedx-vscode-core
 
-- Migrate from @salesforce/core v6 -> v7 ([PR #5556](https://github.com/forcedotcom/salesforcedx-vscode/pull/5556))
+- We made a major upgrade to the version of the @salesforce/core library. ([PR #5556](https://github.com/forcedotcom/salesforcedx-vscode/pull/5556))
 
-- Do not prompt for output dir when called from context menu #5544 ([PR #5561](https://github.com/forcedotcom/salesforcedx-vscode/pull/5561))
+- We no longer prompt you for a directory location when you use the context menu to run an Apex command to create a class. We just gather the information from the context, making things a little more convenient for you. Thank you [Heber](https://github.com/aheber) for this awesome contribution.  #5544 ([PR #5561](https://github.com/forcedotcom/salesforcedx-vscode/pull/5561))
 
 ## Fixed
 
