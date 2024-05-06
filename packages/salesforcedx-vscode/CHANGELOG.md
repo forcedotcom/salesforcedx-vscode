@@ -1,3 +1,19 @@
+# 60.12.0 - May 8, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Migrate from @salesforce/core v6 -> v7 ([PR #5556](https://github.com/forcedotcom/salesforcedx-vscode/pull/5556))
+
+- Do not prompt for output dir when called from context menu #5544 ([PR #5561](https://github.com/forcedotcom/salesforcedx-vscode/pull/5561))
+
+## Fixed
+
+#### docs
+
+- Update replay debugger content ([PR #5566](https://github.com/forcedotcom/salesforcedx-vscode/pull/5566))
+
 # 60.11.0 - May 1, 2024
 
 ## Fixed
