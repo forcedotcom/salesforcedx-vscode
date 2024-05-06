@@ -54,10 +54,13 @@ export const isCLITelemetryAllowed = async () => {
 };
 
 export const setNodeExtraCaCerts = () => {
-  GlobalCliEnvironment.environmentVariables.set(
-    ENV_NODE_EXTRA_CA_CERTS,
-    salesforceCoreSettings.getNodeExtraCaCerts()
-  );
+  const extraCerts = salesforceCoreSettings.getNodeExtraCaCerts();
+  if (extraCerts) {
+    GlobalCliEnvironment.environmentVariables.set(
+      ENV_NODE_EXTRA_CA_CERTS,
+      extraCerts
+    );
+  }
 };
 
 export const setSfLogLevel = () => {
