@@ -20,10 +20,10 @@ export class CommandCompletionEvents implements vscode.Disposable {
   public static onRefreshSObjectsCommandComplete(
     listener: (event: unknown) => unknown
   ) {
-    RefreshSObjectsExecutor.onRefreshSObjectsCommandComplete(listener);
+    RefreshSObjectsExecutor.onRefreshSObjectsCommandCompletion(listener);
   }
 
   public dispose() {
-    RefreshSObjectsExecutor.refreshSObjectsCommandCompleteEventEmitter.dispose();
+    RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.dispose();
   }
 }

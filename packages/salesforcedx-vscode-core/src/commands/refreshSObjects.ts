@@ -84,10 +84,10 @@ export class SObjectRefreshGatherer
 }
 
 export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
-  public static readonly refreshSObjectsCommandCompleteEventEmitter =
+  public static readonly refreshSObjectsCommandCompletionEventEmitter =
     new vscode.EventEmitter();
-  public static readonly onRefreshSObjectsCommandComplete =
-    RefreshSObjectsExecutor.refreshSObjectsCommandCompleteEventEmitter.event;
+  public static readonly onRefreshSObjectsCommandCompletion =
+    RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.event;
   private static isActive = false;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
@@ -171,9 +171,11 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
           customObjects: result.data.customObjects ?? 0
         }
       );
-      RefreshSObjectsExecutor.refreshSObjectsCommandCompleteEventEmitter.fire({
-        exitCode: LocalCommandExecution.SUCCESS_CODE
-      });
+      RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.fire(
+        {
+          exitCode: LocalCommandExecution.SUCCESS_CODE
+        }
+      );
     } catch (error) {
       console.log('Generate error ' + error.error);
       telemetryService.sendException(error.name, error.error);
