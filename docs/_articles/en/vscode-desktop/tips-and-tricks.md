@@ -57,7 +57,7 @@ You can have as many aliases as you want, with as many `extensions-dir` director
 If using keyboard shortcuts is your jam, you'll appreciate the rich keyboard shortcut editing experience with the Keyboard Shortcuts editor that VS Code provides. Open the editor from **Code > Settings > Keyboard Shortcuts** or from **Preferences: Open Keyboard Shortcuts** command (⌘K ⌘S). See [Key Bindings for Visual Studio Code](https://code.visualstudio.com/docs/getstarted/keybindings) for details.
 
 ## Use Quick Open  
-Quickly search and open files. using the keyboard shortcut ⌘P.
+Quickly search and open files using the keyboard shortcut ⌘P.
 
 ## Commands for Salesforce Development
 Open the Command Palette using the keyboard shortcut ⌘⇧P. Type "SFDX" to view a list of commands available in your Salesforce project.
