@@ -1,7 +1,7 @@
 name: Close Stale Issues
 
-## Closes issues marked with 'more information required' label after 7 days
-##    if original poster does not respond within that time
+## Tags issues marked with 'more information required' label with 'stale' label after 3 days
+## and automatically closes them after 2 more days if original poster does not respond within that time
 
 
 permissions:
@@ -16,11 +16,14 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v9
         with:
+          node-version: '20.9.0'
           stale-issue-label: stale
-          days-before-issue-stale: 7
-          stale-issue-message: 'This issue has not received a response in 7 days. It will auto-close in 7 days unless a response is posted.'
+          days-before-issue-stale: 3
+          days-before-issue-close: 2
+          stale-issue-message: 'This issue has not received a response in 3 days. It will auto-close in 2 days unless a response is posted.'
+          close-issue-reason: not_planned
           operations-per-run: 100
           exempt-issue-labels: announcement,bug,on hold,waiting for internal reply,feature
           any-of-labels: more information required
