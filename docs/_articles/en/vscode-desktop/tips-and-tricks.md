@@ -63,7 +63,7 @@ Quickly search and open files. using the keyboard shortcut ⌘P.
 Open the Command Palette using the keyboard shortcut ⌘⇧P. Type "SFDX" to view a list of commands available in your Salesforce project.
 
 ## Use the Extensions View 
-Bring up the Extensions view by clicking the Extensions icon in the Activity Bar on the side of VS Code or run the **View: Extensions** command (⇧⌘X). Search for an extension. On an extension's details page can look up a lot of information such as it's dependencies, feature details, settings, and change log.  
+Bring up the Extensions view by clicking the Extensions icon in the Activity Bar on the side of VS Code or run the **View: Extensions** command (⌘⇧X). Search for an extension. On an extension's details page you can look up a lot of information such as its dependencies, feature details, settings, and change log.  
 
 ## Some Useful Commands
 
