@@ -7,7 +7,7 @@ Edit your user, workspace and extension pack settings.
 
 ## User and Workspace Settings
 
-To edit your workspace settings, select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Settings...** > **Settings** (macOS). For information about configuring your settings, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code documentation for more information.
+To edit your workspace settings, select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Settings...** > **Settings** (macOS). For information about configuring your settings, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code documentation.
 
 ## Extension Pack Settings
 
