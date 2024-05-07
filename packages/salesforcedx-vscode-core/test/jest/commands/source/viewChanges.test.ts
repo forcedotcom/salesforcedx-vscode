@@ -28,9 +28,9 @@ describe('viewChanges', () => {
   });
 
   describe('viewAllChanges', () => {
-    it('should get both local and remote changes', async () => {
+    it('should get both local and remote changes', () => {
       // Act
-      await viewAllChanges();
+      viewAllChanges();
 
       // Assert
       expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
@@ -43,8 +43,8 @@ describe('viewChanges', () => {
   });
 
   describe('viewLocalChanges', () => {
-    it('should get local changes', async () => {
-      await viewLocalChanges();
+    it('should get local changes', () => {
+      viewLocalChanges();
 
       expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
       expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
@@ -56,8 +56,8 @@ describe('viewChanges', () => {
   });
 
   describe('viewRemoteChanges', () => {
-    it('should get remote changes', async () => {
-      await viewRemoteChanges();
+    it('should get remote changes', () => {
+      viewRemoteChanges();
 
       expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
       expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
