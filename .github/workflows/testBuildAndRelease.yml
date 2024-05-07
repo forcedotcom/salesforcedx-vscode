@@ -1,11 +1,14 @@
 name: Test, Build, and Release
 on:
-  push:
-    branches:
-      - 'main'
+  workflow_run:
+    workflows:
+      - PreRelease
+    types:
+      - completed
 
 jobs:
   get-version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     name: 'Get Release Version'
     runs-on: ubuntu-latest
     outputs:
