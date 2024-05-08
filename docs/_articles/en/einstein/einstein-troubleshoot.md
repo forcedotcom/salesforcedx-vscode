@@ -5,7 +5,7 @@ lang: en
 
 Generative AI uses large language models (LLMs) to generate the output. Because LLMs are trained by other organizations, the output isn’t always what you expect, and the code that’s generated isn’t perfect. If the output doesn’t meet your expectations, you can generate a new output by starting over. The generated output from the previous attempt isn’t saved, and the new output replaces it.
 
-To keep track of all known issues and potential workarounds, use the [Issues](https://github.com/forcedotcom/Einstein-GPT-for-Developers/issues) tab in this repo.
+To track all known issues and potential workarounds, use the [Issues](https://github.com/forcedotcom/Einstein-GPT-for-Developers/issues) tab in this repo.
 
 **Note:** If your company requires the use of a proxy, we recommend setting this through the Salesforce CLI, not through VS Code, in order to use the Einstein for Developers extension.
 
@@ -17,7 +17,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 1. Confirm that you have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) or the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded) installed.
 2. Check that you are on VS Code version 1.82.0 or higher. 
 3. Check that your Apex Extension is version 59.8.0 or higher.
-4. Hover over {} in the status bar to view the current status of the Apex Language Server and make sure it’s running.  
+4. Hover over {} in the status bar to view the status of the Apex Language Server and make sure it’s running.  
 5. Einstein for Developers needs Salesforce CLI version 59.13.0 or higher. Make sure your CLI version hasn’t fallen out of sync. See [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli). 
 
 ### Development Environment
@@ -30,7 +30,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 ![Default Org](./images/default-org.png)
 
 
-**Tip**: Running the **SFDX: Deploy This Source to Org** command is an easy way  to check that your Salesforce extensions are running correctly and that you are connected to a Salesforce org.
+**Tip**: Running the **SFDX: Deploy This Source to Org** command is an easy way to check that your Salesforce extensions are running correctly and that you're connected to a Salesforce org.
 
 
 
