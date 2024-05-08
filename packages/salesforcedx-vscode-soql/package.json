@@ -60,6 +60,7 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "debounce": "^1.2.0",
+    "esbuild": "^0.19.5",
     "eslint": "8.23.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-header": "3.1.1",
@@ -82,7 +83,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
+    "bundle:extension": "node ./esbuild.config.js",
     "build": "npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint .",
