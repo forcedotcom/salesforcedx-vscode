@@ -30,7 +30,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 ![Default Org](./images/default-org.png)
 
 
-**Tip**: Running the **SFDX: Deploy This Source to Org** command is an easy way to check that your Salesforce extensions are running correctly and that you're connected to a Salesforce org.
+**Tip**: Run the **SFDX: Deploy This Source to Org** command to easily check that your Salesforce extensions are running correctly and that you're connected to a Salesforce org.
 
 
 
