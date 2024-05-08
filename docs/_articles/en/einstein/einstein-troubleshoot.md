@@ -26,7 +26,8 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 2. Check that your Einstein for Developers extension is activated using the **Developer: Show Running Extensions** command. If your extension isn’t activating, file an [issue](https://github.com/forcedotcom/Einstein-GPT-for-Developers/issues) in our GitHub repo.
 3. Make sure you’re connected to a Salesforce org. The status of your default org connection is visible in the status bar.
 
-![Default Org](./images/default-../../../../images/default-org.png)
+
+![Default Org](./images/default-org.png)
 
 
 **Tip**: Running the **SFDX: Deploy This Source to Org** command is an easy way  to check that your Salesforce extensions are running correctly and that you are connected to a Salesforce org.
