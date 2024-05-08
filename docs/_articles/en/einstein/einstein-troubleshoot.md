@@ -10,7 +10,7 @@ To track all known issues and potential workarounds, use the [Issues](https://gi
 **Note:** If your company requires the use of a proxy, we recommend setting this through the Salesforce CLI, not through VS Code, in order to use the Einstein for Developers extension.
 
 ## Troubleshooting Checklist
-Use this troubleshooting checklist to identify and eliminate common problems with using Einstein for Developers
+Use this troubleshooting checklist to identify and eliminate common problems with using Einstein for Developers.
 
 ### Installation Checklist
 
