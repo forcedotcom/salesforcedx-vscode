@@ -344,6 +344,7 @@
     "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "esbuild": "^0.19.5",
     "eslint": "8.52.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-header": "3.1.1",
@@ -410,7 +411,7 @@
   },
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/source-deploy-retrieve --external:@salesforce/source-tracking --minify",
+    "bundle:extension:build": "node ./esbuild.config.js",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
