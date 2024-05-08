@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { RefreshSObjectsExecutor } from '../../../../src/commands';
-import { CommandEventDispatcher } from '../../../../src/commands/util/CommandEventDispatcher';
+import { CommandEventDispatcher } from '../../../../src/commands/util/commandEventDispatcher';
 
 describe('CommandEventDispatcher', () => {
   describe('getInstance', () => {

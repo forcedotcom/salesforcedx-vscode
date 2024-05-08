@@ -91,7 +91,8 @@ import {
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from './commands/util';
-import { CommandEventDispatcher } from './commands/util/CommandEventDispatcher';
+
+import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import {
   PersistentStorageService,
   registerConflictView,
