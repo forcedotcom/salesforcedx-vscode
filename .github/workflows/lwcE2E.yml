@@ -41,7 +41,7 @@ on:
         default: 'develop'
         type: string
       lwcLsp:
-        description: 'Lwc LSP'
+        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
@@ -102,10 +102,10 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'Lwc E2E Tests'
+      title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Lwc LSP: ${{ needs.lwcLsp.result }}\n- Debug Lwc Tests: ${{ needs.debugLwcTests.result }}\n- Run Lwc Tests: ${{ needs.runLwcTests.result }}'
+      summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -116,10 +116,10 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'Lwc E2E Tests'
+      title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Lwc LSP: ${{ needs.lwcLsp.result }}\n- Debug Lwc Tests: ${{ needs.debugLwcTests.result }}\n- Run Lwc Tests: ${{ needs.runLwcTests.result }}'
+      summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -130,10 +130,10 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'Lwc E2E Tests'
+      title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Lwc LSP: ${{ needs.lwcLsp.result }}\n- Debug Lwc Tests: ${{ needs.debugLwcTests.result }}\n- Run Lwc Tests: ${{ needs.runLwcTests.result }}'
+      summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
