@@ -102,7 +102,7 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'Lwc E2E Tests'
+      title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
@@ -116,7 +116,7 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'Lwc E2E Tests'
+      title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
@@ -130,7 +130,7 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'Lwc E2E Tests'
+      title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
