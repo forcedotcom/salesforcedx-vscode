@@ -41,7 +41,7 @@ on:
         default: 'develop'
         type: string
       lwcLsp:
-        description: 'Lwc LSP'
+        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
