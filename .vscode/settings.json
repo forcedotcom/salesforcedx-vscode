@@ -33,5 +33,6 @@
     "./packages/salesforcedx-utils",
     "./packages/salesforcedx-vscode-lightning",
     "./packages/salesforcedx-sobjects-faux-generator"
-  ]
+  ],
+  "files.insertFinalNewline": true
 }
