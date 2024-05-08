@@ -46,6 +46,17 @@ describe('RefreshSObjectsExecutor', () => {
     expect(channelServiceSpy).not.toHaveBeenCalled();
   });
 
+  it('should fire the command completion event', async () => {
+    const fireSpy = jest.spyOn(
+      RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter,
+      'fire'
+    );
+
+    await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
+
+    expect(fireSpy).toHaveBeenCalled();
+  });
+
   const doExecute = async (
     source: SObjectRefreshSource,
     category?: SObjectCategory
