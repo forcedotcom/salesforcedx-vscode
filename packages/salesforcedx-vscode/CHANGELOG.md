@@ -1,3 +1,19 @@
+# 60.12.0 - May 8, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made a major upgrade to the version of the @salesforce/core library. ([PR #5556](https://github.com/forcedotcom/salesforcedx-vscode/pull/5556))
+
+- We no longer prompt you for a directory location when you use the context menu to run an Apex command to create a class. We just gather the information from the context, making things a little more convenient for you. Thank you [Heber](https://github.com/aheber) for this awesome contribution.  #5544 ([PR #5561](https://github.com/forcedotcom/salesforcedx-vscode/pull/5561))
+
+## Fixed
+
+#### docs
+
+- We updated the replay debugger content with some helpful information. ([PR #5566](https://github.com/forcedotcom/salesforcedx-vscode/pull/5566))
+
 # 60.11.0 - May 1, 2024
 
 ## Fixed
