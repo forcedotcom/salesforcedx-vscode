@@ -13,11 +13,6 @@ on:
         required: false
         default: true
         type: boolean
-      lwcLsp:
-        description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
       visualforceLsp:
         description: 'Visualforce LSP'
         required: false
@@ -42,11 +37,6 @@ on:
         type: string
       auraLsp:
         description: 'Aura LSP'
-        required: false
-        default: true
-        type: boolean
-      lwcLsp:
-        description: 'LWC LSP'
         required: false
         default: true
         type: boolean
@@ -76,16 +66,6 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  lwcLSP:
-    if: ${{ inputs.lwcLsp }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'lwcLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
-      runId: ${{ inputs.runId }}
-
   visualforceLSP:
     if: ${{ inputs.visualforceLsp }}
     uses: ./.github/workflows/runE2ETest.yml
@@ -98,42 +78,42 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [auraLSP, lwcLSP, visualforceLSP]
+    needs: [auraLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [auraLSP, lwcLSP, visualforceLSP]
+    needs: [auraLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [auraLSP, lwcLSP, visualforceLSP]
+    needs: [auraLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LSP E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
