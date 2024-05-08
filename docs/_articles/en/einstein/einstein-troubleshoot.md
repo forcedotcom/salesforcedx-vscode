@@ -20,7 +20,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 4. Hover over {} in the status bar to view the status of the Apex Language Server and make sure it’s running.  
 5. Einstein for Developers needs Salesforce CLI version 59.13.0 or higher. Make sure your CLI version hasn’t fallen out of sync. See [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli). 
 
-### Development Environment
+### Development Environment Checklist
 
 1. Einstein for Developers only runs inside a Salesforce project. Confirm that you have a Salesforce DX project open. 
 2. Check that your Einstein for Developers extension is activated using the **Developer: Show Running Extensions** command. If your extension isn’t activating, file an [issue](https://github.com/forcedotcom/Einstein-GPT-for-Developers/issues) in our GitHub repo.
