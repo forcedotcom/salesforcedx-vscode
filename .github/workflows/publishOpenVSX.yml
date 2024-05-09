@@ -1,24 +1,23 @@
 name: Publish in Open VSX Registry
 on:
   release:
-    # This limits the workflow to releases that are not pre-releases 
+    # This limits the workflow to releases that are not pre-releases
     # From the docs: A release was published, or a pre-release was changed to a release.
-    types: [ released ]
+    types: [released]
   #  Button for publishing main branch in case there is a failure on the release.
   workflow_dispatch:
-    
-jobs:
 
+jobs:
   publish-start-notification:
-    name: "Publish in Open VSX Start Notification"
+    name: 'Publish in Open VSX Start Notification'
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Publish in Open VSX waiting for approval in github."
-      notification: "New Release triggered publish build and job is ready for approval."
-      type: "notification"
-      workflow: "publishOpenVSX.yml"
-  
+      title: 'Publish in Open VSX waiting for approval in github.'
+      notification: 'New Release triggered publish build and job is ready for approval.'
+      type: 'notification'
+      workflow: 'publishOpenVSX.yml'
+
   prepare-environment-from-main:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
@@ -36,28 +35,27 @@ jobs:
           echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
       - id: getGusBuild
-        run: | 
+        run: |
           echo "gusBuild=${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "GUS BUILD is ${{ steps.getGusBuild.outputs.gusBuild }}"
       - id: getScheduledBuild
-        run: | 
+        run: |
           echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
 
-
   ctc-open:
-    needs: [ prepare-environment-from-main ]
+    needs: [prepare-environment-from-main]
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
   publish:
-    needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
+    needs: ['ctc-open', 'prepare-environment-from-main']
     runs-on: ubuntu-latest
-    env: 
+    env:
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
       PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -67,14 +65,14 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: downloadExtensionsFromRelease
-        run: | 
+        run: |
           mkdir ./extensions
           gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - run: npm ci
       - run: |
-          cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
+          cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
