@@ -14,11 +14,11 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 
 ### Installation Checklist
 
-1. Confirm that you have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) or the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded) installed.
-2. Check that you are on VS Code version 1.82.0 or higher. 
+1. Check that you are on VS Code version 1.82.0 or higher. 
+2. Confirm that you have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) or the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded) installed.
 3. Check that your Apex Extension is version 59.8.0 or higher.
 4. Hover over {} in the status bar to view the status of the Apex Language Server and make sure it’s running.  
-5. Einstein for Developers needs Salesforce CLI version 59.13.0 or higher. Make sure your CLI version hasn’t fallen out of sync. See [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli). 
+5. Einstein for Developers needs Salesforce CLI version 59.13.0 or higher. See the [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli_rc.htm).
 
 ### Development Environment Checklist
 
@@ -30,7 +30,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 ![Default Org](./images/default-org.png)
 
 
-**Tip**: Run the **SFDX: Deploy This Source to Org** command to easily check that your Salesforce extensions are running correctly and that you're connected to a Salesforce org.
+**Tip**: Run the **SFDX: Open Default Org** command to easily check that your Salesforce extensions are running correctly and that you're connected to a Salesforce org.
 
 
 
