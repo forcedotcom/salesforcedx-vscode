@@ -10,6 +10,7 @@ import {
   SObjectTransformer,
   SObjectTransformerFactory
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
+import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { channelService } from '../../../src/channels';
@@ -54,7 +55,9 @@ describe('RefreshSObjectsExecutor', () => {
 
     await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
 
-    expect(fireSpy).toHaveBeenCalled();
+    expect(fireSpy).toHaveBeenCalledWith({
+      exitCode: LocalCommandExecution.SUCCESS_CODE
+    });
   });
 
   const doExecute = async (

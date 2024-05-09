@@ -15,13 +15,22 @@ describe('CommandEventDispatcher', () => {
 
       expect(instance).toBeDefined();
     });
+
+    it('should return the same instance of CommandEventDispatcher', () => {
+      const instance1 = CommandEventDispatcher.getInstance();
+      const instance2 = CommandEventDispatcher.getInstance();
+
+      expect(instance1).toBe(instance2);
+    });
   });
 
   describe('onRefreshSObjectsCommandCompletion', () => {
+    const mockDisposable = new vscode.Disposable(() => {});
+
     beforeEach(() => {
       (RefreshSObjectsExecutor as any).onRefreshSObjectsCommandCompletion = jest
         .fn()
-        .mockReturnValue(new vscode.Disposable(() => {}));
+        .mockReturnValue(mockDisposable);
     });
 
     it('should call refreshSObjectExecutor event and return the disposable', () => {
@@ -30,7 +39,7 @@ describe('CommandEventDispatcher', () => {
       const disposable =
         dispatcher.onRefreshSObjectsCommandCompletion(listener);
 
-      expect(disposable).toBeDefined();
+      expect(disposable).toBe(mockDisposable);
       expect(
         (RefreshSObjectsExecutor as any).onRefreshSObjectsCommandCompletion
       ).toHaveBeenCalledWith(listener);
@@ -46,7 +55,6 @@ describe('CommandEventDispatcher', () => {
 
     it('should dispose the refreshSObjectsCommandCompletionEventEmitter', () => {
       const dispatcher = CommandEventDispatcher.getInstance();
-
       dispatcher.dispose();
 
       expect(
