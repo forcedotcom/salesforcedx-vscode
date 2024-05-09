@@ -54,7 +54,7 @@ jobs:
     needs: [ 'ctc-open', 'prepare-environment-from-main' ]    
     runs-on: ubuntu-latest
     env: 
-      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      OVSX_PAT: 'DummyOVSXPAT'
       PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps: 
