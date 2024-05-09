@@ -18,11 +18,11 @@ on:
         required: false
         default: true
         type: boolean
-      # miscellaneous:
-      #   description: "Miscellaneous Commands"
-      #   required: false
-      #   default: true
-      #   type: boolean
+      miscellaneous:
+        description: 'Miscellaneous Commands'
+        required: false
+        default: true
+        type: boolean
       sObjectsDefinitions:
         description: 'sObjects Definitions'
         required: false
@@ -60,11 +60,11 @@ on:
         required: false
         default: true
         type: boolean
-      # miscellaneous:
-      #   description: "Miscellaneous Commands"
-      #   required: false
-      #   default: true
-      #   type: boolean
+      miscellaneous:
+        description: 'Miscellaneous Commands'
+        required: false
+        default: true
+        type: boolean
       sObjectsDefinitions:
         description: 'sObjects Definitions'
         required: false
@@ -106,15 +106,15 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  # miscellaneous:
-  #   if: ${{ inputs.miscellaneous }}
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     automationBranch: ${{ inputs.automationBranch }}
-  #     testToRun: 'miscellaneous.e2e.ts'
-  #     vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
-  #     runId: ${{ inputs.runId }}
+  miscellaneous:
+    if: ${{ inputs.miscellaneous }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'miscellaneous.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      runId: ${{ inputs.runId }}
 
   sObjectsDefinitions:
     if: ${{ inputs.sObjectsDefinitions }}
@@ -138,12 +138,13 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [
+    needs:
+      [
         anInitialSuite,
         authentication,
-        # miscellaneous,
+        miscellaneous,
         sObjectsDefinitions,
-        templates,
+        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -151,20 +152,20 @@ jobs:
       title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure()}}
-    needs: [
+    needs:
+      [
         anInitialSuite,
         authentication,
-        # miscellaneous,
+        miscellaneous,
         sObjectsDefinitions,
-        templates,
+        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -172,20 +173,20 @@ jobs:
       title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [
+    needs:
+      [
         anInitialSuite,
         authentication,
-        # miscellaneous,
+        miscellaneous,
         sObjectsDefinitions,
-        templates,
+        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -193,8 +194,7 @@ jobs:
       title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
