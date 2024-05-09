@@ -182,16 +182,16 @@
   "dependencies": {
     "@salesforce/apex-node": "6.0.0",
     "@salesforce/core": "7.3.1",
-    "@salesforce/salesforcedx-apex-replay-debugger": "60.11.0",
-    "@salesforce/salesforcedx-utils": "60.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.11.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "60.12.0",
+    "@salesforce/salesforcedx-utils": "60.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.12.0",
     "async-lock": "1.0.0",
     "request-light": "^0.7.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "description": "Replay Apex execution from Apex Debug Log",
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.11.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.12.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "4.3.3",
@@ -203,6 +203,7 @@
     "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "esbuild": "^0.19.5",
     "eslint": "8.52.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-header": "3.1.1",
@@ -263,7 +264,7 @@
   },
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --external:@salesforce/source-tracking --external:applicationinsights --minify",
+    "bundle:extension:build": "node ./esbuild.config.js",
     "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
@@ -279,5 +280,5 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "version": "60.11.0"
+  "version": "60.12.0"
 }
