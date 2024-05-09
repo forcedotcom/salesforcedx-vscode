@@ -22,7 +22,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 
 ### Development Environment Checklist
 
-1. Einstein for Developers only runs inside a Salesforce project. Confirm that you have a Salesforce DX project open by checking that you have an `sfdx-project.json` file stored in your workspace. More information on the Salesforce Project Configuration can be found in the Salesforce CLI docs [here](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm).
+1. Einstein for Developers only runs inside a Salesforce project. Confirm that you have a Salesforce DX project open by checking that you have an `sfdx-project.json` file stored in your workspace. For more information see [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm).
 2. Check that your Einstein for Developers extension is activated using the **Developer: Show Running Extensions** command. If your extension isn’t activating, file an [issue](https://github.com/forcedotcom/Einstein-GPT-for-Developers/issues) in our GitHub repo.
 3. Make sure you’re connected to a Salesforce org. The status of your default org connection is visible in the status bar.
 
