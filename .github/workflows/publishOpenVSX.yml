@@ -73,8 +73,8 @@ jobs:
       - name: Display downloaded vsix files
         run: ls -R ./extensions
       - run: npm ci
-      - run: find ./extensions -type f -name "*.vsix" -exec npx ovsx publish {} -p ${{ env.OVSX_PAT }} \;
-      - run: echo "SUCCESSFULLY published"
+      - run: |
+          cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]

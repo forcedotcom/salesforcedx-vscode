@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "60.11.0",
+  "version": "60.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -31,18 +31,18 @@
     "soql builder"
   ],
   "dependencies": {
+    "@jsforce/jsforce-node": "3.2.0",
     "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core": "7.3.1",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
-    "@salesforce/soql-model": "0.2.3",
-    "@jsforce/jsforce-node": "3.2.0"
+    "@salesforce/soql-model": "0.2.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "60.11.0",
-    "@salesforce/salesforcedx-test-utils-vscode": "60.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "60.12.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "60.12.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "2.0.9",
@@ -60,6 +60,7 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "debounce": "^1.2.0",
+    "esbuild": "^0.19.5",
     "eslint": "8.23.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-header": "3.1.1",
@@ -82,7 +83,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:@salesforce/source-tracking  --external:applicationinsights --external:shelljs --external:@salesforce/soql-model --external:@salesforce/soql-language-server --external:@salesforce/soql-data-view --external:@salesforce/soql-builder-ui --minify",
+    "bundle:extension": "node ./esbuild.config.js",
     "build": "npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint .",
