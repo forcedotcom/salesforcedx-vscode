@@ -72,7 +72,7 @@ jobs:
         run: ls -R ./extensions
       - run: npm ci
       - run: |
-          cmd=$(find . -type f -name "*.vsix" -print0 | xargs -0 printf 'npx vsce publish --skip-duplicate --pat "%s" --packagePath "%s" && ' "${VSCE_PERSONAL_ACCESS_TOKEN}" | sed 's/ && $//')&&[ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
+          cmd=$(find . -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx vsce publish --skip-duplicate --pat "%s" --packagePath "%s" && ' "${VSCE_PERSONAL_ACCESS_TOKEN}" '{}' | sed 's/ && $//')&&[ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
