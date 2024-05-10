@@ -91,6 +91,8 @@ import {
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from './commands/util';
+
+import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import {
   PersistentStorageService,
   registerConflictView,
@@ -639,6 +641,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const commands = registerCommands(extensionContext);
   extensionContext.subscriptions.push(commands);
   extensionContext.subscriptions.push(registerConflictView());
+  extensionContext.subscriptions.push(CommandEventDispatcher.getInstance());
 
   const api: any = {
     channelService,
@@ -663,7 +666,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       ChannelService,
       SalesforceProjectConfig,
       TelemetryService,
-      WorkspaceContext
+      WorkspaceContext,
+      CommandEventDispatcher
     }
   };
 
