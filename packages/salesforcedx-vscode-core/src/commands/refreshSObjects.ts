@@ -84,6 +84,10 @@ export class SObjectRefreshGatherer
 }
 
 export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
+  public static readonly refreshSObjectsCommandCompletionEventEmitter =
+    new vscode.EventEmitter();
+  public static readonly onRefreshSObjectsCommandCompletion =
+    RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.event;
   private static isActive = false;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
@@ -165,6 +169,11 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
         {
           standardObjects: result.data.standardObjects ?? 0,
           customObjects: result.data.customObjects ?? 0
+        }
+      );
+      RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.fire(
+        {
+          exitCode: LocalCommandExecution.SUCCESS_CODE
         }
       );
     } catch (error) {
