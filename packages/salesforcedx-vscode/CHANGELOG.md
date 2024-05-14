@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- We got rid of the annoying `"Warning: Ignoring extra certs from null, load failed: error:80000002:system library::No such file or directory"` warning when `Salesforcedx-vscode-core: NODE_EXTRA_CA_CERTS` setting is missing. ([PR #5575](https://github.com/forcedotcom/salesforcedx-vscode/pull/5575))
+- We got rid of the annoying `"Warning: Ignoring extra certs from null, load failed: error:80000002:system library::No such file or directory"` warning when the `Salesforcedx-vscode-core: NODE_EXTRA_CA_CERTS` setting is missing. ([PR #5575](https://github.com/forcedotcom/salesforcedx-vscode/pull/5575))
 
 # 60.12.0 - May 8, 2024
 
