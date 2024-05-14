@@ -4,7 +4,7 @@
 
 #### docs
 
-- We made updates to troubleshooting guidelines for Einstein for Developers. ([PR #5587](https://github.com/forcedotcom/salesforcedx-vscode/pull/5587))
+- We made updates to the troubleshooting guidelines for Einstein for Developers. ([PR #5587](https://github.com/forcedotcom/salesforcedx-vscode/pull/5587))
 
 #### salesforcedx-vscode-core
 
