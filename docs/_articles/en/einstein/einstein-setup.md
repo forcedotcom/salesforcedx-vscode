@@ -5,9 +5,10 @@ lang: en
 
 ## Set Up Overview
 
-Einstein for Developers is available in the [VS Code](https://marketplace.visualstudio.com/vscode) and [Open VSX](https://open-vsx.org/) marketplaces. The extension is enabled by default in a supported Salesforce org. A developer with access to a supported org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage.
+Einstein for Developers is available the [VS Code](https://marketplace.visualstudio.com/vscode) and [Open VSX](https://open-vsx.org/) marketplaces as a part of the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) and the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded. A developer with access to a Salesforce org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage.
 
-To use Einstein for Developers on your desktop, you must have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) installed in your VS Code desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
+To install the Salesforce Extension pack, see [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install).
+
 
 ### Required Editions
 
@@ -43,6 +44,10 @@ The Einstein for Developers status icon in the bottom panel of the Visual Studio
 ## Disable or Uninstall Einstein for Developers Extension
 
 You can disable or uninstall the Einstein for Developers extension at any time. Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of VS Code or the **View: Show Extensions** command (⇧⌘X). Search for "Einstein for Developers" in installed extensions list, and then select **Disable** or **Uninstall**.
+
+### Use Einstein for Developers in Code Builder
+
+Einstein for Developers is disabled by default in new Code Builder environments. To use this extension in a new environment, go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`, and then enable the extension. 
 
 ### Use Einstein for Developers in a Scratch Org
 

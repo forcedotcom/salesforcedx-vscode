@@ -26,12 +26,8 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 2. Check that your Einstein for Developers extension is activated using the **Developer: Show Running Extensions** command. If your extension isn’t activating, file an [issue](https://github.com/forcedotcom/Einstein-GPT-for-Developers/issues) in our GitHub repo.
 3. Make sure you’re connected to a Salesforce org. The status of your default org connection is visible in the status bar.
 
-
 ![Default Org](./images/default-org.png)
-
 
 **Tip**: Run the **SFDX: Open Default Org** command to easily check that your Salesforce extensions are running correctly and that you're connected to a Salesforce org.
 
-
-
-
+4. Einstein for Developers extension is disabled in Code Builder by default. To enable the extension you must first set the Visual Studio Code telemetry level to `all`. 
