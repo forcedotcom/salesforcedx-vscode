@@ -4,17 +4,11 @@
 
 #### docs
 
-- Updated e4d troubleshooting guidelines ([PR #5587](https://github.com/forcedotcom/salesforcedx-vscode/pull/5587))
-
-- Update einstein faq ([PR #5574](https://github.com/forcedotcom/salesforcedx-vscode/pull/5574))
-
-- Update tips and tricks topic ([PR #5571](https://github.com/forcedotcom/salesforcedx-vscode/pull/5571))
-
-- Add link to Code Builder release notes ([PR #5582](https://github.com/forcedotcom/salesforcedx-vscode/pull/5582))
+- We made updates to troubleshooting guidelines for Einstein for Developers. ([PR #5587](https://github.com/forcedotcom/salesforcedx-vscode/pull/5587))
 
 #### salesforcedx-vscode-core
 
-- We got rid of the annoying "Warning: Ignoring extra certs from null, load failed: error:80000002:system library::No such file or directory" warning when "Salesforcedx-vscode-core: NODE_EXTRA_CA_CERTS" setting is not set ([PR #5575](https://github.com/forcedotcom/salesforcedx-vscode/pull/5575))
+- We got rid of the annoying `"Warning: Ignoring extra certs from null, load failed: error:80000002:system library::No such file or directory"` warning when `Salesforcedx-vscode-core: NODE_EXTRA_CA_CERTS` setting is missing. ([PR #5575](https://github.com/forcedotcom/salesforcedx-vscode/pull/5575))
 
 # 60.12.0 - May 8, 2024
 
