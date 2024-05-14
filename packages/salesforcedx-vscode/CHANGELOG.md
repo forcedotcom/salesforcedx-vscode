@@ -1,3 +1,15 @@
+# 60.13.0 - May 15, 2024
+
+## Fixed
+
+#### docs
+
+- We made updates to the troubleshooting guidelines for Einstein for Developers. ([PR #5587](https://github.com/forcedotcom/salesforcedx-vscode/pull/5587))
+
+#### salesforcedx-vscode-core
+
+- We got rid of the annoying `"Warning: Ignoring extra certs from null, load failed: error:80000002:system library::No such file or directory"` warning when the `Salesforcedx-vscode-core: NODE_EXTRA_CA_CERTS` setting is missing. ([PR #5575](https://github.com/forcedotcom/salesforcedx-vscode/pull/5575))
+
 # 60.12.0 - May 8, 2024
 
 ## Added
