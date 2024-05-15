@@ -47,7 +47,6 @@ jobs:
         uses: ./.github/actions/new-issue
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          label: "investigating"
           message: >
             Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.
             Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.
