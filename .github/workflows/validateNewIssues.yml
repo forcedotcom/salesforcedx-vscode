@@ -11,6 +11,10 @@ on: # issue opened, labeled as feature, or labeled as owned by another team
     types: [opened, labeled]
 
 jobs:
+  dummy-job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'elephant'
   owned-by-other-team:
     if: ${{ github.event.label.name == 'owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') }}
     runs-on: ubuntu-latest
