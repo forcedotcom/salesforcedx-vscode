@@ -1,0 +1,112 @@
+#
+# Copyright (c) 2021, salesforce.com, inc.
+# All rights reserved.
+# Licensed under the BSD 3-Clause license.
+# For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+#
+
+name: "Validate New Issues"
+on: # issue opened, labeled as feature, or labeled as owned by another team
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  owned-by-other-team:
+    if: ${{ github.event.label.name == 'owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          label: "owned by another team"
+          message: >
+            We have determined that the issue you reported exists in code owned by another team that uses only the official support channels.
+            To ensure that your issue is addressed, open an official [Salesforce customer support](https://help.salesforce.com/s/) ticket with a link to this issue.
+            We encourage anyone experiencing this issue to do the same to increase the priority. We will keep this issue open for the community to collaborate on.
+      - name: log action output
+        run: echo ${{ steps.run_action.outputs.message }}
+  new-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          label: "investigating"
+          message: >
+            Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.
+            Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.
+            If you require immediate assistance, contact Salesforce Customer Support.
+      - name: log action output
+        run: echo ${{ steps.run_action.outputs.message }}
+  validate-new-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: Validate issue
+        id: validate-issue
+        uses: ./.github/actions/validate-issue
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+  new-feature:
+    if: ${{ github.event.label.name == 'feature' && !contains(github.event.issue.labels.*.name, 'owned by another team') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          label: "feature"
+          message: >
+            Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming or sprint planning session. We prioritize feature requests with more upvotes and comments.
+      - name: log action output
+        run: echo ${{ steps.run_action.outputs.message }}
+  new-feature-on-another-team:
+    if: >-
+      (github.event.label.name == 'feature' || github.event.label.name == 'owned by another team')
+      &&
+      (contains(github.event.issue.labels.*.name, 'feature') && contains(github.event.issue.labels.*.name, 'owned by another team'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          message: >
+            Thank you for filing this feature request. However, we've determined that the functionality you've requested must be completed by another team. Please submit your request to the [Salesforce IdeaExchange](https://trailblazer.salesforce.com/ideaSearch). Then post a link to the request in this issue so that others can upvote your idea.
+      - name: log action output
+        run: echo ${{ steps.run_action.outputs.message }}
