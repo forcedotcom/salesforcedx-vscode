@@ -44,12 +44,12 @@ async function run() {
 
     // If label is passed in as an input, make sure it is on the issue before posting the message.
     // Otherwise, we want to post message on all issues regardless.
-    if (label) {
-      if (!issueLabels.find((issueLabel) => issueLabel.name === label)) {
-        // We didn't find the label, so don't post on this issue.
-        return;
-      }
-    }
+    // if (label) {
+    //   if (!issueLabels.find((issueLabel) => issueLabel.name === label)) {
+    //     // We didn't find the label, so don't post on this issue.
+    //     return;
+    //   }
+    // }
 
     const { data: comments } = await octokit.rest.issues.listComments({
       owner,
