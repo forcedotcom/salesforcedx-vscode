@@ -25,7 +25,7 @@ jobs:
         id: issue_comment
         uses: ./.github/actions/new-issue
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
           label: "owned by another team"
           message: >
             We have determined that the issue you reported exists in code owned by another team that uses only the official support channels.
@@ -46,7 +46,7 @@ jobs:
         id: issue_comment
         uses: ./.github/actions/new-issue
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
           message: >
             Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.
             Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.
@@ -66,7 +66,7 @@ jobs:
         id: validate-issue
         uses: ./.github/actions/validate-issue
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
   new-feature:
     if: ${{ github.event.label.name == 'feature' && !contains(github.event.issue.labels.*.name, 'owned by another team') }}
     runs-on: ubuntu-latest
@@ -81,7 +81,7 @@ jobs:
         id: issue_comment
         uses: ./.github/actions/new-issue
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
           label: "feature"
           message: >
             Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming or sprint planning session. We prioritize feature requests with more upvotes and comments.
@@ -104,7 +104,7 @@ jobs:
         id: issue_comment
         uses: ./.github/actions/new-issue
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
           message: >
             Thank you for filing this feature request. However, we've determined that the functionality you've requested must be completed by another team. Please submit your request to the [Salesforce IdeaExchange](https://trailblazer.salesforce.com/ideaSearch). Then post a link to the request in this issue so that others can upvote your idea.
       - name: log action output
