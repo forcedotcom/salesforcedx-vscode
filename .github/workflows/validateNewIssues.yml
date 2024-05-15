@@ -34,6 +34,7 @@ jobs:
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
   new-issue:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -54,6 +55,7 @@ jobs:
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
   validate-new-issue:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
