@@ -158,14 +158,12 @@ async function run() {
       if (valid) {
         console.log("All information provided is valid!");
         removeLabel("more information required");
-        addLabel("investigating");
         // This label will prevent the action from running again after version info has been confirmed
         // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
         addLabel("validated");
       } else {
         console.log("Information provided is NOT valid");
         addLabel("more information required");
-        removeLabel("investigating");
       }
     } else {
       console.log("Full version information was not provided");
@@ -174,7 +172,6 @@ async function run() {
       });
       postComment(message);
       addLabel("more information required");
-      removeLabel("investigating");
     }
 
     // ---------
