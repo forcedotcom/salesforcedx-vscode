@@ -70,6 +70,8 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         run: npm install
+      - name: Dummy step
+        run: echo 'elephant'
       - name: Validate issue
         id: validate-issue
         uses: ./.github/actions/validate-issue
