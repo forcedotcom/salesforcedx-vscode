@@ -34,4 +34,4 @@ jobs:
         id: validate-issue
         uses: ./.github/actions/validate-issue
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN}}
+          repo-token: ${{ secrets.IDEE_GH_TOKEN}}
