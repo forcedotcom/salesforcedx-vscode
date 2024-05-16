@@ -54,6 +54,12 @@
     },
     {
       "path": "packages/system-tests"
+    },
+    {
+      "path": "./.github/actions/new-issue"
+    },
+    {
+      "path": "./.github/actions/validate-issue"
     }
   ]
 }

@@ -91,7 +91,7 @@
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
-    "check:typescript-project-references": "workspaces-to-typescript-project-references --includesRoot --check",
+    "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
     "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
