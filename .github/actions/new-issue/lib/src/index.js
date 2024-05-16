@@ -48,18 +48,13 @@ async function run() {
             repo,
             issue_number: issue.number,
         });
-        console.log('A');
         // If we have comments check out that this comment has not been previously commented
         if (comments.length) {
-            console.log('B');
             if (comments.some((comment) => comment.body === message)) {
-                console.log('C');
                 console.log("Already commented");
                 return;
             }
-            console.log('D');
         }
-        console.log('E');
         const response = await octokit.rest.issues.createComment({
             owner,
             repo,
@@ -67,17 +62,12 @@ async function run() {
             issue_number: issue.number,
             body: message,
         });
-        console.log('F');
         console.log("created comment URL: " + response.data.html_url);
         (0, core_1.setOutput)("comment-url", response.data.html_url);
-        console.log('G');
     }
     catch (err) {
-        console.log('H');
         const error = err;
-        console.log('I');
         (0, core_1.setFailed)(error.message);
-        console.log('J');
     }
 }
 run();
