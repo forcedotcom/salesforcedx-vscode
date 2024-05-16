@@ -5,13 +5,13 @@
 # For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
 
-name: "Salesforce CLI Validate Issues"
-description: "Validate information provided in an new Github issue."
-author: "Eric Willhoit"
+name: 'Salesforce CLI Validate Issues'
+description: 'Validate information provided in an new Github issue.'
+author: 'Eric Willhoit'
 inputs:
   repo-token:
     required: true
-    description: "Token taken from secrets env var"
+    description: 'Token taken from secrets env var'
 runs:
-  using: "node20"
-  main: "lib/index.js"
+  using: 'node20'
+  main: 'lib/src/index.js'
