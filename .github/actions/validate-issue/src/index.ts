@@ -111,7 +111,7 @@ async function run() {
         if (!oneSatisfies) {
           if (sfVersions.find((v) => v.startsWith("2."))) {
             // If any sf versions provided start with 2.x, share update information
-            const oldSf = getFile("../messages/old-cli.md", {
+            const oldSf = getFile("../../messages/old-cli.md", {
               THE_AUTHOR: author,
               USER_CLI: "sf",
               USER_VERSION: sfVersions.join("`, `"),
@@ -120,7 +120,7 @@ async function run() {
             postComment(oldSf);
           } else {
             // If not, share deprecation information
-            const sfV1 = getFile("../messages/deprecated-cli.md", {
+            const sfV1 = getFile("../../messages/deprecated-cli.md", {
               THE_AUTHOR: author,
               OLD_CLI: "`sf` (v1)",
             });
@@ -133,7 +133,7 @@ async function run() {
         sfdxVersions.find((v) => v.startsWith("7.")) &&
         !sfVersions.find((v) => v.startsWith("2."))
       ) {
-        const noOldSfdx = getFile("../messages/deprecated-cli.md", {
+        const noOldSfdx = getFile("../../messages/deprecated-cli.md", {
           THE_AUTHOR: author,
           OLD_CLI: "`sfdx` (v7)",
         });
@@ -143,7 +143,7 @@ async function run() {
       if (nodeVersions.length > 0) {
         if (!(await isAnyVersionValid(new Date())(nodeVersions))) {
           const nodeVersionMessage = getFile(
-            "../messages/unsupported-node.md",
+            "../../messages/unsupported-node.md",
             {
               THE_AUTHOR: author,
               NODE_VERSION: nodeVersions.join("`, `"),
@@ -167,7 +167,7 @@ async function run() {
       }
     } else {
       console.log("Full version information was not provided");
-      const message = getFile("../messages/provide-version.md", {
+      const message = getFile("../../messages/provide-version.md", {
         THE_AUTHOR: issue.user.login,
       });
       postComment(message);
