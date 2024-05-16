@@ -1,5 +1,11 @@
 # 60.13.1 - May 18, 2024
 
+## Fixed
+
+#### docs
+
+- We added information about the new setting for inline completion length for Einstein for Developers. ([PR #5600](https://github.com/forcedotcom/salesforcedx-vscode/pull/5600))
+
 # 60.13.0 - May 15, 2024
 
 ## Fixed
