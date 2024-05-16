@@ -61,6 +61,20 @@ async function run() {
       ...authorComments.map((comment) => comment.body),
     ].filter((body): body is string => body !== undefined);
 
+    // Checking Salesforce Extension Pack version
+    const extensionVersionRegex = /Salesforce Extension Version in VS Code:\s*\d{2}\.\d{1,2}\.\d$/g;
+
+    // Checking VSCode version
+    const vscodeVersionRegex = /VS Code version: \s*1\.\d{2}\.\d$/g;
+
+    // Checking presence of OS and version
+    console.log('elephant');
+
+    // Checking presence of last working extensions version
+    console.log('elephant');
+
+    // *** The below is the check for CLI version, code reused from CLI Team's repo ***
+
     const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
     const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
     // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
