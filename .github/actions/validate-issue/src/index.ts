@@ -64,8 +64,37 @@ async function run() {
     // Checking Salesforce Extension Pack version
     const extensionVersionRegex = /Salesforce Extension Version in VS Code:\s*\d{2}\.\d{1,2}\.\d$/g;
 
+    // Search all bodies and get an array of all versions found (first capture group)
+    const extensionVersions = bodies
+      .map((body) =>
+        [...body.matchAll(extensionVersionRegex)].map((match) => match[1])
+      )
+      .flat();
+
+    console.log('extensionVersions', extensionVersions);
+
+    if (extensionVersions.length > 0) {
+      // TODO: Check if the version the user supplied is the latest version
+      // Get the extension pack versions from `vsce show salesforce.salesforcedx-vscode --json`
+      // How do I choose the latest version from the array of versions?
+    }
+
     // Checking VSCode version
     const vscodeVersionRegex = /VS Code version: \s*1\.\d{2}\.\d$/g;
+
+    // Search all bodies and get an array of all versions found (first capture group)
+    const vscodeVersions = bodies
+      .map((body) =>
+        [...body.matchAll(vscodeVersionRegex)].map((match) => match[1])
+      )
+      .flat();
+
+    console.log('vscodeVersions', vscodeVersions);
+
+    if (vscodeVersions.length > 0) {
+      // TODO: Check if the version the user supplied is above the minimum supported version
+      // Is it possible to parse a package.json file to capture the engines -> vscode entry to avoid hard coding it and having to change this file every time the minimum version is increased?
+    }
 
     // Checking presence of OS and version
     console.log('elephant');
