@@ -64,7 +64,7 @@ async function run() {
     let valid = true;
 
     // Checking Salesforce Extension Pack version
-    const extensionsVersionRegex = /Salesforce Extension Version in VS Code:\s*\d{2}\.\d{1,2}\.\d$/g;
+    const extensionsVersionRegex = /\*{2}Salesforce Extension Version in VS Code\*{2}:\s*\d{2}\.\d{1,2}\.\d$/g;
 
     // Search all bodies and get an array of all versions found (first capture group)
     const extensionsVersions = bodies
