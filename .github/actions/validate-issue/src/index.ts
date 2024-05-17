@@ -61,22 +61,54 @@ async function run() {
       ...authorComments.map((comment) => comment.body),
     ].filter((body): body is string => body !== undefined);
 
+    let valid = true;
+
     // Checking Salesforce Extension Pack version
-    const extensionVersionRegex = /Salesforce Extension Version in VS Code:\s*\d{2}\.\d{1,2}\.\d$/g;
+    const extensionsVersionRegex = /Salesforce Extension Version in VS Code:\s*\d{2}\.\d{1,2}\.\d$/g;
 
     // Search all bodies and get an array of all versions found (first capture group)
-    const extensionVersions = bodies
+    const extensionsVersions = bodies
       .map((body) =>
-        [...body.matchAll(extensionVersionRegex)].map((match) => match[1])
+        [...body.matchAll(extensionsVersionRegex)].map((match) => match[1])
       )
       .flat();
 
-    console.log('extensionVersions', extensionVersions);
+    console.log('extensionsVersions', extensionsVersions);
 
-    if (extensionVersions.length > 0) {
-      // TODO: Check if the version the user supplied is the latest version
-      // Get the extension pack versions from `vsce show salesforce.salesforcedx-vscode --json`
-      // How do I choose the latest version from the array of versions?
+    if (extensionsVersions.length > 0) {
+      const extensionsLatest = getLatestExtensionsVersion();
+
+      const oneSatisfies = extensionsVersions.some((version) =>
+        semver.gte(version, extensionsLatest)
+      );
+
+      if (!oneSatisfies) {
+        const oldExtensions = getFile("../../messages/old-extensions.md", {
+          THE_AUTHOR: author,
+          USER_VERSION: extensionsVersions.join("`, `"),
+          LATEST_VERSION: extensionsLatest
+        });
+        postComment(oldExtensions);
+      }
+      valid = false;
+
+      if (valid) {
+        console.log("All information provided is valid!");
+        removeLabel("more information required");
+        // This label will prevent the action from running again after version info has been confirmed
+        // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
+        addLabel("validated");
+      } else {
+        console.log("Information provided is NOT valid");
+        addLabel("more information required");
+      }
+    } else {
+      console.log("Full version information was not provided");
+      const message = getFile("../../messages/provide-version.md", {
+        THE_AUTHOR: issue.user.login,
+      });
+      postComment(message);
+      addLabel("more information required");
     }
 
     // Checking VSCode version
@@ -143,10 +175,9 @@ async function run() {
       // FUTURE TODO:
       // - Check for bundled plugins that are user installed (user) or linked (link)
       // - Could do a check to see if the users has a prerelease version installed
-      let valid = true;
 
       if (sfVersions.length > 0) {
-        const sfLatest = getLatestVersion("@salesforce/cli");
+        const sfLatest = getLatestCliVersion("@salesforce/cli");
         const oneSatisfies = sfVersions.some((version) =>
           semver.gte(version, sfLatest)
         );
@@ -283,11 +314,16 @@ async function run() {
       }
     }
 
-    function getLatestVersion(plugin: string) {
+    function getLatestCliVersion(plugin: string) {
       const distTags = execSync(
         `npm view ${plugin} dist-tags --json`
       ).toString();
       return JSON.parse(distTags).latest;
+    }
+
+    function getLatestExtensionsVersion() {
+      const result = execSync(`vsce show salesforce.salesforcedx-vscode --json`).toString();
+      return JSON.parse(result).versions[0].version;
     }
 
     function getFile(
