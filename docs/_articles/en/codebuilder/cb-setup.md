@@ -44,6 +44,9 @@ From Setup, enter `Installed Packages` in the Quick Find box, then select **Inst
 
 Code Builder is accessed through a user-based license and works with the [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) or the [Free Limited Access](https://help.salesforce.com/s/articleView?id=release-notes.rn_sfdx_dev_hub.htm&release=218&type=5) licenses.
 
+
+### Licenses for Editions
+
 The number of Code Builder licenses available depends on the Salesforce edition:
 
 
@@ -51,16 +54,19 @@ The number of Code Builder licenses available depends on the Salesforce edition:
 |  ---  |  ---  |  ---  |  ---  |
 |     Code Builder Users  |  10     |  40     |  100     |
 
+**Note**: The number of Code Builder licenses in a Trial org depends on the Salesforce edition.
+
+### Licenses for Add-ons
+
 The number of Code Builder licenses associated with add-ons are:
 
 | Add-on      | Developer Pro Sandbox      |  Partial Copy Sandbox     |  Full Sandbox Add-On     |
 |  ---  |  ---  |  ---  |  ---  |
 |     Code Builder Users  |  5     |  10     |  15     |
 
+**Note**: Additional Code Builder user licenses are available as a part of a scratch org add-on purchase. Each scratch org add-on gives you one Code Builder user license. See [Salesforce Add-on Pricing](https://www.salesforce.com/content/dam/web/en_us/www/documents/pricing/all-add-ons.pdf) for more information.
 
-**Note**:
-- The number of Code Builder licenses in a Trial org depends on the Salesforce edition.
-- Additional Code Builder user licenses are available as a part of a scratch org add-on purchase. Each scratch org add-on gives you one Code Builder user license. See [Salesforce Add-on Pricing](https://www.salesforce.com/content/dam/web/en_us/www/documents/pricing/all-add-ons.pdf) for more information.
+## Add Users
 
 Add any team members who aren’t already users in the Code Builder org:
 
