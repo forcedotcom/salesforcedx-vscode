@@ -4,6 +4,7 @@ on:
     workflows:
       - Nightly Build Develop
       - Test, Build, and Release
+      - Create and Test Beta Release Branch
     types:
       - completed
 
