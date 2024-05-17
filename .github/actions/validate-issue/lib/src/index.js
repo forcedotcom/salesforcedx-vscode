@@ -281,7 +281,7 @@ async function run() {
             return JSON.parse(distTags).latest;
         }
         function getLatestExtensionsVersion() {
-            const result = (0, child_process_1.execSync)(`vsce show salesforce.salesforcedx-vscode --json`).toString();
+            const result = (0, child_process_1.execSync)(`npx vsce show salesforce.salesforcedx-vscode --json`).toString();
             return JSON.parse(result).versions[0].version;
         }
         function getFile(filename, replacements) {
