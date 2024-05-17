@@ -12,7 +12,7 @@ jobs:
       branch: ${{ steps.branch.outputs.branch }}
       result: ${{ steps.result.outputs.result }}
     env:
-      RELEASE_TYPE: ${{ 'beta' }}
+      RELEASE_TYPE: 'beta'
 
     steps:
       - name: Checkout
