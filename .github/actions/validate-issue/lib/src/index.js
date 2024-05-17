@@ -51,6 +51,62 @@ async function run() {
             body,
             ...authorComments.map((comment) => comment.body),
         ].filter((body) => body !== undefined);
+        let valid = true;
+        // Checking Salesforce Extension Pack version
+        const extensionsVersionRegex = /Salesforce Extension Version in VS Code:\s*\d{2}\.\d{1,2}\.\d$/g;
+        // Search all bodies and get an array of all versions found (first capture group)
+        const extensionsVersions = bodies
+            .map((body) => [...body.matchAll(extensionsVersionRegex)].map((match) => match[1]))
+            .flat();
+        console.log('extensionsVersions', extensionsVersions);
+        if (extensionsVersions.length > 0) {
+            const extensionsLatest = getLatestExtensionsVersion();
+            const oneSatisfies = extensionsVersions.some((version) => semver.gte(version, extensionsLatest));
+            if (!oneSatisfies) {
+                const oldExtensions = getFile("../../messages/old-extensions.md", {
+                    THE_AUTHOR: author,
+                    USER_VERSION: extensionsVersions.join("`, `"),
+                    LATEST_VERSION: extensionsLatest
+                });
+                postComment(oldExtensions);
+            }
+            valid = false;
+            if (valid) {
+                console.log("All information provided is valid!");
+                removeLabel("more information required");
+                // This label will prevent the action from running again after version info has been confirmed
+                // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
+                addLabel("validated");
+            }
+            else {
+                console.log("Information provided is NOT valid");
+                addLabel("more information required");
+            }
+        }
+        else {
+            console.log("Full version information was not provided");
+            const message = getFile("../../messages/provide-version.md", {
+                THE_AUTHOR: issue.user.login,
+            });
+            postComment(message);
+            addLabel("more information required");
+        }
+        // Checking VSCode version
+        const vscodeVersionRegex = /VS Code version: \s*1\.\d{2}\.\d$/g;
+        // Search all bodies and get an array of all versions found (first capture group)
+        const vscodeVersions = bodies
+            .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1]))
+            .flat();
+        console.log('vscodeVersions', vscodeVersions);
+        if (vscodeVersions.length > 0) {
+            // TODO: Check if the version the user supplied is above the minimum supported version
+            // Is it possible to parse a package.json file to capture the engines -> vscode entry to avoid hard coding it and having to change this file every time the minimum version is increased?
+        }
+        // Checking presence of OS and version
+        console.log('elephant');
+        // Checking presence of last working extensions version
+        console.log('elephant');
+        // *** The below is the check for CLI version, code reused from CLI Team's repo ***
         const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
         const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
         // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
@@ -81,9 +137,8 @@ async function run() {
             // FUTURE TODO:
             // - Check for bundled plugins that are user installed (user) or linked (link)
             // - Could do a check to see if the users has a prerelease version installed
-            let valid = true;
             if (sfVersions.length > 0) {
-                const sfLatest = getLatestVersion("@salesforce/cli");
+                const sfLatest = getLatestCliVersion("@salesforce/cli");
                 const oneSatisfies = sfVersions.some((version) => semver.gte(version, sfLatest));
                 if (!oneSatisfies) {
                     if (sfVersions.find((v) => v.startsWith("2."))) {
@@ -206,9 +261,13 @@ async function run() {
                 throw error;
             }
         }
-        function getLatestVersion(plugin) {
+        function getLatestCliVersion(plugin) {
             const distTags = (0, child_process_1.execSync)(`npm view ${plugin} dist-tags --json`).toString();
             return JSON.parse(distTags).latest;
+        }
+        function getLatestExtensionsVersion() {
+            const result = (0, child_process_1.execSync)(`vsce show salesforce.salesforcedx-vscode --json`).toString();
+            return JSON.parse(result).versions[0].version;
         }
         function getFile(filename, replacements) {
             let contents = (0, fs_1.readFileSync)(path.join(__dirname, filename), "utf8");
