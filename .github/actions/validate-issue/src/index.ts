@@ -60,6 +60,8 @@ async function run() {
       body,
       ...authorComments.map((comment) => comment.body),
     ].filter((body): body is string => body !== undefined);
+    console.log('bodies = ' + JSON.stringify(bodies));
+    console.log('bodies.length = ' + bodies.length);
 
     let valid = true;
 

@@ -51,6 +51,8 @@ async function run() {
             body,
             ...authorComments.map((comment) => comment.body),
         ].filter((body) => body !== undefined);
+        console.log('bodies = ' + JSON.stringify(bodies));
+        console.log('bodies.length = ' + bodies.length);
         let valid = true;
         // Checking Salesforce Extension Pack version
         const extensionsVersionRegex = /\*{2}Salesforce Extension Version in VS Code\*{2}:\s*\d{2}\.\d{1,2}\.\d$/g;
