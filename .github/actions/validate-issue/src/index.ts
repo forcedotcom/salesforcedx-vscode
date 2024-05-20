@@ -103,9 +103,9 @@ async function run() {
         console.log('E');
         postComment(oldExtensions);
         console.log('F');
+        extensionsValid = false;
+        console.log('G');
       }
-      console.log('G');
-      extensionsValid = false;
       console.log('H');
 
       if (extensionsValid) {
