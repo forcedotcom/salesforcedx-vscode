@@ -54,6 +54,10 @@ async function run() {
         console.log('bodies = ' + JSON.stringify(bodies));
         console.log('bodies.length = ' + bodies.length);
         let valid = true;
+        let extensionsValid = true;
+        let vscodeValid = true;
+        let osValid = true;
+        let cliValid = true;
         // Checking Salesforce Extension Pack version
         const extensionsVersionRegex = /\*{2}Salesforce Extension Version in VS Code\*{2}:\s*(\d{2}\.\d{1,2}\.\d)/g;
         // Search all bodies and get an array of all versions found (first capture group)
@@ -80,15 +84,15 @@ async function run() {
                 console.log('F');
             }
             console.log('G');
-            valid = false;
+            extensionsValid = false;
             console.log('H');
-            if (valid) {
+            if (extensionsValid) {
                 console.log('I');
-                console.log("All information provided is valid!");
-                removeLabel("more information required");
+                console.log("A valid extensions version is provided!");
+                // removeLabel("more information required");
                 // This label will prevent the action from running again after version info has been confirmed
                 // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
-                addLabel("validated");
+                // addLabel("validated");
             }
             else {
                 console.log('J');
@@ -174,7 +178,7 @@ async function run() {
                         });
                         postComment(sfV1);
                     }
-                    valid = false;
+                    cliValid = false;
                 }
             }
             if (sfdxVersions.find((v) => v.startsWith("7.")) &&
@@ -184,7 +188,7 @@ async function run() {
                     OLD_CLI: "`sfdx` (v7)",
                 });
                 postComment(noOldSfdx);
-                valid = false;
+                cliValid = false;
             }
             if (nodeVersions.length > 0) {
                 if (!(await (0, nodeVersions_1.isAnyVersionValid)(new Date())(nodeVersions))) {
@@ -194,15 +198,15 @@ async function run() {
                     });
                     postComment(nodeVersionMessage);
                     closeIssue();
-                    valid = false;
+                    cliValid = false;
                 }
             }
-            if (valid) {
-                console.log("All information provided is valid!");
-                removeLabel("more information required");
+            if (cliValid) {
+                console.log("A valid CLI version is provided!");
+                // removeLabel("more information required");
                 // This label will prevent the action from running again after version info has been confirmed
                 // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
-                addLabel("validated");
+                // addLabel("validated");
             }
             else {
                 console.log("Information provided is NOT valid");
@@ -215,6 +219,13 @@ async function run() {
                 THE_AUTHOR: issue.user.login,
             });
             postComment(message);
+            addLabel("more information required");
+        }
+        if (extensionsValid && vscodeValid && osValid && cliValid) {
+            addLabel("validated");
+        }
+        else {
+            console.log("You have one or more missing/invalid versions.");
             addLabel("more information required");
         }
         // ---------
