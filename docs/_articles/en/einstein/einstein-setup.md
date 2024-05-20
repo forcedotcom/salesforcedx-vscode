@@ -45,7 +45,8 @@ You can disable or uninstall the Einstein for Developers extension at any time. 
 
 ### Use Einstein for Developers in Code Builder
 
-Einstein for Developers is disabled by default in new Code Builder environments. To enable this extension in a new environment, go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`, and then enable the extension. Telemetry can be disabled once the extension is enabled. 
+Einstein for Developers is disabled by default in new Code Builder environments. Before you enable this extension in a new environment go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`, to allow for auditing of the enablement of Salesforce Gen AI functionality, and then enable the extension. Telemetry can be disabled once the extension is enabled. 
+
 
 ### Use Einstein for Developers in a Scratch Org
 
