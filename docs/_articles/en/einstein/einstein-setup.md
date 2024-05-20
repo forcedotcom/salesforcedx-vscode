@@ -5,7 +5,7 @@ lang: en
 
 ## Set Up Overview
 
-Einstein for Developers (Beta) is available in the [VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) and [Open VSX](https://open-vsx.org/extension/salesforce/salesforcedx-einstein-gpt) marketplaces as a part of the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded). A developer with access to a Salesforce org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage **goals.**
+Einstein for Developers (Beta) is available in the [VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) and [Open VSX](https://open-vsx.org/extension/salesforce/salesforcedx-einstein-gpt) marketplaces as a part of the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded). Any developer with access to a Salesforce org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage goals.
 
 
 ### Required Editions
@@ -45,7 +45,7 @@ You can disable or uninstall the Einstein for Developers extension at any time. 
 
 ### Use Einstein for Developers in Code Builder
 
-Einstein for Developers is disabled by default in new Code Builder environments. To use this extension in a new environment, go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`, and then enable the extension. 
+Einstein for Developers is disabled by default in new Code Builder environments. To enable this extension in a new environment, go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`, and then enable the extension. Telemetry can be disabled once the extension is enabled. 
 
 ### Use Einstein for Developers in a Scratch Org
 
