@@ -223,6 +223,7 @@ async function run() {
         }
         if (extensionsValid && vscodeValid && osValid && cliValid) {
             addLabel("validated");
+            removeLabel("more information required");
         }
         else {
             console.log("You have one or more missing/invalid versions.");
