@@ -61,9 +61,9 @@ async function run() {
         // Checking Salesforce Extension Pack version
         // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
         const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*(\d{2}\.\d{1,2}\.\d))/g;
-        // Search all bodies and get an array of all versions found (first capture group)
+        // Search all bodies and get an array of all versions found (second capture group)
         const extensionsVersions = bodies
-            .map((body) => [...body.matchAll(extensionsVersionRegex)].map((match) => match[1]))
+            .map((body) => [...body.matchAll(extensionsVersionRegex)].map((match) => match[2]))
             .flat();
         console.log('extensionsVersions', extensionsVersions);
         if (extensionsVersions.length > 0) {
