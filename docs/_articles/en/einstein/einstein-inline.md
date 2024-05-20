@@ -15,8 +15,18 @@ Inline autocomplete is enabled by default. Click the Einstein icon in the status
 
 To enable or disable the Inline Autocomplete feature from Settings:
 
-1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
+1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Settings** > **Settings** (macOS).
 2. Under **Einstein for Developers**, select **Enable Einstein Auto Completions** then select the language for which to enable the feature.
+
+## Select Inline Completion Length
+
+To select the length of generated inline autocompletions:
+
+1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Settings** > **Settings** (macOS).
+2. Under **Einstein for Developers**, go to **Autocompletion Length** and select **Short** or **Long** from the dropdown.
+
+Note that longer completions can span multiple lines. Short completions typically span only a single line. 
+
 
 ## Receive your First Inline Completions
 
