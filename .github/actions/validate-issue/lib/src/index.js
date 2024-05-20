@@ -66,28 +66,19 @@ async function run() {
             .flat();
         console.log('extensionsVersions', extensionsVersions);
         if (extensionsVersions.length > 0) {
-            console.log('A');
             const extensionsLatest = getLatestExtensionsVersion();
-            console.log('B');
             console.log('extensionsLatest', extensionsLatest);
             const oneSatisfies = extensionsVersions.some((version) => semver.gte(version, extensionsLatest));
-            console.log('C');
             if (!oneSatisfies) {
-                console.log('D');
                 const oldExtensions = getFile("../../messages/old-extensions.md", {
                     THE_AUTHOR: author,
                     USER_VERSION: extensionsVersions.join("`, `"),
                     LATEST_VERSION: extensionsLatest
                 });
-                console.log('E');
                 postComment(oldExtensions);
-                console.log('F');
                 extensionsValid = false;
-                console.log('G');
             }
-            console.log('H');
             if (extensionsValid) {
-                console.log('I');
                 console.log("A valid extensions version is provided!");
                 // removeLabel("more information required");
                 // This label will prevent the action from running again after version info has been confirmed
@@ -95,13 +86,11 @@ async function run() {
                 // addLabel("validated");
             }
             else {
-                console.log('J');
                 console.log("Information provided is NOT valid");
                 addLabel("more information required");
             }
         }
         else {
-            console.log('K');
             console.log("Full version information was not provided");
             const message = getFile("../../messages/provide-version.md", {
                 THE_AUTHOR: issue.user.login,
@@ -109,7 +98,6 @@ async function run() {
             postComment(message);
             addLabel("more information required");
         }
-        console.log('L');
         // Checking VSCode version
         const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
         const currentDirectory = getCurrentDirectory();
