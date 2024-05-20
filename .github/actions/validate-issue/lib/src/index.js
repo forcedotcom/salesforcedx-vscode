@@ -299,7 +299,7 @@ async function run() {
             return JSON.parse(result).versions[0].version;
         }
         function getCurrentDirectory() {
-            const currentDirectory = (0, child_process_1.execSync)(`pwd`);
+            const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
             return currentDirectory;
         }
         function getFile(filename, replacements) {

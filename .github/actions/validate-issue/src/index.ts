@@ -357,7 +357,7 @@ async function run() {
     }
 
     function getCurrentDirectory() {
-      const currentDirectory = execSync(`pwd`);
+      const currentDirectory = execSync(`pwd`).toString();
       return currentDirectory;
     }
 
