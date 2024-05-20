@@ -31,6 +31,8 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 
 Next, connect an org to your Code Builder environment. During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Developer Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
 
+**Note**: Code Builder runs in the cloud with a different IP address from your org and your computer. If your org has Trusted IP Ranges configured in Network Access in Setup, you can't connect to an org from Code Builder because the IP range for Code Builder can vary. See the [Known Gaps and Issues doc](https://github.com/forcedotcom/code-builder-feedback/wiki/Known-Gaps-and-Issues#ip-restricted-orgs) on GitHub.
+
 To connect to an org the first time you launch Code Builder:
 
 1. In your Code Builder environment, click **Connect an Org** to connect to the Salesforce org you want to work in.

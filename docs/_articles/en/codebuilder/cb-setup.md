@@ -5,7 +5,7 @@ lang: en
 
 Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a supported Salesforce edition.
 
-### Supported Editions
+## Supported Editions
 
 **Available in**: Lightning Experience in Enterprise, Performance, Professional, and Unlimited Editions.
 
@@ -17,7 +17,9 @@ Code Builder isn't available in sandboxes. However, during the development lifec
 
 To install Code Builder in a Professional Edition org, the org must have API access. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. To request the API add-on, contact your Account Executive.
 
-**Note**: Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
+**Note**:
+- Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
+- Code Builder runs in the cloud with a different IP address from your org and your computer. If your org has Trusted IP Ranges configured in Network Access in Setup, you can't connect to an org from Code Builder because the IP range for Code Builder can vary. See the [Known Gaps and Issues doc](https://github.com/forcedotcom/code-builder-feedback/wiki/Known-Gaps-and-Issues#ip-restricted-orgs) on GitHub.
 
 1. From Setup, enter Code Builder in the Quick Find box, then select Code Builder.
 
