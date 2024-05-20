@@ -366,7 +366,7 @@ async function run() {
 
     function getMinimumVSCodeVersion() {
       const currentDirectory = execSync(`pwd`).toString();
-      const result = execSync(`cat ${currentDirectory}/packages/salesforcedx-vscode-core/package.json`).toString();
+      const result = execSync("cat " + currentDirectory + "/packages/salesforcedx-vscode-core/package.json").toString();
       return JSON.parse(result).engines.vscode.substring(1);
     }
 
