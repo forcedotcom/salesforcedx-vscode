@@ -100,18 +100,43 @@ async function run() {
         }
         // Checking VSCode version
         const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
-        const currentDirectory = getCurrentDirectory();
-        console.log('$$$ currentDirectory = ', currentDirectory);
-        const minVSCodeVersion = getMinimumVSCodeVersion();
-        console.log('%%% minimum vscode version = ', minVSCodeVersion);
         // Search all bodies and get an array of all versions found (first capture group)
         const vscodeVersions = bodies
             .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2]))
             .flat();
         console.log('vscodeVersions', vscodeVersions);
         if (vscodeVersions.length > 0) {
-            // TODO: Check if the version the user supplied is above the minimum supported version
-            // Is it possible to parse a package.json file to capture the engines -> vscode entry to avoid hard coding it and having to change this file every time the minimum version is increased?
+            const vscodeMinVersion = getMinimumVSCodeVersion();
+            console.log('vscodeMinVersion', vscodeMinVersion);
+            const oneSatisfies = vscodeVersions.some((version) => semver.gte(version, vscodeMinVersion));
+            if (!oneSatisfies) {
+                const oldVSCode = getFile("../../messages/unsupported-vscode.md", {
+                    THE_AUTHOR: author,
+                    USER_VERSION: vscodeVersions.join("`, `"),
+                    MIN_VERSION: vscodeMinVersion
+                });
+                postComment(oldVSCode);
+                vscodeValid = false;
+            }
+            if (vscodeValid) {
+                console.log("A valid VSCode version is provided!");
+                // removeLabel("more information required");
+                // This label will prevent the action from running again after version info has been confirmed
+                // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
+                // addLabel("validated");
+            }
+            else {
+                console.log("Information provided is NOT valid");
+                addLabel("more information required");
+            }
+        }
+        else {
+            console.log("Full version information was not provided");
+            const message = getFile("../../messages/provide-version.md", {
+                THE_AUTHOR: issue.user.login,
+            });
+            postComment(message);
+            addLabel("more information required");
         }
         // Checking presence of OS and version
         console.log('elephant');
@@ -293,12 +318,11 @@ async function run() {
             return currentDirectory;
         }
         function getMinimumVSCodeVersion() {
-            console.log('&&& enter getMinimumVSCodeVerion');
             const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
-            console.log('!!! currentDirectory = ', currentDirectory);
+            // currentDirectory contains a newline at the end
             const packageJsonDirectory = currentDirectory.slice(0, -1) + "/packages/salesforcedx-vscode-core/package.json";
-            console.log('??? packageJsonDirectory = ', packageJsonDirectory);
             const result = (0, child_process_1.execSync)(`cat ${packageJsonDirectory}`).toString();
+            // The VSCode version has a carat in front that needs to be removed
             return JSON.parse(result).engines.vscode.substring(1);
         }
         function getFile(filename, replacements) {
