@@ -114,6 +114,8 @@ async function run() {
         const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
         const currentDirectory = getCurrentDirectory();
         console.log('$$$ currentDirectory = ', currentDirectory);
+        const minVSCodeVersion = getMinimumVSCodeVersion();
+        console.log('%%% minimum vscode version = ', minVSCodeVersion);
         // Search all bodies and get an array of all versions found (first capture group)
         const vscodeVersions = bodies
             .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2]))
@@ -301,6 +303,11 @@ async function run() {
         function getCurrentDirectory() {
             const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
             return currentDirectory;
+        }
+        function getMinimumVSCodeVersion() {
+            const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
+            const result = (0, child_process_1.execSync)(`cat ${currentDirectory}/packages/salesforcedx-vscode-core/package.json`).toString();
+            return JSON.parse(result).engines.vscode.substring(1);
         }
         function getFile(filename, replacements) {
             let contents = (0, fs_1.readFileSync)(path.join(__dirname, filename), "utf8");

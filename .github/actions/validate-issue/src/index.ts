@@ -136,6 +136,9 @@ async function run() {
     const currentDirectory = getCurrentDirectory();
     console.log('$$$ currentDirectory = ', currentDirectory);
 
+    const minVSCodeVersion = getMinimumVSCodeVersion();
+    console.log('%%% minimum vscode version = ', minVSCodeVersion);
+
     // Search all bodies and get an array of all versions found (first capture group)
     const vscodeVersions = bodies
       .map((body) =>
@@ -359,6 +362,12 @@ async function run() {
     function getCurrentDirectory() {
       const currentDirectory = execSync(`pwd`).toString();
       return currentDirectory;
+    }
+
+    function getMinimumVSCodeVersion() {
+      const currentDirectory = execSync(`pwd`).toString();
+      const result = execSync(`cat ${currentDirectory}/packages/salesforcedx-vscode-core/package.json`).toString();
+      return JSON.parse(result).engines.vscode.substring(1);
     }
 
     function getFile(
