@@ -63,8 +63,6 @@ async function run() {
     console.log('bodies = ' + JSON.stringify(bodies));
     console.log('bodies.length = ' + bodies.length);
 
-    let valid = true;
-
     let extensionsValid = true;
     let vscodeValid = true;
     let osValid = true;
@@ -133,12 +131,12 @@ async function run() {
     console.log('L');
 
     // Checking VSCode version
-    const vscodeVersionRegex = /VS Code version: \s*1\.\d{2}\.\d$/g;
+    const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
 
     // Search all bodies and get an array of all versions found (first capture group)
     const vscodeVersions = bodies
       .map((body) =>
-        [...body.matchAll(vscodeVersionRegex)].map((match) => match[1])
+        [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2])
       )
       .flat();
 
