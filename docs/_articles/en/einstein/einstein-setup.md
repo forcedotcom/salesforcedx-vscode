@@ -26,10 +26,10 @@ VS Code releases a new version each month with new features and important bug fi
 
 ### Interaction with other AI-enabled Extensions
 
-- You may run into some unexpected generated code outcomes if you have multiple AI-enabled extensions installed in VS Code. We recommend you disable all other AI-enabled extensions when working with Einstein for Developers:
-  1. Click the Extensions icon in the Activity Bar, search for the extension to disable by name.
-  2. Click **Disable** in the extension's marketplace page.
-  3. Repeat for all installed AI-enabled extensions.
+You may run into some unexpected generated code outcomes if you have multiple AI-enabled extensions installed in VS Code. We recommend you disable all other AI-enabled extensions when working with Einstein for Developers:
+1. Click the Extensions icon in the Activity Bar, search for the extension to disable by name.
+2. Click **Disable** in the extension's marketplace page.
+3. Repeat for all installed AI-enabled extensions.
 
 
 ## Enable or Disable Einstein For Developers in VS Code
@@ -45,8 +45,10 @@ You can disable or uninstall the Einstein for Developers extension at any time. 
 
 ### Use Einstein for Developers in Code Builder
 
-Einstein for Developers is disabled by default in new Code Builder environments. Before you enable this extension in a new environment go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`, to allow for auditing of the enablement of Salesforce Gen AI functionality, and then enable the extension. Telemetry can be disabled once the extension is enabled. 
+Einstein for Developers is disabled by default in new Code Builder environments to allow for auditing of enablement of Salesforce Generative AI functionality. To enable this extension in a new environment:
 
+1. Go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`.
+2. Click the Einstein icon in the status bar and enable the extension. 
 
 ### Use Einstein for Developers in a Scratch Org
 
