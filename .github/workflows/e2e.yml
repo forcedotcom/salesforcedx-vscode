@@ -4,6 +4,7 @@ on:
     workflows:
       - Nightly Build Develop
       - Test, Build, and Release
+      - Create and Test Beta Release Branch
     types:
       - completed
 
@@ -87,7 +88,7 @@ jobs:
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LWC_E2E_tests:
-    if: ${{ inputs.lwcE2ETests || github.event_name == 'workflow_run' }}
+    if: ${{ inputs.lwcE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
