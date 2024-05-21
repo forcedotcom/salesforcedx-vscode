@@ -16,7 +16,7 @@ jobs:
   confirm_publish:
     environment: publish
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }} # Only run this if the previous job was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }} # Only run this if the previous workflow was successful
     name: 'Confirm Publish Beta Release'
     steps:
       - run: echo "Please confirm to publish the beta release"
