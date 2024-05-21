@@ -32,4 +32,4 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 
 ### Code Builder Environment Checklist
 
-1. Einstein for Developers extension is disabled in Code Builder by default. To enable the extension you must first set the Salesforce telemetry level to `true` for your VS Code workspace. Go to **Settings** and search for `salesforcedx-vscode-core.telemetry.enabled` to confirm or update.
+1. Einstein for Developers extension is disabled in Code Builder by default. To enable the extension you must first set the Salesforce telemetry level to `true` for your VS Code workspace. Go to **Settings** and search for `salesforcedx-vscode-core.telemetry.enabled` in the **Workspace** tab to confirm or update. Telemetry can be disabled once the extension is enabled.
