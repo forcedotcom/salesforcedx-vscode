@@ -1,6 +1,9 @@
 Hello @THE_AUTHOR :wave:
 
-It looks like you're using an outdated version of VSCode. OLD_VSCODE is no longer supported by the Salesforce Extensions for VSCode as of February 29, 2024. We highly recommend you move from OLD_VSCODE to the latest VSCode version ASAP.
+Shared: `USER_VERSION`
+Minimum Supported: `MIN_VERSION`
+
+It looks like you're using an outdated version of VSCode. USER_VERSION is no longer supported by the Salesforce Extensions for VSCode as of February 29, 2024. We highly recommend you move from USER_VERSION to the latest VSCode version ASAP.
 
 Download the latest VSCode [here](https://code.visualstudio.com/download).
 
