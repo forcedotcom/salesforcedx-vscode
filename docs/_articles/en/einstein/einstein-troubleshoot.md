@@ -32,7 +32,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 
 ### Code Builder Environment Checklist
 
-Einstein for Developers is disabled by default in new Code Builder environments. Telemetry is used to audit enablement of Salesforce Generative AI functionality and must be on during enablement. To enable this extension in a new environment:
+Einstein for Developers is disabled by default in new Code Builder environments. Telemetry is used to audit enablement of Salesforce Generative AI functionality and must be on when you enable the extension:
 
 1. Go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`.
 2. Click the Einstein icon in the status bar and enable the extension. 
