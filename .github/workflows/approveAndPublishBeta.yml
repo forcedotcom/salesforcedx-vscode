@@ -1,0 +1,28 @@
+name: Approve and Publish Beta Release Branch
+on:
+  workflow_run:
+    workflows:
+      - Create and Test Beta Release Branch
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+jobs:
+  confirm_publish:
+    environment: publish
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }} # Only run this if the previous job was successful
+    name: 'Confirm Publish Beta Release'
+    steps:
+      - run: echo "Please confirm to publish the beta release"
+  publish_beta:
+    needs: confirm_publish
+    uses: ./.github/workflows/publishBeta.yml
+    secrets: inherit
+    with: 
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}

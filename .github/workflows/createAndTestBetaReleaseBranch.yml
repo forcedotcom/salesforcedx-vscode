@@ -61,21 +61,3 @@ jobs:
     with:
       branch: ${{needs.create_branch.outputs.branch}}
       label: ${{needs.create_branch.outputs.version}}
-
-  confirm_publish:
-    needs: run_build_and_test
-    environment: publish
-    runs-on: ubuntu-latest
-    if: ${{ needs.run_build_and_test.result == 'success' }} # Only run this if the previous job was successful
-    name: 'Confirm Publish Beta Release'
-    steps:
-      - run: echo "Please confirm to publish the beta release"
-
-  run_publish_beta_release:
-    needs: [confirm_publish, run_build_and_test, create_branch]
-    if: ${{ needs.confirm_publish.result == 'success' }}
-    name: 'Publish Beta Release'
-    uses: ./.github/workflows/publishBetaRelease.yml
-    with:
-      branch: ${{needs.create_branch.outputs.branch}}
-    secrets: inherit

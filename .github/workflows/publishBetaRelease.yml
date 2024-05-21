@@ -3,13 +3,33 @@ name: Publish Beta Release to Github Only
 on:
   workflow_dispatch:
 
-  workflow_call:
-    inputs:
-      branch:
-        type: string
-        required: true
-
 jobs:
+  save_artifacts:
+    name: 'Build VSIX Files'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - run: npm install -g lerna
+      - run: npm install
+      - run: npm run compile
+      - run: npm run vscode:package
+      - name: Stage Artifacts
+        run: |
+          mkdir extensions
+          find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+          cp ./packages/salesforcedx-vscode/CHANGELOG.md ./extensions
+      - name: Upload Extensions
+        uses: actions/upload-artifact@v3
+        with:
+          name: VS Code Extensions
+          path: ./extensions/
+
   get_release_variables:
     # store the RELEASE_VERSION from the parent package as an output that we can reference elsewhere
     name: 'Get Release Environment Variables'
@@ -18,8 +38,6 @@ jobs:
       RELEASE_VERSION: ${{ steps.getVersion.outputs.version }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.branch || github.event.ref }}
       - id: getVersion
         run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
       - run: echo "Release Version is ${{ steps.getVersion.outputs.version }}"
@@ -27,25 +45,21 @@ jobs:
   create_git_tag:
     name: 'Create and Tag Beta Release'
     runs-on: ubuntu-latest
-    needs: [get_release_variables]
+    needs: [save_artifacts, get_release_variables]
     outputs:
       version: ${{ steps.version.outputs.version }}
-      release_type: ${{ 'beta' }}
+      release_type: ${{ github.event.inputs.releaseType || 'minor' }}
       result: ${{ steps.result.outputs.result }}
     env:
       VERSION: ${{ needs.get_release_variables.outputs.RELEASE_VERSION }}
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.branch || github.event.ref }}
       - uses: actions/download-artifact@v3
         id: download
         with:
-          name: ${{ needs.get_release_variables.outputs.RELEASE_VERSION }}
+          name: VS Code Extensions
           path: tmp/saved-extensions
-      - run: |
-          cp ./packages/salesforcedx-vscode/CHANGELOG.md ./tmp/saved-extensions
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
