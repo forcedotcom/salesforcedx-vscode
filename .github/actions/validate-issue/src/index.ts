@@ -103,11 +103,11 @@ async function run() {
       if (extensionsValid) {
         console.log("A valid extensions version is provided!");
       } else {
-        console.log("Information provided is NOT valid");
+        console.log("The extensions version provided is NOT valid");
         addLabel("more information required");
       }
     } else {
-      console.log("Full version information was not provided");
+      console.log("Extensions version is NOT provided");
       const message = getFile("../../messages/provide-version.md", {
         THE_AUTHOR: issue.user.login,
       });
@@ -149,11 +149,11 @@ async function run() {
       if (vscodeValid) {
         console.log("A valid VSCode version is provided!");
       } else {
-        console.log("Information provided is NOT valid");
+        console.log("The VSCode version provided is NOT valid");
         addLabel("more information required");
       }
     } else {
-      console.log("Full version information was not provided");
+      console.log("VSCode version is NOT provided");
       const message = getFile("../../messages/provide-version.md", {
         THE_AUTHOR: issue.user.login,
       });
