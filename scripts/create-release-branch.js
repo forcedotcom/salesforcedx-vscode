@@ -14,7 +14,7 @@ function getReleaseVersion() {
     .version;
   let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
 
-  switch(RELEASE_TYPE) {
+  switch (RELEASE_TYPE) {
     case 'major':
       major = parseInt(major) + 1;
       minor = 0;
@@ -49,7 +49,9 @@ checkVSCodeVersion();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
-checkBaseBranch('develop');
+if (!isBetaRelease()) {
+  checkBaseBranch('develop');
+}
 
 const releaseBranchName = `release/v${nextVersion}`;
 
@@ -94,6 +96,11 @@ shell.exec('git add package-lock.json');
 
 // Add change to lerna.json
 shell.exec('git add lerna.json');
+
+// If it is a beta release, add all files
+if (isBetaRelease()) {
+  shell.exec('git add .');
+}
 
 // Git commit
 shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
