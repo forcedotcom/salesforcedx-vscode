@@ -133,7 +133,7 @@ async function run() {
             vscodeValid = false;
         }
         // Checking presence of OS and version
-        const osVersionRegex = /(?:\*{2}OS and version\*{2}:\S+\r\n)|(?:OS and version:\S+\r\n)/g;
+        const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S+\r\n)|(OS and version:\s*\S+\r\n)/g;
         // Search all bodies and get an array of all versions found (first or second capture group)
         const osVersions = bodies
             .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
