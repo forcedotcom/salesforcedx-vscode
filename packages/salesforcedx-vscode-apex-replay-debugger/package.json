@@ -24,14 +24,14 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "6.0.0",
-    "@salesforce/core": "7.3.1",
     "@salesforce/salesforcedx-apex-replay-debugger": "60.14.0",
     "@salesforce/salesforcedx-utils": "60.14.0",
     "@salesforce/salesforcedx-utils-vscode": "60.14.0",
     "async-lock": "1.0.0",
     "request-light": "^0.7.0",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode-extension-telemetry": "0.0.17",
+    "@salesforce/core-bundle": "^7.3.1",
+    "@salesforce/apex-node-bundle": "^6.0.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "60.14.0",
@@ -106,8 +106,6 @@
     "packageUpdates": {
       "main": "dist/index.js",
       "dependencies": {
-        "@salesforce/core": "7.3.1",
-        "@salesforce/source-tracking": "6.0.4",
         "applicationinsights": "1.0.7"
       },
       "devDependencies": {}

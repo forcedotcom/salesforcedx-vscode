@@ -6,7 +6,7 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { WorkspaceContext } from '../../context/workspaceContext';
 import { SalesforceProjectConfig } from '../../salesforceProject';
 

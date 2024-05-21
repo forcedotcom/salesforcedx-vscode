@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { OrgType, workspaceContextUtils } from '../../../src/context';

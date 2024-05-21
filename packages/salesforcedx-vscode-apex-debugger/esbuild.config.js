@@ -6,7 +6,8 @@
  */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { build } = require('esbuild');
-// const fs = require('fs').promises;
+const esbuildPluginPino = require('esbuild-plugin-pino');
+const fs = require('fs').promises;
 
 // Configure and run the build process
 const sharedConfig = {
@@ -14,33 +15,37 @@ const sharedConfig = {
   format: 'cjs',                    // Output format (CommonJS)
   platform: 'node',                 // Platform target (Node.js)
   minify: true,                     // Minify the output
+  keepNames: true,                  // keepNames to get rid of
   external: [
-    'vscode',
-    '@salesforce/core',
-    '@salesforce/source-tracking'
+    'vscode'
+    // '@salesforce/core-bundle'
+    // '@salesforce/source-tracking-bundle'
+  ],
+  plugins: [
+    esbuildPluginPino({ transports: ['pino-pretty'] })
   ]
 };
 
 // copy core-bundle/lib/transformStream.js to dist if core-bundle is included
-// const copyFiles = async (src, dest) => {
-//   try {
-//     // Copy the file
-//     await fs.copyFile(src, dest);
-//     console.log(`File was copied from ${src} to ${dest}`);
-//   } catch (error) {
-//     console.error('An error occurred:', error);
-//   }
-// };
+const copyFiles = async (src, dest) => {
+  try {
+    // Copy the file
+    await fs.copyFile(src, dest);
+    console.log(`File was copied from ${src} to ${dest}`);
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+};
 
-// const srcPath = '../../node_modules/@salesforce/core-bundle/lib/transformStream.js';
-// const destPath = './dist/transformStream.js';
+const srcPath = '../../node_modules/@salesforce/core-bundle/lib/transformStream.js';
+const destPath = './dist/transformStream.js';
 
 (async () => {
   await build({
     ...sharedConfig,
     entryPoints: ['./src/index.ts'],
-    outfile: 'dist/index.js'
+    outdir: 'dist'
   });
 })().then(async () => {
-  // await copyFiles(srcPath, destPath);
+  await copyFiles(srcPath, destPath);
 }).catch(() => process.exit(1));

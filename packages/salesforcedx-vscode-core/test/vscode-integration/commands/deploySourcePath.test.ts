@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/testSetup';
+} from '@salesforce/core-bundle';
 import {
   ContinueResponse,
   fileUtils,
@@ -20,7 +20,7 @@ import {
 import {
   ComponentSet,
   MetadataResolver
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
