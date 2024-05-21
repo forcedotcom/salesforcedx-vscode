@@ -373,11 +373,6 @@ async function run() {
       return JSON.parse(result).versions[0].version;
     }
 
-    function getCurrentDirectory() {
-      const currentDirectory = execSync(`pwd`).toString();
-      return currentDirectory;
-    }
-
     function getMinimumVSCodeVersion() {
       const currentDirectory = execSync(`pwd`).toString();
       // currentDirectory contains a newline at the end

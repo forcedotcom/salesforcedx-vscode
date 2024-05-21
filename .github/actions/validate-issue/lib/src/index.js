@@ -313,10 +313,6 @@ async function run() {
             const result = (0, child_process_1.execSync)(`npx vsce show salesforce.salesforcedx-vscode --json`).toString();
             return JSON.parse(result).versions[0].version;
         }
-        function getCurrentDirectory() {
-            const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
-            return currentDirectory;
-        }
         function getMinimumVSCodeVersion() {
             const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
             // currentDirectory contains a newline at the end
