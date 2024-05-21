@@ -47,10 +47,10 @@ You can disable or uninstall the Einstein for Developers extension at any time. 
 
 Einstein for Developers is disabled by default in new Code Builder environments. Telemetry is used to audit enablement of Salesforce Generative AI functionality and must be on when you enable the extension:
 
-1. Go to **Settings** > **Application** > **Telemetry** and set the dropdown value to `all`.
+1. Go to **Settings** and search for `salesforcedx-vscode-core.telemetry.enabled` to confirm that this Salesforce telemetry setting in on.
 2. Click the Einstein icon in the status bar and enable the extension.
 
-Telemetry can be disabled once the extension is enabled.
+Salesforce telemetry is on by default and can be turned off once the extension is enabled.
 
 ### Use Einstein for Developers in a Scratch Org
 
