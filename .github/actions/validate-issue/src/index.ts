@@ -122,7 +122,7 @@ async function run() {
     // Checking VSCode version
     const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
 
-    // Search all bodies and get an array of all versions found (first capture group)
+    // Search all bodies and get an array of all versions found (first or second capture group)
     const vscodeVersions = bodies
       .map((body) =>
         [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2])
@@ -170,7 +170,26 @@ async function run() {
     }
 
     // Checking presence of OS and version
-    console.log('elephant');
+    const osVersionRegex = /(?:\*{2}OS and version\*{2}:\S+\r\n)|(?:OS and version:\S+\r\n)/g;
+
+    // Search all bodies and get an array of all versions found (first or second capture group)
+    const osVersions = bodies
+    .map((body) =>
+      [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2])
+    )
+    .flat();
+
+    if (osVersions.length > 0) {
+      console.log("OS and version is provided!");
+      // removeLabel("more information required");
+      // This label will prevent the action from running again after version info has been confirmed
+      // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
+      // addLabel("validated");
+    } else {
+      console.log("Information provided is NOT valid");
+      addLabel("more information required");
+      osValid = false;
+    }
 
     // Checking presence of last working extensions version
     console.log('elephant');
