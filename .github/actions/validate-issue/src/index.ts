@@ -65,8 +65,9 @@ async function run() {
 
     let extensionsValid = true;
     let vscodeValid = true;
-    let osValid = true;
+    let osVersionValid = true;
     let cliValid = true;
+    let lastWorkingVersionValid = true;
 
     // Checking Salesforce Extension Pack version
     // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
@@ -174,13 +175,28 @@ async function run() {
     if (osVersions.length > 0) {
       console.log("OS and version is provided!");
     } else {
-      console.log("Information provided is NOT valid");
+      console.log("OS and version is NOT provided");
       addLabel("more information required");
-      osValid = false;
+      osVersionValid = false;
     }
 
     // Checking presence of last working extensions version
-    console.log('elephant');
+    const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S+\r\n)|(Most recent version of the extensions where this was working:\s*\S+\r\n)/g;
+
+    // Search all bodies and get an array of all versions found (first or second capture group)
+    const lastWorkingVersions = bodies
+    .map((body) =>
+      [...body.matchAll(lastWorkingVersionRegex)].map((match) => match[1] || match[2])
+    )
+    .flat();
+
+    if (lastWorkingVersions.length > 0) {
+      console.log("Last working version is provided!");
+    } else {
+      console.log("Last working version is NOT provided");
+      addLabel("more information required");
+      lastWorkingVersionValid = false;
+    }
 
     // *** The below is the check for CLI version, code reused from CLI Team's repo ***
 
@@ -297,7 +313,7 @@ async function run() {
       cliValid = false;
     }
 
-    if (extensionsValid && vscodeValid && osValid && cliValid) {
+    if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
       addLabel("validated");
       removeLabel("more information required");
     } else {
