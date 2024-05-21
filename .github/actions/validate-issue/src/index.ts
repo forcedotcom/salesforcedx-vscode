@@ -221,18 +221,11 @@ async function run() {
         [...body.matchAll(nodeVersionRegex)].map((match) => match[1])
       )
       .flat();
-    // If we match pluginVersionRegex anywhere, we assume the user has provided the full --verbose output
-    // const pluginVersionsIncluded = bodies.some((body) =>
-    //   body?.match(pluginVersionsRegex)
-    // );
+
     console.log("sfVersions", sfVersions);
     console.log("sfdxVersions", sfdxVersions);
-    // console.log("pluginVersionsIncluded", pluginVersionsIncluded);
     console.log("nodeVersions", nodeVersions);
-    // if (
-    //   (sfVersions.length > 0 || sfdxVersions.length > 0) &&
-    //   pluginVersionsIncluded
-    // ) {
+
     if (
         (sfVersions.length > 0 || sfdxVersions.length > 0)
     ) {
@@ -295,10 +288,6 @@ async function run() {
 
       if (cliValid) {
         console.log("A valid CLI version is provided!");
-        // removeLabel("more information required");
-        // This label will prevent the action from running again after version info has been confirmed
-        // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
-        // addLabel("validated");
       } else {
         console.log("Information provided is NOT valid");
         addLabel("more information required");
