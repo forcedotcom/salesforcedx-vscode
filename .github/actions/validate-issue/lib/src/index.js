@@ -97,6 +97,7 @@ async function run() {
             });
             postComment(message);
             addLabel("more information required");
+            extensionsValid = false;
         }
         // Checking VSCode version
         const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
@@ -137,6 +138,7 @@ async function run() {
             });
             postComment(message);
             addLabel("more information required");
+            vscodeValid = false;
         }
         // Checking presence of OS and version
         console.log('elephant');
@@ -237,6 +239,7 @@ async function run() {
             });
             postComment(message);
             addLabel("more information required");
+            cliValid = false;
         }
         if (extensionsValid && vscodeValid && osValid && cliValid) {
             addLabel("validated");

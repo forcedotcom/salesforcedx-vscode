@@ -116,6 +116,7 @@ async function run() {
       });
       postComment(message);
       addLabel("more information required");
+      extensionsValid = false;
     }
 
     // Checking VSCode version
@@ -165,6 +166,7 @@ async function run() {
       });
       postComment(message);
       addLabel("more information required");
+      vscodeValid = false;
     }
 
     // Checking presence of OS and version
@@ -285,6 +287,7 @@ async function run() {
       });
       postComment(message);
       addLabel("more information required");
+      cliValid = false;
     }
 
     if (extensionsValid && vscodeValid && osValid && cliValid) {
