@@ -5,7 +5,7 @@ lang: en
 
 Enable Code Builder to provide the permissions needed to install the Code Builder managed package in a supported Salesforce edition.
 
-### Supported Editions
+## Supported Editions
 
 **Available in**: Lightning Experience in Enterprise, Performance, Professional, and Unlimited Editions.
 
@@ -17,7 +17,9 @@ Code Builder isn't available in sandboxes. However, during the development lifec
 
 To install Code Builder in a Professional Edition org, the org must have API access. If you attempt to install Code Builder in a Professional Edition org without API access, an installation error occurs. To request the API add-on, contact your Account Executive.
 
-**Note**: Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
+**Note**:
+- Turning on Code Builder in Government Cloud Plus organizations can send data outside the authorization boundary. Contact your Salesforce account executive for more details.
+- Code Builder runs in the cloud with a different IP address from your org and your computer. If your org has Trusted IP Ranges configured in Network Access in Setup, you can't connect to an org from Code Builder because the IP range for Code Builder can vary. See the [Known Gaps and Issues doc](https://github.com/forcedotcom/code-builder-feedback/wiki/Known-Gaps-and-Issues#ip-restricted-orgs) on GitHub.
 
 1. From Setup, enter Code Builder in the Quick Find box, then select Code Builder.
 
@@ -44,17 +46,29 @@ From Setup, enter `Installed Packages` in the Quick Find box, then select **Inst
 
 Code Builder is accessed through a user-based license and works with the [Identity](https://help.salesforce.com/s/articleView?id=sf.users_license_types_available.htm&type=5) or the [Free Limited Access](https://help.salesforce.com/s/articleView?id=release-notes.rn_sfdx_dev_hub.htm&release=218&type=5) licenses.
 
+
+### Licenses for Editions
+
 The number of Code Builder licenses available depends on the Salesforce edition:
 
 
-| Salesforce Edition      | Professional      |  Enterprise     |  Unlimited     |   Trial    |
-|  ---  |  ---  |  ---  |  ---  |  ---  |
-|     Code Builder Users  |  10     |  40     |  100     | If org edition includes Code Builder.|
+| Salesforce Edition      | Professional      |  Enterprise     |  Unlimited     |
+|  ---  |  ---  |  ---  |  ---  |
+|     Code Builder Users  |  10     |  40     |  100     |
 
+**Note**: The number of Code Builder licenses in a Trial org depends on the Salesforce edition.
 
+### Licenses for Add-ons
 
+The number of Code Builder licenses associated with add-ons are:
+
+| Add-on      | Developer Pro Sandbox      |  Partial Copy Sandbox     |  Full Sandbox Add-On     |
+|  ---  |  ---  |  ---  |  ---  |
+|     Code Builder Users  |  5     |  10     |  15     |
 
 **Note**: Additional Code Builder user licenses are available as a part of a scratch org add-on purchase. Each scratch org add-on gives you one Code Builder user license. See [Salesforce Add-on Pricing](https://www.salesforce.com/content/dam/web/en_us/www/documents/pricing/all-add-ons.pdf) for more information.
+
+## Add Users
 
 Add any team members who aren’t already users in the Code Builder org:
 
