@@ -101,10 +101,6 @@ async function run() {
 
       if (extensionsValid) {
         console.log("A valid extensions version is provided!");
-        // removeLabel("more information required");
-        // This label will prevent the action from running again after version info has been confirmed
-        // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
-        // addLabel("validated");
       } else {
         console.log("Information provided is NOT valid");
         addLabel("more information required");
@@ -151,10 +147,6 @@ async function run() {
 
       if (vscodeValid) {
         console.log("A valid VSCode version is provided!");
-        // removeLabel("more information required");
-        // This label will prevent the action from running again after version info has been confirmed
-        // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
-        // addLabel("validated");
       } else {
         console.log("Information provided is NOT valid");
         addLabel("more information required");
@@ -181,10 +173,6 @@ async function run() {
 
     if (osVersions.length > 0) {
       console.log("OS and version is provided!");
-      // removeLabel("more information required");
-      // This label will prevent the action from running again after version info has been confirmed
-      // Otherwise, this action will continue to trigger after every weekly release as `latest` is bumped
-      // addLabel("validated");
     } else {
       console.log("Information provided is NOT valid");
       addLabel("more information required");
