@@ -21,7 +21,7 @@ import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
-    super(nls.localize('deploy_text'), 'deploy_with_manifest_beta');
+    super(nls.localize('deploy_this_source_text'), 'deploy_with_manifest');
   }
 
   protected async getComponents(
@@ -58,7 +58,7 @@ export const deployManifest = async (manifestUri: vscode.Uri) => {
     }
   }
 
-  const messages = getConflictMessagesFor('deploy_with_manifest_beta');
+  const messages = getConflictMessagesFor('deploy_with_manifest');
 
   if (messages) {
     const commandlet = new SfCommandlet(
