@@ -54,7 +54,7 @@ jobs:
         run: echo ${{ steps.run_action.outputs.message }}
 
   new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +77,7 @@ jobs:
         run: echo ${{ steps.run_action.outputs.message }}
 
   validate-new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
