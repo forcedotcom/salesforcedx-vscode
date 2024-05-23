@@ -60,7 +60,7 @@
   "refresh_types_text": "SFDX: Refresh Types",
   "rename_lightning_component_text": "SFDX: Rename Component",
   "retrieve_and_open_display_text": "Retrieve and Open Source",
-  "retrieve_display_text": "Retrieve Source from Org",
+  "retrieve_display_text": "Retrieve This Source from Org",
   "retrieve_in_manifest_text": "SFDX: Retrieve Source in Manifest from Org",
   "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
   "retrieve_this_source_text": "SFDX: Retrieve This Source from Org",
