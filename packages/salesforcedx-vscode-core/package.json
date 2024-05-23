@@ -59,6 +59,7 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "^0.19.5",
+    "esbuild-plugin-pino": "^2.1.0",
     "eslint": "8.52.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-header": "3.1.1",
@@ -806,7 +807,7 @@
       },
       {
         "command": "sf.retrieve.source.path",
-        "title": "%retrieve_text%"
+        "title": "%retrieve_this_source_text%"
       },
       {
         "command": "sf.retrieve.current.source.file",
@@ -818,7 +819,7 @@
       },
       {
         "command": "sf.deploy.source.path",
-        "title": "%deploy_text%"
+        "title": "%deploy_this_source_text%"
       },
       {
         "command": "sf.deploy.current.source.file",

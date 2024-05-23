@@ -90,16 +90,16 @@ export const messages = {
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',
 
-  deploy_text: 'SFDX: 組織へソースをデプロイ',
+  deploy_this_source_text: 'SFDX: このソースを組織へデプロイ',
   deploy_select_file_or_directory:
-    'ソースファイルかディレクトリ上でのみ SFDX: 組織へソースをデプロイ を実行できます。',
+    'ソースファイルかディレクトリ上でのみ SFDX: このソースを組織へデプロイ を実行できます。',
   deploy_select_manifest:
     'マニフェストファイル上でのみ SFDX マニフェストのソースを組織へデプロイ を実行できます。',
-  retrieve_text: 'SFDX: 組織からソースを取得',
-  retrieve_display_text: 'SFDX: 組織からソースを取得',
+  retrieve_this_source_text: 'SFDX: このソースを組織から取得',
+  retrieve_display_text: 'SFDX: このソースを組織から取得',
   retrieve_and_open_display_text: 'Retrieve and Open Source',
   retrieve_select_file_or_directory:
-    'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
+    'ソースファイルかディレクトリ上でのみ SFDX: このソースを組織から取得 を実行できます。',
   retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
