@@ -13,7 +13,7 @@ on: # issue opened, labeled as "feature", labeled as "type:enhancements", or lab
 jobs:
   # Check if the issue is a feature request, and if it is, tag it with 'type:enhancements' (this job is a prerequisite to all the other jobs)
   check-feature-request:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -54,7 +54,7 @@ jobs:
         run: echo ${{ steps.run_action.outputs.message }}
 
   new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +77,7 @@ jobs:
         run: echo ${{ steps.run_action.outputs.message }}
 
   validate-new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
