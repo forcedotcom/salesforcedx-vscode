@@ -22,9 +22,11 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         run: npm install
-      - name: issue comment
-        id: issue_comment
+      - name: Check if the issue is a feature request
+        id: check_feature_request
         uses: ./.github/actions/check-feature-request
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
 
