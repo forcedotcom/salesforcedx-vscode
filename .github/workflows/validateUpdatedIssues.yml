@@ -19,9 +19,10 @@ jobs:
     # - 'validated'
     # - 'investigating'
     # - 'feature'
-    # - 'owned by another team'
+    # - 'type:enhancements'
+    # - 'status:owned by another team'
     # - 'bug'
-    if: contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'investigating') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'owned by another team') && !contains(github.event.issue.labels.*.name, 'bug')
+    if: contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'investigating') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && !contains(github.event.issue.labels.*.name, 'bug')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
