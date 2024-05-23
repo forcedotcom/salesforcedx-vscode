@@ -6,13 +6,13 @@
 #
 
 name: "Validate New Issues"
-on: # issue opened, labeled as feature, or labeled as owned by another team
+on: # issue opened, labeled as "feature", labeled as "type:enhancements", or labeled as "status:owned by another team"
   issues:
     types: [opened, labeled]
 
 jobs:
   owned-by-other-team:
-    if: ${{ github.event.label.name == 'owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') }}
+    if: ${{ github.event.label.name == 'status:owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -26,7 +26,6 @@ jobs:
         uses: ./.github/actions/new-issue
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
-          label: "owned by another team"
           message: >
             We have determined that the issue you reported exists in code owned by another team that uses only the official support channels.
             To ensure that your issue is addressed, open an official [Salesforce customer support](https://help.salesforce.com/s/) ticket with a link to this issue.
@@ -70,7 +69,7 @@ jobs:
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
   new-feature:
-    if: ${{ github.event.label.name == 'feature' && !contains(github.event.issue.labels.*.name, 'owned by another team') }}
+    if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -84,16 +83,15 @@ jobs:
         uses: ./.github/actions/new-issue
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
-          label: "feature"
           message: >
-            Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming or sprint planning session. We prioritize feature requests with more upvotes and comments.
+            Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming session. We prioritize feature requests with more upvotes and comments.
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
   new-feature-on-another-team:
     if: >-
-      (github.event.label.name == 'feature' || github.event.label.name == 'owned by another team')
+      (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements' || github.event.label.name == 'status:owned by another team')
       &&
-      (contains(github.event.issue.labels.*.name, 'feature') && contains(github.event.issue.labels.*.name, 'owned by another team'))
+      ((contains(github.event.issue.labels.*.name, 'feature') || contains(github.event.issue.labels.*.name, 'type:enhancements')) && contains(github.event.issue.labels.*.name, 'status:owned by another team'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
