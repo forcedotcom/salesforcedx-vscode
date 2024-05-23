@@ -51,7 +51,7 @@ Einstein for Developers is disabled by default in new Code Builder environments.
 2. If the setting isn't on, select the checkbox to enable telemetry.
 3. Open a terminal and run `sf config set disable-telemetry=false --global` to enable CLI telemetry. See [Salesforce CLI Data Collection and Metrics](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_telemetry.htm) for more information.
 4. Run **Developer: Reload Window**.
-4. Click the Einstein icon in the status bar and enable the extension.
+5. Click the Einstein icon in the status bar and enable the extension.
 
 Salesforce telemetry is on by default and can be turned off once the extension is enabled.
 
