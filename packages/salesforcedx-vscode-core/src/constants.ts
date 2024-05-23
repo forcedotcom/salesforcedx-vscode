@@ -33,7 +33,6 @@ export const TABLE_VAL_COL = 'table_header_value';
 export const TABLE_SUCCESS_COL = 'table_header_success';
 
 // sfdxCore setting config values
-export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
