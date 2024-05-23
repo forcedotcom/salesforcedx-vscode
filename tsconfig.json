@@ -60,6 +60,9 @@
     },
     {
       "path": "./.github/actions/validate-issue"
+    },
+    {
+      "path": "./.github/actions/check-feature-request"
     }
   ]
 }

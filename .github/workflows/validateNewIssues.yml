@@ -11,8 +11,26 @@ on: # issue opened, labeled as "feature", labeled as "type:enhancements", or lab
     types: [opened, labeled]
 
 jobs:
+  # Check if the issue is a feature request, and if it is, tag it with 'type:enhancements' (this job is a prerequisite to all the other jobs)
+  check-feature-request:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/check-feature-request
+      - name: log action output
+        run: echo ${{ steps.run_action.outputs.message }}
+
   owned-by-other-team:
     if: ${{ github.event.label.name == 'status:owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') }}
+    needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -32,8 +50,10 @@ jobs:
             We encourage anyone experiencing this issue to do the same to increase the priority. We will keep this issue open for the community to collaborate on.
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
+
   new-issue:
     if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') }}
+    needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -53,8 +73,10 @@ jobs:
             If you require immediate assistance, contact Salesforce Customer Support.
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
+
   validate-new-issue:
     if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') }}
+    needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -68,8 +90,10 @@ jobs:
         uses: ./.github/actions/validate-issue
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+
   new-feature:
     if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') }}
+    needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
@@ -87,11 +111,13 @@ jobs:
             Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming session. We prioritize feature requests with more upvotes and comments.
       - name: log action output
         run: echo ${{ steps.run_action.outputs.message }}
+
   new-feature-on-another-team:
     if: >-
       (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements' || github.event.label.name == 'status:owned by another team')
       &&
       ((contains(github.event.issue.labels.*.name, 'feature') || contains(github.event.issue.labels.*.name, 'type:enhancements')) && contains(github.event.issue.labels.*.name, 'status:owned by another team'))
+    needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
