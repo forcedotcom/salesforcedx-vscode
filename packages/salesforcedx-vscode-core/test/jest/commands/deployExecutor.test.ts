@@ -119,7 +119,7 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     const executor = new TestDeployExecutor(
       'testDeploy',
-      'deploy_with_sourcepath_beta'
+      'deploy_with_sourcepath'
     );
     (executor as any).setupCancellation = jest.fn();
 
@@ -150,7 +150,7 @@ describe('Deploy Executor', () => {
       .mockResolvedValue({ pollStatus: jest.fn() } as any);
     const executor = new TestDeployExecutor(
       'testDeploy',
-      'deploy_with_sourcepath_beta'
+      'deploy_with_sourcepath'
     );
     (executor as any).setupCancellation = jest.fn();
 
@@ -176,7 +176,7 @@ describe('Deploy Executor', () => {
     DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
     const executor = new TestDeployExecutor(
       'testDeploy',
-      'deploy_with_sourcepath_beta'
+      'deploy_with_sourcepath'
     );
 
     // Act
@@ -241,7 +241,7 @@ describe('Deploy Executor', () => {
 
       const executor = new TestDeployExecutor(
         'testDeploy',
-        'deploy_with_sourcepath_beta'
+        'deploy_with_sourcepath'
       );
 
       // Act
@@ -276,7 +276,7 @@ describe('Deploy Executor', () => {
         .mockImplementation(jest.fn());
       const executor = new TestDeployExecutor(
         'testDeploy',
-        'deploy_with_sourcepath_beta'
+        'deploy_with_sourcepath'
       );
 
       // Act

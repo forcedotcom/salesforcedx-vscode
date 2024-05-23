@@ -11,9 +11,7 @@ describe('messages', () => {
     const aPath = 'a/path';
     it('should return --sourcepath command hint when deploy with source path is being run', () => {
       const bPath = 'b/path';
-      const conflictMessages = getConflictMessagesFor(
-        'deploy_with_sourcepath_beta'
-      );
+      const conflictMessages = getConflictMessagesFor('deploy_with_sourcepath');
 
       const commandHint = conflictMessages?.commandHint([aPath, bPath]);
 
@@ -23,9 +21,7 @@ describe('messages', () => {
     });
 
     it('should return --manifest command hint when deploy with manifest is being run', () => {
-      const conflictMessages = getConflictMessagesFor(
-        'deploy_with_manifest_beta'
-      );
+      const conflictMessages = getConflictMessagesFor('deploy_with_manifest');
 
       const commandHint = conflictMessages?.commandHint(aPath);
 

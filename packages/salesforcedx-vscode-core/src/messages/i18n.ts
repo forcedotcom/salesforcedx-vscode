@@ -106,16 +106,16 @@ export const messages = {
   project_deploy_start_ignore_conflicts_default_org_text:
     'SFDX: Push Source to Default Org and Ignore Conflicts',
   view_all_changes_text: 'View All Changes (Local and in Default Org)',
-  deploy_text: 'SFDX: Deploy Source to Org',
+  deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_select_file_or_directory:
-    'You can run SFDX: Deploy Source to Org only on a source file or directory.',
+    'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
   deploy_select_manifest:
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
-  retrieve_text: 'SFDX: Retrieve Source from Org',
-  retrieve_display_text: 'Retrieve Source from Org',
+  retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
+  retrieve_display_text: 'Retrieve This Source from Org',
   retrieve_and_open_display_text: 'Retrieve and Open Source',
   retrieve_select_file_or_directory:
-    'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
+    'You can run SFDX: Retrieve This Source from Org only on a source file or directory.',
   retrieve_select_manifest:
     'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   delete_source_text: 'SFDX: Delete from Project and Org',

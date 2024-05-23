@@ -27,7 +27,10 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   private openAfterRetrieve: boolean;
 
   constructor(openAfterRetrieve = false) {
-    super(nls.localize('retrieve_text'), 'retrieve_beta');
+    super(
+      nls.localize('retrieve_this_source_text'),
+      'retrieve_with_sourcepath'
+    );
     this.openAfterRetrieve = openAfterRetrieve;
   }
 

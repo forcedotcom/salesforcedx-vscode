@@ -20,7 +20,7 @@ import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor() {
-    super(nls.localize('deploy_text'), 'deploy_with_sourcepath_beta');
+    super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
   }
 
   public async getComponents(
@@ -67,7 +67,7 @@ export const deploySourcePaths = async (
     }
   }
 
-  const messages = getConflictMessagesFor('deploy_with_sourcepath_beta');
+  const messages = getConflictMessagesFor('deploy_with_sourcepath');
 
   if (messages) {
     const commandlet = new SfCommandlet<string[]>(

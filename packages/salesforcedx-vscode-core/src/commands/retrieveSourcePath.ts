@@ -23,7 +23,10 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string[]
 > {
   constructor() {
-    super(nls.localize('retrieve_text'), 'retrieve_with_sourcepath_beta');
+    super(
+      nls.localize('retrieve_this_source_text'),
+      'retrieve_with_sourcepath'
+    );
   }
 
   public async getComponents(
