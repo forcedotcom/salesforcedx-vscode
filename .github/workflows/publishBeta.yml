@@ -50,7 +50,9 @@ jobs:
           gh run download ${{ inputs.runId }} -D ./tmp-dir
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-      - run: cp ./packages/salesforcedx-vscode/CHANGELOG.md ${{ env.EXTENSION_PATH }}
+      - name: Install zip utility
+        run: sudo apt-get install zip -y
+      # - run: cp ./packages/salesforcedx-vscode/CHANGELOG.md ${{ env.EXTENSION_PATH }}
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
@@ -61,8 +63,11 @@ jobs:
       - name: 'Confirm all downloaded files'
         run: ls -R
         working-directory: ${{ env.EXTENSION_PATH }}
+      - name: Zip the vsix files
+        run: zip -r ${{ env.VERSION }}.zip ./
+        working-directory: ${{ env.EXTENSION_PATH }}
       - name: 'Create Pre-Release and Attach VSIX Files'
-        run: gh release create v${{ env.VERSION }} **.vsix --title "Pre-Release v${{ env.VERSION }}" --notes-file CHANGELOG.md --prerelease
+        run: gh release create v${{ env.VERSION }} **.zip --title "Pre-Release v${{ env.VERSION }}" --prerelease
         working-directory: ${{ env.EXTENSION_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
