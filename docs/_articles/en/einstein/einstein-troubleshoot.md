@@ -35,5 +35,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 Einstein for Developers is disabled by default in new Code Builder environments. Telemetry is used to audit enablement of Salesforce Generative AI functionality and must be on when you enable the extension:
 
 1. Go to **Settings** and search for `salesforcedx-vscode-core.telemetry.enabled` to confirm that this Salesforce telemetry setting is on in your workspace.
-2. If the setting isn't on, select the checkbox to enable telemetry, and run **Developer: Reload Window**. 
-3. Click the Einstein icon in the status bar and enable the extension.
+2. If the setting isn't on, select the checkbox to enable telemetry.  
+3. Open a terminal and run `sf config set disable-telemetry=false --global` to enable CLI telemetry. See [Salesforce CLI Data Collection and Metrics](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_telemetry.htm) for more information.
+4. Run **Developer: Reload Window**.
+5. Click the Einstein icon in the status bar and enable the extension.
