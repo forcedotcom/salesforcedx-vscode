@@ -52,7 +52,7 @@ jobs:
             We encourage anyone experiencing this issue to do the same to increase the priority. We will keep this issue open for the community to collaborate on.
 
   new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && !needs.check-feature-request.outputs.is_feature_request }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
@@ -73,7 +73,7 @@ jobs:
             If you require immediate assistance, contact Salesforce Customer Support.
 
   validate-new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && !needs.check-feature-request.outputs.is_feature_request }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
