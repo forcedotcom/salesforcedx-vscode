@@ -8,7 +8,7 @@
 name: 'Validate Updated Issues'
 on:
   issues:
-    types: [edited]
+    types: [edited, labeled]
   issue_comment:
     types: [created, edited]
 
@@ -36,3 +36,21 @@ jobs:
         uses: ./.github/actions/validate-issue
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN}}
+
+  validate-feature:
+    if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+          message: >
+            Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming session. We prioritize feature requests with more upvotes and comments.
