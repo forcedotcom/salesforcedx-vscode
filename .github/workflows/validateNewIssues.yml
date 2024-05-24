@@ -90,7 +90,7 @@ jobs:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
 
   new-feature:
-    if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
+    if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && (needs.check-feature-request.outputs.is_feature_request == 'true') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
