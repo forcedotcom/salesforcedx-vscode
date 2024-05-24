@@ -53,9 +53,14 @@ async function run() {
         const featureRequests = bodies
             .map((body) => [...body.matchAll(featureRequestRegex)].map((match) => match[1]))
             .flat();
+        const core = require('@actions/core');
         if (featureRequests.length > 0) {
             console.log('This issue is a feature request!');
             addLabel("type:enhancements");
+            core.setOutput("is_feature_request", "true");
+        }
+        else {
+            core.setOutput("is_feature_request", "false");
         }
         // ---------
         // FUNCTIONS

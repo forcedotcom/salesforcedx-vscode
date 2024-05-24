@@ -67,9 +67,13 @@ async function run() {
       )
       .flat();
 
+    const core = require('@actions/core');
     if (featureRequests.length > 0) {
       console.log('This issue is a feature request!');
       addLabel("type:enhancements");
+      core.setOutput("is_feature_request", "true");
+    } else {
+      core.setOutput("is_feature_request", "false");
     }
 
     // ---------
