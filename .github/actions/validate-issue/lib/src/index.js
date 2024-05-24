@@ -134,7 +134,7 @@ async function run() {
             vscodeValid = false;
         }
         // Checking presence of OS and version
-        const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S+\r\n)|(OS and version:\s*\S+\r\n)/g;
+        const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S.*\r\n)|(OS and version:\s*\S.*\r\n)/g;
         // Search all bodies and get an array of all versions found (first or second capture group)
         const osVersions = bodies
             .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
@@ -148,7 +148,7 @@ async function run() {
             osVersionValid = false;
         }
         // Checking presence of last working extensions version
-        const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S+\r\n)|(Most recent version of the extensions where this was working:\s*\S+\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S+$)|(Most recent version of the extensions where this was working:\s*\S+$)/g;
+        const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
         // Search all bodies and get an array of all versions found (first or second capture group)
         const lastWorkingVersions = bodies
             .map((body) => [...body.matchAll(lastWorkingVersionRegex)].map((match) => match[1] || match[2]))
