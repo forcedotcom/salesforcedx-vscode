@@ -144,6 +144,10 @@ async function run() {
         }
         else {
             console.log("OS and version is NOT provided");
+            const message = getFile("../../messages/provide-version.md", {
+                THE_AUTHOR: issue.user.login,
+            });
+            postComment(message);
             addLabel("more information required");
             osVersionValid = false;
         }
@@ -158,6 +162,10 @@ async function run() {
         }
         else {
             console.log("Last working version is NOT provided");
+            const message = getFile("../../messages/provide-version.md", {
+                THE_AUTHOR: issue.user.login,
+            });
+            postComment(message);
             addLabel("more information required");
             lastWorkingVersionValid = false;
         }
