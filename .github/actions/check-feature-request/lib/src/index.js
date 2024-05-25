@@ -49,7 +49,7 @@ async function run() {
         console.log('bodies = ' + JSON.stringify(bodies));
         console.log('bodies.length = ' + bodies.length);
         const core = require('@actions/core');
-        if (bodies.length == 0) {
+        if (bodies[0] === null) {
             core.setOutput("is_feature_request", "false");
         }
         else {

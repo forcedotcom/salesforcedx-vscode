@@ -63,7 +63,7 @@ async function run() {
     console.log('bodies = ' + JSON.stringify(bodies));
     console.log('bodies.length = ' + bodies.length);
 
-    if (bodies.length == 0) {
+    if (bodies[0] === null) {
       console.log('No content provided in issue body');
       const message = getFile("../../messages/provide-version.md", {
         THE_AUTHOR: issue.user.login,
