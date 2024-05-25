@@ -48,19 +48,24 @@ async function run() {
         ].filter((body) => body !== undefined);
         console.log('bodies = ' + JSON.stringify(bodies));
         console.log('bodies.length = ' + bodies.length);
-        const featureRequestRegex = /(feature\s*request)/ig;
-        // Search all bodies and get an array of all versions found (first capture group)
-        const featureRequests = bodies
-            .map((body) => [...body.matchAll(featureRequestRegex)].map((match) => match[1]))
-            .flat();
         const core = require('@actions/core');
-        if (featureRequests.length > 0) {
-            console.log('This issue is a feature request!');
-            addLabel("type:enhancements");
-            core.setOutput("is_feature_request", "true");
+        if (bodies.length == 0) {
+            core.setOutput("is_feature_request", "false");
         }
         else {
-            core.setOutput("is_feature_request", "false");
+            const featureRequestRegex = /(feature\s*request)/ig;
+            // Search all bodies and get an array of all versions found (first capture group)
+            const featureRequests = bodies
+                .map((body) => [...body.matchAll(featureRequestRegex)].map((match) => match[1]))
+                .flat();
+            if (featureRequests.length > 0) {
+                console.log('This issue is a feature request!');
+                addLabel("type:enhancements");
+                core.setOutput("is_feature_request", "true");
+            }
+            else {
+                core.setOutput("is_feature_request", "false");
+            }
         }
         // ---------
         // FUNCTIONS

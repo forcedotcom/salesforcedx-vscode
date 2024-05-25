@@ -53,213 +53,223 @@ async function run() {
         ].filter((body) => body !== undefined);
         console.log('bodies = ' + JSON.stringify(bodies));
         console.log('bodies.length = ' + bodies.length);
-        let extensionsValid = true;
-        let vscodeValid = true;
-        let osVersionValid = true;
-        let cliValid = true;
-        let lastWorkingVersionValid = true;
-        // Checking Salesforce Extension Pack version
-        // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
-        const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*(\d{2}\.\d{1,2}\.\d))/g;
-        // Search all bodies and get an array of all versions found (first or second capture group)
-        const extensionsVersions = bodies
-            .map((body) => [...body.matchAll(extensionsVersionRegex)].map((match) => match[1] || match[2]))
-            .flat();
-        console.log('extensionsVersions', extensionsVersions);
-        if (extensionsVersions.length > 0) {
-            const extensionsLatest = getLatestExtensionsVersion();
-            console.log('extensionsLatest', extensionsLatest);
-            const oneSatisfies = extensionsVersions.some((version) => semver.gte(version, extensionsLatest));
-            if (!oneSatisfies) {
-                const oldExtensions = getFile("../../messages/old-extensions.md", {
-                    THE_AUTHOR: author,
-                    USER_VERSION: extensionsVersions.join("`, `"),
-                    LATEST_VERSION: extensionsLatest
+        if (bodies.length == 0) {
+            console.log('No content provided in issue body');
+            const message = getFile("../../messages/provide-version.md", {
+                THE_AUTHOR: issue.user.login,
+            });
+            postComment(message);
+            addLabel("more information required");
+        }
+        else {
+            let extensionsValid = true;
+            let vscodeValid = true;
+            let osVersionValid = true;
+            let cliValid = true;
+            let lastWorkingVersionValid = true;
+            // Checking Salesforce Extension Pack version
+            // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
+            const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*(\d{2}\.\d{1,2}\.\d))/g;
+            // Search all bodies and get an array of all versions found (first or second capture group)
+            const extensionsVersions = bodies
+                .map((body) => [...body.matchAll(extensionsVersionRegex)].map((match) => match[1] || match[2]))
+                .flat();
+            console.log('extensionsVersions', extensionsVersions);
+            if (extensionsVersions.length > 0) {
+                const extensionsLatest = getLatestExtensionsVersion();
+                console.log('extensionsLatest', extensionsLatest);
+                const oneSatisfies = extensionsVersions.some((version) => semver.gte(version, extensionsLatest));
+                if (!oneSatisfies) {
+                    const oldExtensions = getFile("../../messages/old-extensions.md", {
+                        THE_AUTHOR: author,
+                        USER_VERSION: extensionsVersions.join("`, `"),
+                        LATEST_VERSION: extensionsLatest
+                    });
+                    postComment(oldExtensions);
+                    extensionsValid = false;
+                }
+                if (extensionsValid) {
+                    console.log("A valid extensions version is provided!");
+                }
+                else {
+                    console.log("The extensions version provided is NOT valid");
+                    addLabel("more information required");
+                }
+            }
+            else {
+                console.log("Extensions version is NOT provided");
+                const message = getFile("../../messages/provide-version.md", {
+                    THE_AUTHOR: issue.user.login,
                 });
-                postComment(oldExtensions);
+                postComment(message);
+                addLabel("more information required");
                 extensionsValid = false;
             }
-            if (extensionsValid) {
-                console.log("A valid extensions version is provided!");
+            // Checking VSCode version
+            const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
+            // Search all bodies and get an array of all versions found (first or second capture group)
+            const vscodeVersions = bodies
+                .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2]))
+                .flat();
+            console.log('vscodeVersions', vscodeVersions);
+            if (vscodeVersions.length > 0) {
+                const vscodeMinVersion = getMinimumVSCodeVersion();
+                console.log('vscodeMinVersion', vscodeMinVersion);
+                const oneSatisfies = vscodeVersions.some((version) => semver.gte(version, vscodeMinVersion));
+                if (!oneSatisfies) {
+                    const oldVSCode = getFile("../../messages/unsupported-vscode.md", {
+                        THE_AUTHOR: author,
+                        USER_VERSION: vscodeVersions.join("`, `"),
+                        MIN_VERSION: vscodeMinVersion
+                    });
+                    postComment(oldVSCode);
+                    vscodeValid = false;
+                }
+                if (vscodeValid) {
+                    console.log("A valid VSCode version is provided!");
+                }
+                else {
+                    console.log("The VSCode version provided is NOT valid");
+                    addLabel("more information required");
+                }
             }
             else {
-                console.log("The extensions version provided is NOT valid");
-                addLabel("more information required");
-            }
-        }
-        else {
-            console.log("Extensions version is NOT provided");
-            const message = getFile("../../messages/provide-version.md", {
-                THE_AUTHOR: issue.user.login,
-            });
-            postComment(message);
-            addLabel("more information required");
-            extensionsValid = false;
-        }
-        // Checking VSCode version
-        const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(1\.\d{2}\.\d))|(?:VS Code version:\s*(1\.\d{2}\.\d))/g;
-        // Search all bodies and get an array of all versions found (first or second capture group)
-        const vscodeVersions = bodies
-            .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2]))
-            .flat();
-        console.log('vscodeVersions', vscodeVersions);
-        if (vscodeVersions.length > 0) {
-            const vscodeMinVersion = getMinimumVSCodeVersion();
-            console.log('vscodeMinVersion', vscodeMinVersion);
-            const oneSatisfies = vscodeVersions.some((version) => semver.gte(version, vscodeMinVersion));
-            if (!oneSatisfies) {
-                const oldVSCode = getFile("../../messages/unsupported-vscode.md", {
-                    THE_AUTHOR: author,
-                    USER_VERSION: vscodeVersions.join("`, `"),
-                    MIN_VERSION: vscodeMinVersion
+                console.log("VSCode version is NOT provided");
+                const message = getFile("../../messages/provide-version.md", {
+                    THE_AUTHOR: issue.user.login,
                 });
-                postComment(oldVSCode);
+                postComment(message);
+                addLabel("more information required");
                 vscodeValid = false;
             }
-            if (vscodeValid) {
-                console.log("A valid VSCode version is provided!");
+            // Checking presence of OS and version
+            const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S.*\r\n)|(OS and version:\s*\S.*\r\n)/g;
+            // Search all bodies and get an array of all versions found (first or second capture group)
+            const osVersions = bodies
+                .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
+                .flat();
+            if (osVersions.length > 0) {
+                console.log("OS and version is provided!");
             }
             else {
-                console.log("The VSCode version provided is NOT valid");
+                console.log("OS and version is NOT provided");
+                const message = getFile("../../messages/provide-version.md", {
+                    THE_AUTHOR: issue.user.login,
+                });
+                postComment(message);
                 addLabel("more information required");
+                osVersionValid = false;
             }
-        }
-        else {
-            console.log("VSCode version is NOT provided");
-            const message = getFile("../../messages/provide-version.md", {
-                THE_AUTHOR: issue.user.login,
-            });
-            postComment(message);
-            addLabel("more information required");
-            vscodeValid = false;
-        }
-        // Checking presence of OS and version
-        const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S.*\r\n)|(OS and version:\s*\S.*\r\n)/g;
-        // Search all bodies and get an array of all versions found (first or second capture group)
-        const osVersions = bodies
-            .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
-            .flat();
-        if (osVersions.length > 0) {
-            console.log("OS and version is provided!");
-        }
-        else {
-            console.log("OS and version is NOT provided");
-            const message = getFile("../../messages/provide-version.md", {
-                THE_AUTHOR: issue.user.login,
-            });
-            postComment(message);
-            addLabel("more information required");
-            osVersionValid = false;
-        }
-        // Checking presence of last working extensions version
-        const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
-        // Search all bodies and get an array of all versions found (first or second capture group)
-        const lastWorkingVersions = bodies
-            .map((body) => [...body.matchAll(lastWorkingVersionRegex)].map((match) => match[1] || match[2]))
-            .flat();
-        if (lastWorkingVersions.length > 0) {
-            console.log("Last working version is provided!");
-        }
-        else {
-            console.log("Last working version is NOT provided");
-            const message = getFile("../../messages/provide-version.md", {
-                THE_AUTHOR: issue.user.login,
-            });
-            postComment(message);
-            addLabel("more information required");
-            lastWorkingVersionValid = false;
-        }
-        // *** The below is the check for CLI version, code reused from CLI Team's repo ***
-        const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-        const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-        // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
-        const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
-        // Search all bodies and get an array of all versions found (first capture group)
-        const sfVersions = bodies
-            .map((body) => [...body.matchAll(sfVersionRegex)].map((match) => match[1]))
-            .flat();
-        const sfdxVersions = bodies
-            .map((body) => [...body.matchAll(sfdxVersionRegex)].map((match) => match[1]))
-            .flat();
-        const nodeVersions = bodies
-            .map((body) => [...body.matchAll(nodeVersionRegex)].map((match) => match[1]))
-            .flat();
-        console.log("sfVersions", sfVersions);
-        console.log("sfdxVersions", sfdxVersions);
-        console.log("nodeVersions", nodeVersions);
-        if ((sfVersions.length > 0 || sfdxVersions.length > 0)) {
-            // FUTURE TODO:
-            // - Check for bundled plugins that are user installed (user) or linked (link)
-            // - Could do a check to see if the users has a prerelease version installed
-            if (sfVersions.length > 0) {
-                const sfLatest = getLatestCliVersion("@salesforce/cli");
-                const oneSatisfies = sfVersions.some((version) => semver.gte(version, sfLatest));
-                if (!oneSatisfies) {
-                    if (sfVersions.find((v) => v.startsWith("2."))) {
-                        // If any sf versions provided start with 2.x, share update information
-                        const oldSf = getFile("../../messages/old-cli.md", {
-                            THE_AUTHOR: author,
-                            USER_CLI: "sf",
-                            USER_VERSION: sfVersions.join("`, `"),
-                            LATEST_VERSION: sfLatest,
-                        });
-                        postComment(oldSf);
+            // Checking presence of last working extensions version
+            const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
+            // Search all bodies and get an array of all versions found (first or second capture group)
+            const lastWorkingVersions = bodies
+                .map((body) => [...body.matchAll(lastWorkingVersionRegex)].map((match) => match[1] || match[2]))
+                .flat();
+            if (lastWorkingVersions.length > 0) {
+                console.log("Last working version is provided!");
+            }
+            else {
+                console.log("Last working version is NOT provided");
+                const message = getFile("../../messages/provide-version.md", {
+                    THE_AUTHOR: issue.user.login,
+                });
+                postComment(message);
+                addLabel("more information required");
+                lastWorkingVersionValid = false;
+            }
+            // *** The below is the check for CLI version, code reused from CLI Team's repo ***
+            const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
+            const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
+            // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
+            const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
+            // Search all bodies and get an array of all versions found (first capture group)
+            const sfVersions = bodies
+                .map((body) => [...body.matchAll(sfVersionRegex)].map((match) => match[1]))
+                .flat();
+            const sfdxVersions = bodies
+                .map((body) => [...body.matchAll(sfdxVersionRegex)].map((match) => match[1]))
+                .flat();
+            const nodeVersions = bodies
+                .map((body) => [...body.matchAll(nodeVersionRegex)].map((match) => match[1]))
+                .flat();
+            console.log("sfVersions", sfVersions);
+            console.log("sfdxVersions", sfdxVersions);
+            console.log("nodeVersions", nodeVersions);
+            if ((sfVersions.length > 0 || sfdxVersions.length > 0)) {
+                // FUTURE TODO:
+                // - Check for bundled plugins that are user installed (user) or linked (link)
+                // - Could do a check to see if the users has a prerelease version installed
+                if (sfVersions.length > 0) {
+                    const sfLatest = getLatestCliVersion("@salesforce/cli");
+                    const oneSatisfies = sfVersions.some((version) => semver.gte(version, sfLatest));
+                    if (!oneSatisfies) {
+                        if (sfVersions.find((v) => v.startsWith("2."))) {
+                            // If any sf versions provided start with 2.x, share update information
+                            const oldSf = getFile("../../messages/old-cli.md", {
+                                THE_AUTHOR: author,
+                                USER_CLI: "sf",
+                                USER_VERSION: sfVersions.join("`, `"),
+                                LATEST_VERSION: sfLatest,
+                            });
+                            postComment(oldSf);
+                        }
+                        else {
+                            // If not, share deprecation information
+                            const sfV1 = getFile("../../messages/deprecated-cli.md", {
+                                THE_AUTHOR: author,
+                                OLD_CLI: "`sf` (v1)",
+                            });
+                            postComment(sfV1);
+                        }
+                        cliValid = false;
                     }
-                    else {
-                        // If not, share deprecation information
-                        const sfV1 = getFile("../../messages/deprecated-cli.md", {
-                            THE_AUTHOR: author,
-                            OLD_CLI: "`sf` (v1)",
-                        });
-                        postComment(sfV1);
-                    }
+                }
+                if (sfdxVersions.find((v) => v.startsWith("7.")) &&
+                    !sfVersions.find((v) => v.startsWith("2."))) {
+                    const noOldSfdx = getFile("../../messages/deprecated-cli.md", {
+                        THE_AUTHOR: author,
+                        OLD_CLI: "`sfdx` (v7)",
+                    });
+                    postComment(noOldSfdx);
                     cliValid = false;
                 }
+                if (nodeVersions.length > 0) {
+                    if (!(await (0, nodeVersions_1.isAnyVersionValid)(new Date())(nodeVersions))) {
+                        const nodeVersionMessage = getFile("../../messages/unsupported-node.md", {
+                            THE_AUTHOR: author,
+                            NODE_VERSION: nodeVersions.join("`, `"),
+                        });
+                        postComment(nodeVersionMessage);
+                        closeIssue();
+                        cliValid = false;
+                    }
+                }
+                if (cliValid) {
+                    console.log("A valid CLI version is provided!");
+                }
+                else {
+                    console.log("Information provided is NOT valid");
+                    addLabel("more information required");
+                }
             }
-            if (sfdxVersions.find((v) => v.startsWith("7.")) &&
-                !sfVersions.find((v) => v.startsWith("2."))) {
-                const noOldSfdx = getFile("../../messages/deprecated-cli.md", {
-                    THE_AUTHOR: author,
-                    OLD_CLI: "`sfdx` (v7)",
+            else {
+                console.log("Full version information was not provided");
+                const message = getFile("../../messages/provide-version.md", {
+                    THE_AUTHOR: issue.user.login,
                 });
-                postComment(noOldSfdx);
+                postComment(message);
+                addLabel("more information required");
                 cliValid = false;
             }
-            if (nodeVersions.length > 0) {
-                if (!(await (0, nodeVersions_1.isAnyVersionValid)(new Date())(nodeVersions))) {
-                    const nodeVersionMessage = getFile("../../messages/unsupported-node.md", {
-                        THE_AUTHOR: author,
-                        NODE_VERSION: nodeVersions.join("`, `"),
-                    });
-                    postComment(nodeVersionMessage);
-                    closeIssue();
-                    cliValid = false;
-                }
-            }
-            if (cliValid) {
-                console.log("A valid CLI version is provided!");
+            if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
+                addLabel("validated");
+                removeLabel("more information required");
             }
             else {
-                console.log("Information provided is NOT valid");
+                console.log("You have one or more missing/invalid versions.");
                 addLabel("more information required");
             }
-        }
-        else {
-            console.log("Full version information was not provided");
-            const message = getFile("../../messages/provide-version.md", {
-                THE_AUTHOR: issue.user.login,
-            });
-            postComment(message);
-            addLabel("more information required");
-            cliValid = false;
-        }
-        if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
-            addLabel("validated");
-            removeLabel("more information required");
-        }
-        else {
-            console.log("You have one or more missing/invalid versions.");
-            addLabel("more information required");
         }
         // ---------
         // FUNCTIONS
