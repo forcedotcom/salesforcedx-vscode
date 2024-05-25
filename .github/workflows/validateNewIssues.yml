@@ -6,9 +6,9 @@
 #
 
 name: "Validate New Issues"
-on: # issue opened, labeled as "feature", labeled as "type:enhancements", or labeled as "status:owned by another team"
+on: # issue opened
   issues:
-    types: [opened, labeled]
+    types: [opened]
 
 jobs:
   # Check if the issue is a feature request, and if it is, tag it with 'type:enhancements' (this job is a prerequisite to all the other jobs)
