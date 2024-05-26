@@ -290,13 +290,6 @@ async function run() {
             });
         }
         async function postComment(body) {
-            // Check that this comment has not been previously commented
-            if (comments.length) {
-                if (comments.some((comment) => comment.body === body)) {
-                    console.log("Already commented");
-                    return;
-                }
-            }
             return await octokit.rest.issues.createComment({
                 owner,
                 repo,
