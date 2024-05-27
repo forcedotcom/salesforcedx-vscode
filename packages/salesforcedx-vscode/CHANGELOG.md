@@ -1,3 +1,29 @@
+# 60.15.0 - May 29, 2024
+
+## Added
+
+#### salesforcedx-vscode-expanded
+
+- Add E4D to the expanded pack ([PR #5607](https://github.com/forcedotcom/salesforcedx-vscode/pull/5607))
+
+## Fixed
+
+#### docs
+
+- Expanded pack related updates ([PR #5596](https://github.com/forcedotcom/salesforcedx-vscode/pull/5596))
+
+- More prominent notes for known issue with trusted IP ranges ([PR #5606](https://github.com/forcedotcom/salesforcedx-vscode/pull/5606))
+
+- Code Builder licenses for add-ons ([PR #5605](https://github.com/forcedotcom/salesforcedx-vscode/pull/5605))
+
+#### salesforcedx-vscode-core
+
+- Implement the workflow to publish beta release for core-bundle ([PR #5603](https://github.com/forcedotcom/salesforcedx-vscode/pull/5603))
+
+#### salesforcedx-vscode-expanded
+
+- Expanded pack related updates ([PR #5596](https://github.com/forcedotcom/salesforcedx-vscode/pull/5596))
+
 # 60.13.0 - May 15, 2024
 
 ## Fixed
