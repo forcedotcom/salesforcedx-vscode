@@ -67,6 +67,7 @@ async function run() {
             let osVersionValid = true;
             let cliValid = true;
             let lastWorkingVersionValid = true;
+            let provideVersionAlreadyRequested = false;
             // Checking Salesforce Extension Pack version
             // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
             const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*v?(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*v?(\d{2}\.\d{1,2}\.\d))/g;
@@ -98,10 +99,13 @@ async function run() {
             }
             else {
                 console.log("Extensions version is NOT provided");
-                const message = getFile("../../messages/provide-version.md", {
-                    THE_AUTHOR: issue.user.login,
-                });
-                postComment(message);
+                if (!provideVersionAlreadyRequested) {
+                    const message = getFile("../../messages/provide-version.md", {
+                        THE_AUTHOR: issue.user.login,
+                    });
+                    postComment(message);
+                    provideVersionAlreadyRequested = true;
+                }
                 addLabel("more information required");
                 extensionsValid = false;
             }
@@ -135,10 +139,13 @@ async function run() {
             }
             else {
                 console.log("VSCode version is NOT provided");
-                const message = getFile("../../messages/provide-version.md", {
-                    THE_AUTHOR: issue.user.login,
-                });
-                postComment(message);
+                if (!provideVersionAlreadyRequested) {
+                    const message = getFile("../../messages/provide-version.md", {
+                        THE_AUTHOR: issue.user.login,
+                    });
+                    postComment(message);
+                    provideVersionAlreadyRequested = true;
+                }
                 addLabel("more information required");
                 vscodeValid = false;
             }
@@ -153,10 +160,13 @@ async function run() {
             }
             else {
                 console.log("OS and version is NOT provided");
-                const message = getFile("../../messages/provide-version.md", {
-                    THE_AUTHOR: issue.user.login,
-                });
-                postComment(message);
+                if (!provideVersionAlreadyRequested) {
+                    const message = getFile("../../messages/provide-version.md", {
+                        THE_AUTHOR: issue.user.login,
+                    });
+                    postComment(message);
+                    provideVersionAlreadyRequested = true;
+                }
                 addLabel("more information required");
                 osVersionValid = false;
             }
@@ -171,10 +181,13 @@ async function run() {
             }
             else {
                 console.log("Last working version is NOT provided");
-                const message = getFile("../../messages/provide-version.md", {
-                    THE_AUTHOR: issue.user.login,
-                });
-                postComment(message);
+                if (!provideVersionAlreadyRequested) {
+                    const message = getFile("../../messages/provide-version.md", {
+                        THE_AUTHOR: issue.user.login,
+                    });
+                    postComment(message);
+                    provideVersionAlreadyRequested = true;
+                }
                 addLabel("more information required");
                 lastWorkingVersionValid = false;
             }
@@ -255,10 +268,13 @@ async function run() {
             }
             else {
                 console.log("Full version information was not provided");
-                const message = getFile("../../messages/provide-version.md", {
-                    THE_AUTHOR: issue.user.login,
-                });
-                postComment(message);
+                if (!provideVersionAlreadyRequested) {
+                    const message = getFile("../../messages/provide-version.md", {
+                        THE_AUTHOR: issue.user.login,
+                    });
+                    postComment(message);
+                    provideVersionAlreadyRequested = true;
+                }
                 addLabel("more information required");
                 cliValid = false;
             }
