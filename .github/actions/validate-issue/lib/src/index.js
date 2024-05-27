@@ -155,6 +155,7 @@ async function run() {
             const osVersions = bodies
                 .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
                 .flat();
+            console.log('&&&& osVersions = ', osVersions);
             if (osVersions.length > 0) {
                 console.log("OS and version is provided!");
             }

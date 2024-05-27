@@ -187,6 +187,7 @@ async function run() {
       )
       .flat();
 
+      console.log('&&&& osVersions = ', osVersions);
       if (osVersions.length > 0) {
         console.log("OS and version is provided!");
       } else {
