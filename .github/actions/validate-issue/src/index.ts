@@ -123,8 +123,8 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
+          addLabel("more information required");
         }
-        addLabel("more information required");
         extensionsValid = false;
       }
 
@@ -172,8 +172,8 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
+          addLabel("more information required");
         }
-        addLabel("more information required");
         vscodeValid = false;
       }
 
@@ -197,8 +197,8 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
+          addLabel("more information required");
         }
-        addLabel("more information required");
         osVersionValid = false;
       }
 
@@ -222,8 +222,8 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
+          addLabel("more information required");
         }
-        addLabel("more information required");
         lastWorkingVersionValid = false;
       }
 
@@ -329,8 +329,8 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
+          addLabel("more information required");
         }
-        addLabel("more information required");
         cliValid = false;
       }
 

@@ -105,8 +105,8 @@ async function run() {
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
+                    addLabel("more information required");
                 }
-                addLabel("more information required");
                 extensionsValid = false;
             }
             // Checking VSCode version
@@ -145,8 +145,8 @@ async function run() {
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
+                    addLabel("more information required");
                 }
-                addLabel("more information required");
                 vscodeValid = false;
             }
             // Checking presence of OS and version
@@ -166,8 +166,8 @@ async function run() {
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
+                    addLabel("more information required");
                 }
-                addLabel("more information required");
                 osVersionValid = false;
             }
             // Checking presence of last working extensions version
@@ -187,8 +187,8 @@ async function run() {
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
+                    addLabel("more information required");
                 }
-                addLabel("more information required");
                 lastWorkingVersionValid = false;
             }
             // *** The below is the check for CLI version, code reused from CLI Team's repo ***
@@ -274,8 +274,8 @@ async function run() {
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
+                    addLabel("more information required");
                 }
-                addLabel("more information required");
                 cliValid = false;
             }
             if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
