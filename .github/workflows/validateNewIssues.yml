@@ -53,7 +53,7 @@ jobs:
 
   validate-new-issue:
     if: ${{ !contains(github.event.issue.labels.*.name, 'more information required') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
-    needs: [check-feature-request]
+    needs: [check-feature-request, new-issue]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.0
