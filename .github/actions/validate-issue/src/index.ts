@@ -178,7 +178,7 @@ async function run() {
       }
 
       // Checking presence of OS and version
-      const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S.*\r\n)|(OS and version:\s*\S.*\r\n)/g;
+      const osVersionRegex = /(\*{2}OS and version\*{2}:\s*\S.*\r\n(?!\*\*VS|VS))|(OS and version:\s*\S.*\r\n(?!\*\*VS|VS))/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const osVersions = bodies
