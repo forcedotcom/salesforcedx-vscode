@@ -178,6 +178,7 @@ async function run() {
       }
 
       // Checking presence of OS and version
+      // NOTE: negative lookahead used in this regex due to false match when OS and version is blank
       const osVersionRegex = /(\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*\r\n)|(OS and version:\s*(?!\*\*VS|VS)\S.*\r\n)/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
@@ -187,7 +188,6 @@ async function run() {
       )
       .flat();
 
-      console.log('&&&& osVersions = ', osVersions);
       if (osVersions.length > 0) {
         console.log("OS and version is provided!");
       } else {
