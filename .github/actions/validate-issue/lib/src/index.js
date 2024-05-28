@@ -325,10 +325,6 @@ async function run() {
                 throw error;
             }
         }
-        function getLatestCliVersion(plugin) {
-            const distTags = (0, child_process_1.execSync)(`npm view ${plugin} dist-tags --json`).toString();
-            return JSON.parse(distTags).latest;
-        }
         function getLatestExtensionsVersion() {
             const result = (0, child_process_1.execSync)(`npx vsce show salesforce.salesforcedx-vscode --json`).toString();
             return JSON.parse(result).versions[0].version;
