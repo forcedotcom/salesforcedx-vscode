@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -211,9 +211,6 @@ async function run() {
             console.log("sfdxVersions", sfdxVersions);
             console.log("nodeVersions", nodeVersions);
             if ((sfVersions.length > 0 || sfdxVersions.length > 0)) {
-                // FUTURE TODO:
-                // - Check for bundled plugins that are user installed (user) or linked (link)
-                // - Could do a check to see if the users has a prerelease version installed
                 if (sfVersions.length > 0) {
                     const sfLatest = getLatestCliVersion("@salesforce/cli");
                     const oneSatisfies = sfVersions.some((version) => semver.gte(version, sfLatest));
