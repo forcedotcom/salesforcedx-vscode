@@ -106,7 +106,6 @@ async function run() {
             LATEST_VERSION: extensionsLatest
           });
           postComment(oldExtensions);
-          extensionsValid = false;
         }
 
         if (extensionsValid) {
