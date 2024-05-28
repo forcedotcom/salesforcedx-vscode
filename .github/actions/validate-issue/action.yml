@@ -6,7 +6,7 @@
 #
 
 name: 'Salesforce Extensions Validate Issues Bot'
-description: 'Validate information provided in an new Github issue.'
+description: 'Validate information provided in a new or updated Github issue that is not yet validated.'
 author: 'Daphne Yang'
 inputs:
   repo-token:

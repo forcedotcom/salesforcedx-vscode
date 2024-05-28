@@ -6,7 +6,7 @@
 #
 
 name: 'Salesforce Extensions New Issues Bot'
-description: 'Send an automatic response to Github issues.'
+description: 'Send an automatic response to newly created Github issues.'
 author: 'Daphne Yang'
 inputs:
   repo-token:
