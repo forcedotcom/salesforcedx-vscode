@@ -106,7 +106,6 @@ async function run() {
             LATEST_VERSION: extensionsLatest
           });
           postComment(oldExtensions);
-          extensionsValid = false;
         }
 
         if (extensionsValid) {
@@ -264,29 +263,17 @@ async function run() {
         // - Could do a check to see if the users has a prerelease version installed
 
         if (sfVersions.length > 0) {
-          const sfLatest = getLatestCliVersion("@salesforce/cli");
           const oneSatisfies = sfVersions.some((version) =>
-            semver.gte(version, sfLatest)
+            semver.gte(version, '2.0.0')
           );
 
           if (!oneSatisfies) {
-            if (sfVersions.find((v) => v.startsWith("2."))) {
-              // If any sf versions provided start with 2.x, share update information
-              const oldSf = getFile("../../messages/old-cli.md", {
-                THE_AUTHOR: author,
-                USER_CLI: "sf",
-                USER_VERSION: sfVersions.join("`, `"),
-                LATEST_VERSION: sfLatest,
-              });
-              postComment(oldSf);
-            } else {
-              // If not, share deprecation information
-              const sfV1 = getFile("../../messages/deprecated-cli.md", {
-                THE_AUTHOR: author,
-                OLD_CLI: "`sf` (v1)",
-              });
-              postComment(sfV1);
-            }
+            // If not, share deprecation information
+            const sfV1 = getFile("../../messages/deprecated-cli.md", {
+              THE_AUTHOR: author,
+              OLD_CLI: "`sf` (v1)",
+            });
+            postComment(sfV1);
             cliValid = false;
           }
         }
