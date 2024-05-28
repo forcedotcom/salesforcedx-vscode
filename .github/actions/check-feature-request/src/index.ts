@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,8 +10,6 @@ import { context, getOctokit } from "@actions/github";
 
 async function run() {
   try {
-    // Uncomment for local testing
-    // const issue = JSON.parse(getFile("../mock/sample-context.json"));
     const issue = context.payload.issue;
 
     if (!issue) {
@@ -34,8 +32,6 @@ async function run() {
     const octokit = getOctokit(token);
 
     // Get owner and repo from context
-    // uncomment env var for local testing
-    // process.env.GITHUB_REPOSITORY = "iowillhoit/gha-sandbox";
     const owner = context.repo.owner;
     const repo = context.repo.repo;
     const issue_number = issue.number;

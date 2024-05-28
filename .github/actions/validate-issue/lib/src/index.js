@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -15,8 +15,6 @@ const path = require("path");
 const nodeVersions_1 = require("./nodeVersions");
 async function run() {
     try {
-        // Uncomment for local testing
-        // const issue = JSON.parse(getFile("../mock/sample-context.json"));
         const issue = github_1.context.payload.issue;
         if (!issue) {
             (0, core_1.setFailed)("github.context.payload.issue does not exist");
@@ -35,8 +33,6 @@ async function run() {
         const token = (0, core_1.getInput)("repo-token");
         const octokit = (0, github_1.getOctokit)(token);
         // Get owner and repo from context
-        // uncomment env var for local testing
-        // process.env.GITHUB_REPOSITORY = "iowillhoit/gha-sandbox";
         const owner = github_1.context.repo.owner;
         const repo = github_1.context.repo.repo;
         const issue_number = issue.number;
@@ -194,7 +190,6 @@ async function run() {
             // *** The below is the check for CLI version, code reused from CLI Team's repo ***
             const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
             const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-            // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
             const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
             // Search all bodies and get an array of all versions found (first capture group)
             const sfVersions = bodies
@@ -210,9 +205,6 @@ async function run() {
             console.log("sfdxVersions", sfdxVersions);
             console.log("nodeVersions", nodeVersions);
             if ((sfVersions.length > 0 || sfdxVersions.length > 0)) {
-                // FUTURE TODO:
-                // - Check for bundled plugins that are user installed (user) or linked (link)
-                // - Could do a check to see if the users has a prerelease version installed
                 if (sfVersions.length > 0) {
                     const oneSatisfies = sfVersions.some((version) => semver.gte(version, '2.0.0'));
                     if (!oneSatisfies) {
@@ -332,10 +324,6 @@ async function run() {
                 }
                 throw error;
             }
-        }
-        function getLatestCliVersion(plugin) {
-            const distTags = (0, child_process_1.execSync)(`npm view ${plugin} dist-tags --json`).toString();
-            return JSON.parse(distTags).latest;
         }
         function getLatestExtensionsVersion() {
             const result = (0, child_process_1.execSync)(`npx vsce show salesforce.salesforcedx-vscode --json`).toString();

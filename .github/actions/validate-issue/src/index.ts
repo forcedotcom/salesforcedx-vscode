@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -15,8 +15,6 @@ import { isAnyVersionValid } from "./nodeVersions";
 
 async function run() {
   try {
-    // Uncomment for local testing
-    // const issue = JSON.parse(getFile("../mock/sample-context.json"));
     const issue = context.payload.issue;
 
     if (!issue) {
@@ -39,8 +37,6 @@ async function run() {
     const octokit = getOctokit(token);
 
     // Get owner and repo from context
-    // uncomment env var for local testing
-    // process.env.GITHUB_REPOSITORY = "iowillhoit/gha-sandbox";
     const owner = context.repo.owner;
     const repo = context.repo.repo;
     const issue_number = issue.number;
@@ -231,7 +227,6 @@ async function run() {
 
       const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
       const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-      // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
       const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
 
       // Search all bodies and get an array of all versions found (first capture group)
@@ -258,10 +253,6 @@ async function run() {
       if (
           (sfVersions.length > 0 || sfdxVersions.length > 0)
       ) {
-        // FUTURE TODO:
-        // - Check for bundled plugins that are user installed (user) or linked (link)
-        // - Could do a check to see if the users has a prerelease version installed
-
         if (sfVersions.length > 0) {
           const oneSatisfies = sfVersions.some((version) =>
             semver.gte(version, '2.0.0')
@@ -395,13 +386,6 @@ async function run() {
         }
         throw error;
       }
-    }
-
-    function getLatestCliVersion(plugin: string) {
-      const distTags = execSync(
-        `npm view ${plugin} dist-tags --json`
-      ).toString();
-      return JSON.parse(distTags).latest;
     }
 
     function getLatestExtensionsVersion() {

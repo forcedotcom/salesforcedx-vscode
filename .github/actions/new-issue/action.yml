@@ -1,13 +1,13 @@
 #
-# Copyright (c) 2020, salesforce.com, inc.
+# Copyright (c) 2024, salesforce.com, inc.
 # All rights reserved.
 # Licensed under the BSD 3-Clause license.
 # For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
 
-name: 'Salesforce CLI Issues Bot'
-description: 'Preform automatic responses to github issues.'
-author: 'Lisa Morgan'
+name: 'Salesforce Extensions New Issues Bot'
+description: 'Send an automatic response to newly created Github issues.'
+author: 'Daphne Yang'
 inputs:
   repo-token:
     required: true

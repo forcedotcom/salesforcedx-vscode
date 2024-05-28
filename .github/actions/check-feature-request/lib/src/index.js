@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,8 +10,6 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 async function run() {
     try {
-        // Uncomment for local testing
-        // const issue = JSON.parse(getFile("../mock/sample-context.json"));
         const issue = github_1.context.payload.issue;
         if (!issue) {
             (0, core_1.setFailed)("github.context.payload.issue does not exist");

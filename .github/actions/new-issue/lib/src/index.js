@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -35,14 +35,6 @@ async function run() {
         console.log("issue number: " + issue.number);
         const issueLabels = issue.labels;
         console.log("issue labels: ", issueLabels);
-        // If label is passed in as an input, make sure it is on the issue before posting the message.
-        // Otherwise, we want to post message on all issues regardless.
-        // if (label) {
-        //   if (!issueLabels.find((issueLabel) => issueLabel.name === label)) {
-        //     // We didn't find the label, so don't post on this issue.
-        //     return;
-        //   }
-        // }
         const { data: comments } = await octokit.rest.issues.listComments({
             owner,
             repo,
