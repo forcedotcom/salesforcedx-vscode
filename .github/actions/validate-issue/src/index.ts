@@ -67,7 +67,7 @@ async function run() {
         THE_AUTHOR: issue.user.login,
       });
       postComment(message);
-      addLabel("more information required");
+      addLabel("missing required information");
     } else {
       let extensionsValid = true;
       let vscodeValid = true;
@@ -110,7 +110,7 @@ async function run() {
           console.log("A valid extensions version is provided!");
         } else {
           console.log("The extensions version provided is NOT valid");
-          addLabel("more information required");
+          addLabel("missing required information");
         }
       } else {
         console.log("Extensions version is NOT provided");
@@ -120,7 +120,7 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
-          addLabel("more information required");
+          addLabel("missing required information");
         }
         extensionsValid = false;
       }
@@ -159,7 +159,7 @@ async function run() {
           console.log("A valid VSCode version is provided!");
         } else {
           console.log("The VSCode version provided is NOT valid");
-          addLabel("more information required");
+          addLabel("missing required information");
         }
       } else {
         console.log("VSCode version is NOT provided");
@@ -169,7 +169,7 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
-          addLabel("more information required");
+          addLabel("missing required information");
         }
         vscodeValid = false;
       }
@@ -195,7 +195,7 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
-          addLabel("more information required");
+          addLabel("missing required information");
         }
         osVersionValid = false;
       }
@@ -220,7 +220,7 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
-          addLabel("more information required");
+          addLabel("missing required information");
         }
         lastWorkingVersionValid = false;
       }
@@ -305,7 +305,7 @@ async function run() {
           console.log("A valid CLI version is provided!");
         } else {
           console.log("Information provided is NOT valid");
-          addLabel("more information required");
+          addLabel("missing required information");
         }
       } else {
         console.log("Full version information was not provided");
@@ -315,17 +315,17 @@ async function run() {
           });
           postComment(message);
           provideVersionAlreadyRequested = true;
-          addLabel("more information required");
+          addLabel("missing required information");
         }
         cliValid = false;
       }
 
       if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
         addLabel("validated");
-        removeLabel("more information required");
+        removeLabel("missing required information");
       } else {
         console.log("You have one or more missing/invalid versions.");
-        addLabel("more information required");
+        addLabel("missing required information");
       }
     }
 
