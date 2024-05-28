@@ -29,8 +29,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install dependencies
-        run: npm install
       - name: Validate issue
         id: validate-issue
         uses: ./.github/actions/validate-issue
@@ -45,8 +43,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install dependencies
-        run: npm install
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
@@ -63,8 +59,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install dependencies
-        run: npm install
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
@@ -86,8 +80,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install dependencies
-        run: npm install
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
