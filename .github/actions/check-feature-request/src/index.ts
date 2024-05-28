@@ -10,8 +10,6 @@ import { context, getOctokit } from "@actions/github";
 
 async function run() {
   try {
-    // Uncomment for local testing
-    // const issue = JSON.parse(getFile("../mock/sample-context.json"));
     const issue = context.payload.issue;
 
     if (!issue) {

@@ -10,8 +10,6 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 async function run() {
     try {
-        // Uncomment for local testing
-        // const issue = JSON.parse(getFile("../mock/sample-context.json"));
         const issue = github_1.context.payload.issue;
         if (!issue) {
             (0, core_1.setFailed)("github.context.payload.issue does not exist");

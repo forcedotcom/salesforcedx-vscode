@@ -227,7 +227,6 @@ async function run() {
 
       const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
       const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-      // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
       const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
 
       // Search all bodies and get an array of all versions found (first capture group)

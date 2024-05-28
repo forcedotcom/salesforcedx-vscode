@@ -190,7 +190,6 @@ async function run() {
             // *** The below is the check for CLI version, code reused from CLI Team's repo ***
             const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
             const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-            // const pluginVersionsRegex = /pluginVersions|Plugin Version:/;
             const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
             // Search all bodies and get an array of all versions found (first capture group)
             const sfVersions = bodies
