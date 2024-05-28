@@ -5,7 +5,7 @@
 # For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
 
-name: 'Salesforce Extensions Validate Issues'
+name: 'Salesforce Extensions Validate Issues Bot'
 description: 'Validate information provided in an new Github issue.'
 author: 'Daphne Yang'
 inputs:

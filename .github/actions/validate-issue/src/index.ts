@@ -15,8 +15,6 @@ import { isAnyVersionValid } from "./nodeVersions";
 
 async function run() {
   try {
-    // Uncomment for local testing
-    // const issue = JSON.parse(getFile("../mock/sample-context.json"));
     const issue = context.payload.issue;
 
     if (!issue) {
@@ -256,10 +254,6 @@ async function run() {
       if (
           (sfVersions.length > 0 || sfdxVersions.length > 0)
       ) {
-        // FUTURE TODO:
-        // - Check for bundled plugins that are user installed (user) or linked (link)
-        // - Could do a check to see if the users has a prerelease version installed
-
         if (sfVersions.length > 0) {
           const oneSatisfies = sfVersions.some((version) =>
             semver.gte(version, '2.0.0')

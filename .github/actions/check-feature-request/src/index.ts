@@ -34,8 +34,6 @@ async function run() {
     const octokit = getOctokit(token);
 
     // Get owner and repo from context
-    // uncomment env var for local testing
-    // process.env.GITHUB_REPOSITORY = "iowillhoit/gha-sandbox";
     const owner = context.repo.owner;
     const repo = context.repo.repo;
     const issue_number = issue.number;

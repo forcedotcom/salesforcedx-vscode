@@ -5,8 +5,8 @@
 # For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
 
-name: 'Salesforce Extensions Validate Issues'
-description: 'Validate information provided in an new Github issue.'
+name: 'Salesforce Extensions Check Feature Request Bot'
+description: 'Check if a newly created Github issue is a feature request.'
 author: 'Daphne Yang'
 inputs:
   repo-token:

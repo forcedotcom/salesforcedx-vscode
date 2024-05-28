@@ -15,8 +15,6 @@ const path = require("path");
 const nodeVersions_1 = require("./nodeVersions");
 async function run() {
     try {
-        // Uncomment for local testing
-        // const issue = JSON.parse(getFile("../mock/sample-context.json"));
         const issue = github_1.context.payload.issue;
         if (!issue) {
             (0, core_1.setFailed)("github.context.payload.issue does not exist");
@@ -35,8 +33,6 @@ async function run() {
         const token = (0, core_1.getInput)("repo-token");
         const octokit = (0, github_1.getOctokit)(token);
         // Get owner and repo from context
-        // uncomment env var for local testing
-        // process.env.GITHUB_REPOSITORY = "iowillhoit/gha-sandbox";
         const owner = github_1.context.repo.owner;
         const repo = github_1.context.repo.repo;
         const issue_number = issue.number;

@@ -5,8 +5,8 @@
 # For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
 
-name: 'Salesforce Extensions Issues Bot'
-description: 'Perform automatic responses to github issues.'
+name: 'Salesforce Extensions New Issues Bot'
+description: 'Send an automatic response to Github issues.'
 author: 'Daphne Yang'
 inputs:
   repo-token:
