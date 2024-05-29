@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.common.json",
+  "compilerOptions": {
+    "outDir": "./lib",
+    "lib": [
+      "ES2021"
+    ]
+  },
+  "files": [
+    "src/index.ts",
+    "src/nodeVersions.ts"
+  ]
+}

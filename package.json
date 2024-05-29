@@ -11,13 +11,17 @@
   "dependencies": {
     "node": "^18.11.0",
     "npm": "^9",
-    "ts-node": "10.9.1"
+    "ts-node": "10.9.1",
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
+    "semver": "^7.5.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.4.4",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.9.0",
     "@octokit/core": "4.0.5",
+    "@octokit/webhooks-definitions": "^3.67.3",
     "@salesforce/dev-config": "^3.1.0",
     "@tsconfig/node18": "18.2.2",
     "@types/cross-spawn": "6.0.2",
@@ -88,7 +92,7 @@
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
-    "check:typescript-project-references": "workspaces-to-typescript-project-references --includesRoot --check",
+    "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
     "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
