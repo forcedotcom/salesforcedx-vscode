@@ -7,11 +7,11 @@
 🚀 We’re thrilled to announce that Einstein for Developers (Beta) is now a part of the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded)! 🚀
 Here’s what you can expect with this change -
 
-* Access to powerful generative AI tooling that is grounded in the context your org’s data, and is backed by the promise of Salesforce’s Trust Layer. See [Additional Terms of Use] (https://developer.salesforce.com/tools/vscode/en/einstein/einstein-termsofuse) for information.
+* Access to powerful generative AI tooling that is grounded in the context your org’s data, and is backed by the promise of Salesforce’s Trust Layer. See [Additional Terms of Use](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-termsofuse) for information.
 * Seamless updating of extension versions. Weekly extension releases include new features and enhancements that we continue to make to Einstein for Developers!
 * Einstein for Developers is enabled by default in our VS Code desktop application. Enable it in Code Builder in minutes. 
 
-We’re excited that we’ve made it easier for you to give Einstein for Developers a spin, and we hope you’ll give it a try.  We’d love your [feedback] (https://developer.salesforce.com/tools/vscode/en/einstein/einstein-feedback) ! 📝
+We’re excited that we’ve made it easier for you to give Einstein for Developers a spin, and we hope you’ll give it a try.  We’d love your [feedback](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-feedback)! 📝
 
 ## Fixed
 
@@ -23,7 +23,7 @@ We’re excited that we’ve made it easier for you to give Einstein for Develop
 
 #### salesforcedx-vscode-expanded
 
-- We made updates to the guidelines for Einstein for Developers. ([PR #5596](https://github.com/forcedotcom/salesforcedx-vscode/pull/5596) )
+- We made updates to the guidelines for Einstein for Developers. ([PR #5596](https://github.com/forcedotcom/salesforcedx-vscode/pull/5596))
 
 # 60.13.0 - May 15, 2024
 
