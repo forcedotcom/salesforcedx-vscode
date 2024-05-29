@@ -18,7 +18,7 @@ jobs:
       is_feature_request: ${{ steps.check_feature_request.outputs.is_feature_request }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -35,7 +35,7 @@ jobs:
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -56,7 +56,7 @@ jobs:
     needs: [check-feature-request, new-issue]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
