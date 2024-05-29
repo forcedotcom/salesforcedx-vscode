@@ -14,7 +14,7 @@ jobs:
     outputs:
       RELEASE_VERSION: ${{ steps.getReleaseVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.releaseBranch }}
       - id: getReleaseVersion
@@ -28,7 +28,7 @@ jobs:
     outputs:
       MAIN_VERSION: ${{ steps.getMainVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'main'
       - id: getMainVersion
@@ -55,7 +55,7 @@ jobs:
             exit 1;
           fi
           
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}

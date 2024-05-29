@@ -41,7 +41,7 @@ jobs:
           - ${{ inputs.vscodeVersion }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
@@ -57,7 +57,7 @@ jobs:
       - name: Display downloaded vsix files
         run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.nodeVersion }}
           cache: npm
@@ -65,12 +65,12 @@ jobs:
             salesforcedx-vscode/package-lock.json
             salesforcedx-vscode-automation-tests/package-lock.json
       - name: Setup java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '11'
       - name: Clone automation tests
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: forcedotcom/salesforcedx-vscode-automation-tests
           path: salesforcedx-vscode-automation-tests
@@ -106,7 +106,7 @@ jobs:
           SPEC_FILES: ${{ inputs.testToRun }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: screenshots

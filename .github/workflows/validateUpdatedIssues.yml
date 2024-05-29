@@ -25,7 +25,7 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'investigating') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && !contains(github.event.issue.labels.*.name, 'bug')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -41,7 +41,7 @@ jobs:
     if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -59,7 +59,7 @@ jobs:
     if: ${{ github.event.label.name == 'status:owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -82,7 +82,7 @@ jobs:
       ((contains(github.event.issue.labels.*.name, 'feature') || contains(github.event.issue.labels.*.name, 'type:enhancements')) && contains(github.event.issue.labels.*.name, 'status:owned by another team'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*

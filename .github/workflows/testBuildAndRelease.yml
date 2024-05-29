@@ -14,7 +14,7 @@ jobs:
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'main'
       - id: getMainVersion

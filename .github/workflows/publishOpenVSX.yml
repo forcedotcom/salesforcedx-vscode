@@ -27,7 +27,7 @@ jobs:
       GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
       SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'main'
       - id: getMainVersion
@@ -57,11 +57,11 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - name: downloadExtensionsFromRelease
