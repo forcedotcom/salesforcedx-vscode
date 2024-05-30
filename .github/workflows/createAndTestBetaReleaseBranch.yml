@@ -1,0 +1,63 @@
+name: Create and Test Beta Release Branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create_branch:
+    name: 'Create Branch'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      branch: ${{ steps.branch.outputs.branch }}
+      result: ${{ steps.result.outputs.result }}
+    env:
+      RELEASE_TYPE: 'beta'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          ssh-strict: false
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - name: Retrieve Scripts
+        run: |
+          git clone https://github.com/forcedotcom/bundle-publish-scripts.git
+      - name: Update references for Publishing
+        run: |
+          node bundle-publish-scripts/scripts/update-references-in-vsce.js
+          node bundle-publish-scripts/scripts/update-bundle-configs-in-vsce.js
+      - name: Set NPM at the correct version for Lerna
+        run: npm install -g npm@9.8.1
+      - run: npm install
+      - run: npm install -g shelljs && npm install -g lerna@5.5.4
+      - run: rm -rf ./bundle-publish-scripts
+      - name: Create and Push the Release Branch
+        id: create_step
+        run: |
+          echo "Creating a beta release from branch main"
+          node scripts/create-release-branch.js
+      - id: result
+        run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
+      - id: version
+        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+      - id: branch
+        run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+
+  run_build_and_test:
+    if: ${{ needs.create_branch.result == 'success' }} # Only run this if the previous job is successful
+    uses: ./.github/workflows/buildAndTest.yml
+    name: 'Run Build and Unit Test'
+    needs: create_branch
+    secrets: inherit
+    with:
+      branch: ${{needs.create_branch.outputs.branch}}
+      label: ${{needs.create_branch.outputs.version}}

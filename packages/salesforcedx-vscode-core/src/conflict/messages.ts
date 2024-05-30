@@ -13,7 +13,7 @@ export const getConflictMessagesFor = (
   const warningMessageKey = 'conflict_detect_conflicts_during_deploy';
   const messagesByLogName: Map<string, ConflictDetectionMessages> = new Map([
     [
-      'deploy_with_sourcepath_beta',
+      'deploy_with_sourcepath',
       {
         warningMessageKey,
         commandHint: inputs => {
@@ -34,7 +34,7 @@ export const getConflictMessagesFor = (
       }
     ],
     [
-      'deploy_with_manifest_beta',
+      'deploy_with_manifest',
       {
         warningMessageKey,
         commandHint: input => {

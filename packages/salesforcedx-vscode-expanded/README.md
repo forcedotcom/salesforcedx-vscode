@@ -20,7 +20,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
   If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 11 or 17.
 
-- **[Visual Studio Code](https://code.visualstudio.com/download) v1.61.2 or later**
+- **[Visual Studio Code](https://code.visualstudio.com/download) v1.82.0 or later**
 
 ## Documentation
 
@@ -55,6 +55,7 @@ The Salesforce Extension Pack extension installs these extensions.
   This extension (`salesforcedx-vscode-visualforce`) supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)
   This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting and validation with recommended tokens and utility classes.
+- [Einstein for Developers (Beta)](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension (`salesforcedx-einstein-gpt`) uses generative AI to make Salesforce development in Visual Studio Code richer with features such as natural language to code generation, inline autocompletion for Apex and LWC code, and test case generation for Apex classes.
 
 It also includes the following community built extensions.
 

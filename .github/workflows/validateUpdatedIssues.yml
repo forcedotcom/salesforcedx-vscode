@@ -1,0 +1,97 @@
+#
+# Copyright (c) 2024, salesforce.com, inc.
+# All rights reserved.
+# Licensed under the BSD 3-Clause license.
+# For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+#
+
+name: 'Validate Updated Issues'
+on:
+  issues:
+    types: [edited, labeled]
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  validate-issue:
+    # Has label: 'missing required information'
+    # Does NOT have labels:
+    # - 'validated'
+    # - 'investigating'
+    # - 'feature'
+    # - 'type:enhancements'
+    # - 'status:owned by another team'
+    # - 'bug'
+    if: contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'investigating') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && !contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: Validate issue
+        id: validate-issue
+        uses: ./.github/actions/validate-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN}}
+
+  new-feature:
+    if: ${{ (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+          message: >
+            Thank you for filing this feature request. We appreciate your feedback and will review the feature at our next grooming session. We prioritize feature requests with more upvotes and comments.
+
+  owned-by-other-team:
+    if: ${{ github.event.label.name == 'status:owned by another team' && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+          message: >
+            We have determined that the issue you reported exists in code owned by another team that uses only the official support channels.
+            To ensure that your issue is addressed, open an official [Salesforce customer support](https://help.salesforce.com/s/) ticket with a link to this issue.
+            We encourage anyone experiencing this issue to do the same to increase the priority. We will keep this issue open for the community to collaborate on.
+
+  new-feature-on-another-team:
+    if: >-
+      (github.event.label.name == 'feature' || github.event.label.name == 'type:enhancements' || github.event.label.name == 'status:owned by another team')
+      &&
+      ((contains(github.event.issue.labels.*.name, 'feature') || contains(github.event.issue.labels.*.name, 'type:enhancements')) && contains(github.event.issue.labels.*.name, 'status:owned by another team'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+          message: >
+            Thank you for filing this feature request. However, we've determined that the functionality you've requested must be completed by another team. Please submit your request to the [Salesforce IdeaExchange](https://trailblazer.salesforce.com/ideaSearch). Then post a link to the request in this issue so that others can upvote your idea.

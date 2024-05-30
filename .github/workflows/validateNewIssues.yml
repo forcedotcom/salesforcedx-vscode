@@ -1,0 +1,69 @@
+#
+# Copyright (c) 2024, salesforce.com, inc.
+# All rights reserved.
+# Licensed under the BSD 3-Clause license.
+# For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+#
+
+name: "Validate New Issues"
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  # Check if the issue is a feature request, and if it is, tag it with 'type:enhancements' (this job is a prerequisite to all the other jobs)
+  check-feature-request:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') }}
+    outputs:
+      is_feature_request: ${{ steps.check_feature_request.outputs.is_feature_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: Check if the issue is a feature request
+        id: check_feature_request
+        uses: ./.github/actions/check-feature-request
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+
+  new-issue:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
+    needs: [check-feature-request]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: issue comment
+        id: issue_comment
+        uses: ./.github/actions/new-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
+          message: >
+            Thank you for filing this issue.  We appreciate your feedback and will review the issue as soon as possible.
+            Remember, however, that GitHub isn't a mechanism for receiving support under any agreement or SLA.
+            If you require immediate assistance, contact Salesforce Customer Support.
+
+  validate-new-issue:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
+    needs: [check-feature-request, new-issue]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install
+      - name: Validate issue
+        id: validate-issue
+        uses: ./.github/actions/validate-issue
+        with:
+          repo-token: ${{ secrets.IDEE_GH_TOKEN }}
