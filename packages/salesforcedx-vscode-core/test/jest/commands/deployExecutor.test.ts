@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'fs';
 import { channelService } from '../../../src/channels';
 import {
@@ -23,9 +23,9 @@ import * as diagnostics from '../../../src/diagnostics';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../../../src/settings';
 
-jest.mock('@salesforce/source-deploy-retrieve', () => {
+jest.mock('@salesforce/source-deploy-retrieve-bundle', () => {
   return {
-    ...jest.requireActual('@salesforce/source-deploy-retrieve'),
+    ...jest.requireActual('@salesforce/source-deploy-retrieve-bundle'),
     ComponentSet: jest.fn().mockImplementation(() => {
       return {
         deploy: jest.fn().mockImplementation(() => {

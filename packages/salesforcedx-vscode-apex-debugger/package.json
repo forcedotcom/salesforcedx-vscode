@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "60.15.0",
+  "version": "60.15.202405302148",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,13 +24,13 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "60.15.0",
-    "@salesforce/salesforcedx-utils-vscode": "60.15.0",
+    "@salesforce/salesforcedx-apex-debugger": "60.15.202405302148",
+    "@salesforce/salesforcedx-utils-vscode": "60.15.202405302148",
     "@vscode/debugprotocol": "1.65.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "60.15.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "60.15.202405302148",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -97,9 +97,7 @@
     "packageUpdates": {
       "main": "dist/index.js",
       "dependencies": {
-        "applicationinsights": "1.0.7",
-        "@salesforce/core": "7.3.1",
-        "@salesforce/source-tracking": "6.0.4"
+        "applicationinsights": "1.0.7"
       },
       "devDependencies": {}
     }
