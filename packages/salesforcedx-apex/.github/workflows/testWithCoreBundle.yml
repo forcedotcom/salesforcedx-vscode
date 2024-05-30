@@ -1,0 +1,9 @@
+name: Test With Core Bundle
+on:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  build-and-test:
+    uses: forcedotcom/bundle-publish-scripts/.github/workflows/validateBundleForDependents.yml@main
+    secrets: inherit
