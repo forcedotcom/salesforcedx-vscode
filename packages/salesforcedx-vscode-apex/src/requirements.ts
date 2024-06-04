@@ -113,7 +113,7 @@ export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
           )
         );
       }
-      if (!/java\.version\s*=\s*(?:11|17)/g.test(stderr)) {
+      if (!/java\.version\s*=\s*(?:11|17|21)/g.test(stderr)) {
         reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
       } else {
         resolve(true);

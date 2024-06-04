@@ -97,6 +97,18 @@ describe('Java Requirements Test', () => {
     }
   });
 
+  it('Should support Java 21', async () => {
+    execFileStub.yields('', '', 'java.version = 21.0.0');
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(
+        `Should not have thrown when the Java version is 21.  The error was: ${err}`
+      );
+    }
+
+  });
   it('Should not support Java 20', async () => {
     execFileStub.yields('', '', 'java.version = 20.0.0');
     try {
