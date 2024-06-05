@@ -2,8 +2,7 @@ name: publish apex-node-bundle
 on:
   workflow_run:
     workflows:
-      - version, tag and github release
-      - manual release
+      - publish
     types:
       - completed
   workflow_dispatch:

@@ -7,7 +7,7 @@
   "main": "lib/src/index.js",
   "dependencies": {
     "@jsforce/jsforce-node": "^3.2.0",
-    "@salesforce/core": "^7.3.9",
+    "@salesforce/core": "^7.3.10",
     "@salesforce/kit": "^3.1.2",
     "@types/istanbul-reports": "^3.0.4",
     "faye": "1.4.0",
@@ -20,13 +20,13 @@
     "@commitlint/config-conventional": "^18.1.0",
     "@salesforce/ts-sinon": "^1.4.19",
     "@salesforce/ts-types": "^2.0.9",
-    "@types/chai": "^4.3.10",
+    "@types/chai": "^4.3.16",
     "@types/glob": "^8.1.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
-    "@types/mocha": "^10.0.4",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^18",
-    "@types/sinon": "^17.0.1",
+    "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "chai": "^4.3.10",
@@ -46,8 +46,8 @@
     "shx": "^0.3.4",
     "sinon": "^17.0.1",
     "source-map-support": "^0.5.16",
-    "ts-node": "^10.7.0",
-    "typescript": "^5.2.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
   "keywords": [
