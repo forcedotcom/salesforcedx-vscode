@@ -41,17 +41,17 @@ export async function queryNamespaces(
   return [...orgNamespaces, ...installedNamespaces];
 }
 
-export const queryAll = async <T>(
+export const queryAll = async <R>(
   connection: Connection,
   query: string,
   tooling = false
-): Promise<QueryResult<T>> => {
+): Promise<QueryResult<R>> => {
   const conn = tooling ? connection.tooling : connection;
-  const allRecords: T[] = [];
-  let result = await conn.query<T>(query);
+  const allRecords: R[] = [];
+  let result = await conn.query<R>(query);
   allRecords.push(...result.records);
   while (!result.done) {
-    result = (await conn.queryMore(result.nextRecordsUrl)) as QueryResult<T>;
+    result = (await conn.queryMore(result.nextRecordsUrl)) as QueryResult<R>;
     allRecords.push(...result.records);
   }
 
@@ -59,5 +59,5 @@ export const queryAll = async <T>(
     done: true,
     totalSize: allRecords.length,
     records: allRecords
-  } as QueryResult<T>;
+  };
 };

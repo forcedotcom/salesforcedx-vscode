@@ -147,15 +147,75 @@ describe('Get code coverage results', () => {
     expect(codeCoverageResults).to.eql(expectedResult);
   });
 
-  it('should return aggregate code coverage result with 0 records', async () => {
-    toolingQueryStub.throws('Error at Row:1;Column:1');
+  it('should return aggregate code coverage result with all records from AggregateCodeCoverage table', async () => {
+    const codeCoverageQueryResult = [
+      {
+        ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
+        NumLinesCovered: 5,
+        NumLinesUncovered: 1,
+        Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
+      },
+      {
+        ApexClassOrTrigger: { Id: '0001x05959', Name: 'ApexTrigger2' },
+        NumLinesCovered: 6,
+        NumLinesUncovered: 2,
+        Coverage: { coveredLines: [1, 2, 3, 4, 5, 6], uncoveredLines: [7, 8] }
+      },
+      {
+        ApexClassOrTrigger: { Id: '0001x05951', Name: 'ApexTrigger3' },
+        NumLinesCovered: 7,
+        NumLinesUncovered: 3,
+        Coverage: {
+          coveredLines: [1, 2, 3, 4, 5, 6, 7],
+          uncoveredLines: [8, 9, 10]
+        }
+      }
+    ];
 
+    const expectedResult = [
+      {
+        apexId: '0001x05958',
+        coveredLines: [1, 2, 3, 4, 5],
+        name: 'ApexTrigger1',
+        numLinesCovered: 5,
+        numLinesUncovered: 1,
+        percentage: '83%',
+        type: 'ApexTrigger',
+        uncoveredLines: [6]
+      },
+      {
+        apexId: '0001x05959',
+        coveredLines: [1, 2, 3, 4, 5, 6],
+        name: 'ApexTrigger2',
+        numLinesCovered: 6,
+        numLinesUncovered: 2,
+        percentage: '75%',
+        type: 'ApexTrigger',
+        uncoveredLines: [7, 8]
+      },
+      {
+        apexId: '0001x05951',
+        coveredLines: [1, 2, 3, 4, 5, 6, 7],
+        name: 'ApexTrigger3',
+        numLinesCovered: 7,
+        numLinesUncovered: 3,
+        percentage: '70%',
+        type: 'ApexTrigger',
+        uncoveredLines: [8, 9, 10]
+      }
+    ];
+    toolingQueryStub.resolves({
+      done: true,
+      totalSize: 3,
+      records: codeCoverageQueryResult
+    } as ApexCodeCoverageAggregate);
     const codeCov = new CodeCoverage(mockConnection);
     const { codeCoverageResults, totalLines, coveredLines } =
-      await codeCov.getAggregateCodeCoverage(new Set([]));
-    expect(codeCoverageResults.length).to.equal(0);
-    expect(totalLines).to.equal(0);
-    expect(coveredLines).to.equal(0);
+      await codeCov.getAggregateCodeCoverage(new Set<string>());
+
+    expect(totalLines).to.equal(24);
+    expect(coveredLines).to.equal(18);
+    expect(codeCoverageResults).to.eql(expectedResult);
   });
 
   it('should return per class code coverage for multiple test classes', async () => {

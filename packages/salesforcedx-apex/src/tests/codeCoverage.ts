@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core';
 import {
   ApexCodeCoverage,
   ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
   ApexOrgWideCoverage,
   CodeCoverageResult,
   PerClassCoverage
@@ -104,10 +105,6 @@ export class CodeCoverage {
     totalLines: number;
     coveredLines: number;
   }> {
-    if (apexClassIdSet.size === 0) {
-      return { codeCoverageResults: [], totalLines: 0, coveredLines: 0 };
-    }
-
     const codeCoverageAggregates =
       await this.queryAggregateCodeCov(apexClassIdSet);
 
@@ -165,9 +162,26 @@ export class CodeCoverage {
   private async queryAggregateCodeCov(
     apexClassIdSet: Set<string>
   ): Promise<ApexCodeCoverageAggregate[]> {
-    const codeCoverageQuery =
-      'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN (%s)';
-    return this.fetchResults(apexClassIdSet, codeCoverageQuery);
+    let codeCoverageQuery;
+
+    // If the "Store Only Aggregate Code Coverage" setting is checked, then apexClassIdSet is empty and we should query all the Apex classes and triggers in the ApexCodeCoverageAggregate table.
+    if (apexClassIdSet.size === 0) {
+      codeCoverageQuery =
+        'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate';
+
+      const result = await queryAll<ApexCodeCoverageAggregateRecord>(
+        this.connection,
+        codeCoverageQuery,
+        true
+      );
+      return [result];
+    }
+    // If the "Store Only Aggregate Code Coverage" setting is unchecked, we continue to query only the Apex classes and triggers in apexClassIdSet from the ApexCodeCoverageAggregate table, as those are the Apex classes and triggers touched by the Apex tests in the current run.
+    else {
+      codeCoverageQuery =
+        'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN (%s)';
+      return this.fetchResults(apexClassIdSet, codeCoverageQuery);
+    }
   }
 
   @elapsedTime()
