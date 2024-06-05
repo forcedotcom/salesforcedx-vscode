@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "module": "Node16",
-    "target": "ES2022",
-    "lib": ["ES2020", "dom"],
+    "module": "NodeNext", // Node.js 18 supports ECMAScript modules
+    "target": "ES2022", // Node.js 18 supports ES2022 features
+    "lib": ["ES2022", "dom"], // Include ES2022 standard library
     "sourceMap": true,
     "declaration": true,
-    "moduleResolution": "Node16",
+    "moduleResolution": "NodeNext",
     "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "lib",

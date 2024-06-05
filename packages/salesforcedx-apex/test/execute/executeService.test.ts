@@ -18,6 +18,7 @@ import {
   SoapResponse,
   ExecAnonApiResponse
 } from '../../src/execute/types';
+import * as os from 'node:os';
 
 describe('Apex Execute Tests', async () => {
   const $$ = new TestContext();
@@ -350,7 +351,7 @@ describe('Apex Execute Tests', async () => {
 
     const executeService = new ExecuteService(mockConnection);
     const text = await executeService.getUserInput();
-    expect(text).to.equal(`${inputText}\n`);
+    expect(text).to.equal(`${inputText}${os.EOL}`);
   });
 
   it('should throw error if user is idle', async () => {

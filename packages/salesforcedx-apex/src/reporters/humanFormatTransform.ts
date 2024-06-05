@@ -13,11 +13,13 @@ import {
 } from '../tests';
 import { nls } from '../i18n';
 import { Readable, ReadableOptions } from 'node:stream';
-import { elapsedTime } from '../utils';
-import { LoggerLevel } from '@salesforce/core';
+import { elapsedTime, HeapMonitor } from '../utils';
+import { Logger, LoggerLevel } from '@salesforce/core';
 import { EOL } from 'os';
+import * as os from 'node:os';
 
 export class HumanFormatTransform extends Readable {
+  private logger: Logger;
   constructor(
     private readonly testResult: TestResult,
     private readonly detailedCoverage: boolean,
@@ -26,11 +28,19 @@ export class HumanFormatTransform extends Readable {
     super(options);
     this.testResult = testResult;
     this.detailedCoverage ??= false;
+    this.logger = Logger.childFromRoot('HumanFormatTransform');
   }
 
   _read(): void {
-    this.format();
-    this.push(null); // Indicates end of data
+    this.logger.trace('starting _read');
+    HeapMonitor.getInstance().checkHeapSize('HumanFormatTransform._read');
+    try {
+      this.format();
+      this.push(null); // Indicates end of data
+      this.logger.trace('finishing _read');
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('HumanFormatTransform._read');
+    }
   }
 
   @elapsedTime()
@@ -187,7 +197,7 @@ export class HumanFormatTransform extends Readable {
       }
     });
 
-    this.push('\n\n');
+    this.push(os.EOL.repeat(2));
     tb.createTable(
       testRowArray,
       [
@@ -232,7 +242,7 @@ export class HumanFormatTransform extends Readable {
       }
     );
 
-    this.push('\n\n');
+    this.push(os.EOL.repeat(2));
     tb.createTable(
       codeCovRowArray,
       [

@@ -17,7 +17,7 @@ import {
 import * as util from 'util';
 import { calculatePercentage, queryAll } from './utils';
 import { QUERY_RECORD_LIMIT } from './constants';
-import { elapsedTime } from '../utils/elapsedTime';
+import { elapsedTime, HeapMonitor } from '../utils';
 
 export class CodeCoverage {
   public readonly connection: Connection;
@@ -32,14 +32,21 @@ export class CodeCoverage {
    */
   @elapsedTime()
   public async getOrgWideCoverage(): Promise<string> {
-    const orgWideCoverageResult = (await this.connection.tooling.query(
-      'SELECT PercentCovered FROM ApexOrgWideCoverage'
-    )) as ApexOrgWideCoverage;
+    HeapMonitor.getInstance().checkHeapSize('codeCoverage.getOrgWideCoverage');
+    try {
+      const orgWideCoverageResult = (await this.connection.tooling.query(
+        'SELECT PercentCovered FROM ApexOrgWideCoverage'
+      )) as ApexOrgWideCoverage;
 
-    if (orgWideCoverageResult.records.length === 0) {
-      return '0%';
+      if (orgWideCoverageResult.records.length === 0) {
+        return '0%';
+      }
+      return `${orgWideCoverageResult.records[0].PercentCovered}%`;
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize(
+        'codeCoverage.getOrgWideCoverage'
+      );
     }
-    return `${orgWideCoverageResult.records[0].PercentCovered}%`;
   }
 
   /**
@@ -52,46 +59,55 @@ export class CodeCoverage {
   public async getPerClassCodeCoverage(
     apexTestClassSet: Set<string>
   ): Promise<Map<string, PerClassCoverage[]>> {
-    if (apexTestClassSet.size === 0) {
-      return new Map();
-    }
+    HeapMonitor.getInstance().checkHeapSize(
+      'codeCoverage.getPerClassCodeCoverage'
+    );
+    try {
+      if (apexTestClassSet.size === 0) {
+        return new Map();
+      }
 
-    const perClassCodeCovResults =
-      await this.queryPerClassCodeCov(apexTestClassSet);
+      const perClassCodeCovResults =
+        await this.queryPerClassCodeCov(apexTestClassSet);
 
-    const perClassCoverageMap = new Map<string, PerClassCoverage[]>();
+      const perClassCoverageMap = new Map<string, PerClassCoverage[]>();
 
-    perClassCodeCovResults.forEach((chunk) => {
-      chunk.records.forEach((item) => {
-        const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
-        const percentage = calculatePercentage(
-          item.NumLinesCovered,
-          totalLines
-        );
-
-        const value = {
-          apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
-          apexClassOrTriggerId: item.ApexClassOrTrigger.Id,
-          apexTestClassId: item.ApexTestClassId,
-          apexTestMethodName: item.TestMethodName,
-          numLinesCovered: item.NumLinesCovered,
-          numLinesUncovered: item.NumLinesUncovered,
-          percentage,
-          ...(item.Coverage ? { coverage: item.Coverage } : {})
-        };
-        const key = `${item.ApexTestClassId}-${item.TestMethodName}`;
-        if (perClassCoverageMap.get(key)) {
-          perClassCoverageMap.get(key).push(value);
-        } else {
-          perClassCoverageMap.set(
-            `${item.ApexTestClassId}-${item.TestMethodName}`,
-            [value]
+      perClassCodeCovResults.forEach((chunk) => {
+        chunk.records.forEach((item) => {
+          const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
+          const percentage = calculatePercentage(
+            item.NumLinesCovered,
+            totalLines
           );
-        }
-      });
-    });
 
-    return perClassCoverageMap;
+          const value = {
+            apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
+            apexClassOrTriggerId: item.ApexClassOrTrigger.Id,
+            apexTestClassId: item.ApexTestClassId,
+            apexTestMethodName: item.TestMethodName,
+            numLinesCovered: item.NumLinesCovered,
+            numLinesUncovered: item.NumLinesUncovered,
+            percentage,
+            ...(item.Coverage ? { coverage: item.Coverage } : {})
+          };
+          const key = `${item.ApexTestClassId}-${item.TestMethodName}`;
+          if (perClassCoverageMap.get(key)) {
+            perClassCoverageMap.get(key).push(value);
+          } else {
+            perClassCoverageMap.set(
+              `${item.ApexTestClassId}-${item.TestMethodName}`,
+              [value]
+            );
+          }
+        });
+      });
+
+      return perClassCoverageMap;
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize(
+        'codeCoverage.getPerClassCodeCoverage'
+      );
+    }
   }
 
   /**
@@ -105,48 +121,57 @@ export class CodeCoverage {
     totalLines: number;
     coveredLines: number;
   }> {
-    const codeCoverageAggregates =
-      await this.queryAggregateCodeCov(apexClassIdSet);
+    HeapMonitor.getInstance().checkHeapSize(
+      'codeCoverage.getAggregateCodeCoverage'
+    );
+    try {
+      const codeCoverageAggregates =
+        await this.queryAggregateCodeCov(apexClassIdSet);
 
-    let totalLinesCovered = 0;
-    let totalLinesUncovered = 0;
+      let totalLinesCovered = 0;
+      let totalLinesUncovered = 0;
 
-    const totalCodeCoverageResults: CodeCoverageResult[] = [];
+      const totalCodeCoverageResults: CodeCoverageResult[] = [];
 
-    codeCoverageAggregates.forEach((chunk) => {
-      const codeCoverageResults: CodeCoverageResult[] = chunk.records.map(
-        (item) => {
-          totalLinesCovered += item.NumLinesCovered;
-          totalLinesUncovered += item.NumLinesUncovered;
-          const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
-          const percentage = calculatePercentage(
-            item.NumLinesCovered,
-            totalLines
-          );
+      codeCoverageAggregates.forEach((chunk) => {
+        const codeCoverageResults: CodeCoverageResult[] = chunk.records.map(
+          (item) => {
+            totalLinesCovered += item.NumLinesCovered;
+            totalLinesUncovered += item.NumLinesUncovered;
+            const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
+            const percentage = calculatePercentage(
+              item.NumLinesCovered,
+              totalLines
+            );
 
-          return {
-            apexId: item.ApexClassOrTrigger.Id,
-            name: item.ApexClassOrTrigger.Name,
-            type: item.ApexClassOrTrigger.Id.startsWith('01p')
-              ? 'ApexClass'
-              : 'ApexTrigger',
-            numLinesCovered: item.NumLinesCovered,
-            numLinesUncovered: item.NumLinesUncovered,
-            percentage,
-            coveredLines: item.Coverage.coveredLines,
-            uncoveredLines: item.Coverage.uncoveredLines
-          };
-        }
+            return {
+              apexId: item.ApexClassOrTrigger.Id,
+              name: item.ApexClassOrTrigger.Name,
+              type: item.ApexClassOrTrigger.Id.startsWith('01p')
+                ? 'ApexClass'
+                : 'ApexTrigger',
+              numLinesCovered: item.NumLinesCovered,
+              numLinesUncovered: item.NumLinesUncovered,
+              percentage,
+              coveredLines: item.Coverage.coveredLines,
+              uncoveredLines: item.Coverage.uncoveredLines
+            };
+          }
+        );
+
+        totalCodeCoverageResults.push(...codeCoverageResults);
+      });
+
+      return {
+        codeCoverageResults: totalCodeCoverageResults,
+        totalLines: totalLinesCovered + totalLinesUncovered,
+        coveredLines: totalLinesCovered
+      };
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize(
+        'codeCoverage.getAggregateCodeCoverage'
       );
-
-      totalCodeCoverageResults.push(...codeCoverageResults);
-    });
-
-    return {
-      codeCoverageResults: totalCodeCoverageResults,
-      totalLines: totalLinesCovered + totalLinesUncovered,
-      coveredLines: totalLinesCovered
-    };
+    }
   }
 
   @elapsedTime()

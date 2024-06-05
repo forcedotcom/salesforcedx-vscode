@@ -9,7 +9,12 @@ import {
   ApexTestResultOutcome,
   TestResult
 } from '../tests';
-import { elapsedTime, formatStartTime, msToSecond } from '../utils';
+import {
+  elapsedTime,
+  formatStartTime,
+  HeapMonitor,
+  msToSecond
+} from '../utils';
 import { LoggerLevel } from '@salesforce/core';
 import { isEmpty } from '../narrowing';
 
@@ -27,24 +32,29 @@ const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
 export class JUnitReporter {
   @elapsedTime()
   public format(testResult: TestResult): string {
-    const { summary, tests } = testResult;
+    HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
+    try {
+      const { summary, tests } = testResult;
 
-    let output = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    output += `<testsuites>\n`;
-    output += `${tab}<testsuite name="force.apex" `;
-    output += `timestamp="${summary.testStartTime}" `;
-    output += `hostname="${summary.hostname}" `;
-    output += `tests="${summary.testsRan}" `;
-    output += `failures="${summary.failing}"  `;
-    output += `errors="0"  `;
-    output += `time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
+      let output = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      output += `<testsuites>\n`;
+      output += `${tab}<testsuite name="force.apex" `;
+      output += `timestamp="${summary.testStartTime}" `;
+      output += `hostname="${summary.hostname}" `;
+      output += `tests="${summary.testsRan}" `;
+      output += `failures="${summary.failing}"  `;
+      output += `errors="0"  `;
+      output += `time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
 
-    output += this.buildProperties(testResult);
-    output += this.buildTestCases(tests);
+      output += this.buildProperties(testResult);
+      output += this.buildTestCases(tests);
 
-    output += `${tab}</testsuite>\n`;
-    output += `</testsuites>\n`;
-    return output;
+      output += `${tab}</testsuite>\n`;
+      output += `</testsuites>\n`;
+      return output;
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
+    }
   }
 
   @elapsedTime()

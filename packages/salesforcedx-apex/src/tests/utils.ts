@@ -5,9 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { Connection, Logger } from '@salesforce/core';
 import { NamespaceInfo } from './types';
 import type { QueryResult } from '@jsforce/jsforce-node';
+
+const DEFAULT_BUFFER_SIZE = 256;
+const MIN_BUFFER_SIZE = 256;
+const MAX_BUFFER_SIZE = 32_768;
+
+const DEFAULT_JSON_INDENT: number | undefined = undefined;
+const MIN_JSON_INDENT = 0;
+const MAX_JSON_INDENT = 8;
+
+let jsonIndent: number | null | undefined = null;
+let bufferSize: number | null = null;
 
 export function calculatePercentage(dividend: number, divisor: number): string {
   let percentage = '0%';
@@ -60,4 +71,59 @@ export const queryAll = async <R>(
     totalSize: allRecords.length,
     records: allRecords
   };
+};
+
+export const getJsonIndent = (): number | undefined => {
+  if (jsonIndent !== null) {
+    return jsonIndent;
+  }
+
+  let jsonIndentNum = DEFAULT_JSON_INDENT;
+  const envJsonIndent = process.env.SF_APEX_RESULTS_JSON_INDENT;
+
+  if (envJsonIndent && Number.isInteger(Number(envJsonIndent))) {
+    jsonIndentNum = Number(envJsonIndent);
+  }
+
+  if (jsonIndentNum < MIN_JSON_INDENT || jsonIndentNum > MAX_JSON_INDENT) {
+    const logger: Logger = Logger.childFromRoot('utils');
+    logger.warn(
+      `Json indent ${jsonIndentNum} is outside of the valid range (${MIN_JSON_INDENT}-${MAX_JSON_INDENT}). Using default json indent of ${DEFAULT_JSON_INDENT}.`
+    );
+    jsonIndentNum = DEFAULT_JSON_INDENT;
+  }
+
+  jsonIndent = jsonIndentNum;
+  return jsonIndent;
+};
+
+export const getBufferSize = (): number => {
+  if (bufferSize !== null) {
+    return bufferSize;
+  }
+
+  let bufferSizeNum = DEFAULT_BUFFER_SIZE;
+  const jsonBufferSize = process.env.SF_APEX_JSON_BUFFER_SIZE;
+
+  if (jsonBufferSize && Number.isInteger(Number(jsonBufferSize))) {
+    bufferSizeNum = Number(jsonBufferSize);
+  }
+
+  if (bufferSizeNum < MIN_BUFFER_SIZE || bufferSizeNum > MAX_BUFFER_SIZE) {
+    const logger: Logger = Logger.childFromRoot('utils');
+    logger.warn(
+      `Buffer size ${bufferSizeNum} is outside of the valid range (${MIN_BUFFER_SIZE}-${MAX_BUFFER_SIZE}). Using default buffer size of ${DEFAULT_BUFFER_SIZE}.`
+    );
+    bufferSizeNum = DEFAULT_BUFFER_SIZE;
+  }
+
+  bufferSize = bufferSizeNum;
+  JSON.stringify(bufferSize);
+  return bufferSize;
+};
+
+// exported for testing
+export const resetLimitsForTesting = (): void => {
+  bufferSize = null;
+  jsonIndent = null;
 };

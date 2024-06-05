@@ -6,7 +6,9 @@
  */
 export { TapReporter } from './tapReporter';
 export { JUnitReporter } from './junitReporter';
+export { JUnitFormatTransformer } from './junitFormatTransformer';
 export { HumanReporter } from './humanReporter';
+export { HumanFormatTransform } from './humanFormatTransform';
 export {
   CoverageReporter,
   CoverageReporterOptions,
@@ -15,4 +17,3 @@ export {
   DefaultWatermarks
 } from './coverageReporter';
 export { TapFormatTransformer } from './tapFormatTransform';
-export { JUnitFormatTransformer } from './junitFormatTransformer';

@@ -23,20 +23,23 @@ import { join } from 'path';
 import { CancellationToken, Progress } from '../common';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer, TapFormatTransformer } from '../reporters';
-import { queryNamespaces } from './utils';
+import { getBufferSize, getJsonIndent, queryNamespaces } from './utils';
 import { AsyncTests } from './asyncTests';
 import { SyncTests } from './syncTests';
 import { formatTestErrors } from './diagnosticUtil';
 import { QueryResult } from '../utils/types';
-import { mkdir } from 'node:fs/promises';
-import { createWriteStream } from 'node:fs';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import { JSONStringifyStream, TestResultStringifyStream } from '../streaming';
-import { CodeCoverageStringifyStream } from '../streaming/codeCoverageStringifyStream';
-import { elapsedTime } from '../utils';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { Readable, Writable } from 'node:stream';
+import { TestResultStringifyStream } from '../streaming';
+import { elapsedTime, HeapMonitor } from '../utils';
 import { isTestResult, isValidApexClassID } from '../narrowing';
 import { Duration } from '@salesforce/kit';
+import { Transform } from 'stream';
+import { pipeline } from 'node:stream/promises';
+import { createWriteStream } from 'node:fs';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const bfj = require('bfj');
 
 export class TestService {
   private readonly connection: Connection;
@@ -193,7 +196,12 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult | TestRunIdResult> {
-    return await this.syncService.runTests(options, codeCoverage, token);
+    HeapMonitor.getInstance().startMonitoring();
+    try {
+      return await this.syncService.runTests(options, codeCoverage, token);
+    } finally {
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**
@@ -203,6 +211,7 @@ export class TestService {
    * @param immediatelyReturn should not wait for test run to complete, return test run id immediately
    * @param progress progress reporter
    * @param token cancellation token
+   * @param timeout
    */
   @elapsedTime()
   public async runTestAsynchronous(
@@ -213,14 +222,19 @@ export class TestService {
     token?: CancellationToken,
     timeout?: Duration
   ): Promise<TestResult | TestRunIdResult> {
-    return await this.asyncService.runTests(
-      options,
-      codeCoverage,
-      immediatelyReturn,
-      progress,
-      token,
-      timeout
-    );
+    HeapMonitor.getInstance().startMonitoring();
+    try {
+      return await this.asyncService.runTests(
+        options,
+        codeCoverage,
+        immediatelyReturn,
+        progress,
+        token,
+        timeout
+      );
+    } finally {
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**
@@ -235,11 +249,16 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    return await this.asyncService.reportAsyncResults(
-      testRunId,
-      codeCoverage,
-      token
-    );
+    HeapMonitor.getInstance().startMonitoring();
+    try {
+      return await this.asyncService.reportAsyncResults(
+        testRunId,
+        codeCoverage,
+        token
+      );
+    } finally {
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**
@@ -255,120 +274,114 @@ export class TestService {
     outputDirConfig: OutputDirConfig,
     codeCoverage = false
   ): Promise<string[]> {
-    const filesWritten: string[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { dirPath, resultFormats, fileInfos } = outputDirConfig;
-    // ensure supplied result formats are support here
-    if (
-      resultFormats &&
-      !resultFormats.every((format) => format in ResultFormat)
-    ) {
-      throw new Error(nls.localize('resultFormatErr'));
-    }
-    const testRunId = isTestResult(result)
-      ? (result as TestResult).summary.testRunId
-      : (result as TestRunIdResult).testRunId;
+    HeapMonitor.getInstance().startMonitoring();
+    HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
+    try {
+      const filesWritten: string[] = [];
+      const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-    const pipeThese = [];
-    await mkdir(dirPath, { recursive: true });
-    pipeThese.push([
-      Readable.from([testRunId]),
-      createWriteStream(join(dirPath, 'test-run-id.txt'), 'utf8')
-    ]);
-    filesWritten.push(join(dirPath, 'test-run-id.txt'));
-
-    // produce result formats
-    if (resultFormats) {
-      if (!isTestResult(result)) {
-        throw new Error(nls.localize('runIdFormatErr'));
+      if (
+        resultFormats &&
+        !resultFormats.every((format) => format in ResultFormat)
+      ) {
+        throw new Error(nls.localize('resultFormatErr'));
       }
-      for (const format of resultFormats) {
-        switch (format) {
-          case ResultFormat.json:
-            // Create a readable stream from the JSON object
-            const jsonFilePath = join(
-              dirPath,
-              testRunId ? `test-result-${testRunId}.json` : `test-result.json`
-            );
-            filesWritten.push(jsonFilePath);
-            pipeThese.push([
-              TestResultStringifyStream.fromTestResult(result),
-              createWriteStream(jsonFilePath)
-            ]);
-            break;
-          case ResultFormat.tap:
-            const tapFilePath = join(
-              dirPath,
-              `test-result-${testRunId}-tap.txt`
-            );
-            filesWritten.push(tapFilePath);
-            pipeThese.push([
-              new TapFormatTransformer(result),
-              createWriteStream(tapFilePath)
-            ]);
-            break;
-          case ResultFormat.junit:
-            const filePath = join(
-              dirPath,
-              testRunId
-                ? `test-result-${testRunId}-junit.xml`
-                : `test-result-junit.xml`
-            );
-            filesWritten.push(filePath);
-            pipeThese.push([
-              new JUnitFormatTransformer(result),
-              createWriteStream(filePath)
-            ]);
-            break;
+
+      await mkdir(dirPath, { recursive: true });
+
+      const testRunId = isTestResult(result)
+        ? result.summary.testRunId
+        : result.testRunId;
+
+      try {
+        await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
+        filesWritten.push(join(dirPath, 'test-run-id.txt'));
+      } catch (err) {
+        console.error(`Error writing file: ${err}`);
+      }
+
+      if (resultFormats) {
+        if (!isTestResult(result)) {
+          throw new Error(nls.localize('runIdFormatErr'));
+        }
+        for (const format of resultFormats) {
+          let filePath;
+          let readable;
+          switch (format) {
+            case ResultFormat.json:
+              filePath = join(
+                dirPath,
+                `test-result-${testRunId || 'default'}.json`
+              );
+              readable = TestResultStringifyStream.fromTestResult(result, {
+                bufferSize: getBufferSize()
+              });
+              break;
+            case ResultFormat.tap:
+              filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
+              readable = new TapFormatTransformer(result, undefined, {
+                bufferSize: getBufferSize()
+              });
+              break;
+            case ResultFormat.junit:
+              filePath = join(
+                dirPath,
+                `test-result-${testRunId || 'default'}-junit.xml`
+              );
+              readable = new JUnitFormatTransformer(result, {
+                bufferSize: getBufferSize()
+              });
+              break;
+          }
+          if (filePath && readable) {
+            filesWritten.push(await this.runPipeline(readable, filePath));
+          }
         }
       }
-    }
-    // produce code coverage
-    if (codeCoverage) {
-      if (!isTestResult(result)) {
-        throw new Error(nls.localize('covIdFormatErr'));
-      }
-      const filePath = join(
-        dirPath,
-        `test-result-${testRunId}-codecoverage.json`
-      );
-      const c = result.tests
-        .map((record) => {
-          return record.perClassCoverage;
-        })
-        .filter((pcc) => pcc?.length);
-      pipeThese.push([
-        Readable.from(c),
-        new CodeCoverageStringifyStream(),
-        createWriteStream(filePath)
-      ]);
-      filesWritten.push(filePath);
-    }
 
-    fileInfos?.forEach((fileInfo) => {
-      const fileInfoPath = join(dirPath, fileInfo.filename);
-      if (typeof fileInfo.content === 'string') {
-        pipeThese.push([
-          Readable.from([fileInfo.content]),
-          createWriteStream(fileInfoPath)
-        ]);
-      } else {
-        pipeThese.push([
-          JSONStringifyStream.from(fileInfo.content),
-          createWriteStream(fileInfoPath)
-        ]);
+      if (codeCoverage) {
+        if (!isTestResult(result)) {
+          throw new Error(nls.localize('covIdFormatErr'));
+        }
+        const filePath = join(
+          dirPath,
+          `test-result-${testRunId}-codecoverage.json`
+        );
+        const c = result.tests
+          .map((record) => record.perClassCoverage)
+          .filter((pcc) => pcc?.length);
+        filesWritten.push(
+          await this.runPipeline(
+            bfj.stringify(c, {
+              bufferLength: getBufferSize(),
+              iterables: 'ignore',
+              space: getJsonIndent()
+            }),
+            filePath
+          )
+        );
       }
-      filesWritten.push(fileInfoPath);
-    });
 
-    await Promise.all(pipeThese.map((streams) => pipeline(streams))).catch(
-      (err) => {
-        const error = new Error('An error occurred writing files');
-        error.stack = err.stack;
-        throw error;
+      if (fileInfos) {
+        for (const fileInfo of fileInfos) {
+          const filePath = join(dirPath, fileInfo.filename);
+          const readable =
+            typeof fileInfo.content === 'string'
+              ? Readable.from([fileInfo.content])
+              : bfj.stringify(fileInfo.content, {
+                  bufferLength: getBufferSize(),
+                  iterables: 'ignore',
+                  space: getJsonIndent()
+                });
+          filesWritten.push(await this.runPipeline(readable, filePath));
+        }
       }
-    );
-    return filesWritten;
+
+      return filesWritten;
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   // utils to build test run payloads that may contain namespaces
@@ -517,5 +530,23 @@ export class TestService {
       tests: testItems,
       testLevel: TestLevel.RunSpecifiedTests
     };
+  }
+
+  private async runPipeline(
+    readable: Readable,
+    filePath: string,
+    transform?: Transform
+  ): Promise<string> {
+    const writable = this.createStream(filePath);
+    if (transform) {
+      await pipeline(readable, transform, writable);
+    } else {
+      await pipeline(readable, writable);
+    }
+    return filePath;
+  }
+
+  public createStream(filePath: string): Writable {
+    return createWriteStream(filePath, 'utf8');
   }
 }

@@ -5,9 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ApexTestResultOutcome, TestResult } from '../tests';
-import { elapsedTime, formatStartTime, msToSecond } from '../utils';
+import {
+  elapsedTime,
+  formatStartTime,
+  HeapMonitor,
+  msToSecond
+} from '../utils';
 import { Readable, ReadableOptions } from 'node:stream';
 import { isEmpty } from '../narrowing';
+import { Logger } from '@salesforce/core';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
@@ -21,44 +27,70 @@ const timeProperties = [
 // properties not in cli junit spec
 const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
 
+export type JUnitFormatTransformerOptions = ReadableOptions & {
+  bufferSize?: number;
+};
+
 export class JUnitFormatTransformer extends Readable {
+  private logger: Logger;
+  private buffer: string;
+  private bufferSize: number;
+
   constructor(
     private readonly testResult: TestResult,
-    options?: ReadableOptions
+    options?: JUnitFormatTransformerOptions
   ) {
     super(options);
     this.testResult = testResult;
+    this.logger = Logger.childFromRoot('JUnitFormatTransformer');
+    this.buffer = '';
+    this.bufferSize = options?.bufferSize || 256; // Default buffer size is 256
+  }
+
+  private pushToBuffer(chunk: string): void {
+    this.buffer += chunk;
+    if (this.buffer.length >= this.bufferSize) {
+      this.push(this.buffer);
+      this.buffer = '';
+    }
   }
 
   _read(): void {
+    this.logger.trace('starting _read');
+    HeapMonitor.getInstance().checkHeapSize('JUnitFormatTransformer._read');
     this.format();
+    if (this.buffer.length > 0) {
+      this.push(this.buffer);
+    }
     this.push(null); // Signal the end of the stream
+    this.logger.trace('finishing _read');
+    HeapMonitor.getInstance().checkHeapSize('JUnitFormatTransformer._read');
   }
 
   @elapsedTime()
   public format(): void {
     const { summary } = this.testResult;
 
-    this.push(`<?xml version="1.0" encoding="UTF-8"?>\n`);
-    this.push(`<testsuites>\n`);
-    this.push(`${tab}<testsuite name="force.apex" `);
-    this.push(`timestamp="${summary.testStartTime}" `);
-    this.push(`hostname="${summary.hostname}" `);
-    this.push(`tests="${summary.testsRan}" `);
-    this.push(`failures="${summary.failing}"  `);
-    this.push(`errors="0"  `);
-    this.push(`time="${msToSecond(summary.testExecutionTimeInMs)}">\n`);
+    this.pushToBuffer(`<?xml version="1.0" encoding="UTF-8"?>\n`);
+    this.pushToBuffer(`<testsuites>\n`);
+    this.pushToBuffer(`${tab}<testsuite name="force.apex" `);
+    this.pushToBuffer(`timestamp="${summary.testStartTime}" `);
+    this.pushToBuffer(`hostname="${summary.hostname}" `);
+    this.pushToBuffer(`tests="${summary.testsRan}" `);
+    this.pushToBuffer(`failures="${summary.failing}"  `);
+    this.pushToBuffer(`errors="0"  `);
+    this.pushToBuffer(`time="${msToSecond(summary.testExecutionTimeInMs)}">\n`);
 
     this.buildProperties();
     this.buildTestCases();
 
-    this.push(`${tab}</testsuite>\n`);
-    this.push(`</testsuites>\n`);
+    this.pushToBuffer(`${tab}</testsuite>\n`);
+    this.pushToBuffer(`</testsuites>\n`);
   }
 
   @elapsedTime()
   buildProperties(): void {
-    this.push(`${tab}${tab}<properties>\n`);
+    this.pushToBuffer(`${tab}${tab}<properties>\n`);
 
     Object.entries(this.testResult.summary).forEach(([key, value]) => {
       if (isEmpty(value) || skippedProperties.includes(key)) {
@@ -78,12 +110,16 @@ export class JUnitFormatTransformer extends Readable {
         value = formatStartTime(value);
       }
 
-      this.push(
+      this.pushToBuffer(
         `${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`
       );
+      // this call to setImmediate will schedule the closure on the event loop
+      // this action causing the current code to yield to the event loop
+      // allowing other processes to get time on the event loop
+      setImmediate(() => {});
     });
 
-    this.push(`${tab}${tab}</properties>\n`);
+    this.pushToBuffer(`${tab}${tab}</properties>\n`);
   }
 
   @elapsedTime()
@@ -92,7 +128,7 @@ export class JUnitFormatTransformer extends Readable {
 
     for (const testCase of testCases) {
       const methodName = JUnitFormatTransformer.xmlEscape(testCase.methodName);
-      this.push(
+      this.pushToBuffer(
         `${tab}${tab}<testcase name="${methodName}" classname="${
           testCase.apexClass.fullName
         }" time="${msToSecond(testCase.runTime)}">\n`
@@ -104,14 +140,18 @@ export class JUnitFormatTransformer extends Readable {
       ) {
         let message = isEmpty(testCase.message) ? '' : testCase.message;
         message = JUnitFormatTransformer.xmlEscape(message);
-        this.push(`${tab}${tab}${tab}<failure message="${message}">`);
+        this.pushToBuffer(`${tab}${tab}${tab}<failure message="${message}">`);
         if (testCase.stackTrace) {
-          this.push(`<![CDATA[${testCase.stackTrace}]]>`);
+          this.pushToBuffer(`<![CDATA[${testCase.stackTrace}]]>`);
         }
-        this.push(`</failure>\n`);
+        this.pushToBuffer(`</failure>\n`);
       }
 
-      this.push(`${tab}${tab}</testcase>\n`);
+      this.pushToBuffer(`${tab}${tab}</testcase>\n`);
+      // this call to setImmediate will schedule the closure on the event loop
+      // this action causing the current code to yield to the event loop
+      // allowing other processes to get time on the event loop
+      setImmediate(() => {});
     }
   }
 

@@ -9,10 +9,8 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
-import fs from 'fs';
-import stream from 'stream';
 import { join } from 'path';
-import { SyncTestConfiguration, TestService } from '../../src/tests';
+import { SyncTestConfiguration, TestService } from '../../src';
 import {
   TestLevel,
   ApexOrgWideCoverage,
@@ -30,10 +28,12 @@ import {
   syncTestResultSimple,
   syncTestResultWithFailures
 } from '../testData';
+// eslint-disable-next-line no-duplicate-imports
 import { JUnitFormatTransformer } from '../../src';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'assert';
 import { SyncTests } from '../../src/tests/syncTests';
+import { Writable } from 'node:stream';
 
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
@@ -49,7 +49,7 @@ describe('Run Apex tests synchronously', () => {
     testLevel: 'RunSpecifiedTests'
   };
 
-  let createStreamStub: SinonStub;
+  let testServiceSpy: SinonSpy;
   let junitSpy: SinonSpy;
   let formatSpy: SinonSpy;
   beforeEach(async () => {
@@ -72,9 +72,16 @@ describe('Run Apex tests synchronously', () => {
       headers: { 'content-type': 'application/json' }
     };
 
-    createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createStreamStub.returns(new stream.PassThrough() as any);
+    testServiceSpy = sandboxStub
+      .stub(TestService.prototype, 'createStream')
+      .returns(
+        new Writable({
+          write(chunk: unknown, encoding, callback) {
+            callback();
+          }
+        })
+      );
+
     junitSpy = sandboxStub.spy(JUnitFormatTransformer.prototype, 'format');
     formatSpy = sandboxStub.spy(diagnosticUtil, 'formatTestErrors');
   });
@@ -223,10 +230,10 @@ describe('Run Apex tests synchronously', () => {
       const testSrv = new TestService(mockConnection);
       await testSrv.writeResultFiles(syncResult, config);
 
-      expect(
-        createStreamStub.calledWith(join(config.dirPath, `test-result.json`))
-      ).to.be.true;
-      expect(createStreamStub.callCount).to.eql(2);
+      expect(testServiceSpy.getCall(0).firstArg).to.be.equal(
+        join(config.dirPath, 'test-result-default.json')
+      );
+      expect(testServiceSpy.callCount).to.eql(1);
     });
 
     it('should create junit result file without testRunId for sync runs', async () => {
@@ -237,13 +244,11 @@ describe('Run Apex tests synchronously', () => {
       const testSrv = new TestService(mockConnection);
       await testSrv.writeResultFiles(syncResult, config);
 
-      expect(
-        createStreamStub.calledWith(
-          join(config.dirPath, `test-result-junit.xml`)
-        )
-      ).to.be.true;
+      expect(testServiceSpy.getCall(0).firstArg).to.be.equal(
+        join(config.dirPath, `test-result-default-junit.xml`)
+      );
       expect(junitSpy.calledOnce).to.be.true;
-      expect(createStreamStub.callCount).to.eql(2);
+      expect(testServiceSpy.callCount).to.eql(1);
     });
   });
 

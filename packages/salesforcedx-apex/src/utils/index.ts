@@ -18,3 +18,4 @@ export { Table } from './table';
 export { getCurrentTime, formatStartTime, msToSecond } from './dateUtil';
 export { refreshAuth } from './authUtil';
 export { elapsedTime } from './elapsedTime';
+export { HeapMonitor } from './heapMonitor';

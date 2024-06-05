@@ -21,6 +21,7 @@ import { encodeBody } from './utils';
 import * as readline from 'readline';
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import { elapsedTime } from '../utils/elapsedTime';
+import * as os from 'node:os';
 
 export class ExecuteService {
   public readonly connection: Connection;
@@ -96,7 +97,7 @@ export class ExecuteService {
       let apexCode = '';
       readInterface.on('line', (input: string) => {
         timeout.refresh();
-        apexCode = apexCode + input + '\n';
+        apexCode = apexCode + input + os.EOL;
       });
       readInterface.on('close', () => {
         resolve(apexCode);

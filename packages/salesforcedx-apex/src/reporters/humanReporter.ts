@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { elapsedTime, Row, Table } from '../utils';
+import { elapsedTime, HeapMonitor, Row, Table } from '../utils';
 import {
   ApexTestResultData,
   ApexTestResultOutcome,
@@ -14,22 +14,28 @@ import {
 } from '../tests';
 import { nls } from '../i18n';
 import { LoggerLevel } from '@salesforce/core';
+import * as os from 'node:os';
 
 export class HumanReporter {
   @elapsedTime()
   public format(testResult: TestResult, detailedCoverage: boolean): string {
-    let tbResult = this.formatSummary(testResult);
-    if (!testResult.codecoverage || !detailedCoverage) {
-      tbResult += this.formatTestResults(testResult.tests);
-    }
-
-    if (testResult.codecoverage) {
-      if (detailedCoverage) {
-        tbResult += this.formatDetailedCov(testResult);
+    HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
+    try {
+      let tbResult = this.formatSummary(testResult);
+      if (!testResult.codecoverage || !detailedCoverage) {
+        tbResult += this.formatTestResults(testResult.tests);
       }
-      tbResult += this.formatCodeCov(testResult.codecoverage);
+
+      if (testResult.codecoverage) {
+        if (detailedCoverage) {
+          tbResult += this.formatDetailedCov(testResult);
+        }
+        tbResult += this.formatCodeCov(testResult.codecoverage);
+      }
+      return tbResult;
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
     }
-    return tbResult;
   }
 
   @elapsedTime()
@@ -123,7 +129,7 @@ export class HumanReporter {
       }
     );
 
-    let testResultTable = '\n\n';
+    let testResultTable = os.EOL.repeat(2);
     testResultTable += tb.createTable(
       testRowArray,
       [
@@ -172,7 +178,7 @@ export class HumanReporter {
       }
     });
 
-    let detailedCovTable = '\n\n';
+    let detailedCovTable = os.EOL.repeat(2);
     detailedCovTable += tb.createTable(
       testRowArray,
       [
@@ -218,7 +224,7 @@ export class HumanReporter {
       }
     );
 
-    let codeCovTable = '\n\n';
+    let codeCovTable = os.EOL.repeat(2);
     codeCovTable += tb.createTable(
       codeCovRowArray,
       [

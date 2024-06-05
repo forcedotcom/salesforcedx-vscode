@@ -7,6 +7,7 @@
 import { Readable } from 'node:stream';
 import { elapsedTime } from './elapsedTime';
 import { LoggerLevel } from '@salesforce/core';
+import * as os from 'node:os';
 const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';
 const HEADER_FILLER = '─';
@@ -53,7 +54,9 @@ export class TableWriteableStream {
 
     if (columnHeader && headerSeparator) {
       this.stream.push(
-        `${title ? `=== ${title}\n` : ''}${columnHeader}\n${headerSeparator}\n`
+        `${title ? `=== ${title}${os.EOL}` : ''}${columnHeader}${
+          os.EOL
+        }${headerSeparator}${os.EOL}`
       );
     }
 
@@ -63,7 +66,7 @@ export class TableWriteableStream {
         const cell = row[col.key];
         const isLastCol = colIndex === colArr.length - 1;
         const rowWidth = outputRow.length;
-        cell.split('\n').forEach((line, lineIndex) => {
+        cell.split(os.EOL).forEach((line, lineIndex) => {
           const cellWidth = maxColWidths.get(col.key);
           if (cellWidth) {
             if (lineIndex === 0) {
@@ -75,14 +78,18 @@ export class TableWriteableStream {
               );
             } else {
               outputRow +=
-                '\n' +
+                os.EOL +
                 this.fillColumn('', rowWidth, COLUMN_FILLER, true) +
                 this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol);
             }
           }
         });
       });
-      this.stream.push(outputRow + '\n');
+      this.stream.push(outputRow + os.EOL);
+      // this call to setImmediate will schedule the closure on the event loop
+      // this action causing the current code to yield to the event loop
+      // allowing other processes to get time on the event loop
+      setImmediate(() => {});
     });
   }
 
@@ -107,7 +114,7 @@ export class TableWriteableStream {
 
         // if a cell is multiline, find the line that's the longest
         const longestLineWidth = cell
-          .split('\n')
+          .split(os.EOL)
           .reduce((maxLine, line) =>
             line.length > maxLine.length ? line : maxLine
           ).length;
