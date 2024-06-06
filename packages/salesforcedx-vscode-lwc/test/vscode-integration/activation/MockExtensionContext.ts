@@ -105,14 +105,22 @@ export class MockExtensionContext implements ExtensionContext {
     };
     this.extension = {
       packageJSON: {
-        aiKey: 'aabbccdd',
-        name: 'salesforcedx-vscode-core',
-        version: 'v55.5.5'
+        version: 'v55.5.5',
+        aiKey: 'fakeAIKey',
+        name: 'salesforcedx-vscode-lwc',
+        serverPath: [
+          'node_modules',
+          '@salesforce',
+          'lwc-language-server',
+          'lib',
+          'server.js'
+        ]
       }
     } as any;
+
   }
   public asAbsolutePath(relativePath: string): string {
-    return path.join('../../../package.json'); // this should point to the src/package.json
+    return path.join('../../package.json'); // this should point to the src/package.json
   }
   public environmentVariableCollection =
     new MockEnvironmentVariableCollection();
@@ -134,7 +142,7 @@ export class MockExtensionContext implements ExtensionContext {
     }
   };
   public logPath = 'logPath';
-  public logUri = Uri.parse('file://logs');
+  public logUri = Uri.parse('file://logUri');
   public secrets: SecretStorage;
   public storagePath: string = 'myStoragePath';
   public storageUri: Uri | undefined;

@@ -64,7 +64,7 @@ describe('Telemetry', () => {
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       assert.calledOnce(mShowInformation);
       expect(teleStub.firstCall.args).to.eql([true]);
     });
@@ -78,7 +78,7 @@ describe('Telemetry', () => {
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       assert.notCalled(mShowInformation);
       expect(teleStub.firstCall.args).to.eql([true]);
     });
@@ -127,7 +127,7 @@ describe('Telemetry', () => {
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       assert.calledOnce(mShowInformation);
       expect(teleStub.firstCall.args).to.eql([true]);
     });
