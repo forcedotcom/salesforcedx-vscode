@@ -32,7 +32,7 @@
     "status:duplicate": "",
     "type:community-contrib": "USER STORY"
   },
-  "defaultBuild": "offcore.tooling.60",
+  "defaultBuild": "offcore.tooling.61",
   "hideWorkItemUrl": "true",
   "statusWhenClosed": "CLOSED"
 }
