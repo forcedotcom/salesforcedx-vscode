@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils-vscode": "60.16.0",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/source-deploy-retrieve": "11.6.5",
-    "@salesforce/templates": "^60.1.2",
+    "@salesforce/templates": "^61.0.1",
     "@salesforce/ts-types": "2.0.9",
     "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
@@ -101,7 +101,7 @@
         "applicationinsights": "1.0.7",
         "@salesforce/core": "7.3.10",
         "@salesforce/source-tracking": "6.3.4",
-        "@salesforce/templates": "^60.1.2",
+        "@salesforce/templates": "^61.0.1",
         "@salesforce/source-deploy-retrieve": "11.6.5",
         "shelljs": "0.8.5"
       },
