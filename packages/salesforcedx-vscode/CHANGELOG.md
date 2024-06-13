@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We fixed an issue where the output of the "Apex Code Coverage by Class" table in the Apex test results were missing when "Store Only Aggregated Code Coverage" is enabled in the Apex Test Execution settings. Thank you Matthias Rolke for bringing this to our attention. ([PR #370](https://github.com/forcedotcom/salesforcedx-apex/pull/377), [PR #5629](https://github.com/forcedotcom/salesforcedx-vscode/pull/5629))
+- We fixed an issue where the output of the "Apex Code Coverage by Class" table in the Apex test results were missing when "Store Only Aggregated Code Coverage" is enabled in the Apex Test Execution settings. Thank you Matthias Rolke for bringing this to our attention. ([PR #370](https://github.com/forcedotcom/salesforcedx-apex/pull/370), [PR #5629](https://github.com/forcedotcom/salesforcedx-vscode/pull/5629))
 
 #### salesforcedx-vscode-expanded
 
