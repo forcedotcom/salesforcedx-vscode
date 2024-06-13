@@ -107,7 +107,8 @@
         "@salesforce/core": "7.3.10",
         "@salesforce/source-tracking": "6.3.4",
         "applicationinsights": "1.0.7",
-        "shelljs": "0.8.5"
+        "shelljs": "0.8.5",
+        "bfj": "8.0.0"
       },
       "devDependencies": {}
     }
