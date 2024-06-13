@@ -16,7 +16,8 @@ const sharedConfig = {
     'vscode',
     '@salesforce/core',
     '@salesforce/source-tracking',
-    'applicationinsights'
+    'applicationinsights',
+    'bfj'
   ],
   minify: true
 };
@@ -41,6 +42,8 @@ const sharedConfig = {
     entryPoints: ['./src/index.ts'],
     outfile: 'dist/index.js'
   });
-})().then(async () => {
-  // await copyFiles(srcPath, destPath);
-}).catch(() => process.exit(1));
+})()
+  .then(async () => {
+    // await copyFiles(srcPath, destPath);
+  })
+  .catch(() => process.exit(1));

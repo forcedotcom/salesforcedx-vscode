@@ -18,7 +18,8 @@ const sharedConfig = {
     'applicationinsights',
     'shelljs',
     '@salesforce/source-deploy-retrieve',
-    '@salesforce/source-tracking'
+    '@salesforce/source-tracking',
+    'bfj'
   ],
   minify: true
 };
@@ -43,6 +44,8 @@ const sharedConfig = {
     entryPoints: ['./src/index.ts'],
     outfile: 'dist/index.js'
   });
-})().then(async () => {
-  // await copyFiles(srcPath, destPath);
-}).catch(() => process.exit(1));
+})()
+  .then(async () => {
+    // await copyFiles(srcPath, destPath);
+  })
+  .catch(() => process.exit(1));
