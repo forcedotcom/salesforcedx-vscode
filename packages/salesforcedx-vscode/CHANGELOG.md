@@ -4,15 +4,15 @@
 
 #### salesforcedx-vscode-apex
 
-- :tada: We're excited to announce that our extensions now support Java 21! :rocket: (PR #5621)
+- :tada: We're excited to announce that our extensions now support Java 21! :rocket: ([PR #5621](https://github.com/forcedotcom/salesforcedx-vscode/pull/5621))
 
-- Apex language server has been updated to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, there might be a noticeable delay while your workspace is upgraded to 250 Apex artifacts and your project is fully indexed. ([PR #5635](<(https://github.com/forcedotcom/salesforcedx-vscode/pull/5635)>))
+- Apex language server has been updated to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, there might be a noticeable delay while your workspace is upgraded to 250 Apex artifacts and your project is fully indexed. ([PR #5635](https://github.com/forcedotcom/salesforcedx-vscode/pull/5635))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- We fixed an issue where the output of the "Apex Code Coverage by Class" table in the Apex test results were missing when "Store Only Aggregated Code Coverage" is enabled in the Apex Test Execution settings. Thank you Matthias Rolke for bringing this to our attention. ([PR #370](<(https://github.com/forcedotcom/salesforcedx-apex/pull/377)>), [PR #5629](<(https://github.com/forcedotcom/salesforcedx-vscode/pull/5629)>))
+- We fixed an issue where the output of the "Apex Code Coverage by Class" table in the Apex test results were missing when "Store Only Aggregated Code Coverage" is enabled in the Apex Test Execution settings. Thank you Matthias Rolke for bringing this to our attention. ([PR #370](https://github.com/forcedotcom/salesforcedx-apex/pull/377), [PR #5629](https://github.com/forcedotcom/salesforcedx-vscode/pull/5629))
 
 #### salesforcedx-vscode-expanded
 
