@@ -1,22 +1,22 @@
-# 61.0.1 - June 15, 2024
+# 61.0.1 - June 14, 2024
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- Add java v 21 support for apex lsp ([PR #5621](https://github.com/forcedotcom/salesforcedx-vscode/pull/5621))
+- :tada: We're excited to announce that our extensions now support Java 21! :rocket: (PR #5621)
+
+- Apex language server has been updated to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, there might be a noticeable delay while your workspace is upgraded to 250 Apex artifacts and your project is fully indexed. ([PR #5635](<(https://github.com/forcedotcom/salesforcedx-vscode/pull/5635)>))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- Apex lsp for 250 ([PR #5635](https://github.com/forcedotcom/salesforcedx-vscode/pull/5635))
+- We fixed an issue where the output of the "Apex Code Coverage by Class" table in the Apex test results were missing when "Store Only Aggregated Code Coverage" is enabled in the Apex Test Execution settings. Thank you Matthias Rolke for bringing this to our attention. ([PR #370](<(https://github.com/forcedotcom/salesforcedx-apex/pull/377)>), [PR #5629](<(https://github.com/forcedotcom/salesforcedx-vscode/pull/5629)>))
 
-#### salesforcedx-vscode-core
+#### salesforcedx-vscode-expanded
 
-- Bump dx templates to v61 ([PR #5633](https://github.com/forcedotcom/salesforcedx-vscode/pull/5633))
-
-- Bump @salesforce/apex-node to v6.1.2 ([PR #5629](https://github.com/forcedotcom/salesforcedx-vscode/pull/5629))
+- We resolved an issue where the Apex PMD extension was missing from the Salesforce Extension Pack Expanded when published in the Open VSX Registry. ([PR #5639](https://github.com/forcedotcom/salesforcedx-vscode/pull/5639))
 
 # 60.15.0 - May 29, 2024
 
@@ -27,11 +27,11 @@
 🚀 We’re thrilled to announce that Einstein for Developers (Beta) is now a part of the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded)! 🚀
 Here’s what you can expect with this change -
 
-* Access to powerful generative AI tooling that is grounded in the context your org’s data, and is backed by the promise of Salesforce’s Trust Layer. See [Additional Terms of Use](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-termsofuse) for information.
-* Seamless updating of extension versions. Weekly extension releases include new features and enhancements that we continue to make to Einstein for Developers!
-* Einstein for Developers is enabled by default in our VS Code desktop application. Follow these [steps](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-setup) to enable it in Code Builder.
+- Access to powerful generative AI tooling that is grounded in the context your org’s data, and is backed by the promise of Salesforce’s Trust Layer. See [Additional Terms of Use](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-termsofuse) for information.
+- Seamless updating of extension versions. Weekly extension releases include new features and enhancements that we continue to make to Einstein for Developers!
+- Einstein for Developers is enabled by default in our VS Code desktop application. Follow these [steps](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-setup) to enable it in Code Builder.
 
-We’re excited that we’ve made it easier for you to give Einstein for Developers a spin, and we hope you’ll give it a try.  We’d love your [feedback](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-feedback)! 📝
+We’re excited that we’ve made it easier for you to give Einstein for Developers a spin, and we hope you’ll give it a try. We’d love your [feedback](https://developer.salesforce.com/tools/vscode/en/einstein/einstein-feedback)! 📝
 
 ## Fixed
 
@@ -65,7 +65,7 @@ We’re excited that we’ve made it easier for you to give Einstein for Develop
 
 - We made a major upgrade to the version of the @salesforce/core library. ([PR #5556](https://github.com/forcedotcom/salesforcedx-vscode/pull/5556))
 
-- We no longer prompt you for a directory location when you use the context menu to run an Apex command to create a class. We just gather the information from the context, making things a little more convenient for you. Thank you [Heber](https://github.com/aheber) for this awesome contribution.  #5544 ([PR #5561](https://github.com/forcedotcom/salesforcedx-vscode/pull/5561))
+- We no longer prompt you for a directory location when you use the context menu to run an Apex command to create a class. We just gather the information from the context, making things a little more convenient for you. Thank you [Heber](https://github.com/aheber) for this awesome contribution. #5544 ([PR #5561](https://github.com/forcedotcom/salesforcedx-vscode/pull/5561))
 
 ## Fixed
 
@@ -91,20 +91,25 @@ We’re excited that we’ve made it easier for you to give Einstein for Develop
 
 #### salesforcedx-vscode-lwc
 
-- We now support the `lightning_UrlAddressable` enumeration type in LWC components. Thank you 
-[Mike Senn](https://github.com/mpsenn) for this contribution. ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
+- We now support the `lightning_UrlAddressable` enumeration type in LWC components. Thank you
+  [Mike Senn](https://github.com/mpsenn) for this contribution. ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
 
 ## Fixed
 
 #### salesforcedx-apex-debugger
+
 #### salesforcedx-utils
+
 #### salesforcedx-utils-vscode
+
 #### salesforcedx-vscode-apex-debugger
 
-- We fixed an issue where the ISV Debugger threw a project configuration error when you clicked the **Launch Apex Debugger** button.  Now you should be able to start the debugger without any issues. We'd love to hear your feedback on the ISV Debugger, and happy debugging! ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
+- We fixed an issue where the ISV Debugger threw a project configuration error when you clicked the **Launch Apex Debugger** button. Now you should be able to start the debugger without any issues. We'd love to hear your feedback on the ISV Debugger, and happy debugging! ([PR #5522](https://github.com/forcedotcom/salesforcedx-vscode/pull/5522))
 
 #### salesforcedx-vscode-apex
+
 #### salesforcedx-vscode-apex-replay-debugger
+
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #5537](https://github.com/forcedotcom/salesforcedx-vscode/pull/5537),[PR #5543](https://github.com/forcedotcom/salesforcedx-vscode/pull/5543))
