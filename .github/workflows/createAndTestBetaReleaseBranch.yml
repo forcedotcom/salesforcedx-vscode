@@ -58,7 +58,7 @@ jobs:
     needs: create_branch
     name: 'Confirm Beta Release Branch Release'
     steps:
-      - run: echo "Please confirm the beta release branch working"
+      - run: echo "Please push your change to update versions for any dependencies if required"
 
   run_build_and_test:
     if: ${{ needs.create_branch.result == 'success' }} # Only run this if the previous job is successful
