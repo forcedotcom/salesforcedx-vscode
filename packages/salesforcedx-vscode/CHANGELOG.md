@@ -1,3 +1,23 @@
+# 61.0.1 - June 15, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add java v 21 support for apex lsp ([PR #5621](https://github.com/forcedotcom/salesforcedx-vscode/pull/5621))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Apex lsp for 250 ([PR #5635](https://github.com/forcedotcom/salesforcedx-vscode/pull/5635))
+
+#### salesforcedx-vscode-core
+
+- Bump dx templates to v61 ([PR #5633](https://github.com/forcedotcom/salesforcedx-vscode/pull/5633))
+
+- Bump @salesforce/apex-node to v6.1.2 ([PR #5629](https://github.com/forcedotcom/salesforcedx-vscode/pull/5629))
+
 # 60.15.0 - May 29, 2024
 
 ## Added
