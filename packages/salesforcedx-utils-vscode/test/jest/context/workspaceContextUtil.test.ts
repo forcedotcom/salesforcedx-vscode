@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core-bundle';
 import * as vscode from 'vscode';
 import {
   ConfigAggregatorProvider,
@@ -15,7 +15,7 @@ import {
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages';
-jest.mock('@salesforce/core', () => {
+jest.mock('@salesforce/core-bundle', () => {
   return {
     Logger: {
       childFromRoot: () => {

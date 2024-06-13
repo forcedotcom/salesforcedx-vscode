@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, ConfigFile, Global } from '@salesforce/core';
+import { Config, ConfigFile, Global } from '@salesforce/core-bundle';
 import {
   ConfigUtil,
   GlobalCliEnvironment

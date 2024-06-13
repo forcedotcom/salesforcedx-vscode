@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { MetadataCacheService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context';
 import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';

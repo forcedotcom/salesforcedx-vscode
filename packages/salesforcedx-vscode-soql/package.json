@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "61.0.1",
+  "version": "61.0.202406132249",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -33,16 +33,16 @@
   "dependencies": {
     "@jsforce/jsforce-node": "3.2.0",
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core": "7.3.10",
+    "@salesforce/core-bundle": "^7.3.10",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "61.0.1",
-    "@salesforce/salesforcedx-test-utils-vscode": "61.0.1",
-    "@salesforce/salesforcedx-utils-vscode": "61.0.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "61.0.202406132249",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.0.202406132249",
+    "@salesforce/salesforcedx-utils-vscode": "61.0.202406132249",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@salesforce/ts-types": "2.0.9",
@@ -140,8 +140,6 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
-        "@salesforce/core": "7.3.10",
-        "@salesforce/source-tracking": "6.3.4",
         "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "0.2.0",
         "@salesforce/soql-data-view": "0.1.0",

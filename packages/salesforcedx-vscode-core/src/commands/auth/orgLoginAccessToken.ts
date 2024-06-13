@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, AuthSideEffects } from '@salesforce/core';
+import { AuthInfo, AuthSideEffects } from '@salesforce/core-bundle';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';

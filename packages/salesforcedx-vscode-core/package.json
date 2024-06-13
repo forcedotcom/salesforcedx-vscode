@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "61.0.1",
+  "version": "61.0.202406132249",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,12 +25,12 @@
   ],
   "dependencies": {
     "@jsforce/jsforce-node": "3.2.0",
-    "@salesforce/core": "7.3.10",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "61.0.1",
-    "@salesforce/salesforcedx-utils-vscode": "61.0.1",
+    "@salesforce/core-bundle": "^7.3.10",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "61.0.202406132249",
+    "@salesforce/salesforcedx-utils-vscode": "61.0.202406132249",
     "@salesforce/schemas": "^1.6.1",
-    "@salesforce/source-deploy-retrieve": "11.6.5",
-    "@salesforce/templates": "^61.0.1",
+    "@salesforce/source-deploy-retrieve-bundle": "^11.6.5",
+    "@salesforce/templates-bundle": "^61.0.1",
     "@salesforce/ts-types": "2.0.9",
     "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
@@ -41,7 +41,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "61.0.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.0.202406132249",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
@@ -99,11 +99,8 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/core": "7.3.10",
-        "@salesforce/source-tracking": "6.3.4",
-        "@salesforce/templates": "^61.0.1",
-        "@salesforce/source-deploy-retrieve": "11.6.5",
-        "shelljs": "0.8.5"
+        "shelljs": "0.8.5",
+        "@salesforce/templates-bundle": "^61.0.1"
       },
       "devDependencies": {}
     }
