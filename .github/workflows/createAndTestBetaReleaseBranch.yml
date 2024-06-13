@@ -52,11 +52,19 @@ jobs:
       - id: branch
         run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
 
+  confirm_build:
+    environment: publish
+    runs-on: ubuntu-latest
+    needs: create_branch
+    name: 'Confirm Beta Release Branch Release'
+    steps:
+      - run: echo "Please confirm the beta release branch working"
+
   run_build_and_test:
     if: ${{ needs.create_branch.result == 'success' }} # Only run this if the previous job is successful
     uses: ./.github/workflows/buildAndTest.yml
     name: 'Run Build and Unit Test'
-    needs: create_branch
+    needs: [create_branch, confirm_build]
     secrets: inherit
     with:
       branch: ${{needs.create_branch.outputs.branch}}
