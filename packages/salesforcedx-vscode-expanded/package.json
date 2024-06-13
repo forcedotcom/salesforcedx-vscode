@@ -43,6 +43,7 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "chuckjonas.apex-pmd",
+    "pmd.apex-pmd",
     "financialforce.lana"
   ]
 }
