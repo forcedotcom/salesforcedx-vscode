@@ -109,5 +109,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: screenshots
+          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}
           path: ./salesforcedx-vscode-automation-tests/screenshots
