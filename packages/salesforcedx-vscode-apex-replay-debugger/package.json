@@ -24,7 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "6.1.2",
+    "@salesforce/apex-node": "6.0.1",
     "@salesforce/core": "7.3.10",
     "@salesforce/salesforcedx-apex-replay-debugger": "61.0.0",
     "@salesforce/salesforcedx-utils": "61.0.0",
