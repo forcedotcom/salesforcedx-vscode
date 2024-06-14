@@ -32,7 +32,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 - [VS Code Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) の最新版
   VS Code と Docker Desktop を OS にインストール後、
   - Windows の場合、コンテナで開きたいソースコードの場所を設定してください。Docker で右クリックし、 **Settings** / **Preferences** > **Shared Drives** / **File Sharing** を選択します。共有がうまくいかない場合は、[Container tips](https://code.visualstudio.com/docs/remote/troubleshooting#_container-tips) を参照してください。
-  - Linux の場合、[supported platforms](https://docs.docker.com/install/#supported-platforms) を参照してください。ターミナルから、`sudo usermod -aG docker $USER` を実行して、ユーザを `docker` グループに追加します。この設定は、一度サインアウトして再度ログインした後に有効になります。
+  - Linux の場合、[supported platforms](https://docs.docker.com/install#supported-platforms) を参照してください。ターミナルから、`sudo usermod -aG docker $USER` を実行して、ユーザを `docker` グループに追加します。この設定は、一度サインアウトして再度ログインした後に有効になります。
 - [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) の最新版
 
 ### 開発コンテナでプロジェクトを開く

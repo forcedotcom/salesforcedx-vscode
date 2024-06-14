@@ -9,12 +9,12 @@
     "node": ">=18.11.0"
   },
   "dependencies": {
-    "node": "^18.11.0",
-    "npm": "^9",
-    "ts-node": "10.9.1",
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
-    "semver": "^7.5.2"
+    "node": "^18.11.0",
+    "npm": "^9",
+    "semver": "^7.5.2",
+    "ts-node": "10.9.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
@@ -35,7 +35,7 @@
     "ajv": "6.12.6",
     "check-peer-dependencies": "4.1.0",
     "commitizen": "^4.2.5",
-    "cz-conventional-changelog": "^3.2.0",
+    "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.3",
     "esbuild": "0.15.10",
     "eslint": "8.52.0",

@@ -26,4 +26,4 @@ jobs:
           close-issue-reason: not_planned
           operations-per-run: 100
           exempt-issue-labels: announcement,bug,on hold,waiting for internal reply,feature
-          any-of-labels: more information required
+          any-of-labels: more information required,missing required information
