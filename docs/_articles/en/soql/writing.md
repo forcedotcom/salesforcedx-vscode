@@ -23,7 +23,7 @@ VS Code supports code completions for SOQL embedded in Apex files and `.soql` fi
 ![Animation showing code completion for a basic SOQL query](./images/soql-completion.gif)
 
 ## Use SOQL Builder to Build and Run Queries
-Use SOQL Builder to build and run your SOQL queries. See [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder/#build-a-query). 
+Use SOQL Builder to build and run your SOQL queries. See [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder#build-a-query).
 
 ## Execute SOQL Text
 
