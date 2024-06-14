@@ -36,7 +36,7 @@ sass:
 collections:
   articles:
     output: true
-    permalink: /:path/
+    permalink: /:path
 
 defaults:
   - scope:

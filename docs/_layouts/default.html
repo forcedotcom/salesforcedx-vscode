@@ -58,13 +58,15 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css"
     />
+    {% assign enurl = page.url %}
+    {% if enurl == '/' %} {% assign enurl = '' %} {% endif %}
     <link
       rel="canonical"
-      href="https://developer.salesforce.com/tools/vscode{{ page.url }}"
+      href="https://developer.salesforce.com/tools/vscode{{ enurl }}"
     />
     {% if page.lang == 'en' %} {% assign jpurl = page.url | replace: '/en/',
     '/ja/' %} {% if page.url == '/' %} {% assign jpurl = page.url | append:
-    'ja/' %}{% endif %}
+    'ja' %}{% endif %}
     <link
       rel="alternate"
       hreflang="ja"
