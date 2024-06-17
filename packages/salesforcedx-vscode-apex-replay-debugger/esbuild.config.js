@@ -16,7 +16,8 @@ const sharedConfig = {
     'vscode',
     '@salesforce/core',
     '@salesforce/source-tracking',
-    'applicationinsights'
+    'applicationinsights',
+    'jsonpath'
   ],
   minify: true
 };
