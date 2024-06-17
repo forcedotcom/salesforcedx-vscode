@@ -34,10 +34,10 @@
     "@jsforce/jsforce-node": "3.2.0",
     "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core": "7.3.10",
-    "@salesforce/soql-builder-ui": "0.2.0",
+    "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
-    "@salesforce/soql-model": "0.2.3"
+    "@salesforce/soql-model": "1.0.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-sobjects-faux-generator": "61.1.0",
@@ -143,10 +143,10 @@
         "@salesforce/core": "7.3.10",
         "@salesforce/source-tracking": "6.3.4",
         "shelljs": "0.8.5",
-        "@salesforce/soql-builder-ui": "0.2.0",
+        "@salesforce/soql-builder-ui": "1.0.0",
         "@salesforce/soql-data-view": "0.1.0",
         "@salesforce/soql-language-server": "0.7.1",
-        "@salesforce/soql-model": "0.2.3"
+        "@salesforce/soql-model": "1.0.0"
       },
       "devDependencies": {}
     }
