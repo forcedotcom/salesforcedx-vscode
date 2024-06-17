@@ -18,7 +18,8 @@ const sharedConfig = {
     'applicationinsights',
     'shelljs',
     '@salesforce/source-deploy-retrieve',
-    '@salesforce/source-tracking'
+    '@salesforce/source-tracking',
+    'jsonpath'
   ],
   minify: true
 };
