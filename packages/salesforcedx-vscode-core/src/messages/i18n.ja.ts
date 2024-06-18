@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: '開始しています: ',
   channel_end_with_exit_code: 'が終了コード %s で終了しました。',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/sfdxcli からインストールしてください。',
+    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/salesforcecli からインストールしてください。',
   channel_end_with_error: 'がエラーで終了しました。%s',
   channel_end: 'が終了しました。',
 
@@ -40,9 +40,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
   org_login_web_authorize_org_text: 'SFDX: 組織を認証',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
@@ -81,27 +80,27 @@ export const messages = {
   org_open_container_mode_message_text:
     '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
-  force_source_pull_default_org_text:
+  project_retrieve_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織からソースをプル',
-  force_source_pull_force_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き',
+  project_retrieve_start_ignore_conflicts_default_org_text:
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
 
-  force_source_push_default_org_text:
+  project_deploy_start_default_org_text:
     'SFDX: デフォルトのスクラッチ組織へソースを転送',
-  force_source_push_force_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織へソースを転送して競合を上書き',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
 
-  force_source_deploy_text: 'SFDX: 組織へソースをデプロイ',
-  force_source_deploy_select_file_or_directory:
-    'ソースファイルかディレクトリ上でのみ SFDX: 組織へソースをデプロイ を実行できます。',
-  force_source_deploy_select_manifest:
+  deploy_this_source_text: 'SFDX: このソースを組織へデプロイ',
+  deploy_select_file_or_directory:
+    'ソースファイルかディレクトリ上でのみ SFDX: このソースを組織へデプロイ を実行できます。',
+  deploy_select_manifest:
     'マニフェストファイル上でのみ SFDX マニフェストのソースを組織へデプロイ を実行できます。',
-  force_source_retrieve_text: 'SFDX: 組織からソースを取得',
-  force_source_retrieve_display_text: 'SFDX: 組織からソースを取得',
-  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
-  force_source_retrieve_select_file_or_directory:
-    'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
-  force_source_retrieve_select_manifest:
+  retrieve_this_source_text: 'SFDX: このソースを組織から取得',
+  retrieve_display_text: 'SFDX: このソースを組織から取得',
+  retrieve_and_open_display_text: 'Retrieve and Open Source',
+  retrieve_select_file_or_directory:
+    'ソースファイルかディレクトリ上でのみ SFDX: このソースを組織から取得 を実行できます。',
+  retrieve_select_manifest:
     'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
   delete_source_manifest_unsupported_message:
@@ -112,9 +111,8 @@ export const messages = {
     'ソースファイルを削除すると、コンピュータからファイルが削除され、デフォルトの組織から対応するメタデータが取り除かれます。このソースをプロジェクトおよび組織から削除してもよろしいですか？',
   confirm_delete_source_button_text: 'ソースを削除',
   cancel_delete_source_button_text: 'キャンセル',
-
-  force_source_status_text:
-    'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
+  rename_lightning_component: 'SFDX: Rename Component',
+  view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
   apex_generate_class_text: 'SFDX: Apex クラスを作成',
   visualforce_generate_component_text: 'SFDX: Visualforce コンポーネントを作成',
@@ -125,9 +123,8 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Aura インタフェースを作成',
   analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
   analytics_template_name_text: 'template name',
-  force_source_status_local_text: 'SFDX: ローカルの変更を表示',
-  force_source_status_remote_text:
-    'SFDX: デフォルトのスクラッチ組織の変更を参照',
+  view_local_changes_text: 'SFDX: ローカルの変更を表示',
+  view_remote_changes_text: 'SFDX: デフォルトのスクラッチ組織の変更を参照',
   warning_prompt_file_overwrite:
     '指定されたパスを使用した 1 つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_dir_overwrite:
@@ -155,9 +152,9 @@ export const messages = {
   data_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   project_generate_text: 'SFDX: プロジェクトを作成',
   project_generate_open_dialog_create_label: 'プロジェクトを作成',
@@ -168,6 +165,7 @@ export const messages = {
   project_generate_analytics_template_display_text: 'Analytics',
   project_generate_empty_template: '空のプロジェクトテンプレート',
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
@@ -198,7 +196,7 @@ export const messages = {
   error_extracting_org_source:
     'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
-  error_updating_sfdx_project: 'sfdx-project.json の更新中にエラー: %s',
+  error_updating_sf_project: 'sfdx-project.json の更新中にエラー: %s',
   error_writing_installed_package_info:
     'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
@@ -219,7 +217,7 @@ export const messages = {
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
-    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
+    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sf data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sf data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
   auth_project_label: 'プロジェクトのデフォルト',
   auth_project_detail: 'sfdx-project.json で定義されたログインURL を使用',
   auth_prod_label: '本番環境',
@@ -239,7 +237,7 @@ export const messages = {
     '保存時のプッシュまたはデプロイ設定中にエラー: sfdx-project.json ファイルに "packageDirectories" プロパティが含まれていません。このプロパティを追加するか、もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   error_no_package_directories_paths_found_text:
     '保存時のプッシュまたはデプロイ設定中にエラー: sfdx-project.json ファイルの "packageDirectories" プロパティに "path" の値が含まれていません。"path" プロパティへ値を追加するか、もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
-  error_push_or_deploy_on_save_no_default_username:
+  error_push_or_deploy_on_save_no_target_org:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_source_path_not_in_package_directory_text:
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
@@ -269,10 +267,12 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    '競合のためソースをプッシュできませんでした。組織のメタデータをローカルファイルで上書きしても良い場合は、 "SFDX: ソースをデフォルトのスクラッチ組織にプッシュし競合を上書き" を実行してください。',
-  error_no_default_username:
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
+  pull_conflicts_error:
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
+  error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
-  error_no_default_devhubusername:
+  error_no_target_dev_hub:
     'デフォルトの Dev Hub 組織が設定されていません。"SFDX: Dev Hub 組織を認証" を実行て組織を設定してください。',
   custom_output_directory: 'ディレクトリを選択',
   warning_using_global_username:
@@ -295,7 +295,7 @@ export const messages = {
     '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
@@ -499,7 +499,7 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
-  conflict_detect_no_default_username:
+  conflict_detect_no_target_org:
     'このプロジェクトにはデフォルトのユーザ名がありません',
   conflict_detect_no_default_package_dir:
     'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
@@ -512,12 +512,12 @@ export const messages = {
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'ファイルを比較',
 
-  force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
-  force_source_diff_components_not_in_org:
+  source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
+  source_diff_components_not_in_org:
     'Selected components are not available in the org',
-  force_source_diff_unsupported_type:
+  source_diff_unsupported_type:
     'このメタデータ型に対する差分は現在サポートされていません。',
-  force_source_diff_title: '%s//%s ↔ ローカル //%s',
+  source_diff_title: '%s//%s ↔ ローカル //%s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',

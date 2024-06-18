@@ -15,7 +15,7 @@ export {
   PRODUCTION_URL,
   SANDBOX_URL
 } from './auth/authParamsGatherer';
-export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export {
   DeviceCodeResponse,
   OrgLoginWebContainerExecutor,
@@ -50,52 +50,35 @@ export {
   ManifestChecker,
   deleteSource
 } from './deleteSource';
-export { forceCreateManifest } from './forceCreateManifest';
+export { projectGenerateManifest } from './projectGenerateManifest';
+export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
+export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export {
-  ForceDescribeMetadataExecutor,
-  forceDescribeMetadata
-} from './forceDescribeMetadata';
-export {
-  ForceListMetadataExecutor,
-  forceListMetadata
-} from './forceListMetadata';
-export {
-  ForcePackageInstallExecutor,
+  PackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID,
-  forcePackageInstall
-} from './forcePackageInstall';
+  packageInstall
+} from './packageInstall';
 export {
-  ForceRefreshSObjectsExecutor,
+  RefreshSObjectsExecutor,
   checkSObjectsAndRefresh,
-  forceRefreshSObjects,
+  refreshSObjects,
   initSObjectDefinitions
-} from './forceRefreshSObjects';
-export { forceRenameLightningComponent } from './forceRenameLightningComponent';
-export { forceSourceDeployManifest } from './forceSourceDeployManifest';
+} from './refreshSObjects';
+export { renameLightningComponent } from './renameLightningComponent';
+export { deployManifest } from './deployManifest';
 export {
   LibraryDeploySourcePathExecutor,
-  forceSourceDeploySourcePaths
-} from './forceSourceDeploySourcePath';
-export {
-  forceSourceDiff,
-  forceSourceFolderDiff,
-  handleCacheResults
-} from './forceSourceDiff';
-export { ForceSourcePullExecutor, forceSourcePull } from './forceSourcePull';
-export { ForceSourcePushExecutor, forceSourcePush } from './forceSourcePush';
-export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
-export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
+  deploySourcePaths
+} from './deploySourcePath';
+export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
+export { retrieveManifest } from './retrieveManifest';
+export { retrieveComponent } from './retrieveMetadata';
 export {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker,
-  forceSourceRetrieveSourcePaths
-} from './forceSourceRetrieveSourcePath';
-export {
-  ForceSourceStatusExecutor,
-  SourceStatusFlags,
-  forceSourceStatus
-} from './forceSourceStatus';
+  retrieveSourcePaths
+} from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
 export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
@@ -108,6 +91,10 @@ export {
   orgOpen
 } from './orgOpen';
 export {
+  ProjectDeployStartExecutor,
+  projectDeployStart
+} from './projectDeployStart';
+export {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
   ProjectTemplateItem,
@@ -118,6 +105,10 @@ export {
   projectTemplateEnum,
   sfProjectGenerate
 } from './projectGenerate';
+export {
+  ProjectRetrieveStartExecutor,
+  projectRetrieveStart
+} from './projectRetrieveStart';
 export {
   viewAllChanges,
   viewLocalChanges,

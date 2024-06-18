@@ -19,15 +19,15 @@ import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { SfdxPackageDirectories } from '../sfdxProject';
 import { workspaceUtils } from '../util';
 
-export interface MetadataContext {
+export type MetadataContext = {
   baseDirectory: string;
   commonRoot: string;
   components: SourceComponent[];
-}
+};
 
 export const enum PathType {
   Folder = 'folder',
@@ -36,7 +36,7 @@ export const enum PathType {
   Unknown = 'unknown'
 }
 
-export interface MetadataCacheResult {
+export type MetadataCacheResult = {
   selectedPath: string;
   selectedType: PathType;
 
@@ -44,18 +44,18 @@ export interface MetadataCacheResult {
   cache: MetadataContext;
   project: MetadataContext;
   properties: FileProperties[];
-}
+};
 
-export interface CorrelatedComponent {
+export type CorrelatedComponent = {
   cacheComponent: SourceComponent;
   projectComponent: SourceComponent;
   lastModifiedDate: string;
-}
+};
 
-interface RecomposedComponent {
+type RecomposedComponent = {
   component?: SourceComponent;
   children: Map<string, SourceComponent>;
-}
+};
 
 const STATE_FOLDER = projectPaths.relativeStateFolder();
 
@@ -81,7 +81,7 @@ export class MetadataCacheService {
    * Specify the base project path and a component path that will define the metadata to cache for the project.
    *
    * @param componentPath A path referring to a project folder or an individual component resource
-   * @param projectPath The base path of an sfdx project
+   * @param projectPath The base path of a SFDX Project
    */
   public initialize(
     componentPath: string,
@@ -98,7 +98,7 @@ export class MetadataCacheService {
    *
    * @param componentPath A path referring to a project folder, an individual component resource
    * or a manifest file
-   * @param projectPath The base path of an sfdx project
+   * @param projectPath The base path of a SFDX Project
    * @param isManifest Whether the componentPath references a manifest file
    * @returns MetadataCacheResult describing the project and cache folders
    */
@@ -119,7 +119,8 @@ export class MetadataCacheService {
 
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
-      const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+      const packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
@@ -201,9 +202,10 @@ export class MetadataCacheService {
     }
   }
 
-  private extractResults(
-    result: RetrieveResult
-  ): { components: SourceComponent[]; properties: FileProperties[] } {
+  private extractResults(result: RetrieveResult): {
+    components: SourceComponent[];
+    properties: FileProperties[];
+  } {
     const properties: FileProperties[] = [];
     if (Array.isArray(result.response.fileProperties)) {
       properties.push(...result.response.fileProperties);
@@ -437,17 +439,15 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const operation = await this.cacheService.createRetrieveOperation(
-      components
-    );
+    const operation =
+      await this.cacheService.createRetrieveOperation(components);
     this.setupCancellation(operation, token);
     return operation.pollStatus();
   }
 
   protected async postOperation(result: RetrieveResult | undefined) {
-    const cache:
-      | MetadataCacheResult
-      | undefined = await this.cacheService.processResults(result);
+    const cache: MetadataCacheResult | undefined =
+      await this.cacheService.processResults(result);
     await this.callback(this.username, cache);
   }
 }

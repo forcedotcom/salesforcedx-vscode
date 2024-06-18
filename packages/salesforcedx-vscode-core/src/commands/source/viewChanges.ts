@@ -6,48 +6,40 @@
  */
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecutor';
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-function getCommandletFor(
+const getCommandletFor = (
   executor: SourceTrackingGetStatusExecutor
-): SfdxCommandlet<{}> {
-  return new SfdxCommandlet(workspaceChecker, parameterGatherer, executor);
-}
+): SfCommandlet<{}> =>
+  new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
-export async function viewAllChanges() {
-  const executionName = 'force_source_status_text';
-  const logName = 'force_source_status';
+export const viewAllChanges = (): void => {
+  viewChanges('view_all_changes_text', 'view_all_changes', true, true);
+};
+
+export const viewLocalChanges = (): void => {
+  viewChanges('view_local_changes_text', 'view_local_changes', true, false);
+};
+
+export const viewRemoteChanges = (): void => {
+  viewChanges('view_remote_changes_text', 'view_remote_changes', false, true);
+};
+
+const viewChanges = (
+  executionName: string,
+  logName: string,
+  local: boolean,
+  remote: boolean
+): void => {
   const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
-    local: true,
-    remote: true
+    local,
+    remote
   });
   const commandlet = getCommandletFor(executor);
-  await commandlet.run();
-}
-
-export async function viewLocalChanges() {
-  const executionName = 'force_source_status_local_text';
-  const logName = 'force_source_status_local';
-  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
-    local: true,
-    remote: false
-  });
-  const commandlet = getCommandletFor(executor);
-  await commandlet.run();
-}
-
-export async function viewRemoteChanges() {
-  const executionName = 'force_source_status_remote_text';
-  const logName = 'force_source_status_remote';
-  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
-    local: false,
-    remote: true
-  });
-  const commandlet = getCommandletFor(executor);
-  await commandlet.run();
-}
+  void commandlet.run();
+};

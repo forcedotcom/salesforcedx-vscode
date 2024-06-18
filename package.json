@@ -9,8 +9,11 @@
     "node": ">=18.11.0"
   },
   "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
     "node": "^18.11.0",
     "npm": "^9",
+    "semver": "^7.5.2",
     "ts-node": "10.9.1"
   },
   "devDependencies": {
@@ -18,6 +21,7 @@
     "@commitlint/config-conventional": "^17.4.4",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.9.0",
     "@octokit/core": "4.0.5",
+    "@octokit/webhooks-definitions": "^3.67.3",
     "@salesforce/dev-config": "^3.1.0",
     "@tsconfig/node18": "18.2.2",
     "@types/cross-spawn": "6.0.2",
@@ -31,7 +35,7 @@
     "ajv": "6.12.6",
     "check-peer-dependencies": "4.1.0",
     "commitizen": "^4.2.5",
-    "cz-conventional-changelog": "^3.2.0",
+    "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.3",
     "esbuild": "0.15.10",
     "eslint": "8.52.0",
@@ -88,7 +92,7 @@
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
-    "check:typescript-project-references": "workspaces-to-typescript-project-references --includesRoot --check",
+    "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
     "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
@@ -103,7 +107,8 @@
     "snyk:monitor": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
     "link-lsp": "lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
-    "unlink-lsp": "lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc"
+    "unlink-lsp": "lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
+    "report:installs": "ts-node scripts/reportInstalls.ts"
   },
   "husky": {
     "hooks": {

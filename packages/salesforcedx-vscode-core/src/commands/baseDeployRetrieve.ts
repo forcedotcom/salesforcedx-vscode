@@ -33,13 +33,13 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { DeployQueue, sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { DeployQueue, salesforceCoreSettings } from '../settings';
 import {
   createComponentCount,
   formatException,
-  SfdxCommandletExecutor
+  SfCommandletExecutor
 } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -48,9 +48,8 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
-  public static errorCollection = vscode.languages.createDiagnosticCollection(
-    'deploy-errors'
-  );
+  public static errorCollection =
+    vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -123,7 +122,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;
-    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    const sourceTrackingEnabled =
+      salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
       const sourceTracking = await SourceTrackingService.getSourceTracking(
         projectPath,
@@ -151,7 +151,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           result
         );
 
-        const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+        const relativePackageDirs =
+          await SalesforcePackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
 
@@ -163,7 +164,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           );
         } else {
           DeployRetrieveExecutor.errorCollection.clear();
-          SfdxCommandletExecutor.errorCollection.clear();
+          SfCommandletExecutor.errorCollection.clear();
         }
       }
     } finally {
@@ -184,13 +185,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   ): string {
     const table = new Table();
 
-    const rowsWithRelativePaths = (result.getFileResponses().map(response => {
+    const rowsWithRelativePaths = result.getFileResponses().map(response => {
       response.filePath = getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
       return response;
-    }) as unknown) as Row[];
+    }) as unknown as Row[];
 
     let output: string;
 
@@ -235,7 +236,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const sourceTrackingEnabled = sfdxCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    const sourceTrackingEnabled =
+      salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
@@ -248,7 +250,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     const defaultOutput = join(
       projectPath,
-      (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
+      (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
     const operation = await components.retrieve({
@@ -264,7 +266,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     if (sourceTrackingEnabled) {
       const status = result?.response?.status;
       if (
-        (status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) &&
+        (status === RequestStatus.Succeeded ||
+          status === RequestStatus.SucceededPartial) &&
         this.sourceTracking
       ) {
         await SourceTrackingService.updateSourceTrackingAfterRetrieve(
@@ -282,13 +285,16 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<void> {
     if (result) {
       DeployRetrieveExecutor.errorCollection.clear();
-      SfdxCommandletExecutor.errorCollection.clear();
-      const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      SfCommandletExecutor.errorCollection.clear();
+      const relativePackageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
-      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
-        result.response.fileProperties
-      );
+      if (result?.response?.fileProperties !== undefined) {
+        PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
+          result.response.fileProperties
+        );
+      }
     }
   }
 
@@ -300,7 +306,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     const failures: Row[] = [];
 
     for (const response of result.getFileResponses()) {
-      const asRow = (response as unknown) as Row;
+      const asRow = response as unknown as Row;
       response.filePath = getRelativeProjectPath(
         response.filePath,
         relativePackageDirs

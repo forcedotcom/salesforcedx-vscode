@@ -22,7 +22,7 @@ import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateComma
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
-  SfdxCommandlet
+  SfCommandlet
 } from './util';
 
 export enum projectTemplateEnum {
@@ -53,7 +53,7 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
   }
 
   public executionName = nls.localize('project_generate_text');
-  public telemetryName = 'force_project_create';
+  public telemetryName = 'project_generate';
   public templateType = TemplateType.Project;
   public getOutputFileName(data: ProjectNameAndPathAndTemplate) {
     return data.projectName;
@@ -87,17 +87,17 @@ export type ProjectNameAndPathAndTemplate = ProjectName &
   ProjectURI &
   ProjectTemplate;
 
-export interface ProjectURI {
+export type ProjectURI = {
   projectUri: string;
-}
+};
 
-export interface ProjectName {
+export type ProjectName = {
   projectName: string;
-}
+};
 
-export interface ProjectTemplate {
+export type ProjectTemplate = {
   projectTemplate: string;
-}
+};
 
 export class SelectProjectTemplate
   implements ParametersGatherer<ProjectTemplate>
@@ -221,26 +221,26 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 const pathExistsChecker = new PathExistsChecker();
 
-export async function sfProjectGenerate() {
+export const sfProjectGenerate = async () => {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor();
-  const sfProjectGenerateCommandlet = new SfdxCommandlet(
+  const sfProjectGenerateCommandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createTemplateExecutor,
     pathExistsChecker
   );
   await sfProjectGenerateCommandlet.run();
-}
+};
 
-export async function projectGenerateWithManifest() {
+export const projectGenerateWithManifest = async (): Promise<void> => {
   const createTemplateExecutor = new LibraryProjectGenerateExecutor({
     isProjectWithManifest: true
   });
-  const projectGenerateWithManifestCommandlet = new SfdxCommandlet(
+  const projectGenerateWithManifestCommandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createTemplateExecutor,
     pathExistsChecker
   );
   await projectGenerateWithManifestCommandlet.run();
-}
+};

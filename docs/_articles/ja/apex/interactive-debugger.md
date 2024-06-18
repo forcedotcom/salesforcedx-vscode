@@ -12,7 +12,7 @@ Apex デバッガを使用すると、顧客が VS Code をクライアントと
 - ステップイン、ステップオーバー、ステップアウトなどの標準的なデバッグ操作を行い、ブレークポイントまで実行する。
 - デバッグコンソールに結果を出力する。
 
-登録者の Sandbox 組織をデバッグするには、[ISV カスタマーデバッガ](isv-debugger)を使用します。このデバッガは Apex 対話型デバッガ拡張機能に付属します。
+登録者の Sandbox 組織をデバッグするには、[ISV カスタマーデバッガ](./ja/apex/isv-debugger)を使用します。このデバッガは Apex 対話型デバッガ拡張機能に付属します。
 
 ## Apex デバッガの設定
 
@@ -37,7 +37,7 @@ VS Code で初めて Apex デバッガを使用するときは、次の設定手
    1. **[割り当てを追加]** をクリックします。
    1. 権限セットを割り当てるユーザを選択して、**[割り当て]** をクリックします。
    1. **[完了]** をクリックします。
-1. **省略可能**: VS Code で、**[SFDX: Pull Source from Default Scratch Org \(SFDX: デフォルトのスクラッチ組織からソースをプル\)]** を実行します。次に、新しい権限セットをソース制御リポジトリに追加します。Salesforce DX プロジェクトに権限セットのコピーがある場合は、`sfdx force:user:permset:assign -n Your_Perm_Set_Name` を実行してスクラッチ組織ユーザに権限を割り当てることができます。
+1. **省略可能**: VS Code で、**[SFDX: Pull Source from Default Scratch Org \(SFDX: デフォルトのスクラッチ組織からソースをプル\)]** を実行します。次に、新しい権限セットをソース制御リポジトリに追加します。Salesforce DX プロジェクトに権限セットのコピーがある場合は、`sf org assign permset --name Your_Perm_Set_Name` を実行してスクラッチ組織ユーザに権限を割り当てることができます。
 1. VS Code で、Apex デバッガの起動設定を作成します。
    1. [Debug \(デバッグ\)] ビューを開くには、VS Code の [Activity Bar \(アクティビティバー\)] で、バグアイコン \(フロート表示テキスト: [Debug \(デバッグ\)]\) をクリックします。
    1. `launch.json` ファイルを作成するには、ギアアイコン \(フロート表示テキスト: [Configure or Fix launch.json \(launch.json の設定または修正\)]\) をクリックして、**[Apex Debugger \(Apex デバッガ\)]** を選択します\(このファイルをすでに作成している場合は、ギアアイコンをクリックするとファイルが開きます\)。
@@ -48,7 +48,7 @@ VS Code で初めて Apex デバッガを使用するときは、次の設定手
           "name": "Launch Apex Debugger",
           "type": "apex",
           "request": "launch",
-          "sfdxProject": "${workspaceRoot}"
+          "salesforceProject": "${workspaceRoot}"
         }
       ]
       ```
@@ -88,7 +88,7 @@ VS Code を閉じると、すべての例外ブレークポイントが削除さ
     "name": "Launch Apex Debugger",
     "type": "apex",
     "request": "launch",
-    "sfdxProject": "${workspaceRoot}"
+    "salesforceProject": "${workspaceRoot}"
     "userIdFilter": [],
     "requestTypeFilter": [],
     "entryPointFilter": ""

@@ -16,30 +16,30 @@ import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { MetadataCacheResult } from './metadataCacheService';
 
-export interface TimestampFileProperties {
+export type TimestampFileProperties = {
   localRelPath: string;
   remoteRelPath: string;
   localLastModifiedDate?: string | undefined;
   remoteLastModifiedDate?: string | undefined;
-}
+};
 
-export interface DirectoryDiffResults {
+export type DirectoryDiffResults = {
   different: Set<TimestampFileProperties>;
   localRoot: string;
   remoteRoot: string;
   scannedLocal?: number;
   scannedRemote?: number;
-}
+};
 
-export interface DirectoryDiffer {
+export type DirectoryDiffer = {
   diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults;
-}
+};
 
-interface FileStats {
+type FileStats = {
   filename: string;
   subdir: string;
   relPath: string;
-}
+};
 
 export class CommonDirDirectoryDiffer implements DirectoryDiffer {
   constructor() {}
@@ -112,7 +112,7 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
   }
 }
 
-export async function diffFolder(cache: MetadataCacheResult, username: string) {
+export const diffFolder = (cache: MetadataCacheResult, username: string) => {
   const localPath = path.join(
     cache.project.baseDirectory,
     cache.project.commonRoot
@@ -125,27 +125,27 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
   const diffs = differ.diff(localPath, remotePath);
 
   conflictView.visualizeDifferences(
-    nls.localize('force_source_diff_folder_title', username),
+    nls.localize('source_diff_folder_title', username),
     username,
     true,
     diffs,
     true
   );
-}
+};
 
 /**
  * Perform file diff and execute VS Code diff comand to show in UI.
  * It matches the correspondent file in compoennt.
  * @param localFile local file
  * @param remoteComponent remote source component
- * @param defaultUsernameorAlias username/org info to show in diff
+ * @param targetOrgorAlias username/org info to show in diff
  * @returns {Promise<void>}
  */
-export async function diffOneFile(
+export const diffOneFile = async (
   localFile: string,
   remoteComponent: SourceComponent,
-  defaultUsernameorAlias: string
-): Promise<void> {
+  targetOrgorAlias: string
+): Promise<void> => {
   const filePart = path.basename(localFile);
 
   const remoteFilePaths = remoteComponent.walkContent();
@@ -163,14 +163,14 @@ export async function diffOneFile(
           remoteUri,
           localUri,
           nls.localize(
-            'force_source_diff_title',
-            defaultUsernameorAlias,
+            'source_diff_title',
+            targetOrgorAlias,
             filePart,
             filePart
           )
         );
       } catch (err) {
-        notificationService.showErrorMessage(err.message);
+        await notificationService.showErrorMessage(err.message);
         channelService.appendLine(err.message);
         channelService.showChannelOutput();
         telemetryService.sendException(err.name, err.message);
@@ -178,4 +178,4 @@ export async function diffOneFile(
       return;
     }
   }
-}
+};

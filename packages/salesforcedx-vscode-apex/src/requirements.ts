@@ -22,10 +22,10 @@ const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
-export interface RequirementsData {
+export type RequirementsData = {
   java_home: string;
   java_memory: number | null;
-}
+};
 
 /**
  * Resolves the requirements needed to run the extension.
@@ -100,21 +100,24 @@ const isLocal = (javaHome: string): boolean => {
 };
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
+  const cmdFile = path.join(javaHome, 'bin', 'java');
+  const commandOptions = ['-XshowSettings:properties', '-version'];
   return new Promise((resolve, reject) => {
-    cp.execFile(
-      javaHome + '/bin/java',
-      ['-version'],
-      {},
-      (error, stdout, stderr) => {
-        if (
-          stderr.indexOf('build 11.') < 0 &&
-          stderr.indexOf('build 17.') < 0
-        ) {
-          reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
-        } else {
-          resolve(true);
-        }
+    cp.execFile(cmdFile, commandOptions, {}, (error, stdout, stderr) => {
+      if (error) {
+        reject(
+          nls.localize(
+            'java_version_check_command_failed',
+            `${cmdFile} ${commandOptions.join(' ')}`,
+            error.message
+          )
+        );
       }
-    );
+      if (!/java\.version\s*=\s*(?:11|17|21)/g.test(stderr)) {
+        reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
+      } else {
+        resolve(true);
+      }
+    });
   });
 };

@@ -7,15 +7,54 @@
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
+import {
+  ConfigAggregatorProvider,
+  TelemetryService,
+  WorkspaceContextUtil
+} from '../../../src';
 import { ConfigUtil } from '../../../src/config/configUtil';
+import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages';
-jest.mock('@salesforce/core');
+jest.mock('@salesforce/core', () => {
+  return {
+    Logger: {
+      childFromRoot: () => {
+        return {
+          debug: jest.fn()
+        };
+      }
+    },
+
+    Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => {
+      return {
+        loadMessages: jest.fn((arg4, arg5) => {
+          return `Mocked message for arg4: ${arg4} and arg5: ${arg5}`;
+        })
+      };
+    }),
+
+    SfError: class{},
+
+    StateAggregator: {
+      clearInstance: jest.fn()
+    },
+
+    AuthInfo: {
+      create: jest.fn()
+    },
+
+    Connection: {
+      create: jest.fn()
+    }
+  };
+});
 jest.mock('../../../src/config/configUtil');
 
 const authInfoMock = jest.mocked(AuthInfo);
 const connectionMock = jest.mocked(Connection);
 const configUtilMock = jest.mocked(ConfigUtil);
+
+const mockedVSCode = jest.mocked(vscode);
 
 describe('WorkspaceContextUtil', () => {
   const testUser = 'test@test.com';
@@ -36,6 +75,7 @@ describe('WorkspaceContextUtil', () => {
   let mockFileSystemWatcher: jest.SpyInstance;
   let reloadConfigAggregatorsMock: jest.SpyInstance;
   let stateAggregatorClearInstanceMock: jest.SpyInstance;
+  let sendExceptionMock: jest.SpyInstance;
 
   beforeEach(async () => {
     mockWatcher = {
@@ -52,18 +92,25 @@ describe('WorkspaceContextUtil', () => {
       'clearInstance'
     );
 
-    mockFileSystemWatcher = (vscode.workspace
-      .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    mockFileSystemWatcher =
+      mockedVSCode.workspace.createFileSystemWatcher.mockReturnValue(
+        mockWatcher as any
+      );
 
-    getUsernameOrAliasStub = (configUtilMock.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
-    getUsernameStub = (configUtilMock.getUsernameFor as any).mockReturnValue(testUser);
+    getUsernameOrAliasStub =
+      configUtilMock.getTargetOrgOrAlias.mockResolvedValue(testAlias);
+    getUsernameStub = configUtilMock.getUsernameFor.mockResolvedValue(testUser);
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
     getConnectionMock = jest.spyOn(workspaceContextUtil, 'getConnection');
 
+    sendExceptionMock = jest
+      .spyOn(TelemetryService.prototype, 'sendException')
+      .mockReturnValue(undefined);
+
     await workspaceContextUtil.initialize(context);
-    (workspaceContextUtil )._username = testUser;
+    workspaceContextUtil._username = testUser;
   });
 
   it('test for the constructor', () => {
@@ -73,6 +120,7 @@ describe('WorkspaceContextUtil', () => {
       'cliConfigWatcher',
       mockWatcher
     );
+    expect(mockFileSystemWatcher).toHaveBeenCalled();
   });
 
   it('should return workspace context util instance', () => {
@@ -81,7 +129,7 @@ describe('WorkspaceContextUtil', () => {
     );
   });
 
-  it('should load the default username, alias, and orgId and clear the cache of the core types upon initialization', async () => {
+  it('should load the target org, alias, and orgId and clear the cache of the core types upon initialization', async () => {
     getConnectionMock.mockReturnValue({
       getAuthInfoFields: () => {
         return { orgId: dummyOrgId };
@@ -112,10 +160,14 @@ describe('WorkspaceContextUtil', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
     expect(workspaceContextUtil.orgId).toEqual('');
-    expect(logMock.mock.calls[0][0].includes(dummyErrorMessage)).toBe(true);
+    expect(logMock).toHaveBeenCalled();
+    expect(sendExceptionMock).toHaveBeenCalledWith(
+      WORKSPACE_CONTEXT_ORG_ID_ERROR,
+      `name: Error, message: ${dummyErrorMessage}`
+    );
   });
 
-  it('should update default username, alias, and orgId and clear the cache of the core types upon config change', async () => {
+  it('should update target org, alias, and orgId and clear the cache of the core types upon config change', async () => {
     getConnectionMock.mockReturnValue({
       getAuthInfoFields: () => {
         return { orgId: dummyOrgId2 };
@@ -137,7 +189,7 @@ describe('WorkspaceContextUtil', () => {
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
-  it('should update default username to undefined if username is not set', async () => {
+  it('should update target org to undefined if username is not set', async () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
 
@@ -152,7 +204,7 @@ describe('WorkspaceContextUtil', () => {
     expect(workspaceContextUtil.alias).toEqual(testAlias);
   });
 
-  it('should update default username and alias to undefined if alias is not set', async () => {
+  it('should update target org and alias to undefined if alias is not set', async () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
 
@@ -183,7 +235,7 @@ describe('WorkspaceContextUtil', () => {
 
   it('should return the _orgId property', () => {
     // Arrange
-    (workspaceContextUtil )._orgId = dummyOrgId;
+    workspaceContextUtil._orgId = dummyOrgId;
 
     // Act/Assert
     expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
@@ -205,7 +257,7 @@ describe('WorkspaceContextUtil', () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
       connectionMock.create.mockResolvedValue(
-        (mockConnection as unknown) as Promise<Connection<any>>
+        mockConnection as unknown as Promise<Connection<any>>
       );
       const connection = await workspaceContextUtil.getConnection();
       expect(connectionMock.create).toHaveBeenCalledWith({
@@ -217,7 +269,7 @@ describe('WorkspaceContextUtil', () => {
     it('should return a cached connection for the default org if there is one', async () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
       connectionMock.create.mockResolvedValue(
-        (mockConnection as unknown) as Promise<Connection<any>>
+        mockConnection as unknown as Promise<Connection<any>>
       );
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
@@ -232,7 +284,7 @@ describe('WorkspaceContextUtil', () => {
 
     it('should throw error if there is no username set', async () => {
       // Arrange
-      const message = nls.localize('error_no_default_username');
+      const message = nls.localize('error_no_target_org');
       workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
 
       // Act/Assert

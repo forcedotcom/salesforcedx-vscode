@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/salesforcecli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
@@ -42,9 +42,8 @@ export const messages = {
 
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  force_auth_access_token_authorize_org_text:
-    'SFDX: Authorize an Org using Session ID',
-  force_auth_access_token_login_bad_oauth_token_message:
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   org_login_device_code_parse_error:
     'There was an unexpected error authorizing to your org in a container environment.',
@@ -100,24 +99,24 @@ export const messages = {
     'There was an unexpected error when processing the org open response.',
   org_open_container_mode_message_text:
     'Access org %s as user %s with the following URL: %s',
-  force_source_pull_default_org_text: 'SFDX: Pull Source from Default Org',
-  force_source_pull_force_default_org_text:
-    'SFDX: Pull Source from Default Org and Override Conflicts',
-  force_source_push_default_org_text: 'SFDX: Push Source to Default Org',
-  force_source_push_force_default_org_text:
-    'SFDX: Push Source to Default Org and Override Conflicts',
-  force_source_status_text: 'View All Changes (Local and in Default Org)',
-  force_source_deploy_text: 'SFDX: Deploy Source to Org',
-  force_source_deploy_select_file_or_directory:
-    'You can run SFDX: Deploy Source to Org only on a source file or directory.',
-  force_source_deploy_select_manifest:
+  project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
+  project_retrieve_start_ignore_conflicts_default_org_text:
+    'SFDX: Pull Source from Default Org and Ignore Conflicts',
+  project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
+  project_deploy_start_ignore_conflicts_default_org_text:
+    'SFDX: Push Source to Default Org and Ignore Conflicts',
+  view_all_changes_text: 'View All Changes (Local and in Default Org)',
+  deploy_this_source_text: 'SFDX: Deploy This Source to Org',
+  deploy_select_file_or_directory:
+    'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
+  deploy_select_manifest:
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
-  force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
-  force_source_retrieve_display_text: 'Retrieve Source from Org',
-  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
-  force_source_retrieve_select_file_or_directory:
-    'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
-  force_source_retrieve_select_manifest:
+  retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
+  retrieve_display_text: 'Retrieve This Source from Org',
+  retrieve_and_open_display_text: 'Retrieve and Open Source',
+  retrieve_select_file_or_directory:
+    'You can run SFDX: Retrieve This Source from Org only on a source file or directory.',
+  retrieve_select_manifest:
     'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   delete_source_text: 'SFDX: Delete from Project and Org',
   delete_source_manifest_unsupported_message:
@@ -140,7 +139,7 @@ export const messages = {
   lightning_generate_interface_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
-  force_create_manifest: 'SFDX: Generate Manifest File',
+  project_generate_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
@@ -159,8 +158,8 @@ export const messages = {
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
-  force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
+  view_local_changes_text: 'SFDX: View Local Changes',
+  view_remote_changes_text: 'SFDX: View Changes in Default Org',
   warning_prompt_file_overwrite:
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
@@ -189,11 +188,11 @@ export const messages = {
   data_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_anon_apex_execute_document_text:
+  anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_anon_apex_execute_selection_text:
+  anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_package_install_text: 'SFDX: Install Package',
+  package_install_text: 'SFDX: Install Package',
   project_generate_text: 'SFDX: Create Project',
   project_generate_open_dialog_create_label: 'Create Project',
   project_generate_standard_template: 'Standard project template (default)',
@@ -228,7 +227,7 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
-  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
+  error_updating_salesforce_project: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
@@ -254,7 +253,7 @@ export const messages = {
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
   invalid_debug_level_id_error:
-    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
+    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sf data:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sf data:delete:record -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
   auth_project_label: 'Project Default',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_prod_label: 'Production',
@@ -274,7 +273,7 @@ export const messages = {
     'Error setting up push or deploy on save: Your sfdx-project.json file doesn\'t contain a "packageDirectories" property. Add this property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
   error_no_package_directories_paths_found_text:
     'Error setting up push or deploy on save: The "packageDirectories" property in your sfdx-project.json file doesn\'t contain a "path" value. Add a value for the "path" property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
-  error_push_or_deploy_on_save_no_default_username:
+  error_push_or_deploy_on_save_no_target_org:
     'Error running push or deploy on save: No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the changes that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_source_path_not_in_package_directory_text:
     'Error deploying or retrieving source: The file or directory that you tried to deploy or retrieve isn\'t in a package directory that\'s specified in your sfdx-project.json file. Add this location to your "packageDirectories" value, or deploy or retrieve a different file or directory. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
@@ -313,16 +312,16 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
   pull_conflicts_error:
-    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Override Conflicts".',
-  error_no_default_username:
+    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
+  error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  error_no_default_devhubusername:
-    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
+  error_no_target_dev_hub:
+    'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
-    'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',
+    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.',
   apex_class_message_name: 'Apex Class',
   apex_trigger_message_name: 'Apex Trigger',
   visualforce_component_message_name: 'Visualforce Component',
@@ -346,11 +345,11 @@ export const messages = {
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
-  force_list_metadata: 'SFDX: Force List Metadata',
+  list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
-  force_apex_execute_library: 'Apex Library: Execute Anonymous',
+  apex_execute_library: 'Apex Library: Execute Anonymous',
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
   AIApplication: 'AI Applications',
@@ -609,7 +608,7 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
-  conflict_detect_no_default_username: 'No default username for this project',
+  conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir:
     'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',
@@ -624,13 +623,13 @@ export const messages = {
   conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
   conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
-  force_source_diff_text: 'SFDX: Diff File Against Org',
-  force_source_diff_components_not_in_org:
+  source_diff_text: 'SFDX: Diff File Against Org',
+  source_diff_components_not_in_org:
     'Selected components are not available in the org',
-  force_source_diff_unsupported_type:
+  source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',
-  force_source_diff_title: '%s//%s ↔ local//%s',
-  force_source_diff_folder_title: '%s - File Diffs',
+  source_diff_title: '%s//%s ↔ local//%s',
+  source_diff_folder_title: '%s - File Diffs',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
@@ -652,13 +651,13 @@ export const messages = {
   sobjects_refresh_needed:
     "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
-  force_sobjects_no_refresh_if_already_active_error_text:
+  sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
-  force_rename_lightning_component: 'SFDX: Rename Component',
+  rename_lightning_component: 'SFDX: Rename Component',
   rename_component_input_dup_error:
     'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:

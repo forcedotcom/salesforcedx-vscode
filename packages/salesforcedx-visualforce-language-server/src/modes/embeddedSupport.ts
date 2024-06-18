@@ -15,12 +15,12 @@ import {
   TokenType
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 
-export interface LanguageRange extends Range {
+export type LanguageRange = Range & {
   languageId: string;
   attributeValue?: boolean;
-}
+};
 
-export interface HTMLDocumentRegions {
+export type HTMLDocumentRegions = {
   getEmbeddedDocument(
     languageId: string,
     ignoreAttributeValues?: boolean
@@ -29,16 +29,16 @@ export interface HTMLDocumentRegions {
   getLanguageAtPosition(position: Position): string;
   getLanguagesInDocument(): string[];
   getImportedScripts(): string[];
-}
+};
 
 export const CSS_STYLE_RULE = '__';
 
-interface EmbeddedRegion {
+type EmbeddedRegion = {
   languageId: string;
   start: number;
   end: number;
   attributeValue?: boolean;
-}
+};
 
 export const getDocumentRegions = (
   languageService: LanguageService,

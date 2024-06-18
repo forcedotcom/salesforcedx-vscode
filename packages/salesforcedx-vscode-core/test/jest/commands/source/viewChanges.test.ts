@@ -9,17 +9,17 @@ import {
   viewLocalChanges,
   viewRemoteChanges
 } from '../../../../src/commands';
-import * as commandlet from '../../../../src/commands/util/sfdxCommandlet';
+import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 
 describe('viewChanges', () => {
   let runMock: jest.Mock<any, any>;
-  let sfdxCommandletMocked: jest.SpyInstance<any, any>;
+  let sfCommandletMocked: jest.SpyInstance<any, any>;
 
   beforeEach(() => {
     // Arrange
     runMock = jest.fn();
-    sfdxCommandletMocked = jest
-      .spyOn(commandlet, 'SfdxCommandlet')
+    sfCommandletMocked = jest
+      .spyOn(commandlet, 'SfCommandlet')
       .mockImplementation((): any => {
         return {
           run: runMock
@@ -28,13 +28,13 @@ describe('viewChanges', () => {
   });
 
   describe('viewAllChanges', () => {
-    it('should get both local and remote changes', async () => {
+    it('should get both local and remote changes', () => {
       // Act
-      await viewAllChanges();
+      viewAllChanges();
 
       // Assert
-      expect(sfdxCommandletMocked).toHaveBeenCalledTimes(1);
-      expect(sfdxCommandletMocked.mock.calls[0][2].options).toEqual({
+      expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
+      expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
         local: true,
         remote: true
       });
@@ -43,11 +43,11 @@ describe('viewChanges', () => {
   });
 
   describe('viewLocalChanges', () => {
-    it('should get local changes', async () => {
-      await viewLocalChanges();
+    it('should get local changes', () => {
+      viewLocalChanges();
 
-      expect(sfdxCommandletMocked).toHaveBeenCalledTimes(1);
-      expect(sfdxCommandletMocked.mock.calls[0][2].options).toEqual({
+      expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
+      expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
         local: true,
         remote: false
       });
@@ -56,11 +56,11 @@ describe('viewChanges', () => {
   });
 
   describe('viewRemoteChanges', () => {
-    it('should get remote changes', async () => {
-      await viewRemoteChanges();
+    it('should get remote changes', () => {
+      viewRemoteChanges();
 
-      expect(sfdxCommandletMocked).toHaveBeenCalledTimes(1);
-      expect(sfdxCommandletMocked.mock.calls[0][2].options).toEqual({
+      expect(sfCommandletMocked).toHaveBeenCalledTimes(1);
+      expect(sfCommandletMocked.mock.calls[0][2].options).toEqual({
         local: false,
         remote: true
       });

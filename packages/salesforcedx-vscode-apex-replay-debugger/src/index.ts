@@ -27,7 +27,7 @@ import {
   CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfdxToggleCheckpoint
+  sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -44,7 +44,7 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
+const salesforceCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
@@ -67,7 +67,7 @@ const registerCommands = (): vscode.Disposable => {
     }
   );
   const launchFromLogFileCmd = vscode.commands.registerCommand(
-    'sfdx.launch.replay.debugger.logfile',
+    'sf.launch.replay.debugger.logfile',
     (editorUri: vscode.Uri) => {
       let logFile: string | undefined;
       if (!editorUri) {
@@ -85,7 +85,7 @@ const registerCommands = (): vscode.Disposable => {
   );
 
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
-    'sfdx.launch.replay.debugger.logfile.path',
+    'sf.launch.replay.debugger.logfile.path',
     logFilePath => {
       if (logFilePath) {
         launchFromLogFile(logFilePath, true);
@@ -94,7 +94,7 @@ const registerCommands = (): vscode.Disposable => {
   );
 
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
-    'sfdx.launch.replay.debugger.last.logfile',
+    'sf.launch.replay.debugger.last.logfile',
     () => {
       const lastOpenedLog =
         extContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
@@ -102,13 +102,13 @@ const registerCommands = (): vscode.Disposable => {
     }
   );
 
-  const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
-    'sfdx.create.checkpoints',
-    CheckpointService.sfdxCreateCheckpoints
+  const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
+    'sf.create.checkpoints',
+    CheckpointService.sfCreateCheckpoints
   );
-  const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
-    'sfdx.toggle.checkpoint',
-    sfdxToggleCheckpoint
+  const sfToggleCheckpointCmd = vscode.commands.registerCommand(
+    'sf.toggle.checkpoint',
+    sfToggleCheckpoint
   );
 
   return vscode.Disposable.from(
@@ -116,8 +116,8 @@ const registerCommands = (): vscode.Disposable => {
     launchFromLogFileCmd,
     launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
-    sfdxCreateCheckpointsCmd,
-    sfdxToggleCheckpointCmd
+    sfCreateCheckpointsCmd,
+    sfToggleCheckpointCmd
   );
 };
 
@@ -183,7 +183,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     new DebugConfigurationProvider()
   );
   const checkpointsView = vscode.window.registerTreeDataProvider(
-    'sfdx.force.view.checkpoint',
+    'sf.view.checkpoint',
     checkpointService
   );
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
@@ -195,7 +195,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(
-    'sfdx.force.test.view.debugTests',
+    'sf.test.view.debugTests',
     async test => {
       await setupAndDebugTests(test.name);
     }
@@ -203,7 +203,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Debug Single Test command
   const debugTest = vscode.commands.registerCommand(
-    'sfdx.force.test.view.debugSingleTest',
+    'sf.test.view.debugSingleTest',
     async test => {
       const name = test.name.split('.');
       await setupAndDebugTests(name[0], name[1]);
@@ -221,10 +221,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
 
   // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
     telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      salesforceCoreExtension.exports.telemetryService.getReporters(),
+      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 
@@ -232,21 +232,27 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 };
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
-  const sfdxApex = vscode.extensions.getExtension(
+  const salesforceApexExtension = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
-  if (sfdxApex && sfdxApex.exports) {
+  if (salesforceApexExtension && salesforceApexExtension.exports) {
     let expired = false;
     let i = 0;
     while (
-      !sfdxApex.exports.languageClientUtils.getStatus().isReady() &&
+      !salesforceApexExtension.exports.languageClientUtils
+        .getStatus()
+        .isReady() &&
       !expired
     ) {
       if (
-        sfdxApex.exports.languageClientUtils.getStatus().failedToInitialize()
+        salesforceApexExtension.exports.languageClientUtils
+          .getStatus()
+          .failedToInitialize()
       ) {
         throw Error(
-          sfdxApex.exports.languageClientUtils.getStatus().getStatusMessage()
+          salesforceApexExtension.exports.languageClientUtils
+            .getStatus()
+            .getStatusMessage()
         );
       }
 
@@ -265,7 +271,8 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
       );
       return false;
     } else {
-      const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
+      const lineBpInfo =
+        await salesforceApexExtension.exports.getLineBreakpointInfo();
       if (lineBpInfo && lineBpInfo.length > 0) {
         console.log(nls.localize('line_breakpoint_information_success'));
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);

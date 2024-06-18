@@ -94,9 +94,9 @@ describe('orgList Tests', () => {
         );
       });
 
-      function getFakeOrgAuthorization(
+      const getFakeOrgAuthorization = (
         orgAuth?: Partial<OrgAuthorization>
-      ): OrgAuthorization {
+      ): OrgAuthorization => {
         const fakeOrgAuth: OrgAuthorization = {
           orgId: orgAuth?.orgId ?? '000',
           username: orgAuth?.username ?? 'test-username1@example.com',
@@ -112,7 +112,7 @@ describe('orgList Tests', () => {
           isExpired: orgAuth?.isExpired ?? false
         };
         return fakeOrgAuth;
-      }
+      };
 
       const dummyOrgAuth1 = getFakeOrgAuthorization({
         orgId: '000',
@@ -160,7 +160,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('test-username2@example.com');
       });
 
-      it('should filter the list to only show scratch orgs associated with current default dev hub without an alias', async () => {
+      it('should filter the list to only show scratch orgs associated with current target dev hub without an alias', async () => {
         const authInfoObjects: OrgAuthorization[] = [
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
@@ -180,7 +180,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
 
-      it('should filter the list to only show scratch orgs associated with current default dev hub', async () => {
+      it('should filter the list to only show scratch orgs associated with current target dev hub', async () => {
         const authInfoObjects: OrgAuthorization[] = [
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
@@ -335,7 +335,7 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.org.login.web')).to.equal(
+        expect(executeCommandStub.calledWith('sf.org.login.web')).to.equal(
           true
         );
       });
@@ -347,7 +347,7 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.org.create')).to.equal(true);
+        expect(executeCommandStub.calledWith('sf.org.create')).to.equal(true);
       });
 
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
@@ -358,20 +358,19 @@ describe('orgList Tests', () => {
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(
-          executeCommandStub.calledWith('sfdx.org.login.web.dev.hub')
+          executeCommandStub.calledWith('sf.org.login.web.dev.hub')
         ).to.equal(true);
       });
 
-      it('should return Continue and call sfdx:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
+      it('should return Continue and call sf:org:login:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
         orgListStub.returns(orgsList);
         quickPickStub.returns(
-          '$(plus) ' +
-            nls.localize('force_auth_access_token_authorize_org_text')
+          '$(plus) ' + nls.localize('org_login_access_token_text')
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(
-          executeCommandStub.calledWith('sfdx.force.auth.accessToken')
+          executeCommandStub.calledWith('sf.org.login.access.token')
         ).to.equal(true);
       });
 
@@ -380,18 +379,18 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus) ' + nls.localize('org_list_clean_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.org.list.clean')).to.equal(
+        expect(executeCommandStub.calledWith('sf.org.list.clean')).to.equal(
           true
         );
       });
 
-      it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
+      it('should return Continue and call config:set command if a username/alias is selected', async () => {
         orgListStub.returns(orgsList);
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.config.set')).to.equal(true);
+        expect(executeCommandStub.calledWith('sf.config.set')).to.equal(true);
       });
     });
   });

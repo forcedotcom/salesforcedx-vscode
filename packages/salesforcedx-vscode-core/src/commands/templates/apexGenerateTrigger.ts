@@ -14,8 +14,8 @@ import {
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryApexGenerateTriggerExecutor } from './executors/LibraryApexGenerateTriggerExecutor';
@@ -29,7 +29,7 @@ let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;
 let outputDirGatherer: ParametersGatherer<any>;
 let metadataTypeGatherer: ParametersGatherer<any>;
-function getGatherers() {
+const getGatherers = () => {
   if (!initialized) {
     initialized = true;
     fileNameGatherer = new SelectFileName(APEX_TRIGGER_NAME_MAX_LENGTH);
@@ -41,14 +41,14 @@ function getGatherers() {
     outputDirGatherer,
     metadataTypeGatherer
   };
-}
+};
 
-export async function apexGenerateTrigger() {
+export const apexGenerateTrigger = (): void => {
   const gatherers = getGatherers();
 
   const createTemplateExecutor = new LibraryApexGenerateTriggerExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       gatherers.metadataTypeGatherer,
       gatherers.fileNameGatherer,
@@ -57,5 +57,5 @@ export async function apexGenerateTrigger() {
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

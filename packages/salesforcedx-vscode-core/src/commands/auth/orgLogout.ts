@@ -8,27 +8,27 @@
 import { AuthRemover } from '@salesforce/core';
 import {
   Command,
+  ConfigUtil,
   ContinueResponse,
   LibraryCommandletExecutor,
   notificationService,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import { configSet } from '../configSet';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker,
   SimpleGatherer
 } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
-export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
+export class OrgLogoutAll extends SfCommandletExecutor<{}> {
   public static withoutShowingChannel(): OrgLogoutAll {
     const instance = new OrgLogoutAll();
     instance.showChannelOutput = false;
@@ -37,34 +37,34 @@ export class OrgLogoutAll extends SfdxCommandletExecutor<{}> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
       .withArg('org:logout')
       .withArg('--all')
       .withArg('--no-prompt')
-      .withLogName('force_auth_logout')
+      .withLogName('org_logout')
       .build();
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 const executor = new OrgLogoutAll();
-const commandlet = new SfdxCommandlet(
+const commandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor
 );
 
-export async function orgLogoutAll() {
+export const orgLogoutAll = async () => {
   await commandlet.run();
-}
+};
 
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
     super(
       nls.localize('org_logout_default_text'),
-      'force_auth_logout_default',
+      'org_logout_default',
       OUTPUT_CHANNEL
     );
   }
@@ -89,16 +89,16 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   }
 }
 
-export async function orgLogoutDefault() {
-  const { username, isScratch, alias, error } = await resolveDefaultUsername();
+export const orgLogoutDefault = async () => {
+  const { username, isScratch, alias, error } = await resolveTargetOrg();
   if (error) {
     telemetryService.sendException(error.name, error.message);
-    notificationService.showErrorMessage('Logout failed to run');
+    void notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
     // confirm logout for scratch orgs due to special considerations:
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
-    const logoutCommandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
+    const logoutCommandlet = new SfCommandlet(
+      new SfWorkspaceChecker(),
       isScratch
         ? new ScratchOrgLogoutParamsGatherer(username, alias)
         : new SimpleGatherer<string>(username),
@@ -106,25 +106,25 @@ export async function orgLogoutDefault() {
     );
     await logoutCommandlet.run();
   } else {
-    notificationService.showInformationMessage(
+    void notificationService.showInformationMessage(
       nls.localize('org_logout_no_default_org')
     );
   }
-}
+};
 
-async function removeUsername(username: string) {
-  await configSet('');
+const removeUsername = async (username: string) => {
+  await ConfigUtil.unsetTargetOrg();
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
-}
+};
 
-async function resolveDefaultUsername(): Promise<{
+const resolveTargetOrg = async (): Promise<{
   username?: string;
   isScratch: boolean;
   alias?: string;
   error?: Error;
-}> {
-  const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+}> => {
+  const usernameOrAlias = await OrgAuthInfo.getTargetOrgOrAlias(false);
   if (usernameOrAlias) {
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
     const alias = username !== usernameOrAlias ? usernameOrAlias : undefined;
@@ -138,4 +138,4 @@ async function resolveDefaultUsername(): Promise<{
     return { username, isScratch, alias };
   }
   return { isScratch: false };
-}
+};

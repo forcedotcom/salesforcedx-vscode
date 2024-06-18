@@ -12,14 +12,14 @@ import {
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
+import { salesforceCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
@@ -31,14 +31,14 @@ import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
 export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_lwc_text');
-  public telemetryName = 'force_lightning_web_component_create';
+  public telemetryName = 'lightning_generate_lwc';
   public metadataTypeName = LWC_TYPE;
   public templateType = TemplateType.LightningComponent;
   public getOutputFileName(data: DirFileNameSelection) {
     return data.fileName;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
-    const internal = sfdxCoreSettings.getInternalDev();
+    const internal = salesforceCoreSettings.getInternalDev();
     const templateOptions: LightningComponentOptions = {
       outputdir: data.outputdir,
       componentname: data.fileName,
@@ -54,10 +54,10 @@ const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
-export async function lightningGenerateLwc() {
+export const lightningGenerateLwc = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,
@@ -66,12 +66,12 @@ export async function lightningGenerateLwc() {
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};
 
-export async function internalLightningGenerateLwc(sourceUri: Uri) {
+export const internalLightningGenerateLwc = (sourceUri: Uri): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
@@ -79,5 +79,5 @@ export async function internalLightningGenerateLwc(sourceUri: Uri) {
     ),
     createTemplateExecutor
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

@@ -8,25 +8,25 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channel';
 import { nls } from '../../messages';
 
-interface SfdxTaskDefinition extends vscode.TaskDefinition {
-  sfdxTaskId: string;
-}
+type SfTaskDefinition = vscode.TaskDefinition & {
+  sfTaskId: string;
+};
 
 /**
  * A wrapper over vscode.Task that emits events during task lifecycle
  */
-export class SfdxTask {
+export class SfTask {
   private task: vscode.Task;
   private taskExecution?: vscode.TaskExecution;
-  public onDidStart: vscode.Event<SfdxTask>;
-  public onDidEnd: vscode.Event<SfdxTask>;
+  public onDidStart: vscode.Event<SfTask>;
+  public onDidEnd: vscode.Event<SfTask>;
 
-  private onDidStartEventEmitter: vscode.EventEmitter<SfdxTask>;
-  private onDidEndEventEmitter: vscode.EventEmitter<SfdxTask>;
+  private onDidStartEventEmitter: vscode.EventEmitter<SfTask>;
+  private onDidEndEventEmitter: vscode.EventEmitter<SfTask>;
   constructor(task: vscode.Task) {
     this.task = task;
-    this.onDidStartEventEmitter = new vscode.EventEmitter<SfdxTask>();
-    this.onDidEndEventEmitter = new vscode.EventEmitter<SfdxTask>();
+    this.onDidStartEventEmitter = new vscode.EventEmitter<SfTask>();
+    this.onDidEndEventEmitter = new vscode.EventEmitter<SfTask>();
     this.onDidStart = this.onDidStartEventEmitter.event;
     this.onDidEnd = this.onDidEndEventEmitter.event;
   }
@@ -61,7 +61,7 @@ export class SfdxTask {
  * Task service for creating vscode.Task
  */
 class TaskService {
-  private createdTasks: Map<string, SfdxTask>;
+  private createdTasks: Map<string, SfTask>;
 
   constructor() {
     this.createdTasks = new Map();
@@ -76,9 +76,9 @@ class TaskService {
       taskStartEvent => {
         const { execution } = taskStartEvent;
         const { definition } = execution.task;
-        const { sfdxTaskId } = definition;
-        if (sfdxTaskId) {
-          const foundTask = this.createdTasks.get(sfdxTaskId);
+        const { sfTaskId } = definition;
+        if (sfTaskId) {
+          const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {
             foundTask.notifyStartTask();
           }
@@ -92,12 +92,12 @@ class TaskService {
       taskEndEvent => {
         const { execution } = taskEndEvent;
         const { definition } = execution.task;
-        const { sfdxTaskId } = definition;
-        if (sfdxTaskId) {
-          const foundTask = this.createdTasks.get(sfdxTaskId);
+        const { sfTaskId } = definition;
+        if (sfTaskId) {
+          const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {
             foundTask.notifyEndTask();
-            this.createdTasks.delete(sfdxTaskId);
+            this.createdTasks.delete(sfTaskId);
             foundTask.dispose();
           }
         }
@@ -122,10 +122,10 @@ class TaskService {
     taskScope: vscode.WorkspaceFolder | vscode.TaskScope,
     cmd: string,
     args: (string | vscode.ShellQuotedString)[]
-  ): SfdxTask {
-    const taskDefinition: SfdxTaskDefinition = {
-      type: 'sfdxLwcTest',
-      sfdxTaskId: taskId
+  ): SfTask {
+    const taskDefinition: SfTaskDefinition = {
+      type: 'sfLwcTest',
+      sfTaskId: taskId
     };
     const taskSource = 'SFDX';
     // https://github.com/forcedotcom/salesforcedx-vscode/issues/2097
@@ -156,9 +156,9 @@ class TaskService {
     );
     task.presentationOptions.clear = true;
 
-    const sfdxTask = new SfdxTask(task);
-    this.createdTasks.set(taskId, sfdxTask);
-    return sfdxTask;
+    const sfTask = new SfTask(task);
+    this.createdTasks.set(taskId, sfTask);
+    return sfTask;
   }
 }
 export const taskService = new TaskService();

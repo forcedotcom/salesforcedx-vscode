@@ -18,23 +18,8 @@ on:
         required: false
         default: true
         type: boolean
-      deployAndRetrieve:
-        description: 'Deploy and Retrieve'
-        required: false
-        default: true
-        type: boolean
-      manifestBuilder:
-        description: 'Manifest Builder'
-        required: false
-        default: true
-        type: boolean
-      orgBrowser:
-        description: 'Org Browser'
-        required: false
-        default: true
-        type: boolean
-      pushAndPull:
-        description: 'Push and Pull'
+      miscellaneous:
+        description: 'Miscellaneous Commands'
         required: false
         default: true
         type: boolean
@@ -44,10 +29,15 @@ on:
         default: true
         type: boolean
       templates:
-        description: 'Templates'
+        description: 'Create Commands'
         required: false
         default: true
         type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.85.2'
+        type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: true
@@ -70,23 +60,8 @@ on:
         required: false
         default: true
         type: boolean
-      deployAndRetrieve:
-        description: 'Deploy and Retrieve'
-        required: false
-        default: true
-        type: boolean
-      manifestBuilder:
-        description: 'Manifest Builder'
-        required: false
-        default: true
-        type: boolean
-      orgBrowser:
-        description: 'Org Browser'
-        required: false
-        default: true
-        type: boolean
-      pushAndPull:
-        description: 'Push and Pull'
+      miscellaneous:
+        description: 'Miscellaneous Commands'
         required: false
         default: true
         type: boolean
@@ -96,10 +71,15 @@ on:
         default: true
         type: boolean
       templates:
-        description: 'Templates'
+        description: 'Create Commands'
         required: false
         default: true
         type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.85.2'
+        type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: false
@@ -113,6 +93,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'anInitialSuite.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
   authentication:
@@ -122,42 +103,17 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'authentication.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
-  deployAndRetrieve:
-    if: ${{ inputs.deployAndRetrieve }}
+  miscellaneous:
+    if: ${{ inputs.miscellaneous }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'deployAndRetrieve.e2e.ts'
-      runId: ${{ inputs.runId }}
-
-  manifestBuilder:
-    if: ${{ inputs.manifestBuilder }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'manifestBuilder.e2e.ts'
-      runId: ${{ inputs.runId }}
-
-  orgBrowser:
-    if: ${{ inputs.orgBrowser }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'orgBrowser.e2e.ts'
-      runId: ${{ inputs.runId }}
-
-  pushAndPull:
-    if: ${{ inputs.pushAndPull }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'pushAndPull.e2e.ts'
+      testToRun: 'miscellaneous.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
   sObjectsDefinitions:
@@ -167,6 +123,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'sObjectsDefinitions.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
   templates:
@@ -176,6 +133,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'templates.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:
@@ -184,19 +142,17 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        deployAndRetrieve,
-        manifestBuilder,
-        orgBrowser,
-        pushAndPull,
+        miscellaneous,
         sObjectsDefinitions,
-        templates,
+        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Core E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -207,19 +163,17 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        deployAndRetrieve,
-        manifestBuilder,
-        orgBrowser,
-        pushAndPull,
+        miscellaneous,
         sObjectsDefinitions,
-        templates,
+        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Core E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -230,19 +184,17 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        deployAndRetrieve,
-        manifestBuilder,
-        orgBrowser,
-        pushAndPull,
+        miscellaneous,
         sObjectsDefinitions,
-        templates,
+        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Core E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'

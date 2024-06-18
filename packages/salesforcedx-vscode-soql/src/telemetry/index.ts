@@ -5,27 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 
 export const telemetryService = TelemetryService.getInstance();
 
-export async function startTelemetry(
+export const startTelemetry = async (
   extensionContext: vscode.ExtensionContext,
   hrtime: [number, number]
-): Promise<void> {
+): Promise<void> => {
   await telemetryService.initializeService(extensionContext);
   telemetryService.sendExtensionActivationEvent(hrtime);
-}
+};
 
-export async function stopTelemetry(): Promise<void> {
+export const stopTelemetry = (): Promise<void> => {
   telemetryService.sendExtensionDeactivationEvent();
-}
+  return Promise.resolve();
+};
 
-export interface TelemetryModelJson extends JsonMap {
+export type TelemetryModelJson = {
   fields: number;
   orderBy: number;
   limit: number;
   errors: number;
   unsupported: number;
-}
+};

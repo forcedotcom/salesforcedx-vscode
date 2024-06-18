@@ -35,5 +35,5 @@ export const messages = {
   malformed_log_line:
     "不正な HEAP_DUMP のログの行が見つかりました。この行をスキップします。ログの行番号=%d、ログの行='%s'",
   reconcile_heapdump_error:
-    'ヒープダンプ情報を取得する際に問題が発生しました: %s。 Tooling API を使用して ApexExecutionOverlayResult オブジェクトのレコード (ID %s) を削除してください。ターミナルから、"sfdx data:delete:record -t -s ApexExecutionOverlayResult -i %s" を実行してください。'
+    'ヒープダンプ情報を取得する際に問題が発生しました: %s。 Tooling API を使用して ApexExecutionOverlayResult オブジェクトのレコード (ID %s) を削除してください。ターミナルから、"sf data:delete:record -t -s ApexExecutionOverlayResult -i %s" を実行してください。'
 };

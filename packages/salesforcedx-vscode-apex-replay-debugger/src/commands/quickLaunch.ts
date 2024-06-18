@@ -33,16 +33,16 @@ import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 
-interface TestRunResult {
+type TestRunResult = {
   logFileId?: string;
   message?: string;
   success: boolean;
-}
+};
 
-interface LogFileRetrieveResult {
+type LogFileRetrieveResult = {
   filePath?: string;
   success: boolean;
-}
+};
 
 export class QuickLaunch {
   public async debugTest(
@@ -56,11 +56,11 @@ export class QuickLaunch {
       return false;
     }
 
-    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(
-      true
-    );
+    const oneOrMoreCheckpoints =
+      checkpointService.hasOneOrMoreActiveCheckpoints(true);
     if (oneOrMoreCheckpoints) {
-      const createCheckpointsResult = await CheckpointService.sfdxCreateCheckpoints();
+      const createCheckpointsResult =
+        await CheckpointService.sfCreateCheckpoints();
       if (!createCheckpointsResult) {
         return false;
       }
@@ -164,7 +164,7 @@ export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   }
 }
 
-export const setupAndDebugTests =  async (
+export const setupAndDebugTests = async (
   className: string,
   methodName?: string
 ): Promise<void> => {

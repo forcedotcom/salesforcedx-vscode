@@ -8,7 +8,7 @@
 import {
   CliCommandExecutor,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -19,10 +19,10 @@ import { Uri } from 'vscode';
 // Used only for CI purposes. Must call delete if you call create
 export const generateSFProject = async (projectName: string): Promise<void> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('project:generate')
       .withFlag('--name', projectName)
-      .withJson(false)
+      .withJson()
       .build(),
     { cwd: process.cwd() }
   ).execute();
@@ -41,11 +41,11 @@ export const createScratchOrg = async (
     'project-scratch-def.json'
   );
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('org:create:scratch')
       .withFlag('--definition-file', `${scratchDefFilePath}`)
       .withArg('--set-default')
-      .withJson(false)
+      .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
@@ -60,7 +60,7 @@ export const deleteScratchOrg = async (
   username: string
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('org:delete:scratch')
       .withFlag('--target-org', username)
       .withArg('--no-prompt')
@@ -87,16 +87,16 @@ export const pushSource = async (
   );
   cp('-R', sourceFolder, targetFolder);
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:source:push')
-      .withFlag('--targetusername', username)
+    new SfCommandBuilder()
+      .withArg('project:deploy:start')
+      .withFlag('--target-org', username)
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pushedSource;
+  const source = JSON.parse(result).files;
   return Promise.resolve(source);
 };
 
@@ -105,16 +105,16 @@ export const pullSource = async (
   username: string
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:source:pull')
-      .withFlag('--targetusername', username)
+    new SfCommandBuilder()
+      .withArg('project:retrieve:start')
+      .withFlag('--target-org', username)
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pulledSource;
+  const source = JSON.parse(result).result.files;
   return Promise.resolve(source);
 };
 
@@ -123,7 +123,7 @@ export const createPermissionSet = async (
   username: string
 ): Promise<string> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('data:create:record')
       .withFlag('--sobject', 'PermissionSet')
       .withFlag('--target-org', username)
@@ -148,7 +148,7 @@ export const createFieldPermissions = async (
   username: string
 ): Promise<void> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('data:create:record')
       .withFlag('--sobject', 'FieldPermissions')
       .withFlag('--target-org', username)
@@ -175,10 +175,10 @@ export const assignPermissionSet = async (
   username: string
 ): Promise<void> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:user:permset:assign')
-      .withFlag('--permsetname', permissionSetName)
-      .withFlag('--targetusername', username)
+    new SfCommandBuilder()
+      .withArg('org:assign:permset')
+      .withFlag('--name', permissionSetName)
+      .withFlag('--target-org', username)
       .withJson()
       .build(),
     { cwd: process.cwd() }

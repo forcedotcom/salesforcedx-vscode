@@ -7,7 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
@@ -32,35 +32,33 @@ import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
 import {
   DemoModePromptGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from '../util';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
-export interface DeviceCodeResponse {
+export type DeviceCodeResponse = {
   user_code: string;
   device_code: string;
   interval: number;
   verification_uri: string;
-}
+};
 
-export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
-  AuthParams
-> {
+export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
 
   public build(data: AuthParams): Command {
-    const command = new SfdxCommandBuilder().withDescription(
+    const command = new SfCommandBuilder().withDescription(
       nls.localize('org_login_web_authorize_org_text')
     );
 
     command
       .withArg(CLI.ORG_LOGIN_DEVICE)
-      .withLogName('force_auth_device_login')
+      .withLogName('org_login_web_container')
       .withFlag('--alias', data.alias)
       .withFlag('--instance-url', data.loginUrl)
       .withArg('--set-default')
@@ -129,7 +127,7 @@ export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
         nls.localize('org_login_device_code_parse_error')
       );
       telemetryService.sendException(
-        'force_auth_web_container',
+        'org_login_web_container',
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `There was an error when parsing the cli response ${error}`
       );
@@ -148,17 +146,17 @@ export class OrgLoginWebContainerExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class OrgLoginWebExecutor extends SfdxCommandletExecutor<AuthParams> {
+export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
-    const command = new SfdxCommandBuilder().withDescription(
+    const command = new SfCommandBuilder().withDescription(
       nls.localize('org_login_web_authorize_org_text')
     );
 
     command
       .withArg(CLI.ORG_LOGIN_WEB)
-      .withLogName('force_auth_web_login')
+      .withLogName('org_login_web')
       .withFlag('--alias', data.alias)
       .withFlag('--instance-url', data.loginUrl)
       .withArg('--set-default');
@@ -167,9 +165,7 @@ export class OrgLoginWebExecutor extends SfdxCommandletExecutor<AuthParams> {
   }
 }
 
-export abstract class ForceAuthDemoModeExecutor<
-  T
-> extends SfdxCommandletExecutor<T> {
+export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new CancellationTokenSource();
@@ -185,11 +181,11 @@ export abstract class ForceAuthDemoModeExecutor<
 
     notificationService.reportExecutionError(
       execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
+      execution.stderrSubject as any as Observable<Error | undefined>
     );
 
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -208,11 +204,9 @@ export abstract class ForceAuthDemoModeExecutor<
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<
-  AuthParams
-> {
+export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))
       .withArg(CLI.ORG_LOGIN_WEB)
       .withFlag('--alias', data.alias)
@@ -220,23 +214,23 @@ export class OrgLoginWebDemoModeExecutor extends ForceAuthDemoModeExecutor<
       .withArg('--set-default')
       .withArg('--no-prompt')
       .withJson()
-      .withLogName('force_auth_web_login_demo_mode')
+      .withLogName('org_login_web_demo_mode')
       .build();
   }
 }
 
-export async function promptLogOutForProdOrg() {
-  await new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+export const promptLogOutForProdOrg = async () => {
+  await new SfCommandlet(
+    new SfWorkspaceChecker(),
     new DemoModePromptGatherer(),
     OrgLogoutAll.withoutShowingChannel()
   ).run();
-}
+};
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<{}> {
+export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();
@@ -245,13 +239,13 @@ export function createOrgLoginWebExecutor(): SfdxCommandletExecutor<{}> {
     default:
       return new OrgLoginWebExecutor();
   }
-}
+};
 
-export async function orgLoginWeb() {
-  const commandlet = new SfdxCommandlet(
+export const orgLoginWeb = async (): Promise<void> => {
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createOrgLoginWebExecutor()
   );
   await commandlet.run();
-}
+};

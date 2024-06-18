@@ -1,13 +1,15 @@
 ---
-title: Apex Code Generation
+title: Natural Language to Code Generation
 lang: en
 ---
 
-## Generate Apex Code
+## Generate Apex Code from Natural Language Prompts
 
-Use the Einstein for Developers side bar to write a question or an instruction that describes the task for which you'd like to receive an Apex code suggestion and press **Ask**. Copy the code suggestion you received and paste it into an Apex file to use as "starter" code.
+Use the Einstein for Developers sidebar to write a question or an instruction that describes the task for which you'd like to receive an Apex code suggestion and press **Ask**. Copy the code suggestion you received and paste it into an Apex file to use as "starter" code.
 
-![Sidebar code generation](./images/einstein-sidebar.png)
+<div align=center>
+<img src="./images/einstein-sidebar.gif" width="550">
+</div>
 
 ## Use the Command Palette to Generate Apex Code
 

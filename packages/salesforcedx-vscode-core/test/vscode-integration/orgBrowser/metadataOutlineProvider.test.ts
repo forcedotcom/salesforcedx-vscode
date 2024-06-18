@@ -64,7 +64,11 @@ describe('load org browser tree outline', () => {
         xmlName: 'typeNode2'
       }
     ];
-    const expected = getExpected('typeNode1', 'typeNode2', NodeType.MetadataType);
+    const expected = getExpected(
+      'typeNode1',
+      'typeNode2',
+      NodeType.MetadataType
+    );
     const orgNode = new BrowserNode(username, NodeType.Org);
     getTypesStub.returns(metadataInfo);
     const typesNodes = await metadataProvider.getChildren(orgNode);
@@ -177,7 +181,6 @@ describe('load org browser tree outline', () => {
 
     const f2 = await metadataProvider.getChildren(f[1]);
     compareNodes(f2, folder2);
-
   });
 
   it('should display fields when folder within Custom Objects type is selected', async () => {
@@ -186,7 +189,12 @@ describe('load org browser tree outline', () => {
       new BrowserNode('Asset', NodeType.Folder, 'Asset', undefined),
       new BrowserNode('Book__c', NodeType.Folder, 'Book__c', undefined),
       new BrowserNode('Campaign', NodeType.Folder, 'Campaign', undefined),
-      new BrowserNode('Customer Case', NodeType.Folder, 'Customer Case', undefined)
+      new BrowserNode(
+        'Customer Case',
+        NodeType.Folder,
+        'Customer Case',
+        undefined
+      )
     ];
     const customObjectNames = [
       'Account',
@@ -201,15 +209,60 @@ describe('load org browser tree outline', () => {
 
     const bookFieldBrowserNodes = [
       new BrowserNode('Id (id)', NodeType.MetadataField, 'Id (id)', undefined),
-      new BrowserNode('Owner (reference)', NodeType.MetadataField, 'Owner (reference)', undefined),
-      new BrowserNode('IsDeleted (boolean)', NodeType.MetadataField, 'IsDeleted (boolean)', undefined),
-      new BrowserNode('Name (string(80))', NodeType.MetadataField, 'Name (string(80))', undefined),
-      new BrowserNode('CreatedDate (datetime)', NodeType.MetadataField, 'CreatedDate (datetime)', undefined),
-      new BrowserNode('CreatedBy (reference)', NodeType.MetadataField, 'CreatedBy (reference)', undefined),
-      new BrowserNode('LastModifiedDate (datetime)', NodeType.MetadataField, 'LastModifiedDate (datetime)', undefined),
-      new BrowserNode('LastModifiedBy (reference)', NodeType.MetadataField, 'LastModifiedBy (reference)', undefined),
-      new BrowserNode('SystemModstamp (datetime)', NodeType.MetadataField, 'SystemModstamp (datetime)', undefined),
-      new BrowserNode('Price__c (currency)', NodeType.MetadataField, 'Price__c (currency)', undefined)
+      new BrowserNode(
+        'Owner (reference)',
+        NodeType.MetadataField,
+        'Owner (reference)',
+        undefined
+      ),
+      new BrowserNode(
+        'IsDeleted (boolean)',
+        NodeType.MetadataField,
+        'IsDeleted (boolean)',
+        undefined
+      ),
+      new BrowserNode(
+        'Name (string(80))',
+        NodeType.MetadataField,
+        'Name (string(80))',
+        undefined
+      ),
+      new BrowserNode(
+        'CreatedDate (datetime)',
+        NodeType.MetadataField,
+        'CreatedDate (datetime)',
+        undefined
+      ),
+      new BrowserNode(
+        'CreatedBy (reference)',
+        NodeType.MetadataField,
+        'CreatedBy (reference)',
+        undefined
+      ),
+      new BrowserNode(
+        'LastModifiedDate (datetime)',
+        NodeType.MetadataField,
+        'LastModifiedDate (datetime)',
+        undefined
+      ),
+      new BrowserNode(
+        'LastModifiedBy (reference)',
+        NodeType.MetadataField,
+        'LastModifiedBy (reference)',
+        undefined
+      ),
+      new BrowserNode(
+        'SystemModstamp (datetime)',
+        NodeType.MetadataField,
+        'SystemModstamp (datetime)',
+        undefined
+      ),
+      new BrowserNode(
+        'Price__c (currency)',
+        NodeType.MetadataField,
+        'Price__c (currency)',
+        undefined
+      )
     ];
     const bookFieldNames = [
       'Id (id)',
@@ -311,7 +364,7 @@ describe('fetch nodes when org browser (cloud icon) is selected', () => {
     loadTypesStub.returns([]);
     const usernameStub = stub(
       MetadataOutlineProvider.prototype,
-      'getDefaultUsernameOrAlias'
+      'getTargetOrgOrAlias'
     ).returns(username);
     const node = new BrowserNode(username, NodeType.Org);
 
@@ -335,7 +388,10 @@ describe('load fields or components when folder within metadata type is selected
 
   beforeEach(() => {
     metadataProvider = new MetadataOutlineProvider(username);
-    getComponentsStub = stub(MetadataOutlineProvider.prototype, 'getComponents');
+    getComponentsStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getComponents'
+    );
   });
 
   afterEach(() => {
@@ -343,7 +399,11 @@ describe('load fields or components when folder within metadata type is selected
   });
 
   it('should load component nodes when folder within Dashboards type is selected', async () => {
-    const expected = getExpected('DashboardA', 'DashboardB', NodeType.MetadataComponent);
+    const expected = getExpected(
+      'DashboardA',
+      'DashboardB',
+      NodeType.MetadataComponent
+    );
     const metadataObject = getMetadataObject('Dashboard Folder');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const dashboardFolderNode = new BrowserNode(
@@ -357,7 +417,11 @@ describe('load fields or components when folder within metadata type is selected
   });
 
   it('should load component nodes when folder within Documents type is selected', async () => {
-    const expected = getExpected('DocumentA', 'DocumentB', NodeType.MetadataComponent);
+    const expected = getExpected(
+      'DocumentA',
+      'DocumentB',
+      NodeType.MetadataComponent
+    );
     const metadataObject = getMetadataObject('Document Folder');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const documentFolderNode = new BrowserNode(
@@ -371,7 +435,11 @@ describe('load fields or components when folder within metadata type is selected
   });
 
   it('should load component nodes when folder within Email Templates type is selected', async () => {
-    const expected = getExpected('TemplateA', 'TemplateB', NodeType.MetadataComponent);
+    const expected = getExpected(
+      'TemplateA',
+      'TemplateB',
+      NodeType.MetadataComponent
+    );
     const metadataObject = getMetadataObject('Email Template Folder');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const emailFolderNode = new BrowserNode(
@@ -385,7 +453,11 @@ describe('load fields or components when folder within metadata type is selected
   });
 
   it('should load component nodes when folder within Reports type is selected', async () => {
-    const expected = getExpected('ReportA', 'ReportB', NodeType.MetadataComponent);
+    const expected = getExpected(
+      'ReportA',
+      'ReportB',
+      NodeType.MetadataComponent
+    );
     const metadataObject = getMetadataObject('Report Folder');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const reportFolderNode = new BrowserNode(
@@ -399,27 +471,38 @@ describe('load fields or components when folder within metadata type is selected
   });
 
   it('should load field nodes when folder within Custom Objects type is selected', async () => {
-    const expected = getExpected('Id (id)', 'IsDeleted (boolean)', NodeType.MetadataField);
+    const expected = getExpected(
+      'Id (id)',
+      'IsDeleted (boolean)',
+      NodeType.MetadataField
+    );
     const customObjectmetadataObject = getMetadataObject('Custom Objects');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const parentNode = new BrowserNode(
-    'Custom Objects',
-    NodeType.MetadataType,
-    'CustomObject',
-    customObjectmetadataObject
+      'Custom Objects',
+      NodeType.MetadataType,
+      'CustomObject',
+      customObjectmetadataObject
     );
 
     parentNode.setComponents(['TestAccount', 'TestCleanInfo'], NodeType.Folder);
     const childNodes = parentNode.children || [];
     const childNode1 = childNodes[0];
-    childNode1.setComponents(['Id (id)', 'IsDeleted (boolean)'], NodeType.MetadataField);
+    childNode1.setComponents(
+      ['Id (id)', 'IsDeleted (boolean)'],
+      NodeType.MetadataField
+    );
 
     const cmpsNodes = await metadataProvider.getChildren(childNode1);
     compareNodes(cmpsNodes, expected);
   });
 
   it('should load component nodes when a non-folder type node is selected', async () => {
-    const expected = getExpected('cmpNode1', 'cmpNode2', NodeType.MetadataComponent);
+    const expected = getExpected(
+      'cmpNode1',
+      'cmpNode2',
+      NodeType.MetadataComponent
+    );
     const metadataObject = getMetadataObject('Type Node 1');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const typeNode = new BrowserNode(
@@ -440,7 +523,10 @@ describe('load folder node when folder-type metadata type is selected', () => {
 
   beforeEach(() => {
     metadataProvider = new MetadataOutlineProvider(username);
-    getComponentsStub = stub(MetadataOutlineProvider.prototype, 'getComponents');
+    getComponentsStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getComponents'
+    );
   });
 
   afterEach(() => {
@@ -448,7 +534,11 @@ describe('load folder node when folder-type metadata type is selected', () => {
   });
 
   it('should load folder nodes when Custom Objects type node is selected', async () => {
-    const expected = getExpected('Account', 'AccountCleanInfo', NodeType.Folder);
+    const expected = getExpected(
+      'Account',
+      'AccountCleanInfo',
+      NodeType.Folder
+    );
     const metadataObject = getMetadataObject('Custom Objects');
     getComponentsStub.returns(expected.map(n => n.fullName));
     const customObjectNode = new BrowserNode(
@@ -519,15 +609,15 @@ describe('load folder node when folder-type metadata type is selected', () => {
 });
 
 // Can't compare nodes w/ deep.equal because of circular parent node reference
-function compareNodes(actual: BrowserNode[], expected: any[]) {
+const compareNodes = (actual: BrowserNode[], expected: any[]) => {
   expected.forEach((node, index) => {
     Object.keys(node).forEach(key => {
-      expect((actual[index] as any)[key]).to.equal((node )[key]);
+      expect((actual[index] as any)[key]).to.equal(node[key]);
     });
   });
-}
+};
 
-function getExpected(label1: string, label2: string, nodetype: NodeType) {
+const getExpected = (label1: string, label2: string, nodetype: NodeType) => {
   return [
     {
       label: label1,
@@ -540,9 +630,9 @@ function getExpected(label1: string, label2: string, nodetype: NodeType) {
       type: nodetype
     }
   ];
-}
+};
 
-function getMetadataObject(label1: string) {
+const getMetadataObject = (label1: string) => {
   return {
     xmlName: label1,
     directoryName: 'testDirectory',
@@ -551,7 +641,7 @@ function getMetadataObject(label1: string) {
     metaFile: false,
     label: label1
   };
-}
+};
 
 describe('parse errors and throw with appropriate message', () => {
   it('should return default message when given a dirty json', async () => {

@@ -54,7 +54,7 @@ You can retrieve a single metadata component or all components of the same type.
 
 You can retrieve all folders of folder metadata types such as Reports, Dashboards, Documents, and EmailTemplates, by clicking on the retrieve icon next to the metadata type. When you retrieve a folder, only information about the folder is retrieved and added to a `<folder>-meta.xml` file. To retrieve components within folders, view the components in a folder by expanding it and then retrieve the individual component by clicking the retrieve icon.
 
-Currently, the source is retrieved into your default package directory as defined in the [`sfdx-project.json`](./en/getting-started/first-project#the-sfdx-projectjson-file) file.
+Currently, the source is retrieved into your default package directory as defined in the `sfdx-project.json` file.
 
 You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you're prompted to select how to proceed.
 

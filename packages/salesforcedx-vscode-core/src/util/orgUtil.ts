@@ -12,7 +12,7 @@ import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
-export async function setUpOrgExpirationWatcher(orgList: OrgList) {
+export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.
   await checkForExpiredOrgs(orgList);
 
@@ -26,9 +26,9 @@ export async function setUpOrgExpirationWatcher(orgList: OrgList) {
     await checkForExpiredOrgs(orgList);
   }, 1000 * 60 * 60 * 24);
   */
-}
+};
 
-export async function checkForExpiredOrgs(orgList: OrgList) {
+export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
   if (!orgList) {
     return;
   }
@@ -106,20 +106,18 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
-export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
+export const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
     username
   });
 
   return authInfo.getFields();
-}
+};
 
-export async function getDefaultDevHubUsernameOrAlias(): Promise<
-  string | undefined
-> {
+export const getTargetDevHubOrAlias = async (): Promise<string | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
+    return OrgAuthInfo.getTargetDevHubOrAlias(false);
   }
-}
+};

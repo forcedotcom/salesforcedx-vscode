@@ -7,15 +7,15 @@
 
 import { extractJsonObject } from '../helpers';
 
-export interface OrgCreateSuccessResult {
+export type OrgCreateSuccessResult = {
   status: number;
   result: {
     orgId: string;
     username: string;
   };
-}
+};
 
-export interface OrgCreateErrorResult {
+export type OrgCreateErrorResult = {
   status: number;
   name: string;
   message: string;
@@ -23,7 +23,7 @@ export interface OrgCreateErrorResult {
   commandName: string;
   stack: string;
   warnings: any[];
-}
+};
 
 export class OrgCreateResultParser {
   private response: any;

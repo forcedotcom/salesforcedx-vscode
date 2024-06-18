@@ -15,7 +15,7 @@ import {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -32,21 +32,21 @@ import {
   DevUsernameChecker,
   FileSelection,
   FileSelector,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
 
-export class OrgCreateExecutor extends SfdxCommandletExecutor<AliasAndFileSelection> {
+export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker
       data.file
     );
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_create_default_scratch_org_text'))
       .withArg('org:create:scratch')
       .withFlag('--definition-file', `${selectionPath}`)
@@ -54,7 +54,7 @@ export class OrgCreateExecutor extends SfdxCommandletExecutor<AliasAndFileSelect
       .withFlag('--duration-days', data.expirationDays)
       .withArg('--set-default')
       .withLogName('org_create_default_scratch_org')
-      .withJson(false)
+      .withJson()
       .build();
   }
 
@@ -91,10 +91,7 @@ export class OrgCreateExecutor extends SfdxCommandletExecutor<AliasAndFileSelect
             createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
             channelService.appendLine(errorResponse.message);
-            telemetryService.sendException(
-              'force_org_create',
-              errorResponse.message
-            );
+            telemetryService.sendException('org_create', errorResponse.message);
           }
         }
       } catch (err) {
@@ -174,15 +171,15 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     };
   }
 }
-export interface Alias {
+export type Alias = {
   alias: string;
   expirationDays: string;
-}
+};
 
 export type AliasAndFileSelection = Alias & FileSelection;
 
 const preconditionChecker = new CompositePreconditionChecker(
-  new SfdxWorkspaceChecker(),
+  new SfWorkspaceChecker(),
   new DevUsernameChecker()
 );
 const parameterGatherer = new CompositeParametersGatherer(
@@ -194,11 +191,11 @@ const parameterGatherer = new CompositeParametersGatherer(
   new AliasGatherer()
 );
 
-export async function orgCreate() {
-  const commandlet = new SfdxCommandlet(
+export const orgCreate = (): void => {
+  const commandlet = new SfCommandlet(
     preconditionChecker,
     parameterGatherer,
     new OrgCreateExecutor()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

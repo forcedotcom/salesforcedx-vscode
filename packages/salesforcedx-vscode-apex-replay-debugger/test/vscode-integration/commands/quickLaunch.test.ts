@@ -11,7 +11,7 @@ import {
   TestResult
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import {
   ContinueResponse,
   notificationService,
@@ -75,7 +75,7 @@ describe('Quick launch apex tests', () => {
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] });
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
-    createCheckpointStub = sb.stub(CheckpointService, 'sfdxCreateCheckpoints');
+    createCheckpointStub = sb.stub(CheckpointService, 'sfCreateCheckpoints');
     oneOrMoreActiveCheckpointsStub = sb.stub(
       CheckpointService.prototype,
       'hasOneOrMoreActiveCheckpoints'

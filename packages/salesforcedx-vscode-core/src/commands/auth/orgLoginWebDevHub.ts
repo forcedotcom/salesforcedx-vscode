@@ -7,7 +7,7 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
@@ -20,19 +20,19 @@ import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
 import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 import {
-  ForceAuthDemoModeExecutor,
+  AuthDemoModeExecutor,
   OrgLoginWebContainerExecutor
 } from './orgLoginWeb';
 
 export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExecutor {
   public build(data: AuthDevHubParams): Command {
-    const command = new SfdxCommandBuilder().withDescription(
+    const command = new SfCommandBuilder().withDescription(
       nls.localize('org_login_web_authorize_dev_hub_text')
     );
 
@@ -40,46 +40,47 @@ export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExec
       .withArg(CLI.ORG_LOGIN_DEVICE)
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub')
-      .withLogName('force_auth_device_dev_hub')
+      .withLogName('org_login_web_dev_hub_container')
       .withJson();
 
     return command.build();
   }
 }
 
-export class OrgLoginWebDevHubExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
-    const command = new SfdxCommandBuilder().withDescription(
+    const command = new SfCommandBuilder().withDescription(
       nls.localize('org_login_web_authorize_dev_hub_text')
     );
 
     command
       .withArg(CLI.ORG_LOGIN_WEB)
-      .withLogName('force_auth_dev_hub')
+      .withLogName('org_login_web_dev_hub')
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub');
     return command.build();
   }
 }
 
-export class OrgLoginWebDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
+export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> {
   public build(data: AuthDevHubParams): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
       .withArg(CLI.ORG_LOGIN_WEB)
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub')
       .withArg('--no-prompt')
       .withJson()
-      .withLogName('force_auth_dev_hub_demo_mode')
+      .withLogName('org_login_web_dev_hub_demo_mode')
       .build();
   }
 }
 
 export class AuthDevHubParamsGatherer
-  implements ParametersGatherer<AuthDevHubParams> {
+  implements ParametersGatherer<AuthDevHubParams>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AuthDevHubParams>
   > {
@@ -101,14 +102,14 @@ export class AuthDevHubParamsGatherer
   }
 }
 
-export interface AuthDevHubParams {
+export type AuthDevHubParams = {
   alias: string;
-}
+};
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();
 
-export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
+export const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebDevHubContainerExecutor();
@@ -117,13 +118,13 @@ export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
     default:
       return new OrgLoginWebDevHubExecutor();
   }
-}
+};
 
-export async function orgLoginWebDevHub() {
-  const commandlet = new SfdxCommandlet(
+export const orgLoginWebDevHub = async () => {
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     createAuthDevHubExecutor()
   );
   await commandlet.run();
-}
+};

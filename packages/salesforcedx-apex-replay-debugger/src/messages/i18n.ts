@@ -34,5 +34,5 @@ export const messages = {
   malformed_log_line:
     "Encountered a malformed HEAP_DUMP log line, skipping. Log line number=%d, log line='%s'.",
   reconcile_heapdump_error:
-    'Problems were encountered while using a heap dump: %s. Use Tooling API to delete the ApexExecutionOverlayResult record with the ID %s: From a terminal, run "sfdx data:delete:record -t -s ApexExecutionOverlayResult -i %s".'
+    'Problems were encountered while using a heap dump: %s. Use Tooling API to delete the ApexExecutionOverlayResult record with the ID %s: From a terminal, run "sf data:delete:record -t -s ApexExecutionOverlayResult -i %s".'
 };

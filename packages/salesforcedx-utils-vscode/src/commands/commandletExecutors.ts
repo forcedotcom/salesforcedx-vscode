@@ -14,15 +14,13 @@ import {
   TelemetryService
 } from '../index';
 import { nls } from '../messages';
-import { SfdxSettingsService } from '../settings';
+import { SettingsService } from '../settings';
 import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
-import { notificationService, ProgressNotification } from './index';
+import { ProgressNotification, notificationService } from './index';
 
-export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T>
-{
+export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
@@ -166,7 +164,7 @@ export abstract class LibraryCommandletExecutor<T>
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
-    if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
+    if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
       channelService.clear();
     }
 

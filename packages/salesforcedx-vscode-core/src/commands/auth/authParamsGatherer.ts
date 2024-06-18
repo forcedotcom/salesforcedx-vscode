@@ -13,25 +13,25 @@ import {
 import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
-import { SfdxProjectConfig } from '../../sfdxProject';
+import { SalesforceProjectConfig } from '../../salesforceProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';
 export const SANDBOX_URL = 'https://test.salesforce.com';
 export const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
-export interface AuthParams {
+export type AuthParams = {
   alias: string;
   loginUrl: string;
-}
+};
 
-export interface AccessTokenParams {
+export type AccessTokenParams = {
   alias: string;
   instanceUrl: string;
   accessToken: string;
-}
+};
 
-async function inputInstanceUrl() {
+const inputInstanceUrl = async (): Promise<string | undefined> => {
   const instanceUrlInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
     placeHolder: INSTANCE_URL_PLACEHOLDER,
@@ -40,9 +40,9 @@ async function inputInstanceUrl() {
   };
   const instanceUrl = await vscode.window.showInputBox(instanceUrlInputOptions);
   return instanceUrl;
-}
+};
 
-async function inputAlias() {
+const inputAlias = async (): Promise<string | undefined> => {
   const aliasInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
@@ -50,9 +50,9 @@ async function inputAlias() {
   } as vscode.InputBoxOptions;
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
-}
+};
 
-async function inputAccessToken() {
+const inputAccessToken = async (): Promise<string | undefined> => {
   const accessToken = await vscode.window.showInputBox({
     value: '',
     prompt: nls.localize('parameter_gatherer_enter_session_id'),
@@ -70,7 +70,7 @@ async function inputAccessToken() {
     }
   });
   return accessToken;
-}
+};
 
 export class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;
@@ -98,7 +98,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    return (await SfdxProjectConfig.getValue('sfdcLoginUrl'));
+    return await SalesforceProjectConfig.getValue('sfdcLoginUrl');
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
@@ -163,7 +163,8 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
 }
 
 export class AccessTokenParamsGatherer
-  implements ParametersGatherer<AccessTokenParams> {
+  implements ParametersGatherer<AccessTokenParams>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AccessTokenParams>
   > {
@@ -194,7 +195,8 @@ export class AccessTokenParamsGatherer
 }
 
 export class ScratchOrgLogoutParamsGatherer
-  implements ParametersGatherer<string> {
+  implements ParametersGatherer<string>
+{
   public constructor(
     public readonly username: string,
     public readonly alias?: string

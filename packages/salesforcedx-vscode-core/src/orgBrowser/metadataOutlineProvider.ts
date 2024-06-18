@@ -21,23 +21,23 @@ import {
 } from './index';
 
 export class MetadataOutlineProvider
-  implements vscode.TreeDataProvider<BrowserNode> {
+  implements vscode.TreeDataProvider<BrowserNode>
+{
   private defaultOrg: string | undefined;
   private toRefresh: boolean = false;
 
   private internalOnDidChangeTreeData: vscode.EventEmitter<
     BrowserNode | undefined
   > = new vscode.EventEmitter<BrowserNode | undefined>();
-  public readonly onDidChangeTreeData: vscode.Event<
-    BrowserNode | undefined
-  > = this.internalOnDidChangeTreeData.event;
+  public readonly onDidChangeTreeData: vscode.Event<BrowserNode | undefined> =
+    this.internalOnDidChangeTreeData.event;
 
   constructor(defaultOrg: string | undefined) {
     this.defaultOrg = defaultOrg;
   }
 
   public async onViewChange() {
-    const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+    const usernameOrAlias = await this.getTargetOrgOrAlias();
     if (usernameOrAlias !== this.defaultOrg) {
       this.internalOnDidChangeTreeData.fire(undefined);
     }
@@ -48,7 +48,7 @@ export class MetadataOutlineProvider
     if (node && !node.toRefresh) {
       node.toRefresh = true;
     } else if (!this.toRefresh) {
-      const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+      const usernameOrAlias = await this.getTargetOrgOrAlias();
       this.defaultOrg = usernameOrAlias;
       this.toRefresh = true;
     }
@@ -144,9 +144,9 @@ export class MetadataOutlineProvider
     }
   }
 
-  public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+  public async getTargetOrgOrAlias(): Promise<string | undefined> {
     if (workspaceUtils.hasRootWorkspace()) {
-      const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+      const username = await OrgAuthInfo.getTargetOrgOrAlias(false);
       return username;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));
@@ -154,9 +154,9 @@ export class MetadataOutlineProvider
   }
 }
 
-export function parseErrors(error: any): Error {
+export const parseErrors = (error: any): Error => {
   try {
-    const errMsg = typeof error === 'string' ? error : error.message;
+    const errMsg = typeof error === 'string' ? error : JSON.stringify(error);
     const e = extractJsonObject(errMsg);
 
     let message: string;
@@ -177,4 +177,4 @@ export function parseErrors(error: any): Error {
   } catch (e) {
     return new Error(e);
   }
-}
+};

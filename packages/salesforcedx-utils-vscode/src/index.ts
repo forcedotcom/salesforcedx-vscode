@@ -13,13 +13,13 @@ export {
 export { EmptyPostChecker } from './commands/postconditionCheckers';
 export {
   EmptyPreChecker,
-  SfdxWorkspaceChecker
+  SfWorkspaceChecker
 } from './commands/preconditionCheckers';
 export {
-  SfdxCommandletExecutor,
+  SfCommandletExecutor,
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
-export { SfdxCommandlet } from './commands/sfdxCommandlet';
+export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,
@@ -36,10 +36,10 @@ export {
   TelemetryData,
   Properties,
   Measurements
-} from './telemetry/telemetry';
+} from './services/telemetry';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
-export { TelemetryReporter } from './telemetry/telemetryReporter';
+export { AppInsights } from './telemetry/reporters/appInsights';
 export {
   hasRootWorkspace,
   getRootWorkspace,

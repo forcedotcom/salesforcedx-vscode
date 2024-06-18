@@ -8,18 +8,18 @@
 import { SOBJECTS_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { BaseCommand } from '@salesforce/salesforcedx-utils';
 
-export interface ApexExecutionOverlayFailureResult {
+export type ApexExecutionOverlayFailureResult = {
   message: string;
   errorCode: string;
   fields: string[];
-}
+};
 
-export interface ApexExecutionOverlaySuccessResult {
+export type ApexExecutionOverlaySuccessResult = {
   id: string;
   success: boolean;
   errors: string[];
   warnings: string[];
-}
+};
 
 export class ApexExecutionOverlayActionCommand extends BaseCommand {
   private readonly commandName = 'ApexExecutionOverlayAction';

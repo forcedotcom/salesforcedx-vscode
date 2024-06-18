@@ -32,7 +32,7 @@ To start remote development in dev container, install:
 - Latest version of [VS Code Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
   After you install VS Code and Docker Desktop for your operating system:
   - For Windows, set source code locations you want to open in a container. In Docker, right-click and select **Settings** / **Preferences** > **Shared Drives** / **File Sharing**. See [Container tips](https://code.visualstudio.com/docs/remote/troubleshooting#_container-tips) if you hit trouble with sharing.
-  - For Linux, see [supported platforms](https://docs.docker.com/install/#supported-platforms). From the terminal, run `sudo usermod -aG docker $USER` to add your user to the `docker` group. This setting takes effect after you sign out and back in again.
+  - For Linux, see [supported platforms](https://docs.docker.com/install#supported-platforms). From the terminal, run `sudo usermod -aG docker $USER` to add your user to the `docker` group. This setting takes effect after you sign out and back in again.
 - Latest version of the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)
 
 ### Open a Project in a Dev Container

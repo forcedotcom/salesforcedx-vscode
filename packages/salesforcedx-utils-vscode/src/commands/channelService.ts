@@ -9,7 +9,7 @@ import stripAnsi from 'strip-ansi';
 import { OutputChannel, window } from 'vscode';
 import { CommandExecution } from '../cli';
 import { nls } from '../messages';
-import { SfdxSettingsService } from '../settings';
+import { SettingsService } from '../settings';
 
 export class ChannelService {
   private readonly channel: OutputChannel;
@@ -38,8 +38,8 @@ export class ChannelService {
   }
 
   public streamCommandStartStop(execution: CommandExecution) {
-    if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
-        this.clear();
+    if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
+      this.clear();
     }
     this.channel.append(nls.localize('channel_starting_message'));
     this.channel.appendLine(execution.command.toString());

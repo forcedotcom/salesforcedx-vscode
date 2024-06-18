@@ -15,7 +15,7 @@ import { nls } from '../../../src/messages';
 
 const sandbox = sinon.createSandbox();
 let channelSpy: sinon.SinonSpy;
-let setDefaultUsernameOrAliasStub: sinon.SinonStub;
+let setTargetOrgOrAliasStub: sinon.SinonStub;
 let tableSpy: sinon.SinonSpy;
 
 describe('Config Set', () => {
@@ -24,10 +24,7 @@ describe('Config Set', () => {
 
   beforeEach(() => {
     channelSpy = sandbox.spy(channelService, 'appendLine');
-    setDefaultUsernameOrAliasStub = sandbox.stub(
-      ConfigUtil,
-      'setDefaultUsernameOrAlias'
-    );
+    setTargetOrgOrAliasStub = sandbox.stub(ConfigUtil, 'setTargetOrgOrAlias');
     tableSpy = sandbox.spy(Table.prototype, 'createTable');
   });
 
@@ -37,20 +34,16 @@ describe('Config Set', () => {
 
   it('should set config with the given username or alias', async () => {
     await configSet(usernameOrAlias);
-    expect(setDefaultUsernameOrAliasStub.callCount).to.equal(1);
-    expect(setDefaultUsernameOrAliasStub.calledWith(usernameOrAlias)).to.equal(
-      true
-    );
+    expect(setTargetOrgOrAliasStub.callCount).to.equal(1);
+    expect(setTargetOrgOrAliasStub.calledWith(usernameOrAlias)).to.equal(true);
   });
 
   it('should set config with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
     await configSet(aliases.join(','));
-    expect(setDefaultUsernameOrAliasStub.callCount).to.equal(1);
-    expect(setDefaultUsernameOrAliasStub.calledWith(expectedAlias)).to.equal(
-      true
-    );
+    expect(setTargetOrgOrAliasStub.callCount).to.equal(1);
+    expect(setTargetOrgOrAliasStub.calledWith(expectedAlias)).to.equal(true);
   });
 
   it('should display formatted output in output channel', async () => {
@@ -82,7 +75,7 @@ describe('Config Set', () => {
   });
 
   it('should display error message in output channel', async () => {
-    setDefaultUsernameOrAliasStub.throws(new Error(errorMessage));
+    setTargetOrgOrAliasStub.throws(new Error(errorMessage));
     await configSet(usernameOrAlias);
     expect(channelSpy.callCount).to.equal(2);
     expect(channelSpy.lastCall.args.length).to.equal(1);

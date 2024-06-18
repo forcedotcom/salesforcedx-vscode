@@ -11,13 +11,13 @@ import { channelService } from '../../../src/channels';
 import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import {
   DeployQueue,
   fileShouldNotBeDeployed,
   pathIsInPackageDirectory
 } from '../../../src/settings';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { telemetryService } from '../../../src/telemetry';
 
 /* tslint:disable:no-unused-expression */
@@ -41,7 +41,7 @@ describe('Push or Deploy on Save', () => {
   describe('pathIsInPackageDirectory', () => {
     it('should return true if the path is in a package directory', async () => {
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.true;
@@ -51,7 +51,7 @@ describe('Push or Deploy on Save', () => {
 
     it('should return false if the path is not in a package directory', async () => {
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .returns(false);
       const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.false;
@@ -63,7 +63,7 @@ describe('Push or Deploy on Save', () => {
       const error = new Error();
       error.name = 'NoPackageDirectoriesFound';
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .throws(error);
       let errorWasThrown = false;
 
@@ -85,7 +85,7 @@ describe('Push or Deploy on Save', () => {
       const error = new Error();
       error.name = 'NoPackageDirectoryPathsFound';
       sandbox
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
         .throws(error);
       let errorWasThrown = false;
       try {
@@ -115,7 +115,7 @@ describe('Push or Deploy on Save', () => {
       );
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
       sandbox
-        .stub(SfdxCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
+        .stub(SalesforceCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
         .returns(false);
     });
 
@@ -176,27 +176,25 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should display an error to the user when no target-org is set', async () => {
-      const noDefaultUsernameSetError = new Error();
-      noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
-      getWorkspaceOrgTypeStub.throws(noDefaultUsernameSetError);
+      const noTargetOrgSetError = new Error();
+      noTargetOrgSetError.name = 'NoTargetOrgSet';
+      getWorkspaceOrgTypeStub.throws(noTargetOrgSetError);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
-      const error = nls.localize(
-        'error_push_or_deploy_on_save_no_default_username'
-      );
+      const error = nls.localize('error_push_or_deploy_on_save_no_target_org');
       expect(showErrorMessageStub.calledOnce).to.be.true;
       expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
       expect(appendLineStub.calledOnce).to.be.true;
       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
     });
 
-    it('should call force:source:push when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
+    it('should call project:deploy:start when getPushOrDeployOnSaveIgnoreConflicts is false', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
-          SfdxCoreSettings.prototype,
-          'getPushOrDeployOnSaveOverrideConflicts'
+          SalesforceCoreSettings.prototype,
+          'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(false);
 
@@ -204,18 +202,18 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.push'
+        'sf.project.deploy.start'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call force:source:push --forceoverwrite when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
+    it('should call project:deploy:start --ignore-conflicts when getPushOrDeployOnSaveIgnoreConflicts is true', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
       sandbox
         .stub(
-          SfdxCoreSettings.prototype,
-          'getPushOrDeployOnSaveOverrideConflicts'
+          SalesforceCoreSettings.prototype,
+          'getPushOrDeployOnSaveIgnoreConflicts'
         )
         .returns(true);
 
@@ -223,20 +221,20 @@ describe('Push or Deploy on Save', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.push.force'
+        'sf.project.deploy.start.ignore.conflicts'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
-    it('should call force:source:deploy on multiple paths', async () => {
+    it('should call deploy on multiple paths', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.deploy.multiple.source.paths'
+        'sf.deploy.multiple.source.paths'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;

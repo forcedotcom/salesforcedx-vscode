@@ -8,23 +8,45 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   OverwriteComponentPrompt,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
+  SfCommandlet,
+  SfWorkspaceChecker,
   SimpleGatherer
 } from '../util';
 import { getParamGatherers } from './apexGenerateClass';
 import { LibraryApexGenerateUnitTestClassExecutor } from './executors/LibraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from './metadataTypeConstants';
 
+type OutputDirParameter = {
+  outputdir: string;
+};
+
+// if called from a file's context menu, will deliver the clicked file URI and an array of selected files
+// if called from the command pallet args will be empty
 export const apexGenerateUnitTestClass = async (
-  unitFileToCreate?: string,
-  unitFileDirectory?: string
+  outputDirectory?: string | vscode.Uri,
+  unitFileToCreate?: string | vscode.Uri[],
+  template?: 'BasicUnitTest' | 'ApexUnitTest'
 ) => {
   const gatherers = getParamGatherers();
+
+  let outputDirGatherer: ParametersGatherer<OutputDirParameter>;
+  if (outputDirectory) {
+    outputDirGatherer =
+      typeof outputDirectory === 'string'
+        ? new SimpleGatherer<OutputDirParameter>({
+            outputdir: outputDirectory
+          })
+        : new SimpleGatherer<OutputDirParameter>({
+            outputdir: outputDirectory.fsPath
+          });
+  } else {
+    outputDirGatherer = gatherers.outputDirGatherer;
+  }
 
   // When called from the context menu in the explorer unexpected values are passed in for unitFileToCreate and unitFileDirectory.
   let fileNameGatherer: ParametersGatherer<any>;
@@ -36,22 +58,23 @@ export const apexGenerateUnitTestClass = async (
     fileNameGatherer = gatherers.fileNameGatherer;
   }
 
-  let outputDirGatherer: ParametersGatherer<any>;
-  if (unitFileDirectory && typeof unitFileDirectory === 'string') {
-    outputDirGatherer = new SimpleGatherer<{ outputdir: string }>({
-      outputdir: unitFileDirectory
+  let templateTypeGatherer: ParametersGatherer<any>;
+  if (template && typeof template === 'string') {
+    templateTypeGatherer = new SimpleGatherer<{ template: string }>({
+      template: template ?? 'ApexUnitTest'
     });
   } else {
-    outputDirGatherer = gatherers.outputDirGatherer;
+    templateTypeGatherer = gatherers.templateGatherer;
   }
 
   const createTemplateExecutor = new LibraryApexGenerateUnitTestClassExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       new MetadataTypeGatherer(APEX_CLASS_TYPE),
       fileNameGatherer,
-      outputDirGatherer
+      outputDirGatherer,
+      templateTypeGatherer
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()

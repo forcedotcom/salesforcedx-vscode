@@ -6,21 +6,18 @@
  */
 
 import {
-  extractJsonObject,
   ConfigGet,
   OrgDisplay,
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_URL,
+  extractJsonObject
 } from '@salesforce/salesforcedx-utils';
-import * as os from 'os';
-import { basename } from 'path';
 import {
   DebugSession,
   Event,
   Handles,
   InitializedEvent,
-  logger,
   Logger,
   LoggingDebugSession,
   OutputEvent,
@@ -31,9 +28,12 @@ import {
   TerminatedEvent,
   Thread,
   ThreadEvent,
-  Variable
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+  Variable,
+  logger
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
+import * as os from 'os';
+import { basename } from 'path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,
@@ -65,6 +65,7 @@ import {
   HOTSWAP_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
+  SEND_METRIC_EVENT,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
@@ -105,22 +106,21 @@ export type TraceCategory =
   | 'breakpoints'
   | 'streaming';
 
-export interface LaunchRequestArguments
-  extends DebugProtocol.LaunchRequestArguments {
+export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   // comma separated list of trace selectors (see TraceCategory)
   trace?: boolean | string;
   userIdFilter?: string[];
   requestTypeFilter?: string[];
   entryPointFilter?: string;
-  sfdxProject: string;
+  salesforceProject: string;
   connectType?: string;
   workspaceSettings: WorkspaceSettings;
   lineBreakpointInfo?: LineBreakpointInfo[];
-}
+};
 
-export interface SetExceptionBreakpointsArguments {
+export type SetExceptionBreakpointsArguments = {
   exceptionInfo: ExceptionBreakpointInfo;
-}
+};
 
 export class ApexDebugStackFrameInfo {
   public readonly requestId: string;
@@ -244,7 +244,7 @@ export class ApexVariable extends Variable {
 
 export type FilterType = 'named' | 'indexed' | 'all';
 
-export interface VariableContainer {
+export type VariableContainer = {
   expand(
     session: ApexDebug,
     filter: FilterType,
@@ -253,7 +253,7 @@ export interface VariableContainer {
   ): Promise<ApexVariable[]>;
 
   getNumberOfChildren(): number | undefined;
-}
+};
 
 export type ScopeType = 'local' | 'static' | 'global';
 
@@ -434,7 +434,7 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
     const apexVariables: ApexVariable[] = [];
     let offset = 0;
     this.tupleContainers.forEach((container, reference) => {
-      if (offset >= start! && offset < start! + count!) {
+      if (offset >= start && offset < start + count) {
         apexVariables.push(
           new ApexVariable(
             {
@@ -541,7 +541,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected mySessionService!: SessionService;
   protected myBreakpointService!: BreakpointService;
   protected myStreamingService = StreamingService.getInstance();
-  protected sfdxProject!: string;
+  protected salesforceProject!: string;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 
@@ -664,12 +664,17 @@ export class ApexDebug extends LoggingDebugSession {
     this.initBreakpointSessionServices(args);
     this.setValidBreakpointLines(args);
     this.setupLogger(args);
-    this.sfdxProject = args.sfdxProject;
+    this.salesforceProject = args.salesforceProject;
     this.log(
       TRACE_CATEGORY_LAUNCH,
-      `launchRequest: sfdxProject=${args.sfdxProject}`
+      `launchRequest: salesforceProject=${args.salesforceProject}`
     );
-
+    this.sendEvent(
+      new Event(SEND_METRIC_EVENT, {
+        subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
+        type: 'launchApexDebugger'
+      })
+    );
     if (!this.myBreakpointService.hasLineNumberMapping()) {
       response.message = nls.localize('session_language_server_error_text');
       return this.sendResponse(response);
@@ -677,7 +682,7 @@ export class ApexDebug extends LoggingDebugSession {
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
         const config = await new ConfigGet().getConfig(
-          args.sfdxProject,
+          args.salesforceProject,
           SF_CONFIG_ISV_DEBUGGER_SID,
           SF_CONFIG_ISV_DEBUGGER_URL
         );
@@ -688,25 +693,34 @@ export class ApexDebug extends LoggingDebugSession {
           typeof isvDebuggerUrl === 'undefined'
         ) {
           response.message = nls.localize('invalid_isv_project_config');
+          // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('invalid_isv_project_config'),
+              type: 'startIsvDebuggerConfigError'
+            })
+          );
           return this.sendResponse(response);
         }
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(args.sfdxProject);
+        const orgInfo = await new OrgDisplay().getOrgInfo(
+          args.salesforceProject
+        );
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
 
       const isStreamingConnected = await this.connectStreaming(
-        args.sfdxProject
+        args.salesforceProject
       );
       if (!isStreamingConnected) {
         return this.sendResponse(response);
       }
 
       const sessionId = await this.mySessionService
-        .forProject(args.sfdxProject)
+        .forProject(args.salesforceProject)
         .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
@@ -716,6 +730,26 @@ export class ApexDebug extends LoggingDebugSession {
         this.printToDebugConsole(
           nls.localize('session_started_text', sessionId)
         );
+        // telemetry for the case where the ISV debugger started successfully
+        if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize('isv_debugger_launched_successfully'),
+              type: 'startIsvDebuggerSuccess'
+            })
+          );
+        }
+        // telemetry for the case where the interactive debugger started successfully
+        else {
+          this.sendEvent(
+            new Event(SEND_METRIC_EVENT, {
+              subject: nls.localize(
+                'interactive_debugger_launched_successfully'
+              ),
+              type: 'startInteractiveDebuggerSuccess'
+            })
+          );
+        }
         this.sendEvent(new InitializedEvent());
         this.resetIdleTimer();
       } else {
@@ -724,7 +758,39 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }
     } catch (error) {
-      this.tryToParseSfdxError(response, error);
+      this.tryToParseSfError(response, error);
+      // telemetry for expired session or invalid org-isv-debugger-sid (authentication error)
+      if (error === undefined) {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize(
+              'isv_debugger_session_authentication_invalid'
+            ),
+            type: 'startIsvDebuggerAuthenticationInvalid'
+          })
+        );
+      }
+      // telemetry for invalid org-isv-debugger-url
+      else if (
+        String(error) ===
+        "TypeError: Cannot read properties of undefined (reading 'pathname')"
+      ) {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: nls.localize('org_isv_debugger_url_invalid'),
+            type: 'startIsvDebuggerOrgIsvDebuggerUrlInvalid'
+          })
+        );
+      }
+      // telemetry for general error
+      else {
+        this.sendEvent(
+          new Event(SEND_METRIC_EVENT, {
+            subject: String(error),
+            type: 'startApexDebuggerGeneralError'
+          })
+        );
+      }
     }
     this.sendResponse(response);
   }
@@ -810,7 +876,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
           }
         } catch (error) {
-          this.tryToParseSfdxError(response, error);
+          this.tryToParseSfError(response, error);
         }
       } else {
         response.success = true;
@@ -840,7 +906,7 @@ export class ApexDebug extends LoggingDebugSession {
             );
             const knownBps =
               await this.myBreakpointService.reconcileLineBreakpoints(
-                this.sfdxProject,
+                this.salesforceProject,
                 uri,
                 this.mySessionService.getSessionId(),
                 args.lines!.map(line => this.convertClientLineToDebugger(line))
@@ -1100,7 +1166,7 @@ export class ApexDebug extends LoggingDebugSession {
           try {
             await this.lock.acquire('exception-breakpoint', async () => {
               return this.myBreakpointService.reconcileExceptionBreakpoints(
-                this.sfdxProject,
+                this.salesforceProject,
                 this.mySessionService.getSessionId(),
                 requestArgs.exceptionInfo
               );
@@ -1492,7 +1558,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public tryToParseSfdxError(
+  public tryToParseSfError(
     response: DebugProtocol.Response,
     error?: any
   ): void {

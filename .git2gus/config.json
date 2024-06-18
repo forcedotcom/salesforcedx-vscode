@@ -25,14 +25,14 @@
     "area:xml": "a1aB0000000BPyKIAW"
   },
   "issueTypeLabels": {
-    "type:feature": "",
+    "feature": "USER STORY",
     "type:bug": "BUG P3",
     "type:security": "BUG P2",
     "type:feedback": "",
-    "type:duplicate": "",
+    "status:duplicate": "",
     "type:community-contrib": "USER STORY"
   },
-  "defaultBuild": "offcore.tooling.58",
+  "defaultBuild": "offcore.tooling.61",
   "hideWorkItemUrl": "true",
   "statusWhenClosed": "CLOSED"
 }

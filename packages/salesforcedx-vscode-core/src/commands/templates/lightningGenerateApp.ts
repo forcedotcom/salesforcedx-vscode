@@ -12,14 +12,14 @@ import {
 import { LightningAppOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
+import { salesforceCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
@@ -35,7 +35,7 @@ import {
 
 export class LibraryLightningGenerateAppExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_app_text');
-  public telemetryName = 'force_lightning_app_create';
+  public telemetryName = 'lightning_generate_app';
   public metadataTypeName = AURA_TYPE;
   public templateType = TemplateType.LightningApp;
   public getOutputFileName(data: DirFileNameSelection) {
@@ -45,7 +45,7 @@ export class LibraryLightningGenerateAppExecutor extends LibraryBaseTemplateComm
     return AURA_APP_EXTENSION;
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
-    const internal = sfdxCoreSettings.getInternalDev();
+    const internal = salesforceCoreSettings.getInternalDev();
     const templateOptions: LightningAppOptions = {
       outputdir: data.outputdir,
       appname: data.fileName,
@@ -60,10 +60,10 @@ const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
-export async function lightningGenerateApp() {
+export const lightningGenerateApp = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateAppExecutor();
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,
@@ -72,12 +72,12 @@ export async function lightningGenerateApp() {
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};
 
-export async function internalLightningGenerateApp(sourceUri: Uri) {
+export const internalLightningGenerateApp = (sourceUri: Uri): void => {
   const createTemplateExecutor = new LibraryLightningGenerateAppExecutor();
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
@@ -85,5 +85,5 @@ export async function internalLightningGenerateApp(sourceUri: Uri) {
     ),
     createTemplateExecutor
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

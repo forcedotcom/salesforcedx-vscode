@@ -62,27 +62,26 @@ const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 
 // These are the action script types for the ApexExecutionOverlayAction.
-export interface ApexExecutionOverlayAction {
+export type ApexExecutionOverlayAction = {
   ActionScript: string;
   ActionScriptType: ActionScriptEnum;
   ExecutableEntityName: string | undefined;
   IsDumpingHeap: boolean;
   Iteration: number;
   Line: number;
-}
+};
 
 export class CheckpointService implements TreeDataProvider<BaseNode> {
   private static instance: CheckpointService;
   private checkpoints: CheckpointNode[];
-  private _onDidChangeTreeData: EventEmitter<
-    BaseNode | undefined
-  > = new EventEmitter<BaseNode | undefined>();
+  private _onDidChangeTreeData: EventEmitter<BaseNode | undefined> =
+    new EventEmitter<BaseNode | undefined>();
   private myRequestService: RequestService;
   private orgInfo!: OrgInfo;
-  private sfdxProject: string | null = null;
+  private salesforceProject: string | null = null;
 
-  public readonly onDidChangeTreeData: Event<BaseNode | undefined> = this
-    ._onDidChangeTreeData.event;
+  public readonly onDidChangeTreeData: Event<BaseNode | undefined> =
+    this._onDidChangeTreeData.event;
 
   public constructor() {
     this.checkpoints = [];
@@ -98,9 +97,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       vscode.workspace.workspaceFolders &&
       vscode.workspace.workspaceFolders[0]
     ) {
-      this.sfdxProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      this.salesforceProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
       try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo(this.sfdxProject);
+        this.orgInfo = await new OrgDisplay().getOrgInfo(
+          this.salesforceProject
+        );
       } catch (error) {
         const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize(
@@ -296,11 +297,13 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
-    const sfdxCore = vscode.extensions.getExtension(
+    const salesforceCoreExtension = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-core'
     );
-    if (sfdxCore && sfdxCore.exports) {
-      const userId = await sfdxCore.exports.getUserId(this.sfdxProject);
+    if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+      const userId = await salesforceCoreExtension.exports.getUserId(
+        this.salesforceProject
+      );
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
         let errorString;
@@ -333,9 +336,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               const batchRequests: BatchRequests = {
                 batchRequests: requests
               };
-              const batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(
-                batchRequests
-              );
+              const batchDeleteCommand =
+                new BatchDeleteExistingOverlayActionCommand(batchRequests);
 
               let deleteError;
               let deleteResult;
@@ -372,7 +374,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               if (deleteError) {
                 const errorMessage = `${nls.localize(
                   'cannot_delete_existing_checkpoint'
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 )} : ${deleteError}`;
                 writeToDebuggerOutputWindow(
                   errorMessage,
@@ -408,7 +410,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         }
       } else {
         const errorMessage = nls.localize(
-          'unable_to_retrieve_active_user_for_sfdx_project'
+          'unable_to_retrieve_active_user_for_sf_project'
         );
         writeToDebuggerOutputWindow(
           errorMessage,
@@ -436,7 +438,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   //    c. set the typeRef on each checkpoint (requires the source/line information)
   // 3. Remove any existing checkpoints
   // 4. Create the new checkpoints
-  public static async sfdxCreateCheckpoints(): Promise<boolean> {
+  public static async sfCreateCheckpoints(): Promise<boolean> {
     // In-spite of waiting for the lock, we still want subsequent calls to immediately return
     // from this if checkpoints are already being created instead of stacking them up.
     if (!creatingCheckpoints) {
@@ -448,7 +450,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // The status message isn't changing, call to localize it once and use the localized string in the
     // progress report.
     const localizedProgressMessage = nls.localize(
-      'sfdx_update_checkpoints_in_org'
+      'sf_update_checkpoints_in_org'
     );
     // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
     try {
@@ -475,7 +477,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               increment: 0,
               message: localizedProgressMessage
             });
-            const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
+            const orgInfoRetrieved: boolean =
+              await checkpointService.retrieveOrgInfo();
             if (!orgInfoRetrieved) {
               updateError = true;
               return false;
@@ -490,7 +493,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               increment: 20,
               message: localizedProgressMessage
             });
-            const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
+            const sourceLineInfoRetrieved: boolean =
+              await retrieveLineBreakpointInfo();
             // If we didn't get the source line information that'll be reported at that time, just return
             if (!sourceLineInfoRetrieved) {
               updateError = true;
@@ -528,7 +532,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               message: localizedProgressMessage
             });
             // remove any existing checkpoints on the server
-            const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
+            const allRemoved: boolean =
+              await checkpointService.clearExistingCheckpoints();
             if (!allRemoved) {
               updateError = true;
               return false;
@@ -576,7 +581,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       if (updateError) {
         errorMsg = nls.localize(
           'checkpoint_upload_error_wrap_up_message',
-          nls.localize('sfdx_update_checkpoints_in_org')
+          nls.localize('sf_update_checkpoints_in_org')
         );
         writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
       }
@@ -826,9 +831,8 @@ export const processBreakpointChangedForCheckpoints = async (
       const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
       const uri = code2ProtocolConverter(bp.location.uri);
       const filename = uri.substring(uri.lastIndexOf('/') + 1);
-      const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-        breakpointId
-      );
+      const theNode =
+        checkpointService.returnCheckpointNodeIfAlreadyExists(breakpointId);
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         // If the node exists then update it
         if (theNode) {
@@ -965,7 +969,7 @@ let creatingCheckpoints = false;
 //    that may be on the checkpoint are the condition (which needs to get set to Checkpoint)
 //    and the logMessage. The logMessage is scrapped since this ends up being taken over by
 //    checkpoints for user input SOQL or Apex.
-export const sfdxToggleCheckpoint =  async() => {
+export const sfToggleCheckpoint = async () => {
   if (creatingCheckpoints) {
     writeToDebuggerOutputWindow(
       nls.localize('checkpoint_upload_in_progress'),
@@ -988,10 +992,7 @@ export const sfdxToggleCheckpoint =  async() => {
     // There's already a breakpoint at this line
     if (bp) {
       // If the breakpoint is a checkpoint then remove it and return
-      if (
-        bp.condition &&
-        bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0
-      ) {
+      if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0) {
         bpRemove.push(bp);
         return await vscode.debug.removeBreakpoints(bpRemove);
       } else {
@@ -1019,7 +1020,7 @@ export const sfdxToggleCheckpoint =  async() => {
   return;
 };
 
-// This methods was broken out of sfdxToggleCheckpoint for testing purposes.
+// This methods was broken out of sfToggleCheckpoint for testing purposes.
 const fetchActiveEditorUri = (): vscode.Uri | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -1027,7 +1028,7 @@ const fetchActiveEditorUri = (): vscode.Uri | undefined => {
   }
 };
 
-// This methods was broken out of sfdxToggleCheckpoint for testing purposes.
+// This methods was broken out of sfToggleCheckpoint for testing purposes.
 const fetchActiveSelectionLineNumber = (): number | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.selection) {

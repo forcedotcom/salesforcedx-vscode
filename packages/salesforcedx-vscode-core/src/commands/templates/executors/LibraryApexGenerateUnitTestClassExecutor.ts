@@ -12,7 +12,7 @@ import { LibraryBaseTemplateCommand } from '../libraryBaseTemplateCommand';
 import { APEX_CLASS_TYPE } from '../metadataTypeConstants';
 
 export const CREATE_UNIT_NAME_KEY = 'apex_generate_unit_test_class_text';
-export const TELEMETRY_NAME = 'force_apex_unit_class_create';
+export const TELEMETRY_NAME = 'apex_generate_unit_test_class';
 
 export class LibraryApexGenerateUnitTestClassExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize(CREATE_UNIT_NAME_KEY);
@@ -24,7 +24,7 @@ export class LibraryApexGenerateUnitTestClassExecutor extends LibraryBaseTemplat
   }
   public constructTemplateOptions(data: DirFileNameSelection) {
     const templateOptions: ApexClassOptions = {
-      template: 'ApexUnitTest',
+      template: data.template ?? 'ApexUnitTest',
       classname: data.fileName,
       outputdir: data.outputdir
     };

@@ -11,7 +11,10 @@ Before you get started, install the required software on your computer.
 
 Install Visual Studio Code on any computer running macOS, Windows, or Linux. VS Code’s [system requirements](https://code.visualstudio.com/docs/supporting/requirements) are fairly small, so it should run well on most computers.
 
-To install Visual Studio Code visit <https://code.visualstudio.com> and click the big green **Download** button. After the download finishes, open the installer and follow the steps to complete the installation.
+To install Visual Studio Code visit <https://code.visualstudio.com> and click the big green **Download** button. After the download finishes, open the installer and follow the steps to complete the installation. The minimum Visual Studio Code version required for the Salesforce Extension Pack is 1.82.
+
+
+**Note**: We recommend that you use Salesforce Extension Pack versions earlier than 59.15.0 if you aren't able to update your version of VS Code. Note that we aren't able to support fixes for these earlier versions.
 
 ## Salesforce Extension Pack
 

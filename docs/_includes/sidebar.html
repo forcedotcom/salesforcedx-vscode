@@ -1,16 +1,21 @@
 <section class="site site-sidebar slds-order_2">
   <div class="site-banner">
     <div class="site-skip-content">
+      {% assign skipLink = page.url %} {% if page.url == '/' %} {% assign
+      skipLink = '' %} {% endif %} {% assign skipLink = skipLink | prepend:
+      site.baseurl %}
       <a
-        href="#site-main-content"
+        href="{{ skipLink }}#site-main-content"
         class="slds-assistive-text slds-assistive-text_focus"
         >Skip to Content</a
       >
     </div>
     <div class="site-logo">
-      {% assign rootLink = site.baseurl | append: '/' %} {% if page.lang != 'en'
+      {% assign rootLink = site.baseurl %} {% if page.lang != 'en'
       %} {% assign rootLink = site.baseurl | append: '/' | append: page.lang %}
-      {% endif %}
+      {% endif %} {% if page.name == '404.html' %} {% assign truncLen =
+      site.baseurl | size %} {% assign rootLink = rootLink |
+      truncate: truncLen, "" %} {% endif %}
       <a href="{{ rootLink }}"
         ><span class="site-logo__graphic"
           ><span class="slds-assistive-text">Salesforce</span> </span
@@ -53,9 +58,10 @@
     </form>
     <div class="language-picker">
       {% assign jpurl = page.url | replace: '/en/', '/ja/' %} {% if page.url ==
-      '/' %} {% assign jpurl = page.url | append: 'ja/' %} {% endif %} {% assign
-      enurl = page.url | replace: '/ja/', '/en/' %} {% if page.url == '/ja/' %}
-      {% assign enurl = '/' %}{% endif %}
+      '/' %} {% assign jpurl = page.url | append: 'ja' %} {% endif %} {% assign
+      enurl = page.url | replace: '/ja/', '/en/' %} {% if page.url == '/ja' %}
+      {% assign enurl = '/' %} {% endif %} {% if enurl == '/' %} {% assign
+      enurl = '' %} {% endif %}
       <a
         class="{% if page.lang == 'en' %}is-selected{% endif %}"
         href="{{ enurl | prepend: site.baseurl }}"

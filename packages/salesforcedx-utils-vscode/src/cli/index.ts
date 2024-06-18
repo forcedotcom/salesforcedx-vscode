@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface Command {
+export type Command = {
   readonly command: string;
   readonly description?: string;
   readonly args: string[];
@@ -13,9 +13,9 @@ export interface Command {
 
   toString(): string;
   toCommand(): string;
-}
+};
 
-export { CommandBuilder, SfdxCommandBuilder } from './commandBuilder';
+export { CommandBuilder, SfCommandBuilder } from './commandBuilder';
 export {
   CliCommandExecution,
   CliCommandExecutor,
@@ -43,11 +43,14 @@ export {
   OrgOpenErrorResult,
   OrgOpenSuccessResult
 } from './orgOpenContainerResultParser';
-export { ForcePullResultParser, PullResult } from './parsers/pullResultParser';
+export {
+  ProjectRetrieveStartResultParser,
+  ProjectRetrieveStartResult
+} from './parsers/projectRetrieveStartResultParser';
 export {
   CONFLICT_ERROR_NAME,
-  ForcePushResultParser,
-  ForceSourcePushErrorResponse,
-  ForceSourcePushSuccessResponse,
-  PushResult
-} from './parsers/pushResultParser';
+  ProjectDeployStartResultParser,
+  ProjectDeployStartErrorResponse,
+  ProjectDeployStartSuccessResponse,
+  ProjectDeployStartResult
+} from './parsers/projectDeployStartResultParser';

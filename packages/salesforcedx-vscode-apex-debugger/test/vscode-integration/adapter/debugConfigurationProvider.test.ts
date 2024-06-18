@@ -21,7 +21,7 @@ describe('Configuration provider', () => {
   let provider: DebugConfigurationProvider;
   let getConfigSpy: sinon.SinonSpy;
   const folder: WorkspaceFolder = {
-    name: 'mySfdxProject',
+    name: 'mySalesforceProject',
     index: 0,
     uri: {
       fsPath: '/foo'
@@ -50,7 +50,7 @@ describe('Configuration provider', () => {
       userIdFilter: [],
       requestTypeFilter: [],
       entryPointFilter: '',
-      sfdxProject: '/foo'
+      salesforceProject: '/foo'
     } as DebugConfiguration;
 
     const configs = provider.provideDebugConfigurations(folder);
@@ -73,7 +73,7 @@ describe('Configuration provider', () => {
       expect(config.userIdFilter).to.be.an('array').that.is.empty;
       expect(config.requestTypeFilter).to.be.an('array').that.is.empty;
       expect(config.entryPointFilter).to.equals('');
-      expect(config.sfdxProject).to.equals('/foo');
+      expect(config.salesforceProject).to.equals('/foo');
       expect(config.workspaceSettings).to.not.equals(undefined);
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
       expect(mockApexExtension.calledOnce).to.be.true;
@@ -92,7 +92,7 @@ describe('Configuration provider', () => {
       requestTypeFilter: ['BATCH_APEX', 'EXECUTE_ANONYMOUS', 'FUTURE'],
       entryPointFilter: 'test/entrypoint',
       connectType: 'ISV_DEBUGGER',
-      sfdxProject: 'project/path',
+      salesforceProject: 'project/path',
       userIdFilter: ['005xx7998909099'],
       trace: true
     });
@@ -106,7 +106,7 @@ describe('Configuration provider', () => {
         .to.include('BATCH_APEX');
       expect(config.entryPointFilter).to.equals('test/entrypoint');
       expect(config.connectType).to.equals('ISV_DEBUGGER');
-      expect(config.sfdxProject).to.equals('project/path');
+      expect(config.salesforceProject).to.equals('project/path');
       expect(config.userIdFilter)
         .to.be.an('array')
         .to.deep.include('005xx7998909099');

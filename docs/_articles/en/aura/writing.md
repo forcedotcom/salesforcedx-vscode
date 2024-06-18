@@ -11,7 +11,7 @@ Take advantage of the following Aura Components Extension for VS Code features:
 - [View Documentation on Hover](./en/aura/writing#view-component-documentation-on-hover)
 - [Linting](./en/aura/writing#linting)
 - [Code Navigation](./en/aura/writing#code-navigation)
-- [Outline view](./en/aura/writing/#outline-view)
+- [Outline view](./en/aura/writing#outline-view)
 
 ## Code Completion
 

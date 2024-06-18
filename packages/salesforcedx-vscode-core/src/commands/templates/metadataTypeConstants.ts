@@ -7,6 +7,7 @@
 export const APEX_CLASS_DIRECTORY = 'classes';
 export const APEX_CLASS_EXTENSION = '.cls';
 export const APEX_CLASS_TYPE = 'apexclass';
+export const APEX_TEST_TEMPLATE = 'ApexUnitTest';
 export const APEX_CLASS_NAME_MAX_LENGTH = 40;
 
 export const APEX_TRIGGER_DIRECTORY = 'triggers';

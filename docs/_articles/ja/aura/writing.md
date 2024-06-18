@@ -11,7 +11,7 @@ VS Code の Aura コンポーネント拡張機能では、エディタに組み
 - [カーソルを置くとコンポーネントドキュメントを表示](./ja/aura/writing#view-component-documentation-on-hover)
 - [リンティング](./ja/aura/writing#linting)
 - [コードナビゲーション](./ja/aura/writing#code-navigation)
-- [アウトラインビュー](./ja/aura/writing/#outline-view)
+- [アウトラインビュー](./ja/aura/writing#outline-view)
 
 ## コード補完
 

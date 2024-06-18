@@ -5,80 +5,55 @@ lang: en
 
 ## Set Up Overview
 
-A Salesforce admin or user with the appropriate permissions can enable Einstein for Developers in a supported Salesforce org. A developer with access to the org can then:
+Einstein for Developers (Beta) is available in the [VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) and [Open VSX](https://open-vsx.org/extension/salesforce/salesforcedx-einstein-gpt) marketplaces as a part of the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded). Any developer with access to a Salesforce org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage goals.
 
-1.  Install the extension in VS Code.
-2.  Connect to an org with Einstein for Developers enabled.
-3.  Use the extension to generate Apex code from natural language instructions.
 
 ### Required Editions
 
 **Available in**: Developer, Enterprise, Partner Developer, Performance and Unlimited Editions.
 
-**Inoperable in**: Group, Professional, and Essentials Editions
+**Inoperable in**: Group, Professional, and Essentials Editions.
 
 **Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Einstein for Developers is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
-### Required User Permissions
 
-To configure Einstein for Developers (beta): Customize Application AND Modify All Data
-
-### Enhanced Domain Enabled
-
+**Enhanced Domain Enabled**
 Your Einstein for Developers org must have Enhanced Domain enabled. See [Enable Enhanced Domains](https://help.salesforce.com/s/articleView?id=sf.domain_name_enhanced_enable.htm&type=5) for more information.
-
-## Enable Einstein for Developers
-
-When you enable Einstein for Developers in a supported Salesforce org, all users in the org have access to the feature.
-
-1. From Setup, in the Quick Find box, enter `Einstein for Developers`, and then select **Einstein for Developers**.
-
-**Tip:** If you don’t see Einstein for Developers as an option under Setup in your Developer Edition org, the org was probably created before Einstein for Developers was introduced, so it doesn’t have the correct permissions. Create another Developer Edition org and then retry this step.
-
-2. Turn on Einstein for Developers.
-
-![Einstein Terms and Toggle](./images/einstein-terms.png)
-
-**Important**: We encourage you to thoroughly review the license agreement and review all terms and conditions. Then accept to enable Einstein for Developers.
-
-Einstein for Developers is activated in the org.
-
-### Add Users to the Org
-
-An admin can add additional users to the org as needed:
-
-1. From Setup, in the Quick Find box, enter `Users`, and then select **Users**.
-2. Click **New User** or **Add Multiple Users**.
-3. Select the appropriate license type and profile based on the user’s role.
-4. Select **Generate passwords and notify user via email**.
-5. Click **Save**.
-   This procedure generates an email inviting the new users into the org.
 
 ### Visual Studio Code Version
 
-VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.76 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
+VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.82.0 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
 
-## Install Einstein for Developers Extensions
+### Interaction with other AI-enabled Extensions
 
-Install Einstein for Developers:
+You may run into some unexpected generated code outcomes if you have multiple AI-enabled extensions installed in VS Code. We recommend you disable all other AI-enabled extensions when working with Einstein for Developers:
+1. Click the Extensions icon in the Activity Bar, search for the extension to disable by name.
+2. Click **Disable** in the extension's marketplace page.
+3. Repeat for all installed AI-enabled extensions.
 
-- If you’re using VS Code on your desktop, install [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) from the Visual Studio Code marketplace.
 
-- If you are using Code Builder, click the Extensions icon in the Activity Bar in Code Builder, search for “Einstein for Developers” and click **Install**.
+## Enable or Disable Einstein For Developers in VS Code
 
-**Note**: To use Einstein for Developers locally, you must have the [Salesforce Extensions pack]() installed in your VS Code for desktop application. See [Install Salesforce Extensions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install) for more information.
+You can enable or disable Einstein for Developers from within Visual Studio Code or Code Builder. Click the Einstein icon in the status bar to open the command palette, then click enable or disable.
+The Einstein for Developers status icon in the bottom panel of the Visual Studio Code window indicates whether Einstein for Developers is enabled or disabled. When enabled, the background color of the icon will match the color of the status bar. When disabled, the background color of the icon is brown.
 
-## Connect to an Org
+![einstein icon](./images/einstein-icon.png)
 
-The Einstein for Developers tool is run in the context of a Salesforce org, in a Salesforce DX project. To use this tool:
+## Disable or Uninstall Einstein for Developers Extension
 
-1. Go to **File** > **Open Folder** in the menu and open an existing Salesforce DX project in VS Code, or create one.
+You can disable or uninstall the Einstein for Developers extension at any time. Bring up the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of VS Code or the **View: Show Extensions** command (⇧⌘X). Search for "Einstein for Developers" in installed extensions list, and then select **Disable** or **Uninstall**.
 
-2. Run the **SFDX: Authorize an Org** command to connect to the Salesforce sandbox org or scratch org that has Einstein for Developers enabled. Pick default options to connect to your org.
+### Use Einstein for Developers in Code Builder
 
-The Einstein logo on the activity bar and in the status bar confirms that the extension is installed. Open the command palette and run `View: Show Einstein Developer Sidebar` to open the sidebar.
+Einstein for Developers is disabled by default in new Code Builder environments. Telemetry is used to audit enablement of Salesforce Generative AI functionality and must be on when you enable the extension:
 
-![einstein installed](./images/einstein-installed.png)
+1. Go to **Settings** and search for `salesforcedx-vscode-core.telemetry.enabled` to confirm that this Salesforce telemetry setting is on in your workspace.
+2. If the setting isn't on, select the checkbox to enable telemetry.
+3. Open a terminal and run `sf config set disable-telemetry=false --global` to enable CLI telemetry. See [Salesforce CLI Data Collection and Metrics](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_telemetry.htm) for more information.
+4. Run **Developer: Reload Window**.
+5. Click the Einstein icon in the status bar and enable the extension.
+
+Salesforce telemetry is on by default and can be turned off once the extension is enabled.
 
 ### Use Einstein for Developers in a Scratch Org
 
@@ -90,7 +65,7 @@ Einstein for Developers is only available in scratch org editions that can autho
 To use Einstein for Developers in a scratch org:
 
 1. Enable Einstein for Developers in the Dev Hub.
-2. Use the `SFDX: Authorize a Dev Hub` command to log into the Dev Hub.
+2. Use the **SFDX: Authorize a Dev Hub** command to log into the Dev Hub.
 3. Activate Einstein for Developers by turning on the `EinsteinGPTForDevelopers` scratch org feature:
 
 Edit the `config/project-scratch-def.json` file in your DX project and add the “`EinsteinGPTForDevelopers`” feature to your existing feature list and save your changes. For example:
@@ -105,8 +80,20 @@ Edit the `config/project-scratch-def.json` file in your DX project and add the �
 
 Create a scratch org using the `SFDX: Create a Default Scratch Org...` command referencing the scratch org definition that you previously updated.
 
-## Show Einstein Feedback Console View
+## Show Einstein Console View
 
-Run **Einstein: Show Prompt History** from the Command Palette to open the Feedback console. When opened, you can view a running history of your prompts and associated responses. Use 👍, 👎, and comments for each response to provide us with feedback about the quality of the generated code. Your feedback during this beta is key to helping us improve AI model quality and overall product.
+Run **Einstein: Show Prompt History** from the Command Palette to open the console. When opened, you can view a running history of your prompts and associated responses.
 
-![feedback panel](./images/einstein-feedback.png)
+## Keyboard Shortcuts for Einstein for Developers
+
+You can use the default keyboard shortcuts in Visual Studio Code when using Einstein for Developers. You can rebind the shortcuts in the Keyboard Shortcuts editor using your preferred keyboard shortcuts for each specific command. For more information see [Key Bindings for Visual Studio Code](https://code.visualstudio.com/docs/getstarted/keybindings).
+
+You can search for each keyboard shortcut by command name in the Keyboard Shortcuts editor.
+
+| Command                   | Key Binding |
+| ------------------------- | ----------- |
+| Accept                    | ⌘Enter      |
+| Accept                    | Tab         |
+| Clear                     | Escape      |
+| Einstein:Generate Code    | ⇧⌘R         |
+| Trigger Inline Suggestion | ⌥\          |

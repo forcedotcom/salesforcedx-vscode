@@ -23,8 +23,8 @@ import {
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker
 } from './util';
 
 export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
@@ -47,7 +47,7 @@ export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     let message: string | undefined;
     try {
       result = true;
-      await ConfigUtil.setDefaultUsernameOrAlias(this.usernameOrAlias);
+      await ConfigUtil.setTargetOrgOrAlias(this.usernameOrAlias);
     } catch (error) {
       message = error instanceof Error ? error.message : String(error);
       result = false;
@@ -82,14 +82,14 @@ export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function configSet(usernameOrAlias: string) {
-  const commandlet = new SfdxCommandlet(
+export const configSet = async (usernameOrAlias: string): Promise<void> => {
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ConfigSetExecutor(usernameOrAlias)
   );
   await commandlet.run();
-}
+};

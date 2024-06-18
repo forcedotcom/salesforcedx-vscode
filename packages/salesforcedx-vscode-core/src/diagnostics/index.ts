@@ -9,6 +9,6 @@ export {
   getAbsoluteFilePath,
   getFileUri,
   getRange,
-  handleDiagnosticErrors,
+  handlePushDiagnosticErrors,
   handleDeployDiagnostics
 } from './diagnostics';

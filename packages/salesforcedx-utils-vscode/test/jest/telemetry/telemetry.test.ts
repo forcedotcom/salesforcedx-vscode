@@ -6,7 +6,7 @@
  */
 import { TelemetryService } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
-import { TelemetryServiceProvider } from '../../../src/telemetry/telemetry';
+import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 
 describe('Telemetry', () => {
   describe('Telemetry Provider', () => {

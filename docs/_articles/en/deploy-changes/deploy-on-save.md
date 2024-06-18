@@ -14,10 +14,8 @@ To enable deploy on save, you can:
   - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
   - Under Salesforce Core Configuration, select `Push-or-deploy-on-save: Enabled`.
 
-
 **Note:**
 We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
-
 
 ## How it Works
 
@@ -31,7 +29,7 @@ When you enable deploy on save for your project:
 
 - If there isn’t an active deployment and no files are queued for deployment, a file save triggers an immediate deployment.
 
-If you enable deploy on save while working against a source-tracked org, every time you save a file, **SFDX: Push Source to Default Org** is initiated and runs `force:source:push` under the hood. For non-source-tracked orgs, every file save initiates **SFDX: Deploy Source to Org**, which runs `force:source:deploy`.
+If you enable deploy on save while working against a source-tracked org, every time you save a file, **SFDX: Push Source to Default Org** is initiated and runs `project:deploy:start` under the hood. For non-source-tracked orgs, every file save initiates **SFDX: Deploy Source to Org**.
 
 ## Detect Conflicts At Sync
 

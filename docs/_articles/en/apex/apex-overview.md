@@ -17,7 +17,7 @@ You can use Salesforce Extensions to:
 
 - [Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_dev_guide.htm)
 - [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
-- [Quick Start Apex Development with Salesforce Extensions](apex-get-started.md)
+- [Quick Start Apex Development with Salesforce Extensions](./en/apex/apex-get-started)
 
 Trailhead:
 - [Apex Triggers](https://trailhead.salesforce.com/content/learn/modules/apex_triggers)

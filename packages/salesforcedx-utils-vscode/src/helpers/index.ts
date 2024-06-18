@@ -30,3 +30,9 @@ export {
   isRecordIdFormat
 } from './validations';
 export { isSFContainerMode } from './env';
+export {
+  ActivationInfo,
+  ActivationTracker,
+  ExtensionInfo,
+  ExtensionsInfo
+} from './activationTracker';

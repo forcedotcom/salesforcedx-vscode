@@ -86,7 +86,7 @@ export class ConflictFileNode extends ConflictNode {
     this.contextValue = 'conflict-actions';
     this.command = {
       title: nls.localize('conflict_detect_diff_command_title'),
-      command: 'sfdx.force.conflict.diff',
+      command: 'sf.conflict.diff',
       arguments: [this._conflict]
     };
   }
