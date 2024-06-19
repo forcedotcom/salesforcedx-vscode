@@ -11,10 +11,10 @@ import {
   TestLevel,
   TestResult,
   TestService
-} from '@salesforce/apex-node';
-import { SfProject } from '@salesforce/core';
+} from '@salesforce/apex-node-bundle';
+import { SfProject } from '@salesforce/core-bundle';
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import { join } from 'path';
 import { assert, createSandbox, match, SinonStub } from 'sinon';

@@ -12,7 +12,7 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { CreateUtil } from '@salesforce/templates';
+import { CreateUtil } from '@salesforce/templates-bundle';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
