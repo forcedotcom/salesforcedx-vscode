@@ -109,7 +109,7 @@
         "@salesforce/core": "7.3.10",
         "@salesforce/source-tracking": "6.3.4",
         "applicationinsights": "1.0.7",
-        "jsonpath": "^1.1.1"
+        "jsonpath": "1.1.1"
       },
       "devDependencies": {}
     }
