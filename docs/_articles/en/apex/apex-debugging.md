@@ -12,9 +12,6 @@ The Salesforce Extension pack comes with rich debugging options for every develo
 | [Interactive Debugger](./en/apex/interactive-debugger)  | - One free license in Performance and Unlimited Edition orgs.<br>- Available for purchase in Enterprise Edition orgs.<br>- Not available in Trial and Developer Edition orgs.<br>- Can be used in scratch orgs using the DebugApex feature. The scratch orgs must be created on a Dev Hub that has an interactive debugger license. | A powerful debugger that lets you view and pause events in real time.                                                         |
 | [ISV Debugger](./en/apex/isv-debugger)          | Available in subscriber sandbox orgs.                                                                                                                                                                                | Use to debug managed package code directly in customer orgs from your License Management Org (LMO), in real time.              |
 
-### Debugging Sessions
-You can only have one active debugging session per org, but you can purchase more sessions for your parent org, which will enable additional sessions in your sandbox orgs. Each sandbox org can have only one active session.
-
 ## Additional Resources
 
 - [Debug Logs](https://help.salesforce.com/s/articleView?id=sf.code_debug_log.htm)
