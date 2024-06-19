@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Bump apex-node to 6.1.2 ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647))
+- We fixed an issue where `sf apex get test` and `sf apex get test` in large projects threw heap out of memory. Thank you [Paweł Idczak](https://github.com/pawel-id) for creating the issue. ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647), [ISSUE #5589](https://github.com/forcedotcom/salesforcedx-vscode/issues/5589))
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Bump apex-node to 6.1.2 ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647))
+- We made some changes under the hood. ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647))
 
 ## Fixed
 
