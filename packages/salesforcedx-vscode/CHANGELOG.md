@@ -1,3 +1,25 @@
+# 61.1.1 - June 21, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Bump apex-node to 6.1.2 ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Bump apex-node to 6.1.2 ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647))
+
+## Fixed
+
+#### docs
+
+- Remove trailing slashes from URLs in docs to improve SEO ([PR #5632](https://github.com/forcedotcom/salesforcedx-vscode/pull/5632))
+
+#### salesforcedx-vscode-soql
+
+- Allow user to filter by null strings ([PR #5646](https://github.com/forcedotcom/salesforcedx-vscode/pull/5646))
+
 # 61.0.1 - June 14, 2024
 
 ## Added
