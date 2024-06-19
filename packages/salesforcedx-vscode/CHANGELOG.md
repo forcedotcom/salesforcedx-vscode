@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-soql
 
-- Allow user to filter by null strings ([PR #5646](https://github.com/forcedotcom/salesforcedx-vscode/pull/5646))
+- We fixed an issue where users were unable to filter by NULL values if the SObject field type was a string. ([PR #5646](https://github.com/forcedotcom/salesforcedx-vscode/pull/5646))
 
 # 61.0.1 - June 14, 2024
 
