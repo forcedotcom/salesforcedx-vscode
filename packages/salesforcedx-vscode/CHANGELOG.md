@@ -1,3 +1,25 @@
+# 61.1.2 - June 21, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue where `sf apex get test` and `sf apex run test` threw heap out of memory in large projects. Thank you [Paweł Idczak](https://github.com/pawel-id) for creating the issue. ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647), [ISSUE #5589](https://github.com/forcedotcom/salesforcedx-vscode/issues/5589))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #5647](https://github.com/forcedotcom/salesforcedx-vscode/pull/5647))
+
+## Fixed
+
+#### docs
+
+- We removed trailing slashes from URLs in docs to improve SEO. Thank you [Jason Rogers](https://github.com/jmrog) for your work on this PR. ([PR #5632](https://github.com/forcedotcom/salesforcedx-vscode/pull/5632))
+
+#### salesforcedx-vscode-soql
+
+- We fixed an issue where users were unable to filter by NULL values if the SObject field type was a string. ([PR #5646](https://github.com/forcedotcom/salesforcedx-vscode/pull/5646))
+
 # 61.0.1 - June 14, 2024
 
 ## Added
