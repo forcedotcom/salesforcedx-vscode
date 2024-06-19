@@ -5,9 +5,13 @@ lang: en
 
 The Salesforce Extension pack comes with rich debugging options for every developer, regardless of where you land on the low- to pro-code continuum. Use this information to figure out which Apex debugger is right for you:
 
-- [Replay Debugger](./en/apex/replay-debugger): Free and easy to use.
-- [Interactive Debugger](./en/apex/interactive-debugger): Traditional, licensed debugger that lets you view and pause events in real time.
-- [ISV Debugger](./en/apex/isv-debugger): Use to debug managed package code directly in customer orgs from your License Management Org (LMO).
+
+| Debugger              | License Requirements                                                                                                                                                                                                 | Features                                                                                                                      |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| [Replay Debugger](./en/apex/replay-debugger)       | None. Free.                                                                                                                                                                                                          | Easy to use. Use debug logs to “replay” events. Your debugger for most use cases.                                             |
+| [Interactive Debugger](./en/apex/interactive-debugger)  | - One free license in Performance and Unlimited Edition orgs.<br>- Available for purchase in Enterprise Edition orgs.<br>- Not available in Trial and Developer Edition orgs.<br>- Can be used in scratch orgs using the DebugApex feature. The scratch orgs must be created on a Dev Hub that has an interactive debugger license. | A powerful debugger that lets you view and pause events in real time.                                                         |
+| [ISV Debugger](./en/apex/isv-debugger)          | Available in subscriber sandbox orgs.                                                                                                                                                                                | Use to debug managed package code directly in customer orgs from your License Management Org (LMO), in real time.              |
+
 
 ## Additional Resources
 
