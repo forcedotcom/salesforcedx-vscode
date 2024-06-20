@@ -7,10 +7,10 @@
   "main": "lib/src/index.js",
   "dependencies": {
     "@jsforce/jsforce-node": "^3.2.0",
-    "@salesforce/core": "^7.4.1",
+    "@salesforce/core": "^7.5.0",
     "@salesforce/kit": "^3.1.6",
     "@types/istanbul-reports": "^3.0.4",
-    "bfj": "^8.0.0",
+    "bfj": "8.0.0",
     "faye": "1.4.0",
     "glob": "^10.3.16",
     "istanbul-lib-coverage": "^3.2.2",
