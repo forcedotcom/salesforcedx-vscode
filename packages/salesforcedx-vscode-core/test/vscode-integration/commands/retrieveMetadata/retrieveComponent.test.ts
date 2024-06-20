@@ -238,6 +238,7 @@ describe('Retrieve Component(s)', () => {
       };
       pollStatusStub.resolves(
         new RetrieveResult(
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           retrieveResponse as MetadataApiRetrieveStatus,
           componentSet
         )
