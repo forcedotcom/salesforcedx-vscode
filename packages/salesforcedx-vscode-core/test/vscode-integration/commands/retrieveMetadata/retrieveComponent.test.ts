@@ -238,7 +238,7 @@ describe('Retrieve Component(s)', () => {
       };
       pollStatusStub.resolves(
         new RetrieveResult(
-          retrieveResponse as MetadataApiRetrieveStatus,
+          retrieveResponse ,
           componentSet
         )
       );
