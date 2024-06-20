@@ -18,4 +18,4 @@ The Salesforce Extension pack comes with rich debugging options for every develo
 - [Find and Fix Bugs with Apex Replay Debugger](https://trailhead.salesforce.com/content/learn/projects/find-and-fix-bugs-with-apex-replay-debugger)
 - [Debug Log Filtering for Apex Classes and Apex Triggers](https://help.salesforce.com/s/articleView?id=sf.code_debug_log_classes.htm&type=5)
 - [Scratch Org Features](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file_config_values.htm)
-- [Org Best Practices For ISVs](https://www.salesforce.com/video/7830209/)
+- [Enable 'Manage Your Apex Debugger Sessions' in Lightning Experience](https://help.salesforce.com/s/articleView?id=000382135&type=1)
