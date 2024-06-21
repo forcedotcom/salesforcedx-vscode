@@ -15,19 +15,19 @@ import { nls } from '../i18n';
 import { Readable, ReadableOptions } from 'node:stream';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { Logger, LoggerLevel } from '@salesforce/core';
-import { EOL } from 'os';
-import * as os from 'node:os';
 
 export class HumanFormatTransform extends Readable {
   private logger: Logger;
   constructor(
     private readonly testResult: TestResult,
     private readonly detailedCoverage: boolean,
+    private readonly concise: boolean = false,
     options?: ReadableOptions
   ) {
     super(options);
     this.testResult = testResult;
     this.detailedCoverage ??= false;
+    this.concise = concise;
     this.logger = Logger.childFromRoot('HumanFormatTransform');
   }
 
@@ -45,7 +45,6 @@ export class HumanFormatTransform extends Readable {
 
   @elapsedTime()
   public format(): void {
-    this.formatSummary();
     if (!this.testResult.codecoverage || !this.detailedCoverage) {
       this.formatTestResults();
     }
@@ -54,8 +53,11 @@ export class HumanFormatTransform extends Readable {
       if (this.detailedCoverage) {
         this.formatDetailedCov();
       }
-      this.formatCodeCov();
+      if (!this.concise) {
+        this.formatCodeCov();
+      }
     }
+    this.formatSummary();
   }
 
   @elapsedTime()
@@ -110,6 +112,7 @@ export class HumanFormatTransform extends Readable {
         : [])
     ];
 
+    this.push(`\n\n`);
     tb.createTable(
       summaryRowArray,
       [
@@ -135,34 +138,44 @@ export class HumanFormatTransform extends Readable {
         runTime: number;
         stackTrace: string | null;
       }) => {
-        const msg = elem.stackTrace
-          ? `${elem.message}\n${elem.stackTrace}`
-          : elem.message;
+        if (
+          !this.concise ||
+          elem.outcome === ApexTestResultOutcome.Fail ||
+          elem.outcome === ApexTestResultOutcome.CompileFail
+        ) {
+          const msg = elem.stackTrace
+            ? `${elem.message}\n${elem.stackTrace}`
+            : elem.message;
 
-        testRowArray.push({
-          name: elem.fullName,
-          outcome: elem.outcome,
-          msg: elem.message ? msg : '',
-          runtime:
-            elem.outcome !== ApexTestResultOutcome.Fail ? `${elem.runTime}` : ''
-        });
+          testRowArray.push({
+            name: elem.fullName,
+            outcome: elem.outcome,
+            msg: elem.message ? msg : '',
+            runtime:
+              elem.outcome !== ApexTestResultOutcome.Fail
+                ? `${elem.runTime}`
+                : ''
+          });
+        }
       }
     );
 
-    this.push(`${EOL}${EOL}`);
-    tb.createTable(
-      testRowArray,
-      [
-        {
-          key: 'name',
-          label: nls.localize('testNameColHeader')
-        },
-        { key: 'outcome', label: nls.localize('outcomeColHeader') },
-        { key: 'msg', label: nls.localize('msgColHeader') },
-        { key: 'runtime', label: nls.localize('runtimeColHeader') }
-      ],
-      nls.localize('testResultsHeader')
-    );
+    if (testRowArray.length > 0) {
+      this.push('\n\n');
+      tb.createTable(
+        testRowArray,
+        [
+          {
+            key: 'name',
+            label: nls.localize('testNameColHeader')
+          },
+          { key: 'outcome', label: nls.localize('outcomeColHeader') },
+          { key: 'msg', label: nls.localize('msgColHeader') },
+          { key: 'runtime', label: nls.localize('runtimeColHeader') }
+        ],
+        nls.localize('testResultsHeader')
+      );
+    }
   }
 
   @elapsedTime()
@@ -170,58 +183,68 @@ export class HumanFormatTransform extends Readable {
     const tb = new TableWriteableStream(this);
     const testRowArray: Row[] = [];
     this.testResult.tests.forEach((elem: ApexTestResultData) => {
-      const msg = elem.stackTrace
-        ? `${elem.message}\n${elem.stackTrace}`
-        : elem.message;
+      if (
+        !this.concise ||
+        elem.outcome === ApexTestResultOutcome.Fail ||
+        elem.outcome === ApexTestResultOutcome.CompileFail
+      ) {
+        const msg = elem.stackTrace
+          ? `${elem.message}\n${elem.stackTrace}`
+          : elem.message;
 
-      if (elem.perClassCoverage) {
-        elem.perClassCoverage.forEach((perClassCov) => {
+        if (elem.perClassCoverage) {
+          elem.perClassCoverage.forEach((perClassCov) => {
+            testRowArray.push({
+              name: elem.fullName,
+              coveredClassName: perClassCov.apexClassOrTriggerName,
+              outcome: elem.outcome,
+              coveredClassPercentage: perClassCov.percentage,
+              msg: elem.message ? msg : '',
+              runtime: `${elem.runTime}`
+            });
+          });
+        } else {
           testRowArray.push({
             name: elem.fullName,
-            coveredClassName: perClassCov.apexClassOrTriggerName,
+            coveredClassName: '',
             outcome: elem.outcome,
-            coveredClassPercentage: perClassCov.percentage,
+            coveredClassPercentage: '',
             msg: elem.message ? msg : '',
             runtime: `${elem.runTime}`
           });
-        });
-      } else {
-        testRowArray.push({
-          name: elem.fullName,
-          coveredClassName: '',
-          outcome: elem.outcome,
-          coveredClassPercentage: '',
-          msg: elem.message ? msg : '',
-          runtime: `${elem.runTime}`
-        });
+        }
       }
     });
 
-    this.push(os.EOL.repeat(2));
-    tb.createTable(
-      testRowArray,
-      [
-        {
-          key: 'name',
-          label: nls.localize('testNameColHeader')
-        },
-        {
-          key: 'coveredClassName',
-          label: nls.localize('classTestedHeader')
-        },
-        {
-          key: 'outcome',
-          label: nls.localize('outcomeColHeader')
-        },
-        {
-          key: 'coveredClassPercentage',
-          label: nls.localize('percentColHeader')
-        },
-        { key: 'msg', label: nls.localize('msgColHeader') },
-        { key: 'runtime', label: nls.localize('runtimeColHeader') }
-      ],
-      nls.localize('detailedCodeCovHeader', [this.testResult.summary.testRunId])
-    );
+    if (testRowArray.length > 0) {
+      this.push('\n\n'.repeat(2));
+      tb.createTable(
+        testRowArray,
+        [
+          {
+            key: 'name',
+            label: nls.localize('testNameColHeader')
+          },
+          {
+            key: 'coveredClassName',
+            label: nls.localize('classTestedHeader')
+          },
+          {
+            key: 'outcome',
+            label: nls.localize('outcomeColHeader')
+          },
+          {
+            key: 'coveredClassPercentage',
+            label: nls.localize('percentColHeader')
+          },
+          { key: 'msg', label: nls.localize('msgColHeader') },
+          { key: 'runtime', label: nls.localize('runtimeColHeader') }
+        ],
+        nls.localize('detailedCodeCovHeader', [
+          this.testResult.summary.testRunId
+        ])
+      );
+    }
   }
 
   @elapsedTime('elapsedTime', LoggerLevel.TRACE)
@@ -242,7 +265,7 @@ export class HumanFormatTransform extends Readable {
       }
     );
 
-    this.push(os.EOL.repeat(2));
+    this.push('\n\n'.repeat(2));
     tb.createTable(
       codeCovRowArray,
       [

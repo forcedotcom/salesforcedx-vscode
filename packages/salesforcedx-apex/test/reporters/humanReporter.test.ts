@@ -86,4 +86,32 @@ describe('Human Reporter Tests', () => {
     );
     expect(result).to.contain('=== Test Summary');
   });
+
+  it('should format test results and skip successful tests if concise is true', () => {
+    const result = reporter.format(testResults, false, true);
+    expect(result).to.not.be.empty;
+    expect(result).to.not.contain(
+      'AccountServiceTest.should_create_account             Pass                                                                                                           86'
+    );
+    expect(result).to.contain('AwesomeCalculatorTest.testCallout       Fail');
+    expect(result).to.contain('=== Test Results');
+    expect(result).to.contain('=== Test Summary');
+  });
+
+  it('should format test results and not display coverage results if concise is true', () => {
+    const result = reporter.format(coverageFailResult, true, true);
+    expect(result).to.not.be.empty;
+    expect(result).to.not.contain('=== Apex Code Coverage by Class');
+    expect(result).to.not.contain('ApexTestClass  12.5%    9,10');
+    expect(result).to.contain(
+      '=== Apex Code Coverage for Test Run 7073t000061uwZI'
+    );
+    expect(result).to.not.contain(
+      'AccountServiceTest.should_create_account             Pass                                                                                                           86'
+    );
+    expect(result).to.contain(
+      'AnimalLocatorTest.testMissingAnimal                      Fail              System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:'
+    );
+    expect(result).to.contain('=== Test Summary');
+  });
 });
