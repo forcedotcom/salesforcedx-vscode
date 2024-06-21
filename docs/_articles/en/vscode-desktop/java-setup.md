@@ -3,7 +3,7 @@ title: Java Setup
 lang: en
 ---
 
-The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code, depends on the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 21 (Recommended), JDK version 17, or JDK version 11. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension can't find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
+The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code, depends on the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of JDK version 21 (Recommended), JDK version 17, or JDK version 11. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension can't find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
 
 ## Download and Install JDK
 You can download the JDK from one of these locations.
@@ -28,7 +28,7 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 6. Click the **Download** button..
 8. Once the file is downloaded, open it and complete the installation steps.
 
-### Oracle Java 21 (Officially Tested)
+### Oracle Java 21
 
 1. Navigate to the [download page](https://www.oracle.com/java/technologies/downloads/#java21).
 2. Click the download link that applies to your OS.
