@@ -12,29 +12,28 @@ You can download the JDK from one of these locations.
 
 [Adoptium](https://adoptium.net) provides prebuilt OpenJDK binaries for free without authentication or complications.
 
-1. Navigate to [Adoptium](https://adoptium.net/?variant=openjdk21).
-2. Select **Temurin 21 (LTS)**.
+1. Navigate to the [Adoptium] (https://adoptium.net/?variant=openjdk21) JDK 21 download page.
+2. Select the installer applicable to your system.
 3. Download and open the downloaded file and complete the installation steps.
 
 ### Zulu
 
 Zulu Java builds are TCK-tested and free to download and use without restrictions.
 
-1. Navigate to the [Zulu download page](https://www.azul.com/products/core/).
-2. Click the **Download Zulu** button.
-3. Scroll down to Java Version **Java 21 (LTS)**.
-4. Select your OS.
-5. Select your Architecture.
-6. Select your Java Package (JDK).
-7. Download the installer.
-8. Once the file is downloaded open it and complete the installation steps.
+1. Navigate to the [Zulu download page](https://www.azul.com/downloads/?package=jdk#zulu).
+2. Scroll down to Java Version **Java 21 (LTS)**.
+3. Select your OS.
+4. Select your Architecture.
+5. Select your Java Package (JDK).
+6. Click the **Download** button..
+8. Once the file is downloaded, open it and complete the installation steps.
 
 ### Oracle Java 21 (Officially Tested)
 
 1. Navigate to the [download page](https://www.oracle.com/java/technologies/downloads/#java21).
 2. Click the download link that applies to your OS.
 3. If prompted to log in, use your Oracle account.
-4. Once the file is downloaded open it and complete the installation steps.
+4. Once the file is downloaded, open it and complete the installation steps.
 
 **Note**: Installing from the executable correctly installs Java in the standard Java Home path (C:\Program Files\) making setting the JDK path straightforward.
 
