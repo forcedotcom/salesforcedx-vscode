@@ -18,7 +18,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
   If you don’t already have version 11, 17, or 21 of the JDK installed, you can install the latest version of the Java 11 JDK from [Java 11 Downloads](https://www.oracle.com/java/technologies/downloads/#java11), Java 17 from [Java 17 Downloads](https://www.oracle.com/java/technologies/downloads/#java17), or Java 21 from [Java 21 Downloads](https://www.oracle.com/java/technologies/downloads/#java21).
 
-  If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 11, 17 or 21.
+  If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 11, 17, or 21.
 
 - **[Visual Studio Code](https://code.visualstudio.com/download) v1.82.0 or later**
 
