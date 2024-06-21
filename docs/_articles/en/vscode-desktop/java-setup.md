@@ -12,7 +12,7 @@ You can download the JDK from one of these locations.
 
 [Adoptium](https://adoptium.net) provides prebuilt OpenJDK binaries for free without authentication or complications.
 
-1. Navigate to the [Adoptium] (https://adoptium.net/?variant=openjdk21) JDK 21 download page.
+1. Navigate to the [Adoptium JDK 21](https://adoptium.net/?variant=openjdk21) download page.
 2. Select the installer applicable to your system.
 3. Download and open the downloaded file and complete the installation steps.
 
@@ -20,7 +20,7 @@ You can download the JDK from one of these locations.
 
 Zulu Java builds are TCK-tested and free to download and use without restrictions.
 
-1. Navigate to the [Zulu download page](https://www.azul.com/downloads/?package=jdk#zulu).
+1. Navigate to the [Zulu JDK 21](https://www.azul.com/downloads/?package=jdk#zulu) download page.
 2. Scroll down to Java Version **Java 21 (LTS)**.
 3. Select your OS.
 4. Select your Architecture.
@@ -30,7 +30,7 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 
 ### Oracle Java 21
 
-1. Navigate to the [download page](https://www.oracle.com/java/technologies/downloads/#java21).
+1. Navigate to the [Oracle JDK 21](https://www.oracle.com/java/technologies/downloads/#java21) download page.
 2. Click the download link that applies to your OS.
 3. If prompted to log in, use your Oracle account.
 4. Once the file is downloaded, open it and complete the installation steps.
