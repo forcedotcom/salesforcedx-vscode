@@ -14,11 +14,11 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
   Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.
   If you don't already have a Salesforce DX project, create one with the **SFDX: Create Project** command (for development against scratch orgs) or the **SFDX: Create Project with Manifest** command (for development against sandboxes or DE orgs). Or, see [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) for information about setting up a project using Salesforce CLI.
 - **Java Platform, Standard Edition Development Kit**
-  Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 11 or version 17 of the JDK installed.
+  Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 11, version 17 or version 21 of the JDK installed.
 
-  If you don’t already have version 11 or 17 of the JDK installed, you can install the latest version of the Java 11 JDK from [Java 11 Downloads](https://www.oracle.com/java/technologies/downloads/#java11) or Java 17 from [Java 17 Downloads](https://www.oracle.com/java/technologies/downloads/#java17).
+  If you don’t already have version 11, 17 or 21 of the JDK installed, you can install the latest version of the Java 11 JDK from [Java 11 Downloads](https://www.oracle.com/java/technologies/downloads/#java11),Java 17 from [Java 17 Downloads](https://www.oracle.com/java/technologies/downloads/#java17) or Java 21 from [Java 21 Downloads](https://www.oracle.com/java/technologies/downloads/#java21).
 
-  If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 11 or 17.
+  If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 11, 17 or 21.
 
 - **[Visual Studio Code](https://code.visualstudio.com/download) v1.82.0 or later**
 
