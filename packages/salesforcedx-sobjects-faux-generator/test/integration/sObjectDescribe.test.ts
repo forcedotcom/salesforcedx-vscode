@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core-bundle';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';

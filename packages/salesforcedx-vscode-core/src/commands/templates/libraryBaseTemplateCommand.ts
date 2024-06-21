@@ -11,7 +11,7 @@ import {
   TemplateOptions,
   TemplateService,
   TemplateType
-} from '@salesforce/templates';
+} from '@salesforce/templates-bundle';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from 'vscode';
 import { channelService } from '../../channels';
