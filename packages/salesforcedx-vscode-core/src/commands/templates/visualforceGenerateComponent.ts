@@ -12,7 +12,7 @@ import {
 import {
   TemplateType,
   VisualforceComponentOptions
-} from '@salesforce/templates';
+} from '@salesforce/templates-bundle';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
