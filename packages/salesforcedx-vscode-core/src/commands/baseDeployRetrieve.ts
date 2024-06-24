@@ -20,11 +20,11 @@ import {
   MetadataApiDeploy,
   MetadataApiRetrieve,
   RetrieveResult
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import {
   ComponentStatus,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';

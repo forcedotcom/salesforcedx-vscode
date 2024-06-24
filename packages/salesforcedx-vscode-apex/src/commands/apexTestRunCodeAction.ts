@@ -13,9 +13,9 @@ import {
   TestLevel,
   TestResult,
   TestService
-} from '@salesforce/apex-node';
-import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
-import { NamedPackageDir, SfProject } from '@salesforce/core';
+} from '@salesforce/apex-node-bundle';
+import { ApexDiagnostic } from '@salesforce/apex-node-bundle/lib/src/utils';
+import { NamedPackageDir, SfProject } from '@salesforce/core-bundle';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,

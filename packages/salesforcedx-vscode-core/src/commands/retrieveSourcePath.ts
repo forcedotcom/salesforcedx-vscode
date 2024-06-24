@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';

@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile } from '@salesforce/core';
+import { ConfigFile } from '@salesforce/core-bundle';
 import {
   instantiateContext,
   restoreContext,
   stubContext
-} from '@salesforce/core/testSetup';
+} from '@salesforce/core-bundle';
 import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';

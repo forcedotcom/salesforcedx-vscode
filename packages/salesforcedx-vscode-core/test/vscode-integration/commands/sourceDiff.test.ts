@@ -8,7 +8,7 @@
 import {
   MetadataType,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';

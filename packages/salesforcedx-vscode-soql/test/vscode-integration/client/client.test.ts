@@ -26,7 +26,7 @@ import {
   SOQL_CONFIGURATION_NAME,
   SOQL_VALIDATION_CONFIG
 } from '../../../src/constants';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 
 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
 async function sleep(ms: number = 0) {

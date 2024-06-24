@@ -12,11 +12,11 @@ import {
   MetadataApiRetrieve,
   RetrieveResult,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import {
   MetadataApiRetrieveStatus,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';

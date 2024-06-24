@@ -6,7 +6,7 @@
  */
 
 import { DescribeSObjectResult, QueryResult } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';

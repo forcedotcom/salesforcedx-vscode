@@ -6,7 +6,7 @@
  */
 
 import { QueryResult } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import { soqlComments } from '@salesforce/soql-common';
 import { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';

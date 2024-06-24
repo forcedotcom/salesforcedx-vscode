@@ -24,7 +24,6 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "7.5.0",
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.8.0",
     "@salesforce/lwc-language-server": "4.8.0",
@@ -37,7 +36,8 @@
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "^5.2.1"
+    "vscode-languageclient": "^5.2.1",
+    "@salesforce/core-bundle": "7.5.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "61.2.0",
@@ -116,10 +116,8 @@
         "server.js"
       ],
       "dependencies": {
-        "@salesforce/core": "7.5.0",
         "@salesforce/lightning-lsp-common": "4.8.0",
         "@salesforce/lwc-language-server": "4.8.0",
-        "@salesforce/source-tracking": "6.5.1",
         "applicationinsights": "1.0.7"
       },
       "devDependencies": {}

@@ -11,7 +11,7 @@ import {
   ParametersGatherer,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ProjectOptions, TemplateType } from '@salesforce/templates';
+import { ProjectOptions, TemplateType } from '@salesforce/templates-bundle';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';

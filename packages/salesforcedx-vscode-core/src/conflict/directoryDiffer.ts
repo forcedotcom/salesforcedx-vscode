@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';

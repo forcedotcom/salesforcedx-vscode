@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo } from '@salesforce/core-bundle';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
 import { expect } from 'chai';

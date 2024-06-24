@@ -9,7 +9,7 @@ import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentStatus,
   DeployResult
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { SfCommandletExecutor } from '../commands/util';

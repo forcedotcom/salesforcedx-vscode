@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TemplateService } from '@salesforce/templates';
+import { TemplateService } from '@salesforce/templates-bundle';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogService, TestService } from '@salesforce/apex-node';
+import { LogService, TestService } from '@salesforce/apex-node-bundle';
 import {
   TestLevel,
   TestResult
-} from '@salesforce/apex-node/lib/src/tests/types';
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
+} from '@salesforce/apex-node-bundle/lib/src/tests/types';
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core-bundle';
+import { MockTestOrgData, TestContext } from '@salesforce/core-bundle';
 import {
   ContinueResponse,
   notificationService,

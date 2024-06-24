@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator } from '@salesforce/core';
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import { workspaceUtils } from '../workspaces';
 
 /*

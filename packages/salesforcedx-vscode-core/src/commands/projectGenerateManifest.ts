@@ -7,7 +7,7 @@
 
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'fs';
 import { join, parse } from 'path';
 import { format } from 'util';

@@ -10,7 +10,7 @@ import {
   DescribeSObjectResult,
   Field
 } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';

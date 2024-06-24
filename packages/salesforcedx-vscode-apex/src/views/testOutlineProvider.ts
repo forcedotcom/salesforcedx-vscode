@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestResult } from '@salesforce/apex-node';
+import { TestResult } from '@salesforce/apex-node-bundle';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';

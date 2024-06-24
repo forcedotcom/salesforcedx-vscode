@@ -6,7 +6,7 @@
  */
 
 import { DescribeSObjectResult } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   ChannelService,
   WorkspaceContextUtil

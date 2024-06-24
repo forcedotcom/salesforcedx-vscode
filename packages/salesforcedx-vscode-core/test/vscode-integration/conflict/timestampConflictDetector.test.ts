@@ -8,7 +8,7 @@
 import {
   FileProperties,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as path from 'path';

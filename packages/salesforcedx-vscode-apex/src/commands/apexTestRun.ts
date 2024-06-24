@@ -14,7 +14,7 @@ import {
   TestLevel,
   TestResult,
   TestService
-} from '@salesforce/apex-node';
+} from '@salesforce/apex-node-bundle';
 import {
   getRootWorkspacePath,
   hasRootWorkspace,

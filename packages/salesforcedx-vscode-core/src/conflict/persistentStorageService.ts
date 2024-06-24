@@ -12,7 +12,7 @@ import {
 import {
   DeployResult,
   FileProperties
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';

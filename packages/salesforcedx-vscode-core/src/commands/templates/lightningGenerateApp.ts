@@ -9,7 +9,7 @@ import {
   DirFileNameSelection,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LightningAppOptions, TemplateType } from '@salesforce/templates';
+import { LightningAppOptions, TemplateType } from '@salesforce/templates-bundle';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
