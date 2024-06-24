@@ -29,6 +29,7 @@ import {
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
   TestResult,
+  TestResultRaw,
   TestRunIdResult
 } from './types';
 import {
@@ -47,6 +48,7 @@ import { pipeline } from 'node:stream/promises';
 import * as os from 'node:os';
 import path from 'path';
 import fs from 'node:fs/promises';
+import { Field } from '@jsforce/jsforce-node';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bfj = require('bfj');
@@ -229,8 +231,13 @@ export class AsyncTests {
     if (!isValidTestRunID(testRunId)) {
       throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
     }
-
-    const testRunSummaryQuery = `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
+    const hasTestSetupTimeField = await this.describeSObjects(
+      'ApexTestRunResult',
+      'TestSetupTime'
+    );
+    const testRunSummaryQuery = hasTestSetupTimeField
+      ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
+      : `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
 
     progress?.report({
       type: 'FormatTestResultProgress',
@@ -352,8 +359,7 @@ export class AsyncTests {
         result.summary.orgWideCoverage =
           await this.codecoverage.getOrgWideCoverage();
       }
-
-      return result;
+      return this.transformTestResult(result);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
     }
@@ -364,13 +370,15 @@ export class AsyncTests {
     testQueueResult: ApexTestQueueItem
   ): Promise<ApexTestResult[]> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
+    const hasIsTestSetupField = await this.describeSObjects(
+      'ApexTestResult',
+      'IsTestSetup'
+    );
+
     try {
-      let apexTestResultQuery = 'SELECT Id, QueueItemId, StackTrace, Message, ';
-      apexTestResultQuery +=
-        'RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ';
-      apexTestResultQuery +=
-        'ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix ';
-      apexTestResultQuery += 'FROM ApexTestResult WHERE QueueItemId IN (%s)';
+      const apexTestResultQuery = hasIsTestSetupField
+        ? `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`
+        : `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`;
 
       const apexResultIds = testQueueResult.records.map((record) => record.Id);
 
@@ -531,6 +539,46 @@ export class AsyncTests {
       } catch (e) {
         return Promise.reject(e);
       }
+    };
+  }
+
+  /**
+   * Checks if the specified sObject contains the given field.
+   * @param sObjectName - The name of the sObject.
+   * @param fieldName - The name of the field to check.
+   * @returns A boolean indicating if the field exists in the sObject.
+   */
+  public async describeSObjects(
+    sObjectName: string,
+    fieldName: string
+  ): Promise<boolean> {
+    try {
+      const describeResult =
+        await this.connection.tooling.describe(sObjectName);
+      return describeResult.fields.some(
+        (field: Field) => field.name === fieldName
+      );
+    } catch (e) {
+      throw new Error(`Error describing ${sObjectName}: ${e.message}`);
+    }
+  }
+
+  private transformTestResult(rawResult: TestResultRaw): TestResult {
+    // Destructure summary to omit testSetupTimeInMs
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { testSetupTimeInMs, ...summary } = rawResult.summary;
+
+    // Filter and transform tests array
+    const tests = rawResult.tests
+      .filter((test) => !test.isTestSetup)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .map(({ isTestSetup, ...rest }) => rest);
+
+    // Return the transformed result
+    return {
+      summary,
+      tests,
+      codecoverage: rawResult.codecoverage
     };
   }
 }

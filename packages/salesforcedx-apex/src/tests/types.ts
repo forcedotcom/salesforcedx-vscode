@@ -371,6 +371,13 @@ export type ApexTestResultData = {
   diagnostic?: ApexDiagnostic;
 };
 
+export type ApexTestResultDataRaw = ApexTestResultData & {
+  /**
+   * Indicates if the results are for a test setup method. The default is false.
+   */
+  isTestSetup?: boolean;
+};
+
 export type CodeCoverageResult = {
   apexId: string;
   name: string;
@@ -387,6 +394,12 @@ export type TestRunIdResult = {
 };
 
 export type TestResult = {
+  summary: Omit<TestResultRaw['summary'], 'testSetupTimeInMs'>;
+  tests: Omit<ApexTestResultDataRaw, 'isTestSetup'>[];
+  codecoverage?: CodeCoverageResult[];
+};
+
+export type TestResultRaw = {
   summary: {
     failRate: string;
     testsRan: number;
@@ -400,6 +413,7 @@ export type TestResult = {
     testStartTime: string;
     testExecutionTimeInMs: number;
     testTotalTimeInMs: number;
+    testSetupTimeInMs?: number;
     commandTimeInMs: number;
     hostname: string;
     username: string;
@@ -410,7 +424,7 @@ export type TestResult = {
     totalLines?: number;
     coveredLines?: number;
   };
-  tests: ApexTestResultData[];
+  tests: ApexTestResultDataRaw[];
   codecoverage?: CodeCoverageResult[];
 };
 

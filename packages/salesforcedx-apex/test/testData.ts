@@ -215,7 +215,8 @@ export const missingTimeTestData: TestResult = {
       testTimestamp: '3',
       fullName: 't3st.TestLogger.testLoggerLog'
     }
-  ]
+  ],
+  codecoverage: undefined
 };
 
 export const skippedTestData: TestResult = {
@@ -257,7 +258,8 @@ export const skippedTestData: TestResult = {
       testTimestamp: '3',
       fullName: 't3st.TestLogger.testLoggerLog'
     }
-  ]
+  ],
+  codecoverage: undefined
 };
 
 const failureSummary = {
@@ -310,7 +312,8 @@ export const diagnosticResult: TestResult = {
         lineNumber: 6
       }
     }
-  ]
+  ],
+  codecoverage: undefined
 };
 
 export const diagnosticFailure: TestResult = {
@@ -342,7 +345,8 @@ export const diagnosticFailure: TestResult = {
         exceptionStackTrace: 'Class.LIFXControllerTest.makeData'
       }
     }
-  ]
+  ],
+  codecoverage: undefined
 };
 
 export const perClassCodeCoverage: ApexCodeCoverageRecord[] = [

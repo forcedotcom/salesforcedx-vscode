@@ -62,10 +62,13 @@ import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
+import { DescribeSObjectResult } from '@jsforce/jsforce-node';
 
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingRequestStub: SinonStub;
+let toolingDescribeStub: SinonStub;
+let singleRecordQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Run Apex tests asynchronously', () => {
@@ -85,6 +88,43 @@ describe('Run Apex tests asynchronously', () => {
       }
     ]
   };
+
+  const mockDescribeApexTestRunResult = {
+    fields: [
+      { name: 'AsyncApexJobId' },
+      { name: 'Status' },
+      { name: 'ClassesCompleted' },
+      { name: 'ClassesEnqueued' },
+      { name: 'MethodsEnqueued' },
+      { name: 'StartTime' },
+      { name: 'EndTime' },
+      { name: 'TestTime' },
+      { name: 'TestSetupTime' },
+      { name: 'UserId' }
+    ],
+    name: 'ApexTestRunResult',
+    label: 'Apex Test Run Result',
+    labelPlural: 'Apex Test Run Results'
+  } as DescribeSObjectResult;
+  const mockDescribeApexTestResult = {
+    fields: [
+      { name: 'Id' },
+      { name: 'QueueItemId' },
+      { name: 'StackTrace' },
+      { name: 'Message' },
+      { name: 'AsyncApexJobId' },
+      { name: 'MethodName' },
+      { name: 'Outcome' },
+      { name: 'ApexLogId' },
+      { name: 'IsTestSetup' },
+      { name: 'ApexClass' },
+      { name: 'RunTime' },
+      { name: 'TestTimestamp' }
+    ],
+    name: 'ApexTestResult',
+    label: 'Apex Test Result',
+    labelPlural: 'Apex Test Results'
+  } as DescribeSObjectResult;
 
   beforeEach(async () => {
     sandboxStub = createSandbox();
@@ -106,7 +146,18 @@ describe('Run Apex tests asynchronously', () => {
     testResultData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     testResultData.summary.username = mockConnection.getUsername();
     toolingRequestStub = sandboxStub.stub(mockConnection.tooling, 'request');
+    toolingDescribeStub = sandboxStub.stub(mockConnection.tooling, 'describe');
+    singleRecordQueryStub = sandboxStub.stub(
+      mockConnection,
+      'singleRecordQuery'
+    );
     formatSpy = sandboxStub.spy(diagnosticUtil, 'formatTestErrors');
+    toolingDescribeStub
+      .withArgs('ApexTestResult')
+      .resolves(mockDescribeApexTestResult);
+    toolingDescribeStub
+      .withArgs('ApexTestRunResult')
+      .resolves(mockDescribeApexTestRunResult);
   });
 
   afterEach(() => {
@@ -173,12 +224,8 @@ describe('Run Apex tests asynchronously', () => {
       mockConnection.getAuthInfoFields().orgId;
     missingTimeTestData.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockSingleRecordQuery.onFirstCall().resolves({
+    singleRecordQueryStub.onFirstCall().resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: testStartTime,
@@ -220,13 +267,14 @@ describe('Run Apex tests asynchronously', () => {
 
     let summaryQuery =
       'SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, ';
-    summaryQuery += 'MethodsEnqueued, StartTime, EndTime, TestTime, UserId ';
+    summaryQuery +=
+      'MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId ';
     summaryQuery += `FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
-    expect(mockSingleRecordQuery.getCall(0).args[0]).to.equal(summaryQuery);
+    expect(singleRecordQueryStub.getCall(0).args[0]).to.equal(summaryQuery);
 
     let testResultQuery = 'SELECT Id, QueueItemId, StackTrace, Message, ';
     testResultQuery +=
-      'RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ';
+      'RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ';
     testResultQuery +=
       'ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix ';
     testResultQuery += `FROM ApexTestResult WHERE QueueItemId IN ('${pollResponse.records[0].Id}')`;
@@ -236,12 +284,8 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should report progress when checking test summary for run', async () => {
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockSingleRecordQuery.onFirstCall().resolves({
+    singleRecordQueryStub.onFirstCall().resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: testStartTime,
@@ -291,12 +335,8 @@ describe('Run Apex tests asynchronously', () => {
     skippedTestData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     skippedTestData.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockSingleRecordQuery.onFirstCall().resolves({
+    singleRecordQueryStub.onFirstCall().resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: testStartTime,
@@ -339,13 +379,14 @@ describe('Run Apex tests asynchronously', () => {
 
     let summaryQuery =
       'SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, ';
-    summaryQuery += 'MethodsEnqueued, StartTime, EndTime, TestTime, UserId ';
+    summaryQuery +=
+      'MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId ';
     summaryQuery += `FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
-    expect(mockSingleRecordQuery.getCall(0).args[0]).to.equal(summaryQuery);
+    expect(singleRecordQueryStub.getCall(0).args[0]).to.equal(summaryQuery);
 
     let testResultQuery = 'SELECT Id, QueueItemId, StackTrace, Message, ';
     testResultQuery +=
-      'RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ';
+      'RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ';
     testResultQuery +=
       'ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix ';
     testResultQuery += `FROM ApexTestResult WHERE QueueItemId IN ('${pollResponse.records[0].Id}')`;
@@ -357,12 +398,8 @@ describe('Run Apex tests asynchronously', () => {
     diagnosticResult.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     diagnosticResult.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockSingleRecordQuery.onFirstCall().resolves({
+    singleRecordQueryStub.onFirstCall().resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: testStartTime,
@@ -413,12 +450,8 @@ describe('Run Apex tests asynchronously', () => {
     diagnosticFailure.tests[0].diagnostic.exceptionStackTrace = undefined;
     diagnosticFailure.tests[0].stackTrace = undefined;
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockSingleRecordQuery.onFirstCall().resolves({
+    singleRecordQueryStub.onFirstCall().resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: testStartTime,
@@ -464,11 +497,7 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should return an error if no test results are found', async () => {
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
-    mockSingleRecordQuery.onFirstCall().throwsException('No records found');
+    singleRecordQueryStub.onFirstCall().throwsException('No records found');
 
     try {
       const runResult = await asyncTestSrv.checkRunStatus(testRunId);
@@ -489,11 +518,7 @@ describe('Run Apex tests asynchronously', () => {
   it('should return an error if invalid test run id was provided', async () => {
     const invalidId = '000000xxxxx';
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
-    mockSingleRecordQuery.onFirstCall().resolves(undefined);
+    singleRecordQueryStub.onFirstCall().resolves(undefined);
 
     try {
       await asyncTestSrv.checkRunStatus(invalidId);
@@ -502,18 +527,14 @@ describe('Run Apex tests asynchronously', () => {
       expect(e.message).to.equal(
         nls.localize('invalidTestRunIdErr', invalidId)
       );
-      expect(mockSingleRecordQuery.notCalled).to.be.true;
+      expect(singleRecordQueryStub.notCalled).to.be.true;
     }
   });
 
   it('should return an error if invalid test run id prefix was provided', async () => {
     const invalidId = '708000000xxxxxx';
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
-    mockSingleRecordQuery.onFirstCall().resolves(undefined);
+    singleRecordQueryStub.onFirstCall().resolves(undefined);
 
     try {
       await asyncTestSrv.checkRunStatus(invalidId);
@@ -522,7 +543,7 @@ describe('Run Apex tests asynchronously', () => {
       expect(e.message).to.equal(
         nls.localize('invalidTestRunIdErr', invalidId)
       );
-      expect(mockSingleRecordQuery.notCalled).to.be.true;
+      expect(singleRecordQueryStub.notCalled).to.be.true;
     }
   });
 
@@ -532,12 +553,8 @@ describe('Run Apex tests asynchronously', () => {
       mockConnection.tooling,
       'query'
     );
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
 
-    mockSingleRecordQuery.onFirstCall().resolves({
+    singleRecordQueryStub.onFirstCall().resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: '2020-07-12T02:54:47.000+0000',
@@ -600,12 +617,8 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should report progress for aggregating code coverage', async () => {
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockSingleRecordQuery = sandboxStub.stub(
-      mockConnection,
-      'singleRecordQuery'
-    );
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockSingleRecordQuery.onCall(0).resolves({
+    singleRecordQueryStub.onCall(0).resolves({
       AsyncApexJobId: testRunId,
       Status: ApexTestRunResultStatus.Completed,
       StartTime: '2020-07-12T02:54:47.000+0000',
@@ -673,7 +686,7 @@ describe('Run Apex tests asynchronously', () => {
 
   describe('Check Query Limits', async () => {
     const queryStart =
-      'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN ';
+      'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN ';
 
     const queueItemRecords: ApexTestQueueItemRecord[] = [];
     const queryIds: string[] = [];
@@ -772,7 +785,7 @@ describe('Run Apex tests asynchronously', () => {
 
     it('should split the queue into chunks of 500 records', async () => {
       const queryStart =
-        'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN ';
+        'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN ';
       const queryStartSeparatorCount = queryStart.split(',').length - 1;
 
       const mockToolingQuery = sandboxStub
@@ -1033,12 +1046,8 @@ describe('Run Apex tests asynchronously', () => {
   describe('Report Test Run Status', async () => {
     it('should subscribe to test run for run still in progress', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
-      const mockSingleRecordQuery = sandboxStub.stub(
-        mockConnection,
-        'singleRecordQuery'
-      );
       sandboxStub.stub(mockConnection.tooling, 'query');
-      mockSingleRecordQuery
+      singleRecordQueryStub
         .onFirstCall()
         .resolves({
           AsyncApexJobId: testRunId,
@@ -1085,7 +1094,7 @@ describe('Run Apex tests asynchronously', () => {
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
-      expect(mockSingleRecordQuery.calledTwice).to.be.true;
+      expect(singleRecordQueryStub.calledTwice).to.be.true;
       expect(formatResultsStub.calledOnce).to.be.true;
       expect(subscribeStub.calledOnce).to.be.true;
       expect(handlerStub.notCalled).to.be.true;
@@ -1093,12 +1102,8 @@ describe('Run Apex tests asynchronously', () => {
 
     it('should query for test run results if run is complete', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
-      const mockSingleRecordQuery = sandboxStub.stub(
-        mockConnection,
-        'singleRecordQuery'
-      );
       sandboxStub.stub(mockConnection.tooling, 'query');
-      mockSingleRecordQuery.onFirstCall().resolves({
+      singleRecordQueryStub.onFirstCall().resolves({
         AsyncApexJobId: testRunId,
         Status: ApexTestRunResultStatus.Completed,
         StartTime: testStartTime,
@@ -1135,7 +1140,7 @@ describe('Run Apex tests asynchronously', () => {
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
-      expect(mockSingleRecordQuery.calledOnce).to.be.true;
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
       expect(formatResultsStub.calledOnce).to.be.true;
       expect(subscribeStub.notCalled).to.be.true;
       expect(handlerStub.calledOnce).to.be.true;
@@ -1143,12 +1148,8 @@ describe('Run Apex tests asynchronously', () => {
 
     it('should format results with retrieved test run summary', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
-      const mockSingleRecordQuery = sandboxStub.stub(
-        mockConnection,
-        'singleRecordQuery'
-      );
       sandboxStub.stub(mockConnection.tooling, 'query');
-      mockSingleRecordQuery.onFirstCall().resolves({
+      singleRecordQueryStub.onFirstCall().resolves({
         AsyncApexJobId: testRunId,
         Status: ApexTestRunResultStatus.Completed,
         StartTime: testStartTime,
@@ -1185,6 +1186,86 @@ describe('Run Apex tests asynchronously', () => {
 
       expect(formatResultsStub.calledOnce).to.be.true;
       expect(handlerStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe('Describe SObjects', async () => {
+    it('should describe SObject and check for the existence of a field', async () => {
+      const asyncTests = new AsyncTests(mockConnection);
+
+      const fieldExists = await asyncTests.describeSObjects(
+        'ApexTestRunResult',
+        'TestSetupTime'
+      );
+      expect(fieldExists).to.be.true;
+      expect(toolingDescribeStub.calledOnce).to.be.true;
+      expect(toolingDescribeStub.calledWith('ApexTestRunResult')).to.be.true;
+
+      const mockQueryResult = {
+        Status: 'Completed',
+        ClassesCompleted: 5,
+        ClassesEnqueued: 5,
+        MethodsEnqueued: 5,
+        StartTime: '2021-01-01T00:00:00Z',
+        EndTime: '2021-01-01T00:10:00Z',
+        TestTime: 600000,
+        UserId: 'someUserId'
+      };
+
+      singleRecordQueryStub.resolves(mockQueryResult);
+
+      const runStatusResult = await asyncTests.checkRunStatus(testRunId);
+
+      expect(runStatusResult.testsComplete).to.be.true;
+      expect(runStatusResult.testRunSummary).to.deep.equal(mockQueryResult);
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+
+      const expectedQueryWithTestSetupTime = `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
+      expect(singleRecordQueryStub.getCall(0).args[0]).to.equal(
+        expectedQueryWithTestSetupTime
+      );
+    });
+    it('should handle absence of TestSetupTime field and modify query accordingly', async () => {
+      const fields = [{ name: 'AnotherField' }];
+
+      toolingDescribeStub
+        .withArgs('ApexTestRunResult')
+        .resolves({ fields } as DescribeSObjectResult);
+
+      const asyncTests = new AsyncTests(mockConnection);
+
+      const fieldExists = await asyncTests.describeSObjects(
+        'ApexTestRunResult',
+        'TestSetupTime'
+      );
+
+      expect(fieldExists).to.be.false;
+      expect(toolingDescribeStub.calledOnce).to.be.true;
+      expect(toolingDescribeStub.calledWith('ApexTestRunResult')).to.be.true;
+
+      const mockQueryResult = {
+        Status: 'Completed',
+        ClassesCompleted: 5,
+        ClassesEnqueued: 5,
+        MethodsEnqueued: 5,
+        StartTime: '2021-01-01T00:00:00Z',
+        EndTime: '2021-01-01T00:10:00Z',
+        TestTime: 600000,
+        UserId: 'someUserId'
+      };
+
+      singleRecordQueryStub.resolves(mockQueryResult);
+
+      const runStatusResult = await asyncTests.checkRunStatus(testRunId);
+
+      expect(runStatusResult.testsComplete).to.be.true;
+      expect(runStatusResult.testRunSummary).to.deep.equal(mockQueryResult);
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+
+      const expectedQueryWithoutTestSetupTime = `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
+      expect(singleRecordQueryStub.getCall(0).args[0]).to.equal(
+        expectedQueryWithoutTestSetupTime
+      );
     });
   });
 });
