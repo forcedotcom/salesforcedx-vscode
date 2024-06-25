@@ -20,7 +20,7 @@
 
 #### salesforcedx-vscode-core
 
-- Bump sdr to resolve the issue of deploying MD files ([PR #5650](https://github.com/forcedotcom/salesforcedx-vscode/pull/5650))
+- We fixed an issue that wrong caching stratety causes deploying metadata files with outdated content. ([PR #5650](https://github.com/forcedotcom/salesforcedx-vscode/pull/5650), [ISSUE #5612](https://github.com/forcedotcom/salesforcedx-vscode/issues/5612))
 
 #### salesforcedx-vscode-expanded
 
