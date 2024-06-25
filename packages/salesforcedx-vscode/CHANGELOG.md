@@ -4,27 +4,21 @@
 
 #### salesforcedx-vscode-core
 
-- Opt in bundling @salesforce/core ([PR #5656](https://github.com/forcedotcom/salesforcedx-vscode/pull/5656))
+- 🚀 🚀 We're excited to announce that our extension pack is now bundled, resulting in a whopping 40 MB reduction in extension size. You should see substantial improvements in startup and performance.
 
 ## Fixed
 
 #### docs
 
-- Java setup update ([PR #5655](https://github.com/forcedotcom/salesforcedx-vscode/pull/5655))
+- We updated our documentation with information about installing JDK 21. ([PR #5655](https://github.com/forcedotcom/salesforcedx-vscode/pull/5655))
 
-- Apex debugger intro update ([PR #5649](https://github.com/forcedotcom/salesforcedx-vscode/pull/5649))
+- We made updates to our Apex Debugger documentation.  ([PR #5649](https://github.com/forcedotcom/salesforcedx-vscode/pull/5649))
 
-#### salesforcedx-vscode
-
-- Java setup update ([PR #5655](https://github.com/forcedotcom/salesforcedx-vscode/pull/5655))
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue that wrong caching stratety causes deploying metadata files with outdated content. ([PR #5650](https://github.com/forcedotcom/salesforcedx-vscode/pull/5650), [ISSUE #5612](https://github.com/forcedotcom/salesforcedx-vscode/issues/5612))
+- We fixed an issue where an incorrect caching strategy caused metadata files to deploy with outdated content. ([PR #5650](https://github.com/forcedotcom/salesforcedx-vscode/pull/5650), [ISSUE #5612](https://github.com/forcedotcom/salesforcedx-vscode/issues/5612))
 
-#### salesforcedx-vscode-expanded
-
-- Java setup update ([PR #5655](https://github.com/forcedotcom/salesforcedx-vscode/pull/5655))
 
 # 61.1.2 - June 21, 2024
 
