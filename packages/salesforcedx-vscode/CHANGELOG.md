@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- 🚀 🚀 We're excited to announce that our extension pack is now bundled, resulting in a whopping 40 MB reduction in extension size. You should see substantial improvements in startup and performance.
+- 🚀 🚀 We're excited to announce that we've now bundled more dependencies into our extension pack, resulting in a whopping 40 MB reduction in extension size. You should see substantial improvements in startup and performance.
 
 ## Fixed
 
