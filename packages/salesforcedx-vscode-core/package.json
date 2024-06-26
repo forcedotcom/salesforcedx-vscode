@@ -24,14 +24,14 @@
     "Other"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.2.0",
-    "@salesforce/core-bundle": "7.5.0",
+    "@jsforce/jsforce-node": "3.2.1",
+    "@salesforce/core-bundle": "8.0.5",
     "@salesforce/salesforcedx-sobjects-faux-generator": "61.2.1",
     "@salesforce/salesforcedx-utils-vscode": "61.2.1",
-    "@salesforce/schemas": "^1.6.1",
-    "@salesforce/source-deploy-retrieve-bundle": "11.6.10",
-    "@salesforce/templates-bundle": "61.0.1",
-    "@salesforce/ts-types": "2.0.9",
+    "@salesforce/schemas": "1.9.0",
+    "@salesforce/source-deploy-retrieve-bundle": "12.0.2",
+    "@salesforce/templates-bundle": "61.2.0",
+    "@salesforce/ts-types": "2.0.10",
     "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
@@ -100,7 +100,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5",
-        "@salesforce/templates-bundle": "61.0.1"
+        "@salesforce/templates-bundle": "61.2.0"
       },
       "devDependencies": {}
     }

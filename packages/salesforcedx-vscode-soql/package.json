@@ -31,9 +31,9 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.2.0",
+    "@jsforce/jsforce-node": "3.2.1",
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core-bundle": "7.5.0",
+    "@salesforce/core-bundle": "8.0.5",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
@@ -45,7 +45,7 @@
     "@salesforce/salesforcedx-utils-vscode": "61.2.1",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
-    "@salesforce/ts-types": "2.0.9",
+    "@salesforce/ts-types": "2.0.10",
     "@types/chai": "4.3.3",
     "@types/debounce": "^1.2.0",
     "@types/fs-extra": "^8.1.0",
