@@ -6,7 +6,7 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateService } from '@salesforce/templates-bundle';
+import { getDefaultApiVersion } from '@salesforce/templates-bundle/lib/generators/baseGenerator';
 import { nls as templatesNls } from '@salesforce/templates-bundle/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -81,7 +81,7 @@ describe('Apex Generate Class', () => {
     await apexGenerateClass();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    const defaultApiVersion = getDefaultApiVersion();
     assert.file([apexClassPath, apexClassMetaPath]);
     assert.fileContent(
       apexClassPath,

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TemplateService } from '@salesforce/templates-bundle';
+import { getDefaultApiVersion } from '@salesforce/templates-bundle/lib/generators/baseGenerator';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
@@ -86,7 +86,7 @@ describe('Lightning Generate Event', () => {
     await lightningGenerateEvent();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    const defaultApiVersion = getDefaultApiVersion();
     assert.file([auraEventPath, auraEventMetaPath]);
     assert.fileContent(
       auraEventPath,

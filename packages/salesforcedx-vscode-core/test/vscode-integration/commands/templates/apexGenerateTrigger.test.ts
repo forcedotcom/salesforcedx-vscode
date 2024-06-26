@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TemplateService } from '@salesforce/templates-bundle';
+import { getDefaultApiVersion } from '@salesforce/templates-bundle/lib/generators/baseGenerator';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
@@ -67,7 +67,7 @@ describe('Apex Generate Trigger', () => {
     await apexGenerateTrigger();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    const defaultApiVersion = getDefaultApiVersion();
     assert.file([apexTriggerPath, apexTriggerMetaPath]);
     assert.fileContent(
       apexTriggerPath,

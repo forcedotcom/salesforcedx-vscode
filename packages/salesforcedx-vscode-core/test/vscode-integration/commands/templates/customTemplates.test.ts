@@ -6,7 +6,7 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateService } from '@salesforce/templates-bundle';
+import { getDefaultApiVersion } from '@salesforce/templates-bundle/lib/generators/baseGenerator';
 import { nls as templatesNls } from '@salesforce/templates-bundle/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -93,7 +93,7 @@ describe('Custom Templates Create', () => {
     await apexGenerateClass();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    const defaultApiVersion = getDefaultApiVersion();
     assert.file([apexClassPath, apexClassMetaPath]);
     assert.fileContent(
       apexClassPath,
@@ -248,7 +248,7 @@ describe('Custom Templates Create', () => {
     await lightningGenerateLwc();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
+    const defaultApiVersion = getDefaultApiVersion();
     assert.file([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     assert.fileContent(lwcHtmlPath, '<template>\n    \n</template>');
     assert.fileContent(
