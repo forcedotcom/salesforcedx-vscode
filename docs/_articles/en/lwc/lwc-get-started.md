@@ -94,14 +94,16 @@ export default class ContactList extends LightningElement {
 
 1. In Visual Studio Code, open the Command Palette and run **SFDX: Open Default Org**.
    This opens your org in a separate browser.
-2. From the **App Launcher** find and select **Sales**.
-3. Click **Setup** gear then select **Edit Page**.
-4. Drag the `contactList` Lightning web component from the Custom area of the Lightning Components list to the top of the Page Canvas.
-5. Click **Save**.
-6. Click **Activate**.
-7. Click **Assign as Org Default**.
+2. Open **Setup** through the **Setup** gear
+3. Navigate to Feature Settings > Home and deactivate **Advanced Seller Home**
+5. From the **App Launcher** find and select **Sales**.
+6. Click **Setup** gear then select **Edit Page**.
+7. Drag the `contactList` Lightning web component from the Custom area of the Lightning Components list to the top of the Page Canvas.
 8. Click **Save**.
-9. Click **Save** again, then click **Back** arrow to return to the page.
-10. Refresh the page to view your new component.
+9. Click **Activate**.
+10. Click **Assign as Org Default**.
+11. Click **Save**.
+12. Click **Save** again, then click **Back** arrow to return to the page.
+13. Refresh the page to view your new component.
 
 ![PNG showing LWC component](./images/contact_lwc.png)
