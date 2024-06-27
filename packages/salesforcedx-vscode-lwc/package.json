@@ -462,6 +462,11 @@
             "fatal"
           ],
           "default": "warn"
+        },
+        "salesforcedx-vscode-lwc.preview.typeScriptSupport": {
+          "type": "boolean",
+          "default": false,
+          "description": "%lightning_lwc_preview_typescript_support%"
         }
       }
     }

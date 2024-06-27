@@ -6,6 +6,7 @@
   "lightning_lwc_preferences": "Salesforce Lightning Web Components",
   "lightning_lwc_preview_text": "SFDX: コンポーネントをローカルでプレビュー",
   "lightning_lwc_remember_device_description": "最後に使用したモバイルデバイスのターゲットを保存する",
+  "lightning_lwc_preview_typescript_support": "最後に使用したモバイルデバイスのターゲットを保存する",
   "lightning_lwc_start_text": "SFDX: ローカルの開発サーバを起動",
   "lightning_lwc_stop_text": "SFDX: ローカルの開発サーバを停止",
   "lightning_lwc_test_case_debug_text": "SFDX: Lightning Web コンポーネントのテストケースをデバッグ",
