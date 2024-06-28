@@ -1,0 +1,236 @@
+name: E2E Test Suite - ESM
+
+on:
+  workflow_run:
+    workflows:
+      - Nightly Build Develop
+      - Test, Build, and Release
+    types:
+      - completed
+
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'testesm'
+        type: string
+      anInitialSuite:
+        description: 'Verify Extensions'
+        required: false
+        default: true
+        type: boolean
+      sObjectsDefinitions:
+        description: 'sObjects Definitions'
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: 'Create Commands'
+        required: false
+        default: true
+        type: boolean
+      manifestBuilder:
+        description: 'Manifest Builder'
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: 'Push and Pull'
+        required: false
+        default: true
+        type: boolean
+      auraLsp:
+        description: 'Aura LSP'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.90.2'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'testesm'
+        type: string
+      anInitialSuite:
+        description: 'Verify Extensions'
+        required: false
+        default: true
+        type: boolean
+      sObjectsDefinitions:
+        description: 'sObjects Definitions'
+        required: false
+        default: true
+        type: boolean
+      templates:
+        description: 'Create Commands'
+        required: false
+        default: true
+        type: boolean
+      manifestBuilder:
+        description: 'Manifest Builder'
+        required: false
+        default: true
+        type: boolean
+      pushAndPull:
+        description: 'Push and Pull'
+        required: false
+        default: true
+        type: boolean
+      auraLsp:
+        description: 'Aura LSP'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.90.2'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+jobs:
+  anInitialSuite:
+    if: ${{ inputs.anInitialSuite || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'anInitialSuite.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
+      os: '["macos-12", "ubuntu-latest"]'
+
+  sObjectsDefinitions:
+    if: ${{ inputs.sObjectsDefinitions || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'sObjectsDefinitions.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
+      os: '["macos-12", "ubuntu-latest"]'
+
+  templates:
+    if: ${{ inputs.templates || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'templates.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
+      os: '["macos-12", "ubuntu-latest"]'
+
+  manifestBuilder:
+    if: ${{ inputs.manifestBuilder || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'manifestBuilder.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
+      os: '["macos-12", "ubuntu-latest"]'
+
+  pushAndPull:
+    if: ${{ inputs.pushAndPull || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'pushAndPull.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
+      os: '["macos-12", "ubuntu-latest"]'
+
+  auraLSP:
+    if: ${{ inputs.auraLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'auraLsp.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
+      os: '["macos-12", "ubuntu-latest"]'
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs:
+      [
+        anInitialSuite,
+        sObjectsDefinitions,
+        templates,
+        manifestBuilder,
+        pushAndPull,
+        auraLSP
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'E2E Test Suite - ESM'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      testsBranch: ${{ inputs.automationBranch || 'testesm' }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- Aura LSP: ${{ needs.auraLSP.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    needs:
+      [
+        anInitialSuite,
+        sObjectsDefinitions,
+        templates,
+        manifestBuilder,
+        pushAndPull,
+        auraLSP
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'E2E Test Suite - ESM'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      testsBranch: ${{ inputs.automationBranch || 'testesm' }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- Aura LSP: ${{ needs.auraLSP.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs:
+      [
+        anInitialSuite,
+        sObjectsDefinitions,
+        templates,
+        manifestBuilder,
+        pushAndPull,
+        auraLSP
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'E2E Test Suite - ESM'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
+      testsBranch: ${{ inputs.automationBranch || 'testesm' }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- Aura LSP: ${{ needs.auraLSP.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
