@@ -11,7 +11,7 @@
   "main": "out/src",
   "dependencies": {
     "@jsforce/jsforce-node": "3.2.1",
-    "@salesforce/core-bundle": "8.0.5",
+    "@salesforce/core-bundle": "8.1.0",
     "@salesforce/salesforcedx-utils-vscode": "61.2.1",
     "shelljs": "0.8.5"
   },

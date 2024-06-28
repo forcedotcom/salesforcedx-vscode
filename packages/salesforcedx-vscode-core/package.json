@@ -25,11 +25,11 @@
   ],
   "dependencies": {
     "@jsforce/jsforce-node": "3.2.1",
-    "@salesforce/core-bundle": "8.0.5",
+    "@salesforce/core-bundle": "8.1.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "61.2.1",
     "@salesforce/salesforcedx-utils-vscode": "61.2.1",
     "@salesforce/schemas": "1.9.0",
-    "@salesforce/source-deploy-retrieve-bundle": "12.0.2",
+    "@salesforce/source-deploy-retrieve-bundle": "12.1.4",
     "@salesforce/templates-bundle": "61.2.0",
     "@salesforce/ts-types": "2.0.10",
     "@salesforce/vscode-service-provider": "1.0.4",
