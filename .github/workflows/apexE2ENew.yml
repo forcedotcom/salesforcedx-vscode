@@ -43,7 +43,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: '1.90.2'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -85,7 +85,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: '1.90.2'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -98,7 +98,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'apexLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -109,7 +109,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'apexReplayDebugger.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -120,7 +120,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'debugApexTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -131,7 +131,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'runApexTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -142,7 +142,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'trailApexReplayDebugger.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}

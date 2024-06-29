@@ -108,7 +108,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'anInitialSuite.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -119,7 +119,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'sObjectsDefinitions.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -130,7 +130,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'templates.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -141,7 +141,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'manifestBuilder.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -152,7 +152,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'pushAndPull.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
@@ -163,7 +163,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
+      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
       testToRun: 'auraLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
