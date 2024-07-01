@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { execSync } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
@@ -74,8 +74,8 @@ describe('Visualforce Generate Component', () => {
 
     // assert
     const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
-    const result = execSync(`cat ${packageJsonPath}`).toString();
-    const extensionsVersion = JSON.parse(result).version as string;
+    const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
+    const extensionsVersion = JSON.parse(packageJsonContent).version as string;
     const firstDotLocation = extensionsVersion.indexOf('.');
     const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
 
