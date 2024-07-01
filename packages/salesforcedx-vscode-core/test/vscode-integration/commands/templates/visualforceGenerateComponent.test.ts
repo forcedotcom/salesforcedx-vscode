@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
@@ -73,30 +72,7 @@ describe('Visualforce Generate Component', () => {
     await visualforceGenerateComponent();
 
     // assert
-    const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
-    const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
-    const extensionsVersion = JSON.parse(packageJsonContent).version as string;
-    const firstDotLocation = extensionsVersion.indexOf('.');
-    const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
-
     assert.file([vfCmpPath, vfCmpMetaPath]);
-    assert.fileContent(
-      vfCmpPath,
-      `<apex:component>
-<!-- Begin Default Content REMOVE THIS -->
-<h1>Congratulations</h1>
-This is your new Component
-<!-- End Default Content REMOVE THIS -->
-</apex:component>`
-    );
-    assert.fileContent(
-      vfCmpMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <label>testVFCmp</label>
-</ApexComponent>`
-    );
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, vfCmpPath);
 

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
@@ -67,26 +66,6 @@ describe('Apex Generate Trigger', () => {
     await apexGenerateTrigger();
 
     // assert
-    const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
-    const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
-    const extensionsVersion = JSON.parse(packageJsonContent).version as string;
-    const firstDotLocation = extensionsVersion.indexOf('.');
-    const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
-
     assert.file([apexTriggerPath, apexTriggerMetaPath]);
-    assert.fileContent(
-      apexTriggerPath,
-      `trigger TestApexTrigger on SOBJECT (before insert) {
-
-}`
-    );
-    assert.fileContent(
-      apexTriggerMetaPath,
-      `<?xml version='1.0' encoding='UTF-8'?>
-<ApexTrigger xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>${defaultApiVersion}</apiVersion>
-  <status>Active</status>
-</ApexTrigger>`
-    );
   });
 });

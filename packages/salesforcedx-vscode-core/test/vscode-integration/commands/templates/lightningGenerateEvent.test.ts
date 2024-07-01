@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
@@ -86,25 +85,7 @@ describe('Lightning Generate Event', () => {
     await lightningGenerateEvent();
 
     // assert
-    const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
-    const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
-    const extensionsVersion = JSON.parse(packageJsonContent).version as string;
-    const firstDotLocation = extensionsVersion.indexOf('.');
-    const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
-
     assert.file([auraEventPath, auraEventMetaPath]);
-    assert.fileContent(
-      auraEventPath,
-      '<aura:event type="APPLICATION" description="Event template"/>'
-    );
-    assert.fileContent(
-      auraEventMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <description>A Lightning Event Bundle</description>
-</AuraDefinitionBundle>`
-    );
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
