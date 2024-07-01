@@ -112,7 +112,7 @@ jobs:
       testToRun: 'anInitialSuite.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   sObjectsDefinitions:
     if: ${{ inputs.sObjectsDefinitions || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -123,7 +123,7 @@ jobs:
       testToRun: 'sObjectsDefinitions.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   templates:
     if: ${{ inputs.templates || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -134,7 +134,7 @@ jobs:
       testToRun: 'templates.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   manifestBuilder:
     if: ${{ inputs.manifestBuilder || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -145,7 +145,7 @@ jobs:
       testToRun: 'manifestBuilder.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   pushAndPull:
     if: ${{ inputs.pushAndPull || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -156,7 +156,7 @@ jobs:
       testToRun: 'pushAndPull.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   auraLSP:
     if: ${{ inputs.auraLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -167,7 +167,7 @@ jobs:
       testToRun: 'auraLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}

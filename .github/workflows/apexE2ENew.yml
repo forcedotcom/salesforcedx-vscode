@@ -102,7 +102,7 @@ jobs:
       testToRun: 'apexLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   apexReplayDebugger:
     if: ${{ inputs.apexReplayDebugger || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -113,7 +113,7 @@ jobs:
       testToRun: 'apexReplayDebugger.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   debugApexTests:
     if: ${{ inputs.debugApexTests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -124,7 +124,7 @@ jobs:
       testToRun: 'debugApexTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   runApexTests:
     if: ${{ inputs.runApexTests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -135,7 +135,7 @@ jobs:
       testToRun: 'runApexTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   trailApexReplayDebugger:
     if: ${{ inputs.trailApexReplayDebugger || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -146,7 +146,7 @@ jobs:
       testToRun: 'trailApexReplayDebugger.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.90.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-12", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
