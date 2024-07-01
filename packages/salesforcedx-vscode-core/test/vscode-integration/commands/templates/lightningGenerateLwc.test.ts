@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getDefaultApiVersion } from '@salesforce/templates-bundle/lib/generators/baseGenerator';
+import { execSync } from 'child_process';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
@@ -92,7 +92,12 @@ describe('Generate Lightning Web Component', () => {
     await lightningGenerateLwc();
 
     // assert
-    const defaultApiVersion = getDefaultApiVersion();
+    const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
+    const result = execSync(`cat ${packageJsonPath}`).toString();
+    const extensionsVersion = JSON.parse(result).version as string;
+    const firstDotLocation = extensionsVersion.indexOf('.');
+    const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
+
     assert.file([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     assert.fileContent(lwcHtmlPath, '<template>\n    \n</template>');
     assert.fileContent(

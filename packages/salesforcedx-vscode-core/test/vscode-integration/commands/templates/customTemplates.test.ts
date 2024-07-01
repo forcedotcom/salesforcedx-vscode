@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { getDefaultApiVersion } from '@salesforce/templates-bundle/lib/generators/baseGenerator';
-import { nls as templatesNls } from '@salesforce/templates-bundle/lib/i18n';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';import { nls as templatesNls } from '@salesforce/templates-bundle/lib/i18n';
+import { execSync } from 'child_process';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
@@ -93,7 +92,12 @@ describe('Custom Templates Create', () => {
     await apexGenerateClass();
 
     // assert
-    const defaultApiVersion = getDefaultApiVersion();
+    const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
+    const result = execSync(`cat ${packageJsonPath}`).toString();
+    const extensionsVersion = JSON.parse(result).version as string;
+    const firstDotLocation = extensionsVersion.indexOf('.');
+    const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
+
     assert.file([apexClassPath, apexClassMetaPath]);
     assert.fileContent(
       apexClassPath,
@@ -248,7 +252,12 @@ describe('Custom Templates Create', () => {
     await lightningGenerateLwc();
 
     // assert
-    const defaultApiVersion = getDefaultApiVersion();
+    const packageJsonPath = path.join('..', '..', '..', '..', 'package.json');
+    const result = execSync(`cat ${packageJsonPath}`).toString();
+    const extensionsVersion = JSON.parse(result).version as string;
+    const firstDotLocation = extensionsVersion.indexOf('.');
+    const defaultApiVersion = extensionsVersion.substring(0, firstDotLocation) + '.0';
+
     assert.file([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     assert.fileContent(lwcHtmlPath, '<template>\n    \n</template>');
     assert.fileContent(
