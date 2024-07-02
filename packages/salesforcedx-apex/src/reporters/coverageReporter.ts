@@ -14,7 +14,7 @@ import * as libReport from 'istanbul-lib-report';
 import * as reports from 'istanbul-reports';
 import * as libCoverage from 'istanbul-lib-coverage';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'fast-glob';
 import * as fs from 'fs';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils';
