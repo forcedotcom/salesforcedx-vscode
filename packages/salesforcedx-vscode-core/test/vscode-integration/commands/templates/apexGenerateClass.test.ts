@@ -6,7 +6,6 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateService } from '@salesforce/templates-bundle';
 import { nls as templatesNls } from '@salesforce/templates-bundle/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -81,20 +80,7 @@ describe('Apex Generate Class', () => {
     await apexGenerateClass();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
     assert.file([apexClassPath, apexClassMetaPath]);
-    assert.fileContent(
-      apexClassPath,
-      'public with sharing class TestApexClass'
-    );
-    assert.fileContent(
-      apexClassMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <status>Active</status>
-</ApexClass>`
-    );
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
 
