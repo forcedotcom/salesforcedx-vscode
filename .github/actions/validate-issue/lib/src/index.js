@@ -333,9 +333,9 @@ async function run() {
             const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
             // currentDirectory contains a newline at the end
             const packageJsonDirectory = currentDirectory.slice(0, -1) + "/packages/salesforcedx-vscode-core/package.json";
-            const result = (0, child_process_1.execSync)(`cat ${packageJsonDirectory}`).toString();
+            const packageJsonContent = (0, fs_1.readFileSync)(packageJsonDirectory, 'utf8');
             // The VSCode version has a carat in front that needs to be removed
-            return JSON.parse(result).engines.vscode.substring(1);
+            return JSON.parse(packageJsonContent).engines.vscode.substring(1);
         }
         function getFile(filename, replacements) {
             let contents = (0, fs_1.readFileSync)(path.join(__dirname, filename), "utf8");

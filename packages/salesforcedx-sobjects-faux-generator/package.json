@@ -10,8 +10,8 @@
   },
   "main": "out/src",
   "dependencies": {
-    "@jsforce/jsforce-node": "3.2.0",
-    "@salesforce/core-bundle": "7.5.0",
+    "@jsforce/jsforce-node": "3.2.2",
+    "@salesforce/core-bundle": "8.1.0",
     "@salesforce/salesforcedx-utils-vscode": "61.3.0",
     "shelljs": "0.8.5"
   },
