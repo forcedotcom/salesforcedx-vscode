@@ -16,10 +16,6 @@ Einstein for Developers (Beta) is available in the [VS Code](https://marketplace
 
 **Not Available in**: EU Operating Zone. EU Operating zone is a special paid offering that provides an enhanced level of data residency commitment. Einstein for Developers is supported in orgs in the EU that aren’t part of EU OZ, per standard product terms and conditions.
 
-
-**Enhanced Domain Enabled**
-Your Einstein for Developers org must have Enhanced Domain enabled. See [Enable Enhanced Domains](https://help.salesforce.com/s/articleView?id=sf.domain_name_enhanced_enable.htm&type=5) for more information.
-
 ### Visual Studio Code Version
 
 VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.82.0 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
