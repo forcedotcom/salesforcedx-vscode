@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "61.2.1",
+  "version": "61.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -31,21 +31,21 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.2.0",
+    "@jsforce/jsforce-node": "3.2.2",
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core-bundle": "7.5.0",
+    "@salesforce/core-bundle": "8.1.0",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "1.0.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "61.2.1",
-    "@salesforce/salesforcedx-test-utils-vscode": "61.2.1",
-    "@salesforce/salesforcedx-utils-vscode": "61.2.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "61.3.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "61.3.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.4.0",
-    "@salesforce/ts-types": "2.0.9",
+    "@salesforce/ts-types": "2.0.10",
     "@types/chai": "4.3.3",
     "@types/debounce": "^1.2.0",
     "@types/fs-extra": "^8.1.0",
