@@ -75,6 +75,11 @@ on:
         required: false
         default: true
         type: boolean
+      sfdxProjectJson:
+        description: 'sfdx-project.json'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -133,6 +138,16 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'templates.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      runId: ${{ inputs.runId }}
+
+  sfdxProjectJson:
+    if: ${{ inputs.templates }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'sfdxProjectJson.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       runId: ${{ inputs.runId }}
 
