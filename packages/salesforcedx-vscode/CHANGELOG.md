@@ -1,3 +1,17 @@
+# 61.4.0 - July 10, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Bump @salesforce/core from v7 to v8 ([PR #5665](https://github.com/forcedotcom/salesforcedx-vscode/pull/5665))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Bump @salesforce/core to v8.1.1 ([PR #5676](https://github.com/forcedotcom/salesforcedx-vscode/pull/5676))
+
 # 61.2.1 - June 26, 2024
 
 ## Added
