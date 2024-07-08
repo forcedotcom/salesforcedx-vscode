@@ -142,7 +142,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   sfdxProjectJson:
-    if: ${{ inputs.sfdxProjectJson }}
+    if: ${{ true }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
