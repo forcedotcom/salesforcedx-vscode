@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'cristi/apex-tests-on-windows'
         type: string
       apexLsp:
         description: 'Apex LSP'
@@ -36,11 +36,12 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: '1.90.2'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
-        required: true
+        required: false
+        default: '9584917047'
         type: string
 
   workflow_call:
@@ -144,7 +145,7 @@ jobs:
         apexReplayDebugger,
         debugApexTests,
         runApexTests,
-        trailApexReplayDebugger,
+        trailApexReplayDebugger
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -165,7 +166,7 @@ jobs:
         apexReplayDebugger,
         debugApexTests,
         runApexTests,
-        trailApexReplayDebugger,
+        trailApexReplayDebugger
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -186,7 +187,7 @@ jobs:
         apexReplayDebugger,
         debugApexTests,
         runApexTests,
-        trailApexReplayDebugger,
+        trailApexReplayDebugger
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
