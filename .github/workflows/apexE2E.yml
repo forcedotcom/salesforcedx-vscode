@@ -40,8 +40,7 @@ on:
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
-        required: false
-        default: '9584917047'
+        required: true
         type: string
 
   workflow_call:
