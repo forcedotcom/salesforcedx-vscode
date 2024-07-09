@@ -4,13 +4,11 @@
 
 #### salesforcedx-vscode-core
 
-- Bump @salesforce/core from v7 to v8 ([PR #5665](https://github.com/forcedotcom/salesforcedx-vscode/pull/5665))
+- We made a major upgrade to the version of the @salesforce/core library. ([PR #5665](https://github.com/forcedotcom/salesforcedx-vscode/pull/5665), [PR #5676](https://github.com/forcedotcom/salesforcedx-vscode/pull/5676))
 
 ## Fixed
 
-#### salesforcedx-vscode-core
-
-- Bump @salesforce/core to v8.1.1 ([PR #5676](https://github.com/forcedotcom/salesforcedx-vscode/pull/5676))
+- We fixed an issue where the extensions were unable to activate when the beta feature to decompose components is used in `sfdx-project.json`. Thank you [KevinGossentCap](https://github.com/KevinGossentCap) for reporting the issue. ([PR #1359](https://github.com/forcedotcom/source-deploy-retrieve/pull/1359), [ISSUE #5664](https://github.com/forcedotcom/salesforcedx-vscode/issues/5664))
 
 # 61.2.1 - June 26, 2024
 
