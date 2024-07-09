@@ -1,3 +1,15 @@
+# 61.4.0 - July 10, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made a major upgrade to the version of the `@salesforce/core` library. ([PR #5665](https://github.com/forcedotcom/salesforcedx-vscode/pull/5665), [PR #5676](https://github.com/forcedotcom/salesforcedx-vscode/pull/5676))
+
+## Fixed
+
+- We fixed an issue that prevented extensions from activating when the beta feature to decompose components was used in `sfdx-project.json`. Thank you [KevinGossentCap](https://github.com/KevinGossentCap) for reporting the issue. ([PR #1359](https://github.com/forcedotcom/source-deploy-retrieve/pull/1359), [ISSUE #5664](https://github.com/forcedotcom/salesforcedx-vscode/issues/5664))
+
 # 61.2.1 - June 26, 2024
 
 ## Added
