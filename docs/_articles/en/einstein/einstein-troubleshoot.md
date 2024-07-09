@@ -18,7 +18,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 2. Confirm that you have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) or the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded) installed.
 3. Check that your Apex Extension is version 59.8.0 or higher.
 4. Hover over {} in the status bar to view the status of the Apex Language Server and make sure it’s running.  
-5. Einstein for Developers needs Salesforce CLI version 59.13.0 or higher. See the [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli_rc.htm).
+5. Einstein for Developers requires Salesforce CLI Integration extension version 60.13.0 or higher.
 
 ### Development Environment Checklist
 
