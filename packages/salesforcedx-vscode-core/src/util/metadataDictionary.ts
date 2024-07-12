@@ -60,7 +60,7 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     suffix: 'js',
     directory: 'lwc',
     pathStrategy: PathStrategyFactory.createBundleStrategy(),
-    extensions: ['.js', '.html']
+    extensions: ['.js', '.ts', '.html']
   },
   wavetemplatebundle: {
     type: 'WaveTemplateBundle',

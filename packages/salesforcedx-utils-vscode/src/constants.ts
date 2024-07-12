@@ -12,6 +12,7 @@ export const SF_CONFIG_DISABLE_TELEMETRY = 'disable-telemetry';
 export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_CORE_EXTENSION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_EXTENSION_PACK_NAME = 'salesforcedx-vscode';
+export const SFDX_LWC_EXTENSION_NAME = 'salesforcedx-vscode-lwc';
 export const TARGET_DEV_HUB_KEY = 'target-dev-hub';
 export const TARGET_ORG_KEY = 'target-org';
 export const TRUE = 'true';
