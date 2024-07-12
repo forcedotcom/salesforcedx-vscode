@@ -366,7 +366,7 @@ const createLanguageClient = async (
     }
     if (
       errorMessage.includes(
-        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
+        nls.localize('wrong_java_vegitrsion_text', SET_JAVA_DOC_LINK)
       )
     ) {
       errorMessage = nls.localize('wrong_java_version_short');
