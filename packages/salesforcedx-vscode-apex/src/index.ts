@@ -358,9 +358,12 @@ const createLanguageClient = async (
       );
     }
   } catch (e) {
-    const err = e as unknown as Error;
-    let errorMessage =
-      typeof e === 'string' ? e : err.message ?? nls.localize('unknown_error');
+    let errorMessage = '';
+    if (typeof e === 'string') {
+      errorMessage = e;
+    } else if (e instanceof Error) {
+      errorMessage = e.message ?? nls.localize('unknown_error');
+    }
     if (
       errorMessage.includes(
         nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
