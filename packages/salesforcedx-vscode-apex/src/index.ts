@@ -47,7 +47,7 @@ import {
 import { nls } from './messages';
 import { retrieveEnableSyncInitJobs } from './settings';
 import { telemetryService } from './telemetry';
-import { getTestOutlineProvider } from './views/testOutlineProvider';
+import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
@@ -229,7 +229,7 @@ const registerTestView = (): vscode.Disposable => {
   const testViewItems = new Array<vscode.Disposable>();
 
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sf.test.view',
+    testOutlineProvider.getId(),
     testOutlineProvider
   );
   testViewItems.push(testProvider);
@@ -242,26 +242,32 @@ const registerTestView = (): vscode.Disposable => {
   );
   // Show Error Message command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.showError', test =>
-      testRunner.showErrorMessage(test)
+    vscode.commands.registerCommand(
+      'sf.test.view.showError',
+      (test: TestNode) => testRunner.showErrorMessage(test)
     )
   );
   // Show Definition command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.goToDefinition', test =>
-      testRunner.showErrorMessage(test)
+    vscode.commands.registerCommand(
+      'sf.test.view.goToDefinition',
+      (test: TestNode) => testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.runClassTests', test =>
-      testRunner.runApexTests([test.name], TestRunType.Class)
+    vscode.commands.registerCommand(
+      'sf.test.view.runClassTests',
+      (test: TestNode) =>
+        testRunner.runApexTests([test.name], TestRunType.Class)
     )
   );
   // Run Single Test command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.runSingleTest', test =>
-      testRunner.runApexTests([test.name], TestRunType.Method)
+    vscode.commands.registerCommand(
+      'sf.test.view.runSingleTest',
+      (test: TestNode) =>
+        testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command
@@ -271,6 +277,12 @@ const registerTestView = (): vscode.Disposable => {
         return testOutlineProvider.refresh();
       }
     })
+  );
+  // Collapse All Apex Tests command
+  testViewItems.push(
+    vscode.commands.registerCommand('sf.test.view.collapseAll', () =>
+      testOutlineProvider.collapseAll()
+    )
   );
 
   return vscode.Disposable.from(...testViewItems);
@@ -297,16 +309,19 @@ const createLanguageClient = async (
     const languageClient = languageClientUtils.getClientInstance();
 
     if (languageClient) {
-      languageClient.errorHandler?.addListener('error', message => {
+      languageClient.errorHandler?.addListener('error', (message: string) => {
         languageServerStatusBarItem.error(message);
       });
-      languageClient.errorHandler?.addListener('restarting', count => {
-        languageServerStatusBarItem.error(
-          nls
-            .localize('apex_language_server_quit_and_restarting')
-            .replace('$N', count)
-        );
-      });
+      languageClient.errorHandler?.addListener(
+        'restarting',
+        (count: number) => {
+          languageServerStatusBarItem.error(
+            nls
+              .localize('apex_language_server_quit_and_restarting')
+              .replace('$N', `${count}`)
+          );
+        }
+      );
       languageClient.errorHandler?.addListener('startFailed', () => {
         languageServerStatusBarItem.error(
           nls.localize('apex_language_server_failed_activate')
@@ -343,17 +358,22 @@ const createLanguageClient = async (
       );
     }
   } catch (e) {
-    languageClientUtils.setStatus(ClientStatus.Error, e);
-    let eMsg =
-      typeof e === 'string' ? e : e.message ?? nls.localize('unknown_error');
+    const err = e as unknown as Error;
+    let errorMessage =
+      typeof e === 'string' ? e : err.message ?? nls.localize('unknown_error');
     if (
-      eMsg.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
+      errorMessage.includes(
+        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
+      )
     ) {
-      eMsg = nls.localize('wrong_java_version_short');
+      errorMessage = nls.localize('wrong_java_version_short');
     }
+    languageClientUtils.setStatus(ClientStatus.Error, errorMessage);
     languageServerStatusBarItem.error(
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `${nls.localize('apex_language_server_failed_activate')} - ${eMsg}`
+      `${nls.localize(
+        'apex_language_server_failed_activate'
+      )} - ${errorMessage}`
     );
   }
 };
