@@ -1,3 +1,11 @@
+# 61.5.0 - July 17, 2024
+
+## Added
+
+#### salesforcedx-vscode-lwc
+
+- Support lwc-record-picker ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683))
+
 # 61.4.0 - July 10, 2024
 
 ## Added
