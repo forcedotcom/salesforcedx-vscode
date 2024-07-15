@@ -312,7 +312,7 @@ export class ApexTestGroupNode extends TestNode {
   public skipping: number = 0;
 
   constructor(label: string, location: vscode.Location | null) {
-    super(label, vscode.TreeItemCollapsibleState.Collapsed, location);
+    super(label, vscode.TreeItemCollapsibleState.Expanded, location);
   }
 
   public contextValue = 'apexTestGroup';
