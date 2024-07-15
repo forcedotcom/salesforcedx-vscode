@@ -30,7 +30,7 @@ describe('testOutlineProvider Unit Tests.', () => {
     expect(provider.getId()).toBe('sf.lightning.lwc.test.view');
   });
 
-  it('calls collapse all apex tests', () => {
+  it('calls collapse all lwc tests', () => {
     const provider = new SfTestOutlineProvider();
 
     void provider.collapseAll();
