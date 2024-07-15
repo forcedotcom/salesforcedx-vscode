@@ -202,6 +202,11 @@
           "command": "sf.lightning.lwc.test.refreshTestExplorer",
           "when": "view == sf.lightning.lwc.test.view",
           "group": "navigation"
+        },
+        {
+          "command": "sf.lightning.lwc.test.view.collapseAll",
+          "when": "view == sf.lightning.lwc.test.view",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -334,6 +339,14 @@
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sf.lightning.lwc.test.view.collapseAll",
+        "title": "%lightning_lwc_test_collapse_all_text%",
+        "icon": {
+          "light": "resources/light/collapse-all.svg",
+          "dark": "resources/dark/collapse-all.svg"
         }
       },
       {

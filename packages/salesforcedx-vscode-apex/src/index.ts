@@ -236,28 +236,28 @@ const registerTestView = (): vscode.Disposable => {
 
   // Run Test Button on Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.run', () =>
+    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () =>
       testRunner.runAllApexTests()
     )
   );
   // Show Error Message command
   testViewItems.push(
     vscode.commands.registerCommand(
-      'sf.test.view.showError',
+      `${testOutlineProvider.getId()}.showError`,
       (test: TestNode) => testRunner.showErrorMessage(test)
     )
   );
   // Show Definition command
   testViewItems.push(
     vscode.commands.registerCommand(
-      'sf.test.view.goToDefinition',
+      `${testOutlineProvider.getId()}.goToDefinition`,
       (test: TestNode) => testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command
   testViewItems.push(
     vscode.commands.registerCommand(
-      'sf.test.view.runClassTests',
+      `${testOutlineProvider.getId()}.runClassTests`,
       (test: TestNode) =>
         testRunner.runApexTests([test.name], TestRunType.Class)
     )
@@ -265,23 +265,27 @@ const registerTestView = (): vscode.Disposable => {
   // Run Single Test command
   testViewItems.push(
     vscode.commands.registerCommand(
-      'sf.test.view.runSingleTest',
+      `${testOutlineProvider.getId()}.runSingleTest`,
       (test: TestNode) =>
         testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.refresh', () => {
-      if (languageClientUtils.getStatus().isReady()) {
-        return testOutlineProvider.refresh();
+    vscode.commands.registerCommand(
+      `${testOutlineProvider.getId()}.refresh`,
+      () => {
+        if (languageClientUtils.getStatus().isReady()) {
+          return testOutlineProvider.refresh();
+        }
       }
-    })
+    )
   );
   // Collapse All Apex Tests command
   testViewItems.push(
-    vscode.commands.registerCommand('sf.test.view.collapseAll', () =>
-      testOutlineProvider.collapseAll()
+    vscode.commands.registerCommand(
+      `${testOutlineProvider.getId()}.collapseAll`,
+      () => testOutlineProvider.collapseAll()
     )
   );
 

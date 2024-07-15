@@ -30,6 +30,7 @@ const NO_TESTS_DESCRIPTION = safeLocalize('test_view_no_tests_description');
 
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
+const BASE_ID = 'sf.test.view';
 
 export class ApexTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode>
@@ -60,7 +61,7 @@ export class ApexTestOutlineProvider
   }
 
   public getId(): string {
-    return 'sf.test.view';
+    return BASE_ID;
   }
 
   public getChildren(element: TestNode): TestNode[] {
@@ -260,7 +261,7 @@ export abstract class TestNode extends vscode.TreeItem {
     this.description = label;
     this.name = label;
     this.command = {
-      command: 'sf.test.view.showError',
+      command: `${BASE_ID}.showError`,
       title: safeLocalize('test_view_show_error_title'),
       arguments: [this]
     };
