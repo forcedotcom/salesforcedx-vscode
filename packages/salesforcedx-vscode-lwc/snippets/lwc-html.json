@@ -29,7 +29,9 @@
     "prefix": "lwc-accordion-section"
   },
   "lwc-avatar": {
-    "body": ["<lightning-avatar src=\"${1:url}\"></lightning-avatar>"],
+    "body": [
+      "<lightning-avatar src=\"${1:url}\"></lightning-avatar>"
+    ],
     "description": "Avatar - A visual representation of an object.",
     "prefix": "lwc-avatar"
   },
@@ -1235,7 +1237,11 @@
     "prefix": "lwc-layout"
   },
   "lwc-layout-item": {
-    "body": ["<lightning-layout-item>", "  $0", "</lightning-layout-item>"],
+    "body": [
+      "<lightning-layout-item>",
+      "  $0",
+      "</lightning-layout-item>"
+    ],
     "description": "Layout Item - Layout items take the size of their content by default",
     "prefix": "lwc-layout-item"
   },
@@ -1274,7 +1280,9 @@
     "prefix": "lwc-map"
   },
   "lwc-menu-divider": {
-    "body": ["<lightning-menu-divider></lightning-menu-divider>"],
+    "body": [
+      "<lightning-menu-divider></lightning-menu-divider>"
+    ],
     "description": "Menu Divider - Creates a divider in the list of items for lightning-button-menu.",
     "prefix": "lwc-menu-divider"
   },
@@ -1359,6 +1367,17 @@
     ],
     "description": "Output Field - Represents a read-only display of a label, help text, and value for a field on a Salesforce object.",
     "prefix": "lwc-output-field"
+  },
+  "lwc-record-picker": {
+    "body": [
+      "<lightning-record-picker ",
+      "  label=\"${1:label}\"",
+      "  placeholder=\"${2:type here...}\"",
+      "  object-api-name={${3:objectApiName}}",
+      "></lightning-record-picker>"
+    ],
+    "description": "Record Picker - Allows you to search for a list of Salesforce Records that match search input",
+    "prefix": "lwc-record-picker"
   },
   "lwc-pill-avatar": {
     "body": [
