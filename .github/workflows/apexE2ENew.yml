@@ -102,7 +102,7 @@ jobs:
       testToRun: 'apexLsp.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-latest", "ubuntu-latest"]'
+      os: '["macos-latest", "ubuntu-latest", "windows-latest"]'
 
   apexReplayDebugger:
     if: ${{ inputs.apexReplayDebugger || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
