@@ -40,6 +40,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     private extensionId: string,
     private extensionVersion: string,
     key: string,
+    private userId: string,
     enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
@@ -94,7 +95,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
     this.appInsightsClient.commonProperties = this.getCommonProperties();
     if (this.uniqueUserMetrics && env) {
-      this.appInsightsClient.context.tags['ai.user.id'] = env.machineId;
+      this.appInsightsClient.context.tags['ai.user.id'] = this.userId;
       this.appInsightsClient.context.tags['ai.session.id'] = env.sessionId;
       this.appInsightsClient.context.tags['ai.cloud.roleInstance'] =
         'DEPRECATED';
@@ -137,7 +138,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     }
 
     return commonProperties;
-}
+  }
 
   public sendTelemetryEvent(
     eventName: string,

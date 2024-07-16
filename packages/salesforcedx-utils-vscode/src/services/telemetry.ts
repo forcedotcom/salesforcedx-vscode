@@ -4,9 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as child_process from 'child_process';
+import { randomBytes } from 'crypto';
 import * as util from 'util';
+import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { ActivationInfo } from '..';
+import { ActivationInfo, CliCommandExecutor, Command, CommandOutput, SfCommandBuilder } from '..';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -142,12 +145,13 @@ export class TelemetryService {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
         console.log('adding AppInsights reporter.');
-
+        const userId = await this.getCliId(); // if not available generate a random userId
         this.reporters.push(
           new AppInsights(
             this.getTelemetryReporterName(),
             this.version,
             this.aiKey,
+            userId,
             true
           )
         );
@@ -331,12 +335,12 @@ export class TelemetryService {
         } catch (error) {
           console.log(
             'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            typeof reporter +
+            ' ' +
+            'name: ' +
+            name +
+            ' message: ' +
+            message
           );
         }
       });
@@ -381,6 +385,43 @@ export class TelemetryService {
       this.isTelemetryEnabled()
         .then(enabled => (enabled ? callback() : undefined))
         .catch(err => console.error(err));
+    }
+  }
+
+  private buildCliTelemetryCommand(): Command {
+    return new SfCommandBuilder()
+      .withArg('telemetry')
+      .withJson()
+      .build();
+  }
+
+  private async executeCliTelemetry(
+    command: Command,
+    options: child_process.SpawnOptions,
+    cancellationToken: vscode.CancellationToken
+  ): Promise<string> {
+    const execution = new CliCommandExecutor(command, options, true).execute(cancellationToken);
+    const result = new CommandOutput().getCmdResult(execution);
+    return result;
+  }
+
+  private getRandomId = (): string => randomBytes(20).toString('hex');
+
+  private async getCliId(): Promise<string> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const options = child_process.spawn('sf telemetry');
+    try {
+      const getCliTelemetryData = await this.executeCliTelemetry(
+        this.buildCliTelemetryCommand(),
+        options,
+        cancellationToken);
+      const cmdResult = JSON.parse(getCliTelemetryData);
+      return cmdResult.result.cliId;
+    } catch (error) {
+      console.log('error retrieving user-cliId, regenerating..');
+      const userId = this.getRandomId();
+      return userId;
     }
   }
 }
