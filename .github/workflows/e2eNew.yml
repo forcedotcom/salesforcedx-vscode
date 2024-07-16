@@ -25,18 +25,8 @@ on:
         required: false
         default: true
         type: boolean
-      auraLsp:
-        description: 'Aura LSP'
-        required: false
-        default: true
-        type: boolean
       lwcLsp:
         description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
-      visualforceLsp:
-        description: 'Visualforce LSP'
         required: false
         default: true
         type: boolean
@@ -67,18 +57,8 @@ on:
         required: false
         default: true
         type: boolean
-      auraLsp:
-        description: 'Aura LSP'
-        required: false
-        default: true
-        type: boolean
       lwcLsp:
         description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
-      visualforceLsp:
-        description: 'Visualforce LSP'
         required: false
         default: true
         type: boolean
@@ -115,28 +95,6 @@ jobs:
       runId: ${{ inputs.runId || github.event.workflow_run.id  }}
       os: '["macos-latest", "ubuntu-latest", "windows-latest"]'
 
-  auraLsp:
-    if: ${{ inputs.auraLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      testToRun: 'auraLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-latest", "ubuntu-latest", "windows-latest"]'
-
-  visualforceLsp:
-    if: ${{ inputs.visualforceLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      testToRun: 'visualforceLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.id  }}
-      os: '["macos-latest", "ubuntu-latest"]'
-
   lwcLsp:
     if: ${{ inputs.lwcLsp || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/runE2ETest.yml
@@ -150,42 +108,42 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [manifestBuilder, pushAndPull, auraLsp, lwcLsp, visualforceLsp]
+    needs: [manifestBuilder, pushAndPull, lwcLsp]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'E2E Test Suite - ESM'
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       testsBranch: ${{ inputs.automationBranch || 'testesm' }}
-      summary: '\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      summary: '\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- LWC LSP: ${{ needs.lwcLsp.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [manifestBuilder, pushAndPull, auraLsp, lwcLsp, visualforceLsp]
+    needs: [manifestBuilder, pushAndPull, lwcLsp]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'E2E Test Suite - ESM'
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       testsBranch: ${{ inputs.automationBranch || 'testesm' }}
-      summary: '\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      summary: '\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- LWC LSP: ${{ needs.lwcLsp.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [manifestBuilder, pushAndPull, auraLsp, lwcLsp, visualforceLsp]
+    needs: [manifestBuilder, pushAndPull, lwcLsp]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'E2E Test Suite - ESM'
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       testsBranch: ${{ inputs.automationBranch || 'testesm' }}
-      summary: '\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      summary: '\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- LWC LSP: ${{ needs.lwcLsp.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'

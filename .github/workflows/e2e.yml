@@ -93,8 +93,8 @@ jobs:
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranchForCJS || 'develop' }}
-      vscodeVersion: ${{ inputs.vscodeVersionForCJS || '1.85.2' }}
+      automationBranch: ${{ inputs.automationBranchForESM || 'testesm' }}
+      vscodeVersion: ${{ inputs.vscodeVersionForESM || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LWC_E2E_tests:
