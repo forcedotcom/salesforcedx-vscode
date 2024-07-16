@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'develop'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
