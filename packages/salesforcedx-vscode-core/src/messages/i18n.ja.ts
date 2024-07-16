@@ -50,8 +50,6 @@ export const messages = {
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
   parameter_gatherer_enter_dir_name:
     'フォルダを入力 (Enter で確認または Esc でキャンセル)',
-  parameter_gatherer_select_lwc_type:
-    'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_username_name: '対象ユーザ名を入力',
   parameter_gatherer_enter_alias_name:
     '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
