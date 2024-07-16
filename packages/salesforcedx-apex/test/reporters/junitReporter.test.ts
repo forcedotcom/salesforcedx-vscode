@@ -14,6 +14,8 @@ const {
   junitSuccess,
   junitCodeCov,
   junitMissingVal,
+  junitSetup,
+  setupResult,
   successResult
 } = getTestData();
 
@@ -31,6 +33,13 @@ describe('JUnit Reporter Tests', () => {
     const result = reporter.format(successResult);
     expect(result).to.not.be.empty;
     expect(result).to.eql(junitSuccess);
+    expect(result).to.not.contain('</failure>');
+  });
+
+  it('should format tests with setup methods', async () => {
+    const result = reporter.format(setupResult);
+    expect(result).to.not.be.empty;
+    expect(result).to.eql(junitSetup);
     expect(result).to.not.contain('</failure>');
   });
 

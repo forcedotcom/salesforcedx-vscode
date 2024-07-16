@@ -74,6 +74,7 @@ export const coverageResult: TestResult = {
       fullName: 'AwesomeCalculatorTest.testCallout'
     }
   ],
+  setup: [],
   codecoverage: [
     {
       apexId: '001917xACG',
@@ -88,6 +89,88 @@ export const coverageResult: TestResult = {
   ]
 };
 
+export const setupResult: TestResult = {
+  summary: {
+    failRate: '0%',
+    testsRan: 2,
+    orgId: '00D3t000001vIruEAE',
+    outcome: 'Completed',
+    passRate: '100%',
+    skipRate: '0%',
+    testStartTime: isoStartTime,
+    testExecutionTimeInMs: 5463,
+    testTotalTimeInMs: 5487,
+    testSetupTimeInMs: 24,
+    commandTimeInMs: 6000,
+    testRunId: '7073t000061uwZI',
+    userId: '0053t000007OxppAAC',
+    username: 'tpo-3',
+    failing: 0,
+    skipped: 0,
+    passing: 2,
+    hostname: 'https://na139.salesforce.com'
+  },
+  tests: [
+    {
+      id: '07M3t000003bQwqEAE',
+      queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'should_create_account',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000ivLzAAI',
+        name: 'AccountServiceTest',
+        namespacePrefix: null,
+        fullName: 'AccountServiceTest'
+      },
+      runTime: 86,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AccountServiceTest.should_create_account'
+    },
+    {
+      id: '07M3t000003bQwgEAE',
+      queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: '',
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'testCallout',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000imbvAAA',
+        name: 'AwesomeCalculatorTest',
+        namespacePrefix: null,
+        fullName: 'AwesomeCalculatorTest'
+      },
+      runTime: 23,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AwesomeCalculatorTest.testCallout'
+    }
+  ],
+  setup: [
+    {
+      id: '07M3t000003bQwqEAE',
+      stackTrace: null,
+      message: null,
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'setup_method',
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000ivLzAAI',
+        name: 'AccountServiceTest',
+        namespacePrefix: null,
+        fullName: 'AccountServiceTest'
+      },
+      testSetupTime: 24,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AccountServiceTest.setup_method'
+    }
+  ],
+  codecoverage: []
+};
 export const coverageFailResult: TestResult = {
   summary: {
     ...coverageResult.summary,
@@ -124,6 +207,7 @@ export const coverageFailResult: TestResult = {
       }
     ]
   ],
+  setup: [],
   codecoverage: [...coverageResult.codecoverage]
 };
 
@@ -186,7 +270,8 @@ export const successResult: TestResult = {
       testTimestamp: '2020-11-09T18:02:51.000+0000',
       fullName: 'AwesomeCalculatorTest.testCallout'
     }
-  ]
+  ],
+  setup: []
 };
 
 export const testResults: TestResult = {
@@ -519,7 +604,8 @@ export const testResults: TestResult = {
       testTimestamp: '2020-11-09T18:02:51.000+0000',
       fullName: 'DailyLeadProcessorTest.testLeadProcessing'
     }
-  ]
+  ],
+  setup: []
 };
 
 export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
@@ -612,6 +698,23 @@ const missingValProperties = `            <property name="failRate" value="0%"/>
             <property name="skipped" value="0"/>
             <property name="passing" value="2"/>
             <property name="hostname" value="https://na139.salesforce.com"/>`;
+const setupProperties = `            <property name="failRate" value="0%"/>
+            <property name="testsRan" value="2"/>
+            <property name="orgId" value="00D3t000001vIruEAE"/>
+            <property name="outcome" value="Completed"/>
+            <property name="passRate" value="100%"/>
+            <property name="testStartTime" value="${localStartTime}"/>
+            <property name="testExecutionTime" value="5.46 s"/>
+            <property name="testTotalTime" value="5.49 s"/>
+            <property name="testSetupTimeInMs" value="24"/>
+            <property name="commandTime" value="6.00 s"/>
+            <property name="testRunId" value="7073t000061uwZI"/>
+            <property name="userId" value="0053t000007OxppAAC"/>
+            <property name="username" value="tpo-3"/>
+            <property name="failing" value="0"/>
+            <property name="skipped" value="0"/>
+            <property name="passing" value="2"/>
+            <property name="hostname" value="https://na139.salesforce.com"/>`;
 const codeCovProperties = `${missingValProperties}\n            <property name="orgWideCoverage" value="85%"/>`;
 
 const successTemplate = `<?xml version="1.0" encoding="UTF-8"?>
@@ -633,6 +736,7 @@ export const junitMissingVal = util.format(
   successTemplate,
   missingValProperties
 );
+export const junitSetup = util.format(successTemplate, setupProperties);
 
 export function getTestData() {
   return {
@@ -641,6 +745,8 @@ export function getTestData() {
     junitSuccess: junitSuccess.toString(),
     junitCodeCov: junitCodeCov.toString(),
     junitMissingVal: junitMissingVal.toString(),
+    junitSetup: junitSetup.toString(),
+    setupResult: structuredClone(setupResult),
     successResult: structuredClone(successResult)
   };
 }

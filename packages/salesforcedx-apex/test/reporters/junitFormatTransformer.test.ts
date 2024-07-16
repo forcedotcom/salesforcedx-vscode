@@ -8,7 +8,7 @@
 import { JUnitFormatTransformer } from '../../src';
 import { expect } from 'chai';
 import { pipeline, Writable } from 'node:stream';
-import { getTestData } from './testResults';
+import { getTestData, junitSetup, setupResult } from './testResults';
 import { fail } from 'assert';
 
 const {
@@ -58,6 +58,15 @@ describe('JUnitFormatTransformer', () => {
     createWritableAndPipeline(reporter, (result) => {
       expect(result).to.not.be.empty;
       expect(result).to.eql(junitSuccess);
+      expect(result).to.not.contain('</failure>');
+    });
+  });
+
+  it('should format tests with setup methods', async () => {
+    const reporter = new JUnitFormatTransformer(setupResult);
+    createWritableAndPipeline(reporter, (result) => {
+      expect(result).to.not.be.empty;
+      expect(result).to.eql(junitSetup);
       expect(result).to.not.contain('</failure>');
     });
   });

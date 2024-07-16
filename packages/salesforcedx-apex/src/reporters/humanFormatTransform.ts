@@ -57,6 +57,9 @@ export class HumanFormatTransform extends Readable {
         this.formatCodeCov();
       }
     }
+    if (this.testResult.setup) {
+      this.formatSetup();
+    }
     this.formatSummary();
   }
 
@@ -91,8 +94,16 @@ export class HumanFormatTransform extends Readable {
         value: this.testResult.summary.testRunId
       },
       {
+        name: nls.localize('testSetupTime'),
+        value: `${this.testResult.summary.testSetupTimeInMs || 0} ms`
+      },
+      {
         name: nls.localize('testExecutionTime'),
         value: `${this.testResult.summary.testExecutionTimeInMs} ms`
+      },
+      {
+        name: nls.localize('testTotalTime'),
+        value: `${this.testResult.summary.testTotalTimeInMs} ms`
       },
       {
         name: nls.localize('orgId'),
@@ -174,6 +185,36 @@ export class HumanFormatTransform extends Readable {
           { key: 'runtime', label: nls.localize('runtimeColHeader') }
         ],
         nls.localize('testResultsHeader')
+      );
+    }
+  }
+
+  @elapsedTime()
+  private formatSetup(): void {
+    const tb = new TableWriteableStream(this);
+    const testRowArray: Row[] = [];
+    this.testResult.setup.forEach((elem) => {
+      testRowArray.push({
+        name: elem.fullName,
+        time: `${elem.testSetupTime}`,
+        runId: this.testResult.summary.testRunId
+      });
+    });
+
+    if (testRowArray.length > 0) {
+      this.push('\n\n');
+      tb.createTable(
+        testRowArray,
+        [
+          {
+            key: 'name',
+            label: nls.localize('testSetupMethodNameColHeader')
+          },
+          { key: 'time', label: nls.localize('setupTimeColHeader') }
+        ],
+        nls
+          .localize('testSetupResultsHeader')
+          .replace('runId', testRowArray[0].runId)
       );
     }
   }

@@ -38,6 +38,9 @@ export class HumanReporter {
           tbResult += this.formatCodeCov(testResult.codecoverage);
         }
       }
+      if (testResult.setup) {
+        tbResult += this.formatSetup(testResult);
+      }
       tbResult += this.formatSummary(testResult);
       return tbResult;
     } finally {
@@ -76,8 +79,16 @@ export class HumanReporter {
         value: testResult.summary.testRunId
       },
       {
+        name: nls.localize('testSetupTime'),
+        value: `${testResult.summary.testSetupTimeInMs || 0} ms`
+      },
+      {
         name: nls.localize('testExecutionTime'),
         value: `${testResult.summary.testExecutionTimeInMs} ms`
+      },
+      {
+        name: nls.localize('testTotalTime'),
+        value: `${testResult.summary.testTotalTimeInMs} ms`
       },
       {
         name: nls.localize('orgId'),
@@ -163,6 +174,37 @@ export class HumanReporter {
           { key: 'runtime', label: nls.localize('runtimeColHeader') }
         ],
         nls.localize('testResultsHeader')
+      );
+    }
+    return testResultTable;
+  }
+
+  @elapsedTime()
+  private formatSetup(testResult: TestResult): string {
+    const tb = new Table();
+    const testRowArray: Row[] = [];
+    testResult.setup.forEach((elem) => {
+      testRowArray.push({
+        name: elem.fullName,
+        time: `${elem.testSetupTime}`,
+        runId: testResult.summary.testRunId
+      });
+    });
+    let testResultTable: string = '';
+    if (testRowArray.length > 0) {
+      testResultTable = os.EOL.repeat(2);
+      testResultTable += tb.createTable(
+        testRowArray,
+        [
+          {
+            key: 'name',
+            label: nls.localize('testSetupMethodNameColHeader')
+          },
+          { key: 'time', label: nls.localize('setupTimeColHeader') }
+        ],
+        nls
+          .localize('testSetupResultsHeader')
+          .replace('runId', testRowArray[0].runId)
       );
     }
     return testResultTable;

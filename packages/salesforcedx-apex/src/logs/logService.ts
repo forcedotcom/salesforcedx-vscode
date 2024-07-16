@@ -145,7 +145,7 @@ export class LogService {
 
   @elapsedTime()
   public async logCallback(message: StreamingLogMessage): Promise<void> {
-    if (message.sobject && message.sobject.Id) {
+    if (message.sobject?.Id) {
       const log = await this.getLogById(message.sobject.Id);
       if (log && this.logTailer) {
         this.logTailer(log.log);

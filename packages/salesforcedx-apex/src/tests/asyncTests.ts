@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection, Logger, LoggerLevel } from '@salesforce/core';
+import { AuthInfo, Connection, Logger, LoggerLevel } from '@salesforce/core';
 import { CancellationToken, Progress } from '../common';
 import { nls } from '../i18n';
 import { AsyncTestRun, StreamingClient } from '../streaming';
@@ -22,7 +22,7 @@ import {
   ApexTestQueueItemRecord,
   ApexTestQueueItemStatus,
   ApexTestResult,
-  ApexTestResultData,
+  ApexTestResultDataRaw,
   ApexTestResultOutcome,
   ApexTestRunResult,
   ApexTestRunResultStatus,
@@ -36,7 +36,9 @@ import {
   calculatePercentage,
   getBufferSize,
   getJsonIndent,
-  queryAll
+  transformTestResult,
+  queryAll,
+  calculateCodeCoverage
 } from './utils';
 import * as util from 'util';
 import { QUERY_RECORD_LIMIT } from './constants';
@@ -48,7 +50,6 @@ import { pipeline } from 'node:stream/promises';
 import * as os from 'node:os';
 import path from 'path';
 import fs from 'node:fs/promises';
-import { Field } from '@jsforce/jsforce-node';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bfj = require('bfj');
@@ -60,6 +61,8 @@ const finishedStatuses = [
   ApexTestRunResultStatus.Passed,
   ApexTestRunResultStatus.Skipped
 ];
+
+const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
 
 export class AsyncTests {
   public readonly connection: Connection;
@@ -96,12 +99,11 @@ export class AsyncTests {
       await sClient.init();
       await sClient.handshake();
 
-      token &&
-        token.onCancellationRequested(async () => {
-          const testRunId = await sClient.subscribedTestRunIdPromise;
-          await this.abortTestRun(testRunId, progress);
-          sClient.disconnect();
-        });
+      token?.onCancellationRequested(async () => {
+        const testRunId = await sClient.subscribedTestRunIdPromise;
+        await this.abortTestRun(testRunId, progress);
+        sClient.disconnect();
+      });
 
       const testRunId = await this.getTestRunRequestAction(options)();
 
@@ -109,7 +111,7 @@ export class AsyncTests {
         return { testRunId };
       }
 
-      if (token && token.isCancellationRequested) {
+      if (token?.isCancellationRequested) {
         return null;
       }
       const asyncRunResult = await sClient.subscribe(
@@ -152,7 +154,7 @@ export class AsyncTests {
         const writeStream = createWriteStream(
           path.join(os.tmpdir(), runId, 'rawResults.json')
         );
-        this.logger.debug(`Raw raw results written to: ${writeStream.path}`);
+        this.logger.debug(`Raw results written to: ${writeStream.path}`);
         const stringifyStream = bfj.stringify(formattedResults, {
           bufferLength: getBufferSize(),
           iterables: 'ignore',
@@ -194,12 +196,11 @@ export class AsyncTests {
         runResult = await this.checkRunStatus(testRunId);
       }
 
-      token &&
-        token.onCancellationRequested(async () => {
-          sClient.disconnect();
-        });
+      token?.onCancellationRequested(async () => {
+        sClient.disconnect();
+      });
 
-      if (token && token.isCancellationRequested) {
+      if (token?.isCancellationRequested) {
         return null;
       }
 
@@ -231,10 +232,8 @@ export class AsyncTests {
     if (!isValidTestRunID(testRunId)) {
       throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
     }
-    const hasTestSetupTimeField = await this.describeSObjects(
-      'ApexTestRunResult',
-      'TestSetupTime'
-    );
+    const hasTestSetupTimeField = await this.supportsTestSetupFeature();
+
     const testRunSummaryQuery = hasTestSetupTimeField
       ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
       : `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
@@ -246,13 +245,11 @@ export class AsyncTests {
     });
 
     try {
-      const testRunSummaryResults =
-        await this.connection.singleRecordQuery<ApexTestRunResult>(
-          testRunSummaryQuery,
-          {
-            tooling: true
-          }
-        );
+      const testRunSummaryResults = await (
+        await this.defineApiVersion()
+      ).singleRecordQuery<ApexTestRunResult>(testRunSummaryQuery, {
+        tooling: true
+      });
       return {
         testsComplete: finishedStatuses.includes(testRunSummaryResults.Status),
         testRunSummary: testRunSummaryResults
@@ -281,7 +278,6 @@ export class AsyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
     try {
-      const coveredApexClassIdSet = new Set<string>();
       const apexTestResults = await this.getAsyncTestResults(
         asyncRunResult.queueItem
       );
@@ -297,8 +293,7 @@ export class AsyncTests {
         outcome = ApexTestRunResultStatus.Passed;
       }
 
-      // TODO: deprecate testTotalTime
-      const result: TestResult = {
+      const rawResult: TestResultRaw = {
         summary: {
           outcome,
           testsRan: testResults.length,
@@ -312,6 +307,7 @@ export class AsyncTests {
             testResults.length
           ),
           testStartTime: formatStartTime(testRunSummary.StartTime, 'ISO'),
+          testSetupTimeInMs: testRunSummary.TestSetupTime,
           testExecutionTimeInMs: testRunSummary.TestTime ?? 0,
           testTotalTimeInMs: testRunSummary.TestTime ?? 0,
           commandTimeInMs: getCurrentTime() - commandStartTime,
@@ -324,42 +320,15 @@ export class AsyncTests {
         tests: testResults
       };
 
-      if (codeCoverage) {
-        const perClassCovMap =
-          await this.codecoverage.getPerClassCodeCoverage(apexTestClassIdSet);
-
-        result.tests.forEach((item) => {
-          const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
-          const perClassCov = perClassCovMap.get(keyCodeCov);
-          // Skipped test is not in coverage map, check to see if perClassCov exists first
-          if (perClassCov) {
-            perClassCov.forEach((classCov) =>
-              coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
-            );
-            item.perClassCoverage = perClassCov;
-          }
-        });
-
-        progress?.report({
-          type: 'FormatTestResultProgress',
-          value: 'queryingForAggregateCodeCoverage',
-          message: nls.localize('queryingForAggregateCodeCoverage')
-        });
-        const { codeCoverageResults, totalLines, coveredLines } =
-          await this.codecoverage.getAggregateCodeCoverage(
-            coveredApexClassIdSet
-          );
-        result.codecoverage = codeCoverageResults;
-        result.summary.totalLines = totalLines;
-        result.summary.coveredLines = coveredLines;
-        result.summary.testRunCoverage = calculatePercentage(
-          coveredLines,
-          totalLines
-        );
-        result.summary.orgWideCoverage =
-          await this.codecoverage.getOrgWideCoverage();
-      }
-      return this.transformTestResult(result);
+      await calculateCodeCoverage(
+        this.codecoverage,
+        codeCoverage,
+        apexTestClassIdSet,
+        rawResult,
+        true,
+        progress
+      );
+      return transformTestResult(rawResult);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
     }
@@ -370,10 +339,7 @@ export class AsyncTests {
     testQueueResult: ApexTestQueueItem
   ): Promise<ApexTestResult[]> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
-    const hasIsTestSetupField = await this.describeSObjects(
-      'ApexTestResult',
-      'IsTestSetup'
-    );
+    const hasIsTestSetupField = await this.supportsTestSetupFeature();
 
     try {
       const apexTestResultQuery = hasIsTestSetupField
@@ -394,9 +360,9 @@ export class AsyncTests {
         );
         queries.push(query);
       }
-
-      const queryPromises = queries.map((query) => {
-        return queryAll(this.connection, query, true);
+      const connection = await this.defineApiVersion();
+      const queryPromises = queries.map(async (query) => {
+        return queryAll(connection, query, true);
       });
       const apexTestResults = await Promise.all(queryPromises);
       return apexTestResults as ApexTestResult[];
@@ -410,7 +376,7 @@ export class AsyncTests {
     apexTestResults: ApexTestResult[]
   ): Promise<{
     apexTestClassIdSet: Set<string>;
-    testResults: ApexTestResultData[];
+    testResults: ApexTestResultDataRaw[];
     globalTests: {
       passed: number;
       skipped: number;
@@ -425,7 +391,7 @@ export class AsyncTests {
       let skipped = 0;
 
       // Iterate over test results, format and add them as results.tests
-      const testResults: ApexTestResultData[] = [];
+      const testResults: ApexTestResultDataRaw[] = [];
       for (const result of apexTestResults) {
         result.records.forEach((item) => {
           switch (item.Outcome) {
@@ -459,6 +425,7 @@ export class AsyncTests {
             methodName: item.MethodName,
             outcome: item.Outcome,
             apexLogId: item.ApexLogId,
+            isTestSetup: item.IsTestSetup,
             apexClass: {
               id: item.ApexClass.Id,
               name: item.ApexClass.Name,
@@ -543,42 +510,51 @@ export class AsyncTests {
   }
 
   /**
-   * Checks if the specified sObject contains the given field.
-   * @param sObjectName - The name of the sObject.
-   * @param fieldName - The name of the field to check.
-   * @returns A boolean indicating if the field exists in the sObject.
+   * @returns A boolean indicating if the org's api version supports the test setup feature.
    */
-  public async describeSObjects(
-    sObjectName: string,
-    fieldName: string
-  ): Promise<boolean> {
+  public async supportsTestSetupFeature(): Promise<boolean> {
     try {
-      const describeResult =
-        await this.connection.tooling.describe(sObjectName);
-      return describeResult.fields.some(
-        (field: Field) => field.name === fieldName
+      return (
+        parseFloat(await this.connection.retrieveMaxApiVersion()) >=
+        MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS
       );
     } catch (e) {
-      throw new Error(`Error describing ${sObjectName}: ${e.message}`);
+      throw new Error(`Error retrieving max api version`);
     }
   }
 
-  private transformTestResult(rawResult: TestResultRaw): TestResult {
-    // Destructure summary to omit testSetupTimeInMs
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { testSetupTimeInMs, ...summary } = rawResult.summary;
+  public async defineApiVersion(): Promise<Connection> {
+    const maxApiVersion = await this.connection.retrieveMaxApiVersion();
 
-    // Filter and transform tests array
-    const tests = rawResult.tests
-      .filter((test) => !test.isTestSetup)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .map(({ isTestSetup, ...rest }) => rest);
+    if (
+      parseFloat(this.connection.getApiVersion()) <
+        MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS &&
+      this.supportsTestSetupFeature()
+    ) {
+      return await this.cloneConnectionWithNewVersion(maxApiVersion);
+    }
+    return this.connection;
+  }
 
-    // Return the transformed result
-    return {
-      summary,
-      tests,
-      codecoverage: rawResult.codecoverage
-    };
+  public async cloneConnectionWithNewVersion(
+    newVersion: string
+  ): Promise<Connection> {
+    try {
+      const authInfo = await AuthInfo.create({
+        username: this.connection.getUsername()
+      });
+      const newConn = await Connection.create({
+        authInfo: authInfo,
+        connectionOptions: {
+          ...this.connection.getConnectionOptions(),
+          version: newVersion
+        }
+      });
+      return newConn;
+    } catch (e) {
+      throw new Error(
+        `Error creating new connection with API version ${newVersion}: ${e.message}`
+      );
+    }
   }
 }

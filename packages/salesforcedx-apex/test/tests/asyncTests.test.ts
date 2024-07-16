@@ -62,12 +62,11 @@ import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
-import { DescribeSObjectResult } from '@jsforce/jsforce-node';
 
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingRequestStub: SinonStub;
-let toolingDescribeStub: SinonStub;
+let retrieveMaxApiVersionStub: SinonStub;
 let singleRecordQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
@@ -89,55 +88,18 @@ describe('Run Apex tests asynchronously', () => {
     ]
   };
 
-  const mockDescribeApexTestRunResult = {
-    fields: [
-      { name: 'AsyncApexJobId' },
-      { name: 'Status' },
-      { name: 'ClassesCompleted' },
-      { name: 'ClassesEnqueued' },
-      { name: 'MethodsEnqueued' },
-      { name: 'StartTime' },
-      { name: 'EndTime' },
-      { name: 'TestTime' },
-      { name: 'TestSetupTime' },
-      { name: 'UserId' }
-    ],
-    name: 'ApexTestRunResult',
-    label: 'Apex Test Run Result',
-    labelPlural: 'Apex Test Run Results'
-  } as DescribeSObjectResult;
-  const mockDescribeApexTestResult = {
-    fields: [
-      { name: 'Id' },
-      { name: 'QueueItemId' },
-      { name: 'StackTrace' },
-      { name: 'Message' },
-      { name: 'AsyncApexJobId' },
-      { name: 'MethodName' },
-      { name: 'Outcome' },
-      { name: 'ApexLogId' },
-      { name: 'IsTestSetup' },
-      { name: 'ApexClass' },
-      { name: 'RunTime' },
-      { name: 'TestTimestamp' }
-    ],
-    name: 'ApexTestResult',
-    label: 'Apex Test Result',
-    labelPlural: 'Apex Test Results'
-  } as DescribeSObjectResult;
-
   beforeEach(async () => {
     sandboxStub = createSandbox();
 
-    // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
-    sandboxStub
-      .stub(Connection.prototype, 'retrieveMaxApiVersion')
-      .resolves('50.0');
     await $$.stubAuths(testData);
     mockConnection = await testData.getConnection();
+    retrieveMaxApiVersionStub = sandboxStub
+      .stub(mockConnection, 'retrieveMaxApiVersion')
+      .resolves('61.0');
     sandboxStub.stub(mockConnection, 'instanceUrl').get(() => {
       return 'https://na139.salesforce.com';
     });
+    sandboxStub.stub(mockConnection, 'getApiVersion').resolves('50.0');
     timeStub = sandboxStub
       .stub(Date.prototype, 'getTime')
       .onFirstCall()
@@ -146,18 +108,11 @@ describe('Run Apex tests asynchronously', () => {
     testResultData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     testResultData.summary.username = mockConnection.getUsername();
     toolingRequestStub = sandboxStub.stub(mockConnection.tooling, 'request');
-    toolingDescribeStub = sandboxStub.stub(mockConnection.tooling, 'describe');
     singleRecordQueryStub = sandboxStub.stub(
       mockConnection,
       'singleRecordQuery'
     );
     formatSpy = sandboxStub.spy(diagnosticUtil, 'formatTestErrors');
-    toolingDescribeStub
-      .withArgs('ApexTestResult')
-      .resolves(mockDescribeApexTestResult);
-    toolingDescribeStub
-      .withArgs('ApexTestRunResult')
-      .resolves(mockDescribeApexTestRunResult);
   });
 
   afterEach(() => {
@@ -1189,17 +1144,13 @@ describe('Run Apex tests asynchronously', () => {
     });
   });
 
-  describe('Describe SObjects', async () => {
-    it('should describe SObject and check for the existence of a field', async () => {
+  describe('Supports Test Setup Feature', async () => {
+    it(`should verify org's api version supports test setup feature`, async () => {
       const asyncTests = new AsyncTests(mockConnection);
 
-      const fieldExists = await asyncTests.describeSObjects(
-        'ApexTestRunResult',
-        'TestSetupTime'
-      );
+      const fieldExists = await asyncTests.supportsTestSetupFeature();
       expect(fieldExists).to.be.true;
-      expect(toolingDescribeStub.calledOnce).to.be.true;
-      expect(toolingDescribeStub.calledWith('ApexTestRunResult')).to.be.true;
+      expect(retrieveMaxApiVersionStub.calledOnce).to.be.true;
 
       const mockQueryResult = {
         Status: 'Completed',
@@ -1226,22 +1177,13 @@ describe('Run Apex tests asynchronously', () => {
       );
     });
     it('should handle absence of TestSetupTime field and modify query accordingly', async () => {
-      const fields = [{ name: 'AnotherField' }];
-
-      toolingDescribeStub
-        .withArgs('ApexTestRunResult')
-        .resolves({ fields } as DescribeSObjectResult);
-
+      retrieveMaxApiVersionStub.resolves('60.0');
       const asyncTests = new AsyncTests(mockConnection);
 
-      const fieldExists = await asyncTests.describeSObjects(
-        'ApexTestRunResult',
-        'TestSetupTime'
-      );
+      const fieldExists = await asyncTests.supportsTestSetupFeature();
 
       expect(fieldExists).to.be.false;
-      expect(toolingDescribeStub.calledOnce).to.be.true;
-      expect(toolingDescribeStub.calledWith('ApexTestRunResult')).to.be.true;
+      expect(retrieveMaxApiVersionStub.calledOnce).to.be.true;
 
       const mockQueryResult = {
         Status: 'Completed',

@@ -13,7 +13,7 @@ export function formatTestErrors(error: Error): Error {
   const matches = error.message?.match(
     /\bsObject type ["'](.*?)["'] is not supported\b/
   );
-  if (matches && matches[0] && matches[1]) {
+  if (matches?.[0] && matches?.[1]) {
     error.message = nls.localize('invalidsObjectErr', [
       matches[1],
       error.message
@@ -34,9 +34,7 @@ export function getSyncDiagnostic(syncRecord: SyncTestFailure): ApexDiagnostic {
     compileProblem: ''
   };
 
-  const matches =
-    syncRecord.stackTrace &&
-    syncRecord.stackTrace.match(/(line (\d+), column (\d+))/);
+  const matches = syncRecord.stackTrace?.match(/(line (\d+), column (\d+))/);
   if (matches) {
     if (matches[2]) {
       diagnostic.lineNumber = Number(matches[2]);
@@ -60,9 +58,7 @@ export function getAsyncDiagnostic(
     compileProblem: ''
   };
 
-  const matches =
-    asyncRecord.StackTrace &&
-    asyncRecord.StackTrace.match(/(line (\d+), column (\d+))/);
+  const matches = asyncRecord.StackTrace?.match(/(line (\d+), column (\d+))/);
   if (matches) {
     if (matches[2]) {
       diagnostic.lineNumber = Number(matches[2]);

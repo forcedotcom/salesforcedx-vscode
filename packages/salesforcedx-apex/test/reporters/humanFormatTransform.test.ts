@@ -11,7 +11,8 @@ import {
   testResults,
   successResult,
   coverageResult,
-  coverageFailResult
+  coverageFailResult,
+  setupResult
 } from './testResults';
 import { fail } from 'assert';
 
@@ -77,6 +78,34 @@ describe('HumanFormatTransform', () => {
       expect(result).to.contain('ApexTestClass  12.5%    9,10');
       expect(result).to.contain('=== Test Results');
       expect(result).to.contain('=== Test Summary');
+    });
+  });
+
+  it('should format test results with setup methods', () => {
+    const reporter = new HumanFormatTransform(setupResult, false);
+    createWritableAndPipeline(reporter, (result) => {
+      expect(result).to.not.be.empty;
+      expect(result).to.contain('=== Test Results');
+      expect(result).to.contain('=== Test Summary');
+      expect(result).to.contain(
+        '=== Test Setup Time by Test Class for Run 7073t000061uwZI'
+      );
+      expect(result).to.contain('Test Setup Time      24 ms');
+      expect(result).to.contain('Test Total Time      5487 ms');
+    });
+  });
+
+  it('should not display test setup summary if class has no setup methods', () => {
+    const reporter = new HumanFormatTransform(successResult, false);
+    createWritableAndPipeline(reporter, (result) => {
+      expect(result).to.not.be.empty;
+      expect(result).to.contain('=== Test Results');
+      expect(result).to.contain('=== Test Summary');
+      expect(result).to.not.contain(
+        '=== Test Setup Time by Test Class for Run 7073t000061uwZI'
+      );
+      expect(result).to.contain('Test Setup Time      0 ms');
+      expect(result).to.contain('Test Total Time      5463 ms');
     });
   });
 

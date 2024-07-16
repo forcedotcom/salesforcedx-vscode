@@ -72,7 +72,7 @@ export class TapReporter {
         const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/gim);
         if (startsWithNewlineRegex.test(testResult.message)) {
           testResult.message.split(/\r\n|\r|\n/g).forEach((msg) => {
-            if (msg && msg.length > 0) {
+            if (msg?.length > 0) {
               message.push(msg.trim());
             }
           });

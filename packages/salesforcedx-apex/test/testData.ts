@@ -131,7 +131,8 @@ export const syncResult: TestResult = {
       testTimestamp: '',
       fullName: `t3st.TestApexClass.testMethod`
     }
-  ]
+  ],
+  setup: []
 };
 
 export const testResultData: TestResult = {
@@ -173,7 +174,8 @@ export const testResultData: TestResult = {
       testTimestamp: '3',
       fullName: 't3st.TestLogger.testLoggerLog'
     }
-  ]
+  ],
+  setup: []
 };
 
 export const missingTimeTestData: TestResult = {
@@ -189,6 +191,7 @@ export const missingTimeTestData: TestResult = {
     skipRate: '0%',
     skipped: 0,
     testStartTime: localStartTime,
+    testSetupTimeInMs: undefined,
     testExecutionTimeInMs: 0,
     testTotalTimeInMs: 0,
     commandTimeInMs: 2000,
@@ -216,6 +219,7 @@ export const missingTimeTestData: TestResult = {
       fullName: 't3st.TestLogger.testLoggerLog'
     }
   ],
+  setup: [],
   codecoverage: undefined
 };
 
@@ -232,6 +236,7 @@ export const skippedTestData: TestResult = {
     skipRate: '100%',
     skipped: 1,
     testStartTime: localStartTime,
+    testSetupTimeInMs: undefined,
     testExecutionTimeInMs: 0,
     testTotalTimeInMs: 0,
     commandTimeInMs: 2000,
@@ -259,6 +264,7 @@ export const skippedTestData: TestResult = {
       fullName: 't3st.TestLogger.testLoggerLog'
     }
   ],
+  setup: [],
   codecoverage: undefined
 };
 
@@ -273,12 +279,13 @@ const failureSummary = {
   skipRate: '0%',
   skipped: 0,
   testStartTime: localStartTime,
+  testSetupTimeInMs: undefined,
   testExecutionTimeInMs: 0,
   testTotalTimeInMs: 0,
   commandTimeInMs: 2000,
   testRunId,
   userId: '005xx000000abcDAAU'
-};
+} as unknown;
 
 export const diagnosticResult: TestResult = {
   // @ts-ignore
@@ -313,6 +320,7 @@ export const diagnosticResult: TestResult = {
       }
     }
   ],
+  setup: [],
   codecoverage: undefined
 };
 
@@ -346,6 +354,7 @@ export const diagnosticFailure: TestResult = {
       }
     }
   ],
+  setup: [],
   codecoverage: undefined
 };
 

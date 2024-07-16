@@ -99,7 +99,7 @@ export class StreamingClient {
         message: StreamMessage,
         callback: (message: StreamMessage) => void
       ) => {
-        if (message && message.error) {
+        if (message?.error) {
           // throw errors on handshake errors
           if (message.channel === '/meta/handshake') {
             this.disconnect();

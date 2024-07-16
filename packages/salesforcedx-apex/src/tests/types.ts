@@ -214,6 +214,10 @@ export type ApexTestResultRecord = {
    * Points to the ApexLog for this test method execution if debug logging is enabled; otherwise, null.
    */
   ApexLogId: string | null;
+  /**
+   * Indicates if the results are for a test setup method. The default is false.
+   */
+  IsTestSetup?: boolean;
   ApexClass: {
     Id: string;
     /**
@@ -261,13 +265,33 @@ export type ApexTestRunResult = {
    */
   AsyncApexJobId: string;
   /**
-   * The status of the test run
+   * The number of classes that have completed execution in the test run
    */
-  Status: ApexTestRunResultStatus;
+  ClassesCompleted: number;
+  /**
+   * The number of classes that have been enqueued for execution in the test run
+   */
+  ClassesEnqueued: number;
+  /**
+   * The time at which the test run ended.
+   */
+  EndTime: string | undefined;
+  /**
+   * The number of methods that have been enqueued for execution in the test run
+   */
+  MethodsEnqueued: number;
   /**
    * The time at which the test run started.
    */
   StartTime: string | undefined;
+  /**
+   * The status of the test run
+   */
+  Status: ApexTestRunResultStatus;
+  /**
+   * The time it took to set up the test, in seconds.
+   */
+  TestSetupTime: number | undefined;
   /**
    * The time it took the test to run, in seconds.
    */
@@ -378,6 +402,25 @@ export type ApexTestResultDataRaw = ApexTestResultData & {
   isTestSetup?: boolean;
 };
 
+export type ApexTestSetupData = {
+  id: string;
+  stackTrace: string | null;
+  message: string | null;
+  asyncApexJobId: string;
+  methodName: string;
+  apexLogId: string | null;
+  apexClass: {
+    id: string;
+    name: string;
+    namespacePrefix: string;
+    fullName: string;
+  };
+  testSetupTime: number;
+  testTimestamp: string;
+  fullName: string;
+  diagnostic?: ApexDiagnostic;
+};
+
 export type CodeCoverageResult = {
   apexId: string;
   name: string;
@@ -394,8 +437,9 @@ export type TestRunIdResult = {
 };
 
 export type TestResult = {
-  summary: Omit<TestResultRaw['summary'], 'testSetupTimeInMs'>;
-  tests: Omit<ApexTestResultDataRaw, 'isTestSetup'>[];
+  summary: TestResultRaw['summary'];
+  tests: ApexTestResultData[];
+  setup?: ApexTestSetupData[];
   codecoverage?: CodeCoverageResult[];
 };
 
