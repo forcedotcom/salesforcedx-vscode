@@ -1,3 +1,12 @@
+# [8.1.0](https://github.com/forcedotcom/salesforcedx-apex/compare/7.0.4...8.1.0) (2024-07-17)
+
+
+### Features
+
+* consider concise feature for test setup section ([#407](https://github.com/forcedotcom/salesforcedx-apex/issues/407)) ([8d50228](https://github.com/forcedotcom/salesforcedx-apex/commit/8d502286a59a234a7f540cdf73b09531b60f66ad))
+
+
+
 ## [7.0.4](https://github.com/forcedotcom/salesforcedx-apex/compare/7.0.3...7.0.4) (2024-07-05)
 
 
