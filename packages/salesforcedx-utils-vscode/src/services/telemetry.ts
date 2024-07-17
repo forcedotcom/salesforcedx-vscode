@@ -417,6 +417,7 @@ export class TelemetryService {
         options,
         cancellationToken);
       const cmdResult = JSON.parse(getCliTelemetryData);
+      console.log(`cliId is ${cmdResult.result.cliId}`);
       return cmdResult.result.cliId;
     } catch (error) {
       console.log('error retrieving user-cliId, regenerating..');
