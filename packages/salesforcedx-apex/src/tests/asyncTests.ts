@@ -523,6 +523,9 @@ export class AsyncTests {
     }
   }
 
+  /**
+   * @returns A connection based on the current api version and the max api version.
+   */
   public async defineApiVersion(): Promise<Connection> {
     const maxApiVersion = await this.connection.retrieveMaxApiVersion();
 
@@ -536,6 +539,9 @@ export class AsyncTests {
     return this.connection;
   }
 
+  /**
+   * @returns A new connection similar to the current one but with a new api version.
+   */
   public async cloneConnectionWithNewVersion(
     newVersion: string
   ): Promise<Connection> {

@@ -38,7 +38,7 @@ export class HumanReporter {
           tbResult += this.formatCodeCov(testResult.codecoverage);
         }
       }
-      if (testResult.setup) {
+      if (testResult.setup && !concise) {
         tbResult += this.formatSetup(testResult);
       }
       tbResult += this.formatSummary(testResult);

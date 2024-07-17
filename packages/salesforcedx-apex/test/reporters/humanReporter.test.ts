@@ -61,6 +61,7 @@ describe('Human Reporter Tests', () => {
     expect(result).to.contain(
       '=== Test Setup Time by Test Class for Run 7073t000061uwZI'
     );
+    expect(result).to.contain('AccountServiceTest.setup_method  24');
     expect(result).to.contain('Test Setup Time      24 ms');
     expect(result).to.contain('Test Total Time      5487 ms');
   });
@@ -73,8 +74,18 @@ describe('Human Reporter Tests', () => {
     expect(result).to.not.contain(
       '=== Test Setup Time by Test Class for Run 7073t000061uwZI'
     );
+    expect(result).to.not.contain('AccountServiceTest.setup_method  24');
     expect(result).to.contain('Test Setup Time      0 ms');
     expect(result).to.contain('Test Total Time      5463 ms');
+  });
+
+  it('should not display test setup summary if concise is true', () => {
+    const result = reporter.format(setupResult, false, true);
+    expect(result).to.not.be.empty;
+    expect(result).to.not.contain(
+      '=== Test Setup Time by Test Class for Run 7073t000061uwZI'
+    );
+    expect(result).to.not.contain('AccountServiceTest.setup_method  24');
   });
 
   it('should format test results with detailed coverage specified', () => {

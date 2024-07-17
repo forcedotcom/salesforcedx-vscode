@@ -57,7 +57,7 @@ export class HumanFormatTransform extends Readable {
         this.formatCodeCov();
       }
     }
-    if (this.testResult.setup) {
+    if (this.testResult.setup && !this.concise) {
       this.formatSetup();
     }
     this.formatSummary();
