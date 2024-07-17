@@ -140,17 +140,17 @@
         {
           "command": "sf.test.view.run",
           "when": "view == sf.test.view",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "sf.test.view.refresh",
           "when": "view == sf.test.view",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
           "command": "sf.test.view.collapseAll",
           "when": "view == sf.test.view",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
