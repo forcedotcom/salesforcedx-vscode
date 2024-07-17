@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Support lwc-record-picker ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683))
+- We added support for the LWC Lightning Record Picker component. You can now use features like hover and auto-completion when you're working with this component in VS Code. ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683)). 
 
 # 61.4.0 - July 10, 2024
 
