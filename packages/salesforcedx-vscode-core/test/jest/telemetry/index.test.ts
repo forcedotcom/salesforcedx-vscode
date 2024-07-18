@@ -18,7 +18,7 @@ describe('Telemetry', () => {
   let exceptionEvent: jest.SpyInstance;
   let teleSpy: jest.SpyInstance;
   let cliSpy: jest.SpyInstance;
-  let getCliIdSpy: jest.SpyInstance;
+  let getUserIdSpy: jest.SpyInstance;
 
   const fakeCliId = 'sdfghjkuytrfce34rtgh';
 
@@ -107,7 +107,7 @@ describe('Telemetry', () => {
       cliSpy = jest
         .spyOn(telemetryService, 'checkCliTelemetry')
         .mockResolvedValue(true);
-      getCliIdSpy = jest.spyOn((telemetryService as any), 'getCliId').mockResolvedValue(fakeCliId);
+      getUserIdSpy = jest.spyOn(telemetryService, 'getUserId').mockResolvedValue(fakeCliId);
     });
 
     afterEach(() => {
@@ -117,6 +117,26 @@ describe('Telemetry', () => {
       exceptionEvent.mockRestore();
       teleSpy.mockRestore();
       cliSpy.mockRestore();
+    });
+
+    it('Should assign cliId to userId for App Insights reporter', async () => {
+      // create vscode extensionContext
+      mockExtensionContext = new MockExtensionContext(
+        true,
+        ExtensionMode.Production
+      );
+
+      const telemetryEnabled = await telemetryService.isTelemetryEnabled();
+      await telemetryService.initializeService(mockExtensionContext);
+      const telemetryReporters = telemetryService.getReporters();
+      const appInsight = telemetryReporters[0];
+
+      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryReporters.length).toBeGreaterThan(0);
+      expect(teleSpy.mock.calls[0]).toEqual([true]);
+      expect(getUserIdSpy).toHaveBeenCalled();
+      expect(getUserIdSpy).toHaveReturned();
+      expect((appInsight as any).userId === fakeCliId).toBe(true);
     });
 
     it('Should show telemetry info message', async () => {
@@ -168,26 +188,6 @@ describe('Telemetry', () => {
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
-    it('Should assign cliId to userId for App Insights reporter', async () => {
-      // create vscode extensionContext
-      mockExtensionContext = new MockExtensionContext(
-        true,
-        ExtensionMode.Production
-      );
 
-      // reporter should be empty
-      reporter.mockReturnValueOnce([]);
-
-      await telemetryService.initializeService(mockExtensionContext);
-
-      const telemetryReporters = telemetryService.getReporters();
-      const appInsight = telemetryReporters[0];
-
-      expect(telemetryReporters.length).toBeGreaterThan(0);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
-      expect(getCliIdSpy).toHaveBeenCalled();
-      expect(getCliIdSpy).toHaveReturned();
-      expect((appInsight as any).userId === fakeCliId).toBe(true);
-    });
   });
 });

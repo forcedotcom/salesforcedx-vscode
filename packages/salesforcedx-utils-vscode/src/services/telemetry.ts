@@ -406,7 +406,7 @@ export class TelemetryService {
     return result;
   }
 
-  private async getUserId(): Promise<string> {
+  public async getUserId(): Promise<string> {
     // Defining UserId in globalState and using the same in appInsights reporter.
     // Assigns cliId to UserId when it's undefined in global state.
     // cliId is undefined when cli-telemetry variable disable-telemetry is true.
