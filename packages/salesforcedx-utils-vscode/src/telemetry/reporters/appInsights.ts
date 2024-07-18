@@ -40,7 +40,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     private extensionId: string,
     private extensionVersion: string,
     key: string,
-    private userId: string,
+    readonly userId: string,
     enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));

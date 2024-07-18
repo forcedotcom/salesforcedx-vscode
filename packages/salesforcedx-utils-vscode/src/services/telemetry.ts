@@ -6,7 +6,7 @@
  */
 import { randomBytes } from 'crypto';
 import * as util from 'util';
-import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ActivationInfo, CliCommandExecutor, Command, CommandOutput, SfCommandBuilder, workspaceUtils } from '..';
 import {
   DEFAULT_AIKEY,
@@ -143,7 +143,7 @@ export class TelemetryService {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
         console.log('adding AppInsights reporter.');
-        const userId = await this.getCliId();
+        const userId = await this.getUserId();
         this.reporters.push(
           new AppInsights(
             this.getTelemetryReporterName(),
@@ -406,19 +406,44 @@ export class TelemetryService {
     return result;
   }
 
-  private async getCliId(): Promise<string> {
-    // CliId is undefined when cli-telemetry variable disable-telemetry is true.
-    // E4D doesn't report usage to appInsights when cliTelemetry is disabled.
+  private async getUserId(): Promise<string> {
+    // Defining UserId in globalState and using the same in appInsights reporter.
+    // Assigns cliId to UserId when it's undefined in global state.
+    // cliId is undefined when cli-telemetry variable disable-telemetry is true.
+    // Relying on machineId as backup option.
+    let globalStateUserId;
+
     try {
-      const getCliTelemetryData = await this.executeCliTelemetry(
-        this.buildCliTelemetryCommand()
-      );
-      const cmdResult = JSON.parse(getCliTelemetryData);
-      return cmdResult.result.cliId;
+      globalStateUserId = this.extensionContext?.globalState.get<string | undefined>('UserId');
+      if (globalStateUserId === undefined) {
+        const getCliTelemetryData = await this.executeCliTelemetry(
+          this.buildCliTelemetryCommand()
+        );
+        const cmdResult = JSON.parse(getCliTelemetryData) as { result?: { cliId: string } };
+        let cliUserId = cmdResult?.result?.cliId;
+
+        // Generates a random UserId when cliId is undefined.
+        if (cliUserId === undefined) {
+          cliUserId = this.getRandomUserId();
+        }
+        await this.extensionContext?.globalState.update('UserId', cliUserId);
+        globalStateUserId = cliUserId;
+      }
     } catch (error) {
       console.log(`Error: ${error} occurred in retrieving cliId, generating user-id ..`);
-      const userId = this.getRandomUserId();
-      return userId;
+      globalStateUserId = this.extensionContext?.globalState.get<string | undefined>('UserId');
+
+      // Assigns a random value to UserId when it's undefined and sf telemetry cmd throws an error.
+      if (globalStateUserId === undefined) {
+        globalStateUserId = this.getRandomUserId();
+        await this.extensionContext?.globalState.update('UserId', globalStateUserId);
+      }
+    } finally {
+      if (globalStateUserId === undefined) {
+        globalStateUserId = env.machineId;
+      }
     }
+
+    return globalStateUserId;
   }
 }

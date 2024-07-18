@@ -18,6 +18,9 @@ describe('Telemetry', () => {
   let exceptionEvent: jest.SpyInstance;
   let teleSpy: jest.SpyInstance;
   let cliSpy: jest.SpyInstance;
+  let getCliIdSpy: jest.SpyInstance;
+
+  const fakeCliId = 'sdfghjkuytrfce34rtgh';
 
   describe('in dev mode', () => {
     beforeEach(() => {
@@ -104,6 +107,7 @@ describe('Telemetry', () => {
       cliSpy = jest
         .spyOn(telemetryService, 'checkCliTelemetry')
         .mockResolvedValue(true);
+      getCliIdSpy = jest.spyOn((telemetryService as any), 'getCliId').mockResolvedValue(fakeCliId);
     });
 
     afterEach(() => {
@@ -162,6 +166,28 @@ describe('Telemetry', () => {
 
       expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
+    });
+
+    it('Should assign cliId to userId for App Insights reporter', async () => {
+      // create vscode extensionContext
+      mockExtensionContext = new MockExtensionContext(
+        true,
+        ExtensionMode.Production
+      );
+
+      // reporter should be empty
+      reporter.mockReturnValueOnce([]);
+
+      await telemetryService.initializeService(mockExtensionContext);
+
+      const telemetryReporters = telemetryService.getReporters();
+      const appInsight = telemetryReporters[0];
+
+      expect(telemetryReporters.length).toBeGreaterThan(0);
+      expect(teleSpy.mock.calls[0]).toEqual([true]);
+      expect(getCliIdSpy).toHaveBeenCalled();
+      expect(getCliIdSpy).toHaveReturned();
+      expect((appInsight as any).userId === fakeCliId).toBe(true);
     });
   });
 });
