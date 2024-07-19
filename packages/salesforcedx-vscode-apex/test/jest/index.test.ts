@@ -74,7 +74,9 @@ describe('deactivate', () => {
   let stopSpy: jest.SpyInstance;
   beforeEach(() => {
     stopSpy = jest.fn();
-    jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
+    jest
+      .spyOn(languageClientUtils, 'getClientInstance')
+      .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
   });
 
   it('should call stop on the language client', async () => {

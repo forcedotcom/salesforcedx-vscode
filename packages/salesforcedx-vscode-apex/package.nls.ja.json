@@ -18,6 +18,7 @@
   "apex_trace_server_description": "Controls the level of detail for trace logs in the Apex Language Server",
   "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
   "configuration_title": "Salesforce Apex Configuration",
+  "collapse_tests_title": "SFDX: Apex テストを隠す",
   "go_to_definition_title": "定義に移動",
   "java_home_description": "Apex 言語サーバの起動に使用される Java 8 または Java 11 ランタイムのフォルダパスを指定します。(例: /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home)",
   "java_memory_description": "Apex 言語サーバへのメモリ割り当て量を MB 単位で指定します。空の場合はシステムのデフォルト値を使用します。",
