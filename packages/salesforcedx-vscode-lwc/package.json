@@ -24,7 +24,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "8.1.1",
+    "@salesforce/core-bundle": "8.2.0",
     "@salesforce/eslint-config-lwc": "3.5.1",
     "@salesforce/lightning-lsp-common": "4.8.0",
     "@salesforce/lwc-language-server": "4.8.0",
@@ -196,12 +196,17 @@
         {
           "command": "sf.lightning.lwc.test.runAllTests",
           "when": "view == sf.lightning.lwc.test.view",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "sf.lightning.lwc.test.refreshTestExplorer",
           "when": "view == sf.lightning.lwc.test.view",
-          "group": "navigation"
+          "group": "navigation@2"
+        },
+        {
+          "command": "sf.lightning.lwc.test.view.collapseAll",
+          "when": "view == sf.lightning.lwc.test.view",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -334,6 +339,14 @@
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sf.lightning.lwc.test.view.collapseAll",
+        "title": "%lightning_lwc_test_collapse_all_text%",
+        "icon": {
+          "light": "resources/light/collapse-all.svg",
+          "dark": "resources/dark/collapse-all.svg"
         }
       },
       {
