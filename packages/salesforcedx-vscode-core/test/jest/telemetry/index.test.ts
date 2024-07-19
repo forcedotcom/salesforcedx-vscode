@@ -187,7 +187,5 @@ describe('Telemetry', () => {
       expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
-
-
   });
 });
