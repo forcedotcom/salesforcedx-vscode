@@ -10,6 +10,7 @@
   "lightning_lwc_stop_text": "SFDX: ローカルの開発サーバを停止",
   "lightning_lwc_test_case_debug_text": "SFDX: Lightning Web コンポーネントのテストケースをデバッグ",
   "lightning_lwc_test_case_run_text": "SFDX: Lightning Web コンポーネントのテストケースを実行",
+  "lightning_lwc_test_collapse_all_text": "SFDX: Lightning Web コンポーネントテストエクスプローラを隠す",
   "lightning_lwc_test_debug_current_file_text": "SFDX: 現在の Lightning Web コンポーネントのテストファイルをデバッグ",
   "lightning_lwc_test_file_debug_text": "SFDX: Lightning Web コンポーネントのテストファイルをデバッグ",
   "lightning_lwc_test_file_run_text": "SFDX: Lightning Web コンポーネントのテストファイルを実行",
