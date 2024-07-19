@@ -410,39 +410,34 @@ export class TelemetryService {
     // Defining UserId in globalState and using the same in appInsights reporter.
     // Assigns cliId to UserId when it's undefined in global state.
     // cliId is undefined when cli-telemetry variable disable-telemetry is true.
-    // Relying on machineId as backup option.
-    let globalStateUserId;
+    let globalStateUserId = this.extensionContext?.globalState.get<
+      string | undefined
+    >('UserId');
 
-    try {
-      globalStateUserId = this.extensionContext?.globalState.get<string | undefined>('UserId');
-      if (globalStateUserId === undefined) {
-        const getCliTelemetryData = await this.executeCliTelemetry(
-          this.buildCliTelemetryCommand()
-        );
-        const cmdResult = JSON.parse(getCliTelemetryData) as { result?: { cliId: string } };
-        let cliUserId = cmdResult?.result?.cliId;
-
-        // Generates a random UserId when cliId is undefined.
-        if (cliUserId === undefined) {
-          cliUserId = this.getRandomUserId();
-        }
-        await this.extensionContext?.globalState.update('UserId', cliUserId);
-        globalStateUserId = cliUserId;
-      }
-    } catch (error) {
-      console.log(`Error: ${error} occurred in retrieving cliId, generating user-id ..`);
-      globalStateUserId = this.extensionContext?.globalState.get<string | undefined>('UserId');
-
-      // Assigns a random value to UserId when it's undefined and sf telemetry cmd throws an error.
-      if (globalStateUserId === undefined) {
-        globalStateUserId = this.getRandomUserId();
-        await this.extensionContext?.globalState.update('UserId', globalStateUserId);
-      }
-    } finally {
-      if (globalStateUserId === undefined) {
-        globalStateUserId = env.machineId;
-      }
+    if (globalStateUserId) {
+      return globalStateUserId;
     }
+
+    globalStateUserId = await this.executeCliTelemetry(
+      this.buildCliTelemetryCommand()
+    )
+      .then((getCliTelemetryData): string => {
+        const cmdResult = JSON.parse(getCliTelemetryData) as {
+          result?: { cliId: string };
+        };
+        return cmdResult?.result?.cliId ?? this.getRandomUserId();
+      })
+      .catch(error => {
+        console.log(
+          `Error: ${error} occurred in retrieving cliId, generating user-id ..`
+        );
+        return this.getRandomUserId();
+      });
+
+    await this.extensionContext?.globalState.update(
+      'UserId',
+      globalStateUserId
+    );
 
     return globalStateUserId;
   }
