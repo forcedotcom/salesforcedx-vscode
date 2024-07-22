@@ -428,7 +428,7 @@ export class SelectLwcComponentType
   > {
     const hasTsSupport = vscode.workspace.getConfiguration(SFDX_LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
     if (hasTsSupport) {
-      const lwcComponentTypes = ['JavaScript', 'TypeScript'];
+      const lwcComponentTypes = ['TypeScript', 'JavaScript'];
       const lwcComponentType = await this.showMenu(
         lwcComponentTypes,
         'parameter_gatherer_select_lwc_type'

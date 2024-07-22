@@ -59,20 +59,15 @@ export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateComm
   }
 }
 
-const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
-const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
-const fileTypeGatherer = new SelectLwcComponentType();
-
 export const lightningGenerateLwc = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
+      new MetadataTypeGatherer(LWC_TYPE),
+      new SelectLwcComponentType(),
+      new SelectFileName(),
+      new SelectOutputDir(LWC_DIRECTORY, true)
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
@@ -85,7 +80,7 @@ export const internalLightningGenerateLwc = (sourceUri: Uri): void => {
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
-      fileNameGatherer,
+      new SelectFileName(),
       new FileInternalPathGatherer(sourceUri)
     ),
     createTemplateExecutor
