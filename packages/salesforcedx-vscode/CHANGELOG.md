@@ -1,3 +1,25 @@
+# 61.6.0 - July 24, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Collapse All Apex Tests functionality @W-16273375@ ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+
+#### salesforcedx-vscode-core
+
+- New section in apex test results for test setup methods ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691))
+
+#### salesforcedx-vscode-lwc
+
+- Collapse All Apex Tests functionality @W-16273375@ ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+
+## Fixed
+
+#### docs
+
+- Docs/Gemfile & docs/Gemfile.lock to reduce vulnerabilities ([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
+
 # 61.5.0 - July 17, 2024
 
 ## Added
