@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryService } from '../../../src';
+import { CliCommandExecutor, CommandOutput, TelemetryService, workspaceUtils } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 
@@ -143,7 +143,7 @@ describe('Telemetry', () => {
       expect(getRandomUserIdSpy).toHaveBeenCalled();
       expect(uId).toBe(randomId);
     });
-   it('should generate random userId when cli command throws', async () => {
+    it('should generate random userId when cli command throws', async () => {
       executeCliTelemetrySpy.mockRejectedValueOnce(new Error('no cli for you'));
       getRandomUserIdSpy.mockResolvedValueOnce(randomId);
 
@@ -162,6 +162,8 @@ describe('Telemetry', () => {
       expect(uId).not.toBe(randomId);
       expect(uId).toBe(globalTelemetryUserId);
     });
+  });
+
   describe('executeCliTelemetry()', () => {
     const cliTelemetryData = {
       result: {
