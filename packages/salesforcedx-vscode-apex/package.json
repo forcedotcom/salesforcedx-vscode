@@ -241,6 +241,10 @@
         {
           "command": "sf.test.view.refresh",
           "when": "false"
+        },
+        {
+          "command": "sf.test.view.collapseAll",
+          "when": "sf:project_opened"
         }
       ]
     },
