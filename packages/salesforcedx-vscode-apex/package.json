@@ -24,9 +24,9 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "7.0.4",
+    "@salesforce/apex-node-bundle": "8.1.0",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.1.1",
+    "@salesforce/core-bundle": "8.2.0",
     "@salesforce/salesforcedx-utils-vscode": "61.5.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
@@ -140,12 +140,17 @@
         {
           "command": "sf.test.view.run",
           "when": "view == sf.test.view",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "sf.test.view.refresh",
           "when": "view == sf.test.view",
-          "group": "navigation"
+          "group": "navigation@2"
+        },
+        {
+          "command": "sf.test.view.collapseAll",
+          "when": "view == sf.test.view",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -274,6 +279,14 @@
         "icon": {
           "light": "resources/light/play-button.svg",
           "dark": "resources/dark/play-button.svg"
+        }
+      },
+      {
+        "command": "sf.test.view.collapseAll",
+        "title": "%collapse_tests_title%",
+        "icon": {
+          "light": "resources/light/collapse-all.svg",
+          "dark": "resources/dark/collapse-all.svg"
         }
       },
       {
