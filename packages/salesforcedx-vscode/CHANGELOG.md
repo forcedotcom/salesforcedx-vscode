@@ -4,21 +4,19 @@
 
 #### salesforcedx-vscode-apex
 
-- Collapse All Apex Tests functionality @W-16273375@ ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+#### salesforcedx-vscode-lwc
+
+- We added collapse all apex test and lwc test functionality to testing side panel. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
 
 #### salesforcedx-vscode-core
 
-- New section in apex test results for test setup methods ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691))
-
-#### salesforcedx-vscode-lwc
-
-- Collapse All Apex Tests functionality @W-16273375@ ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+- We bumped apex-node library to catch up with last feature: new section in apex test results for test setup methods. ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691))
 
 ## Fixed
 
 #### docs
 
-- Docs/Gemfile & docs/Gemfile.lock to reduce vulnerabilities ([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
+- We made some changes under the hood to reduce vulnerabilities. ([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
 
 # 61.5.0 - July 17, 2024
 
