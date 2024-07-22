@@ -283,6 +283,10 @@
           "when": "sf:project_opened || sf:internal_dev"
         },
         {
+          "command": "sf.lightning.lwc.test.view.collapseAll",
+          "when": "sf:project_opened"
+        },
+        {
           "command": "sf.lightning.lwc.test.refreshTestExplorer",
           "when": "sf:project_opened || sf:internal_dev"
         },
