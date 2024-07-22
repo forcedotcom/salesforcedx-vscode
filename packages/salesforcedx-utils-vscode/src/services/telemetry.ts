@@ -6,13 +6,14 @@
  */
 import { randomBytes } from 'crypto';
 import * as util from 'util';
-import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ActivationInfo, CliCommandExecutor, Command, CommandOutput, SfCommandBuilder, workspaceUtils } from '..';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
-  SFDX_EXTENSION_PACK_NAME
+  SFDX_EXTENSION_PACK_NAME,
+  TELEMETRY_GLOBAL_USER_ID
 } from '../constants';
 import * as Settings from '../settings';
 import {
@@ -333,12 +334,12 @@ export class TelemetryService {
         } catch (error) {
           console.log(
             'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            typeof reporter +
+            ' ' +
+            'name: ' +
+            name +
+            ' message: ' +
+            message
           );
         }
       });
@@ -398,8 +399,8 @@ export class TelemetryService {
   private async executeCliTelemetry(
     command: Command
   ): Promise<string> {
-    const workspacepath = workspaceUtils.getRootWorkspacePath();
-    const execution = new CliCommandExecutor(command, { cwd: workspacepath }
+    const workspacePath = workspaceUtils.getRootWorkspacePath();
+    const execution = new CliCommandExecutor(command, { cwd: workspacePath }
     ).execute();
     const cmdOutput = new CommandOutput();
     const result = cmdOutput.getCmdResult(execution);
@@ -412,7 +413,7 @@ export class TelemetryService {
     // cliId is undefined when cli-telemetry variable disable-telemetry is true.
     let globalStateUserId = this.extensionContext?.globalState.get<
       string | undefined
-    >('UserId');
+    >(TELEMETRY_GLOBAL_USER_ID);
 
     if (globalStateUserId) {
       return globalStateUserId;
@@ -433,9 +434,9 @@ export class TelemetryService {
         );
         return this.getRandomUserId();
       });
-
+    // If the random UserId value is used here it will be unique per extension.
     await this.extensionContext?.globalState.update(
-      'UserId',
+      TELEMETRY_GLOBAL_USER_ID,
       globalStateUserId
     );
 
