@@ -9,7 +9,7 @@ import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 
 describe('Telemetry', () => {
-  describe('Telemetry Provider', () => {
+  describe('Telemetry Service Provider', () => {
     afterEach(() => {
       // Clear instances after each test to avoid state leakage.
       TelemetryServiceProvider.instances.clear();
@@ -56,7 +56,7 @@ describe('Telemetry', () => {
     });
   });
 
-  describe('Telemetry Service', () => {
+  describe('Telemetry Service - getInstance', () => {
     it('getInstance should return the core instance if no extension name provided', () => {
       const firstInstance = TelemetryService.getInstance();
       const secondInstance = TelemetryServiceProvider.getInstance(

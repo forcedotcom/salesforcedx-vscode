@@ -15,3 +15,4 @@ export const SFDX_EXTENSION_PACK_NAME = 'salesforcedx-vscode';
 export const TARGET_DEV_HUB_KEY = 'target-dev-hub';
 export const TARGET_ORG_KEY = 'target-org';
 export const TRUE = 'true';
+export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';

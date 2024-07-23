@@ -23,6 +23,7 @@ import { AppInsights } from '../telemetry/reporters/appInsights';
 import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
+import { UserService } from './userService';
 
 type CommandMetric = {
   extensionName: string;
@@ -142,12 +143,13 @@ export class TelemetryService {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
         console.log('adding AppInsights reporter.');
-
+        const userId = await UserService.getTelemetryUserId(this.extensionContext);
         this.reporters.push(
           new AppInsights(
             this.getTelemetryReporterName(),
             this.version,
             this.aiKey,
+            userId,
             true
           )
         );
