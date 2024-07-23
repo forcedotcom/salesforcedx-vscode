@@ -169,7 +169,7 @@ describe('Telemetry', () => {
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
-    it('Should assign mockextension globalState to userId for App Insights reporter', async () => {
+    it('Should assign cliId to userId for App Insights reporter', async () => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext(
         true,
