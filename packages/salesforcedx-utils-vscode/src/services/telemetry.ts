@@ -143,7 +143,6 @@ export class TelemetryService {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
         console.log('adding AppInsights reporter.');
-        // const userId = await this.getUserId();
         const userId = await UserService.getTelemetryUserId(this.extensionContext);
         this.reporters.push(
           new AppInsights(
@@ -334,12 +333,12 @@ export class TelemetryService {
         } catch (error) {
           console.log(
             'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            typeof reporter +
+            ' ' +
+            'name: ' +
+            name +
+            ' message: ' +
+            message
           );
         }
       });
