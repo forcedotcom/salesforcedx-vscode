@@ -1,3 +1,23 @@
+# 61.6.0 - July 24, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+#### salesforcedx-vscode-lwc
+
+- Now you can collapse all Apex and LWC tests in the testing side panel. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+
+#### salesforcedx-vscode-core
+
+- We made a major upgrade to the `@salesforce/apex-node-bundle` library. With this upgrade, the Apex test results now display information about test setup methods and test setup time, improving your testing experience. ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691)).
+
+## Fixed
+
+#### docs
+
+- We've made some under-the-hood improvements to enhance security.([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
+
 # 61.5.0 - July 17, 2024
 
 ## Added
