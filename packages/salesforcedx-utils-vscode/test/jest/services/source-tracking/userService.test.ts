@@ -30,7 +30,6 @@ describe('UserService', () => {
     });
     it('should return command output of sf telemetry', async () => {
       const fakePath = '/fine/total';
-      // const fakeCommand = 'sf telemetry --json';
       const fakeExecution = 'FindCliIdValue';
 
       getRootWorkspacePathSpy.mockReturnValueOnce(fakePath);
@@ -54,14 +53,12 @@ describe('UserService', () => {
     };
     const randomId = 'setredfvvvgbbdtrfyv234dd';
     const globalTelemetryUserId = 'e45rdcfy7ygvhu8uhbnjiiugdrgb';
-    const fakeTelemetryCommand = 'sf telemetry --json';
 
     let telemetryService: TelemetryService;
     let fakeExtensionContext: ExtensionContext;
 
     let executeCliTelemetrySpy: jest.SpyInstance;
     let getRandomUserIdSpy: jest.SpyInstance;
-    let buildCliTelemetryCommandSpy: jest.SpyInstance;
     let fakeGet: jest.SpyInstance;
     let fakeUpdate: jest.SpyInstance;
 
@@ -74,14 +71,12 @@ describe('UserService', () => {
       fakeExtensionContext = (telemetryService as any).extensionContext;
       executeCliTelemetrySpy = jest.spyOn((UserService as any), 'executeCliTelemetry');
       getRandomUserIdSpy = jest.spyOn((UserService as any), 'getRandomUserId');
-      buildCliTelemetryCommandSpy = jest.spyOn((UserService as any), 'buildCliTelemetryCommand');
 
     });
 
     it('should return cliId when telemetryUserId is undefined in global state', async () => {
       fakeGet.mockReturnValueOnce(undefined);
       fakeUpdate.mockResolvedValueOnce(undefined);
-      buildCliTelemetryCommandSpy.mockReturnValueOnce(fakeTelemetryCommand);
       executeCliTelemetrySpy.mockResolvedValueOnce(JSON.stringify(fakeCliTelemetryData));
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
@@ -93,7 +88,6 @@ describe('UserService', () => {
     it('should generate random userId when telemetryUserId as well as cliId is undefined', async () => {
       fakeGet.mockReturnValueOnce(undefined);
       executeCliTelemetrySpy.mockResolvedValueOnce(JSON.stringify(fakeCliIdUndefined));
-      buildCliTelemetryCommandSpy.mockReturnValueOnce(fakeTelemetryCommand);
       getRandomUserIdSpy.mockResolvedValueOnce(randomId);
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);

@@ -13,13 +13,6 @@ import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 export class UserService {
   private static getRandomUserId = (): string => randomBytes(20).toString('hex');
 
-  private static buildCliTelemetryCommand(): Command {
-    return new SfCommandBuilder()
-      .withArg('telemetry')
-      .withJson()
-      .build();
-  }
-
   private static async executeCliTelemetry(): Promise<string> {
     const command = new SfCommandBuilder()
       .withArg('telemetry')
