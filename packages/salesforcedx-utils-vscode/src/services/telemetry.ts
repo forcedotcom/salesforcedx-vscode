@@ -4,16 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { randomBytes } from 'crypto';
 import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { ActivationInfo, CliCommandExecutor, Command, CommandOutput, SfCommandBuilder, workspaceUtils } from '..';
+import { ActivationInfo } from '..';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
-  SFDX_EXTENSION_PACK_NAME,
-  TELEMETRY_GLOBAL_USER_ID
+  SFDX_EXTENSION_PACK_NAME
 } from '../constants';
 import * as Settings from '../settings';
 import {
@@ -25,6 +23,7 @@ import { AppInsights } from '../telemetry/reporters/appInsights';
 import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
+import { UserService } from './userService';
 
 type CommandMetric = {
   extensionName: string;
@@ -144,7 +143,8 @@ export class TelemetryService {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
         console.log('adding AppInsights reporter.');
-        const userId = await this.getUserId();
+        // const userId = await this.getUserId();
+        const userId = await UserService.getTelemetryUserId(this.extensionContext);
         this.reporters.push(
           new AppInsights(
             this.getTelemetryReporterName(),
@@ -385,61 +385,5 @@ export class TelemetryService {
         .then(enabled => (enabled ? callback() : undefined))
         .catch(err => console.error(err));
     }
-  }
-
-  private getRandomUserId = (): string => randomBytes(20).toString('hex');
-
-  private buildCliTelemetryCommand(): Command {
-    return new SfCommandBuilder()
-      .withArg('telemetry')
-      .withJson()
-      .build();
-  }
-
-  private async executeCliTelemetry(
-    command: Command
-  ): Promise<string> {
-    const workspacePath = workspaceUtils.getRootWorkspacePath();
-    const execution = new CliCommandExecutor(command, { cwd: workspacePath }
-    ).execute();
-    const cmdOutput = new CommandOutput();
-    const result = cmdOutput.getCmdResult(execution);
-    return result;
-  }
-
-  public async getUserId(): Promise<string> {
-    // Defining UserId in globalState and using the same in appInsights reporter.
-    // Assigns cliId to UserId when it's undefined in global state.
-    // cliId is undefined when cli-telemetry variable disable-telemetry is true.
-    let globalStateUserId = this.extensionContext?.globalState.get<
-      string | undefined
-    >(TELEMETRY_GLOBAL_USER_ID);
-
-    if (globalStateUserId) {
-      return globalStateUserId;
-    }
-
-    globalStateUserId = await this.executeCliTelemetry(
-      this.buildCliTelemetryCommand()
-    )
-      .then((getCliTelemetryData): string => {
-        const cmdResult = JSON.parse(getCliTelemetryData) as {
-          result?: { cliId: string };
-        };
-        return cmdResult?.result?.cliId ?? this.getRandomUserId();
-      })
-      .catch(error => {
-        console.log(
-          `Error: ${error} occurred in retrieving cliId, generating user-id ..`
-        );
-        return this.getRandomUserId();
-      });
-    // If the random UserId value is used here it will be unique per extension.
-    await this.extensionContext?.globalState.update(
-      TELEMETRY_GLOBAL_USER_ID,
-      globalStateUserId
-    );
-
-    return globalStateUserId;
   }
 }

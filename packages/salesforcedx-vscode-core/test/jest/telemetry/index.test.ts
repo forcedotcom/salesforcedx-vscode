@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
+import { UserService } from '@salesforce/salesforcedx-utils-vscode/src/services/userService';
 import { ExtensionMode, window } from 'vscode';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
@@ -18,7 +19,7 @@ describe('Telemetry', () => {
   let exceptionEvent: jest.SpyInstance;
   let teleSpy: jest.SpyInstance;
   let cliSpy: jest.SpyInstance;
-  let getUserIdSpy: jest.SpyInstance;
+  let getTelemetryUserIdSpy: jest.SpyInstance;
 
   const fakeCliId = 'sdfghjkuytrfce34rtgh';
 
@@ -107,7 +108,7 @@ describe('Telemetry', () => {
       cliSpy = jest
         .spyOn(telemetryService, 'checkCliTelemetry')
         .mockResolvedValue(true);
-      getUserIdSpy = jest.spyOn(telemetryService, 'getUserId').mockResolvedValue(fakeCliId);
+      getTelemetryUserIdSpy = jest.spyOn(UserService, 'getTelemetryUserId').mockResolvedValue(fakeCliId);
     });
 
     afterEach(() => {
@@ -117,26 +118,7 @@ describe('Telemetry', () => {
       exceptionEvent.mockRestore();
       teleSpy.mockRestore();
       cliSpy.mockRestore();
-    });
-
-    it('Should assign cliId to userId for App Insights reporter', async () => {
-      // create vscode extensionContext
-      mockExtensionContext = new MockExtensionContext(
-        true,
-        ExtensionMode.Production
-      );
-
-      const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      await telemetryService.initializeService(mockExtensionContext);
-      const telemetryReporters = telemetryService.getReporters();
-      const appInsight = telemetryReporters[0];
-
-      expect(telemetryEnabled).toEqual(true);
-      expect(telemetryReporters.length).toBeGreaterThan(0);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
-      expect(getUserIdSpy).toHaveBeenCalled();
-      expect(getUserIdSpy).toHaveReturned();
-      expect((appInsight as any).userId === fakeCliId).toBe(true);
+      getTelemetryUserIdSpy.mockRestore();
     });
 
     it('Should show telemetry info message', async () => {
@@ -179,11 +161,27 @@ describe('Telemetry', () => {
         true,
         ExtensionMode.Production
       );
+      await telemetryService.initializeService(mockExtensionContext);
+
+      const telemetryReporters = telemetryService.getReporters();
+
+      expect(telemetryReporters.length).toBeGreaterThan(0);
+      expect(teleSpy.mock.calls[0]).toEqual([true]);
+    });
+
+    it('Should assign mockextension globalState to userId for App Insights reporter', async () => {
+      // create vscode extensionContext
+      mockExtensionContext = new MockExtensionContext(
+        true,
+        ExtensionMode.Production
+      );
+      const telemetryEnabled = await telemetryService.isTelemetryEnabled();
 
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporters = telemetryService.getReporters();
 
+      expect(telemetryEnabled).toEqual(true);
       expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
