@@ -180,10 +180,13 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporters = telemetryService.getReporters();
+      // const appInsights = telemetryReporters[0];
 
       expect(telemetryEnabled).toEqual(true);
       expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
+      // expect(getTelemetryUserIdSpy).toHaveBeenCalled();
+      // expect((appInsights as any).userId === fakeCliId).toBe(true);
     });
   });
 });
