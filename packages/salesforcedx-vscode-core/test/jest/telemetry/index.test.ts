@@ -175,15 +175,16 @@ describe('Telemetry', () => {
         true,
         ExtensionMode.Production
       );
+      // Set reporters list to empty array so it will create a new appInsights reporter
+      (telemetryService as any).reporters = [];
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
 
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporters = telemetryService.getReporters();
-      // const appInsights = telemetryReporters[0];
 
       expect(telemetryEnabled).toEqual(true);
-      expect(telemetryReporters.length).toBeGreaterThan(0);
+      expect(telemetryReporters.length).toEqual(1);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
       expect(getTelemetryUserIdSpy).toHaveBeenCalled();
       expect((telemetryReporters[0] as any).userId).toEqual(fakeCliId);
