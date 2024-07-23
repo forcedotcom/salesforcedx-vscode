@@ -6,11 +6,11 @@
 
 #### salesforcedx-vscode-lwc
 
-- We added collapse all apex test and lwc test functionality to testing side panel. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+- Now you can collapse all Apex and LWC tests in the testing side panel. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
 
 #### salesforcedx-vscode-core
 
-- We bumped apex-node library to catch up with last feature: new section in apex test results for test setup methods. ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691))
+- We made a major upgrade to the `@salesforce/apex-node-bundle` library. With this upgrade, the Apex test results now display information about test setup methods and test setup time, improving your testing experience. ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691)).
 
 ## Fixed
 
