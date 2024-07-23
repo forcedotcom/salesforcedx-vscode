@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
-import { UserService } from '@salesforce/salesforcedx-utils-vscode/src/services/userService';
+import { UserService } from '@salesforce/salesforcedx-utils-vscode';
 import { ExtensionMode, window } from 'vscode';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
@@ -185,8 +185,8 @@ describe('Telemetry', () => {
       expect(telemetryEnabled).toEqual(true);
       expect(telemetryReporters.length).toBeGreaterThan(0);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
-      // expect(getTelemetryUserIdSpy).toHaveBeenCalled();
-      // expect((appInsights as any).userId === fakeCliId).toBe(true);
+      expect(getTelemetryUserIdSpy).toHaveBeenCalled();
+      expect((telemetryReporters[0] as any).userId).toEqual(fakeCliId);
     });
   });
 });
