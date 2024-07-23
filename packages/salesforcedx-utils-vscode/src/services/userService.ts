@@ -7,7 +7,7 @@
 
 import { randomBytes } from 'crypto';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor, Command, CommandOutput, SfCommandBuilder, workspaceUtils } from '..';
+import { CliCommandExecutor, CommandOutput, SfCommandBuilder, workspaceUtils } from '..';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 
 export class UserService {
