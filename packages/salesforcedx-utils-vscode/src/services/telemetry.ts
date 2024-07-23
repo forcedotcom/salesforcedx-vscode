@@ -333,12 +333,12 @@ export class TelemetryService {
         } catch (error) {
           console.log(
             'There was an error sending an exception report to: ' +
-            typeof reporter +
-            ' ' +
-            'name: ' +
-            name +
-            ' message: ' +
-            message
+              typeof reporter +
+              ' ' +
+              'name: ' +
+              name +
+              ' message: ' +
+              message
           );
         }
       });
