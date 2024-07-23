@@ -16,7 +16,7 @@
 
 #### docs
 
-- We made some changes under the hood to reduce vulnerabilities. ([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
+- We've made some under-the-hood improvements to enhance security.([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
 
 # 61.5.0 - July 17, 2024
 
