@@ -17,39 +17,7 @@ describe('UserService', () => {
     }
   };
 
-  describe('buildCliTelemetryCommand', () => {
-    const fakeTelemetryCommand = {
-      args: ['telemetry', '--json'],
-      command: 'sf',
-      description: undefined,
-      logName: undefined
-    };
-    let sfCommandBuilderArgSpy: jest.SpyInstance;
-    let sfCommandBuilderJsonSpy: jest.SpyInstance;
-    let sfCommandBuilderBuildSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      sfCommandBuilderArgSpy = jest.spyOn(SfCommandBuilder.prototype, 'withArg');
-      sfCommandBuilderJsonSpy = jest.spyOn(SfCommandBuilder.prototype, 'withJson');
-      sfCommandBuilderBuildSpy = jest.spyOn(SfCommandBuilder.prototype, 'build');
-    });
-
-    it('should return sf command name', async () => {
-      const result = await (UserService as any).buildCliTelemetryCommand();
-
-      expect(sfCommandBuilderArgSpy).toHaveBeenCalled();
-      expect(sfCommandBuilderJsonSpy).toHaveBeenCalled();
-      expect(sfCommandBuilderBuildSpy).toHaveBeenCalled();
-      expect(result).toEqual(fakeTelemetryCommand);
-    });
-  });
   describe('executeCliTelemetry', () => {
-    const cliTelemetryData = {
-      result: {
-        enabled: true,
-        cliId: 'aTotallyValidCli-id_forSur3'
-      }
-    };
     let cliCommandExecution: CliCommandExecution;
     let executionSpy: jest.SpyInstance;
     let getCmdResultSpy: jest.SpyInstance;
@@ -62,20 +30,20 @@ describe('UserService', () => {
     });
     it('should return command output of sf telemetry', async () => {
       const fakePath = '/fine/total';
-      const fakeCommand = 'sf telemetry --json';
+      // const fakeCommand = 'sf telemetry --json';
       const fakeExecution = 'FindCliIdValue';
 
       getRootWorkspacePathSpy.mockReturnValueOnce(fakePath);
       executionSpy.mockReturnValueOnce(fakeExecution);
-      getCmdResultSpy.mockResolvedValueOnce(cliTelemetryData);
+      getCmdResultSpy.mockResolvedValueOnce(fakeCliTelemetryData);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const result = await (UserService as any).executeCliTelemetry(fakeCommand);
+      const result = await (UserService as any).executeCliTelemetry();
 
       expect(getRootWorkspacePathSpy).toHaveBeenCalled();
       expect(executionSpy).toHaveBeenCalled();
       expect(getCmdResultSpy).toHaveBeenCalled();
-      expect(result).toBe(cliTelemetryData);
+      expect(result).toBe(fakeCliTelemetryData);
     });
   });
   describe('getTelemetryUserId', () => {

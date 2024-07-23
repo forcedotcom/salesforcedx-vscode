@@ -20,9 +20,11 @@ export class UserService {
       .build();
   }
 
-  private static async executeCliTelemetry(
-    command: Command
-  ): Promise<string> {
+  private static async executeCliTelemetry(): Promise<string> {
+    const command = new SfCommandBuilder()
+      .withArg('telemetry')
+      .withJson()
+      .build();
     const workspacePath = workspaceUtils.getRootWorkspacePath();
     const execution = new CliCommandExecutor(command, { cwd: workspacePath }
     ).execute();
@@ -43,9 +45,7 @@ export class UserService {
       return globalStateUserId;
     }
 
-    globalStateUserId = await this.executeCliTelemetry(
-      this.buildCliTelemetryCommand()
-    )
+    globalStateUserId = await this.executeCliTelemetry()
       .then((getCliTelemetryData): string => {
         const cmdResult = JSON.parse(getCliTelemetryData) as {
           result?: { cliId: string };
