@@ -24,7 +24,8 @@ export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME
+  SFDX_CORE_EXTENSION_NAME,
+  SFDX_LWC_EXTENSION_NAME
 } from './constants';
 export {
   OrgUserInfo,

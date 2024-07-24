@@ -76,6 +76,11 @@ export type DirFileNameSelection = {
    * used for selecting the different apex unit test templates
    */
   template?: 'ApexUnitTest' | 'BasicUnitTest';
+
+  /**
+   * Used for selecting file extension type
+   */
+  extension?: 'JavaScript' | 'TypeScript';
 };
 
 /**

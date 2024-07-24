@@ -22,6 +22,7 @@ import {
   SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
+import { SelectLwcComponentType } from '../util/parameterGatherers';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
@@ -34,34 +35,39 @@ export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateComm
   public telemetryName = 'lightning_generate_lwc';
   public metadataTypeName = LWC_TYPE;
   public templateType = TemplateType.LightningComponent;
+  private templateOptions: LightningComponentOptions | undefined;
+
   public getOutputFileName(data: DirFileNameSelection) {
     return data.fileName;
   }
+
   public constructTemplateOptions(data: DirFileNameSelection) {
     const internal = salesforceCoreSettings.getInternalDev();
-    const templateOptions: LightningComponentOptions = {
-      outputdir: data.outputdir,
-      componentname: data.fileName,
-      template: 'default',
+    const { outputdir, fileName: componentname, extension } = data;
+    this.templateOptions = {
+      outputdir,
+      componentname,
+      template: extension === 'TypeScript' ? 'typeScript' : 'default',
       type: 'lwc',
       internal
     };
-    return templateOptions;
+    return this.templateOptions;
+  }
+
+  public getFileExtension(): string {
+    return this.templateOptions?.template === 'typeScript' ? '.ts' : '.js';
   }
 }
-
-const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
-const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
 export const lightningGenerateLwc = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
+      new MetadataTypeGatherer(LWC_TYPE),
+      new SelectLwcComponentType(),
+      new SelectFileName(),
+      new SelectOutputDir(LWC_DIRECTORY, true)
     ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
@@ -74,7 +80,7 @@ export const internalLightningGenerateLwc = (sourceUri: Uri): void => {
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
-      fileNameGatherer,
+      new SelectFileName(),
       new FileInternalPathGatherer(sourceUri)
     ),
     createTemplateExecutor

@@ -55,6 +55,8 @@ export const messages = {
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_select_lwc_type:
+    'Select the lwc component type (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_lwc_name:
     'Enter desired Lightning Web Component (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',

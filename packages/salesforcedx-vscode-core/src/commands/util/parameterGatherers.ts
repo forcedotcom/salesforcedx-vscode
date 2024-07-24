@@ -8,7 +8,8 @@ import {
   CancelResponse,
   ContinueResponse,
   LocalComponent,
-  ParametersGatherer
+  ParametersGatherer,
+  SFDX_LWC_EXTENSION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import * as glob from 'glob';
@@ -21,6 +22,7 @@ import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
+export const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
 export type FileNameParameter = {
   fileName: string;
@@ -414,6 +416,39 @@ export class PromptConfirmGatherer
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: this.question
+    } as vscode.QuickPickOptions);
+  }
+}
+
+export class SelectLwcComponentType
+  implements ParametersGatherer<{ extension: string }>
+{
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ extension: string }>
+  > {
+    const hasTsSupport = vscode.workspace.getConfiguration(SFDX_LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
+    if (hasTsSupport) {
+      const lwcComponentTypes = ['TypeScript', 'JavaScript'];
+      const lwcComponentType = await this.showMenu(
+        lwcComponentTypes,
+        'parameter_gatherer_select_lwc_type'
+      );
+      return lwcComponentType
+        ? {
+            type: CONTINUE,
+            data: { extension: lwcComponentType }
+          }
+        : { type: CANCEL };
+    }
+    return { type: CONTINUE, data: { extension: 'JavaScript'} };
+  }
+
+  public async showMenu(
+    options: string[],
+    message: string
+  ): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize(message)
     } as vscode.QuickPickOptions);
   }
 }

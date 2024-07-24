@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils-vscode": "61.6.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "12.1.5",
-    "@salesforce/templates-bundle": "61.2.1",
+    "@salesforce/templates-bundle": "61.3.0",
     "@salesforce/ts-types": "2.0.10",
     "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
@@ -100,7 +100,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5",
-        "@salesforce/templates-bundle": "61.2.1"
+        "@salesforce/templates-bundle": "61.3.0"
       },
       "devDependencies": {}
     }

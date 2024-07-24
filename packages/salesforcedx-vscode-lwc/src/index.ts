@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   commands,
@@ -22,7 +22,7 @@ import {
   lightningLwcStart,
   lightningLwcStop
 } from './commands';
-import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
+import { ESLINT_NODEPATH_CONFIG, log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -98,7 +98,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     // which points at our LWC extension node_modules path
     const config: WorkspaceConfiguration = workspace.getConfiguration('');
     const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-    if (currentNodePath && currentNodePath.includes(LWC_EXTENSION_NAME)) {
+    if (currentNodePath && currentNodePath.includes(SFDX_LWC_EXTENSION_NAME)) {
       try {
         log(
           'Removing eslint.nodePath setting as the LWC Extension no longer manages this value'
