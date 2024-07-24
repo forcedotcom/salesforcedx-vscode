@@ -11,6 +11,7 @@ import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 describe('AppInsights', () => {
   const fakeExtensionId = 'anExtensionId';
   const fakeExtensionVersion = '0.10.0';
+  const fakeUserId = '45gkjnbxsbchdnv34sbcishsm';
 
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
     let getInstanceMock: jest.SpyInstance;
@@ -37,7 +38,7 @@ describe('AppInsights', () => {
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '');
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId);
       (appInsights as any).userOptIn = true;
       (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
@@ -78,7 +79,8 @@ describe('AppInsights', () => {
       appInsights = new AppInsights(
         fakeExtensionId,
         fakeExtensionVersion,
-        'aKey'
+        'aKey',
+        fakeUserId
       );
       (appInsights as any).appInsightsClient = appInsightsClientMock;
     });
