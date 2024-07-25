@@ -16,6 +16,8 @@ import {
   TelemetryService,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as os from 'os';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -671,10 +673,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     }
   };
 
-  void activateTracker.markActivationStop();
-  MetricsReporter.extensionPackStatus();
-  console.log('SF CLI Extension Activated');
-
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders.length > 0
@@ -694,6 +692,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       ).catch(e => telemetryService.sendException(e.name, e.message));
     }
   }
+
+  void activateTracker.markActivationStop();
+  MetricsReporter.extensionPackStatus();
+  console.log('SF CLI Extension Activated');
+
+  handleTheUnhandled();
 
   return api;
 };
@@ -792,4 +796,36 @@ export const showErrorNotification = (type: string, args: any[]) => {
 export const showWarningNotification = (type: string, args: any[]) => {
   const showMessage = nls.localize(type, ...args);
   void vscode.window.showWarningMessage(showMessage);
+};
+
+const handleTheUnhandled = (): void => {
+  process.on('unhandledRejection', (reason: Error, promise: Promise<any>) => {
+    const collectedData: { message?: string; stackTrace?: string | undefined } = {};
+    // Attach a catch handler to the promise to handle the rejection
+    promise.catch(error => {
+      // Collect relevant data
+      if (error instanceof Error) {
+        collectedData.message = error.message;
+        collectedData.stackTrace = error.stack ?? 'No stack trace available';
+      } else if (typeof error === 'string') {
+        collectedData.message = error;
+      }
+    });
+    // Capture stack trace if available
+    collectedData.stackTrace ??= reason
+      ? reason.stack
+      : 'No stack trace available';
+
+    // make an attempt to isolate the first reference to one of our extensions from the stack
+    const fromExtension = collectedData.stackTrace?.split(os.EOL)
+        .filter(l => l.includes('at '))
+        .flatMap(l => l.split(path.sep))
+        .find(w => w.startsWith('salesforcedx-vscode'));
+
+    // Send detailed telemetry data
+    telemetryService.sendException(
+      `${fromExtension ? fromExtension + '-' : ''}unhandledRejection`,
+      JSON.stringify(collectedData)
+    );
+  });
 };
