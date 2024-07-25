@@ -6,7 +6,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Now you can collapse all Apex and LWC tests in the testing side panel. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+- Now you can collapse all Apex and LWC tests in the testing side panel. Thank you [jamessimone](https://github.com/jamessimone) for creating the PR. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
 
 #### salesforcedx-vscode-core
 
