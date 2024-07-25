@@ -113,8 +113,10 @@ jobs:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
-          E2E_VSCODE_STORAGE_PATH: ./salesforcedx-vscode-automation-tests/wdio-test-artfacts
+          E2E_VSCODE_STORAGE_PATH: wdio-test-artfacts
           E2E_LOG_LEVEL: info
+      - name: list wdio-test-artifacts
+        run: ls -R salesforcedx-vscode-automation-tests/wdio-test-artifacts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
