@@ -1,3 +1,11 @@
+# 61.7.0 - July 31, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add TypeScript template to create LWC command ([PR #5687](https://github.com/forcedotcom/salesforcedx-vscode/pull/5687))
+
 # 61.6.0 - July 24, 2024
 
 ## Added
