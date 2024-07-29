@@ -800,7 +800,11 @@ export const showWarningNotification = (type: string, args: any[]) => {
 
 const handleTheUnhandled = (): void => {
   process.on('unhandledRejection', (reason: Error, promise: Promise<any>) => {
-    const collectedData: { message?: string; stackTrace?: string | undefined } = {};
+    const collectedData: {
+      message?: string;
+      fromExtension?: string | undefined;
+      stackTrace?: string | undefined;
+    } = {};
     // Attach a catch handler to the promise to handle the rejection
     promise.catch(error => {
       // Collect relevant data
@@ -817,14 +821,17 @@ const handleTheUnhandled = (): void => {
       : 'No stack trace available';
 
     // make an attempt to isolate the first reference to one of our extensions from the stack
-    const fromExtension = collectedData.stackTrace?.split(os.EOL)
-        .filter(l => l.includes('at '))
-        .flatMap(l => l.split(path.sep))
-        .find(w => w.startsWith('salesforcedx-vscode'));
+    const fromExtension = collectedData.stackTrace
+      ?.split(os.EOL)
+      .filter(l => l.includes('at '))
+      .flatMap(l => l.split(path.sep))
+      .find(w => w.startsWith('salesforcedx-vscode'));
+
+    collectedData.fromExtension = fromExtension;
 
     // Send detailed telemetry data
     telemetryService.sendException(
-      `${fromExtension ? fromExtension + '-' : ''}unhandledRejection`,
+      'unhandledRejection',
       JSON.stringify(collectedData)
     );
   });
