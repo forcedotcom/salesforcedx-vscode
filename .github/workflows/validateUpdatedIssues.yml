@@ -72,9 +72,9 @@ jobs:
         with:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
           message: >
-            We have determined that the issue you reported exists in code owned by another team that uses only the official support channels.
+            We have determined that the issue you reported exists in code owned by another team that uses only the official support channels, and thus we are closing this issue.
             To ensure that your issue is addressed, open an official [Salesforce customer support](https://help.salesforce.com/s/) ticket with a link to this issue.
-            We encourage anyone experiencing this issue to do the same to increase the priority. We will keep this issue open for the community to collaborate on.
+            We encourage anyone experiencing this issue to do the same to increase the priority.
 
   new-feature-on-another-team:
     if: >-
