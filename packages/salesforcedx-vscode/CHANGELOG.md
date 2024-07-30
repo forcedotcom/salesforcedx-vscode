@@ -1,3 +1,11 @@
+# 61.7.0 - July 31, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood.
+
 # 61.6.0 - July 24, 2024
 
 ## Added
