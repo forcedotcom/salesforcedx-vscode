@@ -9,7 +9,7 @@ In addition to the extension pack shipped by Salesforce, the following extension
 
 
 
-## Salesforce Code Analyzer(Beta)
+## Salesforce Code Analyzer
 
 Use Salesforce Code Analyzer extension to identify and fix issues in your code. See the [Salesforce Code Analyzer documentation](https://forcedotcom.github.io/sfdx-scanner/en/v3.x/code-analyzer-vs-code-extension).
 
