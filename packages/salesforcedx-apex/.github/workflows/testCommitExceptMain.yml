@@ -20,6 +20,7 @@ jobs:
       ignoreScripts: true
       os: ${{ matrix.os }}
       preSwapCommands: 'yarn upgrade @salesforce/core; npx yarn-deduplicate; yarn install'
+      preBuildCommands: 'shx rm -rf node_modules/@salesforce/core; shx rm -rf node_modules/@jsforce/jsforce-node'
       preExternalBuildCommands: 'npm why @salesforce/core --json'
       useCache: false
     secrets: inherit
