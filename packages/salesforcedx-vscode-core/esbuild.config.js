@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { build } = require('esbuild');
+const esbuildPluginPino = require('esbuild-plugin-pino');
 const fs = require('fs').promises;
 
 const sharedConfig = {
@@ -18,7 +19,11 @@ const sharedConfig = {
     'shelljs',
     '@salesforce/templates-bundle'
   ],
-  minify: true
+  minify: true,
+  keepNames: true,
+  plugins: [
+    esbuildPluginPino({ transports: ['pino-pretty'] })
+  ]
 };
 
 // copy core-bundle/lib/transformStream.js to dist if core-bundle is included
@@ -39,7 +44,7 @@ const destPath = './dist/transformStream.js';
   await build({
     ...sharedConfig,
     entryPoints: ['./src/index.ts'],
-    outfile: 'dist/index.js'
+    outdir: 'dist'
   });
 })()
   .then(async () => {
