@@ -6,8 +6,8 @@
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.2.3",
-    "@salesforce/core": "^8.2.0",
+    "@jsforce/jsforce-node": "^3.4.0",
+    "@salesforce/core": "^8.2.8",
     "@salesforce/kit": "^3.1.6",
     "@types/istanbul-reports": "^3.0.4",
     "bfj": "8.0.0",
@@ -49,6 +49,9 @@
     "source-map-support": "^0.5.16",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3"
+  },
+  "resolutions": {
+    "@jsforce/jsforce-node/node-fetch/whatwg-url": "^14.0.0"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
   "keywords": [
