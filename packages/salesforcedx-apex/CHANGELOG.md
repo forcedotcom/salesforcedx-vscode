@@ -1,3 +1,12 @@
+## [8.1.1](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.0...8.1.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* bump jsforce, add resolution ([#411](https://github.com/forcedotcom/salesforcedx-apex/issues/411)) ([debfc1a](https://github.com/forcedotcom/salesforcedx-apex/commit/debfc1a695c96fd6ea594b99bb9fd2c22920b25d))
+
+
+
 # [8.1.0](https://github.com/forcedotcom/salesforcedx-apex/compare/7.0.4...8.1.0) (2024-07-17)
 
 
