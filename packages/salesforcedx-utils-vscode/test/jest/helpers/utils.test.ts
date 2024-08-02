@@ -48,6 +48,18 @@ describe('utils tests', () => {
       expect(result).toBe('some string');
     });
 
+    it('should return the original string even when it contains ANSI if hasJson is false', () => {
+      const input = '\u001b[4msome string\u001b[0m';
+      const result = stripAnsiInJson(input, false);
+      expect(result).toBe('\u001b[4msome string\u001b[0m');
+    });
+
+    it('should return the original string if hasJson is true and the string does not contain ANSI', () => {
+      const input = 'some string';
+      const result = stripAnsiInJson(input, true);
+      expect(result).toBe(input);
+    });
+
     it('should return the original JSON string if hasJson is false', () => {
       const input = '{"key": "value"}';
       const result = stripAnsiInJson(input, false);
