@@ -87,7 +87,7 @@ export const fileUtils = {
 };
 
 export const stripAnsiInJson = (str: string, hasJson: boolean): string => {
-  return str && hasJson ? str.replaceAll(ansiRegex(), '') : str;
+  return str && hasJson ? stripAnsi(str) : str;
 };
 
 export const stripAnsi = (str: string): string => {
