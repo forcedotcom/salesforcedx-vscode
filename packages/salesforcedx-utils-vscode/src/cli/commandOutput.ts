@@ -27,6 +27,13 @@ export class CommandOutput {
           if (data !== undefined && String(data) === '0') {
             return resolve(stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled));
           } else {
+            // Is the command is sf cli - if so, just use stdoutBuffer before stderrBuffer
+            if (execution.command.command === 'sf') {
+              return reject(
+                stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled) ||
+                stripAnsiInJson(this.stderrBuffer, hasJsonEnabled)
+              );
+            }
             return reject(
               stripAnsiInJson(this.stderrBuffer, hasJsonEnabled) ||
                 stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled)
