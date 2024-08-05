@@ -6,3 +6,4 @@
  */
 export { extractJsonObject } from './extractJsonObject';
 export { ensureCurrentWorkingDirIsProjectPath } from './ensureCurrentWorkingDirIsProjectPath';
+export { stripAnsiInJson } from './utils';
