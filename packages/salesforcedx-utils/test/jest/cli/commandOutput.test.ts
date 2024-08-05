@@ -90,7 +90,7 @@ describe('CommandOutput Unit Tests.', () => {
     stderrCallback(badOutput);
     const exitCallback =
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
-    // Call the exit callback with a 0 response to indicate success
+    // Call the exit callback with a 1 response to indicate failure
     exitCallback(failCode);
     result.catch(outValue => {
       expect(outValue).toEqual(badOutput);
@@ -119,7 +119,7 @@ describe('CommandOutput Unit Tests.', () => {
     stderrCallback(goodOutput);
     const exitCallback =
       fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
-    // Call the exit callback with a 0 response to indicate success
+    // Call the exit callback with a 1 response to indicate failure
     exitCallback(failCode);
     result.catch(outValue => {
       expect(outValue).toEqual(badOutput);
