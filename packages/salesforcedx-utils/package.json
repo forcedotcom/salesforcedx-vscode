@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-utils",
   "displayName": "Node Utilities for VS Code",
-  "version": "61.8.0",
+  "version": "61.8.1",
   "description": "Provides node specific utilities for the Salesforce VSCode extensions",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
