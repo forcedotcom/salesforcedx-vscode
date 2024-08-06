@@ -12,7 +12,7 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { CreateUtil } from '@salesforce/templates-bundle';
+import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
@@ -241,8 +241,8 @@ export const isNameMatch = (
   const regularExp = isLwc
     ? new RegExp(`${componentName}\\.(html|js|js-meta.xml|css|svg|test.js)`)
     : new RegExp(
-        `${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`
-      );
+      `${componentName}(((Controller|Renderer|Helper)?\\.js)|(\\.(cmp|app|css|design|auradoc|svg|evt)))`
+    );
   return Boolean(item.match(regularExp));
 };
 

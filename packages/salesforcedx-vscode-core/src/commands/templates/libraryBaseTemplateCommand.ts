@@ -11,7 +11,7 @@ import {
   TemplateOptions,
   TemplateService,
   TemplateType
-} from '@salesforce/templates-bundle';
+} from '@salesforce/templates';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from 'vscode';
 import { channelService } from '../../channels';
@@ -35,8 +35,7 @@ type ExecutionResult = {
  * Base class for all template commands
  */
 export abstract class LibraryBaseTemplateCommand<T>
-  implements CommandletExecutor<T>
-{
+  implements CommandletExecutor<T> {
   private _metadataType: MetadataInfo | undefined;
   protected showChannelOutput = true;
 

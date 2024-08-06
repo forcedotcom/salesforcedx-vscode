@@ -6,7 +6,7 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { nls as templatesNls } from '@salesforce/templates-bundle/lib/i18n';
+import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';

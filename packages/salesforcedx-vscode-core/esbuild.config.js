@@ -17,7 +17,7 @@ const sharedConfig = {
     'vscode',
     'applicationinsights',
     'shelljs',
-    '@salesforce/templates-bundle'
+    '@salesforce/templates'
   ],
   minify: true,
   keepNames: true,
