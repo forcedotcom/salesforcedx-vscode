@@ -96,11 +96,10 @@
       "dist"
     ],
     "packageUpdates": {
-      "main": "dist/index.js",
+      "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "shelljs": "0.8.5",
-        "@salesforce/templates": "61.4.1"
+        "shelljs": "0.8.5"
       },
       "devDependencies": {}
     }

@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { build } = require('esbuild');
 const esbuildPluginPino = require('esbuild-plugin-pino');
-const fs = require('fs').promises;
+const fs = require('fs-extra');
 
 const sharedConfig = {
   bundle: true,
@@ -16,8 +16,7 @@ const sharedConfig = {
   external: [
     'vscode',
     'applicationinsights',
-    'shelljs',
-    '@salesforce/templates'
+    'shelljs'
   ],
   minify: true,
   keepNames: true,
@@ -26,28 +25,31 @@ const sharedConfig = {
   ]
 };
 
-// copy core-bundle/lib/transformStream.js to dist if core-bundle is included
 const copyFiles = async (src, dest) => {
   try {
-    // Copy the file
-    await fs.copyFile(src, dest);
-    console.log(`File was copied from ${src} to ${dest}`);
+    await fs.copy(src, dest);
+    console.log(`Copied from ${src} to ${dest}`);
   } catch (error) {
     console.error('An error occurred:', error);
   }
 };
 
-const srcPath = '../../node_modules/@salesforce/core-bundle/lib/transformStream.js';
-const destPath = './dist/transformStream.js';
+// copy core-bundle/lib/transformStream.js to dist if core-bundle is included
+const srcPathTransformStream = '../../node_modules/@salesforce/core-bundle/lib/transformStream.js';
+const destPathTransformStream = './dist/src/transformStream.js';
+
+const srcTemplatesPath = '../../node_modules/@salesforce/templates/lib/templates';
+const destTemplatesPath = './dist/templates';
 
 (async () => {
   await build({
     ...sharedConfig,
     entryPoints: ['./src/index.ts'],
-    outdir: 'dist'
+    outdir: 'dist/src'
   });
 })()
   .then(async () => {
-    await copyFiles(srcPath, destPath);
+    await copyFiles(srcPathTransformStream, destPathTransformStream);
+    await copyFiles(srcTemplatesPath, destTemplatesPath);
   })
   .catch(() => process.exit(1));
