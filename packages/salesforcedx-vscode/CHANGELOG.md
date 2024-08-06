@@ -12,7 +12,7 @@
 
 #### salesforcedx-utils-vscode
 
-- We added support for the FORCE_COLOR environment variable to the org browser. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
+- Corrected a bug where CLI command JSON results were not properly stripped of ANSI color codes. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
 
 #### salesforcedx-vscode-core
 
