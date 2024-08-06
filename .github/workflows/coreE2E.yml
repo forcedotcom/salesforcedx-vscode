@@ -148,7 +148,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'sfdxProjectJson.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:
