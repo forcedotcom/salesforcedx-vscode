@@ -1,3 +1,39 @@
+# 61.7.0 - July 31, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood.
+
+# 61.6.0 - July 24, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+#### salesforcedx-vscode-lwc
+
+- Now you can collapse all Apex and LWC tests in the testing side panel. Thank you [jamessimone](https://github.com/jamessimone) for creating the PR. ([PR #5684](https://github.com/forcedotcom/salesforcedx-vscode/pull/5684))
+
+#### salesforcedx-vscode-apex
+
+- We made a major upgrade to the `@salesforce/apex-node-bundle` library. With this upgrade, the Apex test results now display information about test setup methods and test setup time, improving your testing experience. ([PR #5691](https://github.com/forcedotcom/salesforcedx-vscode/pull/5691)).
+
+## Fixed
+
+#### docs
+
+- We've made some under-the-hood improvements to enhance security.([PR #5690](https://github.com/forcedotcom/salesforcedx-vscode/pull/5690))
+
+# 61.5.0 - July 17, 2024
+
+## Added
+
+#### salesforcedx-vscode-lwc
+
+- We added support for the LWC Lightning Record Picker component. You can now use features like hover and auto-completion when you're working with this component in VS Code. ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683)). 
+
 # 61.4.0 - July 10, 2024
 
 ## Added

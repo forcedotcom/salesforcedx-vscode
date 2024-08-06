@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "61.4.0",
+  "version": "61.8.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,16 +24,16 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/aura-language-server": "4.8.0",
-    "@salesforce/core-bundle": "8.1.1",
-    "@salesforce/lightning-lsp-common": "4.8.0",
-    "@salesforce/salesforcedx-utils-vscode": "61.4.0",
+    "@salesforce/aura-language-server": "4.11.0",
+    "@salesforce/core-bundle": "8.2.0",
+    "@salesforce/lightning-lsp-common": "4.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "61.8.1",
     "applicationinsights": "1.0.7",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "61.4.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.8.1",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
@@ -120,8 +120,8 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/aura-language-server": "4.8.0",
-        "@salesforce/lightning-lsp-common": "4.8.0"
+        "@salesforce/aura-language-server": "4.11.0",
+        "@salesforce/lightning-lsp-common": "4.11.0"
       },
       "devDependencies": {}
     }

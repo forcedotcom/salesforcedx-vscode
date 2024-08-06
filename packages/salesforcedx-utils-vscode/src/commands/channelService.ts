@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import stripAnsi from 'strip-ansi';
 import { OutputChannel, window } from 'vscode';
 import { CommandExecution } from '../cli';
+import { stripAnsi } from '../helpers/utils';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';
 

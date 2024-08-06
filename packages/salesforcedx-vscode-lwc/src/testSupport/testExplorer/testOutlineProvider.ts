@@ -59,6 +59,16 @@ export class SfTestOutlineProvider
     );
   }
 
+  public getId(): string {
+    return 'sf.lightning.lwc.test.view';
+  }
+
+  public async collapseAll(): Promise<void> {
+    return vscode.commands.executeCommand(
+      `workbench.actions.treeView.${this.getId()}.collapseAll`
+    );
+  }
+
   public dispose() {
     while (this.disposables.length) {
       const disposable = this.disposables.pop();
@@ -132,9 +142,15 @@ export const registerLwcTestExplorerTreeView = (
 ) => {
   const testOutlineProvider = new SfTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sf.lightning.lwc.test.view',
+    testOutlineProvider.getId(),
     testOutlineProvider
   );
   extensionContext.subscriptions.push(testOutlineProvider);
   extensionContext.subscriptions.push(testProvider);
+
+  const collapseAllTestCommand = vscode.commands.registerCommand(
+    `${testOutlineProvider.getId()}.collapseAll`,
+    () => testOutlineProvider.collapseAll()
+  );
+  extensionContext.subscriptions.push(collapseAllTestCommand);
 };
