@@ -33,6 +33,11 @@ on:
         required: false
         default: true
         type: boolean
+      sfdxProjectJson:
+        description: 'sfdx-project.json'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
