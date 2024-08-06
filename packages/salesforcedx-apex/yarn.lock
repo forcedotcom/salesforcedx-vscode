@@ -542,12 +542,12 @@
     semver "^7.6.3"
     ts-retry-promise "^0.8.1"
 
-"@salesforce/kit@^3.1.6":
-  version "3.1.6"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.1.6.tgz#aefb39c0e0f325e11f80551ff92cf6979dd74070"
-  integrity sha512-zAYPmCSAvdonDOnL5AzuVRVv0sRMlQd6gi12HDE1964VqSjt5pzlLU90thh3Qq4A1Wxbdu0FbHYx9BvZ4fWPvQ==
+"@salesforce/kit@^3.1.6", "@salesforce/kit@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.2.1.tgz#3de2c9ff52710a169fc887716d97c00d26065c56"
+  integrity sha512-LrZH2F06XPLUTMXC3av6A0VDAJykUqRtYB6tTjAKzwS1gCnp6BEn6VyjZNg0Fg/Kfp6OTrMxiIgbUFsNehEV7A==
   dependencies:
-    "@salesforce/ts-types" "^2.0.10"
+    "@salesforce/ts-types" "^2.0.12"
 
 "@salesforce/schemas@^1.9.0":
   version "1.9.0"
@@ -563,10 +563,10 @@
     sinon "^5.1.1"
     tslib "^2.6.1"
 
-"@salesforce/ts-types@^2.0.10", "@salesforce/ts-types@^2.0.9":
-  version "2.0.10"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-2.0.10.tgz#f2107a52b60be6c3fe712f4d40aafad48c6bebe0"
-  integrity sha512-ulGQ1oUGXrmSUi6NGbxZZ7ykSDv439x+WYZpkMgFLC8Dx0TxJXfUAJYeZh7eKO5xI/ob3iyvN+RBcBkp4KFN1w==
+"@salesforce/ts-types@^2.0.10", "@salesforce/ts-types@^2.0.12", "@salesforce/ts-types@^2.0.9":
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-2.0.12.tgz#60420622812a7ec7e46d220667bc29b42dc247ff"
+  integrity sha512-BIJyduJC18Kc8z+arUm5AZ9VkPRyw1KKAm+Tk+9LT99eOzhNilyfKzhZ4t+tG2lIGgnJpmytZfVDZ0e2kFul8g==
 
 "@sindresorhus/is@^4":
   version "4.6.0"
