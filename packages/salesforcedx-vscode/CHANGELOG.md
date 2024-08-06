@@ -2,27 +2,21 @@
 
 ## Added
 
-#### docs
-
-- Include code analyzer in expanded pack ([PR #5702](https://github.com/forcedotcom/salesforcedx-vscode/pull/5702))
-
 #### salesforcedx-vscode-expanded
 
-- Include code analyzer in expanded pack ([PR #5702](https://github.com/forcedotcom/salesforcedx-vscode/pull/5702))
+- The Code Analyzer extension is now part of our Expanded Pack! ([PR #5702](https://github.com/forcedotcom/salesforcedx-vscode/pull/5702))
 
 ## Fixed
 
 #### salesforcedx-utils
 
-- Strip ansi color control chars from json ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708))
-
 #### salesforcedx-utils-vscode
 
-- Strip ansi color control chars from json ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708))
+- We added support for the FORCE_COLOR environment variable to the org browser. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708))
 
 #### salesforcedx-vscode-core
 
-- Handle and report unhandled rejections ([PR #5699](https://github.com/forcedotcom/salesforcedx-vscode/pull/5699))
+- We made some changes under the hood. ([PR #5699](https://github.com/forcedotcom/salesforcedx-vscode/pull/5699))
 
 # 61.7.0 - July 31, 2024
 
