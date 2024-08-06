@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-expanded
 
-- The Code Analyzer extension is now part of our Expanded Pack! ([PR #5702](https://github.com/forcedotcom/salesforcedx-vscode/pull/5702))
+- The Code Analyzer extension is now part of our Expanded Pack. Use this extension to scan your code against multiple rule engines to produce lists of violations and improve your code. ([PR #5702](https://github.com/forcedotcom/salesforcedx-vscode/pull/5702))
 
 ## Fixed
 
@@ -12,7 +12,7 @@
 
 #### salesforcedx-utils-vscode
 
-- Corrected a bug where CLI command JSON results were not properly stripped of ANSI color codes. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
+- Fixed a bug that caused some CLI commands to return ANSI color characters in JSON results. This change removes those characters before the JSON strings are parsed. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
 
 #### salesforcedx-vscode-core
 
