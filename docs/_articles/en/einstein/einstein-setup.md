@@ -7,7 +7,6 @@ lang: en
 
 Einstein for Developers (Beta) is available in the [VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) and [Open VSX](https://open-vsx.org/extension/salesforce/salesforcedx-einstein-gpt) marketplaces as a part of the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded). Any developer with access to a Salesforce org can use the extension to generate Apex code from natural language instructions, get coding suggestions using line autocomplete, or generate Apex unit tests to quickly accomplish required code coverage goals.
 
-
 ### Required Editions
 
 **Available in**: Developer, Enterprise, Partner Developer, Performance and Unlimited Editions.
@@ -18,15 +17,15 @@ Einstein for Developers (Beta) is available in the [VS Code](https://marketplace
 
 ### Visual Studio Code Version
 
-VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.82.0 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
+VS Code releases a new version each month with new features and important bug fixes. You must be on VS Code Version 1.86.0 or higher to run the Einstein for Developers extension. You can manually check for updates from **Help** **> Check for Updates** on Linux and Windows or **Code > Check for Updates** on macOS.
 
 ### Interaction with other AI-enabled Extensions
 
 You may run into some unexpected generated code outcomes if you have multiple AI-enabled extensions installed in VS Code. We recommend you disable all other AI-enabled extensions when working with Einstein for Developers:
+
 1. Click the Extensions icon in the Activity Bar, search for the extension to disable by name.
 2. Click **Disable** in the extension's marketplace page.
 3. Repeat for all installed AI-enabled extensions.
-
 
 ## Enable or Disable Einstein For Developers in VS Code
 

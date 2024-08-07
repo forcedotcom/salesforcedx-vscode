@@ -10,14 +10,15 @@ To track all known issues and potential workarounds, use the [Issues](https://gi
 **Note:** If your company requires the use of a proxy, we recommend setting this through the Salesforce CLI, not through VS Code, in order to use the Einstein for Developers extension.
 
 ## Troubleshooting Checklist
+
 Use this troubleshooting checklist to identify and eliminate common problems with using Einstein for Developers.
 
 ### Installation Checklist
 
-1. Check that you are on VS Code version 1.82.0 or higher. 
+1. Check that you are on VS Code version 1.86.0 or higher.
 2. Confirm that you have the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) or the [Salesforce Expanded Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded) installed.
 3. Check that your Apex Extension is version 59.8.0 or higher.
-4. Hover over {} in the status bar to view the status of the Apex Language Server and make sure it’s running.  
+4. Hover over {} in the status bar to view the status of the Apex Language Server and make sure it’s running.
 5. Einstein for Developers requires Salesforce CLI Integration extension version 60.13.0 or higher.
 
 ### Development Environment Checklist
@@ -35,7 +36,7 @@ Use this troubleshooting checklist to identify and eliminate common problems wit
 Einstein for Developers is disabled by default in new Code Builder environments. Telemetry is used to audit enablement of Salesforce Generative AI functionality and must be on when you enable the extension:
 
 1. Go to **Settings** and search for `salesforcedx-vscode-core.telemetry.enabled` to confirm that this Salesforce telemetry setting is on in your workspace.
-2. If the setting isn't on, select the checkbox to enable telemetry.  
+2. If the setting isn't on, select the checkbox to enable telemetry.
 3. Open a terminal and run `sf config set disable-telemetry=false --global` to enable CLI telemetry. See [Salesforce CLI Data Collection and Metrics](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_telemetry.htm) for more information.
 4. Run **Developer: Reload Window**.
 5. Click the Einstein icon in the status bar and enable the extension.

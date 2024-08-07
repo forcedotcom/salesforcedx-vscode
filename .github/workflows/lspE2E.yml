@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'testesm'
         type: string
       auraLsp:
         description: 'Aura LSP'
@@ -21,7 +21,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -33,7 +33,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'testesm'
         type: string
       auraLsp:
         description: 'Aura LSP'
@@ -48,7 +48,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -63,7 +63,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'auraLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   visualforceLSP:
@@ -73,8 +73,9 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'visualforceLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest", "ubuntu-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}

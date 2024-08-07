@@ -5,7 +5,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'testesm'
         type: string
       testToRun:
         description: 'Run this E2E test'
@@ -14,7 +14,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -35,8 +35,6 @@ jobs:
         os: ${{ fromJson(inputs.os) }}
         nodeVersion:
           - 18.18.2
-        # We are using VSCode version 1.85.2 instead of the latest version because of a WDIO bug. Starting from Chromedriver v115, the JSON endpoint was moved to a new URL, but WDIO is still trying to find the endpoint only at the old URL. VSCode 1.85.2 is the last supported version of VSCode because it uses Chromedriver v114, which is the last Chromedriver version that can be found using the old URL. VSCode 1.86.0 uses Chromedriver v118, which has an endpoint that can be found only at the new URL.
-        # We are using VSCode 1.85.2 for our E2E tests as a workaround until WDIO fixes this bug: https://github.com/webdriverio-community/wdio-vscode-service/pull/94
         vscodeVersion:
           - ${{ inputs.vscodeVersion }}
     steps:
