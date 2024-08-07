@@ -12,7 +12,7 @@
 
 #### salesforcedx-utils-vscode
 
-- Fixed a bug that caused some CLI commands to return ANSI color characters in JSON results. This change removes those characters before the JSON strings are parsed. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
+- We fixed a bug that caused some CLI commands to return ANSI color characters in JSON results. This change removes those characters before the JSON strings are parsed. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
 
 #### salesforcedx-vscode-core
 
