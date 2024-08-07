@@ -1,3 +1,23 @@
+# 61.8.1 - August 8, 2024
+
+## Added
+
+#### salesforcedx-vscode-expanded
+
+- The Code Analyzer extension is now part of our Expanded Pack. Use this extension to scan your code against multiple rule engines to produce lists of violations and improve your code. ([PR #5702](https://github.com/forcedotcom/salesforcedx-vscode/pull/5702))
+
+## Fixed
+
+#### salesforcedx-utils
+
+#### salesforcedx-utils-vscode
+
+- We fixed a bug that caused some CLI commands to return ANSI color characters in JSON results. This change removes those characters before the JSON strings are parsed. ([PR #5708](https://github.com/forcedotcom/salesforcedx-vscode/pull/5708), [ISSUE #5695](https://github.com/forcedotcom/salesforcedx-vscode/issues/5695))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5699](https://github.com/forcedotcom/salesforcedx-vscode/pull/5699))
+
 # 61.7.0 - July 31, 2024
 
 ## Added
