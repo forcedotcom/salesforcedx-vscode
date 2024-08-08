@@ -75,7 +75,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.86.0' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP_E2E_tests:
@@ -84,7 +84,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.86.0' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   # LWC_E2E_tests:
