@@ -1,6 +1,6 @@
 # Salesforce Extensions for Visual Studio Code (Expanded)
 
-This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce. It also includes third-party extensions that are commonly used by Salesforce Developers.
+This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Lightning web components, Aura components, Visualforce, and SOQL. The Salesforce Extension Pack (Expanded) includes the Salesforce Extension Pack as well as popular community-built extensions for formatting and analyzing your code, and more.
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)
 
@@ -24,7 +24,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
 ## Documentation
 
-For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide) documentation site.
 
 ## Open Source
 
@@ -37,7 +37,7 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 ## Included Extensions
 
-The Salesforce Extension Pack extension installs these extensions.
+The Salesforce Extension Pack (Expanded) installs these Salesforce-developed extensions.
 
 - [Salesforce CLI Integration](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)
   This extension (`salesforcedx-vscode-core`) interacts with Salesforce CLI to provide core functionality.
@@ -53,16 +53,18 @@ The Salesforce Extension Pack extension installs these extensions.
   This extension (`salesforcedx-vscode-lightning`) supports Aura component bundles. It uses the HTML language server from VS Code.
 - [Visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)
   This extension (`salesforcedx-vscode-visualforce`) supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.
+- [SOQL](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)
+  This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)
-  This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting and validation with recommended tokens and utility classes.
+  This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
 - [Einstein for Developers (Beta)](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension (`salesforcedx-einstein-gpt`) uses generative AI to make Salesforce development in Visual Studio Code richer with features such as natural language to code generation, inline autocompletion for Apex and LWC code, and test case generation for Apex classes.
 - [Salesforce Code Analyzer](https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode) This extension (`sfdx-code-analyzer-vscode`) scans your code using multiple rule engines to produce lists of violations that you can use to improve your code.
 
-It also includes the following community built extensions.
+It also includes the following community-built extensions.
 
 - [Apex Log Analyzer](https://marketplace.visualstudio.com/items?itemName=financialforce.lana) is an analyzer for Salesforce debug logs aimed at making performance analysis much easier and quicker. You may also find it generally useful for quickly understanding how your code is executing.
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) is an opinionated code formatter. It enforces a consistent style by parsing your code and re-printing it with its own rules that take the maximum line length into account, wrapping code when necessary.
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) statically analyzes your Javascript code to quickly find problems.
+- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) statically analyzes your JavaScript code to quickly find problems.
 - [Apex PMD](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd) statically analyzes your Apex code to quickly find problems.
 - [XML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml) provides support for creating and editing XML documents.
 
