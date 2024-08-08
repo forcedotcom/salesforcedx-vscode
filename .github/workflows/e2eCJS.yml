@@ -31,11 +31,6 @@ on:
         required: false
         default: true
         type: boolean
-      vscodeVersion:
-        description: 'VSCode Version'
-        required: false
-        default: '1.85.2'
-        type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: true
@@ -49,7 +44,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop'  }}
       testToRun: 'debugLwcTests.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: '1.85.2'
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
       os: '["macos-latest"]'
 
@@ -60,7 +55,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop'  }}
       testToRun: 'runLwcTests.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: '1.85.2'
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
       os: '["macos-latest"]'
 
@@ -71,7 +66,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch || 'develop' }}
       testToRun: 'visualforceLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: '1.85.2'
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
       os: '["windows-latest"]'
 
@@ -82,7 +77,7 @@ jobs:
     secrets: inherit
     with:
       title: 'E2E Test Suite - CJS'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: '1.85.2'
       testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'All the tests passed.'
@@ -96,7 +91,7 @@ jobs:
     secrets: inherit
     with:
       title: 'E2E Test Suite - CJS'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: '1.85.2'
       testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'Not all the tests passed.'
@@ -110,7 +105,7 @@ jobs:
     secrets: inherit
     with:
       title: 'E2E Test Suite - CJS'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: '1.85.2'
       testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'The workflow was cancelled.'

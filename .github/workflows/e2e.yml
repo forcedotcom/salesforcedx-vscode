@@ -92,6 +92,42 @@ jobs:
   #   uses: ./.github/workflows/lwcE2E.yml
   #   secrets: inherit
   #   with:
-  #     automationBranch: ${{ inputs.automationBranchForCJS || 'develop' }}
-  #     vscodeVersion: ${{ inputs.vscodeVersionForCJS || '1.85.2' }}
+  #     automationBranch: ${{ inputs.automationBranch || 'testesm' }}
+  #     vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
   #     runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  Apex_E2E_tests_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/apexE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'testesm'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  Core_E2E_tests_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/coreE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'testesm'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  DeployAndRetrieve_E2E_tests_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/deployRetrieveE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'testesm'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  LSP_E2E_tests_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/lspE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'testesm'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
