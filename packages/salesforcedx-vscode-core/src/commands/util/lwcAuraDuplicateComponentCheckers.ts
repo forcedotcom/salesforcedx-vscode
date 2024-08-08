@@ -208,3 +208,10 @@ export const isNameMatch = (
     );
   return Boolean(item.match(regularExp));
 };
+
+// for testing
+export const lwcAuraDuplicateComponentCheckersTesting = {
+  checkForDuplicateName,
+  checkForDuplicateInComponent,
+  isNameMatch
+};

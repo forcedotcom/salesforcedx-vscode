@@ -49,3 +49,12 @@ export const getComponentName = (componentPath: string): string =>
 
 export const isLwcComponent = (componentPath: string): boolean =>
   path.basename(path.dirname(componentPath)) === LWC;
+
+// for testing
+export const componentUtils = {
+  inputGuard,
+  getComponentPath,
+  getLightningComponentDirectory,
+  getComponentName,
+  isLwcComponent
+};
