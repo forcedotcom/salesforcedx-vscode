@@ -81,7 +81,7 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'E2E Test Suite - ESM'
+      title: 'E2E Test Suite - CJS'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
@@ -95,7 +95,7 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'E2E Test Suite - ESM'
+      title: 'E2E Test Suite - CJS'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
@@ -109,7 +109,7 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'E2E Test Suite - ESM'
+      title: 'E2E Test Suite - CJS'
       vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
       testsBranch: ${{ inputs.automationBranch || 'develop' }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
