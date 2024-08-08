@@ -73,7 +73,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'lwcLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   debugLwcTests:
@@ -83,7 +83,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'debugLwcTests.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   runLwcTests:
@@ -93,7 +93,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'runLwcTests.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:

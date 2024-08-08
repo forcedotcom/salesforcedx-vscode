@@ -63,7 +63,7 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'auraLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   visualforceLSP:
@@ -73,8 +73,9 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'visualforceLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.85.2' }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest", "ubuntu-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
