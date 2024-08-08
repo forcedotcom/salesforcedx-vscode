@@ -1,6 +1,6 @@
 # Salesforce Extensions for Visual Studio Code
 
-This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
+This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Lightning web components, Aura components, Visualforce, and SOQL.
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)
 
@@ -25,7 +25,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
 ## Documentation
 
-For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide) documentation site.
 
 ## Open Source
 
@@ -38,7 +38,7 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 ## Included Extensions
 
-The Salesforce Extension Pack extension installs these extensions.
+The Salesforce Extension Pack installs these extensions.
 
 - [Salesforce CLI Integration](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)
   This extension (`salesforcedx-vscode-core`) interacts with Salesforce CLI to provide core functionality.
@@ -57,7 +57,7 @@ The Salesforce Extension Pack extension installs these extensions.
 - [SOQL](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)
   This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)
-  This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting and validation with recommended tokens and utility classes.
+  This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
 
 ---
 
