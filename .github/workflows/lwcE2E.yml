@@ -8,11 +8,6 @@ on:
         required: false
         default: 'develop'
         type: string
-      lwcLsp:
-        description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
       debugLwcTests:
         description: 'Debug LWC Tests'
         required: false
@@ -40,11 +35,6 @@ on:
         required: false
         default: 'develop'
         type: string
-      lwcLsp:
-        description: 'LWC LSP'
-        required: false
-        default: true
-        type: boolean
       debugLwcTests:
         description: 'Debug LWC Tests'
         required: false
@@ -66,16 +56,6 @@ on:
         type: string
 
 jobs:
-  lwcLsp:
-    if: ${{ inputs.lwcLsp }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'lwcLsp.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
   debugLwcTests:
     if: ${{ inputs.debugLwcTests }}
     uses: ./.github/workflows/runE2ETest.yml
@@ -85,6 +65,7 @@ jobs:
       testToRun: 'debugLwcTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest"]'
 
   runLwcTests:
     if: ${{ inputs.runLwcTests }}
@@ -95,45 +76,46 @@ jobs:
       testToRun: 'runLwcTests.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [lwcLsp, debugLwcTests, runLwcTests]
+    needs: [debugLwcTests, runLwcTests]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [lwcLsp, debugLwcTests, runLwcTests]
+    needs: [debugLwcTests, runLwcTests]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [lwcLsp, debugLwcTests, runLwcTests]
+    needs: [debugLwcTests, runLwcTests]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- LWC LSP: ${{ needs.lwcLsp.result }}\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'

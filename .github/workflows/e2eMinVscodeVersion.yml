@@ -3,6 +3,8 @@ on:
   workflow_run:
     workflows:
       - Nightly Build Develop
+      - Test, Build, and Release
+      - Create and Test Beta Release Branch
     types:
       - completed
 
@@ -72,8 +74,8 @@ jobs:
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranchForCJS || 'develop' }}
-      vscodeVersion: '1.85.2'
+      automationBranch: ${{ inputs.automationBranchForESM || 'testesm' }}
+      vscodeVersion: '1.86.0'
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP_E2E_tests:
@@ -81,8 +83,8 @@ jobs:
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranchForCJS || 'develop' }}
-      vscodeVersion: '1.85.2'
+      automationBranch: ${{ inputs.automationBranchForESM || 'testesm' }}
+      vscodeVersion: '1.86.0'
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LWC_E2E_tests:

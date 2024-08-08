@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'testesm'
         type: string
       deployAndRetrieve:
         description: 'Deploy and Retrieve'
@@ -36,7 +36,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -48,7 +48,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'testesm'
         type: string
       deployAndRetrieve:
         description: 'Deploy and Retrieve'
@@ -78,7 +78,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
