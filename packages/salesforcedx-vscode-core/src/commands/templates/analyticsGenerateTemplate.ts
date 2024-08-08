@@ -11,7 +11,7 @@ import {
   DirFileNameSelection,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates-bundle';
+import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import {

@@ -11,7 +11,7 @@ import {
   ParametersGatherer,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ProjectOptions, TemplateType } from '@salesforce/templates-bundle';
+import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -100,8 +100,7 @@ export type ProjectTemplate = {
 };
 
 export class SelectProjectTemplate
-  implements ParametersGatherer<ProjectTemplate>
-{
+  implements ParametersGatherer<ProjectTemplate> {
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
@@ -187,8 +186,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
 }
 
 export class PathExistsChecker
-  implements PostconditionChecker<ProjectNameAndPathAndTemplate>
-{
+  implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
   public async check(
     inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
