@@ -26,7 +26,8 @@ import {
   TEST_FOLDER
 } from '../util';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
-import { isNameMatch, LwcAuraDuplicateComponentCheckerForRename, RENAME_ERROR, RENAME_INPUT_PLACEHOLDER, RENAME_INPUT_PROMPT, RENAME_LIGHTNING_COMPONENT_EXECUTOR, RENAME_WARNING } from './util';
+import {  LwcAuraDuplicateComponentCheckerForRename } from './util';
+import { isNameMatch, RENAME_ERROR, RENAME_INPUT_PLACEHOLDER, RENAME_INPUT_PROMPT, RENAME_LIGHTNING_COMPONENT_EXECUTOR, RENAME_WARNING } from './util/lwcAuraDuplicateDetectionUtils';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;

@@ -26,10 +26,6 @@ export const isDirFileNameSelection = (component: DirFileNameSelection | LocalCo
   return Reflect.has(component, 'fileName') && Reflect.has(component, 'outputdir');
 };
 
-export const isLwcComponent = (componentPath: string): boolean => {
-  return componentPath.endsWith('.js') || componentPath.endsWith('.html');
-};
-
 export const isLwcComponentPath = (componentDir: string): boolean => {
   return componentDir.endsWith(LWC);
 };

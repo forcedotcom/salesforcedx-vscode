@@ -14,7 +14,7 @@ import {
   inputGuard,
   RenameLwcComponentExecutor
 } from '../../../src/commands/renameLightningComponent';
-import { isNameMatch } from '../../../src/commands/util';
+import { isNameMatch } from '../../../src/commands/util/lwcAuraDuplicateDetectionUtils';
 import { nls } from '../../../src/messages';
 import { getLightningComponentDirectory } from '../../../src/util';
 
