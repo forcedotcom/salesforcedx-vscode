@@ -6,7 +6,7 @@
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.4.0",
+    "@jsforce/jsforce-node": "^3.4.1",
     "@salesforce/core": "^8.2.8",
     "@salesforce/kit": "^3.2.1",
     "@types/istanbul-reports": "^3.0.4",
