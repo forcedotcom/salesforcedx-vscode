@@ -1,3 +1,12 @@
+## [8.1.3](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.2...8.1.3) (2024-08-11)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.4.0 to 3.4.1 ([79595f1](https://github.com/forcedotcom/salesforcedx-apex/commit/79595f1049475be1e7b08257931c08056886d1a7))
+
+
+
 ## [8.1.2](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.1...8.1.2) (2024-08-06)
 
 
