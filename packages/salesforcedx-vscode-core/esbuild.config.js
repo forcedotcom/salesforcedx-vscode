@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { build } = require('esbuild');
 const esbuildPluginPino = require('esbuild-plugin-pino');
-const fs = require('fs-extra');
+const fs = require('fs');
 
 const sharedConfig = {
   bundle: true,
@@ -25,9 +25,14 @@ const sharedConfig = {
   ]
 };
 
-const copyFiles = async (src, dest) => {
+const copyFiles = (src, dest) => {
+  const stats = fs.statSync(src);
   try {
-    await fs.copy(src, dest);
+    if (stats.isDirectory()) {
+      fs.cpSync(src, dest, { recursive: true });
+    } else {
+      fs.cpSync(src, dest);
+    }
     console.log(`Copied from ${src} to ${dest}`);
   } catch (error) {
     console.error('An error occurred:', error);
@@ -48,8 +53,8 @@ const destTemplatesPath = './dist/templates';
     outdir: 'dist/src'
   });
 })()
-  .then(async () => {
-    await copyFiles(srcPathTransformStream, destPathTransformStream);
-    await copyFiles(srcTemplatesPath, destTemplatesPath);
+  .then(() => {
+    copyFiles(srcPathTransformStream, destPathTransformStream);
+    copyFiles(srcTemplatesPath, destTemplatesPath);
   })
   .catch(() => process.exit(1));
