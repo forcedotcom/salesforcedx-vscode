@@ -94,6 +94,19 @@ export const stripAnsi = (str: string): string => {
   return str ? str.replaceAll(ansiRegex(), '') : str;
 };
 
+export const getMessageFromError = (err: any): string => {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  if (typeof err === 'string') {
+    return err;
+  }
+  if (err) {
+    return `Unexpected error: ${JSON.stringify(err)}`;
+  }
+  return 'Unknown error';
+};
+
 /*
 Copied from https://github.com/sindresorhus/strip-ansi/blob/master/index.js
 

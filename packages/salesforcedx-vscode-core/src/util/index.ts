@@ -22,3 +22,12 @@ export {
   getTargetDevHubOrAlias,
   setUpOrgExpirationWatcher
 } from './orgUtil';
+
+export {
+  ComponentName,
+  ContinueOrCancel,
+  OneOrMany,
+  isContinue
+} from './types';
+
+export * from './componentUtils';
