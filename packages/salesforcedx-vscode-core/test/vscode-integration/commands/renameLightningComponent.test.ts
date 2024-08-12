@@ -11,12 +11,12 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  getLightningComponentDirectory,
   inputGuard,
-  isNameMatch,
   RenameLwcComponentExecutor
 } from '../../../src/commands/renameLightningComponent';
+import { isNameMatch } from '../../../src/commands/util/lwcAuraDuplicateDetectionUtils';
 import { nls } from '../../../src/messages';
+import { getLightningComponentDirectory } from '../../../src/util';
 
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
 const RENAME_INPUT_DUP_FILE_NAME_ERROR =
