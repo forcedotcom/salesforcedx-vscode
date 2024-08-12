@@ -19,6 +19,7 @@ export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
   asyncFilter,
   extractJsonObject,
+  getMessageFromError,
   isNullOrUndefined,
   fileUtils
 } from './utils';

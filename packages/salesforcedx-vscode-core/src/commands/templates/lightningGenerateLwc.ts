@@ -15,12 +15,14 @@ import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
+  CompositePostconditionChecker,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfCommandlet,
   SfWorkspaceChecker
 } from '../util';
+import { LwcAuraDuplicateComponentCheckerForCreate } from '../util/lwcAuraDuplicateComponentCheckers';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { SelectLwcComponentType } from '../util/parameterGatherers';
 import {
@@ -70,7 +72,10 @@ export const lightningGenerateLwc = (): void => {
       new SelectOutputDir(LWC_DIRECTORY, true)
     ),
     createTemplateExecutor,
-    new OverwriteComponentPrompt()
+    new CompositePostconditionChecker(
+      new LwcAuraDuplicateComponentCheckerForCreate(),
+      new OverwriteComponentPrompt()
+    )
   );
   void commandlet.run();
 };

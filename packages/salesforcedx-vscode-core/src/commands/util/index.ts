@@ -39,3 +39,4 @@ export {
   PathStrategyFactory,
   SourcePathStrategy
 } from './sourcePathStrategies';
+export * from './lwcAuraDuplicateComponentCheckers';

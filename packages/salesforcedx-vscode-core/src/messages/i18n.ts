@@ -660,7 +660,7 @@ export const messages = {
   sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   rename_lightning_component: 'SFDX: Rename Component',
-  rename_component_input_dup_error:
+  component_input_dup_error:
     'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:
     'This file name is already in use in the current component directory. Choose a different name and try again.',
@@ -697,5 +697,11 @@ export const messages = {
   SchedulingObjective: 'SchedulingObjective',
   SchedulingRule: 'SchedulingRule',
   predicates_no_folder_opened_text:
-    'No folder opened. Open a Salesforce DX project in VS Code.'
+    'No folder opened. Open a Salesforce DX project in VS Code.',
+  rename_not_supported: 'Rename is not supported for multiple components',
+  input_no_component_name: 'Input does not contain component name',
+  component_empty: 'Component cannot be empty',
+  create_not_supported: 'Create is not supported for multiple components',
+  input_incorrect_properties: 'Input does not contain correct component properties'
+
 };

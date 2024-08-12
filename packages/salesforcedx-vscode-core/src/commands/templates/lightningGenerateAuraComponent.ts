@@ -15,6 +15,8 @@ import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
+  CompositePostconditionChecker,
+  LwcAuraDuplicateComponentCheckerForCreate,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -72,7 +74,10 @@ export const lightningGenerateAuraComponent = (): void => {
       outputDirGatherer
     ),
     createTemplateExecutor,
-    new OverwriteComponentPrompt()
+    new CompositePostconditionChecker(
+      new LwcAuraDuplicateComponentCheckerForCreate(),
+      new OverwriteComponentPrompt()
+    )
   );
   void commandlet.run();
 };
