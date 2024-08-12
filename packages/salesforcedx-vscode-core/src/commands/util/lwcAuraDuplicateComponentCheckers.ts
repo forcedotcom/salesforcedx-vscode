@@ -33,17 +33,14 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
       return Promise.resolve(inputs);
     }
     if (Array.isArray(inputs.data)) {
-      // TODO: add to nls
       return { type: 'CANCEL', msg: nls.localize(RENAME_NOT_SUPPORTED_MESSAGE) };
     }
     const { data } = inputs;
     if (!isComponentName(data)) {
-      // TODO: add to nls
       return { type: 'CANCEL', msg: nls.localize(INPUT_NO_COMPONENT_NAME_MESSAGE) };
     }
     const { name } = data;
     if (!name) {
-      // TODO: add to nls
       return { type: 'CANCEL', msg: nls.localize(COMPONENT_CANNOT_BE_EMPTY_MESSAGE) };
     }
 
@@ -71,12 +68,10 @@ export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionC
       return Promise.resolve(inputs);
     }
     if (Array.isArray(inputs.data)) {
-      // TODO: add to nls
       return { type: 'CANCEL', msg: nls.localize(CREATE_NOT_SUPPORTED_MESSAGE) };
     }
 
     if (!isDirFileNameSelection(inputs.data)) {
-      // TODO: add to nls
       return { type: 'CANCEL', msg: nls.localize(INPUT_INCORRECT_COMPONENT_PROPERTIES_MESSAGE) };
     }
 
