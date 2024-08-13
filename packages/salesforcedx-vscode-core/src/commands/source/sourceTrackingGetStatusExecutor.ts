@@ -27,14 +27,17 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
   }
 
   public async execute(): Promise<boolean> {
-    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(
-      this.options || {}
-    );
-    channelService.appendLine(nls.localize('source_status'));
-    channelService.appendLine(sourceStatusSummary);
-    channelService.showChannelOutput();
-
-    return true;
+    try {
+      const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(
+        this.options || {}
+      );
+      channelService.appendLine(nls.localize('source_status'));
+      channelService.appendLine(sourceStatusSummary);
+      channelService.showChannelOutput();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
