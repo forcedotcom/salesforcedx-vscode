@@ -58,12 +58,12 @@ describe('SourceTrackingGetStatusExecutor', () => {
         local: true,
         remote: true
       });
-  
+
       const result = await executor.execute();
-  
+
       expect(result).toBe(true);
     });
-  
+
     it('should resolve with undefined if it throws an error', async () => {
       getSourceStatusSummaryMock = jest
         .spyOn(SourceTrackingService, 'getSourceStatusSummary')
