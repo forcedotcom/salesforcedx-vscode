@@ -76,7 +76,8 @@ async function run() {
 
       // Checking Salesforce Extension Pack version
       // The text "Salesforce Extension Version in VS Code" can be either bolded or unbolded
-      const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*v?(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*v?(\d{2}\.\d{1,2}\.\d))/g;
+      const extensionsVersionRegex =
+        /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*v?(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*v?(\d{2}\.\d{1,2}\.\d))/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const extensionsVersions = bodies
@@ -124,7 +125,8 @@ async function run() {
       }
 
       // Checking VSCode version
-      const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*v?(1\.\d{2}\.\d))|(?:VS Code version:\s*v?(1\.\d{2}\.\d))/g;
+      const vscodeVersionRegex =
+        /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const vscodeVersions = bodies
@@ -174,7 +176,8 @@ async function run() {
 
       // Checking presence of OS and version
       // NOTE: negative lookahead used in this regex due to false match when OS and version is blank
-      const osVersionRegex = /(\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*\r\n)|(OS and version:\s*(?!\*\*VS|VS)\S.*\r\n)/g;
+      const osVersionRegex =
+        /(?:\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)|(?:OS and version:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const osVersions = bodies
@@ -199,7 +202,8 @@ async function run() {
       }
 
       // Checking presence of last working extensions version
-      const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
+      const lastWorkingVersionRegex =
+        /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const lastWorkingVersions = bodies
@@ -225,8 +229,10 @@ async function run() {
 
       // *** The below is the check for CLI version, code reused from CLI Team's repo ***
 
-      const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-      const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
+      const sfVersionRegex =
+        /(?:Salesforce CLI Version|(?:\*{2}Salesforce CLI Version\*{2})):\s*(?:@salesforce\/cli\/)?(\d+\.\d+\.\d+)/g;
+      const sfdxVersionRegex =
+        /(?:Salesforce CLI Version|(?:\*{2}Salesforce CLI Version\*{2})):\s*(?:sfdx-cli\/)?(\d+\.\d+\.\d+)/g;
       const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
 
       // Search all bodies and get an array of all versions found (first capture group)
