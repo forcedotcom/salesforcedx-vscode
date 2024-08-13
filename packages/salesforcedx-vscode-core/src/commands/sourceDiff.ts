@@ -109,7 +109,7 @@ export const handleCacheResults = async (
     }
   } else {
     const message = nls.localize('source_diff_components_not_in_org');
-    await notificationService.showErrorMessage(message);
+    notificationService.showErrorMessage(message);
     throw new Error(message);
   }
 };
