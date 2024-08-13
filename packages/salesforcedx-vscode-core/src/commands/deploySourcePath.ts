@@ -80,7 +80,8 @@ export const deploySourcePaths = async (
       )
     );
 
-    await commandlet.run();
+    const result = await commandlet.run();
+    return result;
   }
 };
 

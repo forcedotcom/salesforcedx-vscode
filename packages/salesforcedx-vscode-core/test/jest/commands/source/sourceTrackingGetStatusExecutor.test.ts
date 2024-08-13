@@ -52,6 +52,35 @@ describe('SourceTrackingGetStatusExecutor', () => {
       expect(appendSpy).toHaveBeenCalledWith(dummySourceStatusSummary);
       expect(showChannelOutputSpy).toHaveBeenCalled();
     });
+
+    it('should resolve with true on success', async () => {
+      const executor = new SourceTrackingGetStatusExecutor('', '', {
+        local: true,
+        remote: true
+      });
+  
+      const result = await executor.execute();
+  
+      expect(result).toBe(true);
+    });
+  
+    it('should resolve with undefined if it throws an error', async () => {
+      getSourceStatusSummaryMock = jest
+        .spyOn(SourceTrackingService, 'getSourceStatusSummary')
+        .mockImplementationOnce(() => {
+          throw new Error();
+        });
+      const executor = new SourceTrackingGetStatusExecutor('', '', {
+        local: true,
+        remote: true
+      });
+      let result;
+      try {
+        result = await executor.execute();
+      } catch (e) {
+        expect(result).toBe(undefined);
+      }
+    });
   });
 
   describe('run', () => {

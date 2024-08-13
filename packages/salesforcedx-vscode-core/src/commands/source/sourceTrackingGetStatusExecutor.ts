@@ -26,13 +26,15 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
     this.options = options;
   }
 
-  public async execute(): Promise<void> {
+  public async execute(): Promise<boolean> {
     const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(
       this.options || {}
     );
     channelService.appendLine(nls.localize('source_status'));
     channelService.appendLine(sourceStatusSummary);
     channelService.showChannelOutput();
+
+    return true;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

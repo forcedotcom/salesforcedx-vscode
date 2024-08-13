@@ -160,7 +160,7 @@ export abstract class LibraryCommandletExecutor<T>
     token?: vscode.CancellationToken
   ): Promise<boolean>;
 
-  public async execute(response: ContinueResponse<T>): Promise<void> {
+  public async execute(response: ContinueResponse<T>): Promise<boolean> {
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
@@ -220,6 +220,7 @@ export abstract class LibraryCommandletExecutor<T>
         properties,
         measurements
       );
+      return !!success;
     } catch (e) {
       if (e instanceof Error) {
         telemetryService.sendException(e.name, e.message);
@@ -227,6 +228,7 @@ export abstract class LibraryCommandletExecutor<T>
         channelService.appendLine(e.message);
       }
       channelService.showChannelOutput();
+      return false;
     }
   }
 
