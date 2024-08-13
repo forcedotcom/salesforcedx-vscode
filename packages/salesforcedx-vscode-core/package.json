@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils-vscode": "61.9.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "12.1.5",
-    "@salesforce/templates": "61.4.1",
+    "@salesforce/templates": "61.4.3",
     "@salesforce/ts-types": "2.0.10",
     "@salesforce/vscode-service-provider": "1.0.4",
     "adm-zip": "0.5.10",
