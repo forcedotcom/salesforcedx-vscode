@@ -85,7 +85,7 @@ export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
     new FilePathGatherer(explorerPath),
     new MetadataCacheExecutor(
       username,
-      'Source Diff',
+      nls.localize('source_diff_folder_text'),
       'source-diff-loader',
       handleCacheResults
     )
