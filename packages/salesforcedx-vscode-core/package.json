@@ -97,7 +97,6 @@
     ],
     "packageUpdates": {
       "main": "dist/src/index.js",
-      "salesforceApiVersion": "61",
       "dependencies": {
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5"
