@@ -513,6 +513,7 @@ export const messages = {
   conflict_detect_diff_command_title: 'ファイルを比較',
 
   source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
+  source_diff_folder_text: 'SFDX: Diff Folder Against Org',
   source_diff_components_not_in_org:
     'Selected components are not available in the org',
   source_diff_unsupported_type:

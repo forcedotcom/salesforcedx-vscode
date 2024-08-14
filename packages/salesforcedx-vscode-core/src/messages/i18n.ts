@@ -626,6 +626,7 @@ export const messages = {
   conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
   source_diff_text: 'SFDX: Diff File Against Org',
+  source_diff_folder_text: 'SFDX: Diff Folder Against Org',
   source_diff_components_not_in_org:
     'Selected components are not available in the org',
   source_diff_unsupported_type:
@@ -660,8 +661,7 @@ export const messages = {
   sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   rename_lightning_component: 'SFDX: Rename Component',
-  component_input_dup_error:
-    'Component name is already in use in LWC or Aura',
+  component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:
     'This file name is already in use in the current component directory. Choose a different name and try again.',
   rename_component_input_placeholder: 'Enter a unique component name',
@@ -702,6 +702,6 @@ export const messages = {
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
   create_not_supported: 'Create is not supported for multiple components',
-  input_incorrect_properties: 'Input does not contain correct component properties'
-
+  input_incorrect_properties:
+    'Input does not contain correct component properties'
 };
