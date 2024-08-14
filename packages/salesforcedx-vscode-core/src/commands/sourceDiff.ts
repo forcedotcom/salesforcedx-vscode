@@ -105,11 +105,11 @@ export const handleCacheResults = async (
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      await differ.diffFolder(cache, username);
+      differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('source_diff_components_not_in_org');
-    notificationService.showErrorMessage(message);
+    void notificationService.showErrorMessage(message);
     throw new Error(message);
   }
 };
