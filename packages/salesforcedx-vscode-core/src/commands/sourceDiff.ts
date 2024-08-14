@@ -85,7 +85,7 @@ export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
     new FilePathGatherer(explorerPath),
     new MetadataCacheExecutor(
       username,
-      'Source Diff',
+      nls.localize('source_diff_folder_text'),
       'source-diff-loader',
       handleCacheResults
     )
@@ -105,11 +105,11 @@ export const handleCacheResults = async (
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      await differ.diffFolder(cache, username);
+      differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('source_diff_components_not_in_org');
-    await notificationService.showErrorMessage(message);
+    void notificationService.showErrorMessage(message);
     throw new Error(message);
   }
 };
