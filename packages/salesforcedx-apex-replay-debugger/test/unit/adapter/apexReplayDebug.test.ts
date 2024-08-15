@@ -16,7 +16,7 @@ import {
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { MetricLaunch } from '../../../src';
+import { MetricGeneral, MetricLaunch } from '../../../src';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
@@ -156,15 +156,15 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.false;
       expect(sendResponseSpy.calledOnce).to.be.true;
-      expect(sendEventSpy.calledTwice).to.be.true;
+      expect(sendEventSpy.callCount).to.equal(4);
       const actualResponse: DebugProtocol.LaunchResponse =
         sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.false;
       expect(actualResponse.message).to.equal(nls.localize('no_log_file_text'));
-      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(
         InitializedEvent
       );
-      const eventObj = sendEventSpy.getCall(1).args[0] as DebugProtocol.Event;
+      const eventObj = sendEventSpy.getCall(3).args[0] as DebugProtocol.Event;
       expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
       expect(eventObj.body).to.deep.equal({
         logSize: 123,
@@ -185,17 +185,17 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
       expect(sendResponseSpy.calledOnce).to.be.true;
-      expect(sendEventSpy.calledTwice).to.be.true;
+      expect(sendEventSpy.callCount).to.equal(4);
       const actualResponse: DebugProtocol.LaunchResponse =
         sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.false;
       expect(actualResponse.message).to.equal(
         nls.localize('incorrect_log_levels_text')
       );
-      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(
         InitializedEvent
       );
-      const eventObj = sendEventSpy.getCall(1).args[0] as DebugProtocol.Event;
+      const eventObj = sendEventSpy.getCall(3).args[0] as DebugProtocol.Event;
       expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
       expect(eventObj.body).to.deep.equal({
         logSize: 123,
@@ -315,15 +315,15 @@ describe('Replay debugger adapter - unit', () => {
       expect(scanLogForHeapDumpLinesStub.calledOnce).to.be.true;
       expect(fetchOverlayResultsForApexHeapDumpsStub.calledOnce).to.be.true;
       expect(errorToDebugConsoleStub.calledOnce).to.be.true;
-      expect(sendEventSpy.calledTwice).to.be.true;
+      expect(sendEventSpy.callCount).to.equal(3);
       const errorMessage = errorToDebugConsoleStub.getCall(0).args[0];
       expect(errorMessage).to.equal(
         nls.localize('heap_dump_error_wrap_up_text')
       );
-      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+      expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(
         InitializedEvent
       );
-      const eventObj = sendEventSpy.getCall(1).args[0] as DebugProtocol.Event;
+      const eventObj = sendEventSpy.getCall(2).args[0] as DebugProtocol.Event;
       expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
       expect(eventObj.body).to.deep.equal({
         logSize: 123,
@@ -374,7 +374,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.configurationDoneRequest(response, args);
 
       expect(updateFramesStub.called).to.be.true;
-      expect(sendEventSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.calledTwice).to.be.true;
       const event = sendEventSpy.getCall(0).args[0];
       expect(event).to.be.instanceof(StoppedEvent);
     });
@@ -389,7 +389,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.configurationDoneRequest(response, args);
 
       expect(updateFramesStub.called).to.be.false;
-      expect(sendEventSpy.called).to.be.false;
+      expect(sendEventSpy.calledOnce).to.be.true;
       expect(updateFramesStub.called).to.be.false;
       expect(continueRequestStub.calledOnce).to.be.true;
     });
