@@ -9,7 +9,7 @@ import {
   DirFileNameSelection,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateType, VisualforcePageOptions } from '@salesforce/templates-bundle';
+import { TemplateType, VisualforcePageOptions } from '@salesforce/templates';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,

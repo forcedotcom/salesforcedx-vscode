@@ -6,7 +6,7 @@
  */
 
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
-import { ApexClassOptions, TemplateType } from '@salesforce/templates-bundle';
+import { ApexClassOptions, TemplateType } from '@salesforce/templates';
 import { nls } from '../../../messages';
 import { LibraryBaseTemplateCommand } from '../libraryBaseTemplateCommand';
 import { APEX_CLASS_TYPE } from '../metadataTypeConstants';
