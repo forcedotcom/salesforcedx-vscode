@@ -6,7 +6,8 @@
  */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { build } = require('esbuild');
-// const fs = require('fs').promises;
+const esbuildPluginPino = require('esbuild-plugin-pino');
+const fs = require('fs');
 
 const sharedConfig = {
   bundle: true,
@@ -15,35 +16,45 @@ const sharedConfig = {
   external: [
     'vscode',
     'applicationinsights',
-    'shelljs',
-    '@salesforce/core-bundle',
-    '@salesforce/templates-bundle'
+    'shelljs'
   ],
-  minify: true
+  minify: true,
+  keepNames: true,
+  plugins: [
+    esbuildPluginPino({ transports: ['pino-pretty'] })
+  ]
+};
+
+const copyFiles = (src, dest) => {
+  const stats = fs.statSync(src);
+  try {
+    if (stats.isDirectory()) {
+      fs.cpSync(src, dest, { recursive: true });
+    } else {
+      fs.cpSync(src, dest);
+    }
+    console.log(`Copied from ${src} to ${dest}`);
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
 };
 
 // copy core-bundle/lib/transformStream.js to dist if core-bundle is included
-// const copyFiles = async (src, dest) => {
-//   try {
-//     // Copy the file
-//     await fs.copyFile(src, dest);
-//     console.log(`File was copied from ${src} to ${dest}`);
-//   } catch (error) {
-//     console.error('An error occurred:', error);
-//   }
-// };
+const srcPathTransformStream = '../../node_modules/@salesforce/core-bundle/lib/transformStream.js';
+const destPathTransformStream = './dist/src/transformStream.js';
 
-// const srcPath = '../../node_modules/@salesforce/core-bundle/lib/transformStream.js';
-// const destPath = './dist/transformStream.js';
+const srcTemplatesPath = '../../node_modules/@salesforce/templates/lib/templates';
+const destTemplatesPath = './dist/templates';
 
 (async () => {
   await build({
     ...sharedConfig,
     entryPoints: ['./src/index.ts'],
-    outfile: 'dist/index.js'
+    outdir: 'dist/src'
   });
 })()
-  .then(async () => {
-    // await copyFiles(srcPath, destPath);
+  .then(() => {
+    copyFiles(srcPathTransformStream, destPathTransformStream);
+    copyFiles(srcTemplatesPath, destTemplatesPath);
   })
   .catch(() => process.exit(1));

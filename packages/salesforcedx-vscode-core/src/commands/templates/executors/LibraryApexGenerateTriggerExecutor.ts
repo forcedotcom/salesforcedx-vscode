@@ -6,7 +6,7 @@
  */
 
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
-import { ApexTriggerOptions, TemplateType } from '@salesforce/templates-bundle';
+import { ApexTriggerOptions, TemplateType } from '@salesforce/templates';
 import { nls } from '../../../messages';
 import { LibraryBaseTemplateCommand } from '../libraryBaseTemplateCommand';
 import { APEX_TRIGGER_TYPE } from '../metadataTypeConstants';
