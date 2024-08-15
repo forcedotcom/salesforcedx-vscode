@@ -34,7 +34,6 @@ import {
   deleteSource,
   deployManifest,
   deploySourcePaths,
-  forceLightningLwcTestCreate,
   initSObjectDefinitions,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
@@ -285,11 +284,6 @@ const registerCommands = (
     lightningGenerateLwc
   );
 
-  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
-    'sf.force.lightning.lwc.test.create',
-    forceLightningLwcTestCreate
-  );
-
   const debuggerStopCmd = vscode.commands.registerCommand(
     'sf.debugger.stop',
     debuggerStop
@@ -434,7 +428,6 @@ const registerCommands = (
     lightningGenerateEventCmd,
     lightningGenerateInterfaceCmd,
     lightningGenerateLwcCmd,
-    forceLightningLwcTestCreateCmd,
     debuggerStopCmd,
     configListCmd,
     forceAliasListCmd,

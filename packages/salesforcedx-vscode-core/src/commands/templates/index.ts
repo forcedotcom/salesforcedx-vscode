@@ -10,10 +10,6 @@ export { apexGenerateClass } from './apexGenerateClass';
 export { apexGenerateTrigger } from './apexGenerateTrigger';
 export * from './apexGenerateUnitTestClass';
 export {
-  ForceLightningLwcTestCreateExecutor,
-  forceLightningLwcTestCreate
-} from './forceLightningLwcTestCreate';
-export {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';

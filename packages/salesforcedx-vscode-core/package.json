@@ -543,10 +543,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.force.lightning.lwc.test.create",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.internal.lightning.generate.lwc",
           "when": "false"
         },
@@ -840,10 +836,6 @@
       {
         "command": "sf.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
-      },
-      {
-        "command": "sf.force.lightning.lwc.test.create",
-        "title": "%force_lightning_lwc_test_create_text%"
       },
       {
         "command": "sf.internal.lightning.generate.lwc",

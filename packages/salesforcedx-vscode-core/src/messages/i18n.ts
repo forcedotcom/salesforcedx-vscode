@@ -331,8 +331,6 @@ export const messages = {
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
-  force_lightning_lwc_test_create_text:
-    'SFDX: Create Lightning Web Component Test',
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
