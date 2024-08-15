@@ -310,6 +310,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
       ) {
         response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
+        this.sendEvent(
+          new Event(SEND_METRIC_ERROR_EVENT, {
+            subject: 'Fetching heap dumps failed',
+            callstack: new Error().stack,
+            message: response.message
+          })
+        );
       }
       response.success = true;
     }
@@ -654,6 +661,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
           numberOfVerifiedBreakpoints: response.body.breakpoints.filter(
             bp => bp.verified
           ).length
+        })
+      );
+    } else {
+      this.sendEvent(
+        new Event(SEND_METRIC_ERROR_EVENT, {
+          subject: 'setBreakPointsRequest - path or breakpoints invalid',
+          type: 'apexReplayDebuggerSetBreakpoints'
         })
       );
     }
