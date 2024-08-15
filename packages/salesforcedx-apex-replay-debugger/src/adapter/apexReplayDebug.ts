@@ -22,7 +22,6 @@ import {
   Variable
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { MetricError, MetricGeneral, MetricLaunch } from '..';
 import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
 import {
   SEND_METRIC_GENERAL_EVENT,
