@@ -626,7 +626,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
           source: args.source,
           line: bp.line
         });
-        if (!isVerified) {
+        if (isVerified) {
+          this.breakpoints
+            .get(uri)!
+            .push(this.convertClientLineToDebugger(bp.line));
+        } else {
+          // Report an error metric when a breakpoint fails to verify
           this.sendEvent(
             new Event(SEND_METRIC_ERROR_EVENT, {
               subject: 'Failed to set breakpoint',
