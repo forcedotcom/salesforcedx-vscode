@@ -7,6 +7,7 @@
 
 import {
   MetricError,
+  MetricGeneral,
   MetricLaunch
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
@@ -16,6 +17,7 @@ import {
   LAST_OPENED_LOG_KEY,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
+  SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
@@ -162,6 +164,13 @@ const registerDebugHandlers = (): vscode.Disposable => {
           telemetryService.sendErrorEvent(
             metricErrorArgs.subject,
             metricErrorArgs.callstack
+          );
+        } else if (event.event === SEND_METRIC_GENERAL_EVENT && event.body) {
+          const metricGeneralArgs = event.body as MetricGeneral;
+          telemetryService.sendGeneralEvent(
+            metricGeneralArgs.subject,
+            metricGeneralArgs.type,
+            metricGeneralArgs.qty?.toString()
           );
         }
       }

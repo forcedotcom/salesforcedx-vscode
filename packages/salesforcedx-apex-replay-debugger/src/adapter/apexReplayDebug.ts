@@ -22,9 +22,10 @@ import {
   Variable
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { MetricError, MetricLaunch } from '..';
+import { MetricError, MetricGeneral, MetricLaunch } from '..';
 import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
 import {
+  SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '../constants';
@@ -260,16 +261,43 @@ export class ApexReplayDebug extends LoggingDebugSession {
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: args=${JSON.stringify(args)}`
     );
+    this.sendEvent(
+      new Event(SEND_METRIC_GENERAL_EVENT, {
+        subject: `launchRequest: args=${JSON.stringify(args)}`,
+        type: 'launchApexReplayDebugger'
+      } as MetricGeneral)
+    );
 
     this.logContext = new LogContext(args, this);
     this.heapDumpService = new HeapDumpService(this.logContext);
 
     if (!this.logContext.hasLogLines()) {
       response.message = nls.localize('no_log_file_text');
+      this.sendEvent(
+        new Event(SEND_METRIC_ERROR_EVENT, {
+          subject: 'No log lines found',
+          callstack: new Error().stack,
+          message: response.message
+        } as MetricError)
+      );
     } else if (!this.logContext.meetsLogLevelRequirements()) {
       response.message = nls.localize('incorrect_log_levels_text');
+      this.sendEvent(
+        new Event(SEND_METRIC_ERROR_EVENT, {
+          subject: 'Incorrect log levels',
+          callstack: new Error().stack,
+          message: response.message
+        } as MetricError)
+      );
     } else if (!lineBreakpointInfoAvailable) {
       response.message = nls.localize('session_language_server_error_text');
+      this.sendEvent(
+        new Event(SEND_METRIC_ERROR_EVENT, {
+          subject: 'No line breakpoint info available',
+          callstack: new Error().stack,
+          message: response.message
+        } as MetricError)
+      );
     } else {
       this.printToDebugConsole(
         nls.localize('session_started_text', this.logContext.getLogFileName())
@@ -327,6 +355,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
         threadId: ApexReplayDebug.THREAD_ID
       });
     }
+    this.sendEvent(
+      new Event(SEND_METRIC_GENERAL_EVENT, {
+        subject: 'configurationDoneRequest',
+        type: 'apexReplayDebuggerConfigurationDone'
+      } as MetricGeneral)
+    );
   }
 
   public disconnectRequest(
@@ -336,6 +370,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.printToDebugConsole(nls.localize('session_terminated_text'));
     response.success = true;
     this.sendResponse(response);
+    this.sendEvent(
+      new Event(SEND_METRIC_GENERAL_EVENT, {
+        subject: 'disconnectRequest',
+        type: 'apexReplayDebuggerDisconnect'
+      } as MetricGeneral)
+    );
   }
 
   public threadsRequest(response: DebugProtocol.ThreadsResponse): void {
@@ -369,8 +409,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
       } catch (error) {
         this.sendEvent(
           new Event(SEND_METRIC_ERROR_EVENT, {
-            subject: error.message,
-            callstack: error.stack
+            subject: 'Heap dump processing error',
+            callstack: error.stack,
+            message: error.message
           } as MetricError)
         );
         this.logContext.revertStateAfterHeapDump();
@@ -424,6 +465,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
     response.body = { scopes };
     this.sendResponse(response);
+    this.sendEvent(
+      new Event(SEND_METRIC_GENERAL_EVENT, {
+        subject: 'scopesRequest',
+        type: 'apexReplayDebuggerScopesRequest',
+        numberOfScopes: scopes.length
+      } as MetricGeneral)
+    );
   }
 
   public async variablesRequest(
@@ -431,13 +479,25 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
     response.success = true;
-    const scopesContainer = this.logContext
-      .getVariableHandler()
-      .get(args.variablesReference);
-    response.body = {
-      variables: scopesContainer ? scopesContainer.getAllVariables() : []
-    };
-    this.sendResponse(response);
+    try {
+      const scopesContainer = this.logContext
+        .getVariableHandler()
+        .get(args.variablesReference);
+      response.body = {
+        variables: scopesContainer ? scopesContainer.getAllVariables() : []
+      };
+      this.sendResponse(response);
+    } catch (error) {
+      this.sendEvent(
+        new Event(SEND_METRIC_ERROR_EVENT, {
+          subject: 'Error in variablesRequest',
+          callstack: error.stack,
+          message: error.message
+        } as MetricError)
+      );
+      response.success = false;
+      this.sendResponse(response);
+    }
   }
 
   protected evaluateRequest(
@@ -486,28 +546,39 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): void {
     response.success = true;
     this.sendResponse(response);
-    const prevNumOfFrames = this.logContext.getNumOfFrames();
-    while (this.logContext.hasLogLines()) {
-      this.logContext.updateFrames();
-      const curNumOfFrames = this.logContext.getNumOfFrames();
-      if (
-        (stepType === Step.Over &&
-          curNumOfFrames !== 0 &&
-          curNumOfFrames <= prevNumOfFrames) ||
-        (stepType === Step.In && curNumOfFrames >= prevNumOfFrames) ||
-        (stepType === Step.Out &&
-          curNumOfFrames !== 0 &&
-          curNumOfFrames < prevNumOfFrames)
-      ) {
-        return this.sendEvent(
-          new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
-        );
+    try {
+      const prevNumOfFrames = this.logContext.getNumOfFrames();
+      while (this.logContext.hasLogLines()) {
+        this.logContext.updateFrames();
+        const curNumOfFrames = this.logContext.getNumOfFrames();
+        if (
+          (stepType === Step.Over &&
+            curNumOfFrames !== 0 &&
+            curNumOfFrames <= prevNumOfFrames) ||
+          (stepType === Step.In && curNumOfFrames >= prevNumOfFrames) ||
+          (stepType === Step.Out &&
+            curNumOfFrames !== 0 &&
+            curNumOfFrames < prevNumOfFrames)
+        ) {
+          return this.sendEvent(
+            new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
+          );
+        }
+        if (this.shouldStopForBreakpoint()) {
+          return;
+        }
       }
-      if (this.shouldStopForBreakpoint()) {
-        return;
-      }
+      this.sendEvent(new TerminatedEvent());
+    } catch (error) {
+      this.sendEvent(
+        new Event(SEND_METRIC_ERROR_EVENT, {
+          subject: 'Error during step execution',
+          callstack: error.stack,
+          message: error.message
+        } as MetricError)
+      );
+      throw error;
     }
-    this.sendEvent(new TerminatedEvent());
   }
 
   protected shouldStopForBreakpoint(): boolean {
@@ -556,10 +627,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
           source: args.source,
           line: bp.line
         });
-        if (isVerified) {
-          this.breakpoints
-            .get(uri)!
-            .push(this.convertClientLineToDebugger(bp.line));
+        if (!isVerified) {
+          this.sendEvent(
+            new Event(SEND_METRIC_ERROR_EVENT, {
+              subject: 'Failed to set breakpoint',
+              callstack: new Error().stack,
+              message: `Failed to set breakpoint at line ${bp.line} in ${args.source.path}`
+            } as MetricError)
+          );
         }
       }
       this.log(
@@ -567,6 +642,15 @@ export class ApexReplayDebug extends LoggingDebugSession {
         `setBreakPointsRequest: path=${
           args.source.path
         } verified lines=${this.breakpoints.get(uri)!.join(',')}`
+      );
+      this.sendEvent(
+        new Event(SEND_METRIC_GENERAL_EVENT, {
+          subject: 'setBreakPointsRequest',
+          type: 'apexReplayDebuggerSetBreakpoints',
+          numberOfVerifiedBreakpoints: response.body.breakpoints.filter(
+            bp => bp.verified
+          ).length
+        } as MetricGeneral)
       );
     }
     response.success = true;
