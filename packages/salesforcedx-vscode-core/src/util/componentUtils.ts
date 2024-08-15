@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CreateUtil } from '@salesforce/templates-bundle';
+import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 
