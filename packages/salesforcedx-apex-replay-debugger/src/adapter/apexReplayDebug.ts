@@ -265,7 +265,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       new Event(SEND_METRIC_GENERAL_EVENT, {
         subject: `launchRequest: args=${JSON.stringify(args)}`,
         type: 'launchApexReplayDebugger'
-      } as MetricGeneral)
+      })
     );
 
     this.logContext = new LogContext(args, this);
@@ -278,7 +278,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           subject: 'No log lines found',
           callstack: new Error().stack,
           message: response.message
-        } as MetricError)
+        })
       );
     } else if (!this.logContext.meetsLogLevelRequirements()) {
       response.message = nls.localize('incorrect_log_levels_text');
@@ -287,7 +287,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           subject: 'Incorrect log levels',
           callstack: new Error().stack,
           message: response.message
-        } as MetricError)
+        })
       );
     } else if (!lineBreakpointInfoAvailable) {
       response.message = nls.localize('session_language_server_error_text');
@@ -296,7 +296,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           subject: 'No line breakpoint info available',
           callstack: new Error().stack,
           message: response.message
-        } as MetricError)
+        })
       );
     } else {
       this.printToDebugConsole(
@@ -322,7 +322,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         error: {
           subject: response.message
         }
-      } as MetricLaunch)
+      })
     );
   }
 
@@ -359,7 +359,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       new Event(SEND_METRIC_GENERAL_EVENT, {
         subject: 'configurationDoneRequest',
         type: 'apexReplayDebuggerConfigurationDone'
-      } as MetricGeneral)
+      })
     );
   }
 
@@ -374,7 +374,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       new Event(SEND_METRIC_GENERAL_EVENT, {
         subject: 'disconnectRequest',
         type: 'apexReplayDebuggerDisconnect'
-      } as MetricGeneral)
+      })
     );
   }
 
@@ -412,7 +412,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
             subject: 'Heap dump processing error',
             callstack: error.stack,
             message: error.message
-          } as MetricError)
+          })
         );
         this.logContext.revertStateAfterHeapDump();
         this.warnToDebugConsole(
@@ -470,7 +470,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         subject: 'scopesRequest',
         type: 'apexReplayDebuggerScopesRequest',
         numberOfScopes: scopes.length
-      } as MetricGeneral)
+      })
     );
   }
 
@@ -493,7 +493,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           subject: 'Error in variablesRequest',
           callstack: error.stack,
           message: error.message
-        } as MetricError)
+        })
       );
       response.success = false;
       this.sendResponse(response);
@@ -575,7 +575,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           subject: 'Error during step execution',
           callstack: error.stack,
           message: error.message
-        } as MetricError)
+        })
       );
       throw error;
     }
@@ -633,7 +633,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
               subject: 'Failed to set breakpoint',
               callstack: new Error().stack,
               message: `Failed to set breakpoint at line ${bp.line} in ${args.source.path}`
-            } as MetricError)
+            })
           );
         }
       }
@@ -650,7 +650,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           numberOfVerifiedBreakpoints: response.body.breakpoints.filter(
             bp => bp.verified
           ).length
-        } as MetricGeneral)
+        })
       );
     }
     response.success = true;
