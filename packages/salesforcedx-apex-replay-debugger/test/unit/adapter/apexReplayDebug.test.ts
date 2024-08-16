@@ -17,7 +17,6 @@ import {
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { MetricLaunch } from '../../../src';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
