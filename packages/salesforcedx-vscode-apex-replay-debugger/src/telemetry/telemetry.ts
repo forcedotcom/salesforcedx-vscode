@@ -73,12 +73,12 @@ export class TelemetryService {
     }
   }
 
-  public sendGeneralEvent(errorMsg: string, type: string, qty?: string): void {
+  public sendGeneralEvent(subject: string, type: string, qty?: string): void {
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
       this.reporters.forEach(reporter => {
         reporter.sendTelemetryEvent('ardGeneralEvent', {
           extensionName: EXTENSION_NAME,
-          errorMessage: errorMsg,
+          subject,
           type,
           qty: qty || '0'
         });
