@@ -16,3 +16,9 @@ export type MetricError = {
   subject: string;
   callstack: string;
 };
+
+export type MetricGeneral = {
+  subject: string;
+  type: string;
+  qty?: number;
+};
