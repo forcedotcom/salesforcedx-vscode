@@ -177,7 +177,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(eventObj.body).to.deep.equal({
         logSize: 123,
         error: { subject: nls.localize('no_log_file_text') }
-      } as MetricLaunch);
+      });
     });
 
     it('Should return error when log levels are incorrect', async () => {
@@ -212,7 +212,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(eventObj.body).to.deep.equal({
         logSize: 123,
         error: { subject: nls.localize('incorrect_log_levels_text') }
-      } as MetricLaunch);
+      });
     });
 
     it('Should send response', async () => {
@@ -344,7 +344,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(eventObj.body).to.deep.equal({
         logSize: 123,
         error: { subject: nls.localize('heap_dump_error_wrap_up_text') }
-      } as MetricLaunch);
+      });
     });
   });
 
