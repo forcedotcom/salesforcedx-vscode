@@ -10,6 +10,10 @@
 
 - Update vscode min supported version to 1.86 ([PR #5715](https://github.com/forcedotcom/salesforcedx-vscode/pull/5715))
 
+#### salesforcedx-vscode-core
+
+- We have bundled more libraries in the core extension, which reduced the size from 8.9MB to 2.8MB ([PR #5705](https://github.com/forcedotcom/salesforcedx-vscode/pull/5705))
+
 ## Fixed
 
 #### docs
