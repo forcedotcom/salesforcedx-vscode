@@ -1,3 +1,39 @@
+# 61.10.0 - August 21, 2024
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+- To ensure smooth operation, the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.86 or higher. ([PR #5715](https://github.com/forcedotcom/salesforcedx-vscode/pull/5715))
+
+#### salesforcedx-vscode-core
+
+- Good news! We’ve made the core extension smaller and better. By bundling more libraries, we’ve reduced the size from 8.9MB to 2.8MB. That’s a big win for everyone. ([PR #5705](https://github.com/forcedotcom/salesforcedx-vscode/pull/5705))
+
+## Fixed
+
+#### docs
+
+- We made some changes under the hood. ([PR #5707](https://github.com/forcedotcom/salesforcedx-vscode/pull/5707))
+
+#### salesforcedx-apex-replay-debugger
+#### salesforcedx-vscode-apex-replay-debugger
+
+- To give us better insight into its behavior, we’ve added more telemetry to the Apex Replay Debugger. ([PR #5724](https://github.com/forcedotcom/salesforcedx-vscode/pull/5724))
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+- We made helpful clarifications in Marketplace READMEs. ([PR #5716](https://github.com/forcedotcom/salesforcedx-vscode/pull/5716))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the `SFDX: Diff Folder Against Org` and `SFDX: Diff File Against Org` commands. These commands now work correctly when you have a file in your project, but not in your org. You won’t see a notification that says the command is running when it’s not. ([PR #5722](https://github.com/forcedotcom/salesforcedx-vscode/pull/5722))
+
+- You can now rename Lightning Web Component (LWC) components when the Aura folder isn’t present, and vice versa. We’ve also added checks when creating new LWC and Aura components to ensure that the name doesn't already exist. ([PR #5718](https://github.com/forcedotcom/salesforcedx-vscode/pull/5718), [ISSUE #5692](https://github.com/forcedotcom/salesforcedx-vscode/issues/5692))
+  
+
 # 61.8.1 - August 8, 2024
 
 ## Added
