@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "61.9.0",
+  "version": "61.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,13 +27,13 @@
     "@salesforce/aura-language-server": "4.11.0",
     "@salesforce/core-bundle": "8.2.0",
     "@salesforce/lightning-lsp-common": "4.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "61.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "61.10.0",
     "applicationinsights": "1.0.7",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "61.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.10.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
