@@ -1,3 +1,43 @@
+# 61.10.0 - August 21, 2024
+
+## Added
+
+#### salesforcedx-vscode
+
+- Update vscode min supported version to 1.86 ([PR #5715](https://github.com/forcedotcom/salesforcedx-vscode/pull/5715))
+
+#### salesforcedx-vscode-expanded
+
+- Update vscode min supported version to 1.86 ([PR #5715](https://github.com/forcedotcom/salesforcedx-vscode/pull/5715))
+
+## Fixed
+
+#### docs
+
+- Docs/Gemfile & docs/Gemfile.lock to reduce vulnerabilities ([PR #5707](https://github.com/forcedotcom/salesforcedx-vscode/pull/5707))
+
+#### salesforcedx-apex-replay-debugger
+
+- Add more telemetry to apex replay debugger ([PR #5724](https://github.com/forcedotcom/salesforcedx-vscode/pull/5724))
+
+#### salesforcedx-vscode
+
+- Small clarifications in Marketplace READMEs ([PR #5716](https://github.com/forcedotcom/salesforcedx-vscode/pull/5716))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Add more telemetry to apex replay debugger ([PR #5724](https://github.com/forcedotcom/salesforcedx-vscode/pull/5724))
+
+#### salesforcedx-vscode-core
+
+- No infinite running command notification for diff file and folder commands ([PR #5722](https://github.com/forcedotcom/salesforcedx-vscode/pull/5722))
+
+- Failure when missing aura folder ([PR #5718](https://github.com/forcedotcom/salesforcedx-vscode/pull/5718))
+
+#### salesforcedx-vscode-expanded
+
+- Small clarifications in Marketplace READMEs ([PR #5716](https://github.com/forcedotcom/salesforcedx-vscode/pull/5716))
+
 # 61.8.1 - August 8, 2024
 
 ## Added
