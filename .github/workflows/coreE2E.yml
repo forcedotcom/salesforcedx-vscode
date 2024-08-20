@@ -38,6 +38,11 @@ on:
         required: false
         default: true
         type: boolean
+      exampleUsingProject:
+        description: 'an example test to use an existing project'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -82,6 +87,11 @@ on:
         type: boolean
       sfdxProjectJson:
         description: 'sfdx-project.json'
+        required: false
+        default: true
+        type: boolean
+      exampleUsingProject:
+        description: 'an example test to use an existing project'
         required: false
         default: true
         type: boolean
@@ -153,6 +163,16 @@ jobs:
     with:
       automationBranch: ${{ inputs.automationBranch }}
       testToRun: 'sfdxProjectJson.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  exampleUsingProject:
+    if: ${{ inputs.exampleUsingProject }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'exampleUsingProject.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
