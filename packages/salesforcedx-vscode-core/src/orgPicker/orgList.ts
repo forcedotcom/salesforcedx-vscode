@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core-bundle';
+import {
+  AuthFields,
+  AuthInfo,
+  OrgAuthorization
+} from '@salesforce/core-bundle';
 import {
   CancelResponse,
   ConfigUtil,
@@ -88,22 +92,21 @@ export class OrgList implements vscode.Disposable {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired =
-        authFields && authFields.expirationDate
-          ? today >= new Date(authFields.expirationDate)
-          : false;
-
-      const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
-      let authListItem =
-        aliases && aliases.length > 0
-          ? `${aliases.join(',')} - ${orgAuth.username}`
-          : orgAuth.username;
+      const isExpired = authFields?.expirationDate
+        ? today >= new Date(authFields.expirationDate)
+        : false;
 
       if (isExpired) {
-        authListItem += ` - ${nls.localize(
-          'org_expired'
-        )} ${String.fromCodePoint(0x274c)}`; // cross-mark
+        // authListItem += ` - ${nls.localize(
+        //   'org_expired'
+        // )} ${String.fromCodePoint(0x274c)}`; // cross-mark
+        continue;
       }
+      const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
+      const authListItem =
+        aliases?.length > 0
+          ? `${aliases.join(',')} - ${orgAuth.username}`
+          : orgAuth.username;
 
       authList.push(authListItem);
     }
@@ -112,7 +115,7 @@ export class OrgList implements vscode.Disposable {
 
   public async updateOrgList(): Promise<string[]> {
     const orgAuthorizations = await this.getOrgAuthorizations();
-    if (orgAuthorizations && orgAuthorizations.length === 0) {
+    if (orgAuthorizations?.length === 0) {
       return [];
     }
     const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
