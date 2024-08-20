@@ -118,7 +118,7 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
-import { getCoreLoggerService } from './services/getCoreLoggerService';
+import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
@@ -395,6 +395,8 @@ const registerCommands = (
     getCoreLoggerService
   );
 
+  const getTelemetryServiceCmd = registerGetTelemetryServiceCommand();
+
   return vscode.Disposable.from(
     renameLightningComponentCmd,
     diffFolder,
@@ -454,7 +456,8 @@ const registerCommands = (
     orgLogoutAllCmd,
     orgLogoutDefaultCmd,
     orgOpenCmd,
-    getCoreLoggerServiceCmd
+    getCoreLoggerServiceCmd,
+    getTelemetryServiceCmd
   );
 };
 
