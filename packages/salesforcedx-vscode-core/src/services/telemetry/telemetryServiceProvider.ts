@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 
 export const getTelemetryServiceForKey = async (key: string | undefined): Promise<TelemetryService | Error> => {
   console.log(`key: ${key}`);
-  return Promise.reject(Error('not implemented'));
+  return TelemetryService.getInstance(key);
 };
 
 export const registerGetTelemetryServiceCommand = () => {
