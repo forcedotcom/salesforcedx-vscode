@@ -43,6 +43,11 @@ on:
         required: false
         default: true
         type: boolean
+      exampleUsingProjectFromYaml:
+        description: 'an example using a project from yaml'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -51,6 +56,10 @@ on:
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: true
+        type: string
+      githubRepoUrl:
+        description: 'the github repo url used for running the example test'
+        required: false
         type: string
 
   workflow_call:
@@ -92,6 +101,11 @@ on:
         type: boolean
       exampleUsingProject:
         description: 'an example test to use an existing project'
+        required: false
+        default: true
+        type: boolean
+      exampleUsingProjectFromYaml:
+        description: 'an example using a project from yaml'
         required: false
         default: true
         type: boolean
@@ -175,6 +189,17 @@ jobs:
       testToRun: 'exampleUsingProject.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+  
+  exampleUsingProjectFromYaml:
+    if: ${{ inputs.exampleUsingProjectFromYaml }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'exampleUsingProjectFromYaml.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+      githubRepoUrl: ${{ inputs.githubRepoUrl }}
 
   slack_success_notification:
     if: ${{ success() }}
