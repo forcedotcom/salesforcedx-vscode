@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as util from 'util';
-import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { ExtensionContext, ExtensionMode, workspace, extensions } from 'vscode';
 import { ActivationInfo } from '..';
 import {
   DEFAULT_AIKEY,
@@ -18,7 +18,7 @@ import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../telemetry/cliConfiguration';
-import { TelemetryReporter } from '../telemetry/interfaces/telemetryReporter';
+import { ITelemetryService, TelemetryReporter } from '../telemetry/interfaces/telemetryInterfacesAndTypes';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
@@ -87,7 +87,7 @@ export class TelemetryServiceProvider {
   }
 }
 
-export class TelemetryService {
+export class TelemetryService implements ITelemetryService {
   private extensionContext: ExtensionContext | undefined;
   private reporters: TelemetryReporter[] = [];
   private aiKey = DEFAULT_AIKEY;
@@ -111,23 +111,27 @@ export class TelemetryService {
    * @param extensionContext extension context
    * @param extensionName extension name
    */
-  public async initializeService(
+  public initializeService(
     extensionContext: ExtensionContext
   ): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON;
+    const { name, version, aiKey } = extensionContext.extension.packageJSON as { name: string; version: string; aiKey: string };
+    return this.initializeServiceAithAttributes(name, aiKey, version, extensionContext.extensionMode);
+  }
+
+  public async initializeServiceAithAttributes(name: string, aiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void> {
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
     if (!version) {
       console.log('Extension version is not defined in package.json');
     }
-    this.extensionContext = extensionContext;
+    this.extensionContext = getExtensionContextByName(name);
     this.extensionName = name;
-    this.version = version;
+    this.version = version ?? '';
     this.aiKey = aiKey || this.aiKey;
 
     this.checkCliTelemetry()
-      .then(async cliEnabled => {
+      .then(cliEnabled => {
         this.setCliTelemetryEnabled(
           this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
         );
@@ -137,7 +141,7 @@ export class TelemetryService {
       });
 
     const isDevMode =
-      extensionContext.extensionMode !== ExtensionMode.Production;
+      extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
@@ -182,7 +186,7 @@ export class TelemetryService {
       }
     }
 
-    this.extensionContext.subscriptions.push(...this.reporters);
+    this.extensionContext?.subscriptions.push(...this.reporters);
   }
 
   /**
@@ -333,12 +337,12 @@ export class TelemetryService {
         } catch (error) {
           console.log(
             'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            typeof reporter +
+            ' ' +
+            'name: ' +
+            name +
+            ' message: ' +
+            message
           );
         }
       });
@@ -386,3 +390,11 @@ export class TelemetryService {
     }
   }
 }
+
+const getExtensionContextByName = (extensionName: string): ExtensionContext | undefined => {
+  const extension = extensions.getExtension(extensionName);
+  if (extension) {
+    // Access the extension's context
+    return extension.exports as ExtensionContext;
+  }
+};
