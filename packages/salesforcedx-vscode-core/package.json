@@ -326,7 +326,7 @@
         },
         {
           "command": "sf.project.generate.manifest",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.rename.lightning.component",
