@@ -65,7 +65,6 @@ export class OrgList implements vscode.Disposable {
     const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
-    const today = new Date();
     for (const orgAuth of orgAuthorizations) {
       // When this is called right after logging out of an org, there can
       // still be a cached Org Auth in the list with a "No auth information found"
@@ -92,11 +91,8 @@ export class OrgList implements vscode.Disposable {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired = authFields?.expirationDate
-        ? today >= new Date(authFields.expirationDate)
-        : false;
 
-      if (isExpired) {
+      if (orgAuth.isExpired === true) {
         // If the scratch org is expired we don't want to see it in the org picker
         continue;
       }
@@ -112,11 +108,9 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async updateOrgList(): Promise<string[]> {
-    const orgAuthorizations = await this.getOrgAuthorizations();
-    if (orgAuthorizations?.length === 0) {
-      return [];
-    }
-    const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
+    const authUsernameList = await this.filterAuthInfo(
+      await this.getOrgAuthorizations()
+    );
     return authUsernameList;
   }
 
