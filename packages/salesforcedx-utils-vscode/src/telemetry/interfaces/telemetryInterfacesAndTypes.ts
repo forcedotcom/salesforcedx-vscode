@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionContext, ExtensionMode } from 'vscode';
-import { ActivationInfo } from '../../helpers';
-import { TelemetryData, Properties, Measurements } from '../../services/telemetry';
+import { ExtensionContext, ExtensionKind, ExtensionMode, Uri } from 'vscode';
 
 /* eslint-disable header/header */
 /*---------------------------------------------------------
@@ -29,8 +27,42 @@ export interface TelemetryReporter {
 
   dispose(): Promise<any>;
 }
+// end of Copyright (C) Microsoft Corporation. All rights reserved.
 
-export interface ITelemetryService {
+export type Measurements = {
+  [key: string]: number;
+};
+
+export type Properties = {
+  [key: string]: string;
+};
+
+export type TelemetryData = {
+  properties?: Properties;
+  measurements?: Measurements;
+};
+
+export type ExtensionInfo = {
+  isActive: boolean;
+  path: string;
+  kind: ExtensionKind;
+  uri: Uri;
+  loadStartDate: Date;
+};
+
+export type ExtensionsInfo = {
+  [extensionId: string]: ExtensionInfo;
+};
+
+export type ActivationInfo = Partial<ExtensionInfo> & {
+  startActivateHrTime: [number, number];
+  activateStartDate: Date;
+  activateEndDate?: Date;
+  extensionActivationTime: number;
+  markEndTime?: number;
+};
+
+export interface TelemetryServiceInterface {
   /**
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
@@ -44,7 +76,7 @@ export interface ITelemetryService {
    * @param version extension version
    * @param extensionMode extension mode
    */
-  initializeServiceAithAttributes(name: string, apiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void>;
+  initializeServiceWithAttributes(name: string, apiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void>;
 
   /**
    * Helper to get the name for telemetryReporter

@@ -105,7 +105,7 @@ async function run() {
                 extensionsValid = false;
             }
             // Checking VSCode version
-            const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*v?(1\.\d{2}\.\d))|(?:VS Code version:\s*v?(1\.\d{2}\.\d))/g;
+            const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))/g;
             // Search all bodies and get an array of all versions found (first or second capture group)
             const vscodeVersions = bodies
                 .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2]))
@@ -146,7 +146,7 @@ async function run() {
             }
             // Checking presence of OS and version
             // NOTE: negative lookahead used in this regex due to false match when OS and version is blank
-            const osVersionRegex = /(\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*\r\n)|(OS and version:\s*(?!\*\*VS|VS)\S.*\r\n)/g;
+            const osVersionRegex = /(?:\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)|(?:OS and version:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)/g;
             // Search all bodies and get an array of all versions found (first or second capture group)
             const osVersions = bodies
                 .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
@@ -188,8 +188,8 @@ async function run() {
                 lastWorkingVersionValid = false;
             }
             // *** The below is the check for CLI version, code reused from CLI Team's repo ***
-            const sfVersionRegex = /@salesforce\/cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
-            const sfdxVersionRegex = /sfdx-cli\/([0-9]+.[0-9]+.[0-9]+(-[a-zA-Z0-9]+.[0-9]+)?)/g;
+            const sfVersionRegex = /(?:Salesforce CLI Version|(?:\*{2}Salesforce CLI Version\*{2})):\s*(?:@salesforce\/cli\/)?(\d+\.\d+\.\d+)/g;
+            const sfdxVersionRegex = /(?:Salesforce CLI Version|(?:\*{2}Salesforce CLI Version\*{2})):\s*(?:sfdx-cli\/)?(\d+\.\d+\.\d+)/g;
             const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
             // Search all bodies and get an array of all versions found (first capture group)
             const sfVersions = bodies

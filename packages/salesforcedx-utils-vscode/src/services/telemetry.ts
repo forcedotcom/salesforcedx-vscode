@@ -6,7 +6,6 @@
  */
 import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace, extensions } from 'vscode';
-import { ActivationInfo } from '..';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -18,7 +17,7 @@ import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../telemetry/cliConfiguration';
-import { ITelemetryService, TelemetryReporter } from '../telemetry/interfaces/telemetryInterfacesAndTypes';
+import { ActivationInfo, TelemetryServiceInterface, Measurements, Properties, TelemetryData, TelemetryReporter } from '../telemetry/interfaces/telemetryInterfacesAndTypes';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
@@ -29,19 +28,6 @@ type CommandMetric = {
   extensionName: string;
   commandName: string;
   executionTime?: string;
-};
-
-export type Measurements = {
-  [key: string]: number;
-};
-
-export type Properties = {
-  [key: string]: string;
-};
-
-export type TelemetryData = {
-  properties?: Properties;
-  measurements?: Measurements;
 };
 
 export class TelemetryBuilder {
@@ -75,7 +61,7 @@ export class TelemetryBuilder {
 // export only for unit test
 export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
-  public static getInstance(extensionName?: string): TelemetryService {
+  public static getInstance(extensionName?: string): TelemetryServiceInterface {
     // default if not present
     const name = extensionName || SFDX_CORE_EXTENSION_NAME;
     let service = TelemetryServiceProvider.instances.get(name);
@@ -87,7 +73,7 @@ export class TelemetryServiceProvider {
   }
 }
 
-export class TelemetryService implements ITelemetryService {
+export class TelemetryService implements TelemetryServiceInterface {
   private extensionContext: ExtensionContext | undefined;
   private reporters: TelemetryReporter[] = [];
   private aiKey = DEFAULT_AIKEY;
@@ -97,7 +83,7 @@ export class TelemetryService implements ITelemetryService {
    * If no extension name provided, return the instance for core extension by default
    * @param extensionName extension name
    */
-  public static getInstance(extensionName?: string) {
+  public static getInstance(extensionName?: string): TelemetryServiceInterface {
     return TelemetryServiceProvider.getInstance(extensionName);
   }
   /**
@@ -115,10 +101,10 @@ export class TelemetryService implements ITelemetryService {
     extensionContext: ExtensionContext
   ): Promise<void> {
     const { name, version, aiKey } = extensionContext.extension.packageJSON as { name: string; version: string; aiKey: string };
-    return this.initializeServiceAithAttributes(name, aiKey, version, extensionContext.extensionMode);
+    return this.initializeServiceWithAttributes(name, aiKey, version, extensionContext.extensionMode);
   }
 
-  public async initializeServiceAithAttributes(name: string, aiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void> {
+  public async initializeServiceWithAttributes(name: string, aiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void> {
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
@@ -147,7 +133,7 @@ export class TelemetryService implements ITelemetryService {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       if (!isDevMode) {
         console.log('adding AppInsights reporter.');
-        const userId = await UserService.getTelemetryUserId(this.extensionContext);
+        const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
         this.reporters.push(
           new AppInsights(
             this.getTelemetryReporterName(),

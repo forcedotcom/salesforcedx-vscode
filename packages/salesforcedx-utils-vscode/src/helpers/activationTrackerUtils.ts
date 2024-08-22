@@ -9,7 +9,7 @@ import { readFile } from 'fs/promises';
 import { EOL } from 'os';
 import { join, sep } from 'path';
 import { extensions, ExtensionContext, Uri } from 'vscode';
-import { ExtensionInfo, ExtensionsInfo } from './activationTracker';
+import { ExtensionInfo, ExtensionsInfo } from '../telemetry/interfaces';
 
 type ParsedLog = {
   dateTime: Date;

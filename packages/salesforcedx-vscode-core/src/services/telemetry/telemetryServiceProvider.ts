@@ -6,9 +6,10 @@
  */
 
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 
-export const getTelemetryServiceForKey = async (key: string | undefined): Promise<TelemetryService | Error> => {
+export const getTelemetryServiceForKey = (key: string | undefined): Promise<TelemetryServiceInterface | Error> => {
   console.log(`key: ${key}`);
   return TelemetryService.getInstance(key);
 };

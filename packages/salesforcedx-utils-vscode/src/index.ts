@@ -33,10 +33,7 @@ export {
 } from './context/workspaceContextUtil';
 export {
   TelemetryService,
-  TelemetryBuilder,
-  TelemetryData,
-  Properties,
-  Measurements
+  TelemetryBuilder
 } from './services/telemetry';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
@@ -56,3 +53,4 @@ export * from './output';
 export * from './predicates';
 export * from './providers';
 export * from './services';
+export * from './telemetry/interfaces';
