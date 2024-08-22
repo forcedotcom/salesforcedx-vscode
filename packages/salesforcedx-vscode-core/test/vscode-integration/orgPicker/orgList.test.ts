@@ -9,7 +9,6 @@ import {
   OrgAuthorization,
   StateAggregator
 } from '@salesforce/core-bundle';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -18,7 +17,6 @@ import { OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
 import { OrgAuthInfo } from '../../../src/util';
 
-const AN_ALIAS = 'anAlias';
 const sandbox = createSandbox();
 
 describe('orgList Tests', () => {

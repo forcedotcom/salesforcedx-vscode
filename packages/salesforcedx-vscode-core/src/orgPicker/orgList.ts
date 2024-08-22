@@ -97,7 +97,7 @@ export class OrgList implements vscode.Disposable {
       }
       const aliases = orgAuth.aliases || [];
       const authListItem =
-        aliases?.length > 0
+        aliases.length > 0
           ? `${aliases.join(',')} - ${orgAuth.username}`
           : orgAuth.username;
 
