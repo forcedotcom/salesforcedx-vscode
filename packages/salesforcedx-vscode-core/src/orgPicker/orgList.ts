@@ -11,7 +11,6 @@ import {
 } from '@salesforce/core-bundle';
 import {
   CancelResponse,
-  ConfigUtil,
   ContinueResponse,
   OrgUserInfo
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -96,7 +95,7 @@ export class OrgList implements vscode.Disposable {
         // If the scratch org is expired we don't want to see it in the org picker
         continue;
       }
-      const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
+      const aliases = orgAuth.aliases || [];
       const authListItem =
         aliases?.length > 0
           ? `${aliases.join(',')} - ${orgAuth.username}`
