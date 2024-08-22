@@ -18,7 +18,7 @@
     "theme": "light"
   },
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.86.0"
   },
   "categories": [
     "Programming Languages"
@@ -53,7 +53,7 @@
     "@types/node": "^18.11.9",
     "@types/papaparse": "^5.2.3",
     "@types/sinon": "7.5.2",
-    "@types/vscode": "^1.61.2",
+    "@types/vscode": "^1.86.0",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
     "applicationinsights": "1.0.7",
