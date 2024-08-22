@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core-bundle';
+import {
+  AuthInfo,
+  OrgAuthorization,
+  StateAggregator
+} from '@salesforce/core-bundle';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
@@ -245,7 +249,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
       });
 
-      it('should flag the org as expired if expiration date has passed', async () => {
+      it('should filter the list to ignore expired orgs', async () => {
         const oneDayMillis = 60 * 60 * 24 * 1000;
         const today = new Date();
         const yesterday = new Date(today.getTime() - oneDayMillis);
@@ -290,19 +294,11 @@ describe('orgList Tests', () => {
 
         const authList = await orgList.filterAuthInfo(authInfoObjects);
 
-        expect(authList[0]).to.equal(
-          'test-scratchorg-today@example.com - ' +
-            nls.localize('org_expired') +
-            ' ' +
-            String.fromCodePoint(0x274c)
+        expect(authList).to.not.contain('test-scratchorg-today@example.com');
+        expect(authList).to.not.contain(
+          'test-scratchorg-yesterday@example.com'
         );
-        expect(authList[1]).to.equal(
-          'test-scratchorg-yesterday@example.com - ' +
-            nls.localize('org_expired') +
-            ' ' +
-            String.fromCodePoint(0x274c)
-        );
-        expect(authList[2]).to.equal('test-scratchorg-tomorrow@example.com');
+        expect(authList[0]).to.equal('test-scratchorg-tomorrow@example.com');
       });
     });
     describe('Set Default Org', () => {
