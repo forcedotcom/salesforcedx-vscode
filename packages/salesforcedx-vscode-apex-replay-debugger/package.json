@@ -41,7 +41,7 @@
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.61.2",
+    "@types/vscode": "^1.86.0",
     "@typescript-eslint/eslint-plugin": "6.9.0",
     "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
