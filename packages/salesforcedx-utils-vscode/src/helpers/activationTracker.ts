@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ActivationInfo } from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
 import { TelemetryService } from '..';
-import { ActivationInfo } from '../telemetry/interfaces';
 import { getExtensionInfo } from './activationTrackerUtils';
 
 export class ActivationTracker {

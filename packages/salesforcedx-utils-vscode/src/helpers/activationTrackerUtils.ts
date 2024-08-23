@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provider';
 import { readFile } from 'fs/promises';
 import { EOL } from 'os';
 import { join, sep } from 'path';
 import { extensions, ExtensionContext, Uri } from 'vscode';
-import { ExtensionInfo, ExtensionsInfo } from '../telemetry/interfaces';
 
 type ParsedLog = {
   dateTime: Date;

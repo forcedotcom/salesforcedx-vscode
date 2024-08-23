@@ -53,4 +53,3 @@ export * from './output';
 export * from './predicates';
 export * from './providers';
 export * from './services';
-export * from './telemetry/interfaces';

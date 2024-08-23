@@ -4,6 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import {
+  Properties,
+  Measurements,
+  TelemetryData,
+  TelemetryServiceInterface,
+  TelemetryReporter,
+  ActivationInfo
+} from '@salesforce/vscode-service-provider';
 import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace, extensions } from 'vscode';
 import {
@@ -17,7 +25,6 @@ import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../telemetry/cliConfiguration';
-import { ActivationInfo, TelemetryServiceInterface, Measurements, Properties, TelemetryData, TelemetryReporter } from '../telemetry/interfaces/telemetryInterfacesAndTypes';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { LogStream } from '../telemetry/reporters/logStream';
 import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
