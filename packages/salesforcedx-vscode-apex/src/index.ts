@@ -9,7 +9,7 @@ import {
   getTestResultsFolder,
   ActivationTracker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ServiceProvider, ServiceType, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
@@ -51,7 +51,7 @@ import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
   if (!telemetryService) {
     throw new Error('Could not fetch a telemetry service instance');
   }
@@ -298,7 +298,7 @@ const registerTestView = (): vscode.Disposable => {
 
 export const deactivate = async () => {
   await languageClientUtils.getClientInstance()?.stop();
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
   telemetryService.sendExtensionDeactivationEvent();
 };
 
@@ -306,7 +306,7 @@ const createLanguageClient = async (
   extensionContext: vscode.ExtensionContext,
   languageServerStatusBarItem: ApexLSPStatusBarItem
 ): Promise<void> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
   // Resolve any found orphan language servers
   void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server

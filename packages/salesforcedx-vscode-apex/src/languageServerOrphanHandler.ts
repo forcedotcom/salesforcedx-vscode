@@ -31,7 +31,7 @@ export const TERMINATED_PROCESS = 'terminated_orphaned_process';
 export const TERMINATE_FAILED = 'terminate_failed';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
   const orphanedProcesses = await lsu.findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {

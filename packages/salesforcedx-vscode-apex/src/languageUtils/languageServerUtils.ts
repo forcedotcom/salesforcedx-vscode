@@ -22,7 +22,7 @@ export type ProcessDetail = {
 };
 
 const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
   const platform = process.platform.toLowerCase();
   const isWindows = platform === 'win32';
 
@@ -88,7 +88,7 @@ const terminateProcess = (pid: number) => {
 };
 
 const canRunCheck = async (isWindows: boolean) => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
   if (isWindows) {
     try {
       // where command will return path if found and empty string if not
