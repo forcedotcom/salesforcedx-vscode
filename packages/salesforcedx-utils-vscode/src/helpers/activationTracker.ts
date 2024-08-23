@@ -5,19 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ActivationInfo } from '@salesforce/vscode-service-provider';
+import { ActivationInfo, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
-import { TelemetryService } from '..';
 import { getExtensionInfo } from './activationTrackerUtils';
 
 export class ActivationTracker {
   private extensionContext: ExtensionContext;
-  private telemetryService: TelemetryService;
+  private telemetryService: TelemetryServiceInterface;
   private _activationInfo: ActivationInfo;
 
   constructor(
     extensionContext: ExtensionContext,
-    telemetryService: TelemetryService
+    telemetryService: TelemetryServiceInterface
   ) {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;

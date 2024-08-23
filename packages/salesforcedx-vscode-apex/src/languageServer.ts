@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -19,7 +20,6 @@ import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { retrieveEnableSyncInitJobs } from './settings';
-import { telemetryService } from './telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
@@ -49,6 +49,7 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 const createServer = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> => {
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -138,6 +139,7 @@ const protocol2CodeConverter = (value: string) => {
 export const createLanguageServer = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<ApexLanguageClient> => {
+  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry, 'telemetry');
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient(
     'apex',

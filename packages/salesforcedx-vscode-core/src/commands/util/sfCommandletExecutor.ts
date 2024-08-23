@@ -9,11 +9,9 @@ import {
   CliCommandExecutor,
   Command,
   CommandExecution,
-  ContinueResponse,
-  Measurements,
-  Properties,
-  TelemetryData
+  ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
+import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import {

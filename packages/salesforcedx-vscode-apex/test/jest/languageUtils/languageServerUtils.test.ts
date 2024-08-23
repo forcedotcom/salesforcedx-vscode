@@ -13,7 +13,7 @@ describe('languageServerUtils', () => {
   describe('findAndCheckOrphanedProcesses', () => {
     it('should return empty array if no processes found', () => {
       jest.spyOn(child_process, 'execSync').mockReturnValue(Buffer.from(''));
-      jest.spyOn(languageServerUtils, 'canRunCheck').mockReturnValue(true);
+      jest.spyOn(languageServerUtils, 'canRunCheck').mockResolvedValue(true);
 
       const result = languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
@@ -23,21 +23,21 @@ describe('languageServerUtils', () => {
         .spyOn(child_process, 'execSync')
         .mockReturnValueOnce(Buffer.from(`1234 5678 ${UBER_JAR_NAME}`))
         .mockReturnValueOnce(Buffer.from(''));
-      jest.spyOn(languageServerUtils, 'canRunCheck').mockReturnValue(true);
+      jest.spyOn(languageServerUtils, 'canRunCheck').mockResolvedValue(true);
 
       const result = languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
-    it('should return array of orphaned processes', () => {
+    it('should return array of orphaned processes', async () => {
       jest
         .spyOn(child_process, 'execSync')
         .mockReturnValueOnce(Buffer.from(`1234 5678 ${UBER_JAR_NAME}`))
         .mockImplementationOnce(() => {
           throw new Error();
         });
-      jest.spyOn(languageServerUtils, 'canRunCheck').mockReturnValue(true);
+      jest.spyOn(languageServerUtils, 'canRunCheck').mockResolvedValue(true);
 
-      const result = languageServerUtils.findAndCheckOrphanedProcesses();
+      const result = await languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(1);
       expect(result[0]).to.have.property('pid', 1234);
     });
