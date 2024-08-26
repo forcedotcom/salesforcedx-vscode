@@ -1,22 +1,22 @@
 {
   "name": "system-tests",
   "description": "System tests for Salesforce DX Extensions for VS Code",
-  "version": "61.10.0",
+  "version": "61.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "./out/src",
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.86.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "61.10.0",
-    "@salesforce/salesforcedx-utils-vscode": "61.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "61.11.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^18.11.9",
     "@types/rimraf": "3.0.2",
     "@types/shelljs": "^0.7.4",
-    "@types/vscode": "^1.61.2",
+    "@types/vscode": "^1.86.0",
     "@types/webdriverio": "4.6.1",
     "@typescript-eslint/eslint-plugin": "6.9.0",
     "@typescript-eslint/parser": "6.9.0",
