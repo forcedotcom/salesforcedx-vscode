@@ -1,3 +1,25 @@
+# 61.11.0 - August 28, 2024
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Increase minimum vscode version to 1.86.0 ([PR #5733](https://github.com/forcedotcom/salesforcedx-vscode/pull/5733))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- "SFDX: Generate Manifest File" command should not exist for manifest files ([PR #5731](https://github.com/forcedotcom/salesforcedx-vscode/pull/5731))
+
+#### salesforcedx-vscode-lightning
+
+- Language-server v4.12.0 @W-16395004@ ([PR #5725](https://github.com/forcedotcom/salesforcedx-vscode/pull/5725))
+
+#### salesforcedx-vscode-lwc
+
+- Language-server v4.12.0 @W-16395004@ ([PR #5725](https://github.com/forcedotcom/salesforcedx-vscode/pull/5725))
+
 # 61.10.0 - August 21, 2024
 
 ## Added
