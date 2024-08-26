@@ -12,14 +12,6 @@
 
 - "SFDX: Generate Manifest File" command should not exist for manifest files ([PR #5731](https://github.com/forcedotcom/salesforcedx-vscode/pull/5731))
 
-#### salesforcedx-vscode-lightning
-
-- Language-server v4.12.0 @W-16395004@ ([PR #5725](https://github.com/forcedotcom/salesforcedx-vscode/pull/5725))
-
-#### salesforcedx-vscode-lwc
-
-- Language-server v4.12.0 @W-16395004@ ([PR #5725](https://github.com/forcedotcom/salesforcedx-vscode/pull/5725))
-
 # 61.10.0 - August 21, 2024
 
 ## Added
