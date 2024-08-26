@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -20,6 +19,7 @@ import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { retrieveEnableSyncInitJobs } from './settings';
+import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
@@ -49,7 +49,7 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 const createServer = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<Executable> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
+  const telemetryService = await getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -91,8 +91,7 @@ const createServer = async (
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
@@ -139,7 +138,7 @@ const protocol2CodeConverter = (value: string) => {
 export const createLanguageServer = async (
   extensionContext: vscode.ExtensionContext
 ): Promise<ApexLanguageClient> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
+  const telemetryService = await getTelemetryService();
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient(
     'apex',

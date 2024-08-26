@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
-import { ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
 import { languageServerUtils as lsu, ProcessDetail } from './languageUtils';
 import { nls } from './messages';
+import { getTelemetryService } from './telemetry/telemetry';
 
 export const ADVICE = nls.localize('orphan_process_advice');
 export const YES = nls.localize('yes');
@@ -31,7 +31,7 @@ export const TERMINATED_PROCESS = 'terminated_orphaned_process';
 export const TERMINATE_FAILED = 'terminate_failed';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
+  const telemetryService = await getTelemetryService();
   const orphanedProcesses = await lsu.findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {
@@ -53,8 +53,8 @@ const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
             typeof err === 'string'
               ? err
               : err?.message
-              ? err.message
-              : 'unknown'
+                ? err.message
+                : 'unknown'
           );
         }
       }

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import { execSync } from 'child_process';
 import { SIGKILL } from 'constants';
 import {
@@ -13,6 +12,7 @@ import {
   POWERSHELL_NOT_FOUND,
   UBER_JAR_NAME
 } from '../constants';
+import { getTelemetryService } from '../telemetry/telemetry';
 
 export type ProcessDetail = {
   pid: number;
@@ -22,7 +22,7 @@ export type ProcessDetail = {
 };
 
 const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
+  const telemetryService = await getTelemetryService();
   const platform = process.platform.toLowerCase();
   const isWindows = platform === 'win32';
 
@@ -88,7 +88,7 @@ const terminateProcess = (pid: number) => {
 };
 
 const canRunCheck = async (isWindows: boolean) => {
-  const telemetryService =  await ServiceProvider.getService(ServiceType.Telemetry);
+  const telemetryService = await getTelemetryService();
   if (isWindows) {
     try {
       // where command will return path if found and empty string if not
