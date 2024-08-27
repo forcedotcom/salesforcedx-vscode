@@ -130,6 +130,10 @@ export abstract class LibraryCommandletExecutor<T>
   protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
 
+  public static readonly libraryCommandCompletionEventEmitter = new vscode.EventEmitter<boolean>();
+  public static readonly onLibraryCommandCompletion: vscode.Event<boolean> =
+    LibraryCommandletExecutor.libraryCommandCompletionEventEmitter.event;
+
   /**
    * @param executionName Name visible to user while executing.
    * @param logName Name for logging purposes such as telemetry.
@@ -220,6 +224,7 @@ export abstract class LibraryCommandletExecutor<T>
         properties,
         measurements
       );
+      LibraryCommandletExecutor.libraryCommandCompletionEventEmitter.fire(!!success);
     } catch (e) {
       if (e instanceof Error) {
         telemetryService.sendException(e.name, e.message);
@@ -227,6 +232,7 @@ export abstract class LibraryCommandletExecutor<T>
         channelService.appendLine(e.message);
       }
       channelService.showChannelOutput();
+      LibraryCommandletExecutor.libraryCommandCompletionEventEmitter.fire(false);
     }
   }
 

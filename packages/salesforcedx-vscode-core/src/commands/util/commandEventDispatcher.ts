@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { RefreshSObjectsExecutor } from '..';
 
@@ -23,7 +24,14 @@ export class CommandEventDispatcher implements vscode.Disposable {
     return RefreshSObjectsExecutor.onRefreshSObjectsCommandCompletion(listener);
   }
 
+  public onLibraryCommandCompletion(
+    listener: (event: unknown) => unknown
+  ): vscode.Disposable {
+    return LibraryCommandletExecutor.onLibraryCommandCompletion(listener);
+  }
+
   public dispose() {
     RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.dispose();
+    LibraryCommandletExecutor.libraryCommandCompletionEventEmitter.dispose();
   }
 }
