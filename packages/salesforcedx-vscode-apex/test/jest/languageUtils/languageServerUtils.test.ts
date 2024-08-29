@@ -8,24 +8,34 @@ import { expect } from 'chai';
 import * as child_process from 'child_process';
 import { UBER_JAR_NAME } from '../../../src/constants';
 import { languageServerUtils } from '../../../src/languageUtils';
+import { getTelemetryService } from '../../../src/telemetry/telemetry';
+import { MockTelemetryService } from '../telemetry/mockTelemetryService';
+
+jest.mock('../../../src/telemetry/telemetry', () => ({
+  getTelemetryService: jest.fn()
+}));
 
 describe('languageServerUtils', () => {
   describe('findAndCheckOrphanedProcesses', () => {
-    it('should return empty array if no processes found', () => {
+    beforeEach(() => {
+      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+    });
+
+    it('should return empty array if no processes found', async () => {
       jest.spyOn(child_process, 'execSync').mockReturnValue(Buffer.from(''));
       jest.spyOn(languageServerUtils, 'canRunCheck').mockResolvedValue(true);
 
-      const result = languageServerUtils.findAndCheckOrphanedProcesses();
+      const result = await languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
-    it('should return empty array if no orphaned processes found', () => {
+    it('should return empty array if no orphaned processes found', async () => {
       jest
         .spyOn(child_process, 'execSync')
         .mockReturnValueOnce(Buffer.from(`1234 5678 ${UBER_JAR_NAME}`))
         .mockReturnValueOnce(Buffer.from(''));
       jest.spyOn(languageServerUtils, 'canRunCheck').mockResolvedValue(true);
 
-      const result = languageServerUtils.findAndCheckOrphanedProcesses();
+      const result = await languageServerUtils.findAndCheckOrphanedProcesses();
       expect(result).to.have.lengthOf(0);
     });
     it('should return array of orphaned processes', async () => {
