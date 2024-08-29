@@ -21,6 +21,7 @@ class SimpleTestLibraryCommandletExecutor<T> extends LibraryCommandletExecutor<T
       });
   }
 }
+
 jest.mock('../../../src/commands/channelService');
 
 describe('LibraryCommandletExecutor', () => {
