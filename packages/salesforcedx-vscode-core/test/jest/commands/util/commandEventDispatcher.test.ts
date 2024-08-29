@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { RefreshSObjectsExecutor } from '../../../../src/commands';
 import { CommandEventDispatcher } from '../../../../src/commands/util/commandEventDispatcher';
@@ -46,11 +47,31 @@ describe('CommandEventDispatcher', () => {
     });
   });
 
+  describe('onLibraryCommandCompletion', () => {
+    const mockDisposable = new vscode.Disposable(() => {});
+
+    beforeEach(() => {
+      (LibraryCommandletExecutor as any).onLibraryCommandCompletion = jest
+        .fn()
+        .mockReturnValue(mockDisposable);
+    });
+
+    it('should call onLibraryCommandCompletion event and return the disposable', () => {
+      const dispatcher = CommandEventDispatcher.getInstance();
+      const listener = () => {};
+      const disposable = dispatcher.onLibraryCommandCompletion(listener);
+
+      expect(disposable).toBe(mockDisposable);
+      expect((LibraryCommandletExecutor as any).onLibraryCommandCompletion).toHaveBeenCalledWith(listener);
+    });
+  });
+
   describe('dispose', () => {
     beforeEach(() => {
       (
         RefreshSObjectsExecutor as any
       ).refreshSObjectsCommandCompletionEventEmitter = { dispose: jest.fn() };
+      (LibraryCommandletExecutor as any).libraryCommandCompletionEventEmitter = { dispose: jest.fn() };
     });
 
     it('should dispose the refreshSObjectsCommandCompletionEventEmitter', () => {
@@ -61,6 +82,14 @@ describe('CommandEventDispatcher', () => {
         (RefreshSObjectsExecutor as any)
           .refreshSObjectsCommandCompletionEventEmitter.dispose
       ).toHaveBeenCalled();
+    });
+
+    it('should dispose the libraryCommandCompletionEventEmitter', () => {
+      const dispatcher = CommandEventDispatcher.getInstance();
+      dispatcher.dispose();
+
+      expect(
+        (LibraryCommandletExecutor as any).libraryCommandCompletionEventEmitter.dispose).toHaveBeenCalled();
     });
   });
 });
