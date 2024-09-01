@@ -555,14 +555,14 @@
   resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.9.0.tgz#ba477a112653a20b4edcf989c61c57bdff9aa3ca"
   integrity sha512-LiN37zG5ODT6z70sL1fxF7BQwtCX9JOWofSU8iliSNIM+WDEeinnoFtVqPInRSNt8I0RiJxIKCrqstsmQRBNvA==
 
-"@salesforce/ts-sinon@^1.4.24":
-  version "1.4.24"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.4.24.tgz#944db6ee055172fa1e89de17d7d71740b40795e1"
-  integrity sha512-oTl/WRM958XMtgTNYDSjF86zpvBuHhIiQmI+T0N9Y+KCZ3Ext9gV4gQ5Xd1bBPiht+yv4k0sW5jq/QZPYr6Cyw==
+"@salesforce/ts-sinon@^1.4.26":
+  version "1.4.26"
+  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.4.26.tgz#f91b95fbf3b2c7414a779a633b6e3a6e3fbbe338"
+  integrity sha512-SLCD1nOurnh++BWSQJ/jp0PQwGZNpPKAdtXA7NZDnRvcB1389lxCQg7+sPa/ZdM4gZlN65lsoKBgiAboLwhTxw==
   dependencies:
     "@salesforce/ts-types" "^2.0.12"
     sinon "^5.1.1"
-    tslib "^2.6.3"
+    tslib "^2.7.0"
 
 "@salesforce/ts-types@^2.0.10", "@salesforce/ts-types@^2.0.12":
   version "2.0.12"
@@ -4544,10 +4544,10 @@ ts-retry-promise@^0.8.1:
   resolved "https://registry.yarnpkg.com/ts-retry-promise/-/ts-retry-promise-0.8.1.tgz#ba90eb07cb03677fcbf78fe38e94c9183927e154"
   integrity sha512-+AHPUmAhr5bSRRK5CurE9kNH8gZlEHnCgusZ0zy2bjfatUBDX0h6vGQjiT0YrGwSDwRZmU+bapeX6mj55FOPvg==
 
-tslib@^2.0.3, tslib@^2.1.0, tslib@^2.6.2, tslib@^2.6.3:
-  version "2.6.3"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.3.tgz#0438f810ad7a9edcde7a241c3d80db693c8cbfe0"
-  integrity sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==
+tslib@^2.0.3, tslib@^2.1.0, tslib@^2.6.2, tslib@^2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.7.0.tgz#d9b40c5c40ab59e8738f297df3087bf1a2690c01"
+  integrity sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==
 
 tunnel-agent@*:
   version "0.6.0"
