@@ -1,3 +1,15 @@
+# 61.12.0 - September 4, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-lightning
+
+- Bump lls to fix jsconfig issue ([PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
+
+#### salesforcedx-vscode-lwc
+
+- Bump lls to fix jsconfig issue ([PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
+
 # 61.11.0 - August 28, 2024
 
 ## Added
