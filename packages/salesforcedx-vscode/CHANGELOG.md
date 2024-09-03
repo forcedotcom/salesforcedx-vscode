@@ -6,7 +6,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We fixed an issue where the `paths` property was incorrectly placed in jsconfig.json. ([PR #597](https://github.com/forcedotcom/lightning-language-server/pull/597), [PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
+- We fixed an issue where the `paths` property was incorrectly placed in jsconfig.json. ([PR #5798](https://github.com/forcedotcom/lightning-language-server/pull/597), [PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
 
 # 61.11.0 - August 28, 2024
 
@@ -14,13 +14,13 @@
 
 #### salesforcedx-vscode-core
 
-- Increase minimum vscode version to 1.86.0 ([PR #5733](https://github.com/forcedotcom/salesforcedx-vscode/pull/5733))
+- To ensure smooth operation, the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.86 or higher. ([PR #5733](https://github.com/forcedotcom/salesforcedx-vscode/pull/5733))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- "SFDX: Generate Manifest File" command should not exist for manifest files ([PR #5731](https://github.com/forcedotcom/salesforcedx-vscode/pull/5731))
+- We fixed an issue that was causing the `SFDX: Generate Manifest File` command to appear in the context menu for manifest files. ([PR #5731](https://github.com/forcedotcom/salesforcedx-vscode/pull/5731))
 
 # 61.10.0 - August 21, 2024
 
