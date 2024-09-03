@@ -10,12 +10,6 @@
 
 # 61.11.0 - August 28, 2024
 
-## Added
-
-#### salesforcedx-vscode-core
-
-- To ensure smooth operation, the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.86 or higher. ([PR #5733](https://github.com/forcedotcom/salesforcedx-vscode/pull/5733))
-
 ## Fixed
 
 #### salesforcedx-vscode-core
