@@ -4,11 +4,9 @@
 
 #### salesforcedx-vscode-lightning
 
-- Bump lls to fix jsconfig issue ([PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
-
 #### salesforcedx-vscode-lwc
 
-- Bump lls to fix jsconfig issue ([PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
+- We fixed an issue where the `paths` property was incorrectly placed in jsconfig.json. ([PR #597](https://github.com/forcedotcom/lightning-language-server/pull/597), [PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
 
 # 61.11.0 - August 28, 2024
 
@@ -29,6 +27,7 @@
 ## Added
 
 #### salesforcedx-vscode
+
 #### salesforcedx-vscode-expanded
 
 - To ensure smooth operation, the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.86 or higher. ([PR #5715](https://github.com/forcedotcom/salesforcedx-vscode/pull/5715))
@@ -44,11 +43,13 @@
 - We made some changes under the hood. ([PR #5707](https://github.com/forcedotcom/salesforcedx-vscode/pull/5707))
 
 #### salesforcedx-apex-replay-debugger
+
 #### salesforcedx-vscode-apex-replay-debugger
 
 - To give us better insight into its behavior, we’ve added more telemetry to the Apex Replay Debugger. ([PR #5724](https://github.com/forcedotcom/salesforcedx-vscode/pull/5724))
 
 #### salesforcedx-vscode
+
 #### salesforcedx-vscode-expanded
 
 - We made helpful clarifications in Marketplace READMEs. ([PR #5716](https://github.com/forcedotcom/salesforcedx-vscode/pull/5716))
@@ -58,7 +59,6 @@
 - We fixed an issue with the `SFDX: Diff Folder Against Org` and `SFDX: Diff File Against Org` commands. These commands now work correctly when you have a file in your project, but not in your org. You won’t see a notification that says the command is running when it’s not. ([PR #5722](https://github.com/forcedotcom/salesforcedx-vscode/pull/5722))
 
 - You can now rename Lightning Web Component (LWC) components when the Aura folder isn’t present, and vice versa. We’ve also added checks when creating new LWC and Aura components to ensure that the name doesn't already exist. ([PR #5718](https://github.com/forcedotcom/salesforcedx-vscode/pull/5718), [ISSUE #5692](https://github.com/forcedotcom/salesforcedx-vscode/issues/5692))
-  
 
 # 61.8.1 - August 8, 2024
 
@@ -114,7 +114,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We added support for the LWC Lightning Record Picker component. You can now use features like hover and auto-completion when you're working with this component in VS Code. ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683)). 
+- We added support for the LWC Lightning Record Picker component. You can now use features like hover and auto-completion when you're working with this component in VS Code. ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683)).
 
 # 61.4.0 - July 10, 2024
 
@@ -142,13 +142,11 @@
 
 - We updated our documentation with information about installing JDK 21. ([PR #5655](https://github.com/forcedotcom/salesforcedx-vscode/pull/5655))
 
-- We made updates to our Apex Debugger documentation.  ([PR #5649](https://github.com/forcedotcom/salesforcedx-vscode/pull/5649))
-
+- We made updates to our Apex Debugger documentation. ([PR #5649](https://github.com/forcedotcom/salesforcedx-vscode/pull/5649))
 
 #### salesforcedx-vscode-core
 
 - We fixed an issue where an incorrect caching strategy caused metadata files to deploy with outdated content. ([PR #5650](https://github.com/forcedotcom/salesforcedx-vscode/pull/5650), [ISSUE #5612](https://github.com/forcedotcom/salesforcedx-vscode/issues/5612))
-
 
 # 61.1.2 - June 21, 2024
 
