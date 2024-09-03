@@ -6,7 +6,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We fixed an issue where the `paths` property was incorrectly placed in jsconfig.json. ([PR #5798](https://github.com/forcedotcom/lightning-language-server/pull/597), [PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
+- We fixed an issue where the `paths` property was incorrectly placed in jsconfig.json. ([PR #597](https://github.com/forcedotcom/lightning-language-server/pull/597), [PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
 
 # 61.11.0 - August 28, 2024
 
