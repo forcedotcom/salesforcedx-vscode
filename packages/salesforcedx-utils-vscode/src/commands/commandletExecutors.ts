@@ -4,13 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { CliCommandExecutor, Command, CommandExecution } from '../cli';
 import {
-  Measurements,
-  Properties,
   TelemetryBuilder,
-  TelemetryData,
   TelemetryService
 } from '../index';
 import { nls } from '../messages';
@@ -120,8 +118,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 }
 
 export abstract class LibraryCommandletExecutor<T>
-  implements CommandletExecutor<T>
-{
+  implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
   private readonly executionName: string;

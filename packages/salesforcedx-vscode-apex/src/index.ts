@@ -46,11 +46,15 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { retrieveEnableSyncInitJobs } from './settings';
-import { telemetryService } from './telemetry';
+import { getTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
+  const telemetryService = await getTelemetryService();
+  if (!telemetryService) {
+    throw new Error('Could not fetch a telemetry service instance');
+  }
   const activationTracker = new ActivationTracker(
     extensionContext,
     telemetryService
@@ -294,6 +298,7 @@ const registerTestView = (): vscode.Disposable => {
 
 export const deactivate = async () => {
   await languageClientUtils.getClientInstance()?.stop();
+  const telemetryService = await getTelemetryService();
   telemetryService.sendExtensionDeactivationEvent();
 };
 
@@ -301,6 +306,7 @@ const createLanguageClient = async (
   extensionContext: vscode.ExtensionContext,
   languageServerStatusBarItem: ApexLSPStatusBarItem
 ): Promise<void> => {
+  const telemetryService = await getTelemetryService();
   // Resolve any found orphan language servers
   void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server

@@ -17,7 +17,7 @@ export enum EXT_PACK_TYPES {
 
 export class MetricsReporter {
 
-  public static extensionPackStatus = () => {
+  public static extensionPackStatus = (): void => {
     const extensionPackStatus = MetricsReporter.getExtensionPackStatus();
     TelemetryService.getInstance().sendEventData(
       EXT_PACK_STATUS_EVENT_NAME,
@@ -25,7 +25,7 @@ export class MetricsReporter {
     );
   };
 
-  private static getExtensionPackStatus = () => {
+  private static getExtensionPackStatus = (): EXT_PACK_TYPES => {
     const hasBasePack = this.isExtensionInstalled(BASE_EXTENSION);
     const hasExpandedPack = this.isExtensionInstalled(EXPANDED_EXTENSION);
 
@@ -41,7 +41,7 @@ export class MetricsReporter {
     return status;
   };
 
-  private static isExtensionInstalled = (extensionName: string) => {
+  private static isExtensionInstalled = (extensionName: string): boolean => {
     const extension = vscode.extensions.getExtension(extensionName);
     return extension !== undefined;
   };

@@ -6,7 +6,7 @@
  */
 import { AppInsights } from '@salesforce/salesforcedx-utils-vscode';
 import { UserService } from '@salesforce/salesforcedx-utils-vscode';
-import { ExtensionMode, window } from 'vscode';
+import { extensions, ExtensionMode, window, Extension } from 'vscode';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
@@ -47,6 +47,8 @@ describe('Telemetry', () => {
     it('Should not initialize telemetry reporter', async () => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext(true);
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
 
       await telemetryService.initializeService(mockExtensionContext);
 
@@ -59,13 +61,15 @@ describe('Telemetry', () => {
     it('Should show telemetry info message', async () => {
       // create vscode extensionContext in which telemetry msg has never been previously shown
       mockExtensionContext = new MockExtensionContext(false);
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
 
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).toHaveBeenCalledTimes(1);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
@@ -73,19 +77,23 @@ describe('Telemetry', () => {
     it('Should not show telemetry info message', async () => {
       // create vscode extensionContext in which telemetry msg has been previously shown
       mockExtensionContext = new MockExtensionContext(true);
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
 
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).not.toHaveBeenCalled();
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
     it('Should disable CLI telemetry', async () => {
       mockExtensionContext = new MockExtensionContext(true);
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
 
       cliSpy.mockResolvedValue(false);
       await telemetryService.initializeService(mockExtensionContext);
@@ -127,13 +135,15 @@ describe('Telemetry', () => {
         false,
         ExtensionMode.Production
       );
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
 
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).toHaveBeenCalledTimes(1);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
@@ -144,13 +154,15 @@ describe('Telemetry', () => {
         true,
         ExtensionMode.Production
       );
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
 
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).toEqual(true);
 
-      showTelemetryMessage(mockExtensionContext);
+      await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).not.toHaveBeenCalled();
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
@@ -161,6 +173,9 @@ describe('Telemetry', () => {
         true,
         ExtensionMode.Production
       );
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
+
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryReporters = telemetryService.getReporters();
@@ -175,6 +190,9 @@ describe('Telemetry', () => {
         true,
         ExtensionMode.Production
       );
+      jest.spyOn(extensions, 'getExtension')
+        .mockReturnValue({exports: mockExtensionContext} as unknown as Extension<any>);
+
       // Set reporters list to empty array so it will create a new appInsights reporter
       (telemetryService as any).reporters = [];
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();

@@ -118,7 +118,7 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
-import { getCoreLoggerService } from './services/getCoreLoggerService';
+import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
@@ -395,6 +395,8 @@ const registerCommands = (
     getCoreLoggerService
   );
 
+  const getTelemetryServiceForKeyCmd = registerGetTelemetryServiceCommand();
+
   return vscode.Disposable.from(
     renameLightningComponentCmd,
     diffFolder,
@@ -454,7 +456,8 @@ const registerCommands = (
     orgLogoutAllCmd,
     orgLogoutDefaultCmd,
     orgOpenCmd,
-    getCoreLoggerServiceCmd
+    getCoreLoggerServiceCmd,
+    getTelemetryServiceForKeyCmd
   );
 };
 
@@ -567,7 +570,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
-  showTelemetryMessage(extensionContext);
+  void showTelemetryMessage(extensionContext);
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
@@ -579,7 +582,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
 
-  vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
+  void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   if (internalDev) {
     // Internal Dev commands
@@ -715,7 +718,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   PersistentStorageService.initialize(extensionContext);
 
   // Register file watcher for push or deploy on save
-  await registerPushOrDeployOnSave();
+  registerPushOrDeployOnSave();
   await decorators.showOrg();
 
   await setUpOrgExpirationWatcher(newOrgList);

@@ -10,12 +10,12 @@
 import {
   FieldValue,
   Fields,
-  ILogger,
+  LoggerInterface,
   LogLine,
   LoggerLevelValue
 } from '@salesforce/vscode-service-provider';
 
-export class CoreLoggerService implements ILogger {
+export class CoreLoggerService implements LoggerInterface {
   private level: LoggerLevelValue = 0;
   public constructor(private loggerName: string) {
     this.loggerName = loggerName;
@@ -26,7 +26,7 @@ export class CoreLoggerService implements ILogger {
   getLevel(): LoggerLevelValue {
     return this.level;
   }
-  setLevel(level?: LoggerLevelValue): ILogger {
+  setLevel(level?: LoggerLevelValue): LoggerInterface {
     this.level = level ?? 0;
     return this;
   }
@@ -39,32 +39,32 @@ export class CoreLoggerService implements ILogger {
   readLogContentsAsText(): string {
     return '';
   }
-  child(name: string, fields?: Fields | undefined): ILogger {
+  child(name: string, fields?: Fields | undefined): LoggerInterface {
     return new CoreLoggerService(`${this.getName()}.childLogger`);
   }
-  addField(name: string, value: FieldValue): ILogger {
+  addField(name: string, value: FieldValue): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  trace(...args: unknown[]): ILogger {
+  trace(...args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  debug(...args: unknown[]): ILogger {
+  debug(...args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  info(...args: unknown[]): ILogger {
+  info(...args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  warn(...args: unknown[]): ILogger {
+  warn(...args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  error(...args: unknown[]): ILogger {
+  error(...args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  fatal(...args: unknown[]): ILogger {
+  fatal(...args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
 }
 
-export const getCoreLoggerService = (loggerName: string): ILogger => {
+export const getCoreLoggerService = (loggerName: string): LoggerInterface => {
   return new CoreLoggerService(loggerName);
 };
