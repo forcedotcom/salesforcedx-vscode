@@ -5,38 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionContext, ExtensionKind, Uri } from 'vscode';
-import { TelemetryService } from '..';
+import { ActivationInfo, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { ExtensionContext } from 'vscode';
 import { getExtensionInfo } from './activationTrackerUtils';
-
-export type ExtensionInfo = {
-  isActive: boolean;
-  path: string;
-  kind: ExtensionKind;
-  uri: Uri;
-  loadStartDate: Date;
-};
-
-export type ExtensionsInfo = {
-  [extensionId: string]: ExtensionInfo;
-};
-
-export type ActivationInfo = Partial<ExtensionInfo> & {
-  startActivateHrTime: [number, number];
-  activateStartDate: Date;
-  activateEndDate?: Date;
-  extensionActivationTime: number;
-  markEndTime?: number;
-};
 
 export class ActivationTracker {
   private extensionContext: ExtensionContext;
-  private telemetryService: TelemetryService;
+  private telemetryService: TelemetryServiceInterface;
   private _activationInfo: ActivationInfo;
 
   constructor(
     extensionContext: ExtensionContext,
-    telemetryService: TelemetryService
+    telemetryService: TelemetryServiceInterface
   ) {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;

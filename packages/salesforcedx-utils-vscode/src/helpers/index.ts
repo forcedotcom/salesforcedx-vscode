@@ -32,8 +32,7 @@ export {
 } from './validations';
 export { isSFContainerMode } from './env';
 export {
-  ActivationInfo,
-  ActivationTracker,
-  ExtensionInfo,
-  ExtensionsInfo
+  ActivationTracker
 } from './activationTracker';
+
+

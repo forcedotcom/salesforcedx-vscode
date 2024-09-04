@@ -6,11 +6,11 @@
  */
 'use strict';
 
+import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Disposable, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
-import { TelemetryReporter } from '../interfaces';
 
 /**
  * Represents a telemetry reporter that logs telemetry events to a file.

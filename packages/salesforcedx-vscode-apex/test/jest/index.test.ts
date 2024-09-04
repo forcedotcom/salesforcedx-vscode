@@ -9,9 +9,15 @@ import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientUtils } from '../../src/languageUtils';
 import { extensionUtils } from '../../src/languageUtils/extensionUtils';
+import { getTelemetryService } from '../../src/telemetry/telemetry';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
+import { MockTelemetryService } from './telemetry/mockTelemetryService';
 
 jest.mock('./../../src/apexLspStatusBarItem');
+jest.mock('../../src/telemetry/telemetry', () => ({
+  getTelemetryService: jest.fn()
+}));
+
 describe('indexDoneHandler', () => {
   let setStatusSpy: jest.SpyInstance;
   let onNotificationSpy: jest.SpyInstance;
@@ -74,6 +80,7 @@ describe('deactivate', () => {
   let stopSpy: jest.SpyInstance;
   beforeEach(() => {
     stopSpy = jest.fn();
+    (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
     jest
       .spyOn(languageClientUtils, 'getClientInstance')
       .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);

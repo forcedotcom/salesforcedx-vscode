@@ -12,7 +12,7 @@ import {
   POWERSHELL_NOT_FOUND,
   UBER_JAR_NAME
 } from '../constants';
-import { telemetryService } from '../telemetry';
+import { getTelemetryService } from '../telemetry/telemetry';
 
 export type ProcessDetail = {
   pid: number;
@@ -21,7 +21,8 @@ export type ProcessDetail = {
   orphaned: boolean;
 };
 
-const findAndCheckOrphanedProcesses = (): ProcessDetail[] => {
+const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> => {
+  const telemetryService = await getTelemetryService();
   const platform = process.platform.toLowerCase();
   const isWindows = platform === 'win32';
 
@@ -86,7 +87,8 @@ const terminateProcess = (pid: number) => {
   process.kill(pid, SIGKILL);
 };
 
-const canRunCheck = (isWindows: boolean) => {
+const canRunCheck = async (isWindows: boolean) => {
+  const telemetryService = await getTelemetryService();
   if (isWindows) {
     try {
       // where command will return path if found and empty string if not
