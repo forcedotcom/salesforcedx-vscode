@@ -43,7 +43,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version for ESM branches'
         required: false
-        default: 'stable'
+        default: '1.92.2'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -57,7 +57,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Core_E2E_tests:
@@ -66,7 +66,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   DeployAndRetrieve_E2E_tests:
@@ -75,7 +75,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP_E2E_tests:
@@ -84,7 +84,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   # LWC_E2E_tests:
@@ -93,7 +93,7 @@ jobs:
   #   secrets: inherit
   #   with:
   #     automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-  #     vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+  #     vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
   #     runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Apex_E2E_tests_min_vscode_version:
