@@ -158,7 +158,8 @@ jobs:
         # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
-        pushAndPull
+        pushAndPull,
+        manifestBuilder
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -179,7 +180,8 @@ jobs:
         # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
-        pushAndPull
+        pushAndPull,
+        manifestBuilder
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -200,7 +202,8 @@ jobs:
         # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
-        pushAndPull
+        pushAndPull,
+        manifestBuilder
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
