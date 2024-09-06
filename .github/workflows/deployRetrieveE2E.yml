@@ -33,6 +33,11 @@ on:
         required: false
         default: true
         type: boolean
+      metadataDeployAndRetrieve:
+        description: 'Metadata Deploy and Retrieve'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
