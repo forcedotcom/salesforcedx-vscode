@@ -35,11 +35,11 @@ on:
         required: false
         default: true
         type: boolean
-      # lwcE2ETests:
-      #   description: 'LWC E2E Tests'
-      #   required: false
-      #   default: false
-      #   type: boolean
+      lwcE2ETests:
+        description: 'LWC E2E Tests'
+        required: false
+        default: false
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version for ESM branches'
         required: false
