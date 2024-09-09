@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       auraLsp:
         description: 'Aura LSP'
@@ -38,7 +38,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       auraLsp:
         description: 'Aura LSP'
