@@ -15,7 +15,7 @@ import { nls } from '../../messages';
 export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
   string
 > {
-  private options = {} || undefined;
+  private options;
 
   constructor(
     executionName: string,
