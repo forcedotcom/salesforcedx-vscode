@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
@@ -53,7 +53,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
