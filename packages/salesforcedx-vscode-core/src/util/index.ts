@@ -17,7 +17,7 @@ export {
 export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 export {
-  checkForExpiredOrgs,
+  checkForSoonToBeExpiredOrgs,
   getAuthFieldsFor,
   getTargetDevHubOrAlias,
   setUpOrgExpirationWatcher

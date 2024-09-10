@@ -243,6 +243,7 @@ export const messages = {
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
+  default_org_expired: 'Your default org is expired.',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
@@ -533,5 +534,7 @@ export const messages = {
   parameter_gatherer_file_name_max_length_validation_error_message:
     'ファイル名は {0} 文字を超えることはできません',
   predicates_no_folder_opened_text:
-    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
+    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
+  predicates_no_salesforce_project_found_text:
+    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
 };

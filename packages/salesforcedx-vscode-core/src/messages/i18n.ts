@@ -282,6 +282,7 @@ export const messages = {
   org_select_text: 'Select an org to set as default',
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
+  default_org_expired: 'Your default org is expired.',
   config_set_org_text: 'SFDX: Set a Default Org',
   config_set_title: 'Set Config',
   table_header_name: 'Name',
@@ -698,6 +699,8 @@ export const messages = {
   SchedulingRule: 'SchedulingRule',
   predicates_no_folder_opened_text:
     'No folder opened. Open a Salesforce DX project in VS Code.',
+  predicates_no_salesforce_project_found_text:
+    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
