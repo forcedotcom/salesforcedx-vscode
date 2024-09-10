@@ -4,8 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core-bundle';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  AuthInfo,
+  OrgAuthorization,
+  StateAggregator
+} from '@salesforce/core-bundle';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -14,7 +17,6 @@ import { OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
 import { OrgAuthInfo } from '../../../src/util';
 
-const AN_ALIAS = 'anAlias';
 const sandbox = createSandbox();
 
 describe('orgList Tests', () => {
@@ -35,8 +37,8 @@ describe('orgList Tests', () => {
     it('should return a list of FileInfo objects when given an array of file names', async () => {
       // Arrange
       const authFilesArray = [
-        { username: 'test-username1@example.com' },
-        { username: 'test-username2@example.com' }
+        { username: 'test-username1@example.com', aliases: ['alias1'] },
+        { username: 'test-username2@example.com', aliases: ['alias2'] }
       ];
       getAuthInfoListAllAuthorizationsStub.resolves(authFilesArray);
       const orgList = new OrgList();
@@ -67,7 +69,6 @@ describe('orgList Tests', () => {
       let getUsernameStub: SinonStub;
       let stateAggregatorCreateStub: SinonStub;
       let getAllStub: SinonStub;
-      let getAllAliasesForStub: SinonStub;
       let getAuthFieldsForStub: SinonStub;
       const orgList = new OrgList();
 
@@ -87,7 +88,6 @@ describe('orgList Tests', () => {
           .stub(StateAggregator, 'create')
           .resolves(fakeStateAggregator);
 
-        getAllAliasesForStub = sandbox.stub(ConfigUtil, 'getAllAliasesFor');
         getAuthFieldsForStub = sandbox.stub(
           OrgList.prototype,
           'getAuthFieldsFor'
@@ -116,7 +116,8 @@ describe('orgList Tests', () => {
 
       const dummyOrgAuth1 = getFakeOrgAuthorization({
         orgId: '000',
-        username: 'test-username1@example.com'
+        username: 'test-username1@example.com',
+        aliases: ['alias1']
       });
       const dummyOrgAuth2 = getFakeOrgAuthorization({
         orgId: '111',
@@ -129,13 +130,15 @@ describe('orgList Tests', () => {
       });
       const dummyScratchOrgAuth2 = getFakeOrgAuthorization({
         orgId: '111',
-        username: 'test-scratchorg2@example.com'
+        username: 'test-scratchorg2@example.com',
+        aliases: ['anAlias']
       });
       const dummyScratchOrgAuthWithError = getFakeOrgAuthorization({
         orgId: '222',
         username: 'test-scratchorg3@example.com',
         error:
-          'No authorization information found for test-scratchorg3@example.com.'
+          'No authorization information found for test-scratchorg3@example.com.',
+        aliases: ['anAlias']
       });
 
       const dummyDevHubUsername1 = 'test-devhub1@example.com';
@@ -209,9 +212,6 @@ describe('orgList Tests', () => {
           .returns({
             devHubUsername: dummyDevHubUsername1
           });
-        getAllAliasesForStub
-          .withArgs(authInfoObjectsWithOneError[0].username)
-          .returns([AN_ALIAS]);
         getDevHubUsernameStub.resolves(dummyDevHubUsername1);
 
         const authList = await orgList.filterAuthInfo(
@@ -219,7 +219,6 @@ describe('orgList Tests', () => {
         );
         expect(getDevHubUsernameStub.calledOnce).to.equal(true);
         expect(authList.length).to.equal(1);
-        expect(authList[0].includes(AN_ALIAS)).to.equal(true);
         expect(authList[0].includes(dummyScratchOrgAuth1.username)).to.equal(
           true
         );
@@ -233,9 +232,6 @@ describe('orgList Tests', () => {
           dummyOrgAuth2
         ];
         getAllStub.withArgs(dummyOrgAuth1.username).returns(['alias1']);
-        getAllAliasesForStub
-          .withArgs(dummyOrgAuth1.username)
-          .returns(['alias1']);
         getAuthFieldsForStub.withArgs(authInfoObjects[0].username).returns({});
 
         // Act
@@ -245,7 +241,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
       });
 
-      it('should flag the org as expired if expiration date has passed', async () => {
+      it('should filter the list to ignore expired orgs', async () => {
         const oneDayMillis = 60 * 60 * 24 * 1000;
         const today = new Date();
         const yesterday = new Date(today.getTime() - oneDayMillis);
@@ -254,15 +250,18 @@ describe('orgList Tests', () => {
         const authInfoObjects: OrgAuthorization[] = [
           getFakeOrgAuthorization({
             orgId: '000',
-            username: 'test-scratchorg-today@example.com'
+            username: 'test-scratchorg-today@example.com',
+            isExpired: true
           }),
           getFakeOrgAuthorization({
             orgId: '111',
-            username: 'test-scratchorg-yesterday@example.com'
+            username: 'test-scratchorg-yesterday@example.com',
+            isExpired: true
           }),
           getFakeOrgAuthorization({
             orgId: '222',
-            username: 'test-scratchorg-tomorrow@example.com'
+            username: 'test-scratchorg-tomorrow@example.com',
+            isExpired: false
           })
         ];
 
@@ -290,19 +289,11 @@ describe('orgList Tests', () => {
 
         const authList = await orgList.filterAuthInfo(authInfoObjects);
 
-        expect(authList[0]).to.equal(
-          'test-scratchorg-today@example.com - ' +
-            nls.localize('org_expired') +
-            ' ' +
-            String.fromCodePoint(0x274c)
+        expect(authList).to.not.contain('test-scratchorg-today@example.com');
+        expect(authList).to.not.contain(
+          'test-scratchorg-yesterday@example.com'
         );
-        expect(authList[1]).to.equal(
-          'test-scratchorg-yesterday@example.com - ' +
-            nls.localize('org_expired') +
-            ' ' +
-            String.fromCodePoint(0x274c)
-        );
-        expect(authList[2]).to.equal('test-scratchorg-tomorrow@example.com');
+        expect(authList[0]).to.equal('test-scratchorg-tomorrow@example.com');
       });
     });
     describe('Set Default Org', () => {
