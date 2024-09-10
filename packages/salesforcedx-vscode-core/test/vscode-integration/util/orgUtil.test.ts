@@ -13,7 +13,7 @@ import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
-import { checkForExpiredOrgs } from '../../../src/util';
+import { checkForSoonToBeExpiredOrgs } from '../../../src/util';
 
 describe('orgUtil tests', () => {
   let sb: SinonSandbox;
@@ -25,7 +25,7 @@ describe('orgUtil tests', () => {
     sb.restore();
   });
 
-  describe('checkForExpiredOrgs tests', () => {
+  describe('checkForSoonToBeExpiredOrgs tests', () => {
     const orgName1 = 'dreamhouse-org';
     const orgName2 = 'ebikes-lwc';
     const now = new Date();
@@ -49,7 +49,7 @@ describe('orgUtil tests', () => {
     it('should not display a notification when no orgs are present', async () => {
       listAllAuthorizationsStub.resolves(undefined);
       const orgList = new OrgList();
-      await checkForExpiredOrgs(orgList);
+      await checkForSoonToBeExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
@@ -70,15 +70,15 @@ describe('orgUtil tests', () => {
         }
       ]);
       const orgList = new OrgList();
-      await checkForExpiredOrgs(orgList);
+      await checkForSoonToBeExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
       expect(showChannelOutputSpy.called).to.equal(false);
-      expect(authInfoCreateStub.called).to.equal(false);
+      expect(authInfoCreateStub.called).to.equal(true);
     });
 
-    it('should not display a notification when the scratch org has already expired', async () => {
+    it('should display a notification when the scratch org has already expired', async () => {
       listAllAuthorizationsStub.resolves([
         {
           isDevHub: false,
@@ -90,13 +90,14 @@ describe('orgUtil tests', () => {
       authInfoCreateStub.resolves({
         getFields: () => {
           return {
-            expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() +
-              1}-${yesterday.getDate()}`
+            expirationDate: `${yesterday.getFullYear()}-${
+              yesterday.getMonth() + 1
+            }-${yesterday.getDate()}`
           };
         }
       });
       const orgList = new OrgList();
-      await checkForExpiredOrgs(orgList);
+      await checkForSoonToBeExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
@@ -117,14 +118,15 @@ describe('orgUtil tests', () => {
       authInfoCreateStub.resolves({
         getFields: () => {
           return {
-            expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() +
-              1}-${threeDaysFromNow.getDate()}`
+            expirationDate: `${threeDaysFromNow.getFullYear()}-${
+              threeDaysFromNow.getMonth() + 1
+            }-${threeDaysFromNow.getDate()}`
           };
         }
       });
 
       const orgList = new OrgList();
-      await checkForExpiredOrgs(orgList);
+      await checkForSoonToBeExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(true);
       expect(appendLineSpy.called).to.equal(true);
@@ -149,14 +151,15 @@ describe('orgUtil tests', () => {
       authInfoCreateStub.resolves({
         getFields: () => {
           return {
-            expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() +
-              1}-${threeDaysFromNow.getDate()}`
+            expirationDate: `${threeDaysFromNow.getFullYear()}-${
+              threeDaysFromNow.getMonth() + 1
+            }-${threeDaysFromNow.getDate()}`
           };
         }
       });
 
       const orgList = new OrgList();
-      await checkForExpiredOrgs(orgList);
+      await checkForSoonToBeExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(true);
       expect(appendLineSpy.called).to.equal(true);
