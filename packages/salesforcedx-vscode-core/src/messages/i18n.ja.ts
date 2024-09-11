@@ -246,7 +246,7 @@ export const messages = {
   invalid_default_org:
     'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
   default_org_expired:
-    'Your default org has expired. Some of the the commands may not longer work. Try to switch your default org and try again.',
+    'Your default org has expired. Some of the the commands may not longer work. Try switching your default org and try again.',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
     'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
