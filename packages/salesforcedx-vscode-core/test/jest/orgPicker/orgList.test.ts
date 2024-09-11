@@ -22,6 +22,7 @@ describe('OrgList tests', () => {
   let getDevHubUsernameMock: jest.SpyInstance;
   let getAllMock: jest.SpyInstance;
   let getAllAliasesForMock: jest.SpyInstance;
+  let getUsernameForMock: jest.SpyInstance;
   let getAuthFieldsForMock: jest.SpyInstance;
   let stateAggregatorCreateMock: jest.SpyInstance;
   let fakeStateAggregator: any;
@@ -81,6 +82,7 @@ describe('OrgList tests', () => {
     ).mockReturnValue(mockStatusBarItem);
     orgList = new OrgList();
     getAuthFieldsForMock = jest.spyOn(OrgList.prototype, 'getAuthFieldsFor');
+    getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
     getDevHubUsernameMock = jest.spyOn(OrgAuthInfo, 'getDevHubUsername');
     getAllMock = jest.fn();
     fakeStateAggregator = {
@@ -165,12 +167,6 @@ describe('OrgList tests', () => {
   });
 
   describe('isOrgExpired', () => {
-    let getUsernameForMock: jest.SpyInstance;
-
-    beforeEach(() => {
-      getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
-    });
-
     afterEach(() => {
       jest.restoreAllMocks(); // Restore all mocks after each test
     });
@@ -271,6 +267,37 @@ describe('OrgList tests', () => {
       // Assert that the statusBarItem text is set to the plug icon with the org alias
       expect(mockStatusBarItem.text).toBe('$(plug) active-org');
       expect(isOrgExpiredMock).toHaveBeenCalledWith('active-org');
+    });
+
+    it('should display an error icon when the org is not valid', async () => {
+      const error = new Error(
+        'No authorization information found for invalid-org'
+      );
+      error.name = 'NamedOrgNotFoundError';
+      consoleErrorMock = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      // Mock isOrgExpired to resolve to true (expired)
+      isOrgExpiredMock.mockRejectedValue(error);
+
+      // Call the method with a valid targetOrgOrAlias
+      (orgList as any).displayTargetOrg('invalid-org');
+
+      // Wait for async promises to resolve
+      // eslint-disable-next-line jest/unbound-method
+      await new Promise(process.nextTick);
+
+      // Assert that the statusBarItem text is set to the error message
+      expect(mockStatusBarItem.text).toBe('$(error) Default org is not valid');
+
+      // Assert that the error is logged to the console
+      expect(consoleErrorMock).toHaveBeenCalledWith(
+        'Error checking org expiration: ',
+        error
+      );
+
+      // Clean up - restore the original console.error implementation
+      consoleErrorMock.mockRestore();
     });
 
     it('should handle no org provided and display a localized message', () => {

@@ -41,7 +41,7 @@ export class OrgList implements vscode.Disposable {
 
   private displayTargetOrg(targetOrgOrAlias?: string) {
     if (targetOrgOrAlias) {
-      Promise.resolve(this.isOrgExpired(targetOrgOrAlias))
+      return Promise.resolve(this.isOrgExpired(targetOrgOrAlias))
         .then(isExpired => {
           if (isExpired) {
             this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
@@ -50,6 +50,9 @@ export class OrgList implements vscode.Disposable {
           }
         })
         .catch(error => {
+          if (error.name === 'NamedOrgNotFoundError') {
+            this.statusBarItem.text = '$(error) Default org is not valid';
+          }
           console.error('Error checking org expiration: ', error);
         });
     } else {
