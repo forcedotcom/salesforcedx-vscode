@@ -51,7 +51,9 @@ export class OrgList implements vscode.Disposable {
         })
         .catch(error => {
           if (error.name === 'NamedOrgNotFoundError') {
-            this.statusBarItem.text = '$(error) Default org is not valid';
+            this.statusBarItem.text = `$(error) ${nls.localize(
+              'invalid_default_org'
+            )}`;
           }
           console.error('Error checking org expiration: ', error);
         });

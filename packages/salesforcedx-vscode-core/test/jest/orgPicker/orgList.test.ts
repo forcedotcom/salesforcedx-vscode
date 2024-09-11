@@ -288,7 +288,9 @@ describe('OrgList tests', () => {
       await new Promise(process.nextTick);
 
       // Assert that the statusBarItem text is set to the error message
-      expect(mockStatusBarItem.text).toBe('$(error) Default org is not valid');
+      expect(mockStatusBarItem.text).toBe(
+        `$(error) ${nls.localize('invalid_default_org')}`
+      );
 
       // Assert that the error is logged to the console
       expect(consoleErrorMock).toHaveBeenCalledWith(

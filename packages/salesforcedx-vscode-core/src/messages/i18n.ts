@@ -282,7 +282,10 @@ export const messages = {
   org_select_text: 'Select an org to set as default',
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
-  default_org_expired: 'Your default org is expired.',
+  invalid_default_org:
+    'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
+  default_org_expired:
+    'Your default org has expired. Some of the commands may not longer work. Try to switch your default org and try again.',
   config_set_org_text: 'SFDX: Set a Default Org',
   config_set_title: 'Set Config',
   table_header_name: 'Name',
