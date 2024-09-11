@@ -72,7 +72,7 @@ export const checkForSoonToBeExpiredOrgs = async (
       const expirationDate = new Date(authFields.expirationDate);
       if (expirationDate < today) {
         if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
-          notificationService.showWarningMessage(
+          void notificationService.showWarningMessage(
             nls.localize('default_org_expired')
           );
         }
