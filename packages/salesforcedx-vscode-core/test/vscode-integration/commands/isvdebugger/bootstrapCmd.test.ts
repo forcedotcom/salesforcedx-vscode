@@ -34,7 +34,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     let inputBoxSpy: sinon.SinonStub;
     let showErrorMessageSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
       inputBoxSpy.onCall(0).returns(undefined);
       inputBoxSpy.onCall(1).returns('');
@@ -54,7 +54,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
     });
 
-    after(() => {
+    afterEach(() => {
       inputBoxSpy.restore();
       showErrorMessageSpy.restore();
     });

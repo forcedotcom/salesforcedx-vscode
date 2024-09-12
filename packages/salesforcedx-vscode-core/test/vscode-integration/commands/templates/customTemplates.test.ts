@@ -111,7 +111,7 @@ describe('Custom Templates Create', () => {
     // clean up
     shell.rm('-f', apexClassPath);
     shell.rm('-f', apexClassMetaPath);
-  }).timeout(20000);
+  });
 
   it('Should handle error and log telemetry if local template does not exist', async () => {
     // arrange
@@ -255,5 +255,5 @@ describe('Custom Templates Create', () => {
       '-rf',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-  }).timeout(20000);
+  });
 });

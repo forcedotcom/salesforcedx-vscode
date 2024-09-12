@@ -34,7 +34,7 @@ describe('Start Apex Debug Logging', () => {
   const startDate = new Date();
   const endDate = new Date(startDate.getTime() + 1000);
 
-  before(() => {
+  beforeEach(() => {
     getTraceFlagIdStub = sinon
       .stub(developerLogTraceFlag, 'getTraceFlagId')
       .returns(fakeTraceFlagId);
@@ -49,7 +49,7 @@ describe('Start Apex Debug Logging', () => {
       .returns(endDate);
   });
 
-  after(() => {
+  afterEach(() => {
     getTraceFlagIdStub.restore();
     getDebugLevelIdStub.restore();
     startDateStub.restore();

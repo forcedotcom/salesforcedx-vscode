@@ -169,7 +169,7 @@ describe('WorkspaceContext', () => {
   });
 
   // tslint:disable-next-line:only-arrow-functions
-  it('should notify subscribers that the default org may have changed', async function () {
+  it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);
@@ -193,7 +193,6 @@ describe('WorkspaceContext', () => {
       .fire('delete');
 
     // Test runs in CI build in approx: 45000ms
-    this.timeout(60000);
     await Promise.all([
       fileChangedPromise,
       fileCreatedPromise,

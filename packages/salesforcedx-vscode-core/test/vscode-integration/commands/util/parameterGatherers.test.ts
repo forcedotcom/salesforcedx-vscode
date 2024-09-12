@@ -224,11 +224,11 @@ describe('Parameter Gatherers', () => {
   describe('DemoModePrompGatherer', () => {
     let showInformationMessageStub: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       showInformationMessageStub = sinon.stub(window, 'showInformationMessage');
     });
 
-    after(() => {
+    afterEach(() => {
       showInformationMessageStub.restore();
     });
 

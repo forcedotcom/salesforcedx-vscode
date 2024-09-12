@@ -18,13 +18,13 @@ describe('Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
   const fakeTraceFlagId = 'fakeDebugLevelId';
 
-  before(() => {
+  beforeEach(() => {
     getDebugLevelIdStub = sinon
       .stub(developerLogTraceFlag, 'getTraceFlagId')
       .returns(fakeTraceFlagId);
   });
 
-  after(() => {
+  afterEach(() => {
     getDebugLevelIdStub.restore();
   });
 
