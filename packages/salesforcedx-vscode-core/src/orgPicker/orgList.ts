@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core-bundle';
+import {
+  AuthFields,
+  AuthInfo,
+  OrgAuthorization
+} from '@salesforce/core-bundle';
 import {
   CancelResponse,
   ConfigUtil,
@@ -37,7 +41,22 @@ export class OrgList implements vscode.Disposable {
 
   private displayTargetOrg(targetOrgOrAlias?: string) {
     if (targetOrgOrAlias) {
-      this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
+      return Promise.resolve(this.isOrgExpired(targetOrgOrAlias))
+        .then(isExpired => {
+          if (isExpired) {
+            this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
+          } else {
+            this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
+          }
+        })
+        .catch(error => {
+          if (error.name === 'NamedOrgNotFoundError') {
+            this.statusBarItem.text = `$(error) ${nls.localize(
+              'invalid_default_org'
+            )}`;
+          }
+          console.error('Error checking org expiration: ', error);
+        });
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
@@ -46,6 +65,17 @@ export class OrgList implements vscode.Disposable {
   public async getOrgAuthorizations(): Promise<OrgAuthorization[]> {
     const orgAuthorizations = await AuthInfo.listAllAuthorizations();
     return orgAuthorizations;
+  }
+
+  public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
+    const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
+    const authFields = await this.getAuthFieldsFor(username);
+    const today = new Date();
+    let expirationDate;
+    if (authFields.expirationDate) {
+      expirationDate = new Date(authFields.expirationDate);
+    }
+    return expirationDate ? expirationDate < today : false;
   }
 
   public async getAuthFieldsFor(username: string): Promise<AuthFields> {

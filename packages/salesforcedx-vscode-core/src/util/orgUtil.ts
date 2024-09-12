@@ -6,15 +6,18 @@
  */
 
 import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
-export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
+export const setUpOrgExpirationWatcher = async (
+  orgList: OrgList
+): Promise<void> => {
   // Run once to start off with.
-  await checkForExpiredOrgs(orgList);
+  await checkForSoonToBeExpiredOrgs(orgList);
 
   /*
   Comment this out for now.  For now, we are only going to check once on activation,
@@ -22,13 +25,18 @@ export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void>
   check once a day, uncomment the following code.
 
   // And run again once every 24 hours.
-  setInterval(async () => {
-    await checkForExpiredOrgs(orgList);
-  }, 1000 * 60 * 60 * 24);
+  setInterval(
+    async () => {
+      void checkForSoonToBeExpiredOrgs(orgList);
+    },
+    1000 * 60 * 60 * 24
+  );
   */
 };
 
-export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
+export const checkForSoonToBeExpiredOrgs = async (
+  orgList: OrgList
+): Promise<void> => {
   if (!orgList) {
     return;
   }
@@ -63,6 +71,11 @@ export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
       // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
       if (expirationDate < today) {
+        if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
+          void notificationService.showWarningMessage(
+            nls.localize('default_org_expired')
+          );
+        }
         continue;
       }
 
@@ -108,7 +121,9 @@ export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
   }
 };
 
-export const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
+export const getAuthFieldsFor = async (
+  username: string
+): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
     username
   });
