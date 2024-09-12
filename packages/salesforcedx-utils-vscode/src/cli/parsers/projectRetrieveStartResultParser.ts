@@ -23,7 +23,7 @@ export type ProjectRetrieveStartErrorResponse = {
   message: string;
   name: string;
   status: number;
-  files: ProjectRetrieveStartResult[];
+  files?: ProjectRetrieveStartResult[];
   warnings: any[];
 };
 
@@ -49,14 +49,18 @@ export class ProjectRetrieveStartResultParser {
 
   public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
     if (this.response.status === 1) {
+      const files = this.response.data ?? this.response.result?.files;
+
       return {
         message: this.response.message ?? 'Pull failed. ',
         name: this.response.name ?? 'RetrieveFailed',
         status: this.response.status,
-        files: (this.response.data ?? this.response.result.files).filter(
-          (file: { state: string }) =>
-            file.state === 'Failed' || file.state === 'Conflict'
-        )
+        ...(files && {
+          files: files.filter(
+            (file: { state: string }) =>
+              file.state === 'Failed' || file.state === 'Conflict'
+          )
+        })
       } as ProjectRetrieveStartErrorResponse;
     }
   }
