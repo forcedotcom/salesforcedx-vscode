@@ -285,7 +285,7 @@ export const messages = {
   invalid_default_org:
     'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
   default_org_expired:
-    'Your default org has expired. Some of the commands may not longer work. Try switching your default org and try again.',
+    'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
   config_set_org_text: 'SFDX: Set a Default Org',
   config_set_title: 'Set Config',
   table_header_name: 'Name',

@@ -45,7 +45,7 @@ describe('Project Generate', () => {
   describe('SelectProjectTemplate Gatherer', () => {
     let quickPickSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       quickPickSpy = sinon.stub(vscode.window, 'showQuickPick');
       quickPickSpy.onCall(0).returns(undefined);
       quickPickSpy.onCall(1).returns('');
@@ -59,7 +59,7 @@ describe('Project Generate', () => {
         );
     });
 
-    after(() => {
+    afterEach(() => {
       quickPickSpy.restore();
     });
 
@@ -155,14 +155,14 @@ describe('Project Generate', () => {
   describe('SelectProjectFolder Gatherer', () => {
     let showOpenDialogSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       // showOpenDialog only returns the path or undefined
       showOpenDialogSpy = sinon.stub(vscode.window, 'showOpenDialog');
       showOpenDialogSpy.onCall(0).returns(undefined);
       showOpenDialogSpy.onCall(1).returns(PROJECT_DIR);
     });
 
-    after(() => {
+    afterEach(() => {
       showOpenDialogSpy.restore();
     });
 
@@ -188,7 +188,7 @@ describe('Project Generate', () => {
   describe('PathExistsChecker PostCondition', () => {
     let showWarningBoxSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
       showWarningBoxSpy
         .onCall(0)
@@ -198,7 +198,7 @@ describe('Project Generate', () => {
         .returns(nls.localize('warning_prompt_overwrite'));
     });
 
-    after(() => {
+    afterEach(() => {
       showWarningBoxSpy.restore();
     });
 

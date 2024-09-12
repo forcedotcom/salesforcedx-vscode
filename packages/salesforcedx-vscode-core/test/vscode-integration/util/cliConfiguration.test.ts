@@ -139,12 +139,12 @@ describe('SFDX CLI Configuration utility', () => {
     const dummyLocalTargetOrg = 'test@local.com';
     const origCwd = process.cwd();
 
-    before(() => {
+    beforeEach(() => {
       // Ensure we are in the project directory
       const rootWorkpace = workspaceUtils.getRootWorkspacePath();
       process.chdir(rootWorkpace);
     });
-    after(() => {
+    afterEach(() => {
       process.chdir(origCwd);
     });
 
@@ -174,7 +174,7 @@ describe('SFDX CLI Configuration utility', () => {
      * workspaceContextUtil defines a listener that fires a VS Code event when
      * the config file changes.  Ideally, something like flushAllPromises()
      * would be used to force the promises to resolve - however, there seems
-     * to be no mechanism to get the VS Code Events to fire before the assertions
+     * to be no mechanism to get the VS Code Events to fire beforeEach the assertions
      * in the test.  To work around this, a new listener for the event is
      * configured in this test, and the assertions are made within that event listener.
      * By asserting localProjectTargetOrgOrAlias, this test validates that:
@@ -185,9 +185,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 4. The VS Code orgChange event was fired with the correct values
      * 5. The call to ConfigUtil.getTargetOrgOrAlias() returns the expected local value
      */
-    it('Should return the locally configured target org when it exists', async function () {
-      this.timeout(60000);
-
+    it('Should return the locally configured target org when it exists', async () => {
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
       const resultPromise = new Promise((resolveFunc, rejectsFunc) => {
