@@ -6,8 +6,11 @@
  */
 
 import { AuthInfo } from '@salesforce/core-bundle';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
+import { nls } from '../../../src/messages';
+import { notificationService } from '../../../src/notifications';
 import { OrgList } from '../../../src/orgPicker';
 import { checkForSoonToBeExpiredOrgs } from '../../../src/util';
 
@@ -19,6 +22,7 @@ describe('orgUtil tests', () => {
   let authInfoCreateSpy: jest.SpyInstance;
   let createStatusBarItemMock: jest.SpyInstance;
   let createFileSystemWatcherMock: jest.SpyInstance;
+  let getUsernameMock: jest.SpyInstance;
   let mockWatcher: any;
 
   const orgName1 = 'dreamhouse-org';
@@ -45,13 +49,16 @@ describe('orgUtil tests', () => {
       show: jest.fn(),
       dispose: jest.fn()
     });
-    showWarningMessageSpy = jest.spyOn(vscode.window, 'showWarningMessage');
+    showWarningMessageSpy = jest
+      .spyOn(notificationService, 'showWarningMessage')
+      .mockImplementation(jest.fn());
     appendLineSpy = jest
       .spyOn(channelService, 'appendLine')
       .mockImplementation(jest.fn());
     showChannelOutputSpy = jest.spyOn(channelService, 'showChannelOutput');
     listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
     authInfoCreateSpy = jest.spyOn(AuthInfo, 'create');
+    getUsernameMock = jest.spyOn(ConfigUtil, 'getUsername');
   });
 
   afterEach(() => {
@@ -106,11 +113,12 @@ describe('orgUtil tests', () => {
         }-${yesterday.getDate()}`
       })
     });
+    getUsernameMock.mockResolvedValue('foo');
 
     const orgList = new OrgList();
     await checkForSoonToBeExpiredOrgs(orgList);
 
-    expect(showWarningMessageSpy).not.toHaveBeenCalled();
+    expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendLineSpy).not.toHaveBeenCalled();
     expect(showChannelOutputSpy).not.toHaveBeenCalled();
     expect(authInfoCreateSpy).toHaveBeenCalled();
@@ -172,5 +180,62 @@ describe('orgUtil tests', () => {
     expect(appendLineSpy.mock.calls[0][0]).toContain(orgName1);
     expect(appendLineSpy.mock.calls[0][0]).toContain(orgName2);
     expect(showChannelOutputSpy).toHaveBeenCalled();
+  });
+
+  it('should display notifications for both an expired org and an org about to expire', async () => {
+    const orgNameExpired = 'expired-org';
+    const orgNameAboutToExpire = 'about-to-expire-org';
+
+    // Define the expiration dates
+    const expiredDate = new Date();
+    expiredDate.setDate(expiredDate.getDate() - 1); // Expired
+    const aboutToExpireDate = new Date();
+    aboutToExpireDate.setDate(aboutToExpireDate.getDate() + 2); // About to expire
+
+    // Mock listAllAuthorizations to return both expired and about-to-expire orgs
+    listAllAuthorizationsSpy.mockResolvedValue([
+      {
+        isDevHub: false,
+        username: 'about-to-expire-org@salesforce.com',
+        aliases: [orgNameAboutToExpire]
+      },
+      {
+        isDevHub: false,
+        username: 'expired-org@salesforce.com',
+        aliases: [orgNameExpired]
+      }
+    ]);
+
+    // Mock authInfoCreate to return different expiration dates based on org name
+    authInfoCreateSpy.mockResolvedValueOnce({
+      getFields: () => ({
+        expirationDate: `${aboutToExpireDate.getFullYear()}-${
+          aboutToExpireDate.getMonth() + 1
+        }-${aboutToExpireDate.getDate()}`
+      })
+    });
+    authInfoCreateSpy.mockResolvedValueOnce({
+      getFields: () => ({
+        expirationDate: `${expiredDate.getFullYear()}-${
+          expiredDate.getMonth() + 1
+        }-${expiredDate.getDate()}`
+      })
+    });
+    getUsernameMock.mockResolvedValue('expired-org@salesforce.com');
+
+    const orgList = new OrgList();
+    await checkForSoonToBeExpiredOrgs(orgList);
+
+    // Assert that the notifications for both orgs are displayed
+    expect(showWarningMessageSpy).toHaveBeenCalledTimes(2);
+    expect(appendLineSpy).toHaveBeenCalled();
+    expect(showChannelOutputSpy).toHaveBeenCalled();
+
+    // Verify the specific calls
+    const calls = showWarningMessageSpy.mock.calls.map(call => call[0]);
+    expect(calls[0]).toContain(nls.localize('default_org_expired'));
+    expect(calls[1]).toContain(
+      'Warning: One or more of your orgs expire in the next 5 days. For more details, review the Output panel.'
+    );
   });
 });

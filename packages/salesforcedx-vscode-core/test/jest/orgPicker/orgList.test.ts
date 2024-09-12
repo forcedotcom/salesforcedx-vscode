@@ -146,23 +146,31 @@ describe('OrgList tests', () => {
     });
 
     it('should filter out org authorizations with errors', async () => {
-      const orgAuths = [orgAuthWithError, validOrgAuth];
+      const orgAuths = [orgAuthWithError, orgAuth];
       getAuthFieldsForMock.mockResolvedValueOnce({} as AuthFields);
       getDevHubUsernameMock.mockResolvedValueOnce(null);
 
       const result = await orgList.filterAuthInfo(orgAuths);
 
-      expect(result).toEqual([validOrgAuth.username]);
+      expect(result).toEqual([orgAuth.username]);
     });
 
     it('should return a list of valid org authorizations', async () => {
-      const orgAuths = [validOrgAuth, orgAuthWithError];
-      getAuthFieldsForMock.mockResolvedValueOnce({} as AuthFields);
+      const orgAuths = [validOrgAuth, orgAuthScratchOrg, orgAuthWithError];
+      getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
+      getUsernameForMock.mockResolvedValueOnce(orgAuthScratchOrg.username);
+      getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
+      getAuthFieldsForMock.mockResolvedValueOnce(
+        orgAuthScratchOrg as AuthFields
+      );
       getDevHubUsernameMock.mockResolvedValueOnce(dummyDevHubUsername);
 
       const result = await orgList.filterAuthInfo(orgAuths);
 
-      expect(result).toEqual(['valid-org@example.com']);
+      expect(result).toEqual([
+        validOrgAuth.username,
+        orgAuthScratchOrg.username
+      ]);
     });
   });
 
