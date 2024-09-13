@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
 import { CommandNudger } from '@salesforce/salesforcedx-utils-vscode/src/commands/commandNudger';
+import * as vscode from 'vscode';
 import { NotificationService, TelemetryService } from '../../../src';
 
 const vscodeMocked = jest.mocked(vscode);

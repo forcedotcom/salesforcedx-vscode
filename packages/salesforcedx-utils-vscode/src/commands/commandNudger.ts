@@ -6,9 +6,9 @@
  */
 
 import * as vscode from 'vscode';
-import { NudgeOptions } from './nudgeOptions';
-import { NotificationService } from './notificationService';
 import { TelemetryService } from '..';
+import { NotificationService } from './notificationService';
+import { NudgeOptions } from './nudgeOptions';
 
 const logName = 'nudge_command';
 
