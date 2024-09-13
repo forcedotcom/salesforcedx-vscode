@@ -7,7 +7,7 @@ Similar to what vscode does, we are reporting on certain events that happen in t
 All extensions leverage the telemetryService in `salesforce-vscode-core` extension in order to send data. 
 
 There are several ways to disable telemetry for all Salesforce extensions.
-- Turn off the Core Extension telemetry setting at the workspace `("salesforcedx-vscode-core.telemetry.enabled": false)`
+- Turn off the Core Extension telemetry setting at the workspace level `("salesforcedx-vscode-core.telemetry.enabled": false)`
 - Disable SF CLI telemetry 
   - `sf config set disable-telemetry=true --global`
 
@@ -20,7 +20,7 @@ There are several ways to disable telemetry for all Salesforce extensions.
 - Use the telemetry service where needed in the extension
 
 ## Logging telemetry to a file
-Often it is useful to be able to validate value being sent to telemetry without having to look into where the telemetry is reported. 
+Often it is useful to be able to validate values being sent to telemetry without having to look into where the telemetry is reported. 
 
 For both local development and VSIX builds you can enable local telemetry logging by setting two environment variables
 
