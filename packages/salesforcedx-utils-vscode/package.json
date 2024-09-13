@@ -10,8 +10,8 @@
   ],
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core-bundle": "8.2.0",
-    "@salesforce/source-deploy-retrieve-bundle": "12.1.5",
+    "@salesforce/core-bundle": "8.5.7",
+    "@salesforce/source-deploy-retrieve-bundle": "12.6.3",
     "@salesforce/source-tracking-bundle": "7.0.6",
     "@salesforce/vscode-service-provider": "1.1.1",
     "applicationinsights": "1.0.7",
