@@ -15,8 +15,8 @@ const logName = 'nudge_command';
 /**
  * A class to nudge users to run a command. This is useful for commands that
  * are prerequisites for other activities, but require a user to trigger.
- * 
- * Nudge messages are displayed as a notification with a button to activate 
+ *
+ * Nudge messages are displayed as a notification with a button to activate
  * the command.
  */
 export class CommandNudger {

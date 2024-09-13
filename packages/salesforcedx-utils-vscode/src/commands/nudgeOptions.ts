@@ -11,4 +11,4 @@ export type NudgeOptions = {
   message: string;
   buttonLabel: string;
   condition?: () => boolean;
-}
+};
