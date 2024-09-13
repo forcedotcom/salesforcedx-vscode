@@ -24,9 +24,9 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.0",
+    "@salesforce/apex-node-bundle": "8.1.7",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.2.0",
+    "@salesforce/core-bundle": "8.5.7",
     "@salesforce/salesforcedx-utils-vscode": "61.13.0",
     "@salesforce/vscode-service-provider": "1.1.1",
     "expand-home-dir": "0.0.3",
