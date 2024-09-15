@@ -8,7 +8,7 @@
   "dependencies": {
     "@jsforce/jsforce-node": "^3.4.1",
     "@salesforce/core": "^8.5.5",
-    "@salesforce/kit": "^3.2.2",
+    "@salesforce/kit": "^3.2.3",
     "@types/istanbul-reports": "^3.0.4",
     "bfj": "8.0.0",
     "fast-glob": "^3.3.2",
