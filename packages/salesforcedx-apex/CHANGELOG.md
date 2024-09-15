@@ -1,3 +1,12 @@
+## [8.1.8](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.7...8.1.8) (2024-09-15)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/kit from 3.2.2 to 3.2.3 ([06b593b](https://github.com/forcedotcom/salesforcedx-apex/commit/06b593b161870ae45a28a56692a045a295fdf52e))
+
+
+
 ## [8.1.7](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.6...8.1.7) (2024-09-08)
 
 
