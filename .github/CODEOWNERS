@@ -12,6 +12,3 @@
 #ECCN:Open Source
 #GUSINFO: Platform Dev Tools Scrum Team, IDE Experience Team
 *       @forcedotcom/ide-experience
-
-# If the change occurs within the docs directory, add the doc maintainers.
-/docs/ @forcedotcom/doc-maintainers

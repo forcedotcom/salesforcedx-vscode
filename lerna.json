@@ -1,15 +1,9 @@
 {
-  "packages": [
-    "docs",
-    "packages/*"
-  ],
+  "packages": ["packages/*"],
   "version": "61.14.0",
   "command": {
     "version": {
-      "allowBranch": [
-        "develop",
-        "release/*"
-      ]
+      "allowBranch": ["develop", "release/*"]
     }
   },
   "useNx": true,
