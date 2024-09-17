@@ -35,6 +35,7 @@ export {
   TelemetryService,
   TelemetryBuilder
 } from './services/telemetry';
+export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
 export { AppInsights } from './telemetry/reporters/appInsights';
