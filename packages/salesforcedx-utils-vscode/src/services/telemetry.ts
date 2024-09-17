@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -20,16 +20,15 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import * as Settings from '../settings';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../telemetry/cliConfiguration';
-import { AppInsights } from '../telemetry/reporters/appInsights';
-import { LogStream } from '../telemetry/reporters/logStream';
-import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
-import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
+import { determineReporters } from '../telemetry/reporters/determineReporters';
+import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
+import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
+
 
 type CommandMetric = {
   extensionName: string;
@@ -85,6 +84,9 @@ export class TelemetryService implements TelemetryServiceInterface {
   private reporters: TelemetryReporter[] = [];
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
+  public isInternal: boolean = false;
+  public isDevMode: boolean = false;
+
   /**
    * Retrieve Telemetry Service according to the extension name.
    * If no extension name provided, return the instance for core extension by default
@@ -102,7 +104,6 @@ export class TelemetryService implements TelemetryServiceInterface {
   /**
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
-   * @param extensionName extension name
    */
   public initializeService(
     extensionContext: ExtensionContext
@@ -122,6 +123,8 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.extensionName = name;
     this.version = version ?? '';
     this.aiKey = aiKey || this.aiKey;
+    this.isInternal = isInternalHost();
+    this.isDevMode = extensionMode !== ExtensionMode.Production;
 
     this.checkCliTelemetry()
       .then(cliEnabled => {
@@ -133,52 +136,20 @@ export class TelemetryService implements TelemetryServiceInterface {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const isDevMode =
-      extensionMode !== ExtensionMode.Production;
+    if(this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
+      const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
+      const reporterConfig: TelemetryReporterConfig = {
+        extName: this.extensionName,
+        version: this.version,
+        aiKey: this.aiKey,
+        userId,
+        reporterName: this.getTelemetryReporterName(),
+        isDevMode: this.isDevMode
+      };
 
-    // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
-      if (!isDevMode) {
-        console.log('adding AppInsights reporter.');
-        const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
-        this.reporters.push(
-          new AppInsights(
-            this.getTelemetryReporterName(),
-            this.version,
-            this.aiKey,
-            userId,
-            true
-          )
-        );
-
-        // Assuming this fs streaming is more efficient than the appendFile technique that
-        // the new TelemetryFile reporter uses, I am keeping the logic in place for which
-        // reporter is used when.  The original log stream functionality only worked under
-        // the same conditions as the AppInsights capabilities, but with additional configuration.
-        if (LogStreamConfig.isEnabledFor(this.extensionName)) {
-          this.reporters.push(
-            new LogStream(
-              this.getTelemetryReporterName(),
-              LogStreamConfig.logFilePath()
-            )
-          );
-        }
-      } else {
-        // Dev Mode
-        //
-        // The new TelemetryFile reporter is run in Dev mode, and only
-        // requires the advanced setting to be set re: configuration.
-        if (
-          Settings.SettingsService.isAdvancedSettingEnabledFor(
-            this.extensionName,
-            Settings.AdvancedSettings.LOCAL_TELEMETRY_LOGGING
-          )
-        ) {
-          this.reporters.push(new TelemetryFile(this.extensionName));
-        }
-      }
+      const reporters = determineReporters(reporterConfig);
+      this.reporters.push(...reporters);
     }
-
     this.extensionContext?.subscriptions.push(...this.reporters);
   }
 
@@ -199,10 +170,9 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
-    return (
-      this.isTelemetryExtensionConfigurationEnabled() &&
-      (await this.checkCliTelemetry())
-    );
+    return this.isInternal
+     ? true
+     : (this.isTelemetryExtensionConfigurationEnabled() && await this.checkCliTelemetry());
   }
 
   public async checkCliTelemetry(): Promise<boolean> {

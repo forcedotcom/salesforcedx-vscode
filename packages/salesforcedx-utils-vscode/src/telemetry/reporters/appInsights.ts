@@ -10,19 +10,8 @@ import * as appInsights from 'applicationinsights';
 import * as os from 'os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
-
-type CommonProperties = {
-  'common.os': string;
-  'common.platformversion': string;
-  'common.cpus'?: string;
-  'common.systemmemory': string;
-  'common.extname': string;
-  'common.extversion': string;
-  'common.vscodemachineid'?: string;
-  'common.vscodesessionid'?: string;
-  'common.vscodeversion'?: string;
-  'common.vscodeuikind'?: string;
-};
+import { isInternalHost } from '../utils/isInternal';
+import { CommonProperties, InternalProperties } from './loggingProperties';
 
 export class AppInsights extends Disposable implements TelemetryReporter {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
@@ -92,8 +81,8 @@ export class AppInsights extends Disposable implements TelemetryReporter {
         .start();
       this.appInsightsClient = appInsights.defaultClient;
     }
+    this.appInsightsClient.commonProperties = this.aggregateLoggingProperties();
 
-    this.appInsightsClient.commonProperties = this.getCommonProperties();
     if (this.uniqueUserMetrics && env) {
       this.appInsightsClient.context.tags['ai.user.id'] = this.userId;
       this.appInsightsClient.context.tags['ai.session.id'] = env.sessionId;
@@ -138,6 +127,18 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     }
 
     return commonProperties;
+  }
+
+  private getInternalProperties(): InternalProperties {
+    return {
+     'sfInternal.hostname': os.hostname(),
+     'sfInternal.username': os.userInfo().username
+    };
+  }
+
+  private aggregateLoggingProperties() {
+    const commonProperties = this.getCommonProperties();
+    return isInternalHost() ? {...commonProperties,...this.getInternalProperties() } : commonProperties;
   }
 
   public sendTelemetryEvent(

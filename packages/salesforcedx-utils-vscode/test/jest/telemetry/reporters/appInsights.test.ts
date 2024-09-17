@@ -1,17 +1,20 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as os from 'os';
 import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
+import { CommonProperties, InternalProperties } from '../../../../src/telemetry/reporters/loggingProperties';
 
 describe('AppInsights', () => {
   const fakeExtensionId = 'anExtensionId';
   const fakeExtensionVersion = '0.10.0';
   const fakeUserId = '45gkjnbxsbchdnv34sbcishsm';
+  const fakeKey = 'testKey';
 
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
     let getInstanceMock: jest.SpyInstance;
@@ -38,7 +41,7 @@ describe('AppInsights', () => {
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId);
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, false);
       (appInsights as any).userOptIn = true;
       (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
@@ -80,7 +83,8 @@ describe('AppInsights', () => {
         fakeExtensionId,
         fakeExtensionVersion,
         'aKey',
-        fakeUserId
+        fakeUserId,
+        false
       );
       (appInsights as any).appInsightsClient = appInsightsClientMock;
     });
@@ -101,6 +105,100 @@ describe('AppInsights', () => {
       const disposePromise = appInsights.dispose();
 
       expect(disposePromise).toEqual(expectedPromiseResult);
+    });
+  });
+
+  describe('AppInsights - getCommonProperties', () => {
+    let appInsights: AppInsights;
+    let commonProperties: CommonProperties;
+
+    beforeEach(() => {
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, false);
+      commonProperties = appInsights['getCommonProperties']();
+    });
+
+    it('should return common system properties', () => {
+      expect(typeof commonProperties).toBe('object');
+    });
+
+    it('should return extname that was passed in params', () => {
+      expect(commonProperties['common.extname']).toBe(fakeExtensionId);
+    });
+
+    it('should return extVersion passed in params', () => {
+      expect(commonProperties['common.extversion']).toBe(fakeExtensionVersion);
+    });
+  });
+
+  describe('AppInsights - getInternalProperties', () => {
+    let appInsights: AppInsights;
+    let internalProperties: InternalProperties;
+
+    beforeEach(() => {
+      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
+      jest.spyOn(os, 'userInfo').mockReturnValue({
+        username: 'testuser',
+        uid: 1001,
+        gid: 1001,
+        shell: '/bin/bash',
+        homedir: '/home/testuser'
+      });
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, false);
+      internalProperties = appInsights['getInternalProperties']();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return internal properties', () => {
+      expect(typeof internalProperties).toBe('object');
+    });
+
+    it('should return hostname', () => {
+      expect(internalProperties['sfInternal.hostname']).toBe('test.internal.salesforce.com');
+    });
+
+    it('should return username', () => {
+      expect(internalProperties['sfInternal.username']).toBe('testuser');
+    });
+  });
+
+  describe('AppInsights - aggregateLoggingProperties', () => {
+    let appInsights: AppInsights;
+
+    beforeEach(() => {
+      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
+      jest.spyOn(os, 'userInfo').mockReturnValue({
+        username: 'testuser',
+        uid: 1001,
+        gid: 1001,
+        shell: '/bin/bash',
+        homedir: '/home/testuser'
+      });
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, false);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return properties', () => {
+      expect(typeof appInsights['aggregateLoggingProperties']()).toBe('object');
+    });
+
+    it('should return common and internal properties when is internal user', () => {
+      const commonProps = appInsights['getCommonProperties']();
+      const internalProps = appInsights['getInternalProperties']();
+      const result = appInsights['aggregateLoggingProperties']();
+      expect(result).toEqual({...commonProps, ...internalProps});
+    });
+
+    it('should return common properties when is not internal user', () => {
+      jest.spyOn(os, 'hostname').mockReturnValue('test.salesforce.com');
+      const commonProps = appInsights['getCommonProperties']();
+      const result = appInsights['aggregateLoggingProperties']();
+      expect(result).toEqual(commonProps);
     });
   });
 });
