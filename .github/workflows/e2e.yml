@@ -38,7 +38,7 @@ on:
       lwcE2ETests:
         description: 'LWC E2E Tests'
         required: false
-        default: false
+        default: true
         type: boolean
       vscodeVersion:
         description: 'VSCode Version for ESM branches'
