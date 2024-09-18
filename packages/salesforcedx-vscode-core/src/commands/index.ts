@@ -17,117 +17,89 @@ export {
 } from './auth/authParamsGatherer';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export {
-  DeviceCodeResponse,
-  OrgLoginWebContainerExecutor,
+  createOrgLoginWebExecutor, DeviceCodeResponse, orgLoginWeb, OrgLoginWebContainerExecutor,
   OrgLoginWebDemoModeExecutor,
-  OrgLoginWebExecutor,
-  createOrgLoginWebExecutor,
-  orgLoginWeb
+  OrgLoginWebExecutor
 } from './auth/orgLoginWeb';
 export {
   AuthDevHubParams,
-  AuthDevHubParamsGatherer,
-  OrgLoginWebDevHubContainerExecutor,
+  AuthDevHubParamsGatherer, createAuthDevHubExecutor,
+  orgLoginWebDevHub, OrgLoginWebDevHubContainerExecutor,
   OrgLoginWebDevHubDemoModeExecutor,
-  OrgLoginWebDevHubExecutor,
-  createAuthDevHubExecutor,
-  orgLoginWebDevHub
+  OrgLoginWebDevHubExecutor
 } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
 export { ConfigList, configList } from './configList';
-export { ConfigSetExecutor, configSet } from './configSet';
+export { configSet, ConfigSetExecutor } from './configSet';
 export { dataQuery } from './dataQuery';
 export {
-  DebuggerSessionDetachExecutor,
-  IdGatherer,
+  DebuggerSessionDetachExecutor, debuggerStop, IdGatherer,
   IdSelection,
-  StopActiveDebuggerSessionExecutor,
-  debuggerStop
+  StopActiveDebuggerSessionExecutor
 } from './debuggerStop';
 export {
-  ConfirmationAndSourcePathGatherer,
-  DeleteSourceExecutor,
-  ManifestChecker,
-  deleteSource
+  ConfirmationAndSourcePathGatherer, deleteSource, DeleteSourceExecutor,
+  ManifestChecker
 } from './deleteSource';
-export { projectGenerateManifest } from './projectGenerateManifest';
-export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
-export { ListMetadataExecutor, listMetadata } from './listMetadata';
-export {
-  PackageInstallExecutor,
-  SelectInstallationKey,
-  SelectPackageID,
-  packageInstall
-} from './packageInstall';
-export {
-  RefreshSObjectsExecutor,
-  checkSObjectsAndRefresh,
-  refreshSObjects,
-  initSObjectDefinitions
-} from './refreshSObjects';
-export { renameLightningComponent } from './renameLightningComponent';
 export { deployManifest } from './deployManifest';
 export {
-  LibraryDeploySourcePathExecutor,
-  deploySourcePaths
+  deploySourcePaths, LibraryDeploySourcePathExecutor
 } from './deploySourcePath';
-export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
-export { retrieveManifest } from './retrieveManifest';
-export { retrieveComponent } from './retrieveMetadata';
-export {
-  LibraryRetrieveSourcePathExecutor,
-  SourcePathChecker,
-  retrieveSourcePaths
-} from './retrieveSourcePath';
+export { describeMetadata, DescribeMetadataExecutor } from './describeMetadata';
+export { listMetadata, ListMetadataExecutor } from './listMetadata';
 export { openDocumentation } from './openDocumentation';
-export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
+export { AliasGatherer, orgCreate, OrgCreateExecutor } from './orgCreate';
 export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export {
-  OrgOpenContainerExecutor,
-  OrgOpenExecutor,
   getExecutor,
-  orgOpen
+  orgOpen, OrgOpenContainerExecutor,
+  OrgOpenExecutor
 } from './orgOpen';
 export {
-  ProjectDeployStartExecutor,
-  projectDeployStart
+  packageInstall, PackageInstallExecutor,
+  SelectInstallationKey,
+  SelectPackageID
+} from './packageInstall';
+export {
+  projectDeployStart, ProjectDeployStartExecutor
 } from './projectDeployStart';
 export {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  ProjectTemplateItem,
+  PathExistsChecker, projectGenerateWithManifest, ProjectNameAndPathAndTemplate, projectTemplateEnum, ProjectTemplateItem,
   SelectProjectFolder,
   SelectProjectName,
-  SelectProjectTemplate,
-  projectGenerateWithManifest,
-  projectTemplateEnum,
-  sfProjectGenerate
+  SelectProjectTemplate, sfProjectGenerate
 } from './projectGenerate';
+export { projectGenerateManifest } from './projectGenerateManifest';
 export {
-  ProjectRetrieveStartExecutor,
-  projectRetrieveStart
+  projectRetrieveStart, ProjectRetrieveStartExecutor
 } from './projectRetrieveStart';
+export {
+  checkSObjectsAndRefresh, initSObjectDefinitions, refreshSObjects, RefreshSObjectsExecutor
+} from './refreshSObjects';
+export { renameLightningComponent } from './renameLightningComponent';
+export { retrieveManifest } from './retrieveManifest';
+export { retrieveComponent } from './retrieveMetadata';
+export {
+  LibraryRetrieveSourcePathExecutor, retrieveSourcePaths, SourcePathChecker
+} from './retrieveSourcePath';
 export {
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges
 } from './source/viewChanges';
+export { handleCacheResults, sourceDiff, sourceFolderDiff } from './sourceDiff';
 export {
   CreateDebugLevel,
   CreateTraceFlag,
   QueryTraceFlag,
-  QueryUser,
-  StartApexDebugLoggingExecutor,
+  QueryUser, startApexDebugLogging, StartApexDebugLoggingExecutor,
   UpdateDebugLevelsExecutor,
-  UpdateTraceFlagsExecutor,
-  startApexDebugLogging
+  UpdateTraceFlagsExecutor
 } from './startApexDebugLogging';
 export {
-  StopApexDebugLoggingExecutor,
-  stopApexDebugLogging,
-  turnOffLogging
+  stopApexDebugLogging, StopApexDebugLoggingExecutor, turnOffLogging
 } from './stopApexDebugLogging';
 export { taskStop } from './taskStop';
 export {
@@ -149,5 +121,6 @@ export {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';
+export { CommandLogEntry, getCommandLog, getLastCommandLogEntry, logCommand, registerCommand } from './util';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

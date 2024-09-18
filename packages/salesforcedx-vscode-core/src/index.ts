@@ -63,6 +63,7 @@ import {
   projectGenerateWithManifest,
   projectRetrieveStart,
   refreshSObjects,
+  registerCommand,
   renameLightningComponent,
   retrieveComponent,
   retrieveManifest,
@@ -140,257 +141,257 @@ const registerCommands = (
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable => {
   // Customer-facing commands
-  const orgLoginAccessTokenCmd = vscode.commands.registerCommand(
+  const orgLoginAccessTokenCmd = registerCommand(
     'sf.org.login.access.token',
     orgLoginAccessToken
   );
-  const orgLoginWebCmd = vscode.commands.registerCommand(
+  const orgLoginWebCmd = registerCommand(
     'sf.org.login.web',
     orgLoginWeb
   );
-  const orgLoginWebDevHubCmd = vscode.commands.registerCommand(
+  const orgLoginWebDevHubCmd = registerCommand(
     'sf.org.login.web.dev.hub',
     orgLoginWebDevHub
   );
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const orgLogoutAllCmd = vscode.commands.registerCommand(
+  const orgLogoutAllCmd = registerCommand(
     'sf.org.logout.all',
     orgLogoutAll
   );
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const orgLogoutDefaultCmd = vscode.commands.registerCommand(
+  const orgLogoutDefaultCmd = registerCommand(
     'sf.org.logout.default',
     orgLogoutDefault
   );
-  const openDocumentationCmd = vscode.commands.registerCommand(
+  const openDocumentationCmd = registerCommand(
     'sf.open.documentation',
     openDocumentation
   );
-  const orgCreateCmd = vscode.commands.registerCommand(
+  const orgCreateCmd = registerCommand(
     'sf.org.create',
     orgCreate
   );
-  const orgOpenCmd = vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen);
-  const deleteSourceCmd = vscode.commands.registerCommand(
+  const orgOpenCmd = registerCommand(ORG_OPEN_COMMAND, orgOpen);
+  const deleteSourceCmd = registerCommand(
     'sf.delete.source',
     deleteSource
   );
-  const deleteSourceCurrentFileCmd = vscode.commands.registerCommand(
+  const deleteSourceCurrentFileCmd = registerCommand(
     'sf.delete.source.current.file',
     deleteSource
   );
-  const deployCurrentSourceFileCmd = vscode.commands.registerCommand(
+  const deployCurrentSourceFileCmd = registerCommand(
     'sf.deploy.current.source.file',
     deploySourcePaths
   );
-  const deployInManifestCmd = vscode.commands.registerCommand(
+  const deployInManifestCmd = registerCommand(
     'sf.deploy.in.manifest',
     deployManifest
   );
-  const deployMultipleSourcePathsCmd = vscode.commands.registerCommand(
+  const deployMultipleSourcePathsCmd = registerCommand(
     'sf.deploy.multiple.source.paths',
     deploySourcePaths
   );
-  const deploySourcePathCmd = vscode.commands.registerCommand(
+  const deploySourcePathCmd = registerCommand(
     'sf.deploy.source.path',
     deploySourcePaths
   );
-  const projectRetrieveStartCmd = vscode.commands.registerCommand(
+  const projectRetrieveStartCmd = registerCommand(
     'sf.project.retrieve.start',
     projectRetrieveStart
   );
-  const projectDeployStartCmd = vscode.commands.registerCommand(
+  const projectDeployStartCmd = registerCommand(
     'sf.project.deploy.start',
     projectDeployStart
   );
   const projectRetrieveStartIgnoreConflictsCmd =
-    vscode.commands.registerCommand(
+    registerCommand(
       'sf.project.retrieve.start.ignore.conflicts',
       projectRetrieveStart,
       flagIgnoreConflicts
     );
-  const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
+  const projectDeployStartIgnoreConflictsCmd = registerCommand(
     'sf.project.deploy.start.ignore.conflicts',
     projectDeployStart,
     flagIgnoreConflicts
   );
-  const retrieveCmd = vscode.commands.registerCommand(
+  const retrieveCmd = registerCommand(
     'sf.retrieve.source.path',
     retrieveSourcePaths
   );
-  const retrieveCurrentFileCmd = vscode.commands.registerCommand(
+  const retrieveCurrentFileCmd = registerCommand(
     'sf.retrieve.current.source.file',
     retrieveSourcePaths
   );
-  const retrieveInManifestCmd = vscode.commands.registerCommand(
+  const retrieveInManifestCmd = registerCommand(
     'sf.retrieve.in.manifest',
     retrieveManifest
   );
-  const forceSourceStatusCmd = vscode.commands.registerCommand(
+  const forceSourceStatusCmd = registerCommand(
     'sf.view.all.changes',
     viewAllChanges
   );
-  const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
+  const forceSourceStatusLocalCmd = registerCommand(
     'sf.view.local.changes',
     viewLocalChanges
   );
-  const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
+  const forceSourceStatusRemoteCmd = registerCommand(
     'sf.view.remote.changes',
     viewRemoteChanges
   );
-  const taskStopCmd = vscode.commands.registerCommand('sf.task.stop', taskStop);
-  const apexGenerateClassCmd = vscode.commands.registerCommand(
+  const taskStopCmd = registerCommand('sf.task.stop', taskStop);
+  const apexGenerateClassCmd = registerCommand(
     'sf.apex.generate.class',
     apexGenerateClass
   );
-  const apexGenerateUnitTestClassCmd = vscode.commands.registerCommand(
+  const apexGenerateUnitTestClassCmd = registerCommand(
     'sf.apex.generate.unit.test.class',
     apexGenerateUnitTestClass
   );
-  const analyticsGenerateTemplateCmd = vscode.commands.registerCommand(
+  const analyticsGenerateTemplateCmd = registerCommand(
     'sf.analytics.generate.template',
     analyticsGenerateTemplate
   );
-  const visualforceGenerateComponentCmd = vscode.commands.registerCommand(
+  const visualforceGenerateComponentCmd = registerCommand(
     'sf.visualforce.generate.component',
     visualforceGenerateComponent
   );
-  const visualforceGeneratePageCmd = vscode.commands.registerCommand(
+  const visualforceGeneratePageCmd = registerCommand(
     'sf.visualforce.generate.page',
     visualforceGeneratePage
   );
 
-  const lightningGenerateAppCmd = vscode.commands.registerCommand(
+  const lightningGenerateAppCmd = registerCommand(
     'sf.lightning.generate.app',
     lightningGenerateApp
   );
 
-  const lightningGenerateAuraComponentCmd = vscode.commands.registerCommand(
+  const lightningGenerateAuraComponentCmd = registerCommand(
     'sf.lightning.generate.aura.component',
     lightningGenerateAuraComponent
   );
 
-  const lightningGenerateEventCmd = vscode.commands.registerCommand(
+  const lightningGenerateEventCmd = registerCommand(
     'sf.lightning.generate.event',
     lightningGenerateEvent
   );
 
-  const lightningGenerateInterfaceCmd = vscode.commands.registerCommand(
+  const lightningGenerateInterfaceCmd = registerCommand(
     'sf.lightning.generate.interface',
     lightningGenerateInterface
   );
 
-  const lightningGenerateLwcCmd = vscode.commands.registerCommand(
+  const lightningGenerateLwcCmd = registerCommand(
     'sf.lightning.generate.lwc',
     lightningGenerateLwc
   );
 
-  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
+  const forceLightningLwcTestCreateCmd = registerCommand(
     'sf.force.lightning.lwc.test.create',
     forceLightningLwcTestCreate
   );
 
-  const debuggerStopCmd = vscode.commands.registerCommand(
+  const debuggerStopCmd = registerCommand(
     'sf.debugger.stop',
     debuggerStop
   );
-  const configListCmd = vscode.commands.registerCommand(
+  const configListCmd = registerCommand(
     'sf.config.list',
     configList
   );
-  const forceAliasListCmd = vscode.commands.registerCommand(
+  const forceAliasListCmd = registerCommand(
     'sf.alias.list',
     aliasList
   );
-  const orgDeleteDefaultCmd = vscode.commands.registerCommand(
+  const orgDeleteDefaultCmd = registerCommand(
     'sf.org.delete.default',
     orgDelete
   );
-  const orgDeleteUsernameCmd = vscode.commands.registerCommand(
+  const orgDeleteUsernameCmd = registerCommand(
     'sf.org.delete.username',
     orgDelete,
     { flag: '--target-org' }
   );
-  const orgDisplayDefaultCmd = vscode.commands.registerCommand(
+  const orgDisplayDefaultCmd = registerCommand(
     'sf.org.display.default',
     orgDisplay
   );
-  const orgDisplayUsernameCmd = vscode.commands.registerCommand(
+  const orgDisplayUsernameCmd = registerCommand(
     'sf.org.display.username',
     orgDisplay,
     { flag: '--target-org' }
   );
-  const orgListCleanCmd = vscode.commands.registerCommand(
+  const orgListCleanCmd = registerCommand(
     'sf.org.list.clean',
     orgList
   );
-  const dataQueryInputCmd = vscode.commands.registerCommand(
+  const dataQueryInputCmd = registerCommand(
     'sf.data.query.input',
     dataQuery
   );
-  const dataQuerySelectionCmd = vscode.commands.registerCommand(
+  const dataQuerySelectionCmd = registerCommand(
     'sf.data.query.selection',
     dataQuery
   );
-  const projectGenerateCmd = vscode.commands.registerCommand(
+  const projectGenerateCmd = registerCommand(
     'sf.project.generate',
     sfProjectGenerate
   );
 
-  const packageInstallCmd = vscode.commands.registerCommand(
+  const packageInstallCmd = registerCommand(
     'sf.package.install',
     packageInstall
   );
-  const projectGenerateWithManifestCmd = vscode.commands.registerCommand(
+  const projectGenerateWithManifestCmd = registerCommand(
     'sf.project.generate.with.manifest',
     projectGenerateWithManifest
   );
 
-  const apexGenerateTriggerCmd = vscode.commands.registerCommand(
+  const apexGenerateTriggerCmd = registerCommand(
     'sf.apex.generate.trigger',
     apexGenerateTrigger
   );
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+  const startApexDebugLoggingCmd = registerCommand(
     'sf.start.apex.debug.logging',
     startApexDebugLogging
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
+  const stopApexDebugLoggingCmd = registerCommand(
     'sf.stop.apex.debug.logging',
     stopApexDebugLogging
   );
 
-  const isvDebugBootstrapCmd = vscode.commands.registerCommand(
+  const isvDebugBootstrapCmd = registerCommand(
     'sf.debug.isv.bootstrap',
     isvDebugBootstrap
   );
 
-  const configSetCmd = vscode.commands.registerCommand(
+  const configSetCmd = registerCommand(
     'sf.config.set',
     configSet
   );
 
-  const diffFile = vscode.commands.registerCommand('sf.diff', sourceDiff);
+  const diffFile = registerCommand('sf.diff', sourceDiff);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const diffFolder = vscode.commands.registerCommand(
+  const diffFolder = registerCommand(
     'sf.folder.diff',
     sourceFolderDiff
   );
 
-  const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
+  const forceRefreshSObjectsCmd = registerCommand(
     'sf.internal.refreshsobjects',
     refreshSObjects
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const renameLightningComponentCmd = vscode.commands.registerCommand(
+  const renameLightningComponentCmd = registerCommand(
     'sf.rename.lightning.component',
     renameLightningComponent
   );
 
-  const getCoreLoggerServiceCmd = vscode.commands.registerCommand(
+  const getCoreLoggerServiceCmd = registerCommand(
     'sf.vscode.core.logger.get.instance',
     getCoreLoggerService
   );
@@ -465,28 +466,28 @@ const registerInternalDevCommands = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable => {
-  const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
+  const internalLightningGenerateAppCmd = registerCommand(
     'sf.internal.lightning.generate.app',
     internalLightningGenerateApp
   );
 
   const internalLightningGenerateAuraComponentCmd =
-    vscode.commands.registerCommand(
+    registerCommand(
       'sf.internal.lightning.generate.aura.component',
       internalLightningGenerateAuraComponent
     );
 
-  const internalLightningGenerateEventCmd = vscode.commands.registerCommand(
+  const internalLightningGenerateEventCmd = registerCommand(
     'sf.internal.lightning.generate.event',
     internalLightningGenerateEvent
   );
 
-  const internalLightningGenerateInterfaceCmd = vscode.commands.registerCommand(
+  const internalLightningGenerateInterfaceCmd = registerCommand(
     'sf.internal.lightning.generate.interface',
     internalLightningGenerateInterface
   );
 
-  const internalLightningGenerateLwcCmd = vscode.commands.registerCommand(
+  const internalLightningGenerateLwcCmd = registerCommand(
     'sf.internal.lightning.generate.lwc',
     internalLightningGenerateLwc
   );
@@ -503,7 +504,7 @@ const registerInternalDevCommands = (
 const registerOrgPickerCommands = (
   orgListParam: OrgList
 ): vscode.Disposable => {
-  const setDefaultOrgCmd = vscode.commands.registerCommand(
+  const setDefaultOrgCmd = registerCommand(
     'sf.set.default.org',
     () => orgListParam.setDefaultOrg()
   );
@@ -515,35 +516,35 @@ const setupOrgBrowser = async (
 ): Promise<void> => {
   await orgBrowser.init(extensionContext);
 
-  vscode.commands.registerCommand(
+  registerCommand(
     'sf.metadata.view.type.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
-  vscode.commands.registerCommand(
+  registerCommand(
     'sf.metadata.view.component.refresh',
     async node => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
-  vscode.commands.registerCommand(
+  registerCommand(
     'sf.retrieve.component',
     async (trigger: RetrieveMetadataTrigger) => {
       await retrieveComponent(trigger);
     }
   );
 
-  vscode.commands.registerCommand(
+  registerCommand(
     'sf.retrieve.open.component',
     async (trigger: RetrieveMetadataTrigger) => {
       await retrieveComponent(trigger, true);
     }
   );
 
-  vscode.commands.registerCommand(
+  registerCommand(
     'sf.project.generate.manifest',
     projectGenerateManifest
   );
