@@ -8,5 +8,8 @@
 export type CommandLogEntry = {
   commandId: string;
   timestamp: number;
-  duration?: number;
+  duration: number;
+  exitCode?: number;
+  error?: string;
+  data?: any;
 };

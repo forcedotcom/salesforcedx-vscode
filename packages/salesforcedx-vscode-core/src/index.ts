@@ -92,7 +92,9 @@ import {
   SelectOutputDir,
   SfCommandlet,
   SfCommandletExecutor,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  getCommandLog,
+  getLastCommandLogEntry
 } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -674,7 +676,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       TelemetryService,
       WorkspaceContext,
       CommandEventDispatcher
-    }
+    },
+    getCommandLog,
+    getLastCommandLogEntry
   };
 
   if (

@@ -7,12 +7,14 @@
 
 import { Connection } from '@salesforce/core-bundle';
 import {
+  CommandEventStream,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { decorators } from '../decorators';
 import { workspaceContextUtils } from '.';
+import { CommandLog } from '../commands/util';
+import { decorators } from '../decorators';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -33,6 +35,8 @@ export class WorkspaceContext {
   public async initialize(extensionContext: vscode.ExtensionContext) {
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
     this.workspaceStore = extensionContext.workspaceState;
+    CommandEventStream.getInstance().initialize(extensionContext);
+    CommandLog.getInstance().initialize();
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {

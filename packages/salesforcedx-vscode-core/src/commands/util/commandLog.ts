@@ -5,28 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CommandEvent, CommandEventStream, CommandEventType } from '@salesforce/salesforcedx-utils-vscode';
 import { WorkspaceContext } from '../../context';
 import { CommandLogEntry } from './commandLogEntry';
 
-export const logCommand = async (commandId: string, duration: number): Promise<void> => {
-  await CommandLog.getInstance().logCommand(commandId, duration);
-};
-
-export const getCommandLog = (commandIdFilter?: string): CommandLogEntry[] => {
+export const getCommandLog = (commandIdFilter?: string, exitCodeFilter?: number): CommandLogEntry[] => {
   return CommandLog.getInstance().getCommandLog(commandIdFilter);
 };
 
-export const getLastCommandLogEntry = (commandIdFilter?: string): CommandLogEntry | undefined => {
+export const getLastCommandLogEntry = (commandIdFilter?: string, exitCodeFilter?: number): CommandLogEntry | undefined => {
   const commandLog = CommandLog.getInstance().getCommandLog(commandIdFilter);
   return commandLog.length > 0 ? commandLog[commandLog.length - 1] : undefined;
 };
 
-class CommandLog {
+export class CommandLog {
   private static instance: CommandLog;
   private static STORAGE_KEY = 'COMMAND_LOG';
   private static MAX_LOG_ENTRIES = 1000;
 
   private commandLogEntries: CommandLogEntry[] = [];
+  private inProgressCommands: Map<string, number> = new Map();
+  private inProgressData: any = {};
 
   private constructor() {
     this.loadCommandLog();
@@ -39,17 +38,35 @@ class CommandLog {
     return CommandLog.instance;
   }
 
+  public initialize() {
+    CommandEventStream.getInstance().onCommandEvent(this.processCommandEvent.bind(this));
+  }
+
   public async logCommand(commandId: string, duration: number) {
-    const timestamp = Date.now();
-    this.commandLogEntries.push({ commandId, timestamp, duration });
+    const entry = {
+      commandId,
+      timestamp: Date.now(),
+      duration,
+      exitCode: this.inProgressData.exitCode,
+      error: this.inProgressData.error,
+      data: this.inProgressData.data
+    }
+    this.commandLogEntries.push(entry);
     if (this.commandLogEntries.length > CommandLog.MAX_LOG_ENTRIES) {
       this.commandLogEntries.shift();
     }
     await this.updateCommandLog();
   }
 
-  public getCommandLog(commandIdFilter?: string): CommandLogEntry[] {
-    return this.commandLogEntries.filter(entry => entry.commandId === commandIdFilter);
+  public getCommandLog(commandIdFilter?: string, exitCodeFilter?: number): CommandLogEntry[] {
+    let results = Array.from(this.commandLogEntries);
+    if (commandIdFilter) {
+      results = results.filter(entry => entry.commandId === commandIdFilter);
+    }
+    if (exitCodeFilter !== undefined) {
+      results = results.filter(entry => entry.exitCode === exitCodeFilter);
+    }
+    return results;
   }
 
   private loadCommandLog() {
@@ -60,5 +77,33 @@ class CommandLog {
   private async updateCommandLog() {
     // save command log to storage
     await WorkspaceContext.getInstance().workspaceState.update(CommandLog.STORAGE_KEY, this.commandLogEntries);
+  }
+
+  private async processCommandEvent(event: CommandEvent): Promise<void> {
+    switch (event.type) {
+      case CommandEventType.START:
+        this.inProgressCommands.set(event.commandId, Date.now());
+        break;
+      case CommandEventType.END: 
+        const start = this.inProgressCommands.get(event.commandId);
+        if (start) {
+          const duration = Date.now() - start;
+          await this.logCommand(event.commandId, duration);
+          this.inProgressCommands.delete(event.commandId);
+          if (this.inProgressCommands.size === 0) {
+            this.inProgressData = {};
+          }
+        }
+        break;
+      case CommandEventType.EXIT_CODE:
+        this.inProgressData.exitCode = event.exitCode;
+        break;
+      case CommandEventType.DATA:
+        this.inProgressData.data = { ...this.inProgressData.data, ...event.data };
+        break;
+      case CommandEventType.ERROR:
+        this.inProgressData.error = event.error;
+        break;
+    }
   }
 }

@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs/Subscription';
 // Below two dependancies are not structured correcly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Command } from './';
+import { CommandEventStream, CommandEventType } from '../commands';
 const cross_spawn = require('cross-spawn');
 const kill = require('tree-kill');
 /* eslint-enable @typescript-eslint/no-var-requires */
@@ -155,28 +156,35 @@ export class CompositeCliCommandExecution implements CommandExecution {
         }
       });
     }
-    this.processErrorSubject.subscribe(() => {
+    this.processErrorSubject.subscribe(e => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
+      CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${e}` });
     });
 
-    this.processExitSubject.subscribe(() => {
+    this.processExitSubject.subscribe(exitCode => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
+      }
+      if (exitCode !== undefined) {
+        CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode });
       }
     });
   }
 
   public successfulExit() {
+    CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode: 0 });
     this.exitSubject.next(0);
   }
 
   public failureExit(e?: {}) {
     if (e) {
+      CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${e}` });
       // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
       this.stderr.next(`${e}${os.EOL}`);
     }
+    CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode: 1 });
     this.exitSubject.next(1);
   }
 }
@@ -209,16 +217,20 @@ export class CliCommandExecution implements CommandExecution {
 
     // Process
     this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
-    this.processExitSubject.subscribe(() => {
+    this.processExitSubject.subscribe(exitCode => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
+      }
+      if (exitCode !== undefined) {
+        CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode });
       }
     });
     this.processErrorSubject = Observable.fromEvent(childProcess, 'error');
-    this.processErrorSubject.subscribe(() => {
+    this.processErrorSubject.subscribe(e => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
+      CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${e}` });
     });
 
     // Output

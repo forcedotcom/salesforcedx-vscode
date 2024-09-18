@@ -121,6 +121,6 @@ export {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';
-export { CommandLogEntry, getCommandLog, getLastCommandLogEntry, logCommand, registerCommand } from './util';
+export { CommandLogEntry, getCommandLog, getLastCommandLogEntry, registerCommand } from './util';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
