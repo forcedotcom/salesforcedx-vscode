@@ -10,11 +10,11 @@ import { WorkspaceContext } from '../../context';
 import { CommandLogEntry } from './commandLogEntry';
 
 export const getCommandLog = (commandIdFilter?: string, exitCodeFilter?: number): CommandLogEntry[] => {
-  return CommandLog.getInstance().getCommandLog(commandIdFilter);
+  return CommandLog.getInstance().getCommandLog(commandIdFilter, exitCodeFilter);
 };
 
 export const getLastCommandLogEntry = (commandIdFilter?: string, exitCodeFilter?: number): CommandLogEntry | undefined => {
-  const commandLog = CommandLog.getInstance().getCommandLog(commandIdFilter);
+  const commandLog = CommandLog.getInstance().getCommandLog(commandIdFilter, exitCodeFilter);
   return commandLog.length > 0 ? commandLog[commandLog.length - 1] : undefined;
 };
 
@@ -50,7 +50,7 @@ export class CommandLog {
       exitCode: this.inProgressData.exitCode,
       error: this.inProgressData.error,
       data: this.inProgressData.data
-    }
+    };
     this.commandLogEntries.push(entry);
     if (this.commandLogEntries.length > CommandLog.MAX_LOG_ENTRIES) {
       this.commandLogEntries.shift();
@@ -84,14 +84,16 @@ export class CommandLog {
       case CommandEventType.START:
         this.inProgressCommands.set(event.commandId, Date.now());
         break;
-      case CommandEventType.END: 
-        const start = this.inProgressCommands.get(event.commandId);
-        if (start) {
-          const duration = Date.now() - start;
-          await this.logCommand(event.commandId, duration);
-          this.inProgressCommands.delete(event.commandId);
-          if (this.inProgressCommands.size === 0) {
-            this.inProgressData = {};
+      case CommandEventType.END:
+        {
+            const start = this.inProgressCommands.get(event.commandId);
+          if (start) {
+            const duration = Date.now() - start;
+            await this.logCommand(event.commandId, duration);
+            this.inProgressCommands.delete(event.commandId);
+            if (this.inProgressCommands.size === 0) {
+              this.inProgressData = {};
+            }
           }
         }
         break;

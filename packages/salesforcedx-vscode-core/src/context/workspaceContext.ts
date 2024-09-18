@@ -12,9 +12,9 @@ import {
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { workspaceContextUtils } from '.';
 import { CommandLog } from '../commands/util';
 import { decorators } from '../decorators';
+import { workspaceContextUtils } from '.';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.

@@ -15,8 +15,8 @@ import { Subscription } from 'rxjs/Subscription';
 
 // Below two dependancies are not structured correcly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Command } from './';
 import { CommandEventStream, CommandEventType } from '../commands';
+import { Command } from './';
 const cross_spawn = require('cross-spawn');
 const kill = require('tree-kill');
 /* eslint-enable @typescript-eslint/no-var-requires */
@@ -180,6 +180,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: {}) {
     if (e) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
       CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${e}` });
       // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
       this.stderr.next(`${e}${os.EOL}`);
@@ -230,6 +231,7 @@ export class CliCommandExecution implements CommandExecution {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${e}` });
     });
 

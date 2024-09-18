@@ -7,9 +7,9 @@
 import { EventEmitter } from 'events';
 import 'rxjs/add/observable/fromEvent';
 import { Observable } from 'rxjs/Observable';
+import { CommandEventStream, CommandEventType } from '../commands';
 import { Command } from '.';
 import { CancellationToken, CommandExecution } from './commandExecutor';
-import { CommandEventStream, CommandEventType } from '../commands';
 
 export class LocalCommandExecution implements CommandExecution {
   public static readonly EXIT_EVENT = 'exitEvent';
