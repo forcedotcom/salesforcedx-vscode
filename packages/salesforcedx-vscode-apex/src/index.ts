@@ -55,6 +55,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   if (!telemetryService) {
     throw new Error('Could not fetch a telemetry service instance');
   }
+
+  // Telemetry
+  await telemetryService.initializeService(extensionContext);
+
   const activationTracker = new ActivationTracker(
     extensionContext,
     telemetryService
@@ -85,9 +89,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Workspace Context
   await workspaceContext.initialize(extensionContext);
-
-  // Telemetry
-  await telemetryService.initializeService(extensionContext);
 
   // start the language server and client
   await createLanguageClient(extensionContext, languageServerStatusBarItem);

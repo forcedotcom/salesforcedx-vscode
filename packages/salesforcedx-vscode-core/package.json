@@ -32,7 +32,7 @@
     "@salesforce/source-deploy-retrieve-bundle": "12.6.3",
     "@salesforce/templates": "61.4.10",
     "@salesforce/ts-types": "2.0.12",
-    "@salesforce/vscode-service-provider": "1.1.1",
+    "@salesforce/vscode-service-provider": "1.2.1",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
