@@ -21,6 +21,7 @@ export const PKG_ID_PREFIX = '04t';
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK =
   'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
+export const TELEMETRY_INTERNAL_VALUE = 'sfdxTelemetryMessageInternal';
 export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 export const BASE_EXTENSION = 'salesforce.salesforcedx-vscode';
 export const EXPANDED_EXTENSION = 'salesforce.salesforcedx-vscode-expanded';
