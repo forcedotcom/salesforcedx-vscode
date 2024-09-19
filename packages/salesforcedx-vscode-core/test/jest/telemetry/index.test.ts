@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TELEMETRY_GLOBAL_USER_ID } from '@salesforce/salesforcedx-utils-vscode/src/constants';
+import { TELEMETRY_GLOBAL_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'os';
 import { extensions, window, Extension } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -44,14 +44,14 @@ describe('Telemetry', () => {
     const showMessage = nls.localize('telemetry_legal_dialog_message', TELEMETRY_OPT_OUT_LINK);
     const internalMessage = nls.localize('telemetry_internal_user_message');
 
-    const handleTelemetryMsgShown = (key:string, globalMsgShown:boolean, internalMsgShown:boolean) => {
+    const handleTelemetryMsgShown = (key: string, globalMsgShown: boolean, internalMsgShown: boolean) => {
       if (key === TELEMETRY_GLOBAL_USER_ID) {
         return key;
       }
-      if(key === TELEMETRY_GLOBAL_VALUE) {
+      if (key === TELEMETRY_GLOBAL_VALUE) {
         return globalMsgShown;
       }
-      if(key === TELEMETRY_INTERNAL_VALUE) {
+      if (key === TELEMETRY_INTERNAL_VALUE) {
         return internalMsgShown;
       }
       throw new Error('unknown key');
@@ -98,6 +98,7 @@ describe('Telemetry', () => {
 
       await showTelemetryMessage(mockExtensionContext);
       expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(3);
+      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_USER_ID);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
       expect(globalStateTelemetrySpy).toHaveBeenLastCalledWith(TELEMETRY_INTERNAL_VALUE);
       expect(mShowInformation).not.toHaveBeenCalled();
