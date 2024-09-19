@@ -6,6 +6,7 @@
  */
 
 export { ChannelService } from './channelService';
+export * from './commandEventStream';
 
 import { NotificationService } from './notificationService';
 export const notificationService = NotificationService.getInstance();

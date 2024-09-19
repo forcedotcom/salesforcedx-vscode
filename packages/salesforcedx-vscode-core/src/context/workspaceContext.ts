@@ -7,10 +7,12 @@
 
 import { Connection } from '@salesforce/core-bundle';
 import {
+  CommandEventStream,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { CommandLog } from '../commands/util';
 import { decorators } from '../decorators';
 import { workspaceContextUtils } from '.';
 
@@ -20,16 +22,21 @@ import { workspaceContextUtils } from '.';
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
 
+  protected workspaceStore: vscode.Memento;
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
+    this.workspaceStore = {} as vscode.Memento;
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
+    this.workspaceStore = extensionContext.workspaceState;
+    CommandEventStream.getInstance().initialize(extensionContext);
+    CommandLog.getInstance().initialize();
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
@@ -52,6 +59,10 @@ export class WorkspaceContext {
       );
 
     await decorators.showOrg();
+  }
+
+  get workspaceState(): vscode.Memento {
+    return this.workspaceStore;
   }
 
   get username(): string | undefined {

@@ -7,6 +7,7 @@
 import { EventEmitter } from 'events';
 import 'rxjs/add/observable/fromEvent';
 import { Observable } from 'rxjs/Observable';
+import { CommandEventStream, CommandEventType } from '../commands';
 import { Command } from '.';
 import { CancellationToken, CommandExecution } from './commandExecutor';
 
@@ -47,5 +48,14 @@ export class LocalCommandExecution implements CommandExecution {
       this.cmdEmitter,
       LocalCommandExecution.STDERR_EVENT
     ) ;
+
+    this.processExitSubject.subscribe(exitCode => {
+      if (exitCode !== undefined) {
+        CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode });
+      }
+    });
+    this.processErrorSubject.subscribe(error => {
+      CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${error}` });
+    });
   }
 }

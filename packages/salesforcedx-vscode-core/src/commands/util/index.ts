@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CommandParams } from './commandParams';
 export { CommandletExecutor } from './commandletExecutor';
+export * from './commandLog';
+export * from './commandLogEntry';
+export { CommandParams } from './commandParams';
+export * from './commandWrapper';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
 export { CompositePreconditionChecker } from './compositePreconditionChecker';
 export { ConflictDetectionMessages } from './conflictDetectionMessages';
@@ -17,6 +20,7 @@ export { EmptyPreChecker } from './emptyPreChecker';
 export { FlagParameter } from './flagParameter';
 export { formatException } from './formatException';
 export { LibraryPathsGatherer } from './libraryPathsGatherer';
+export * from './lwcAuraDuplicateComponentCheckers';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
   CompositeParametersGatherer,
@@ -39,4 +43,4 @@ export {
   PathStrategyFactory,
   SourcePathStrategy
 } from './sourcePathStrategies';
-export * from './lwcAuraDuplicateComponentCheckers';
+
