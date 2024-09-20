@@ -82,7 +82,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     try {
       await removeUsername(response.data);
     } catch (e) {
-      telemetryService.sendException(e.name, e.message);
+      telemetryService.sendException('org_logout_default', e.message);
       return false;
     }
     return true;
@@ -92,7 +92,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 export const orgLogoutDefault = async () => {
   const { username, isScratch, alias, error } = await resolveTargetOrg();
   if (error) {
-    telemetryService.sendException(error.name, error.message);
+    telemetryService.sendException('org_logout_default', error.message);
     void notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
     // confirm logout for scratch orgs due to special considerations:

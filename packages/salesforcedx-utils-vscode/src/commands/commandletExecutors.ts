@@ -4,13 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
+import {
+  Properties,
+  Measurements,
+  TelemetryData
+} from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { CliCommandExecutor, Command, CommandExecution } from '../cli';
-import {
-  TelemetryBuilder,
-  TelemetryService
-} from '../index';
+import { TelemetryBuilder, TelemetryService } from '../index';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';
 import { CommandletExecutor, ContinueResponse } from '../types';
@@ -118,7 +119,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 }
 
 export abstract class LibraryCommandletExecutor<T>
-  implements CommandletExecutor<T> {
+  implements CommandletExecutor<T>
+{
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
   private readonly executionName: string;
@@ -219,7 +221,7 @@ export abstract class LibraryCommandletExecutor<T>
       );
     } catch (e) {
       if (e instanceof Error) {
-        telemetryService.sendException(e.name, e.message);
+        telemetryService.sendException(this.logName, e.message);
         notificationService.showFailedExecution(this.executionName);
         channelService.appendLine(e.message);
       }

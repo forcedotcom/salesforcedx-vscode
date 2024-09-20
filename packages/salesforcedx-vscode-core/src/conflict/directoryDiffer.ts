@@ -173,7 +173,7 @@ export const diffOneFile = async (
         await notificationService.showErrorMessage(err.message);
         channelService.appendLine(err.message);
         channelService.showChannelOutput();
-        telemetryService.sendException(err.name, err.message);
+        telemetryService.sendException('source_diff_file', err.message);
       }
       return;
     }
