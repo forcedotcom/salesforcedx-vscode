@@ -82,7 +82,10 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     try {
       await removeUsername(response.data);
     } catch (e) {
-      telemetryService.sendException('org_logout_default', e.message);
+      telemetryService.sendException(
+        'org_logout_default',
+        `Error: name = ${e.name} message = ${e.message}`
+      );
       return false;
     }
     return true;

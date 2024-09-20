@@ -696,8 +696,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       sobjectRefreshStartup
     ).catch(e =>
       telemetryService.sendException(
-        e.name,
-        `Error: ${e.message} with sobjectRefreshStartup = ${sobjectRefreshStartup}`
+        'initSObjectDefinitionsError',
+        `Error: name = ${e.name} message = ${e.message} with sobjectRefreshStartup = ${sobjectRefreshStartup}`
       )
     );
   }

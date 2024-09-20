@@ -179,7 +179,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       console.log('Generate error ' + error.error);
       telemetryService.sendException(
         'generate_faux_classes_create',
-        error.error
+        `Error: name = ${error.name} message = ${error.error}`
       );
       RefreshSObjectsExecutor.isActive = false;
 

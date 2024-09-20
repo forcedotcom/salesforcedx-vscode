@@ -221,7 +221,10 @@ export abstract class LibraryCommandletExecutor<T>
       );
     } catch (e) {
       if (e instanceof Error) {
-        telemetryService.sendException(this.logName, e.message);
+        telemetryService.sendException(
+          `LibraryCommandletExecutor - ${this.logName}`,
+          `Error: name = ${e.name} message = ${e.message}`
+        );
         notificationService.showFailedExecution(this.executionName);
         channelService.appendLine(e.message);
       }
