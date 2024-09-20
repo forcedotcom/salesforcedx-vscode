@@ -30,35 +30,31 @@ import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { ProgressLocation, window } from 'vscode';
 import {
-  checkSObjectsAndRefresh,
   RefreshSObjectsExecutor,
   RefreshSelection,
   SObjectRefreshGatherer,
-  verifyUsernameAndInitSObjectDefinitions
+  initSObjectDefinitions
 } from '../../../src/commands/refreshSObjects';
-import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('GenerateFauxClasses', () => {
   const sobjectsPath = path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
+  const standardSobjectsPath = path.join(sobjectsPath, STANDARDOBJECTS_DIR);
   describe('initSObjectDefinitions', () => {
     let sandboxStub: SinonSandbox;
     let existsSyncStub: SinonStub;
-    let getUsernameStub: SinonStub;
     let commandletSpy: SinonStub;
     let notificationStub: SinonStub;
+    let telemetryEventStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
 
     beforeEach(() => {
       sandboxStub = createSandbox();
       existsSyncStub = sandboxStub.stub(fs, 'existsSync');
-      getUsernameStub = sandboxStub.stub();
-      sandboxStub
-        .stub(WorkspaceContext.prototype, 'getConnection')
-        .resolves({ getUsername: getUsernameStub });
       commandletSpy = sandboxStub.stub(SfCommandlet.prototype, 'run');
+      telemetryEventStub = sandboxStub.stub(telemetryService, 'sendEventData');
       notificationStub = sandboxStub.stub(
         notificationService,
         'showInformationMessage'
@@ -71,9 +67,8 @@ describe('GenerateFauxClasses', () => {
 
     it('Should execute sobject refresh if no sobjects folder is present', async () => {
       existsSyncStub.returns(false);
-      getUsernameStub.returns(new Map([['target-org', 'Sample']]));
 
-      await verifyUsernameAndInitSObjectDefinitions(projectPath);
+      await initSObjectDefinitions(projectPath, true);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
       expect(commandletSpy.calledOnce).to.be.true;
@@ -86,46 +81,16 @@ describe('GenerateFauxClasses', () => {
 
     it('Should not execute sobject refresh if sobjects folder is present', async () => {
       existsSyncStub.returns(true);
-      getUsernameStub.returns('Sample');
 
-      await verifyUsernameAndInitSObjectDefinitions(projectPath);
+      await initSObjectDefinitions(projectPath, true);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
       expect(commandletSpy.notCalled).to.be.true;
     });
-
-    it('Should not execute sobject refresh if no target org set', async () => {
-      existsSyncStub.returns(false);
-      getUsernameStub.returns(undefined);
-
-      await verifyUsernameAndInitSObjectDefinitions(projectPath);
-
-      expect(commandletSpy.notCalled).to.be.true;
-    });
-  });
-
-  describe('checkSObjectsAndRefresh', () => {
-    let sandboxStub: SinonSandbox;
-    let existsSyncStub: SinonStub;
-    let telemetryEventStub: SinonStub;
-
-    const projectPath = path.join('sample', 'path');
-    const standardSobjectsPath = path.join(sobjectsPath, STANDARDOBJECTS_DIR);
-
-    beforeEach(() => {
-      sandboxStub = createSandbox();
-      existsSyncStub = sandboxStub.stub(fs, 'existsSync');
-      telemetryEventStub = sandboxStub.stub(telemetryService, 'sendEventData');
-    });
-
-    afterEach(() => {
-      sandboxStub.restore();
-    });
-
     it('Should call refreshSObjects service when sobjects do not exist', async () => {
       existsSyncStub.returns(false);
 
-      await checkSObjectsAndRefresh(projectPath);
+      await initSObjectDefinitions(projectPath, false);
 
       expect(existsSyncStub.calledWith(standardSobjectsPath)).to.be.true;
       expect(telemetryEventStub.callCount).to.equal(1);
@@ -136,11 +101,10 @@ describe('GenerateFauxClasses', () => {
       });
       expect(telemetryCallArgs[2]).to.equal(undefined);
     });
-
     it('Should not call refreshSObjects service when sobjects already exist', async () => {
       existsSyncStub.returns(true);
 
-      await checkSObjectsAndRefresh(projectPath);
+      await initSObjectDefinitions(projectPath, false);
 
       expect(existsSyncStub.calledWith(standardSobjectsPath)).to.be.true;
       expect(telemetryEventStub.notCalled).to.be.true;

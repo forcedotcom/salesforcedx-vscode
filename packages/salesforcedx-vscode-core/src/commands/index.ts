@@ -61,7 +61,6 @@ export {
 } from './packageInstall';
 export {
   RefreshSObjectsExecutor,
-  checkSObjectsAndRefresh,
   refreshSObjects,
   initSObjectDefinitions
 } from './refreshSObjects';
