@@ -26,7 +26,6 @@ import {
   apexGenerateClass,
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
-  checkSObjectsAndRefresh,
   configList,
   configSet,
   dataQuery,
@@ -118,7 +117,10 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
-import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
+import {
+  getCoreLoggerService,
+  registerGetTelemetryServiceCommand
+} from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
@@ -582,7 +584,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
 
-  void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
+  void vscode.commands.executeCommand(
+    'setContext',
+    'sf:internal_dev',
+    internalDev
+  );
 
   if (internalDev) {
     // Internal Dev commands
@@ -685,15 +691,15 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-    if (sobjectRefreshStartup) {
-      initSObjectDefinitions(
-        vscode.workspace.workspaceFolders[0].uri.fsPath
-      ).catch(e => telemetryService.sendException(e.name, e.message));
-    } else {
-      checkSObjectsAndRefresh(
-        vscode.workspace.workspaceFolders[0].uri.fsPath
-      ).catch(e => telemetryService.sendException(e.name, e.message));
-    }
+    initSObjectDefinitions(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      sobjectRefreshStartup
+    ).catch(e =>
+      telemetryService.sendException(
+        'initSObjectDefinitionsError',
+        `Error: name = ${e.name} message = ${e.message} with sobjectRefreshStartup = ${sobjectRefreshStartup}`
+      )
+    );
   }
 
   void activateTracker.markActivationStop();

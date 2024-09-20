@@ -158,7 +158,10 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
           e.message =
             'Error while creating diagnostics for vscode problem view.';
         }
-        telemetryService.sendException(e.name, e.message);
+        telemetryService.sendException(
+          execution.command.logName,
+          `Error: name = ${e.name} message = ${e.message}`
+        );
         console.error(e.message);
       }
       telemetry.addProperty('success', String(success));
