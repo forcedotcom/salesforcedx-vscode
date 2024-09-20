@@ -694,7 +694,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     initSObjectDefinitions(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
       sobjectRefreshStartup
-    ).catch(e => telemetryService.sendException(e.name, e.message));
+    ).catch(e =>
+      telemetryService.sendException(
+        e.name,
+        `Error: ${e.message} with sobjectRefreshStartup = ${sobjectRefreshStartup}`
+      )
+    );
   }
 
   void activateTracker.markActivationStop();
