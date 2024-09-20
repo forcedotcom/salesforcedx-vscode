@@ -13,7 +13,7 @@ import {
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as util from 'util';
-import { ExtensionContext, ExtensionMode, workspace, extensions } from 'vscode';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -105,26 +105,22 @@ export class TelemetryService implements TelemetryServiceInterface {
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
    */
-  public initializeService(
+  public async initializeService(
     extensionContext: ExtensionContext
   ): Promise<void> {
     const { name, version, aiKey } = extensionContext.extension.packageJSON as { name: string; version: string; aiKey: string };
-    return this.initializeServiceWithAttributes(name, aiKey, version, extensionContext.extensionMode);
-  }
-
-  public async initializeServiceWithAttributes(name: string, aiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void> {
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
     if (!version) {
       console.log('Extension version is not defined in package.json');
     }
-    this.extensionContext = getExtensionContextByName(name);
+    this.extensionContext = extensionContext;
     this.extensionName = name;
     this.version = version ?? '';
     this.aiKey = aiKey || this.aiKey;
     this.isInternal = isInternalHost();
-    this.isDevMode = extensionMode !== ExtensionMode.Production;
+    this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
     this.checkCliTelemetry()
       .then(cliEnabled => {
@@ -136,7 +132,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    if(this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
+    if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
       const reporterConfig: TelemetryReporterConfig = {
         extName: this.extensionName,
@@ -171,8 +167,8 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public async isTelemetryEnabled(): Promise<boolean> {
     return this.isInternal
-     ? true
-     : (this.isTelemetryExtensionConfigurationEnabled() && await this.checkCliTelemetry());
+      ? true
+      : (this.isTelemetryExtensionConfigurationEnabled() && await this.checkCliTelemetry());
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
@@ -353,11 +349,3 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
   }
 }
-
-const getExtensionContextByName = (extensionName: string): ExtensionContext | undefined => {
-  const extension = extensions.getExtension(extensionName);
-  if (extension) {
-    // Access the extension's context
-    return extension.exports as ExtensionContext;
-  }
-};
