@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-lwc
 
-To improve developer productivity and code quality, now you can use Salesforce TypeScript type definitions to develop Lightning web components (LWCs). For now, support for a limited number of Salesforce type definitions is in developer preview. To learn more, see [TypeScript Support for LWC (Developer Preview)](https://developer.salesforce.com/docs/platform/lwc/guide/ts.html).
+- To improve developer productivity and code quality, now you can use Salesforce TypeScript type definitions to develop Lightning web components (LWCs). For now, support for a limited number of Salesforce type definitions is in developer preview. To learn more, see [TypeScript Support for LWC (Developer Preview)](https://developer.salesforce.com/docs/platform/lwc/guide/ts.html).
 
 #### salesforcedx-vscode-core
 
