@@ -2,33 +2,31 @@
 
 ## Added
 
+#### salesforcedx-vscode-lwc
+
+To improve developer productivity and code quality, now you can use Salesforce TypeScript type definitions to develop Lightning web components (LWCs). For now, support for a limited number of Salesforce type definitions is in developer preview. To learn more, see [TypeScript Support for LWC (Developer Preview)](https://developer.salesforce.com/docs/platform/lwc/guide/ts.html).
+
 #### salesforcedx-vscode-core
 
-- Add internal user check ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5714))
-
-- Bump deps to catch up with latest ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5844))
+- We made some changes under the hood. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5714)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5844)).
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Telemetry user id is now properly filled ([PR #5857](https://github.com/forcedotcom/salesforcedx-vscode/pull/5857))
+- To help you quickly connect to the right default org, we’ve added handy indicators to let you know if your default org has expired, or isn’t valid. ([PR #5835](https://github.com/forcedotcom/salesforcedx-vscode/pull/5835))
 
-- Check for expiration of default org on activation ([PR #5835](https://github.com/forcedotcom/salesforcedx-vscode/pull/5835))
+- We fixed an issue where the `SFDX:Push Source to Default Org` and `SFDX:Pull Source from Default Org` commands would hang without throwing an error message when the error wasn’t related to files in the project. ([PR #5838](https://github.com/forcedotcom/salesforcedx-vscode/pull/5838))
 
-- Show error message for push/pull when the error does not involve files ([PR #5838](https://github.com/forcedotcom/salesforcedx-vscode/pull/5838))
+- We made some changes under the hood. ([PR #5857](https://github.com/forcedotcom/salesforcedx-vscode/pull/5857)), ([PR #5830](https://github.com/forcedotcom/salesforcedx-vscode/pull/5830)), ([PR #5786](https://github.com/forcedotcom/salesforcedx-vscode/pull/5786))
 
-- Forever truthy constructor for options ([PR #5830](https://github.com/forcedotcom/salesforcedx-vscode/pull/5830))
-
-- Implement provider for telemetry ([PR #5786](https://github.com/forcedotcom/salesforcedx-vscode/pull/5786))
 
 #### salesforcedx-vscode-lightning
 
-- Bump to latest lightning-language-server @W-16625817@ ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821))
-
 #### salesforcedx-vscode-lwc
 
-- Bump to latest lightning-language-server @W-16625817@ ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821))
+- We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821)), ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821)).
+
 
 # 61.12.0 - September 4, 2024
 
