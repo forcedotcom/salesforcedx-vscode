@@ -117,6 +117,13 @@
     "lib",
     "server.js"
   ],
+  "soqlBuilderWebAssetsPath": [
+    "..",
+    "..",
+    "node_modules",
+    "@salesforce",
+    "soql-builder-ui"
+  ],
   "packaging": {
     "assets": [
       "LICENSE.txt",
@@ -136,6 +143,11 @@
         "soql-language-server",
         "lib",
         "server.js"
+      ],
+      "soqlBuilderWebAssetsPath": [
+        "node_modules",
+        "@salesforce",
+        "soql-builder-ui"
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",

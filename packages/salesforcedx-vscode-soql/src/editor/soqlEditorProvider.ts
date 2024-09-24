@@ -8,12 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  BUILDER_VIEW_TYPE,
-  HTML_FILE,
-  SOQL_BUILDER_UI_PATH,
-  SOQL_BUILDER_WEB_ASSETS_PATH
-} from '../constants';
+import { BUILDER_VIEW_TYPE, HTML_FILE } from '../constants';
 import { nls } from '../messages';
 import { channelService, isDefaultOrgSet } from '../sf';
 import { HtmlUtils } from './htmlUtils';
@@ -41,19 +36,15 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     // eslint-disable-next-line
     _token: vscode.CancellationToken
   ): Promise<void> {
+    const soqlBuilderWebAssetsPath: string[] =
+      this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
+    const soqlBuilderWebAssetsModule = this.extensionContext.asAbsolutePath(
+      path.join(...soqlBuilderWebAssetsPath)
+    );
     webviewPanel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [
-        vscode.Uri.file(
-          path.join(
-            this.extensionContext.extensionPath,
-            SOQL_BUILDER_WEB_ASSETS_PATH
-          )
-        )
-      ]
+      localResourceRoots: [vscode.Uri.file(soqlBuilderWebAssetsModule)]
     };
-
-    // set the html for the webview instance
     webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
@@ -68,13 +59,14 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
-    const pathToLwcDist = path.join(
-      this.extensionContext.extensionPath,
-      SOQL_BUILDER_UI_PATH
+    const soqlBuilderWebAssetsPath: string[] =
+      this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
+    const soqlBuilderUIModule = this.extensionContext.asAbsolutePath(
+      path.join(...soqlBuilderWebAssetsPath, 'dist')
     );
-    const pathToHtml = path.join(pathToLwcDist, HTML_FILE);
+    const pathToHtml = path.join(soqlBuilderUIModule, HTML_FILE);
     let html = fs.readFileSync(pathToHtml).toString();
-    html = HtmlUtils.transformHtml(html, pathToLwcDist, webview);
+    html = HtmlUtils.transformHtml(html, soqlBuilderUIModule, webview);
     return html;
   }
   private disposeInstance(instance: SOQLEditorInstance) {
