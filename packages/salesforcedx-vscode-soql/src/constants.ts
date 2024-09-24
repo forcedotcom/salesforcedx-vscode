@@ -9,15 +9,11 @@ import { nls } from './messages';
 
 /* ==== SOQL BUILDER ==== */
 export const SOQL_BUILDER_WEB_ASSETS_PATH = path.join(
-  '..',
-  '..',
   'node_modules',
   '@salesforce',
   'soql-builder-ui'
 );
 export const SOQL_BUILDER_UI_PATH = path.join(
-  '..',
-  '..',
   'node_modules',
   '@salesforce',
   'soql-builder-ui',
