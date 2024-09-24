@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { BUILDER_VIEW_TYPE, HTML_FILE } from '../constants';
+import { BUILDER_VIEW_TYPE, DIST_FOLDER, HTML_FILE } from '../constants';
 import { nls } from '../messages';
 import { channelService, isDefaultOrgSet } from '../sf';
 import { HtmlUtils } from './htmlUtils';
@@ -36,10 +36,10 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     // eslint-disable-next-line
     _token: vscode.CancellationToken
   ): Promise<void> {
-    const soqlBuilderWebAssetsPath: string[] =
+    const soqlBuilderWebAssetsPathParam: string[] =
       this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
     const soqlBuilderWebAssetsModule = this.extensionContext.asAbsolutePath(
-      path.join(...soqlBuilderWebAssetsPath)
+      path.join(...soqlBuilderWebAssetsPathParam)
     );
     webviewPanel.webview.options = {
       enableScripts: true,
@@ -59,10 +59,10 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
-    const soqlBuilderWebAssetsPath: string[] =
+    const soqlBuilderWebAssetsPathParam: string[] =
       this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
     const soqlBuilderUIModule = this.extensionContext.asAbsolutePath(
-      path.join(...soqlBuilderWebAssetsPath, 'dist')
+      path.join(...soqlBuilderWebAssetsPathParam, DIST_FOLDER)
     );
     const pathToHtml = path.join(soqlBuilderUIModule, HTML_FILE);
     let html = fs.readFileSync(pathToHtml).toString();
