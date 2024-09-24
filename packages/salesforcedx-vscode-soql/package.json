@@ -205,7 +205,7 @@
       ],
       "editor/title": [
         {
-          "when": "resourceLangId == soql && resourceScheme == file",
+          "when": "resourceLangId == 'soql'",
           "command": "soql.builder.toggle",
           "group": "navigation"
         }
