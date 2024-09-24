@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- We made some changes under the hood. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5714)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5844)).
+- We made some changes under the hood. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5714)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5844))
 
 ## Fixed
 
@@ -25,7 +25,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821)).
+- We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821))
 
 
 # 61.12.0 - September 4, 2024
