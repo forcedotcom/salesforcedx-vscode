@@ -23,18 +23,13 @@ on:
         required: false
         default: true
         type: boolean
-      sObjectsDefinitions:
-        description: 'sObjects Definitions'
+      exampleUsingProject:
+        description: 'an example test to use an existing project'
         required: false
         default: true
         type: boolean
-      templates:
-        description: 'Create Commands'
-        required: false
-        default: true
-        type: boolean
-      sfdxProjectJson:
-        description: 'sfdx-project.json'
+      exampleUsingProjectFromYaml:
+        description: 'an example using a project from yaml'
         required: false
         default: true
         type: boolean
@@ -46,6 +41,10 @@ on:
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: true
+        type: string
+      githubRepoUrl:
+        description: 'the github repo url used for running the example test'
+        required: false
         type: string
 
   workflow_call:
@@ -70,18 +69,13 @@ on:
         required: false
         default: true
         type: boolean
-      sObjectsDefinitions:
-        description: 'sObjects Definitions'
+      exampleUsingProject:
+        description: 'an example test to use an existing project'
         required: false
         default: true
         type: boolean
-      templates:
-        description: 'Create Commands'
-        required: false
-        default: true
-        type: boolean
-      sfdxProjectJson:
-        description: 'sfdx-project.json'
+      exampleUsingProjectFromYaml:
+        description: 'an example using a project from yaml'
         required: false
         default: true
         type: boolean
@@ -126,35 +120,26 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  sObjectsDefinitions:
-    if: ${{ inputs.sObjectsDefinitions }}
+  exampleUsingProject:
+    if: ${{ inputs.exampleUsingProject }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'sObjectsDefinitions.e2e.ts'
+      testToRun: 'exampleUsingProject.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-
-  templates:
-    if: ${{ inputs.templates }}
+  
+  exampleUsingProjectFromYaml:
+    if: ${{ inputs.exampleUsingProjectFromYaml }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'templates.e2e.ts'
+      testToRun: 'exampleUsingProjectFromYaml.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-
-  sfdxProjectJson:
-    if: ${{ inputs.sfdxProjectJson }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'sfdxProjectJson.e2e.ts'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      githubRepoUrl: ${{ inputs.githubRepoUrl }}
 
   slack_success_notification:
     if: ${{ success() }}
@@ -163,8 +148,6 @@ jobs:
         anInitialSuite,
         authentication,
         miscellaneous,
-        sObjectsDefinitions,
-        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -184,8 +167,6 @@ jobs:
         anInitialSuite,
         authentication,
         miscellaneous,
-        sObjectsDefinitions,
-        templates
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -204,9 +185,7 @@ jobs:
       [
         anInitialSuite,
         authentication,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates
+        miscellaneous
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
