@@ -168,7 +168,22 @@ describe('AppInsights', () => {
     let appInsights: AppInsights;
 
     beforeEach(() => {
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
+      jest
+        .spyOn(os, 'hostname')
+        .mockReturnValue('test.internal.salesforce.com');
+      jest.spyOn(os, 'cpus').mockReturnValue([
+        {
+          model: 'AMD EPYC 7763 64-Core Processor',
+          speed: 3242,
+          times: {
+            user: 100000,
+            nice: 0,
+            sys: 100000,
+            idle: 1000000,
+            irq: 0
+          }
+        }
+      ]);
       jest.spyOn(os, 'userInfo').mockReturnValue({
         username: 'testuser',
         uid: 1001,
