@@ -25,7 +25,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821)), ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821)).
+- We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821)).
 
 
 # 61.12.0 - September 4, 2024
