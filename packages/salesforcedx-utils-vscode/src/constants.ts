@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -17,3 +17,4 @@ export const TARGET_DEV_HUB_KEY = 'target-dev-hub';
 export const TARGET_ORG_KEY = 'target-org';
 export const TRUE = 'true';
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
+export const INTERNAL_FILTER = 'internal.salesforce.com';

@@ -38,7 +38,7 @@ on:
       lwcE2ETests:
         description: 'LWC E2E Tests'
         required: false
-        default: false
+        default: true
         type: boolean
       vscodeVersion:
         description: 'VSCode Version for ESM branches'
@@ -133,7 +133,7 @@ jobs:
       runId: ${{ github.event.workflow_run.id }}
 
   LWC_E2E_tests_min_vscode_version:
-    if: ${{ inputs.lwcE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
