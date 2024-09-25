@@ -62,10 +62,10 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'LSP E2E Tests'
+      title: 'SOQL E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}}}'
+      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -76,10 +76,10 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'LSP E2E Tests'
+      title: 'SOQL E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}}}'
+      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -90,10 +90,10 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: 'LSP E2E Tests'
+      title: 'SOQL E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}}}'
+      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
