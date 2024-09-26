@@ -42,10 +42,6 @@ describe('SOQLEditorProvider', () => {
     isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('register', () => {
     it('should register the custom editor provider', () => {
       const disposable = SOQLEditorProvider.register(extensionContext);
