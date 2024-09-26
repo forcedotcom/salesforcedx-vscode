@@ -15,16 +15,12 @@ import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
 import { nls } from '../../../src/messages';
-import { channelService, isDefaultOrgSet } from '../../../src/sf';
-
-jest.mock('../../../src/sf', () => ({
-  ...jest.requireActual('../../../src/sf'),
-  isDefaultOrgSet: jest.fn()
-}));
+import * as sf from '../../../src/sf';
 
 describe('SOQLEditorProvider', () => {
   let extensionContext: vscode.ExtensionContext;
   let registerCustomEditorProviderMock: jest.SpyInstance;
+  let isDefaultOrgSetSpy: jest.SpyInstance;
   const mockDisposable = new vscode.Disposable(() => {});
 
   beforeEach(() => {
@@ -43,7 +39,7 @@ describe('SOQLEditorProvider', () => {
       .registerCustomEditorProvider as jest.Mock) = jest
       .fn()
       .mockReturnValue(mockDisposable);
-    (isDefaultOrgSet as jest.Mock).mockReturnValue(true);
+    isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
   });
 
   afterEach(() => {
@@ -99,7 +95,7 @@ describe('SOQLEditorProvider', () => {
       readFileSyncMock = jest.spyOn(fs, 'readFileSync');
       transformHtmlMock = jest.spyOn(HtmlUtils, 'transformHtml');
       appendLineMock = jest
-        .spyOn(channelService, 'appendLine')
+        .spyOn(sf.channelService, 'appendLine')
         .mockImplementation(jest.fn());
     });
 
@@ -132,7 +128,7 @@ describe('SOQLEditorProvider', () => {
     });
 
     it('should show information message if default org is not set', async () => {
-      (isDefaultOrgSet as jest.Mock).mockReturnValue(false);
+      isDefaultOrgSetSpy.mockReturnValue(false);
       const soqlEditorProvider = new SOQLEditorProvider(extensionContext);
       const mockHtml = '<html></html>';
       const mockTransformedHtml = '<html-transformed></html>';
