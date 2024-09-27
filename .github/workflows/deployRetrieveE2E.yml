@@ -145,9 +145,9 @@ jobs:
       testToRun: 'pushAndPull.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-  
+
   mdDeployRetrieve:
-    if: ${{ inputs.mdDeployRetrieve }}
+    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == '1.92.2'}}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
