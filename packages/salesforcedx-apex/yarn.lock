@@ -475,10 +475,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@jsforce/jsforce-node@^3.4.1":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.4.1.tgz#36f5cba775b395eeedba676a78eafe447c3f4b28"
-  integrity sha512-PsBKfglH0/8W/Srr4LsxEFsVmjmZjEj/T4XLGpbBoK8yVObwbiMk4VqwA6XwiA6SHqnEqqQbHZxk2rr7dZC+4A==
+"@jsforce/jsforce-node@^3.4.1", "@jsforce/jsforce-node@^3.4.2":
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.4.2.tgz#ad96c438a688c811d52fdb235fd9200352165b56"
+  integrity sha512-jQ22l9DzGouYGFpJtvtknxLE6O8Mwx+DizWEYsJjMnjFAkXPh8QJm3Ux6JCR0boNLuOcRW11urI7JGHvVULgJg==
   dependencies:
     "@sindresorhus/is" "^4"
     abort-controller "^3.0.0"
