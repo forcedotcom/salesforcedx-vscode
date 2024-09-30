@@ -33,6 +33,11 @@ on:
         required: false
         default: true
         type: boolean
+      mdDeployRetrieve:
+        description: 'Metadata Deploy and Retrieve'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -72,6 +77,11 @@ on:
         type: boolean
       pushAndPull:
         description: 'Push and Pull'
+        required: false
+        default: true
+        type: boolean
+      mdDeployRetrieve:
+        description: 'Metadata Deploy and Retrieve'
         required: false
         default: true
         type: boolean
@@ -136,6 +146,16 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
+  mdDeployRetrieve:
+    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == '1.92.2'}}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'metadataDeployRetrieve.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
   slack_success_notification:
     if: ${{ success() }}
     needs: [
@@ -143,7 +163,8 @@ jobs:
         # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
-        pushAndPull
+        pushAndPull,
+        mdDeployRetrieve
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -152,7 +173,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -164,7 +185,8 @@ jobs:
         # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
-        pushAndPull
+        pushAndPull,
+        mdDeployRetrieve
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -173,7 +195,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -185,7 +207,8 @@ jobs:
         # diffAndConflictDetection,
         manifestBuilder,
         orgBrowser,
-        pushAndPull
+        pushAndPull,
+        mdDeployRetrieve
       ]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -194,7 +217,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
       # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
