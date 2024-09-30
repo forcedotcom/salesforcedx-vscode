@@ -60,7 +60,6 @@ export class CommandBuilder {
 
   public withJson(): CommandBuilder {
     this.args.push('--json');
-    this.args.push('--loglevel', 'fatal');
     return this;
   }
 
@@ -74,8 +73,8 @@ export class CommandBuilder {
   }
 }
 
-export class SfdxCommandBuilder extends CommandBuilder {
+export class SfCommandBuilder extends CommandBuilder {
   public constructor() {
-    super('sfdx');
+    super('sf');
   }
 }

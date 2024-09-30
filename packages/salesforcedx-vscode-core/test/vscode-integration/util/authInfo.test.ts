@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core-bundle';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
@@ -17,12 +17,12 @@ describe('OrgAuthInfo', () => {
   const sandbox = createSandbox();
 
   const username = 'user@test.test';
-  let getDefaultDevHubUsernameOrAliasStub: SinonStub;
+  let getTargetDevHubOrAliasStub: SinonStub;
 
   beforeEach(async () => {
-    getDefaultDevHubUsernameOrAliasStub = sandbox.stub(
+    getTargetDevHubOrAliasStub = sandbox.stub(
       ConfigUtil,
-      'getDefaultDevHubUsernameOrAlias'
+      'getTargetDevHubOrAlias'
     );
   });
 
@@ -51,21 +51,21 @@ describe('OrgAuthInfo', () => {
     });
   });
 
-  describe('getDefaultDevHubUsernameOrAlias', () => {
+  describe('getTargetDevHubOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      getDefaultDevHubUsernameOrAliasStub.resolves(undefined);
+      getTargetDevHubOrAliasStub.resolves(undefined);
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
 
-      await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
+      await OrgAuthInfo.getTargetDevHubOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(true);
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
-      getDefaultDevHubUsernameOrAliasStub.resolves(undefined);
+      getTargetDevHubOrAliasStub.resolves(undefined);
       const showMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -76,24 +76,24 @@ describe('OrgAuthInfo', () => {
         'executeCommand'
       );
 
-      await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
+      await OrgAuthInfo.getTargetDevHubOrAlias(true);
 
       expect(
-        executeCommandStub.calledWith('sfdx.org.login.web.dev.hub')
+        executeCommandStub.calledWith('sf.org.login.web.dev.hub')
       ).to.equal(true);
       expect(showMessageStub.calledOnce).to.equal(true);
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      getDefaultDevHubUsernameOrAliasStub.resolves('username');
+      getTargetDevHubOrAliasStub.resolves('username');
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
 
-      await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
+      await OrgAuthInfo.getTargetDevHubOrAlias(true);
 
-      expect(getDefaultDevHubUsernameOrAliasStub.calledOnce).to.equal(true);
+      expect(getTargetDevHubOrAliasStub.calledOnce).to.equal(true);
       expect(infoMessageStub.calledOnce).to.equal(false);
     });
   });
@@ -105,7 +105,7 @@ describe('OrgAuthInfo', () => {
     const fakeConnection = {
       connected: true
     };
-    const defaultUsername = 'defaultUsername';
+    const targetOrg = 'targetOrg';
 
     let authinfoCreateStub: SinonStub;
     let connectionCreateStub: SinonStub;
@@ -128,18 +128,15 @@ describe('OrgAuthInfo', () => {
       ).to.equal(true);
     });
 
-    it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = sandbox.stub(
-        ConfigUtil,
-        'getDefaultUsernameOrAlias'
-      );
-      configUtilStub.returns(defaultUsername);
+    it('should use target org/alias when invoked without argument', async () => {
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getTargetOrgOrAlias');
+      configUtilStub.returns(targetOrg);
 
       const connection = await OrgAuthInfo.getConnection();
       expect(connection).to.equal(fakeConnection);
       expect(
         authinfoCreateStub.calledWith({
-          username: defaultUsername
+          username: targetOrg
         })
       ).to.equal(true);
       expect(

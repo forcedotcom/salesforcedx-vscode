@@ -24,7 +24,7 @@ import {
   checkpointUtils,
   parseCheckpointInfoFromBreakpoint,
   processBreakpointChangedForCheckpoints,
-  sfdxToggleCheckpoint
+  sfToggleCheckpoint
 } from '../../../src/breakpoints/checkpointService';
 
 describe('Checkpoint Service - unit', () => {
@@ -497,7 +497,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
   });
 });
 
-describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
+describe('Verify SFDX Toggle Checkpoint callback, sfToggleCheckpoint', () => {
   const breakpointEnabled = true;
   const uriInput = vscode.Uri.parse('file:///bar.cls');
   const lineInput = 5;
@@ -534,7 +534,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
     // With no existing breakpoints the toggle will create one
     // and call addBreakpoints.
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
     // Nothing should be deleted
     expect(removeBreakpointsStub.notCalled).to.be.equal(true);
     // Add should be called once with a single argument
@@ -571,7 +571,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
     addBreakpointsStub = sinon.stub(vscode.debug, 'addBreakpoints');
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
     // With an existing breakpoints the old one will have to be deleted before the and call addBreakpoints.
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
 
     // Verify the remove arguments
     expect(removeBreakpointsStub.calledOnce).to.be.equal(true);
@@ -615,7 +615,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
     addBreakpointsStub = sinon.stub(vscode.debug, 'addBreakpoints');
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
     // With an existing breakpoints the old one will have to be deleted before the and call addBreakpoints.
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
 
     // Verify the remove arguments
     expect(removeBreakpointsStub.calledOnce).to.be.equal(true);
@@ -661,7 +661,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
 
     addBreakpointsStub = sinon.stub(vscode.debug, 'addBreakpoints');
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
 
     // Add should not have been called
     expect(addBreakpointsStub.notCalled).to.be.equal(true);
@@ -680,10 +680,10 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
   });
 });
 
-function breakpointsHaveSameUriAndSourceLine(
+const breakpointsHaveSameUriAndSourceLine = (
   bp1: vscode.Breakpoint,
   bp2: vscode.Breakpoint
-): boolean {
+): boolean => {
   // both breakpoints are source breakpoints
   if (
     bp1 instanceof vscode.SourceBreakpoint &&
@@ -698,15 +698,15 @@ function breakpointsHaveSameUriAndSourceLine(
     }
   }
   return false;
-}
+};
 
-async function clearExistingBreakpoints() {
-  await vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
-}
+const clearExistingBreakpoints = () => {
+  vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
+};
 
 // Clean out the checkpoints from the checkpointService (has the added bonus of beating
 // on deleteCheckpointNode)
-function clearOutCheckpoints() {
+const clearOutCheckpoints = () => {
   for (const checkpoint of checkpointService.getChildren()) {
     // While every child here is a CheckpointNode, getChildren returns an
     // array of BaseNode and if we want to get at the methods on an actual
@@ -717,4 +717,4 @@ function clearOutCheckpoints() {
       );
     }
   }
-}
+};

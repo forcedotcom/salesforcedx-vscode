@@ -56,7 +56,7 @@ export class ConflictOutlineProvider
 
   public getChildren(element?: ConflictNode): ConflictNode[] {
     if (element) {
-      return element.children!;
+      return element.children;
     }
     if (this.root) {
       return [this.root];

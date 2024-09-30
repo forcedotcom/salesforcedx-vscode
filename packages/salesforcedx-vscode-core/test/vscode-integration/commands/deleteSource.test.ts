@@ -23,14 +23,14 @@ describe('ManifestChecker', () => {
   let workspaceStub: sinon.SinonStub;
   const workspaceFolderPath = path.join('path', 'to', 'workspace', 'folder');
 
-  before(() => {
+  beforeEach(() => {
     const workspaceFolders = [{ uri: { fsPath: workspaceFolderPath } }];
     workspaceStub = sinon
       .stub(vscode.workspace, 'workspaceFolders')
       .value(workspaceFolders);
   });
 
-  after(() => {
+  beforeEach(() => {
     workspaceStub.restore();
   });
 

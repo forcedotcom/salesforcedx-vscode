@@ -8,8 +8,8 @@
 // tslint:disable:no-floating-promises
 
 import { RequestService } from '@salesforce/salesforcedx-utils';
-import { Source } from 'vscode-debugadapter/lib/debugSession';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { Source } from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import {
   ApexDebug,
   ApexDebugStackFrameInfo,
@@ -156,8 +156,8 @@ export class ApexDebugForTest extends ApexDebug {
     return super.customRequest(command, response, args);
   }
 
-  public setSfdxProject(projectPath: string): void {
-    this.sfdxProject = projectPath;
+  public setSalesforceProject(projectPath: string): void {
+    this.salesforceProject = projectPath;
   }
 
   public addRequestThread(requestId: string): void {
@@ -216,7 +216,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.variablesRequest(response, args);
   }
 
-  public getIdleTimers(): Array<ReturnType<typeof setTimeout>> {
+  public getIdleTimers(): ReturnType<typeof setTimeout>[] {
     return this.idleTimers;
   }
 }

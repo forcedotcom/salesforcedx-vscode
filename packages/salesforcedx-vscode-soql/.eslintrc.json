@@ -1,0 +1,24 @@
+{
+  "root": true,
+  "extends": [
+    "../../config/base-eslintrc.json",
+    "./fix-these-rules.json"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "./src/**/*.ts",
+        "./test/**/*.ts"
+      ],
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "rules": {
+        "@typescript-eslint/restrict-plus-operands": "warn"
+      }
+    }
+  ],
+  "env": {
+    "node": true
+  }
+}

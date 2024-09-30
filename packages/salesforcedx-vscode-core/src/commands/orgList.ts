@@ -7,39 +7,40 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
   PromptConfirmGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class OrgListExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgListExecutor extends SfCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: { choice?: string }): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_list_clean_text'))
       .withArg('org:list')
       .withArg('--clean')
       .withArg('--no-prompt')
-      .withLogName('force_org_list_clean')
+      .withLogName('org_list_clean')
       .build();
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 
-export async function orgList() {
+export const orgList = (): void => {
   const parameterGatherer = new PromptConfirmGatherer(
     nls.localize('parameter_gatherer_placeholder_org_list_clean')
   );
   const executor = new OrgListExecutor();
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

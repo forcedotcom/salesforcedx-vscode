@@ -8,23 +8,23 @@
 import { QUERY_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { BaseCommand } from '@salesforce/salesforcedx-utils';
 
-export interface QueryOverlayActionIdsSuccessResult {
+export type QueryOverlayActionIdsSuccessResult = {
   size: number;
   totalSize: number;
   done: boolean;
-  queryLocator: any | null;
+  queryLocator: any;
   entityTypeName: string;
   records: ApexExecutionOverlayActionRecord[];
-}
-export interface ApexExecutionOverlayActionRecord {
+};
+export type ApexExecutionOverlayActionRecord = {
   attributes: ApexExecutionOverlayActionRecordAttribute;
   Id: string;
-}
+};
 
-export interface ApexExecutionOverlayActionRecordAttribute {
+export type ApexExecutionOverlayActionRecordAttribute = {
   type: string;
   url: string;
-}
+};
 
 export class QueryExistingOverlayActionIdsCommand extends BaseCommand {
   private readonly userId: string;

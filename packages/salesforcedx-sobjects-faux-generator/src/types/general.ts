@@ -19,26 +19,26 @@ export enum SObjectRefreshSource {
   StartupMin = 'startupmin'
 }
 
-export interface FieldDeclaration {
+export type FieldDeclaration = {
   modifier: string;
   type: string;
   name: string;
   comment?: string;
-}
+};
 
 export type SObjectDefinition = Pick<SObject, 'name'> & {
   fields: FieldDeclaration[];
 };
 
-export interface SObjectDefinitionRetriever {
+export type SObjectDefinitionRetriever = {
   retrieve: (output: SObjectRefreshOutput) => Promise<void>;
-}
+};
 
-export interface SObjectGenerator {
+export type SObjectGenerator = {
   generate: (output: SObjectRefreshOutput) => void;
-}
+};
 
-export interface SObjectRefreshOutput {
+export type SObjectRefreshOutput = {
   sfdxPath: string;
   addTypeNames: (names: SObjectShortDescription[]) => void;
   getTypeNames: () => SObjectShortDescription[];
@@ -47,13 +47,13 @@ export interface SObjectRefreshOutput {
   addCustom: (standard: SObject[]) => void;
   getCustom: () => SObject[];
   setError: (message: string, stack?: string) => void;
-}
+};
 
-export interface SObjectRefreshResult {
+export type SObjectRefreshResult = {
   data: {
     cancelled: boolean;
     standardObjects?: number;
     customObjects?: number;
   };
   error?: { message: string; stack?: string };
-}
+};

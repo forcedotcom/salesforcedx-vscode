@@ -8,7 +8,7 @@
 
 import * as glob from 'glob';
 import * as path from 'path';
-import Mocha = require('mocha');
+import * as Mocha from 'mocha';
 
 const mocha = new Mocha({
   ui: 'bdd',

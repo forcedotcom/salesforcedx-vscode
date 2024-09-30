@@ -26,13 +26,13 @@ export const messages = {
     'デフォルトの組織から %s %s sObject を取得しました。\n',
   no_generate_if_not_in_project:
     'SFDX プロジェクトを開いていない場合、sObject の擬似クラスを生成できません。%s',
-  class_header_generated_comment: `\/\/ This file is generated as an Apex representation of the
-\/\/     corresponding sObject and its fields.
-\/\/ This read-only file is used by the Apex Language Server to
-\/\/     provide code smartness, and is deleted each time you
-\/\/     refresh your sObject definitions.
-\/\/ To edit your sObjects and their fields, edit the corresponding
-\/\/     .object-meta.xml and .field-meta.xml files.
+  class_header_generated_comment: `// This file is generated as an Apex representation of the
+//     corresponding sObject and its fields.
+// This read-only file is used by the Apex Language Server to
+//     provide code smartness, and is deleted each time you
+//     refresh your sObject definitions.
+// To edit your sObjects and their fields, edit the corresponding
+//     .object-meta.xml and .field-meta.xml files.
 
 `
 };

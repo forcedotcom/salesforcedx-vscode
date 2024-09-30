@@ -7,6 +7,7 @@
 
 import {
   MetricError,
+  MetricGeneral,
   MetricLaunch
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
@@ -16,6 +17,7 @@ import {
   LAST_OPENED_LOG_KEY,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
+  SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
@@ -27,7 +29,7 @@ import {
   CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfdxToggleCheckpoint
+  sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -44,23 +46,22 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
+const salesforceCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
-function registerCommands(): vscode.Disposable {
+const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
-    async config => {
-      const fileUris:
-        | vscode.Uri[]
-        | undefined = await vscode.window.showOpenDialog({
-        canSelectFiles: true,
-        canSelectFolders: false,
-        canSelectMany: false,
-        defaultUri: dialogStartingPathUri
-      });
+    async () => {
+      const fileUris: vscode.Uri[] | undefined =
+        await vscode.window.showOpenDialog({
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false,
+          defaultUri: dialogStartingPathUri
+        });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
         return fileUris[0].fsPath;
@@ -68,7 +69,7 @@ function registerCommands(): vscode.Disposable {
     }
   );
   const launchFromLogFileCmd = vscode.commands.registerCommand(
-    'sfdx.launch.replay.debugger.logfile',
+    'sf.launch.replay.debugger.logfile',
     (editorUri: vscode.Uri) => {
       let logFile: string | undefined;
       if (!editorUri) {
@@ -86,7 +87,7 @@ function registerCommands(): vscode.Disposable {
   );
 
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
-    'sfdx.launch.replay.debugger.logfile.path',
+    'sf.launch.replay.debugger.logfile.path',
     logFilePath => {
       if (logFilePath) {
         launchFromLogFile(logFilePath, true);
@@ -95,22 +96,21 @@ function registerCommands(): vscode.Disposable {
   );
 
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
-    'sfdx.launch.replay.debugger.last.logfile',
-    lastLogFileUri => {
-      const lastOpenedLog = extContext.workspaceState.get<string>(
-        LAST_OPENED_LOG_KEY
-      );
+    'sf.launch.replay.debugger.last.logfile',
+    () => {
+      const lastOpenedLog =
+        extContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
       return launchFromLogFile(lastOpenedLog);
     }
   );
 
-  const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
-    'sfdx.create.checkpoints',
-    CheckpointService.sfdxCreateCheckpoints
+  const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
+    'sf.create.checkpoints',
+    CheckpointService.sfCreateCheckpoints
   );
-  const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
-    'sfdx.toggle.checkpoint',
-    sfdxToggleCheckpoint
+  const sfToggleCheckpointCmd = vscode.commands.registerCommand(
+    'sf.toggle.checkpoint',
+    sfToggleCheckpoint
   );
 
   return vscode.Disposable.from(
@@ -118,33 +118,33 @@ function registerCommands(): vscode.Disposable {
     launchFromLogFileCmd,
     launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
-    sfdxCreateCheckpointsCmd,
-    sfdxToggleCheckpointCmd
+    sfCreateCheckpointsCmd,
+    sfToggleCheckpointCmd
   );
-}
+};
 
-export function updateLastOpened(
+export const updateLastOpened = (
   extensionContext: vscode.ExtensionContext,
   logPath: string
-) {
+) => {
   extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
   extensionContext.workspaceState.update(
     LAST_OPENED_LOG_FOLDER_KEY,
     path.dirname(logPath)
   );
-}
+};
 
-export async function getDebuggerType(
+export const getDebuggerType = async (
   session: vscode.DebugSession
-): Promise<string> {
+): Promise<string> => {
   let type = session.type;
   if (type === LIVESHARE_DEBUGGER_TYPE) {
     type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
   }
   return type;
-}
+};
 
-function registerDebugHandlers(): vscode.Disposable {
+const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
@@ -165,15 +165,22 @@ function registerDebugHandlers(): vscode.Disposable {
             metricErrorArgs.subject,
             metricErrorArgs.callstack
           );
+        } else if (event.event === SEND_METRIC_GENERAL_EVENT && event.body) {
+          const metricGeneralArgs = event.body as MetricGeneral;
+          telemetryService.sendGeneralEvent(
+            metricGeneralArgs.subject,
+            metricGeneralArgs.type,
+            metricGeneralArgs.qty?.toString()
+          );
         }
       }
     }
   );
 
   return vscode.Disposable.from(customEventHandler);
-}
+};
 
-export async function activate(extensionContext: vscode.ExtensionContext) {
+export const activate = async (extensionContext: vscode.ExtensionContext) => {
   console.log('Apex Replay Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
 
@@ -185,7 +192,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     new DebugConfigurationProvider()
   );
   const checkpointsView = vscode.window.registerTreeDataProvider(
-    'sfdx.force.view.checkpoint',
+    'sf.view.checkpoint',
     checkpointService
   );
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
@@ -197,7 +204,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(
-    'sfdx.force.test.view.debugTests',
+    'sf.test.view.debugTests',
     async test => {
       await setupAndDebugTests(test.name);
     }
@@ -205,7 +212,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
   // Debug Single Test command
   const debugTest = vscode.commands.registerCommand(
-    'sfdx.force.test.view.debugSingleTest',
+    'sf.test.view.debugSingleTest',
     async test => {
       const name = test.name.split('.');
       await setupAndDebugTests(name[0], name[1]);
@@ -223,32 +230,38 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
     telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      salesforceCoreExtension.exports.telemetryService.getReporters(),
+      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+};
 
-export async function retrieveLineBreakpointInfo(): Promise<boolean> {
-  const sfdxApex = vscode.extensions.getExtension(
+export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
+  const salesforceApexExtension = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
-  if (sfdxApex && sfdxApex.exports) {
+  if (salesforceApexExtension && salesforceApexExtension.exports) {
     let expired = false;
     let i = 0;
     while (
-      !sfdxApex.exports.languageClientUtils.getStatus().isReady() &&
+      !salesforceApexExtension.exports.languageClientUtils
+        .getStatus()
+        .isReady() &&
       !expired
     ) {
       if (
-        sfdxApex.exports.languageClientUtils.getStatus().failedToInitialize()
+        salesforceApexExtension.exports.languageClientUtils
+          .getStatus()
+          .failedToInitialize()
       ) {
         throw Error(
-          sfdxApex.exports.languageClientUtils.getStatus().getStatusMessage()
+          salesforceApexExtension.exports.languageClientUtils
+            .getStatus()
+            .getStatusMessage()
         );
       }
 
@@ -267,7 +280,8 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
       );
       return false;
     } else {
-      const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
+      const lineBpInfo =
+        await salesforceApexExtension.exports.getLineBreakpointInfo();
       if (lineBpInfo && lineBpInfo.length > 0) {
         console.log(nls.localize('line_breakpoint_information_success'));
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
@@ -289,17 +303,17 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
     writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
     return false;
   }
-}
+};
 
-function imposeSlightDelay(ms = 0) {
+const imposeSlightDelay = (ms = 0) => {
   return new Promise(r => setTimeout(r, ms));
-}
+};
 
-export function writeToDebuggerOutputWindow(
+export const writeToDebuggerOutputWindow = (
   output: string,
   showVSCodeWindow?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum
-) {
+) => {
   channelService.appendLine(output);
   channelService.showChannelOutput();
   if (showVSCodeWindow && vsCodeWindowType) {
@@ -318,9 +332,9 @@ export function writeToDebuggerOutputWindow(
       }
     }
   }
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   console.log('Apex Replay Debugger Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};

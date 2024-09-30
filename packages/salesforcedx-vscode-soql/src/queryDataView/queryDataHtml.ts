@@ -11,11 +11,11 @@ import { Uri, Webview } from 'vscode';
 import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
 
-export function getHtml(
+export const getHtml = (
   assets: { [index: string]: Uri },
   extensionPath: string,
   webview: Webview
-): string {
+): string => {
   const {
     baseStyleUri,
     tabulatorStyleUri,
@@ -42,4 +42,4 @@ export function getHtml(
   }
 
   return html;
-}
+};

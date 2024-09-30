@@ -12,8 +12,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 
 export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {
-  private readonly postCheckers: Array<PostconditionChecker<any>>;
-  public constructor(...postCheckers: Array<PostconditionChecker<any>>) {
+  private readonly postCheckers: PostconditionChecker<any>[];
+  public constructor(...postCheckers: PostconditionChecker<any>[]) {
     this.postCheckers = postCheckers;
   }
 

@@ -13,18 +13,20 @@ export {
 export { EmptyPostChecker } from './commands/postconditionCheckers';
 export {
   EmptyPreChecker,
-  SfdxWorkspaceChecker
+  SfWorkspaceChecker
 } from './commands/preconditionCheckers';
 export {
-  SfdxCommandletExecutor,
+  SfCommandletExecutor,
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
-export { SfdxCommandlet } from './commands/sfdxCommandlet';
+export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME
+  SFDX_CORE_EXTENSION_NAME,
+  SFDX_LWC_EXTENSION_NAME,
+  TELEMETRY_GLOBAL_USER_ID
 } from './constants';
 export {
   OrgUserInfo,
@@ -32,14 +34,12 @@ export {
 } from './context/workspaceContextUtil';
 export {
   TelemetryService,
-  TelemetryBuilder,
-  TelemetryData,
-  Properties,
-  Measurements
-} from './telemetry/telemetry';
+  TelemetryBuilder
+} from './services/telemetry';
+export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
-export { TelemetryReporter } from './telemetry/telemetryReporter';
+export { AppInsights } from './telemetry/reporters/appInsights';
 export {
   hasRootWorkspace,
   getRootWorkspace,

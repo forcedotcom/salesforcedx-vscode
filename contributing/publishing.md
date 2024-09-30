@@ -1,7 +1,6 @@
 # Publishing
 
-This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the
-extensions through the .vsix files.
+This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the extensions through the .vsix files.
 
 # Goal
 
@@ -23,17 +22,15 @@ For more information about publishing take a look at:
 
 ## Creating a Release Branch
 
-The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
+The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 1PM GMT (i.e. 5AM or 6AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
+
+If any code changes are made between the time the release branch is automatically created and the actual release time, the engineer should run the `Create Release Branch` workflow with `patch` selected from the dropdown to create a new branch that contains those code changes.
 
 ## Updating the Change Log
 
-After the release branch is created, the changelog should be updated. To do so, our [Doc Maintainer](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) should run the VS Code task `Update Change Log` on Monday. This task takes an optional `releaseOverride` parameter for the release version in the format of `v57.13.1`. If this is omitted, the latest created release branch will be used. The task will gather commits that should be published (like `feat` or `fix`), write the update to `CHANGELOG.md` and then open the file for review.
+The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
 
-Once the writer is content with the changes, they should commit the changes in the format `chore: generated CHANGELOG for ${releaseBranchName}"`, and push the update to the release branch.
-
-If the writer wants to make further changes to changelog through browser, they can do the same by switching the branch from develop to release/vxx.xx.x and go to changelog.md and click on the pencil icon to edit the file.
-
-If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), the task will end by printing a message that the release can be skipped.
+The engineer should work with the team and doc writer to update and finalize the contents of the changelog. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 ## Compare Changes in the Release
 
@@ -43,13 +40,13 @@ If no changes were made the previous week, then the release can be skipped.
 
 ## Merging the Release Branch into Main
 
-After the change log has been approved and merged into your release branch, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
+After everyone is satisfied with the changelog updates, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
 
 ### To run the merge process:
 
-1. From the GitHub repository navigate to the Action Tab, and Select the PreRelease workflow on the left
+1. From the GitHub repository navigate to the Actions tab, and select the PreRelease workflow on the left
 1. Click the 'Run Workflow' dropdown button on the right
-1. In the form that appears, set the branch to `develop`, and set the 'branch to be released' input box to the name of the release (eg `release/v56.0.0`)
+1. In the form that appears, set the branch to `develop`, and set the 'branch to be released' input box to the name of the release (eg `release/v58.0.0`)
 1. Click the 'Run Workflow' button.
 
 The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in the `main` branch and update `main` with the release branch.

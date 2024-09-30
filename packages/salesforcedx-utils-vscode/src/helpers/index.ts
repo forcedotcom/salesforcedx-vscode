@@ -19,6 +19,7 @@ export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
   asyncFilter,
   extractJsonObject,
+  getMessageFromError,
   isNullOrUndefined,
   fileUtils
 } from './utils';
@@ -30,3 +31,8 @@ export {
   isRecordIdFormat
 } from './validations';
 export { isSFContainerMode } from './env';
+export {
+  ActivationTracker
+} from './activationTracker';
+
+

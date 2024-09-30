@@ -5,5 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CodeCoverage } from './colorizer';
+export { CodeCoverageHandler as CodeCoverage } from './colorizer';
 export { StatusBarToggle } from './statusBarToggle';

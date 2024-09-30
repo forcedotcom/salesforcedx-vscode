@@ -9,13 +9,11 @@ import { expect } from 'chai';
 import { OrgListExecutor } from '../../../src/commands/orgList';
 import { nls } from '../../../src/messages';
 
-describe('Force Org List', () => {
+describe('Org List', () => {
   it('Should build the list command with --clean option', async () => {
     const orgList = new OrgListExecutor();
     const listCommand = orgList.build({});
-    expect(listCommand.toCommand()).to.equal(
-      'sfdx org:list --clean --no-prompt'
-    );
+    expect(listCommand.toCommand()).to.equal('sf org:list --clean --no-prompt');
     expect(listCommand.description).to.equal(
       nls.localize('org_list_clean_text')
     );

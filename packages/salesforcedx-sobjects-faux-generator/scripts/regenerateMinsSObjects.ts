@@ -19,7 +19,7 @@ import { SObjectShortDescription } from '../src/describe';
 import { OrgObjectDetailRetriever } from '../src/retriever';
 import { SObject } from '../src/types';
 
-import { Connection, Org } from '@salesforce/core';
+import { Connection, Org } from '@salesforce/core-bundle';
 
 // tslint:disable-next-line:no-floating-promises
 (async () => {
@@ -44,10 +44,13 @@ async function createConnection(aliasOrUsername: string) {
 async function generateLocalSobjectJSON(connection: Connection) {
   const sobjectNames = [
     'Account',
+    'AccountHistory',
+    'Asset',
     'Attachment',
     'Case',
     'Contact',
     'Contract',
+    'Domain',
     'Lead',
     'Note',
     'Opportunity',
@@ -79,7 +82,7 @@ async function generateLocalSobjectJSON(connection: Connection) {
     JSON.stringify({
       typeNames: output.getTypeNames(),
       standard: output.getStandard().map(removeCustomFields)
-    })
+    }, undefined, 2)
   );
 }
 function initializeOutput(sobjectNames: string[]) {

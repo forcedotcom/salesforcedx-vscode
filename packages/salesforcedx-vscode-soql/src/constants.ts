@@ -24,6 +24,7 @@ export const IMAGES_DIR_NAME = 'images';
 export const BUILDER_VIEW_TYPE = 'soqlCustom.soql';
 export const EDITOR_VIEW_TYPE = 'default';
 export const OPEN_WITH_COMMAND = 'vscode.openWith';
+export const DIST_FOLDER = 'dist';
 
 /* ==== QUERY DATA VIEW ==== */
 export const QUERY_DATA_VIEW_TYPE = 'queryDataView';

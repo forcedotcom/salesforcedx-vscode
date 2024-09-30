@@ -11,28 +11,45 @@ import {
   Executable,
   LanguageClientOptions,
   RevealOutputChannelOn
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
-import { LSP_ERR } from './constants';
+import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { telemetryService } from './telemetry';
+import { retrieveEnableSyncInitJobs } from './settings';
+import { getTelemetryService } from './telemetry/telemetry';
 
-const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP =
   process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL =
   process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
+// eslint-disable-next-line no-var
 declare var v8debug: any;
+
+const startedInDebugMode = (): boolean => {
+  const args = (process as any).execArgv;
+  if (args) {
+    return args.some(
+      (arg: any) =>
+        /^--debug=?/.test(arg) ||
+        /^--debug-brk=?/.test(arg) ||
+        /^--inspect=?/.test(arg) ||
+        /^--inspect-brk=?/.test(arg)
+    );
+  }
+  return false;
+};
+
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
-async function createServer(
+const createServer = async (
   extensionContext: vscode.ExtensionContext
-): Promise<Executable> {
+): Promise<Executable> => {
+  const telemetryService = await getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -91,35 +108,20 @@ async function createServer(
 
     return {
       options: {
-        env: process.env,
-        stdio: 'pipe'
+        env: process.env
       },
       command: javaExecutable,
       args
     };
   } catch (err) {
-    vscode.window.showErrorMessage(err);
+    void vscode.window.showErrorMessage(err);
     telemetryService.sendException(LSP_ERR, err.error);
     throw err;
   }
-}
-
-function startedInDebugMode(): boolean {
-  const args = (process as any).execArgv;
-  if (args) {
-    return args.some(
-      (arg: any) =>
-        /^--debug=?/.test(arg) ||
-        /^--debug-brk=?/.test(arg) ||
-        /^--inspect=?/.test(arg) ||
-        /^--inspect-brk=?/.test(arg)
-    );
-  }
-  return false;
-}
+};
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: vscode.Uri) {
+export const code2ProtocolConverter = (value: vscode.Uri) => {
   if (/^win32/.test(process.platform)) {
     // The *first* : is also being encoded which is not the standard for URI on Windows
     // Here we transform it back to the standard way
@@ -127,15 +129,16 @@ export function code2ProtocolConverter(value: vscode.Uri) {
   } else {
     return value.toString();
   }
-}
+};
 
-function protocol2CodeConverter(value: string) {
+const protocol2CodeConverter = (value: string) => {
   return vscode.Uri.parse(value);
-}
+};
 
-export async function createLanguageServer(
+export const createLanguageServer = async (
   extensionContext: vscode.ExtensionContext
-): Promise<ApexLanguageClient> {
+): Promise<ApexLanguageClient> => {
+  const telemetryService = await getTelemetryService();
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient(
     'apex',
@@ -149,10 +152,10 @@ export async function createLanguageServer(
   );
 
   return client;
-}
+};
 
 // exported only for testing
-export function buildClientOptions(): LanguageClientOptions {
+export const buildClientOptions = (): LanguageClientOptions => {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
 
   return {
@@ -174,15 +177,16 @@ export function buildClientOptions(): LanguageClientOptions {
       protocol2Code: protocol2CodeConverter
     },
     initializationOptions: {
-      enableEmbeddedSoqlCompletion: soqlExtensionInstalled
+      enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
+      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs()
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()
   };
-}
+};
 
-function isSOQLExtensionInstalled() {
+const isSOQLExtensionInstalled = () => {
   const soqlExtensionName = 'salesforce.salesforcedx-vscode-soql';
   const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
   return soqlExtension !== undefined;
-}
+};

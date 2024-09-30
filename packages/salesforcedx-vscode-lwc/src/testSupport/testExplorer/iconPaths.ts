@@ -54,7 +54,7 @@ type IconPath = { light: vscode.Uri; dark: vscode.Uri };
  * Get icon path in the test explorer for test result
  * @param testResult test result
  */
-export function getIconPath(testResult?: TestResult): IconPath {
+export const getIconPath = (testResult?: TestResult): IconPath => {
   if (testResult) {
     if (testResult.status === TestResultStatus.PASSED) {
       return {
@@ -83,4 +83,4 @@ export function getIconPath(testResult?: TestResult): IconPath {
       dark: DARK_BLUE_BUTTON
     };
   }
-}
+};

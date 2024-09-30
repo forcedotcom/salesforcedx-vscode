@@ -5,19 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core-bundle';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider } from '..';
+import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-export interface OrgUserInfo {
+export type OrgUserInfo = {
   username?: string;
   alias?: string;
-}
+};
 
+export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
- * Manages the context of a workspace during a session with an open SFDX project.
+ * Manages the context of a workspace during a session with an open SFDX Project.
  */
 export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;
@@ -37,10 +38,9 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = projectPaths.sfdxProjectConfig();
-    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      cliConfigPath
-    );
+    const cliConfigPath = projectPaths.salesforceProjectConfig();
+    this.cliConfigWatcher =
+      vscode.workspace.createFileSystemWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
@@ -64,7 +64,7 @@ export class WorkspaceContextUtil {
 
   public async getConnection(): Promise<Connection> {
     if (!this._username) {
-      throw new Error(nls.localize('error_no_default_username'));
+      throw new Error(nls.localize('error_no_target_org'));
     }
 
     let connection = this.sessionConnections.get(this._username);
@@ -87,24 +87,27 @@ export class WorkspaceContextUtil {
     await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
     StateAggregator.clearInstance();
 
-    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+    const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
 
-    if (defaultUsernameOrAlias) {
-      this._username = await ConfigUtil.getUsernameFor(
-        defaultUsernameOrAlias
-      );
+    if (targetOrgOrAlias) {
+      this._username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
       this._alias =
-        defaultUsernameOrAlias !== this._username
-          ? defaultUsernameOrAlias
-          : undefined;
+        targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
       try {
         const connection = await this.getConnection();
         this._orgId = connection?.getAuthInfoFields().orgId;
-      } catch (error) {
+      } catch (error: unknown) {
         this._orgId = '';
-        console.log(
-          `There was an problem getting the orgId of the default org: ${error}`
-        );
+        if (error instanceof Error) {
+          console.log(
+            'There was an problem getting the orgId of the default org: ',
+            error
+          );
+          TelemetryService.getInstance().sendException(
+            WORKSPACE_CONTEXT_ORG_ID_ERROR,
+            `name: ${error.name}, message: ${error.message}`
+          );
+        }
       }
     } else {
       this._username = undefined;

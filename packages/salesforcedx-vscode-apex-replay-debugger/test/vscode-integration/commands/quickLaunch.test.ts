@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogService, TestService } from '@salesforce/apex-node';
+import { LogService, TestService } from '@salesforce/apex-node-bundle';
 import {
   TestLevel,
   TestResult
-} from '@salesforce/apex-node/lib/src/tests/types';
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
+} from '@salesforce/apex-node-bundle/lib/src/tests/types';
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core-bundle';
+import { MockTestOrgData, TestContext } from '@salesforce/core-bundle';
 import {
   ContinueResponse,
   notificationService,
@@ -75,7 +75,7 @@ describe('Quick launch apex tests', () => {
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] });
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
-    createCheckpointStub = sb.stub(CheckpointService, 'sfdxCreateCheckpoints');
+    createCheckpointStub = sb.stub(CheckpointService, 'sfCreateCheckpoints');
     oneOrMoreActiveCheckpointsStub = sb.stub(
       CheckpointService.prototype,
       'hasOneOrMoreActiveCheckpoints'

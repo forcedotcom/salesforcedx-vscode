@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -9,23 +9,23 @@ import {
   EnvironmentVariableCollection,
   EnvironmentVariableMutator,
   EnvironmentVariableScope,
+  EventEmitter,
   Extension,
   ExtensionContext,
   ExtensionMode,
+  LanguageModelAccessInformation,
+  LanguageModelChat,
   Memento,
   SecretStorage,
   Uri
 } from 'vscode';
 
 class MockMemento implements Memento {
-  private telemetryGS: boolean;
 
   private keyValues: string[] = [];
   private values: any[] = [];
 
-  constructor(setTelemetryGlobalState: boolean) {
-    this.telemetryGS = setTelemetryGlobalState;
-  }
+  constructor(){}
 
   private getIndex(key: string): number {
     return this.keys().findIndex(value => value === key);
@@ -37,9 +37,6 @@ class MockMemento implements Memento {
   }
 
   public get<T>(key: string): T {
-    if (this.telemetryGS === true) {
-      return true as any;
-    }
     const index = this.getIndex(key);
     return index !== -1 ? this.values[index] : undefined;
   }
@@ -102,19 +99,19 @@ class MockEnvironmentVariableCollection
 }
 
 export class MockExtensionContext implements ExtensionContext {
-  constructor(mm: boolean, mode?: ExtensionMode) {
+  constructor(mode?: ExtensionMode) {
     this.extensionMode = mode || ExtensionMode.Test;
-    this.globalState = new MockMemento(mm);
-    this.workspaceState = new MockMemento(false);
+    this.globalState = new MockMemento();
+    this.workspaceState = new MockMemento();
     this.secrets = {
       onDidChange: {} as any,
-      get(key: string): Thenable<string | undefined> {
+      get: (key: string): Thenable<string | undefined> => {
         return Promise.resolve(undefined);
       },
-      store(key: string, value: string): Thenable<void> {
+      store: (key: string, value: string): Thenable<void> => {
         return Promise.resolve();
       },
-      delete(key: string): Thenable<void> {
+      delete: (key: string): Thenable<void> => {
         return Promise.resolve();
       }
     };
@@ -133,9 +130,9 @@ export class MockExtensionContext implements ExtensionContext {
   public extensionMode: ExtensionMode;
   public extensionUri = Uri.parse('file://test');
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
-  public subscriptions: Array<{ dispose(): any }> = [];
+  public subscriptions: { dispose(): any }[] = [];
   public workspaceState: Memento;
-  public globalState: Memento & { setKeysForSync(keys: readonly string[]): void; };
+  public globalState: Memento & { setKeysForSync(keys: readonly string[]): void };
   public extensionPath: string = 'myExtensionPath';
   public globalStoragePath = 'globalStatePath';
   public logPath = 'logPath';
@@ -143,4 +140,12 @@ export class MockExtensionContext implements ExtensionContext {
     return path.join('../../../package.json'); // this should point to the src/package.json
   }
   public storagePath: string = 'myStoragePath';
+  public languageModelAccessInformation: LanguageModelAccessInformation = {
+    onDidChange: new EventEmitter<void>().event,
+    canSendRequest: (chat: LanguageModelChat) => {
+      // Implement your logic here
+      // For example, return true, false, or undefined based on some condition
+      return true; // or false or undefined
+    }
+  };
 }

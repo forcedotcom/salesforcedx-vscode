@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
@@ -6,12 +12,12 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { projectTemplateEnum } from '../../../../src/commands/forceProjectCreate';
 import {
   EnterForceIdeUri,
   IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging';
+import { projectTemplateEnum } from '../../../../src/commands/projectGenerate';
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
@@ -28,7 +34,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     let inputBoxSpy: sinon.SinonStub;
     let showErrorMessageSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
       inputBoxSpy.onCall(0).returns(undefined);
       inputBoxSpy.onCall(1).returns('');
@@ -48,7 +54,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
     });
 
-    after(() => {
+    afterEach(() => {
       inputBoxSpy.restore();
       showErrorMessageSpy.restore();
     });
@@ -140,7 +146,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         )
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
-        EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
+        EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
         nls.localize('parameter_gatherer_invalid_forceide_url')
@@ -150,19 +156,17 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
   describe('CLI Builder', () => {
     it('Verify buildCreateProjectCommand', async () => {
-      const forceProjectCreateBuilder = new IsvDebugBootstrapExecutor();
-      const createCommand = forceProjectCreateBuilder.buildCreateProjectCommand(
-        {
-          loginUrl: LOGIN_URL,
-          sessionId: SESSION_ID,
-          orgName: PROJECT_NAME,
-          projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath,
-          projectTemplate: projectTemplateEnum.standard
-        }
-      );
+      const projectGenerateBuilder = new IsvDebugBootstrapExecutor();
+      const createCommand = projectGenerateBuilder.buildCreateProjectCommand({
+        loginUrl: LOGIN_URL,
+        sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
+      });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
+        `sf project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_create_project')
@@ -171,18 +175,17 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
     it('Verify buildConfigureProjectCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const configureCommand = forceProjectConfigBuilder.buildConfigureProjectCommand(
-        {
+      const configureCommand =
+        forceProjectConfigBuilder.buildConfigureProjectCommand({
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
-        }
-      );
+        });
       expect(configureCommand.toCommand()).to.equal(
-        `sfdx config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
+        `sf config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
       expect(configureCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_configure_project')
@@ -191,23 +194,20 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
     it('Verify buildQueryForOrgNamespacePrefixCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const command = forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand(
-        {
+      const command =
+        forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand({
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
-        }
-      );
+        });
       expect(command.toCommand()).to.equal(
-        `sfdx data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json --loglevel fatal`
+        `sf data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
-        nls.localize(
-          'isv_debug_bootstrap_configure_project_retrieve_namespace'
-        )
+        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       );
     });
 
@@ -236,7 +236,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
+        `sf project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_retrieve_org_source')
@@ -254,7 +254,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
-        `sfdx package:installed:list --target-org ${SESSION_ID} --json --loglevel fatal`
+        `sf package:installed:list --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_list_installed_packages')
@@ -276,7 +276,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageName
       );
       expect(command.toCommand()).to.equal(
-        `sfdx project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
+        `sf project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)

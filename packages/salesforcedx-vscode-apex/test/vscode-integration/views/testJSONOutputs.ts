@@ -7,7 +7,7 @@
 import {
   ApexTestResultData,
   ApexTestResultOutcome
-} from '@salesforce/apex-node';
+} from '@salesforce/apex-node-bundle';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
 

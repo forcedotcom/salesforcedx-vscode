@@ -8,19 +8,20 @@
 import {
   CliCommandExecutor,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cp } from 'shelljs';
 import * as util from 'util';
+import { Uri } from 'vscode';
 
 // Used only for CI purposes. Must call delete if you call create
-export async function createSFDXProject(projectName: string): Promise<void> {
+export const generateSFProject = async (projectName: string): Promise<void> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:project:create')
-      .withFlag('--projectname', projectName)
+    new SfCommandBuilder()
+      .withArg('project:generate')
+      .withFlag('--name', projectName)
       .withJson()
       .build(),
     { cwd: process.cwd() }
@@ -28,9 +29,11 @@ export async function createSFDXProject(projectName: string): Promise<void> {
   const cmdOutput = new CommandOutput();
   await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
-}
+};
 
-export async function createScratchOrg(projectName: string): Promise<string> {
+export const createScratchOrg = async (
+  projectName: string
+): Promise<string> => {
   const scratchDefFilePath = path.join(
     process.cwd(),
     projectName,
@@ -38,10 +41,10 @@ export async function createScratchOrg(projectName: string): Promise<string> {
     'project-scratch-def.json'
   );
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:org:create')
-      .withFlag('--definitionfile', `${scratchDefFilePath}`)
-      .withArg('--setdefaultusername')
+    new SfCommandBuilder()
+      .withArg('org:create:scratch')
+      .withFlag('--definition-file', `${scratchDefFilePath}`)
+      .withArg('--set-default')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
@@ -50,17 +53,17 @@ export async function createScratchOrg(projectName: string): Promise<string> {
   const result = await cmdOutput.getCmdResult(execution);
   const username = JSON.parse(result).result.username;
   return Promise.resolve(username);
-}
+};
 
-export async function deleteScratchOrg(
+export const deleteScratchOrg = async (
   projectName: string,
   username: string
-): Promise<string> {
+): Promise<string> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:org:delete')
-      .withFlag('--targetusername', username)
-      .withArg('--noprompt')
+    new SfCommandBuilder()
+      .withArg('org:delete:scratch')
+      .withFlag('--target-org', username)
+      .withArg('--no-prompt')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
@@ -68,13 +71,13 @@ export async function deleteScratchOrg(
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   return Promise.resolve(result);
-}
+};
 
-export async function pushSource(
+export const pushSource = async (
   sourceFolder: string,
   projectName: string,
   username: string
-): Promise<string> {
+): Promise<string> => {
   const targetFolder = path.join(
     process.cwd(),
     projectName,
@@ -84,43 +87,43 @@ export async function pushSource(
   );
   cp('-R', sourceFolder, targetFolder);
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:source:push')
-      .withFlag('--targetusername', username)
+    new SfCommandBuilder()
+      .withArg('project:deploy:start')
+      .withFlag('--target-org', username)
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pushedSource;
+  const source = JSON.parse(result).files;
   return Promise.resolve(source);
-}
+};
 
-export async function pullSource(
+export const pullSource = async (
   projectName: string,
   username: string
-): Promise<string> {
+): Promise<string> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:source:pull')
-      .withFlag('--targetusername', username)
+    new SfCommandBuilder()
+      .withArg('project:retrieve:start')
+      .withFlag('--target-org', username)
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
   ).execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  const source = JSON.parse(result).result.pushedSource;
+  const source = JSON.parse(result).result.files;
   return Promise.resolve(source);
-}
+};
 
-export async function createPermissionSet(
+export const createPermissionSet = async (
   permissionSetName: string,
   username: string
-): Promise<string> {
+): Promise<string> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('data:create:record')
       .withFlag('--sobject', 'PermissionSet')
       .withFlag('--target-org', username)
@@ -136,16 +139,16 @@ export async function createPermissionSet(
   const result = await cmdOutput.getCmdResult(execution);
   const permissionSetId = JSON.parse(result).result.id as string;
   return Promise.resolve(permissionSetId);
-}
+};
 
-export async function createFieldPermissions(
+export const createFieldPermissions = async (
   permissionSetId: string,
   sobjectType: string,
   fieldName: string,
   username: string
-): Promise<void> {
+): Promise<void> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+    new SfCommandBuilder()
       .withArg('data:create:record')
       .withFlag('--sobject', 'FieldPermissions')
       .withFlag('--target-org', username)
@@ -165,17 +168,17 @@ export async function createFieldPermissions(
   const cmdOutput = new CommandOutput();
   await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
-}
+};
 
-export async function assignPermissionSet(
+export const assignPermissionSet = async (
   permissionSetName: string,
   username: string
-): Promise<void> {
+): Promise<void> => {
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:user:permset:assign')
-      .withFlag('--permsetname', permissionSetName)
-      .withFlag('--targetusername', username)
+    new SfCommandBuilder()
+      .withArg('org:assign:permset')
+      .withFlag('--name', permissionSetName)
+      .withFlag('--target-org', username)
       .withJson()
       .build(),
     { cwd: process.cwd() }
@@ -183,12 +186,12 @@ export async function assignPermissionSet(
   const cmdOutput = new CommandOutput();
   await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
-}
+};
 
-export function addFeatureToScratchOrgConfig(
+export const addFeatureToScratchOrgConfig = (
   projectName: string,
   feature: string
-): void {
+): void => {
   const scratchDefFilePath = path.join(
     process.cwd(),
     projectName,
@@ -204,12 +207,9 @@ export function addFeatureToScratchOrgConfig(
   fs.writeFileSync(scratchDefFilePath, JSON.stringify(config, null, '\t'), {
     encoding: 'utf8'
   });
-}
+};
 
-export function pathToUri(str: string): string {
-  let pathName = str.replace(/\\/g, '/');
-  if (pathName[0] !== '/') {
-    pathName = '/' + pathName;
-  }
-  return encodeURI('file://' + pathName);
-}
+export const pathToUri = (str: string): string => {
+  const uri = Uri.file(str.replace(/\\/g, '/'));
+  return uri.toString();
+};

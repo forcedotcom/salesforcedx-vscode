@@ -1,11 +1,19 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { EventEmitter } from 'events';
 import {
   CloseAction,
+  CloseHandlerResult,
   ErrorAction,
   ErrorHandler,
+  ErrorHandlerResult,
   Message
-} from 'vscode-languageclient';
-import { nls } from './messages';
+} from 'vscode-languageclient/node';
 
 export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
   private restarts: number[];
@@ -15,26 +23,26 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
     this.restarts = [];
   }
   // TODO: when does error get called instead of closed?
-  public error(error: Error, message: Message, count: number): ErrorAction {
+  public error(error: Error, message: Message, count: number): ErrorHandlerResult {
     if (count && count <= 3) {
-      this.emit('error', `Error: ${JSON.stringify(error)} ${message}`);
-      return ErrorAction.Continue;
+      this.emit('error', `Error: ${JSON.stringify(error)} ${message.jsonrpc}`);
+      return { action: ErrorAction.Continue };
     }
-    this.emit('error', `Error: ${JSON.stringify(error)} ${message}`);
-    return ErrorAction.Shutdown;
+    this.emit('error', `Error: ${JSON.stringify(error)} ${message.jsonrpc}`);
+    return { action: ErrorAction.Shutdown };
   }
   // Closed is called when the server processes closes/quits
-  public closed() {
+  public closed(): CloseHandlerResult {
     if (this.hasStarted) {
       this.restarts = [Date.now()];
       this.emit('restarting', 1);
       this.hasStarted = false;
-      return CloseAction.Restart;
+      return { action: CloseAction.Restart };
     }
     this.restarts.push(Date.now());
     if (this.restarts.length < 5) {
       this.emit('restarting', this.restarts.length);
-      return CloseAction.Restart;
+      return { action: CloseAction.Restart };
     } else {
       const diff =
         this.restarts[this.restarts.length - 1] -
@@ -42,11 +50,11 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
       // 3 minutes
       if (diff <= 3 * 60 * 1000) {
         this.emit('startFailed', this.restarts.length);
-        return CloseAction.DoNotRestart;
+        return { action: CloseAction.DoNotRestart };
       } else {
         this.restarts.shift();
         this.emit('restarting', this.restarts.length);
-        return CloseAction.Restart;
+        return { action: CloseAction.Restart };
       }
     }
   }

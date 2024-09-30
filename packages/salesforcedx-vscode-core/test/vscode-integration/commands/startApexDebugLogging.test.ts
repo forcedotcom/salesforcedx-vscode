@@ -34,7 +34,7 @@ describe('Start Apex Debug Logging', () => {
   const startDate = new Date();
   const endDate = new Date(startDate.getTime() + 1000);
 
-  before(() => {
+  beforeEach(() => {
     getTraceFlagIdStub = sinon
       .stub(developerLogTraceFlag, 'getTraceFlagId')
       .returns(fakeTraceFlagId);
@@ -49,7 +49,7 @@ describe('Start Apex Debug Logging', () => {
       .returns(endDate);
   });
 
-  after(() => {
+  afterEach(() => {
     getTraceFlagIdStub.restore();
     getDebugLevelIdStub.restore();
     startDateStub.restore();
@@ -68,7 +68,7 @@ describe('Start Apex Debug Logging', () => {
     const queryTraceFlagsExecutor = new QueryTraceFlag();
     const updateTraceFlagCmd = queryTraceFlagsExecutor.build('005x00000000123');
     expect(updateTraceFlagCmd.toCommand()).to.equal(
-      `sfdx data:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='005x00000000123' --use-tooling-api --json --loglevel fatal`
+      "sf data:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='005x00000000123' --use-tooling-api --json"
     );
   });
 
@@ -76,7 +76,7 @@ describe('Start Apex Debug Logging', () => {
     const updateTraceFlagsExecutor = new UpdateTraceFlagsExecutor();
     const updateTraceFlagCmd = updateTraceFlagsExecutor.build();
     expect(updateTraceFlagCmd.toCommand()).to.equal(
-      `sfdx data:update:record --sobject TraceFlag --record-id ${fakeTraceFlagId} --values StartDate='' ExpirationDate='${endDate.toUTCString()}' --use-tooling-api --json --loglevel fatal`
+      `sf data:update:record --sobject TraceFlag --record-id ${fakeTraceFlagId} --values StartDate='' ExpirationDate='${endDate.toUTCString()}' --use-tooling-api --json`
     );
   });
 
@@ -84,7 +84,7 @@ describe('Start Apex Debug Logging', () => {
     const updateDebugLevelsExecutor = new UpdateDebugLevelsExecutor();
     const updateDebugLevelCmd = updateDebugLevelsExecutor.build();
     expect(updateDebugLevelCmd.toCommand()).to.equal(
-      `sfdx data:update:record --sobject DebugLevel --record-id ${fakeDebugLevelId} --values ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL} --use-tooling-api --json --loglevel fatal`
+      `sf data:update:record --sobject DebugLevel --record-id ${fakeDebugLevelId} --values ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL} --use-tooling-api --json`
     );
   });
 
@@ -92,7 +92,7 @@ describe('Start Apex Debug Logging', () => {
     const createTraceFlagExecutor = new CreateTraceFlag('testUserId');
     const createTraceFlagCmd = createTraceFlagExecutor.build();
     expect(createTraceFlagCmd.toCommand()).to.equal(
-      `sfdx data:create:record --sobject TraceFlag --values tracedentityid='testUserId' logtype=developer_log debuglevelid=${fakeDebugLevelId} StartDate='' ExpirationDate='${endDate.toUTCString()} --use-tooling-api --json --loglevel fatal`
+      `sf data:create:record --sobject TraceFlag --values tracedentityid='testUserId' logtype=developer_log debuglevelid=${fakeDebugLevelId} StartDate='' ExpirationDate='${endDate.toUTCString()} --use-tooling-api --json`
     );
   });
 
@@ -100,7 +100,7 @@ describe('Start Apex Debug Logging', () => {
     const createDebugLevelExecutor = new CreateDebugLevel();
     const createDebugLevelCmd = createDebugLevelExecutor.build();
     expect(createDebugLevelCmd.toCommand()).to.equal(
-      `sfdx data:create:record --sobject DebugLevel --values developername=${createDebugLevelExecutor.developerName} MasterLabel=${createDebugLevelExecutor.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --use-tooling-api --json --loglevel fatal`
+      `sf data:create:record --sobject DebugLevel --values developername=${createDebugLevelExecutor.developerName} MasterLabel=${createDebugLevelExecutor.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --use-tooling-api --json`
     );
   });
 
@@ -109,7 +109,7 @@ describe('Start Apex Debug Logging', () => {
     const forceQueryUserExecutor = new QueryUser(testUser);
     const forceQueryUserCmd = forceQueryUserExecutor.build();
     expect(forceQueryUserCmd.toCommand()).to.equal(
-      `sfdx data:query --query SELECT id FROM User WHERE username='${testUser}' --json --loglevel fatal`
+      `sf data:query --query SELECT id FROM User WHERE username='${testUser}' --json`
     );
   });
 });

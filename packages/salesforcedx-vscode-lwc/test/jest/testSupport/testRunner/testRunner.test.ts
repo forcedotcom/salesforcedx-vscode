@@ -23,7 +23,7 @@ describe('testRunner Unit Tests.', () => {
       expect(testPatternArgs).toMatchSnapshot();
     });
     it('Should not escape certain symbols if testNamePattern is included', async () => {
-      const testName = 'Test !@#"%&;:,<>\=~` Symbols';
+      const testName = 'Test !@#"%&;:,<>=~` Symbols';
       const testPatternArgs = getTestNamePatternArgs(testName);
       expect(testPatternArgs).toMatchSnapshot();
     });

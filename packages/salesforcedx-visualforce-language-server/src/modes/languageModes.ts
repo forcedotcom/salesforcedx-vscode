@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -9,6 +10,10 @@ import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import {
+  ColorInformation,
+  ColorPresentation
+} from 'vscode-languageserver-protocol';
 import {
   CompletionItem,
   CompletionList,
@@ -28,11 +33,6 @@ import {
 } from 'vscode-languageserver-types';
 
 import {
-  ColorInformation,
-  ColorPresentation
-} from 'vscode-languageserver-protocol';
-
-import {
   getLanguageModelCache,
   LanguageModelCache
 } from '../languageModelCache';
@@ -45,17 +45,17 @@ import { getJavascriptMode } from './javascriptMode';
 
 export { ColorInformation, ColorPresentation };
 
-export interface Settings {
+export type Settings = {
   css?: any;
   visualforce?: any;
   javascript?: any;
-}
+};
 
-export interface SettingProvider {
+export type SettingProvider = {
   getDocumentSettings(textDocument: TextDocument): Thenable<Settings>;
-}
+};
 
-export interface LanguageMode {
+export type LanguageMode = {
   configure?: (options: Settings) => void;
   doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
   doComplete?: (
@@ -95,9 +95,9 @@ export interface LanguageMode {
   getId();
   dispose(): void;
   onDocumentRemoved(document: TextDocument): void;
-}
+};
 
-export interface LanguageModes {
+export type LanguageModes = {
   getModeAtPosition(document: TextDocument, position: Position): LanguageMode;
   getModesInRange(document: TextDocument, range: Range): LanguageModeRange[];
   getAllModes(): LanguageMode[];
@@ -105,16 +105,16 @@ export interface LanguageModes {
   getMode(languageId: string): LanguageMode;
   onDocumentRemoved(document: TextDocument): void;
   dispose(): void;
-}
+};
 
-export interface LanguageModeRange extends Range {
+export type LanguageModeRange = Range & {
   mode: LanguageMode;
   attributeValue?: boolean;
-}
+};
 
-export function getLanguageModes(supportedLanguages: {
+export const getLanguageModes = (supportedLanguages: {
   [languageId: string]: boolean;
-}): LanguageModes {
+}): LanguageModes => {
   const htmlLanguageService = getHTMLLanguageService();
   const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(
     10,
@@ -122,7 +122,7 @@ export function getLanguageModes(supportedLanguages: {
     document => getDocumentRegions(htmlLanguageService, document)
   );
 
-  let modelCaches: Array<LanguageModelCache<any>> = [];
+  let modelCaches: LanguageModelCache<any>[] = [];
   modelCaches.push(documentRegions);
 
   let modes = {};
@@ -134,10 +134,10 @@ export function getLanguageModes(supportedLanguages: {
     modes['javascript'] = getJavascriptMode(documentRegions);
   }
   return {
-    getModeAtPosition(
+    getModeAtPosition: (
       document: TextDocument,
       position: Position
-    ): LanguageMode {
+    ): LanguageMode => {
       const languageId = documentRegions
         .get(document)
         .getLanguageAtPosition(position);
@@ -146,7 +146,10 @@ export function getLanguageModes(supportedLanguages: {
       }
       return null;
     },
-    getModesInRange(document: TextDocument, range: Range): LanguageModeRange[] {
+    getModesInRange: (
+      document: TextDocument,
+      range: Range
+    ): LanguageModeRange[] => {
       return documentRegions
         .get(document)
         .getLanguageRanges(range)
@@ -159,7 +162,7 @@ export function getLanguageModes(supportedLanguages: {
           };
         });
     },
-    getAllModesInDocument(document: TextDocument): LanguageMode[] {
+    getAllModesInDocument: (document: TextDocument): LanguageMode[] => {
       const result = [];
       for (const languageId of documentRegions
         .get(document)
@@ -171,7 +174,7 @@ export function getLanguageModes(supportedLanguages: {
       }
       return result;
     },
-    getAllModes(): LanguageMode[] {
+    getAllModes: (): LanguageMode[] => {
       const result = [];
       for (const languageId in modes) {
         const mode = modes[languageId];
@@ -181,16 +184,16 @@ export function getLanguageModes(supportedLanguages: {
       }
       return result;
     },
-    getMode(languageId: string): LanguageMode {
+    getMode: (languageId: string): LanguageMode => {
       return modes[languageId];
     },
-    onDocumentRemoved(document: TextDocument) {
+    onDocumentRemoved: (document: TextDocument) => {
       modelCaches.forEach(mc => mc.onDocumentRemoved(document));
       for (const mode in modes) {
         modes[mode].onDocumentRemoved(document);
       }
     },
-    dispose(): void {
+    dispose: (): void => {
       modelCaches.forEach(mc => mc.dispose());
       modelCaches = [];
       for (const mode in modes) {
@@ -199,4 +202,4 @@ export function getLanguageModes(supportedLanguages: {
       modes = {};
     }
   };
-}
+};

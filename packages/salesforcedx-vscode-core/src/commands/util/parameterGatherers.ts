@@ -8,23 +8,41 @@ import {
   CancelResponse,
   ContinueResponse,
   LocalComponent,
-  ParametersGatherer
+  ParametersGatherer,
+  SFDX_LWC_EXTENSION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
-import glob = require('glob');
+import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
+import * as glob from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxPackageDirectories } from '../../sfdxProject';
+import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { workspaceUtils } from '../../util';
-import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
+import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
+export const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
+
+export type FileNameParameter = {
+  fileName: string;
+};
+
+export type OutputDirParameter = {
+  outputdir: string;
+};
+
+export type MetadataTypeParameter = {
+  type: string;
+};
+
+export type ApexTestTemplateParameter = {
+  template: string;
+};
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: Array<ParametersGatherer<any>>;
-  public constructor(...gatherers: Array<ParametersGatherer<any>>) {
+  private readonly gatherers: ParametersGatherer<any>[];
+  public constructor(...gatherers: ParametersGatherer<any>[]) {
     this.gatherers = gatherers;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
@@ -49,8 +67,8 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
 }
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return { type: CONTINUE, data: {} };
+  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    return Promise.resolve({ type: CONTINUE, data: {} });
   }
 }
 
@@ -118,7 +136,8 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 }
 
 export class SelectFileName
-  implements ParametersGatherer<{ fileName: string }> {
+  implements ParametersGatherer<FileNameParameter>
+{
   private maxFileNameLength: number;
 
   constructor(maxFileNameLength?: number) {
@@ -149,7 +168,8 @@ export class SelectFileName
 }
 
 export class SelectUsername
-  implements ParametersGatherer<{ username: string }> {
+  implements ParametersGatherer<{ username: string }>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ username: string }>
   > {
@@ -180,13 +200,15 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
 }
 
 export class SelectLwcComponentDir
-  implements ParametersGatherer<{ fileName: string; outputdir: string }> {
+  implements ParametersGatherer<{ fileName: string; outputdir: string }>
+{
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>
   > {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
@@ -248,7 +270,8 @@ export class SelectLwcComponentDir
 }
 
 export class SelectOutputDir
-  implements ParametersGatherer<{ outputdir: string }> {
+  implements ParametersGatherer<OutputDirParameter>
+{
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
   public static readonly defaultOutput = path.join('main', 'default');
@@ -262,11 +285,12 @@ export class SelectOutputDir
   }
 
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ outputdir: string }>
+    CancelResponse | ContinueResponse<OutputDirParameter>
   > {
     let packageDirs: string[] = [];
     try {
-      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+      packageDirs =
+        await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
       if (
         e.name !== 'NoPackageDirectoryPathsFound' &&
@@ -331,16 +355,17 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
     this.input = input;
   }
 
-  public async gather(): Promise<ContinueResponse<T>> {
-    return {
+  public gather(): Promise<ContinueResponse<T>> {
+    return Promise.resolve({
       type: CONTINUE,
       data: this.input
-    };
+    });
   }
 }
 
 export class RetrieveComponentOutputGatherer
-  implements ParametersGatherer<LocalComponent[]> {
+  implements ParametersGatherer<LocalComponent[]>
+{
   private describer: RetrieveDescriber;
 
   constructor(describer: RetrieveDescriber) {
@@ -363,8 +388,15 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
   }
 }
 
+export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
+  constructor(template: string) {
+    super({ template });
+  }
+}
+
 export class PromptConfirmGatherer
-  implements ParametersGatherer<{ choice: string }> {
+  implements ParametersGatherer<{ choice: string }>
+{
   private question: string;
 
   constructor(question: string) {
@@ -384,6 +416,39 @@ export class PromptConfirmGatherer
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: this.question
+    } as vscode.QuickPickOptions);
+  }
+}
+
+export class SelectLwcComponentType
+  implements ParametersGatherer<{ extension: string }>
+{
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ extension: string }>
+  > {
+    const hasTsSupport = vscode.workspace.getConfiguration(SFDX_LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
+    if (hasTsSupport) {
+      const lwcComponentTypes = ['TypeScript', 'JavaScript'];
+      const lwcComponentType = await this.showMenu(
+        lwcComponentTypes,
+        'parameter_gatherer_select_lwc_type'
+      );
+      return lwcComponentType
+        ? {
+            type: CONTINUE,
+            data: { extension: lwcComponentType }
+          }
+        : { type: CANCEL };
+    }
+    return { type: CONTINUE, data: { extension: 'JavaScript'} };
+  }
+
+  public async showMenu(
+    options: string[],
+    message: string
+  ): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize(message)
     } as vscode.QuickPickOptions);
   }
 }

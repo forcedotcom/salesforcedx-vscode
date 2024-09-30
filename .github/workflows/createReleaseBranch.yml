@@ -3,14 +3,14 @@ name: Create Release Branch
 on:
   repository_dispatch:
     types: create_release_branch
-  # schedule:
-  # - cron: '0 13 * * 1'
+  schedule:
+    - cron: '0 13 * * 1'
   workflow_dispatch:
     inputs:
       releaseType:
         description: 'Select the release type (default is minor)'
         required: true
-        default: 'patch'
+        default: 'minor'
         type: choice
         options:
           - minor
@@ -32,22 +32,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'develop'
           ssh-strict: false
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
       - name: Set NPM at the correct version for Lerna
-        run: npm install -g npm@8.12.1
+        run: npm install -g npm@9.8.1
       - run: npm ci
-      - run: npm install -g shelljs && npm install -g lerna
+      - run: npm install -g shelljs && npm install -g lerna@5.5.4
       - name: Create and Push the Release Branch
         id: create_step
         run: |
@@ -75,3 +75,10 @@ jobs:
       type: 'created'
       result: ${{ needs.create_branch.outputs.result }}
       workflow: 'create-release-branch.yml'
+
+  trigger_generate_changelog_workflow:
+    if: ${{ needs.create_branch.result == 'success' }} # Only run this if the previous job was successful
+    needs: create_branch
+    name: 'Trigger Generate Changelog Workflow'
+    uses: ./.github/workflows/generateChangelog.yml
+    secrets: inherit

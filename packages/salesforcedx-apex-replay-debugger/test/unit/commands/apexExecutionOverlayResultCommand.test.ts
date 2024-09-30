@@ -150,7 +150,7 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
       // Verify the Name keyDisplayValue and that the value starts with okToDelete
       expect(extent[i].value.entry![0].keyDisplayValue).to.equal('Name');
       expect(
-        extent[i].value.entry![0].value.value!.startsWith('okToDelete')
+        extent[i].value.entry![0].value.value.startsWith('okToDelete')
       ).to.equal(true);
 
       // Verity the AccountNumber keyDisplayValue
@@ -161,7 +161,7 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
       // Verify the Id keyDisplayValue and the value starts with 001xx000003Dt1
       expect(extent[i].value.entry![2].keyDisplayValue).to.equal('Id');
       expect(
-        extent[i].value.entry![2].value.value!.startsWith('001xx000003Dt1')
+        extent[i].value.entry![2].value.value.startsWith('001xx000003Dt1')
       ).to.equal(true);
 
       // Symbols are only there for 2 local variables, 'a' and 'foo', verify we got them
@@ -189,7 +189,7 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
       expect(extent[i].size).to.equal(16);
       expect(extent[i].symbols![0].startsWith('accts')).to.equal(true);
       // The collection type is account, each account list should contain a list of addresses
-      for (let j = 0; j < extent[i].value.value!.length; j++) {
+      for (let j = 0; j < (extent[i].value.value ?? []).length; j++) {
         expect(isHex(extent[i].value.value[j].value)).to.equal(true);
       }
     }
@@ -662,19 +662,15 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 });
 
 // Verify that the number passed in is a hex address
-function isHex(inputString: string): boolean {
-  if (inputString.startsWith('0x')) {
-    inputString = inputString.substr(2);
-  }
-  const a = parseInt(inputString, 16);
-  return a.toString(16) === inputString.toLowerCase();
-}
+const isHex = (inputString: string): boolean => {
+  return /^(0x)?[a-f0-9]+$/i.test(inputString);
+};
 
-export function createExpectedXHROptions(
+export const createExpectedXHROptions = (
   requestBody: string | undefined,
   requestUrl: string,
   restHttpMethodEnum: RestHttpMethodEnum
-): XHROptions {
+): XHROptions => {
   return {
     type: restHttpMethodEnum,
     url: requestUrl,
@@ -682,7 +678,7 @@ export function createExpectedXHROptions(
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
       Accept: 'application/json',
-      Authorization: `OAuth 123`,
+      Authorization: 'OAuth 123',
       'Content-Length': requestBody
         ? String(Buffer.byteLength(requestBody, 'utf-8'))
         : '0',
@@ -690,7 +686,7 @@ export function createExpectedXHROptions(
     },
     data: requestBody
   } as XHROptions;
-}
+};
 
 /* The test code used to generate the heap dump. This is important because of the ordering for the verification
    There are comments below where the checkpoints were set and where the various SOQL/Apex ActionScript were executed

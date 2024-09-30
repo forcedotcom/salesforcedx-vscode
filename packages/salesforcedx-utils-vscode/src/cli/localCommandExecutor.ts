@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { EventEmitter } from 'events';
 import 'rxjs/add/observable/fromEvent';
 import { Observable } from 'rxjs/Observable';
@@ -28,18 +34,18 @@ export class LocalCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.EXIT_EVENT
-    ) as Observable<number>;
+    ) ;
     this.processErrorSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.ERROR_EVENT
-    ) as Observable<Error>;
+    ) ;
     this.stdoutSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.STDOUT_EVENT
-    ) as Observable<string>;
+    ) ;
     this.stderrSubject = Observable.fromEvent(
       this.cmdEmitter,
       LocalCommandExecution.STDERR_EVENT
-    ) as Observable<string>;
+    ) ;
   }
 }

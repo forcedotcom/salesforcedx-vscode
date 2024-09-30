@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   Command,
   CommandOutput,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
@@ -23,25 +23,25 @@ import { taskViewService } from '../statuses';
 import { workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-interface QueryResponse {
+type QueryResponse = {
   status: number;
   result: QueryResult;
-}
+};
 
-interface QueryResult {
+type QueryResult = {
   size: number;
   totalSize: number;
   records: QueryRecord[];
-}
+};
 
-interface QueryRecord {
+type QueryRecord = {
   Id: string;
-}
+};
 
 export type IdSelection = { id: string };
 export class IdGatherer implements ParametersGatherer<IdSelection> {
@@ -51,30 +51,29 @@ export class IdGatherer implements ParametersGatherer<IdSelection> {
     this.sessionIdToUpdate = sessionIdToUpdate;
   }
 
-  public async gather(): Promise<ContinueResponse<IdSelection>> {
-    return { type: 'CONTINUE', data: { id: this.sessionIdToUpdate } };
+  public gather(): Promise<ContinueResponse<IdSelection>> {
+    return Promise.resolve({ type: 'CONTINUE', data: { id: this.sessionIdToUpdate } });
   }
 }
 
-export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
-  IdSelection
-> {
+export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
   public build(data: IdSelection): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:update:record')
       .withDescription(nls.localize('debugger_stop_text'))
       .withFlag('--sobject', 'ApexDebuggerSession')
       .withFlag('--record-id', data ? data.id : '')
       .withFlag('--values', 'Status="Detach"')
       .withArg('--use-tooling-api')
-      .withLogName('force_debugger_stop')
+      .withLogName('debugger_stop')
       .build();
   }
 }
 
-export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}> {
+export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withArg('data:query')
       .withDescription(nls.localize('debugger_query_session_text'))
       .withFlag(
@@ -83,7 +82,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
       )
       .withArg('--use-tooling-api')
       .withJson()
-      .withLogName('force_debugger_query_session')
+      .withLogName('debugger_query_session')
       .build();
   }
 
@@ -102,7 +101,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     });
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    ProgressNotification.show(execution, cancellationTokenSource);
+    void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -115,15 +114,15 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
       ) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;
         if (sessionIdToUpdate && sessionIdToUpdate.startsWith('07a')) {
-          const sessionDetachCommandlet = new SfdxCommandlet(
-            new SfdxWorkspaceChecker(),
+          const sessionDetachCommandlet = new SfCommandlet(
+            new SfWorkspaceChecker(),
             new IdGatherer(sessionIdToUpdate),
             new DebuggerSessionDetachExecutor()
           );
           await sessionDetachCommandlet.run();
         }
       } else {
-        notificationService.showInformationMessage(
+        void notificationService.showInformationMessage(
           nls.localize('debugger_stop_none_found_text')
         );
       }
@@ -134,11 +133,11 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
   }
 }
 
-export async function debuggerStop() {
-  const sessionStopCommandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
+export const debuggerStop = async () => {
+  const sessionStopCommandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
     new EmptyParametersGatherer(),
     new StopActiveDebuggerSessionExecutor()
   );
   await sessionStopCommandlet.run();
-}
+};

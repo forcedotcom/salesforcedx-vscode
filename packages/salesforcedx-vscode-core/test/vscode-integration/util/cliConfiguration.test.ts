@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Config,
-  ConfigFile,
-  Global,
-  OrgConfigProperties
-} from '@salesforce/core';
+import { Config, ConfigFile, Global } from '@salesforce/core-bundle';
 import {
   ConfigUtil,
   GlobalCliEnvironment
@@ -20,7 +15,10 @@ import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
-import { ENV_SF_DISABLE_TELEMETRY, TARGET_ORG_KEY } from '../../../src/constants';
+import {
+  ENV_SF_DISABLE_TELEMETRY,
+  TARGET_ORG_KEY
+} from '../../../src/constants';
 import { WorkspaceContext } from '../../../src/context';
 import {
   disableCLITelemetry,
@@ -138,15 +136,15 @@ describe('SFDX CLI Configuration utility', () => {
   });
 
   describe('ConfigAggregator integration tests', () => {
-    const dummyLocalDefaultUsername = 'test@local.com';
+    const dummyLocalTargetOrg = 'test@local.com';
     const origCwd = process.cwd();
 
-    before(() => {
+    beforeEach(() => {
       // Ensure we are in the project directory
       const rootWorkpace = workspaceUtils.getRootWorkspacePath();
       process.chdir(rootWorkpace);
     });
-    after(() => {
+    afterEach(() => {
       process.chdir(origCwd);
     });
 
@@ -176,20 +174,18 @@ describe('SFDX CLI Configuration utility', () => {
      * workspaceContextUtil defines a listener that fires a VS Code event when
      * the config file changes.  Ideally, something like flushAllPromises()
      * would be used to force the promises to resolve - however, there seems
-     * to be no mechanism to get the VS Code Events to fire before the assertions
+     * to be no mechanism to get the VS Code Events to fire beforeEach the assertions
      * in the test.  To work around this, a new listener for the event is
      * configured in this test, and the assertions are made within that event listener.
-     * By asserting localProjectDefaultUsernameOrAlias, this test validates that:
+     * By asserting localProjectTargetOrgOrAlias, this test validates that:
      * 1. The config file listener in workspaceContextUtil is active
      * 2. When the listener detects a config file change (config.write()) it reloads the
      * configAggregator to ensure it has the latest values
      * 3. The VS Code onOrgChange event handler is invoked
      * 4. The VS Code orgChange event was fired with the correct values
-     * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
+     * 5. The call to ConfigUtil.getTargetOrgOrAlias() returns the expected local value
      */
-    it('Should return the locally configured default username when it exists', async function() {
-      this.timeout(60000);
-
+    it('Should return the locally configured target org when it exists', async () => {
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
       const resultPromise = new Promise((resolveFunc, rejectsFunc) => {
@@ -199,15 +195,12 @@ describe('SFDX CLI Configuration utility', () => {
       WorkspaceContext.getInstance().onOrgChange(async orgUserInfo => {
         try {
           // Act
-          const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+          const localProjectTargetOrgOrAlias =
+            await ConfigUtil.getTargetOrgOrAlias();
 
           // Assert
-          expect(localProjectDefaultUsernameOrAlias).to.equal(
-            dummyLocalDefaultUsername
-          );
-          expect(localProjectDefaultUsernameOrAlias).to.equal(
-            orgUserInfo.username
-          );
+          expect(localProjectTargetOrgOrAlias).to.equal(dummyLocalTargetOrg);
+          expect(localProjectTargetOrgOrAlias).to.equal(orgUserInfo.username);
 
           res('success');
         } catch (e) {
@@ -221,9 +214,9 @@ describe('SFDX CLI Configuration utility', () => {
       // file watcher. Set it to true here to ensure we get the writes to the sfdx config file.
       Global.SFDX_INTEROPERABILITY = true;
 
-      // Create a local config file and set the local project default username
+      // Create a local config file and set the local project target org
       const config = await Config.create(Config.getDefaultOptions());
-      config.set(TARGET_ORG_KEY, dummyLocalDefaultUsername);
+      config.set(TARGET_ORG_KEY, dummyLocalTargetOrg);
       await config.write();
 
       return resultPromise;

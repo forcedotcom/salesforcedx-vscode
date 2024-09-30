@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core-bundle';
 import {
   ConfigUtil,
   ContinueResponse,
@@ -28,11 +28,11 @@ import {
   registry,
   RetrieveResult,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import {
   MetadataApiDeployStatus,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
@@ -47,9 +47,9 @@ import {
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
@@ -109,11 +109,8 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call lifecycle methods in correct order', async () => {
       const executor = new TestDeployRetrieve();
-      const {
-        doOperationStub,
-        getComponentsStub,
-        postOperationStub
-      } = executor.lifecycle;
+      const { doOperationStub, getComponentsStub, postOperationStub } =
+        executor.lifecycle;
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
@@ -136,6 +133,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const { properties } = executor.telemetryData;
       expect(properties).to.not.equal(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const { metadataCount } = properties!;
       expect(metadataCount).to.not.equal(undefined);
 
@@ -255,9 +253,10 @@ describe('Base Deploy Retrieve Commands', () => {
     const packageDir = 'test-app';
 
     beforeEach(async () => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        packageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([packageDir]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
       setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
@@ -517,7 +516,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`table_title_deployed_source`)
+          nls.localize('table_title_deployed_source')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -560,7 +559,7 @@ describe('Base Deploy Retrieve Commands', () => {
             },
             { key: 'error', label: nls.localize('table_header_errors') }
           ],
-          nls.localize(`table_title_deploy_errors`)
+          nls.localize('table_title_deploy_errors')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -622,9 +621,10 @@ describe('Base Deploy Retrieve Commands', () => {
     }
 
     beforeEach(() => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        packageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([packageDir]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
       setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
@@ -760,7 +760,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`lib_retrieve_result_title`)
+          nls.localize('lib_retrieve_result_title')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });

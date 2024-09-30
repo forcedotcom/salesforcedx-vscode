@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  getDefaultUsernameOrAlias,
+  getTargetOrgOrAlias,
   getWorkspaceOrgType,
   OrgType,
   setupWorkspaceOrgType,
@@ -15,7 +15,7 @@ import {
 export { WorkspaceContext } from './workspaceContext';
 export const workspaceContextUtils = {
   setWorkspaceOrgTypeWithOrgType,
-  getDefaultUsernameOrAlias,
+  getTargetOrgOrAlias,
   getWorkspaceOrgType,
   OrgType,
   setupWorkspaceOrgType

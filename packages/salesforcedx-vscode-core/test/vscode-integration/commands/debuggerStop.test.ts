@@ -7,6 +7,7 @@
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as childProcess from 'child_process';
 import * as sinon from 'sinon';
 import {
   DebuggerSessionDetachExecutor,
@@ -14,15 +15,12 @@ import {
   IdSelection,
   StopActiveDebuggerSessionExecutor
 } from '../../../src/commands';
-import {
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/util';
+import { SfCommandlet, SfWorkspaceChecker } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import childProcess = require('child_process');
 
 describe('Debugger stop command', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const mockSpawn = require('mock-spawn');
 
   describe('Session query', () => {
@@ -38,9 +36,9 @@ describe('Debugger stop command', () => {
     beforeEach(() => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
+      (childProcess as any).spawn = mySpawn;
       workspaceCheckerStub = sinon
-        .stub(SfdxWorkspaceChecker.prototype, 'check')
+        .stub(SfWorkspaceChecker.prototype, 'check')
         .returns(true);
       idGathererStub = sinon
         .stub(IdGatherer.prototype, 'gather')
@@ -49,13 +47,13 @@ describe('Debugger stop command', () => {
         DebuggerSessionDetachExecutor.prototype,
         'execute'
       );
-      sessionDetachRunSpy = sinon.spy(SfdxCommandlet.prototype, 'run');
+      sessionDetachRunSpy = sinon.spy(SfCommandlet.prototype, 'run');
       executor = new StopActiveDebuggerSessionExecutor();
       infoSpy = sinon.stub(notificationService, 'showInformationMessage');
     });
 
     afterEach(() => {
-      childProcess.spawn = origSpawn;
+      (childProcess as any).spawn = origSpawn;
       workspaceCheckerStub.restore();
       idGathererStub.restore();
       detachExecutorSpy.restore();
@@ -67,7 +65,7 @@ describe('Debugger stop command', () => {
       const command = executor.build({});
 
       expect(command.toCommand()).to.equal(
-        "sfdx data:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --use-tooling-api --json --loglevel fatal"
+        "sf data:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --use-tooling-api --json"
       );
       expect(command.description).to.equal(
         nls.localize('debugger_query_session_text')
@@ -154,7 +152,7 @@ describe('Debugger stop command', () => {
       const command = executor.build({ id: '07aFAKE' } as IdSelection);
 
       expect(command.toCommand()).to.equal(
-        'sfdx data:update:record --sobject ApexDebuggerSession --record-id 07aFAKE --values Status="Detach" --use-tooling-api'
+        'sf data:update:record --sobject ApexDebuggerSession --record-id 07aFAKE --values Status="Detach" --use-tooling-api'
       );
       expect(command.description).to.equal(nls.localize('debugger_stop_text'));
     });

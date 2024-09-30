@@ -18,13 +18,13 @@ describe('Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
   const fakeTraceFlagId = 'fakeDebugLevelId';
 
-  before(() => {
+  beforeEach(() => {
     getDebugLevelIdStub = sinon
       .stub(developerLogTraceFlag, 'getTraceFlagId')
       .returns(fakeTraceFlagId);
   });
 
-  after(() => {
+  afterEach(() => {
     getDebugLevelIdStub.restore();
   });
 
@@ -32,7 +32,7 @@ describe('Source Status', () => {
     const forceStopLogging = new StopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
     expect(forceStopLoggingCmd.toCommand()).to.equal(
-      `sfdx data:delete:record --sobject TraceFlag --record-id ${fakeTraceFlagId} --use-tooling-api`
+      `sf data:delete:record --sobject TraceFlag --record-id ${fakeTraceFlagId} --use-tooling-api`
     );
     expect(forceStopLoggingCmd.description).to.equal(
       nls.localize('stop_apex_debug_logging')

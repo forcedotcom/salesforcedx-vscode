@@ -11,7 +11,7 @@ import {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
@@ -26,17 +26,18 @@ import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfCommandletExecutor,
+  SfWorkspaceChecker
 } from './util';
 
-export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
-      .withLogName('force_org_open_default_scratch_org')
+      .withLogName('org_open_default_scratch_org')
       .withArg('--url-only')
       .withJson()
       .build();
@@ -88,7 +89,8 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
           nls.localize('org_open_default_scratch_org_container_error')
         );
         telemetryService.sendException(
-          'force_org_open_container',
+          'org_open_container',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an error when parsing the org open response ${error}`
         );
       }
@@ -103,31 +105,29 @@ export class OrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class OrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
-      .withLogName('force_org_open_default_scratch_org')
+      .withLogName('org_open_default_scratch_org')
       .build();
   }
 }
 
-export function getExecutor(): SfdxCommandletExecutor<{}> {
-  return isSFContainerMode()
-    ? new OrgOpenContainerExecutor()
-    : new OrgOpenExecutor();
-}
+export const getExecutor = (): SfCommandletExecutor<{}> =>
+  isSFContainerMode() ? new OrgOpenContainerExecutor() : new OrgOpenExecutor();
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function orgOpen() {
-  const commandlet = new SfdxCommandlet(
+export const orgOpen = (): void => {
+  const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
     getExecutor()
   );
-  await commandlet.run();
-}
+  void commandlet.run();
+};

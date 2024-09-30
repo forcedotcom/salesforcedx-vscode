@@ -11,11 +11,15 @@ import {
   Org,
   OrgConfigProperties,
   StateAggregator
-} from '@salesforce/core';
+} from '@salesforce/core-bundle';
 import { workspaceUtils } from '..';
-import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
+import {
+  SF_CONFIG_DISABLE_TELEMETRY,
+  TARGET_DEV_HUB_KEY,
+  TARGET_ORG_KEY
+} from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
-import { TelemetryService } from '../telemetry/telemetry';
+import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {
   Local,
@@ -25,7 +29,8 @@ export enum ConfigSource {
 
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
@@ -47,45 +52,46 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const apiVersion = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_API_VERSION
     );
     return apiVersion ? String(apiVersion) : undefined;
   }
 
-  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+  public static async getTargetOrgOrAlias(): Promise<string | undefined> {
     try {
-      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-      const defaultUsernameOrAlias = configAggregator.getPropertyValue(
-        TARGET_ORG_KEY
-      );
-      if (!defaultUsernameOrAlias) {
+      const configAggregator =
+        await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const targetOrgOrAlias =
+        configAggregator.getPropertyValue(TARGET_ORG_KEY);
+      if (!targetOrgOrAlias) {
         return undefined;
       }
 
-      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
+      return JSON.stringify(targetOrgOrAlias).replace(/"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
         TelemetryService.getInstance().sendException(
-          'get_default_username_alias',
+          'get_target_org_alias',
           err.message
         );
       }
-      throw(err);
+      throw err;
     }
   }
 
-  public static async isGlobalDefaultUsername(): Promise<boolean> {
-    const configSource: ConfigSource = await ConfigUtil.getConfigSource(
-      TARGET_ORG_KEY
-    );
+  public static async isGlobalTargetOrg(): Promise<boolean> {
+    const configSource: ConfigSource =
+      await ConfigUtil.getConfigSource(TARGET_ORG_KEY);
     return configSource === ConfigSource.Global;
   }
 
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const templatesDirectory = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
@@ -93,34 +99,28 @@ export class ConfigUtil {
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(
       SF_CONFIG_DISABLE_TELEMETRY
     );
     return isTelemetryDisabled === 'true';
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(): Promise<
-    string | undefined
-  > {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const defaultDevHubUserName = configAggregator.getPropertyValue(
-      TARGET_DEV_HUB_KEY
-    );
-    return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
+  public static async getTargetDevHubOrAlias(): Promise<string | undefined> {
+    const configAggregator =
+      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const targetDevHub = configAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
+    return targetDevHub ? String(targetDevHub) : undefined;
   }
 
-  public static async getGlobalDefaultDevHubUsernameOrAlias(): Promise<
+  public static async getGlobalTargetDevHubOrAlias(): Promise<
     string | undefined
   > {
     const globalConfig = await Config.create({ isGlobal: true });
-    const defaultGlobalDevHubUserName = globalConfig.get(
-      TARGET_DEV_HUB_KEY
-    );
+    const globalTargetDevHub = globalConfig.get(TARGET_DEV_HUB_KEY);
 
-    return defaultGlobalDevHubUserName
-      ? String(defaultGlobalDevHubUserName)
-      : undefined;
+    return globalTargetDevHub ? String(globalTargetDevHub) : undefined;
   }
 
   public static async getAllAliasesFor(username: string): Promise<string[]> {
@@ -138,28 +138,28 @@ export class ConfigUtil {
    * @returns The username for the configured Org if it exists.
    */
   public static async getUsername(): Promise<string | undefined> {
-    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
-    if (!defaultUsernameOrAlias) {
+    const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
+    if (!targetOrgOrAlias) {
       return;
     }
 
-    const username = await this.getUsernameFor(defaultUsernameOrAlias);
+    const username = await this.getUsernameFor(targetOrgOrAlias);
     return username ? String(username) : undefined;
   }
 
   /**
-   * Get the username of the default dev hub for the project.
+   * Get the username of the target dev hub for the project.
    *
-   * @returns The username for the configured default dev hub
+   * @returns The username for the configured target dev hub
    * Org if it exists.
    */
   public static async getDevHubUsername(): Promise<string | undefined> {
-    const defaultDevHubUsernameOrAlias = await ConfigUtil.getDefaultDevHubUsernameOrAlias();
-    if (!defaultDevHubUsernameOrAlias) {
+    const targetDevHubOrAlias = await ConfigUtil.getTargetDevHubOrAlias();
+    if (!targetDevHubOrAlias) {
       return;
     }
 
-    const username = await this.getUsernameFor(defaultDevHubUsernameOrAlias);
+    const username = await this.getUsernameFor(targetDevHubOrAlias);
     return username ? String(username) : undefined;
   }
 
@@ -174,7 +174,22 @@ export class ConfigUtil {
     return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
   }
 
-  public static async setDefaultUsernameOrAlias(
+  public static async unsetTargetOrg(): Promise<void> {
+    const originalDirectory = process.cwd();
+    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+    const workspacePath = workspaceUtils.getRootWorkspacePath();
+    try {
+      process.chdir(workspacePath);
+      const config = await Config.create(Config.getDefaultOptions());
+      config.unset(TARGET_ORG_KEY);
+      await config.write();
+      await this.updateConfigAndStateAggregators();
+    } finally {
+      process.chdir(originalDirectory);
+    }
+  }
+
+  public static async setTargetOrgOrAlias(
     usernameOrAlias: string
   ): Promise<void> {
     const originalDirectory = process.cwd();
@@ -197,6 +212,10 @@ export class ConfigUtil {
     const config = await Config.create(Config.getDefaultOptions());
     config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
+    await this.updateConfigAndStateAggregators();
+  }
+
+  private static async updateConfigAndStateAggregators(): Promise<void> {
     // Force the ConfigAggregatorProvider to reload its stored
     // ConfigAggregators so that this config file change is accounted
     // for and the ConfigAggregators are updated with the latest info.

@@ -15,5 +15,5 @@ export const SFDX_FOLDER = '.sfdx';
 export const ENV_SF_TARGET_ORG = 'SF_TARGET_ORG';
 export const ENV_SF_ORG_INSTANCE_URL = 'SF_ORG_INSTANCE_URL';
 
-export const SFDX_CONFIG_ISV_DEBUGGER_SID = 'isvDebuggerSid';
-export const SFDX_CONFIG_ISV_DEBUGGER_URL = 'isvDebuggerUrl';
+export const SF_CONFIG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid';
+export const SF_CONFIG_ISV_DEBUGGER_URL = 'org-isv-debugger-url';

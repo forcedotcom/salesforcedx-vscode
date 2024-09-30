@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.ref }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - run: npm install -g lerna
@@ -25,7 +25,7 @@ jobs:
           find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
           cp ./packages/salesforcedx-vscode/CHANGELOG.md ./extensions
       - name: Upload Extensions
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: VS Code Extensions
           path: ./extensions/
@@ -37,7 +37,7 @@ jobs:
     outputs:
       RELEASE_VERSION: ${{ steps.getVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: getVersion
         run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
       - run: echo "Release Version is ${{ steps.getVersion.outputs.version }}"
@@ -54,8 +54,8 @@ jobs:
       VERSION: ${{ needs.get_release_variables.outputs.RELEASE_VERSION }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         id: download
         with:
           name: VS Code Extensions

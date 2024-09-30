@@ -10,6 +10,6 @@ export { SObjectDescribe, toMinimalSObject } from './sObjectDescribe';
 
 export type SObjectShortDescription = Pick<SObject, 'name' | 'custom'>;
 
-export interface SObjectSelector {
+export type SObjectSelector = {
   select(sobject: SObjectShortDescription): boolean;
-}
+};

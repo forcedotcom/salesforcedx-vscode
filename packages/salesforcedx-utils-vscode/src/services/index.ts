@@ -9,3 +9,6 @@ export {
   SourceTrackingType,
   SourceTrackingService
 } from './sourceTrackingService';
+export {
+  UserService
+} from './userService';

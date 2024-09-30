@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ChildProcess } from 'child_process';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
@@ -42,7 +48,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) as Observable<number | undefined>;
+    );
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -51,7 +57,7 @@ export class CliCommandExecution implements CommandExecution {
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
-    ) as Observable<Error | undefined>;
+    );
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -93,10 +99,13 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-async function killPromise(processId: number, signal: string): Promise<void> {
+const killPromise = (processId: number, signal: string): Promise<void> => {
   return new Promise<void>((resolve, reject) => {
     treeKill(processId, signal, (err: Error | undefined) => {
-      err ? reject(err) : resolve();
+      if (err) {
+        reject(err);
+      }
+      resolve();
     });
   });
-}
+};

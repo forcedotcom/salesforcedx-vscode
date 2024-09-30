@@ -5,11 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import {
   TemplateOptions,
   TemplateService,
   TemplateType
 } from '@salesforce/templates';
+import { Properties } from '@salesforce/vscode-service-provider';
+import * as path from 'path';
+import { ProgressLocation, window, workspace } from 'vscode';
+import { channelService } from '../../channels';
+import { notificationService } from '../../notifications';
+import { telemetryService } from '../../telemetry';
+import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
+
 import {
   CommandletExecutor,
   PathStrategyFactory,
@@ -17,21 +27,10 @@ import {
   SourcePathStrategy
 } from '../util';
 
-import { ConfigUtil, Properties } from '@salesforce/salesforcedx-utils-vscode';
-import { channelService } from '../../channels';
-import { notificationService } from '../../notifications';
-import { telemetryService } from '../../telemetry';
-import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
-
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-
-import * as path from 'path';
-import { ProgressLocation, window, workspace } from 'vscode';
-
-interface ExecutionResult {
+type ExecutionResult = {
   output?: string;
   error?: Error;
-}
+};
 
 /**
  * Base class for all template commands
@@ -95,7 +94,7 @@ export abstract class LibraryBaseTemplateCommand<T>
           };
         } catch (error) {
           telemetryService.sendException(
-            'force_template_create_library',
+            'template_create_library',
             error.message
           );
           return {

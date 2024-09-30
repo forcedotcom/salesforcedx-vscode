@@ -15,7 +15,7 @@ import { nls } from '../../messages';
 export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
   string
 > {
-  private options = {} || undefined;
+  private options;
 
   constructor(
     executionName: string,
@@ -35,6 +35,7 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
     channelService.showChannelOutput();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     await this.execute();
     return true;

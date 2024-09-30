@@ -141,7 +141,7 @@ function waitForConfigUpdate(configPath: string): Promise<boolean> {
 
 /**
  * Helper to create a LWC component
- * Ideally, this should be replaced with invoking `sfdx.force.lightning.lwc.create`
+ * Ideally, this should be replaced with invoking `sf.lightning.generate.lwc`
  *
  * @param name - name of the new component
  * @param lwcDir - path for where to create the component

@@ -3,28 +3,31 @@
 // Config ref: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 {
   // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
-  "extends": "@tsconfig/node14/tsconfig.json",
+  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    // The current version of vscode we supprt runs on node 14 so use that value as the target
+    // The current version of vscode we support runs on node 14 so use that value as the target
     // Values can be found here https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "target": "ES2020",
-    // We are building using node 16 so use that value for the lib.
+    // We are building using node 18 so use that value for the lib.
     "lib": [
-      "ES2021",
+      "es2022",
       "dom"
     ],
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "Node16",
     "esModuleInterop": false,
     "resolveJsonModule": true,
     "sourceMap": true,
+    "types": ["jest", "node"],
     "declaration": true,
     "declarationMap": true,
     "preserveConstEnums": true,
     "noImplicitAny": true,
     // TODO: cleanup unknown usage in catch blocks and remove below setting
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
     // TODO: cleanup unused vars (about 170 errors of unused vars) (W-11052270)
     // "noUnusedLocals": true,
+    "allowSyntheticDefaultImports": true
   }
 }

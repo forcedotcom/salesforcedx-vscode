@@ -29,21 +29,21 @@ export class ProgressNotification {
             return resolve();
           });
 
-          execution.processExitSubject.subscribe(data => {
+          execution.processExitSubject.subscribe(() => {
             return resolve();
           });
 
-          execution.processErrorSubject.subscribe(data => {
+          execution.processErrorSubject.subscribe(() => {
             return resolve();
           });
 
           if (progressReporter) {
             progressReporter.subscribe({
-              next(increment) {
+              next: increment => {
                 progress.report({ increment });
               },
 
-              complete() {
+              complete: () => {
                 progress.report({ increment: 100 });
                 resolve();
               }

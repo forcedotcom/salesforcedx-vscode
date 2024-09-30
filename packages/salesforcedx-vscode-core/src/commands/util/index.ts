@@ -5,37 +5,38 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CommandletExecutor } from './commandletExecutor';
 export { CommandParams } from './commandParams';
+export { CommandletExecutor } from './commandletExecutor';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
 export { CompositePreconditionChecker } from './compositePreconditionChecker';
 export { ConflictDetectionMessages } from './conflictDetectionMessages';
 export { createComponentCount } from './createComponentCount';
 export { DevUsernameChecker } from './devUsernameChecker';
-export { EmptyPreChecker } from './emptyPreChecker';
 export { EmptyPostChecker } from './emptyPostChecker';
+export { EmptyPreChecker } from './emptyPreChecker';
 export { FlagParameter } from './flagParameter';
 export { formatException } from './formatException';
 export { LibraryPathsGatherer } from './libraryPathsGatherer';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
-  SimpleGatherer,
-  EmptyParametersGatherer,
-  DemoModePromptGatherer,
   CompositeParametersGatherer,
+  DemoModePromptGatherer,
+  EmptyParametersGatherer,
+  FilePathGatherer,
   FileSelection,
   FileSelector,
-  FilePathGatherer,
   MetadataTypeGatherer,
   PromptConfirmGatherer,
-  SelectOutputDir,
   SelectFileName,
-  SelectUsername
+  SelectOutputDir,
+  SelectUsername,
+  SimpleGatherer
 } from './parameterGatherers';
-export { SfdxCommandlet } from './sfdxCommandlet';
-export { SfdxCommandletExecutor } from './sfdxCommandletExecutor';
-export { SfdxWorkspaceChecker } from './sfdxWorkspaceChecker';
+export { SfCommandlet } from './sfCommandlet';
+export { SfCommandletExecutor } from './sfCommandletExecutor';
+export { SfWorkspaceChecker } from './sfWorkspaceChecker';
 export {
-  SourcePathStrategy,
-  PathStrategyFactory
+  PathStrategyFactory,
+  SourcePathStrategy
 } from './sourcePathStrategies';
+export * from './lwcAuraDuplicateComponentCheckers';

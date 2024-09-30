@@ -15,7 +15,7 @@ on:
       successfulEvent:
         description: URL for the successful event
         type: string
-      notification: 
+      notification:
         description: The message to be displayed for a notification.
         type: string
       type:
@@ -24,16 +24,27 @@ on:
       workflow:
         description: Caller workflow
         type: string
+      summary:
+        description: Summary of e2e results
+        type: string
+      testsBranch:
+        description: Branch from the E2E Automation Tests repo
+        type: string
+      vscodeVersion:
+        description: VSCode version that the tests were run on
+        type: string
     secrets:
       IDEE_RELEASE_SLACK_WEBHOOK:
         required: true
       IDEE_MAIN_SLACK_WEBHOOK:
         required: true
+      IDEE_E2E_SLACK_WEBHOOK:
+        required: true
 
 jobs:
   notification_on_success:
     runs-on: ubuntu-latest
-    if: inputs.result == 'success' 
+    if: inputs.result == 'success'
     steps:
       - name: Announce success
         uses: slackapi/slack-github-action@v1.22.0
@@ -67,7 +78,7 @@ jobs:
 
   general_notification:
     runs-on: ubuntu-latest
-    if: inputs.type == 'notification' 
+    if: inputs.type == 'notification'
     steps:
       - name: General Notification
         uses: slackapi/slack-github-action@v1.22.0
@@ -82,3 +93,22 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
 
+  e2e_notification:
+    runs-on: ubuntu-latest
+    if: inputs.type == 'e2e'
+    steps:
+      - name: E2E Tests slack notification
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "category": "${{ inputs.title }}",
+              "vscodeVersion": "${{ inputs.vscodeVersion }}",
+              "branch": "${{ github.ref_name }}",
+              "testsBranch": "${{ inputs.testsBranch }}",
+              "summary": "${{ inputs.summary }}",
+              "event": "${{ github.event.repository.html_url }}/${{ inputs.workflow }}",
+              "result": "${{ inputs.result }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_E2E_SLACK_WEBHOOK }}

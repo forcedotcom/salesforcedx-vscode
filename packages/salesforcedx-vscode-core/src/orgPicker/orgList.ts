@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
+import {
+  AuthFields,
+  AuthInfo,
+  OrgAuthorization
+} from '@salesforce/core-bundle';
 import {
   CancelResponse,
   ConfigUtil,
@@ -24,20 +28,35 @@ export class OrgList implements vscode.Disposable {
       vscode.StatusBarAlignment.Left,
       49
     );
-    this.statusBarItem.command = 'sfdx.force.set.default.org';
+    this.statusBarItem.command = 'sf.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
     WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
-      this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
+      this.displayTargetOrg(orgInfo.alias || orgInfo.username)
     );
     const { username, alias } = WorkspaceContext.getInstance();
-    this.displayDefaultUsername(alias || username);
+    this.displayTargetOrg(alias || username);
   }
 
-  private displayDefaultUsername(defaultUsernameOrAlias?: string) {
-    if (defaultUsernameOrAlias) {
-      this.statusBarItem.text = `$(plug) ${defaultUsernameOrAlias}`;
+  private displayTargetOrg(targetOrgOrAlias?: string) {
+    if (targetOrgOrAlias) {
+      return Promise.resolve(this.isOrgExpired(targetOrgOrAlias))
+        .then(isExpired => {
+          if (isExpired) {
+            this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
+          } else {
+            this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
+          }
+        })
+        .catch(error => {
+          if (error.name === 'NamedOrgNotFoundError') {
+            this.statusBarItem.text = `$(error) ${nls.localize(
+              'invalid_default_org'
+            )}`;
+          }
+          console.error('Error checking org expiration: ', error);
+        });
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
@@ -46,6 +65,17 @@ export class OrgList implements vscode.Disposable {
   public async getOrgAuthorizations(): Promise<OrgAuthorization[]> {
     const orgAuthorizations = await AuthInfo.listAllAuthorizations();
     return orgAuthorizations;
+  }
+
+  public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
+    const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
+    const authFields = await this.getAuthFieldsFor(username);
+    const today = new Date();
+    let expirationDate;
+    if (authFields.expirationDate) {
+      expirationDate = new Date(authFields.expirationDate);
+    }
+    return expirationDate ? expirationDate < today : false;
   }
 
   public async getAuthFieldsFor(username: string): Promise<AuthFields> {
@@ -58,7 +88,7 @@ export class OrgList implements vscode.Disposable {
   public async filterAuthInfo(
     orgAuthorizations: OrgAuthorization[]
   ): Promise<string[]> {
-    const defaultDevHubUsername = await OrgAuthInfo.getDevHubUsername();
+    const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
     const today = new Date();
@@ -83,7 +113,7 @@ export class OrgList implements vscode.Disposable {
       if (
         authFields &&
         'devHubUsername' in authFields &&
-        authFields.devHubUsername !== defaultDevHubUsername
+        authFields.devHubUsername !== targetDevHub
       ) {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
@@ -96,7 +126,7 @@ export class OrgList implements vscode.Disposable {
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =
         aliases && aliases.length > 0
-          ? `${aliases} - ${orgAuth.username}`
+          ? `${aliases.join(',')} - ${orgAuth.username}`
           : orgAuth.username;
 
       if (isExpired) {
@@ -123,8 +153,8 @@ export class OrgList implements vscode.Disposable {
     let quickPickList = [
       '$(plus) ' + nls.localize('org_login_web_authorize_org_text'),
       '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'),
-      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text'),
-      '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
+      '$(plus) ' + nls.localize('org_create_default_scratch_org_text'),
+      '$(plus) ' + nls.localize('org_login_access_token_text'),
       '$(plus) ' + nls.localize('org_list_clean_text')
     ];
 
@@ -140,33 +170,28 @@ export class OrgList implements vscode.Disposable {
     }
     switch (selection) {
       case '$(plus) ' + nls.localize('org_login_web_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.org.login.web');
+        vscode.commands.executeCommand('sf.org.login.web');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'): {
-        vscode.commands.executeCommand('sfdx.org.login.web.dev.hub');
+        vscode.commands.executeCommand('sf.org.login.web.dev.hub');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' +
-        nls.localize('force_org_create_default_scratch_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.org.create');
+      case '$(plus) ' + nls.localize('org_create_default_scratch_org_text'): {
+        vscode.commands.executeCommand('sf.org.create');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' +
-        nls.localize('force_auth_access_token_authorize_org_text'): {
-        vscode.commands.executeCommand('sfdx.force.auth.accessToken');
+      case '$(plus) ' + nls.localize('org_login_access_token_text'): {
+        vscode.commands.executeCommand('sf.org.login.access.token');
         return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' + nls.localize('org_list_clean_text'): {
-        vscode.commands.executeCommand('sfdx.org.list.clean');
+        vscode.commands.executeCommand('sf.org.list.clean');
         return { type: 'CONTINUE', data: {} };
       }
       default: {
         const usernameOrAlias = selection.split(' - ', 1);
-        vscode.commands.executeCommand(
-          'sfdx.force.config.set',
-          usernameOrAlias
-        );
+        vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
         return { type: 'CONTINUE', data: {} };
       }
     }

@@ -6,20 +6,20 @@
  */
 import {
   getRootWorkspacePath,
-  PullResult,
-  PushResult
+  ProjectRetrieveStartResult,
+  ProjectDeployStartResult
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   DeployResult,
   FileProperties
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 
-interface ConflictFileProperties {
+type ConflictFileProperties = {
   lastModifiedDate: string;
-}
+};
 
 export class PersistentStorageService {
   private storage: Memento;
@@ -80,7 +80,7 @@ export class PersistentStorageService {
   }
 
   public setPropertiesForFilesPushPull(
-    pushOrPullResults: PushResult[] | PullResult[]
+    pushOrPullResults: ProjectDeployStartResult[] | ProjectRetrieveStartResult[]
   ) {
     const afterPushPullTimestamp = new Date().toISOString();
     for (const file of pushOrPullResults) {

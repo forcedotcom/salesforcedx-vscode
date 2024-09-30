@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { StackFrame } from 'vscode-debugadapter';
 import {
   ApexReplayDebug,
   ApexVariableContainer,
@@ -294,7 +294,8 @@ describe('Variable assignment event', () => {
       const originalVariablesRef = container.variablesRef;
       const originalRef = container.ref;
       const originalVariables = container.variables;
-      const thisReassign = `09:43:08.67 (106051501)|VARIABLE_ASSIGNMENT|[EXTERNAL]|this|{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"}|0x1e2aeb71`;
+      const thisReassign =
+        '09:43:08.67 (106051501)|VARIABLE_ASSIGNMENT|[EXTERNAL]|this|{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"}|0x1e2aeb71';
       const assign = new VariableAssignmentState(thisReassign.split('|'));
       assign.handle(context);
       expect(container.variables).to.equal(originalVariables);
@@ -312,8 +313,10 @@ describe('Variable assignment event', () => {
     const STATIC_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[6]|NestedClass.sa|{}|${DUMMY_REF}`;
     const STATIC_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|NestedClass.sa|{"Name":"testName"}|${DUMMY_REF}`;
     const STATIC_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|sa.Name|"testName2"|${DUMMY_REF}`;
-    const STATIC_NESTED_REASSIGNMENT_BEGIN = `04:35:37.25 (27947754)|VARIABLE_SCOPE_BEGIN|[10]|NestedClass.staticAcc1|Account|true|true`;
-    const STATIC_NESTED_REASSIGNMENT_BEGIN1 = `04:35:37.25 (27955171)|VARIABLE_SCOPE_BEGIN|[11]|NestedClass.staticAcc2|Account|true|true`;
+    const STATIC_NESTED_REASSIGNMENT_BEGIN =
+      '04:35:37.25 (27947754)|VARIABLE_SCOPE_BEGIN|[10]|NestedClass.staticAcc1|Account|true|true';
+    const STATIC_NESTED_REASSIGNMENT_BEGIN1 =
+      '04:35:37.25 (27955171)|VARIABLE_SCOPE_BEGIN|[11]|NestedClass.staticAcc2|Account|true|true';
     const STATIC_NESTED_REASSIGNMENT = `04:35:37.25 (28650946)|VARIABLE_ASSIGNMENT|[10]|NestedClass.staticAcc1|{"Name":"staticacc1"}|${DUMMY_REF1}`;
     const STATIC_NESTED_REASSIGNMENT2 = `04:35:37.25 (28667298)|VARIABLE_ASSIGNMENT|[11]|NestedClass.staticAcc2|{"Name":"staticacc1"}|${DUMMY_REF1}`;
     const STATIC_NESTED_REASSIGNMENT3 = `04:35:37.25 (30077406)|VARIABLE_ASSIGNMENT|[16]|NestedClass.staticAcc1|{"Name":"changed in method1"}|${DUMMY_REF2}`;
@@ -344,10 +347,7 @@ describe('Variable assignment event', () => {
       const state = new VariableAssignmentState(
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap();
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -369,10 +369,7 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
       state.handle(context);
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap();
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -402,10 +399,7 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
       state.handle(context);
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap();
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -447,10 +441,7 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_REASSIGNMENT2.split('|')
       );
       state.handle(context);
-      const staticMapping = context.getStaticVariablesClassMap() as Map<
-        string,
-        Map<string, VariableContainer>
-      >;
+      const staticMapping = context.getStaticVariablesClassMap();
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
         string,
@@ -473,7 +464,8 @@ describe('Variable assignment event', () => {
   describe('Find references in reference map', () => {
     const PARENT_REF = '0x000000';
     const CHILD_REF = '0x000001';
-    const PARENT_VARIABLE_BEGIN = `fakeTime|VARIABLE_SCOPE_BEGIN|[17]|this|NestedClass|true|false`;
+    const PARENT_VARIABLE_BEGIN =
+      'fakeTime|VARIABLE_SCOPE_BEGIN|[17]|this|NestedClass|true|false';
     const CHILD_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[11]|this.Name|"MyObjectAccount"|${CHILD_REF}`;
     const PARENT_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[17]|this|{"a":"${CHILD_REF}"}|${PARENT_REF}`;
     const PARENT_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.m|${CHILD_REF}|${PARENT_REF}`;
@@ -580,13 +572,18 @@ describe('Variable assignment event', () => {
     const DUMMY_REF3 = '0x00000002';
     const MAP_VALUE =
       '{"1":{"a1":"0x3cc65531","m2":"0x25ba7599","s1":"MyObject.s2"},"2":{"a1":"0x603ac3f0","m2":"0x594a2142","s1":"MyObject.s2"}}';
-    const MAP_BEGIN = `00:55:54.84 (116142294)|VARIABLE_SCOPE_BEGIN|[24]|amap|Map<String,MyObject>|true|false`;
+    const MAP_BEGIN =
+      '00:55:54.84 (116142294)|VARIABLE_SCOPE_BEGIN|[24]|amap|Map<String,MyObject>|true|false';
     const MAP_ASSIGNMENT = `00:55:54.84 (116191871)|VARIABLE_ASSIGNMENT|[24]|amap|${MAP_VALUE}|${DUMMY_REF}`;
-    const LIST_VALUE = `[{"a1":"0x2f9c0fba","m2":"0xdc12056","s1":"MyObject.s2"},{"a1":"0xcdd88c9","m2":"0x6f90123a","s1":"MyObject.s2"}]`;
-    const LIST_BEGIN = `09:43:08.67 (106919036)|VARIABLE_SCOPE_BEGIN|[30]|alist|List<MyObject>|true|false`;
+    const LIST_VALUE =
+      '[{"a1":"0x2f9c0fba","m2":"0xdc12056","s1":"MyObject.s2"},{"a1":"0xcdd88c9","m2":"0x6f90123a","s1":"MyObject.s2"}]';
+    const LIST_BEGIN =
+      '09:43:08.67 (106919036)|VARIABLE_SCOPE_BEGIN|[30]|alist|List<MyObject>|true|false';
     const LIST_ASSIGNMENT = `09:43:08.67 (107017879)|VARIABLE_ASSIGNMENT|[30]|alist|${LIST_VALUE}|${DUMMY_REF2}`;
-    const SET_VALUE = `[{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"},{"a1":"0x46867f90","m2":"0x4f675045","s1":"MyObject.s2"}]`;
-    const SET_BEGIN = `09:43:08.67 (107041268)|VARIABLE_SCOPE_BEGIN|[30]|aset|Set<MyObject>|true|false`;
+    const SET_VALUE =
+      '[{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"},{"a1":"0x46867f90","m2":"0x4f675045","s1":"MyObject.s2"}]';
+    const SET_BEGIN =
+      '09:43:08.67 (107041268)|VARIABLE_SCOPE_BEGIN|[30]|aset|Set<MyObject>|true|false';
     const SET_ASSIGNMENT = `09:43:08.67 (107119928)|VARIABLE_ASSIGNMENT|[30]|aset|${SET_VALUE}|${DUMMY_REF3}`;
 
     beforeEach(() => {

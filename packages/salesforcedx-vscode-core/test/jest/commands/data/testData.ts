@@ -8,7 +8,7 @@
 export const dummyPullResult = {
   status: 0,
   result: {
-    pulledSource: [
+    files: [
       {
         state: 'Created',
         fullName: 'F9',
@@ -55,7 +55,7 @@ export const dummyPullResult = {
 export const dummyPushResult = {
   status: 0,
   result: {
-    pushedSource: [
+    files: [
       {
         state: 'Changed',
         fullName: 'E1',
@@ -86,11 +86,8 @@ export const dummyPushResult = {
       }
     ]
   },
-  warnings: [
-    'We plan to deprecate this command in the future. Try using the "project deploy start" command instead.',
-    'The loglevel flag is no longer in use on this command. You may use it without error, but it will be ignored.\nSet the log level using the `SFDX_LOG_LEVEL` environment variable.'
-  ]
+  warnings: []
 };
 
 export const dummyStdOut =
-  '{\n  "status": 0,\n  "result": {\n    "pushedSource": [\n      {\n        "state": "Changed",\n        "fullName": "D9",\n        "type": "ApexClass",\n        "filePath": "/Users/kenneth.lewis/scratchpad/NewProj1/force-app/main/default/classes/D9.cls"\n      },\n      {\n        "state": "Changed",\n        "fullName": "D9",\n        "type": "ApexClass",\n        "filePath": "/Users/kenneth.lewis/scratchpad/NewProj1/force-app/main/default/classes/D9.cls-meta.xml"\n      }\n    ]\n  },\n  "warnings": [\n    "We plan to deprecate this command in the future. Try using the \\"project deploy start\\" command instead.",\n    "The loglevel flag is no longer in use on this command. You may use it without error, but it will be ignored.\\nSet the log level using the `SFDX_LOG_LEVEL` environment variable."\n  ]\n}\n';
+  '{\n  "status": 0,\n  "result": {\n    "files": [\n      {\n        "state": "Changed",\n        "fullName": "D9",\n        "type": "ApexClass",\n        "filePath": "/Users/kenneth.lewis/scratchpad/NewProj1/force-app/main/default/classes/D9.cls"\n      },\n      {\n        "state": "Changed",\n        "fullName": "D9",\n        "type": "ApexClass",\n        "filePath": "/Users/kenneth.lewis/scratchpad/NewProj1/force-app/main/default/classes/D9.cls-meta.xml"\n      }\n    ]\n  },\n  "warnings": [\n    "We plan to deprecate this command in the future. Try using the \\"project deploy start\\" command instead.",\n    "The loglevel flag is no longer in use on this command. You may use it without error, but it will be ignored.\\nSet the log level using the `SFDX_LOG_LEVEL` environment variable."\n  ]\n}\n';
