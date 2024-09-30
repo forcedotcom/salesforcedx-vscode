@@ -9,30 +9,29 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
-import path = require('path');
-import pathExists = require('path-exists');
 
-// tslint:disable-next-line:no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const expandHomeDir = require('expand-home-dir');
-
-// tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
-export interface RequirementsData {
+export type RequirementsData = {
   java_home: string;
   java_memory: number | null;
-}
+};
 
 /**
  * Resolves the requirements needed to run the extension.
  * Returns a promise that will resolve to a RequirementsData if all requirements are resolved.
  */
-export async function resolveRequirements(): Promise<RequirementsData> {
+export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaHome = await checkJavaRuntime();
   const javaMemory: number | null = workspace
     .getConfiguration()
@@ -42,9 +41,9 @@ export async function resolveRequirements(): Promise<RequirementsData> {
     java_home: javaHome,
     java_memory: javaMemory
   });
-}
+};
 
-function checkJavaRuntime(): Promise<string> {
+const checkJavaRuntime = async (): Promise<string> => {
   return new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
@@ -70,7 +69,7 @@ function checkJavaRuntime(): Promise<string> {
           nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
         );
       }
-      if (!pathExists.sync(javaHome)) {
+      if (!fs.existsSync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
         );
@@ -89,34 +88,36 @@ function checkJavaRuntime(): Promise<string> {
       }
     });
   });
-}
+};
 
-function readJavaConfig(): string {
+const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
-}
+};
 
-function isLocal(javaHome: string): boolean {
+const isLocal = (javaHome: string): boolean => {
   return !path.isAbsolute(javaHome);
-}
+};
 
-export function checkJavaVersion(javaHome: string): Promise<boolean> {
+export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
+  const cmdFile = path.join(javaHome, 'bin', 'java');
+  const commandOptions = ['-XshowSettings:properties', '-version'];
   return new Promise((resolve, reject) => {
-    cp.execFile(
-      javaHome + '/bin/java',
-      ['-version'],
-      {},
-      (error, stdout, stderr) => {
-        if (
-          stderr.indexOf('build 1.8') < 0 &&
-          stderr.indexOf('build 11.') < 0 &&
-          stderr.indexOf('build 17.') < 0
-        ) {
-          reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
-        } else {
-          resolve(true);
-        }
+    cp.execFile(cmdFile, commandOptions, {}, (error, stdout, stderr) => {
+      if (error) {
+        reject(
+          nls.localize(
+            'java_version_check_command_failed',
+            `${cmdFile} ${commandOptions.join(' ')}`,
+            error.message
+          )
+        );
       }
-    );
+      if (!/java\.version\s*=\s*(?:11|17|21)/g.test(stderr)) {
+        reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
+      } else {
+        resolve(true);
+      }
+    });
   });
-}
+};

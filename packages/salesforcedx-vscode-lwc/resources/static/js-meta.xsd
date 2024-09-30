@@ -159,7 +159,17 @@
             </xs:enumeration>
             <xs:enumeration value="analytics__Dashboard">
               <xs:annotation>
-                <xs:documentation>Enables a component for use in Tableau CRM dashboards. This feature is currently in pilot in Spring and Summer '21 releases. If you're interested in participating in the pilot program, ask your Salesforce Account Executive.</xs:documentation>
+                <xs:documentation>Enables a component for use in CRM Analytics dashboards.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="lightning__PropertyEditor">
+              <xs:annotation>
+                <xs:documentation>Enables a component to be used as a custom property editor in relevant builders</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="lightning__UrlAddressable">
+              <xs:annotation>
+                <xs:documentation>Enables navigation to a component using the standard__component PageReference type. For more information, see the lightning/navigation documentation</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
           </xs:restriction>
@@ -240,6 +250,11 @@
         <xs:documentation>Specifies whether the attribute is inputOnly or outputOnly. If you don’t specify the role attribute, the default value allows input and output. For example, if a property is restricted to outputOnly, users can’t set its value from a Lightning record page. Supported only if the target is lightning__FlowScreen. If you don’t set the role attribute, or if you set it to inputOnly, the property is exposed in a custom property editor. If you set it to outputOnly, the property isn’t exposed in a custom property editor.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute type="xs:string" name="editor" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the custom property editor that appears instead of the default editor for this property in relevant builders.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute type="propertyTypeAttr" name="type" use="required">
       <xs:annotation>
         <xs:documentation>The attribute’s data type. Please refer to the documentation for all supported types for different targets.</xs:documentation>
@@ -312,6 +327,15 @@
           <xs:pattern value="@salesforce/schema/.+">
             <xs:annotation>
               <xs:documentation>An object. If the object is in the same namespace as the component, don’t specify a namespace. If the object is in a managed package, specify the namespace of the managed package. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+            </xs:annotation>
+          </xs:pattern>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value=".+__.+">
+            <xs:annotation>
+              <xs:documentation>A reference to a custom property type.</xs:documentation>
             </xs:annotation>
           </xs:pattern>
         </xs:restriction>

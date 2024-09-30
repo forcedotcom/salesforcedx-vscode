@@ -12,12 +12,15 @@ import {
 import { which } from 'shelljs';
 import { window } from 'vscode';
 import {
-  ENV_SFDX_DISABLE_TELEMETRY,
-  SFDX_CLI_DOWNLOAD_LINK
+  ENV_NODE_EXTRA_CA_CERTS,
+  ENV_SF_DISABLE_TELEMETRY,
+  ENV_SF_LOG_LEVEL,
+  SF_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
+import { salesforceCoreSettings } from '../settings';
 
-export function isCLIInstalled(): boolean {
+export const isCLIInstalled = () => {
   let isInstalled = false;
   try {
     if (which('sfdx')) {
@@ -27,29 +30,43 @@ export function isCLIInstalled(): boolean {
     console.error('An error happened while looking for sfdx cli', e);
   }
   return isInstalled;
-}
+};
 
-export function showCLINotInstalledMessage() {
+export const showCLINotInstalledMessage = () => {
   const showMessage = nls.localize(
-    'sfdx_cli_not_found',
-    SFDX_CLI_DOWNLOAD_LINK,
-    SFDX_CLI_DOWNLOAD_LINK
+    'salesforce_cli_not_found',
+    SF_CLI_DOWNLOAD_LINK,
+    SF_CLI_DOWNLOAD_LINK
   );
-  window.showWarningMessage(showMessage);
-}
+  void window.showWarningMessage(showMessage);
+};
 
-export function isSFDXContainerMode(): boolean {
-  return process.env.SFDX_CONTAINER_MODE ? true : false;
-}
-
-export function disableCLITelemetry() {
+export const disableCLITelemetry = () => {
   GlobalCliEnvironment.environmentVariables.set(
-    ENV_SFDX_DISABLE_TELEMETRY,
+    ENV_SF_DISABLE_TELEMETRY,
     'true'
   );
-}
+};
 
-export async function isCLITelemetryAllowed() {
+export const isCLITelemetryAllowed = async () => {
   const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
   return !isTelemetryDisabled;
-}
+};
+
+export const setNodeExtraCaCerts = () => {
+  const extraCerts = salesforceCoreSettings.getNodeExtraCaCerts();
+  if (extraCerts) {
+    GlobalCliEnvironment.environmentVariables.set(
+      ENV_NODE_EXTRA_CA_CERTS,
+      extraCerts
+    );
+  }
+};
+
+export const setSfLogLevel = () => {
+  GlobalCliEnvironment.environmentVariables.set(
+    ENV_SF_LOG_LEVEL,
+    salesforceCoreSettings.getSfLogLevel()
+  );
+  process.env[ENV_SF_LOG_LEVEL] = salesforceCoreSettings.getSfLogLevel();
+};

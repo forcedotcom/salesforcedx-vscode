@@ -27,5 +27,18 @@
       "$0"
     ],
     "description": "Insert the Salesforce copyright header"
+  },
+  "Code Snippet": {
+    "prefix": "snippet",
+    "body": [
+      "\"${1:Name}\": {",
+      "  \"prefix\": \"${2:prefix}\",",
+      "  \"body\": [",
+      "    ${0}",
+      "  ],",
+      "  \"description\": \"${3:description}\"",
+      "},"
+    ],
+    "description": "Creates a code snippet!"
   }
 }

@@ -28,8 +28,8 @@ export abstract class TestNode extends vscode.TreeItem {
     this.location = location;
     this.description = label;
     this.command = {
-      command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-      title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+      command: 'sf.lightning.lwc.test.navigateToTest',
+      title: nls.localize('lightning_lwc_test_navigate_to_test'),
       arguments: [this]
     };
   }
@@ -38,7 +38,7 @@ export abstract class TestNode extends vscode.TreeItem {
 /**
  * Test Node representing an individual test case.
  */
-export class SfdxTestNode extends TestNode {
+export class SfTestNode extends TestNode {
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
 
@@ -60,7 +60,7 @@ export class SfdxTestNode extends TestNode {
  * Test Group Node representing a test file.
  * By default it's collpased
  */
-export class SfdxTestGroupNode extends TestNode {
+export class SfTestGroupNode extends TestNode {
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
   constructor(
@@ -87,9 +87,9 @@ export class SfdxTestGroupNode extends TestNode {
  * @param node1 first test node
  * @param node2 second test node
  */
-export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
-  const label1 = node1!.label;
-  const label2 = node2!.label;
+export const sortTestNodeByLabel = (node1: TestNode, node2: TestNode) => {
+  const label1 = node1.label;
+  const label2 = node2.label;
   if (!label1) {
     return -1;
   }
@@ -99,4 +99,4 @@ export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
   const label1String = String(label1);
   const label2String = String(label2);
   return label1String.localeCompare(label2String);
-}
+};

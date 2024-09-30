@@ -6,12 +6,12 @@
  */
 
 import {
-  ForceOrgDisplay,
+  OrgDisplay,
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
 import * as path from 'path';
-import { StackFrame } from 'vscode-debugadapter';
+import { StackFrame } from '@vscode/debugadapter';
 import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
@@ -179,11 +179,7 @@ export class LogContext {
 
   public isRunningApexTrigger(): boolean {
     const topFrame = this.getTopFrame();
-    if (
-      topFrame &&
-      topFrame.source &&
-      topFrame.source.name.toLowerCase().endsWith('.trigger')
-    ) {
+    if (topFrame?.source?.name?.toLowerCase().endsWith('.trigger')) {
       return true;
     }
     return false;
@@ -270,7 +266,7 @@ export class LogContext {
   ): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new ForceOrgDisplay().getOrgInfo(projectPath);
+      const orgInfo = await new OrgDisplay().getOrgInfo(projectPath);
       const requestService = new RequestService();
       requestService.instanceUrl = orgInfo.instanceUrl;
       requestService.accessToken = orgInfo.accessToken;

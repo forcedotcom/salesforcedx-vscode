@@ -8,7 +8,7 @@ import { IsvContextUtil } from '@salesforce/salesforcedx-apex-debugger/out/src/c
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
-export async function setupGlobalDefaultUserIsvAuth() {
+export const setupGlobalDefaultUserIsvAuth = async () => {
   const isvUtil = new IsvContextUtil();
   if (
     vscode.workspace &&
@@ -19,9 +19,9 @@ export async function setupGlobalDefaultUserIsvAuth() {
       vscode.workspace.workspaceFolders[0].uri.fsPath
     );
 
-    vscode.commands.executeCommand(
+    await vscode.commands.executeCommand(
       'setContext',
-      'sfdx:isv_debug_project',
+      'sf:isv_debug_project',
       isvDebugProject
     );
 
@@ -33,18 +33,22 @@ export async function setupGlobalDefaultUserIsvAuth() {
 
   // reset any auth
   isvUtil.resetCliEnvironmentVars();
-}
+};
 
-export function registerIsvAuthWatcher(extensionContext: vscode.ExtensionContext) {
+export const registerIsvAuthWatcher = (
+  extensionContext: vscode.ExtensionContext
+) => {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
   ) {
-    const configPath = projectPaths.sfdxProjectConfig();
+    const configPath = projectPaths.salesforceProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     extensionContext.subscriptions.push(isvAuthWatcher);
   }
-}
+};

@@ -7,21 +7,18 @@
 
 import {
   EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfCommandlet,
+  SfWorkspaceChecker,
+  getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
-import {
-  LanguageClientStatus,
-  languageClientUtils
-} from '../languageClientUtils';
+import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { forceApexTestRunCacheService } from '../testRunCache';
+import { apexTestRunCacheService } from '../testRunCache';
 import {
   ApexTestGroupNode,
   ApexTestNode,
@@ -44,7 +41,7 @@ export class ApexTestRunner {
   ) {
     this.testOutline = testOutline;
     this.eventsEmitter = eventsEmitter || new events.EventEmitter();
-    this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
+    this.eventsEmitter.on('sf:update_selection', this.updateSelection);
   }
 
   public showErrorMessage(test: TestNode) {
@@ -82,7 +79,7 @@ export class ApexTestRunner {
 
     if (testNode.location) {
       vscode.window.showTextDocument(testNode.location.uri).then(() => {
-        this.eventsEmitter.emit('sfdx:update_selection', position);
+        this.eventsEmitter.emit('sf:update_selection', position);
       });
     }
   }
@@ -123,7 +120,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    const languageClientStatus = languageClientUtils.getStatus();
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
         vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
@@ -134,12 +131,12 @@ export class ApexTestRunner {
     const tmpFolder = this.getTempFolder();
     const getCodeCoverage = settings.retrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {
-      await forceApexTestRunCacheService.setCachedClassTestParam(tests[0]);
+      await apexTestRunCacheService.setCachedClassTestParam(tests[0]);
     } else if (testRunType === TestRunType.Method) {
-      await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
+      await apexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
+    const commandlet = new SfCommandlet(
+      new SfWorkspaceChecker(),
       new EmptyParametersGatherer(),
       new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
     );

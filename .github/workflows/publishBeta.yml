@@ -1,0 +1,73 @@
+name: Publish Beta to Github Only
+
+on:
+  workflow_call:
+    inputs:
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: false
+        type: string
+
+jobs:
+  download_artifacts:
+    name: 'Checkout Version'
+    runs-on: ubuntu-latest
+    outputs:
+      RELEASE_VERSION: ${{ steps.getVersion.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4	
+        with:	
+          ref: main
+      - name: Download extension vsixes
+        run: |
+          mkdir ./tmp-dir
+          gh run download ${{ inputs.runId }} -D ./tmp-dir
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      - name: 'Confirm all downloaded files'
+        run: ls -R
+        working-directory: tmp-dir
+      - id: getVersion
+        run: |
+          version=$(basename "$(find ./tmp-dir -mindepth 1 -maxdepth 1 -type d)")
+          echo "::set-output name=version::$version"
+  create_git_tag:
+    name: 'Create and Tag Beta Release'
+    runs-on: ubuntu-latest
+    needs: download_artifacts
+    env:
+      VERSION: ${{ needs.download_artifacts.outputs.RELEASE_VERSION }}
+      EXTENSION_PATH: ./tmp-dir/${{ needs.download_artifacts.outputs.RELEASE_VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4	
+        with:	
+          ref:  release/v${{ env.VERSION }}
+      - name: Download extension vsixes
+        run: |
+          mkdir ./tmp-dir
+          gh run download ${{ inputs.runId }} -D ./tmp-dir
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      - name: Install zip utility
+        run: sudo apt-get install zip -y
+      # - run: cp ./packages/salesforcedx-vscode/CHANGELOG.md ${{ env.EXTENSION_PATH }}
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - name: 'Create git tag to map to the Release Version'
+        run: |
+          git tag v${{ env.VERSION }}
+          git push origin v${{ env.VERSION }}
+      - name: 'Confirm all downloaded files'
+        run: ls -R
+        working-directory: ${{ env.EXTENSION_PATH }}
+      - name: Zip the vsix files
+        run: zip -r ${{ env.VERSION }}.zip ./
+        working-directory: ${{ env.EXTENSION_PATH }}
+      - name: 'Create Pre-Release and Attach VSIX Files'
+        run: gh release create v${{ env.VERSION }} **.zip --title "Pre-Release v${{ env.VERSION }}" --prerelease
+        working-directory: ${{ env.EXTENSION_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

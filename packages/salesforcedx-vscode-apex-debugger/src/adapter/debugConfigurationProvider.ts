@@ -14,8 +14,9 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider
-  implements vscode.DebugConfigurationProvider {
-  private sfdxApex = vscode.extensions.getExtension(
+  implements vscode.DebugConfigurationProvider
+{
+  private salesforceApexExtension = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
 
@@ -27,12 +28,13 @@ export class DebugConfigurationProvider
       userIdFilter: [],
       requestTypeFilter: [],
       entryPointFilter: '',
-      sfdxProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
+      salesforceProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
     } as vscode.DebugConfiguration;
   }
 
   public provideDebugConfigurations(
     folder: vscode.WorkspaceFolder | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig(folder)];
@@ -41,12 +43,13 @@ export class DebugConfigurationProvider
   public resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(folder, config).catch(async err => {
       return vscode.window
         .showErrorMessage(err.message, { modal: true })
-        .then(x => undefined);
+        .then(() => undefined);
     });
   }
 
@@ -66,8 +69,9 @@ export class DebugConfigurationProvider
     if (config.entryPointFilter === undefined) {
       config.entryPointFilter = '';
     }
-    config.sfdxProject =
-      config.sfdxProject || (folder ? folder.uri.fsPath : '${workspaceRoot}');
+    config.salesforceProject =
+      config.salesforceProject ||
+      (folder ? folder.uri.fsPath : '${workspaceRoot}');
 
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
@@ -84,9 +88,10 @@ export class DebugConfigurationProvider
       } as WorkspaceSettings;
     }
 
-    if (this.sfdxApex && this.sfdxApex.exports) {
+    if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {
       await this.isLanguageClientReady();
-      config.lineBreakpointInfo = await this.sfdxApex.exports.getLineBreakpointInfo();
+      config.lineBreakpointInfo =
+        await this.salesforceApexExtension.exports.getLineBreakpointInfo();
     }
     return config;
   }
@@ -95,18 +100,20 @@ export class DebugConfigurationProvider
     let expired = false;
     let i = 0;
     while (
-      this.sfdxApex &&
-      this.sfdxApex.exports &&
-      !this.sfdxApex.exports.languageClientUtils.getStatus().isReady() &&
+      this.salesforceApexExtension &&
+      this.salesforceApexExtension.exports &&
+      !this.salesforceApexExtension.exports.languageClientUtils
+        .getStatus()
+        .isReady() &&
       !expired
     ) {
       if (
-        this.sfdxApex.exports.languageClientUtils
+        this.salesforceApexExtension.exports.languageClientUtils
           .getStatus()
           .failedToInitialize()
       ) {
         throw Error(
-          this.sfdxApex.exports.languageClientUtils
+          this.salesforceApexExtension.exports.languageClientUtils
             .getStatus()
             .getStatusMessage()
         );

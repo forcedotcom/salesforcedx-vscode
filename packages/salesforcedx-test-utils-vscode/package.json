@@ -2,43 +2,54 @@
   "name": "@salesforce/salesforcedx-test-utils-vscode",
   "displayName": "SFDX Test Utilities for VS Code",
   "description": "Provides test utilities to interface the SFDX libraries with VS Code",
-  "version": "57.11.0",
+  "version": "61.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "57.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "61.16.0",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
     "@types/mocha": "^2.2.38",
-    "@types/node": "12.0.12",
+    "@types/node": "^18.11.9",
     "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.7",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-jest": "27.5.0",
+    "eslint-plugin-jest-formatting": "3.1.0",
+    "eslint-plugin-jsdoc": "46.8.2",
+    "eslint-plugin-prefer-arrow": "1.2.3",
     "glob": "^8.0.3",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
     "mock-spawn": "0.2.6",
     "nyc": "^15.1.0",
+    "prettier": "3.0.3",
     "request-light": "^0.7.0",
     "sinon": "^13.0.1",
     "source-map-support": "^0.4.15",
-    "typescript": "^4.7.4"
+    "typescript": "^5.2.2"
   },
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.86.0"
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test:jest": "jest --coverage",
     "watch": "tsc -watch -p ."

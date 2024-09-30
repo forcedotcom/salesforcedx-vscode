@@ -29,18 +29,18 @@ export const messages = {
   notification_show_button_text: '表示',
   notification_show_in_status_bar_button_text: 'ステータスバーだけに表示',
 
-  error_no_default_username:
+  error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
 
   channel_name: 'Salesforce CLI',
   channel_starting_message: '開始しています: ',
   channel_end_with_exit_code: 'が終了コード %s で終了しました。',
   channel_end_with_sfdx_not_found:
-    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/sfdxcli からインストールしてください。',
+    'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/salesforcecli からインストールしてください。',
   channel_end_with_error: 'がエラーで終了しました。%s',
   channel_end: 'が終了しました。',
   predicates_no_folder_opened_text:
     'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
-  predicates_no_sfdx_project_found_text:
+  predicates_no_salesforce_project_found_text:
     '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
 };

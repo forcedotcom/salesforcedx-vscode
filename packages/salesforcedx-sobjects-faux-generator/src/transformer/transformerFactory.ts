@@ -4,8 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { AuthInfo, Connection, SfProject } from '@salesforce/core-bundle';
+import {
+  ConfigUtil,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
@@ -24,9 +27,9 @@ import {
 } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 
-export interface CancellationToken {
+export type CancellationToken = {
   isCancellationRequested: boolean;
-}
+};
 
 export class SObjectTransformerFactory {
   public static async create(
@@ -87,8 +90,31 @@ export class SObjectTransformerFactory {
   }
 
   public static async createConnection(): Promise<Connection> {
-    const connection = await WorkspaceContextUtil.getInstance().getConnection();
-    return connection;
+    const userApiVersionOverride =
+      await ConfigUtil.getUserConfiguredApiVersion();
+    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
+    const connection = await workspaceContextUtil.getConnection();
+    const connectionForSourceApiVersion = await Connection.create({
+      authInfo: await AuthInfo.create({ username: connection.getUsername() })
+    });
+    const sourceApiVersion =
+      await SObjectTransformerFactory.getSourceApiVersion();
+    // precedence user override > project config > connection default
+    connectionForSourceApiVersion.setApiVersion(
+      userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
+    );
+
+    return connectionForSourceApiVersion;
+  }
+
+  private static async getSourceApiVersion(): Promise<string | undefined> {
+    try {
+      const sfProject = await SfProject.resolve();
+      return sfProject.getSfProjectJson().getContents().sourceApiVersion;
+    } catch (e) {
+      // If we can't resolve a project, then undefined
+      return undefined;
+    }
   }
 }
 

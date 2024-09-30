@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
+import { Global } from '@salesforce/core-bundle';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -23,15 +23,15 @@ export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
-export function ensureDirectoryExists(filePath: string): void {
+export const ensureDirectoryExists = (filePath: string): void => {
   if (fs.existsSync(filePath)) {
     return;
   }
   ensureDirectoryExists(path.dirname(filePath));
   fs.mkdirSync(filePath);
-}
+};
 
-export function getTestResultsFolder(vscodePath: string, testType: string) {
+export const getTestResultsFolder = (vscodePath: string, testType: string) => {
   const pathToTestResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
@@ -42,7 +42,7 @@ export function getTestResultsFolder(vscodePath: string, testType: string) {
 
   ensureDirectoryExists(pathToTestResultsFolder);
   return pathToTestResultsFolder;
-}
+};
 
 /**
  * Creates a project relative path version of an absolute path.
@@ -51,10 +51,10 @@ export function getTestResultsFolder(vscodePath: string, testType: string) {
  * @param packageDirs Package directory paths
  * @returns Relative path for the project
  */
-export function getRelativeProjectPath(
+export const getRelativeProjectPath = (
   fsPath: string = '',
   packageDirs: string[]
-) {
+) => {
   let packageDirIndex;
   for (let packageDir of packageDirs) {
     if (!packageDir.startsWith(path.sep)) {
@@ -70,26 +70,23 @@ export function getRelativeProjectPath(
     }
   }
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
-}
+};
 
-export function fileExtensionsMatch(
+export const fileExtensionsMatch = (
   sourceUri: vscode.Uri,
   targetExtension: string
-): boolean {
-  const extension = sourceUri.path
-    .split('.')
-    .pop()
-    ?.toLowerCase();
+): boolean => {
+  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
-}
+};
 
-function stateFolder(): string {
+const stateFolder = (): string => {
   return workspaceUtils.hasRootWorkspace()
     ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
     : '';
-}
+};
 
-function metadataFolder(): string {
+const metadataFolder = (): string => {
   const username = WorkspaceContextUtil.getInstance().username;
   const pathToMetadataFolder = path.join(
     projectPaths.stateFolder(),
@@ -98,61 +95,61 @@ function metadataFolder(): string {
     METADATA
   );
   return pathToMetadataFolder;
-}
+};
 
-function apexTestResultsFolder(): string {
+const apexTestResultsFolder = (): string => {
   const pathToApexTestResultsFolder = path.join(
     toolsFolder(),
     TEST_RESULTS,
     APEX
   );
   return pathToApexTestResultsFolder;
-}
+};
 
-function apexLanguageServerDatabase(): string {
+const apexLanguageServerDatabase = (): string => {
   const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
   return pathToApexLangServerDb;
-}
+};
 
-function lwcTestResultsFolder(): string {
+const lwcTestResultsFolder = (): string => {
   const pathToLwcTestResultsFolder = path.join(testResultsFolder(), LWC);
   return pathToLwcTestResultsFolder;
-}
+};
 
-function testResultsFolder(): string {
+const testResultsFolder = (): string => {
   const pathToTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS);
   return pathToTestResultsFolder;
-}
+};
 
-function debugLogsFolder(): string {
+const debugLogsFolder = (): string => {
   const pathToDebugLogsFolder = path.join(toolsFolder(), DEBUG, LOGS);
   return pathToDebugLogsFolder;
-}
+};
 
-function sfdxProjectConfig(): string {
-  const pathToSFDXProjectConfig = path.join(
+const salesforceProjectConfig = (): string => {
+  const pathToSalesforceProjectConfig = path.join(
     projectPaths.stateFolder(),
     SFDX_CONFIG_FILE
   );
-  return pathToSFDXProjectConfig;
-}
+  return pathToSalesforceProjectConfig;
+};
 
-function toolsFolder(): string {
+const toolsFolder = (): string => {
   const pathToToolsFolder = path.join(projectPaths.stateFolder(), TOOLS);
   return pathToToolsFolder;
-}
+};
 
-function relativeStateFolder(): string {
+const relativeStateFolder = (): string => {
   return Global.STATE_FOLDER;
-}
+};
 
-function relativeToolsFolder(): string {
+const relativeToolsFolder = (): string => {
   const relativePathToToolsFolder = path.join(
     projectPaths.relativeStateFolder(),
     TOOLS
   );
   return relativePathToToolsFolder;
-}
+};
 
 export const projectPaths = {
   stateFolder,
@@ -161,7 +158,7 @@ export const projectPaths = {
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
-  sfdxProjectConfig,
+  salesforceProjectConfig,
   toolsFolder,
   lwcTestResultsFolder,
   relativeStateFolder,

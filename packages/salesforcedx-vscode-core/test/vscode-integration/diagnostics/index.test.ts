@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ProjectDeployStartErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
@@ -13,24 +13,23 @@ import {
   getAbsoluteFilePath,
   getFileUri,
   getRange,
-  handleDiagnosticErrors
+  handlePushDiagnosticErrors
 } from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
-  let deployErrorResult: ForceSourceDeployErrorResponse;
+  let pushErrorResult: ProjectDeployStartErrorResponse;
   const workspacePath = 'local/workspace/path';
   const sourcePath = 'source/file/path';
   let errorCollection: DiagnosticCollection;
 
   beforeEach(() => {
     errorCollection = languages.createDiagnosticCollection('test-errors');
-    deployErrorResult = {
-      message: 'Deploy failed.',
-      name: 'DeployFailed',
-      stack: '123',
+    pushErrorResult = {
+      message: 'Push failed.',
+      name: 'PushFailed',
       status: 1,
       warnings: [],
-      result: []
+      files: []
     };
   });
 
@@ -54,7 +53,7 @@ describe('Diagnostics', () => {
     expect(range.end.character).to.equal(1);
   });
 
-  it('Should create diagnostics based off of deploy error results', () => {
+  it('Should create diagnostics based off of push error results', () => {
     const resultItem = {
       filePath: 'src/classes/Testing.cls',
       error: 'Invalid method referenced.',
@@ -64,10 +63,10 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    deployErrorResult.result.push(resultItem);
+    pushErrorResult.files?.push(resultItem);
 
-    handleDiagnosticErrors(
-      deployErrorResult,
+    handlePushDiagnosticErrors(
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -77,9 +76,7 @@ describe('Diagnostics', () => {
       Uri.file(path.join(workspacePath, resultItem.filePath))
     );
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem.type);
@@ -89,7 +86,7 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[0].range).to.deep.equal(testRange);
   });
 
-  it('Should create multiple diagnostics based off of deploy error results', () => {
+  it('Should create multiple diagnostics based off of push error results', () => {
     const resultItem1 = {
       filePath: 'src/classes/Testing.cls',
       error: 'Invalid method referenced.',
@@ -109,11 +106,11 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
+    pushErrorResult.files?.push(resultItem1);
+    pushErrorResult.files?.push(resultItem2);
 
-    handleDiagnosticErrors(
-      deployErrorResult,
+    handlePushDiagnosticErrors(
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -123,9 +120,7 @@ describe('Diagnostics', () => {
       Uri.file(path.join(workspacePath, resultItem1.filePath))
     );
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem1.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem1.type);
@@ -141,9 +136,7 @@ describe('Diagnostics', () => {
       Uri.file(path.join(workspacePath, resultItem2.filePath))
     );
 
-    expect(testDiagnostics1)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics1).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics1[0].message).to.be.equals(resultItem2.error);
     expect(testDiagnostics1[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics1[0].source).to.be.equals(resultItem2.type);
@@ -165,9 +158,9 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    deployErrorResult.result.push(resultItem);
-    handleDiagnosticErrors(
-      deployErrorResult,
+    pushErrorResult.files?.push(resultItem);
+    handlePushDiagnosticErrors(
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
@@ -175,9 +168,7 @@ describe('Diagnostics', () => {
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
 
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(1);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem.type);
@@ -202,20 +193,17 @@ describe('Diagnostics', () => {
       filePath: 'N/A'
     };
 
-    deployErrorResult.result.push(resultItem1);
-    deployErrorResult.result.push(resultItem2);
-    handleDiagnosticErrors(
-      deployErrorResult,
+    pushErrorResult.files?.push(resultItem1);
+    pushErrorResult.files?.push(resultItem2);
+    handlePushDiagnosticErrors(
+      pushErrorResult,
       workspacePath,
       sourcePath,
       errorCollection
     );
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
-
-    expect(testDiagnostics)
-      .to.be.an('array')
-      .to.have.lengthOf(2);
+    expect(testDiagnostics).to.be.an('array').to.have.lengthOf(2);
     expect(testDiagnostics[0].message).to.be.equals(resultItem1.error);
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem1.type);

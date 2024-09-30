@@ -7,16 +7,16 @@
 
 export const CLIENT_ID = 'sfdx-vscode';
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
-export const ENV_SFDX_DEFAULTUSERNAME = 'SFDX_DEFAULTUSERNAME';
+export const ENV_SF_TARGET_ORG = 'SF_TARGET_ORG';
 export const ENV_HTTP_PROXY = 'HTTP_PROXY';
 export const ENV_HTTPS_PROXY = 'HTTPS_PROXY';
-export const ENV_SFDX_INSTANCE_URL = 'SFDX_INSTANCE_URL';
+export const ENV_SF_ORG_INSTANCE_URL = 'SF_ORG_INSTANCE_URL';
 export const BASE_FILE_NAME = 'i18n';
 export const BASE_FILE_EXTENSION = 'js';
 export const DEFAULT_LOCALE = 'en';
 export const LOCALE_JA = 'ja';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
-export const SFDX_COMMAND = 'sfdx';
-export const SFDX_CONFIG_ISV_DEBUGGER_SID = 'isvDebuggerSid';
-export const SFDX_CONFIG_ISV_DEBUGGER_URL = 'isvDebuggerUrl';
+export const SF_COMMAND = 'sf';
+export const SF_CONFIG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid';
+export const SF_CONFIG_ISV_DEBUGGER_URL = 'org-isv-debugger-url';
 export const TELEMETRY_HEADER = 'salesforce-vscode-extensions';

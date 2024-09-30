@@ -13,13 +13,13 @@ export const DEFAULT_LOCALE = 'en';
 export const LOCALE_JA = 'ja';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 
-export interface Config {
+export type Config = {
   locale: string;
-}
+};
 
-export interface LocalizationProvider {
+export type LocalizationProvider = {
   localize(label: string, ...args: any[]): string;
-}
+};
 
 export class Localization implements LocalizationProvider {
   private readonly delegate: Message;
@@ -29,6 +29,7 @@ export class Localization implements LocalizationProvider {
   }
 
   public localize(label: string, ...args: any[]): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.delegate.localize(label, ...args);
   }
 }
@@ -54,6 +55,7 @@ export class Message implements LocalizationProvider {
       possibleLabel = `${MISSING_LABEL_MSG} ${label}`;
       if (args.length >= 1) {
         args.forEach(arg => {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           possibleLabel += ` (${arg})`;
         });
       }
@@ -70,7 +72,8 @@ export class Message implements LocalizationProvider {
       }
 
       args.unshift(possibleLabel);
-      return util.format.apply(util, args as [any, ...any[]]);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      return util.format(...args);
     }
 
     return possibleLabel;

@@ -29,8 +29,8 @@ export class MetaSupport {
    * @returns - a list of path for each file name
    */
   private getLocalFilePath(targetFileNames: [string]) {
-    const thisExtPath = vscode.extensions.getExtension(EXTENSION_NAME)!
-      .extensionPath;
+    const thisExtPath =
+      vscode.extensions.getExtension(EXTENSION_NAME)!.extensionPath;
     const listOfPaths: string[] = [];
 
     targetFileNames.forEach(targetFileName => {
@@ -50,7 +50,7 @@ export class MetaSupport {
    */
   private async setupRedhatXml(
     inputCatalogs: string[],
-    inputFileAssociations: Array<{ systemId: string; pattern: string }>
+    inputFileAssociations: { systemId: string; pattern: string }[]
   ) {
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     try {
@@ -59,7 +59,7 @@ export class MetaSupport {
       extensionApi.addXMLFileAssociations(inputFileAssociations);
     } catch (error) {
       channelService.appendLine(
-        nls.localize('force_lightning_lwc_fail_redhat_extension')
+        nls.localize('lightning_lwc_fail_redhat_extension')
       );
       const errorMsg = error.message ? error.message : error;
       channelService.appendLine(errorMsg);
@@ -75,10 +75,10 @@ export class MetaSupport {
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     if (redHatExtension === undefined) {
       channelService.appendLine(
-        nls.localize('force_lightning_lwc_no_redhat_extension_found')
+        nls.localize('lightning_lwc_no_redhat_extension_found')
       );
     } else if (redHatExtension) {
-      const pluginVersionNumber = redHatExtension!.packageJSON['version'];
+      const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
       // checks if the installed plugin version is exactly 0.14.0 or 0.16+,
       // 0.15.0 has a regression and 0.13.0 or earlier versions are not supported
@@ -95,11 +95,11 @@ export class MetaSupport {
         await this.setupRedhatXml(catalogs, fileAssociations);
       } else if (minor === 15) {
         channelService.appendLine(
-          nls.localize('force_lightning_lwc_redhat_extension_regression')
+          nls.localize('lightning_lwc_redhat_extension_regression')
         );
       } else {
         channelService.appendLine(
-          nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+          nls.localize('lightning_lwc_deprecated_redhat_extension')
         );
       }
     }

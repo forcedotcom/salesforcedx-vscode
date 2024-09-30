@@ -19,19 +19,19 @@ import { workspaceService } from './workspace';
  * Activate LWC Test support for supported workspace types
  * @param workspaceType workspace type
  */
-export function shouldActivateLwcTestSupport(
+export const shouldActivateLwcTestSupport = (
   workspaceType: lspCommon.WorkspaceType
-) {
+) => {
   return (
     workspaceService.isSFDXWorkspace(workspaceType) ||
     workspaceService.isCoreWorkspace(workspaceType)
   );
-}
+};
 
-export function activateLwcTestSupport(
+export const activateLwcTestSupport = (
   extensionContext: ExtensionContext,
   workspaceType: lspCommon.WorkspaceType
-) {
+) => {
   workspaceService.register(extensionContext, workspaceType);
   registerCommands(extensionContext);
   registerLwcTestCodeLensProvider(extensionContext);
@@ -40,4 +40,4 @@ export function activateLwcTestSupport(
   taskService.registerTaskService(extensionContext);
   testResultsWatcher.register(extensionContext);
   lwcTestIndexer.register(extensionContext);
-}
+};

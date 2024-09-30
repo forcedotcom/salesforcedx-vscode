@@ -19,20 +19,19 @@
     "area:apex": "a1aB0000000JglYIAS",
     "area:aura": "a1aB0000000MRAzIAO",
     "area:lwc": "a1aB0000000Bn8tIAC",
-    "area:slds": "a1aB000000005G3IAI",
-    "area:soql": "a1aB0000000YKFSIA4",
+    "area:soql": "a1aB000000005G3IAI",
     "area:visualforce": "a1aB0000000BPyKIAW",
     "area:xml": "a1aB0000000BPyKIAW"
   },
   "issueTypeLabels": {
-    "type:feature": "",
+    "feature": "USER STORY",
     "type:bug": "BUG P3",
     "type:security": "BUG P2",
     "type:feedback": "",
-    "type:duplicate": "",
+    "status:duplicate": "",
     "type:community-contrib": "USER STORY"
   },
-  "defaultBuild": "offcore.tooling.57",
+  "defaultBuild": "offcore.tooling.61",
   "hideWorkItemUrl": "true",
   "statusWhenClosed": "CLOSED"
 }

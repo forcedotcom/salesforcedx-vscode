@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types: create_release_branch
   schedule:
-  - cron: '0 13 * * 1'
+    - cron: '0 13 * * 1'
   workflow_dispatch:
     inputs:
       releaseType:
@@ -19,7 +19,6 @@ on:
           - beta
 
 jobs:
-
   create_branch:
     name: 'Create Branch'
     runs-on: ubuntu-latest
@@ -32,37 +31,37 @@ jobs:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        ref: 'develop'
-        ssh-strict: false
-        token: ${{ secrets.IDEE_GH_TOKEN }}
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: '.nvmrc'
-    - uses: ./.github/actions/gitConfig
-      with:
-        email: ${{ secrets.IDEE_GH_EMAIL }}
-    - name: Set NPM at the correct version for Lerna
-      run: npm install -g npm@8.12.1
-    - run: npm ci
-    - run: npm install -g shelljs && npm install -g lerna
-    - name: Create and Push the Release Branch
-      id: create_step
-      run: |
-        echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
-        node scripts/create-release-branch.js
-    - id: result
-      run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
-    - id: version
-      run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
-    - id: branch
-      run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
-    - run: echo "Release Version is ${{ steps.version.outputs.version }}"
-    - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
-    - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 'develop'
+          ssh-strict: false
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - name: Set NPM at the correct version for Lerna
+        run: npm install -g npm@9.8.1
+      - run: npm ci
+      - run: npm install -g shelljs && npm install -g lerna@5.5.4
+      - name: Create and Push the Release Branch
+        id: create_step
+        run: |
+          echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
+          node scripts/create-release-branch.js
+      - id: result
+        run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
+      - id: version
+        run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+      - id: branch
+        run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+      - run: echo "Release Version is ${{ steps.version.outputs.version }}"
+      - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
+      - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
 
   slack_notification:
     if: ${{ always() }}
@@ -70,9 +69,16 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Release Branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})"
-      failedEvent: "Create Release Branch"
-      successfulEvent: "${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}"
-      type: "created"
+      title: 'Release Branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})'
+      failedEvent: 'Create Release Branch'
+      successfulEvent: '${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}'
+      type: 'created'
       result: ${{ needs.create_branch.outputs.result }}
-      workflow: "create-release-branch.yml"
+      workflow: 'create-release-branch.yml'
+
+  trigger_generate_changelog_workflow:
+    if: ${{ needs.create_branch.result == 'success' }} # Only run this if the previous job was successful
+    needs: create_branch
+    name: 'Trigger Generate Changelog Workflow'
+    uses: ./.github/workflows/generateChangelog.yml
+    secrets: inherit

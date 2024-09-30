@@ -5,16 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo } from '@salesforce/core';
+import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
-export async function setUpOrgExpirationWatcher(orgList: OrgList) {
+export const setUpOrgExpirationWatcher = async (
+  orgList: OrgList
+): Promise<void> => {
   // Run once to start off with.
-  await checkForExpiredOrgs(orgList);
+  await checkForSoonToBeExpiredOrgs(orgList);
 
   /*
   Comment this out for now.  For now, we are only going to check once on activation,
@@ -22,13 +25,18 @@ export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   check once a day, uncomment the following code.
 
   // And run again once every 24 hours.
-  setInterval(async () => {
-    await checkForExpiredOrgs(orgList);
-  }, 1000 * 60 * 60 * 24);
+  setInterval(
+    async () => {
+      void checkForSoonToBeExpiredOrgs(orgList);
+    },
+    1000 * 60 * 60 * 24
+  );
   */
-}
+};
 
-export async function checkForExpiredOrgs(orgList: OrgList) {
+export const checkForSoonToBeExpiredOrgs = async (
+  orgList: OrgList
+): Promise<void> => {
   if (!orgList) {
     return;
   }
@@ -63,6 +71,11 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
       if (expirationDate < today) {
+        if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
+          void notificationService.showWarningMessage(
+            nls.localize('default_org_expired')
+          );
+        }
         continue;
       }
 
@@ -106,20 +119,20 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
-export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
+export const getAuthFieldsFor = async (
+  username: string
+): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
     username
   });
 
   return authInfo.getFields();
-}
+};
 
-export async function getDefaultDevHubUsernameOrAlias(): Promise<
-  string | undefined
-> {
+export const getTargetDevHubOrAlias = async (): Promise<string | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
+    return OrgAuthInfo.getTargetDevHubOrAlias(false);
   }
-}
+};

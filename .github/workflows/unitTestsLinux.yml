@@ -5,22 +5,20 @@ on:
       branch:
         type: string
         required: false
+env:
+  NODE_OPTIONS: --max-old-space-size=8192
 
 jobs:
   linux-unit-tests:
-    strategy:
-      matrix:
-        node_version: [lts/-1, lts/*]
-      fail-fast: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
       - run: npm run compile

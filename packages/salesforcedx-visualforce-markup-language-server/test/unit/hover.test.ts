@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -9,11 +10,11 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Hover', () => {
-  function assertHover(
+  const assertHover = (
     value: string,
     expectedHoverLabel: string,
     expectedHoverOffset
-  ): void {
+  ): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -34,7 +35,7 @@ describe('HTML Hover', () => {
       hover && document.offsetAt(hover.range.start),
       expectedHoverOffset
     );
-  }
+  };
 
   it('Single', () => {
     assertHover('|<html></html>', void 0, void 0);

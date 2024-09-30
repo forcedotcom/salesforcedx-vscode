@@ -14,18 +14,18 @@ jobs:
       RELEASE_VERSION: ${{ inputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.version }}
           path: ./extensions
@@ -48,7 +48,7 @@ jobs:
       RELEASE_VERSION: ${{ inputs.version }}
     steps: 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
@@ -66,14 +66,14 @@ jobs:
       RELEASE_VERSION: ${{ inputs.version }}
     steps: 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.version }}
           path: ./extensions
@@ -90,7 +90,7 @@ jobs:
       status: ${{ steps.complete.outputs.status }}
     steps: 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}

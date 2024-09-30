@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Client } from 'faye';
-import os = require('os');
 import { RequestService } from '@salesforce/salesforcedx-utils';
+import { Client } from 'faye';
+import * as os from 'os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 
@@ -28,13 +28,13 @@ export enum ApexDebuggerEventType {
   SystemWarning
 }
 
-export interface StreamingEvent {
+export type StreamingEvent = {
   createdDate: string;
   replayId: number;
   type: string;
-}
+};
 
-export interface ApexDebuggerEvent {
+export type ApexDebuggerEvent = {
   SessionId: string;
   RequestId?: string;
   BreakpointId?: string;
@@ -43,12 +43,12 @@ export interface ApexDebuggerEvent {
   FileName?: string;
   Line?: number;
   Stacktrace?: string;
-}
+};
 
-export interface DebuggerMessage {
+export type DebuggerMessage = {
   event: StreamingEvent;
   sobject: ApexDebuggerEvent;
-}
+};
 
 export class StreamingClientInfo {
   public readonly channel: string;

@@ -8,9 +8,9 @@
 // This file is meant to mimics the functionality of Predicate and Predicates from Google Guava.
 // Expand as necessary.
 
-export interface Predicate<T> {
+export type Predicate<T> = {
   apply(item: T): PredicateResponse;
-}
+};
 
 export class PredicateResponse {
   public result: boolean;

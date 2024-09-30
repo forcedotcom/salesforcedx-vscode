@@ -1,17 +1,20 @@
 name: Test, Build, and Release
 on:
-  push:
-    branches: 
-      - 'main'
+  workflow_run:
+    workflows:
+      - PreRelease
+    types:
+      - completed
 
 jobs:
   get-version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     name: 'Get Release Version'
     runs-on: ubuntu-latest
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'main'
       - id: getMainVersion
@@ -21,7 +24,7 @@ jobs:
   build-and-test:
     uses: ./.github/workflows/buildAndTest.yml
     needs: [get-version]
-    with: 
+    with:
       branch: 'main'
       label: ${{ needs.get-version.outputs.RELEASE_VERSION }}
   release:

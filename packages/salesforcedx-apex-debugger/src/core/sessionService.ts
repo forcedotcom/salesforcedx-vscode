@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   CommandOutput,
   RequestService,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 
 export class SessionService {
@@ -59,14 +59,14 @@ export class SessionService {
 
   public async start(): Promise<string> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:data:record:create')
-        .withFlag('--sobjecttype', 'ApexDebuggerSession')
+      new SfCommandBuilder()
+        .withArg('data:create:record')
+        .withFlag('--sobject', 'ApexDebuggerSession')
         .withFlag(
           '--values',
           `UserIdFilter='${this.userFilter}' EntryPointFilter='${this.entryFilter}' RequestTypeFilter='${this.requestFilter}'`
         )
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       {
@@ -95,12 +95,12 @@ export class SessionService {
 
   public async stop(): Promise<string> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:data:record:update')
-        .withFlag('--sobjecttype', 'ApexDebuggerSession')
-        .withFlag('--sobjectid', this.sessionId)
+      new SfCommandBuilder()
+        .withArg('data:update:record')
+        .withFlag('--sobject', 'ApexDebuggerSession')
+        .withFlag('--record-id', this.sessionId)
         .withFlag('--values', "Status='Detach'")
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: this.project, env: this.requestService.getEnvVars() }

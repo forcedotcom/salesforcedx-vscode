@@ -15,29 +15,29 @@ import { nls } from './../messages';
 
 let statusBarItem: StatusBarItem;
 
-export function showTraceFlagExpiration(expirationDate: Date) {
+export const showTraceFlagExpiration = (expirationDate: Date): void => {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 40);
   }
 
   statusBarItem.text = nls.localize(
-    'force_apex_debug_log_status_bar_text',
+    'apex_debug_log_status_bar_text',
     expirationDate.toLocaleTimeString(undefined, optionHHmm)
   );
 
   statusBarItem.tooltip = nls.localize(
-    'force_apex_debug_log_status_bar_hover_text',
+    'apex_debug_log_status_bar_hover_text',
     APEX_CODE_DEBUG_LEVEL,
     expirationDate.toLocaleTimeString(undefined, optionHHmm),
     expirationDate.toLocaleDateString(undefined, optionMMddYYYY)
   );
   statusBarItem.show();
-}
+};
 
-export function hideTraceFlagExpiration() {
+export const hideTraceFlagExpiration = (): void => {
   statusBarItem.hide();
-}
+};
 
-export function disposeTraceFlagExpiration() {
+export const disposeTraceFlagExpiration = (): void => {
   statusBarItem.dispose();
-}
+};

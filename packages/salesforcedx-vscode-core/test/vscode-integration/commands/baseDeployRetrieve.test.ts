@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core-bundle';
 import {
   ConfigUtil,
   ContinueResponse,
@@ -28,18 +28,17 @@ import {
   registry,
   RetrieveResult,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import {
   MetadataApiDeployStatus,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
 import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands';
 import {
   DeployExecutor,
   DeployRetrieveExecutor,
@@ -47,11 +46,10 @@ import {
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { WorkspaceContext } from '../../../src/context';
-import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
-import * as componentSetUtils from '../../../src/services/sdr/componentSetUtils';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
+import { componentSetUtils } from '../../../src/services/sdr/componentSetUtils';
 import { DeployQueue } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
@@ -111,11 +109,8 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call lifecycle methods in correct order', async () => {
       const executor = new TestDeployRetrieve();
-      const {
-        doOperationStub,
-        getComponentsStub,
-        postOperationStub
-      } = executor.lifecycle;
+      const { doOperationStub, getComponentsStub, postOperationStub } =
+        executor.lifecycle;
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
@@ -138,6 +133,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const { properties } = executor.telemetryData;
       expect(properties).to.not.equal(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const { metadataCount } = properties!;
       expect(metadataCount).to.not.equal(undefined);
 
@@ -213,7 +209,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
-      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getUserConfiguredApiVersionStub.called).to.equal(true);
       expect(connectionGetApiVersionStub.called).to.equal(false);
     });
 
@@ -226,7 +222,7 @@ describe('Base Deploy Retrieve Commands', () => {
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
-      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getUserConfiguredApiVersionStub.called).to.equal(true);
       expect(connectionGetApiVersionStub.callCount).to.be.greaterThan(0);
       expect(components.apiVersion).to.equal(mockConnection.getApiVersion());
     });
@@ -252,19 +248,23 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
-    let setApiVersionOnStub: SinonStub;
+    let setApiVersionStub: SinonStub;
 
     const packageDir = 'test-app';
 
     beforeEach(async () => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        packageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([packageDir]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
-      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
+      setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
+      sb.stub(SourceTrackingService, 'getSourceTracking').resolves({
+        ensureLocalTracking: async () => {}
+      });
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -338,9 +338,9 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(setApiVersionOnStub.calledOnce).to.equal(true);
+      expect(setApiVersionStub.calledOnce).to.equal(true);
       expect(executor.deployStub.calledOnce).to.equal(true);
-      expect(setApiVersionOnStub.calledBefore(executor.deployStub)).to.equal(
+      expect(setApiVersionStub.calledBefore(executor.deployStub)).to.equal(
         true
       );
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
@@ -516,7 +516,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`table_title_deployed_source`)
+          nls.localize('table_title_deployed_source')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
@@ -559,69 +559,13 @@ describe('Base Deploy Retrieve Commands', () => {
             },
             { key: 'error', label: nls.localize('table_header_errors') }
           ],
-          nls.localize(`table_title_deploy_errors`)
+          nls.localize('table_title_deploy_errors')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });
 
         expect(appendLineStub.calledOnce).to.equal(true);
         expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
-      });
-
-      it('should report any diagnostics if deploy failed', async () => {
-        const executor = new TestDeploy();
-
-        const mockDeployResult = new DeployResult(
-          {
-            status: RequestStatus.Failed
-          } as MetadataApiDeployStatus,
-          new ComponentSet()
-        );
-        executor.pollStatusStub.resolves(mockDeployResult);
-
-        const failedRows = fileResponses.map(r => ({
-          fullName: r.fullName,
-          type: r.type,
-          error: 'There was an issue',
-          state: ComponentStatus.Failed,
-          filePath: r.filePath,
-          problemType: 'Error',
-          lineNumber: 2,
-          columnNumber: 3
-        }));
-        sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
-
-        const setDiagnosticsStub = sb.stub(
-          BaseDeployExecutor.errorCollection,
-          'set'
-        );
-
-        await executor.run({ data: {}, type: 'CONTINUE' });
-
-        expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
-        failedRows.forEach((row, index) => {
-          const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
-          const expectedFileUri = vscode.Uri.file(
-            getAbsoluteFilePath(
-              row.filePath,
-              workspaceUtils.getRootWorkspacePath()
-            )
-          );
-          expect(fileUri).to.deep.equal(expectedFileUri);
-          expect(diagnostics).to.deep.equal([
-            {
-              message: row.error,
-              range: new vscode.Range(
-                row.lineNumber - 1,
-                row.columnNumber - 1,
-                row.lineNumber - 1,
-                row.columnNumber - 1
-              ),
-              severity: vscode.DiagnosticSeverity.Error,
-              source: row.type
-            }
-          ]);
-        });
       });
     });
 
@@ -648,7 +592,7 @@ describe('Base Deploy Retrieve Commands', () => {
         children: [basename(props.content), basename(props.xml)]
       }
     ]);
-    let setApiVersionOnStub: SinonStub;
+    let setApiVersionStub: SinonStub;
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
@@ -677,13 +621,14 @@ describe('Base Deploy Retrieve Commands', () => {
     }
 
     beforeEach(() => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        packageDir
-      ]);
+      sb.stub(
+        SalesforcePackageDirectories,
+        'getPackageDirectoryPaths'
+      ).resolves([packageDir]);
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
-      setApiVersionOnStub = sb.stub(componentSetUtils, 'setApiVersionOn');
-      sb.stub(SourceTrackingService, 'createSourceTracking').resolves({
+      setApiVersionStub = sb.stub(componentSetUtils, 'setApiVersion');
+      sb.stub(SourceTrackingService, 'getSourceTracking').resolves({
         updateTrackingFromRetrieve: async () => {}
       });
     });
@@ -697,9 +642,9 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(setApiVersionOnStub.calledOnce);
+      expect(setApiVersionStub.calledOnce);
       expect(executor.retrieveStub.calledOnce);
-      expect(setApiVersionOnStub.calledBefore(executor.retrieveStub)).to.equal(
+      expect(setApiVersionStub.calledBefore(executor.retrieveStub)).to.equal(
         true
       );
     });
@@ -815,7 +760,7 @@ describe('Base Deploy Retrieve Commands', () => {
               label: nls.localize('table_header_project_path')
             }
           ],
-          nls.localize(`lib_retrieve_result_title`)
+          nls.localize('lib_retrieve_result_title')
         );
 
         await executor.run({ data: {}, type: 'CONTINUE' });

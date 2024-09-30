@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { INSTALLED_PACKAGES, IsvDebugBootstrapExecutor, ISVDEBUGGER, PACKAGE_XML } from '../../../../src/commands/isvdebugging/bootstrapCmd';
@@ -18,15 +24,15 @@ describe('isvdebugging unit test', () => {
     expect(isvDebugBootstrapExecutorInst).toBeDefined();
   });
 
-  it('should test readonly relativeMetdataTempPath property', () => {
+  it('should test readonly relativeMetadataTempPath property', () => {
     isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeMetdataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
+    expect(isvDebugBootstrapExecutorInst.relativeMetadataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
     expect(relativeToolsFolderStub).toBeCalled();
   });
 
   it('should test readonly relativeApexPackageXmlPath property', () => {
     isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(path.join(isvDebugBootstrapExecutorInst.relativeMetdataTempPath, PACKAGE_XML));
+    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(path.join(isvDebugBootstrapExecutorInst.relativeMetadataTempPath, PACKAGE_XML));
   });
 
   it('should test readonly relativeInstalledPackagesPath property', () => {

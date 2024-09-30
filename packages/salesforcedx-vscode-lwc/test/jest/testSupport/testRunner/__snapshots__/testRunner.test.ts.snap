@@ -1,21 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`testRunner Unit Tests. test getTestNamePatternArgs Should escape certain symbols if testNamePattern is included 1`] = `
-Array [
+[
   "--testNamePattern",
-  "Test \\\\?\\\\$\\\\^\\\\*\\\\(\\\\)\\\\.\\\\[\\\\]\\\\{\\\\}\\\\|\\\\+ Symbols",
+  "Test \\?\\$\\^\\*\\(\\)\\.\\[\\]\\{\\}\\|\\+ Symbols",
 ]
 `;
 
 exports[`testRunner Unit Tests. test getTestNamePatternArgs Should not escape certain symbols if testNamePattern is included 1`] = `
-Array [
+[
   "--testNamePattern",
-  "Test !@#\\"%&;:,<>=~\` Symbols",
+  "Test !@#"%&;:,<>=~\` Symbols",
 ]
 `;
 
 exports[`testRunner Unit Tests. test getTestNamePatternArgs Should return testNamePattern if flag is included 1`] = `
-Array [
+[
   "--testNamePattern",
   "Testing is Fun!",
 ]

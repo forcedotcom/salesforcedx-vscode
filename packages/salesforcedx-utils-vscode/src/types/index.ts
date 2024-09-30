@@ -9,11 +9,11 @@ export {
   SFDX_CONFIG_FILE,
   SFDX_FOLDER,
   SFDX_PROJECT_FILE,
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL,
-  DEFAULT_USERNAME_KEY,
+  ENV_SF_TARGET_ORG,
+  ENV_SF_ORG_INSTANCE_URL,
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL,
+  TARGET_ORG_KEY,
   DEFAULT_CONNECTION_TIMEOUT_MS,
   CLIENT_ID
 } from './constants';
@@ -21,42 +21,42 @@ import { Event } from 'vscode';
 
 // Precondition checking
 ////////////////////////
-export interface PreconditionChecker {
+export type PreconditionChecker = {
   check(): Promise<boolean> | boolean;
-}
+};
 
-export interface PostconditionChecker<T> {
+export type PostconditionChecker<T> = {
   check(
     inputs: ContinueResponse<T> | CancelResponse
   ): Promise<ContinueResponse<T> | CancelResponse>;
-}
+};
 
 // Input gathering
 //////////////////
-export interface ContinueResponse<T> {
+export type ContinueResponse<T> = {
   type: 'CONTINUE';
   data: T;
-}
+};
 
-export interface CancelResponse {
+export type CancelResponse = {
   type: 'CANCEL';
   msg?: string;
-}
+};
 
-export interface ParametersGatherer<T> {
+export type ParametersGatherer<T> = {
   gather(): Promise<CancelResponse | ContinueResponse<T>>;
-}
+};
 
 // Execution
 //////////////////
-export interface FlagParameter<T> {
+export type FlagParameter<T> = {
   flag: T;
-}
+};
 
-export interface CommandletExecutor<T> {
+export type CommandletExecutor<T> = {
   execute(response: ContinueResponse<T>): void;
   readonly onDidFinishExecution?: Event<[number, number]>;
-}
+};
 
 // Selection
 ////////////
@@ -71,6 +71,16 @@ export type DirFileNameSelection = {
    * Relative workspace path to save the component
    */
   outputdir: string;
+
+  /**
+   * used for selecting the different apex unit test templates
+   */
+  template?: 'ApexUnitTest' | 'BasicUnitTest';
+
+  /**
+   * Used for selecting file extension type
+   */
+  extension?: 'JavaScript' | 'TypeScript';
 };
 
 /**
@@ -86,9 +96,4 @@ export type LocalComponent = DirFileNameSelection & {
    * Optional suffix to overwrite in case metadata dictionary does not have it
    */
   suffix?: string;
-};
-
-export type FunctionInfo = {
-  fileName: string;
-  language: string;
 };

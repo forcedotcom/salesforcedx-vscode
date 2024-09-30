@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
@@ -6,12 +12,12 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { projectTemplateEnum } from '../../../../src/commands/forceProjectCreate';
 import {
   EnterForceIdeUri,
   IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging';
+import { projectTemplateEnum } from '../../../../src/commands/projectGenerate';
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
@@ -28,7 +34,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     let inputBoxSpy: sinon.SinonStub;
     let showErrorMessageSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
       inputBoxSpy.onCall(0).returns(undefined);
       inputBoxSpy.onCall(1).returns('');
@@ -48,7 +54,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
     });
 
-    after(() => {
+    afterEach(() => {
       inputBoxSpy.restore();
       showErrorMessageSpy.restore();
     });
@@ -140,7 +146,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         )
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
-        EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
+        EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')
       ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
         nls.localize('parameter_gatherer_invalid_forceide_url')
@@ -150,64 +156,58 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
   describe('CLI Builder', () => {
     it('Verify buildCreateProjectCommand', async () => {
-      const forceProjectCreateBuilder = new IsvDebugBootstrapExecutor();
-      const createCommand = forceProjectCreateBuilder.buildCreateProjectCommand(
-        {
-          loginUrl: LOGIN_URL,
-          sessionId: SESSION_ID,
-          orgName: PROJECT_NAME,
-          projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath,
-          projectTemplate: projectTemplateEnum.standard
-        }
-      );
+      const projectGenerateBuilder = new IsvDebugBootstrapExecutor();
+      const createCommand = projectGenerateBuilder.buildCreateProjectCommand({
+        loginUrl: LOGIN_URL,
+        sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
+      });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template standard`
+        `sf project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
       );
       expect(createCommand.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step1_create_project')
+        nls.localize('isv_debug_bootstrap_create_project')
       );
     });
 
     it('Verify buildConfigureProjectCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const configureCommand = forceProjectConfigBuilder.buildConfigureProjectCommand(
-        {
+      const configureCommand =
+        forceProjectConfigBuilder.buildConfigureProjectCommand({
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
-        }
-      );
+        });
       expect(configureCommand.toCommand()).to.equal(
-        `sfdx force:config:set isvDebuggerSid=${SESSION_ID} isvDebuggerUrl=${LOGIN_URL} instanceUrl=${LOGIN_URL}`
+        `sf config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
       expect(configureCommand.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step2_configure_project')
+        nls.localize('isv_debug_bootstrap_configure_project')
       );
     });
 
     it('Verify buildQueryForOrgNamespacePrefixCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const command = forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand(
-        {
+      const command =
+        forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand({
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
-        }
-      );
+        });
       expect(command.toCommand()).to.equal(
-        `sfdx force:data:soql:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --targetusername ${SESSION_ID} --json --loglevel fatal`
+        `sf data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
-        nls.localize(
-          'isv_debug_bootstrap_step2_configure_project_retrieve_namespace'
-        )
+        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       );
     });
 
@@ -236,31 +236,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --unpackaged ${builder.relativeApexPackageXmlPath} --targetusername ${SESSION_ID}`
+        `sf project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
       );
       expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
-      );
-    });
-
-    it('Verify buildMetadataApiConvertOrgSourceCommand', async () => {
-      const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildMetadataApiConvertOrgSourceCommand({
-        loginUrl: LOGIN_URL,
-        sessionId: SESSION_ID,
-        orgName: PROJECT_NAME,
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.standard
-      });
-      expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:convert --rootdir ${path.join(
-          builder.relativeMetdataTempPath,
-          'unpackaged'
-        )} --outputdir force-app`
-      );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step4_convert_org_source')
+        nls.localize('isv_debug_bootstrap_retrieve_org_source')
       );
     });
 
@@ -275,17 +254,17 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:package:installed:list --targetusername ${SESSION_ID} --json --loglevel fatal`
+        `sf package:installed:list --target-org ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
+        nls.localize('isv_debug_bootstrap_list_installed_packages')
       );
     });
 
-    it('Verify buildRetrievePackagesSourceCommand', async () => {
-      const packageNames = ['mypackage_abc', 'mpackage_def'];
+    it('Verify buildRetrievePackageSourceCommand', async () => {
+      const packageName = 'mypackage_abc_mpackage_def';
       const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildRetrievePackagesSourceCommand(
+      const command = builder.buildRetrievePackageSourceCommand(
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
@@ -294,37 +273,13 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectUri: PROJECT_DIR[0].fsPath,
           projectTemplate: projectTemplateEnum.standard
         },
-        packageNames
-      );
-      expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --packagenames mypackage_abc,mpackage_def --targetusername ${SESSION_ID}`
-      );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
-      );
-    });
-
-    it('Verify buildMetadataApiConvertPackageSourceCommand', async () => {
-      const packageName = 'mypackage_abc';
-      const builder = new IsvDebugBootstrapExecutor();
-      const command = builder.buildMetadataApiConvertPackageSourceCommand(
         packageName
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:convert --rootdir ${path.join(
-          builder.relativeMetdataTempPath,
-          'packages',
-          packageName
-        )} --outputdir ${path.join(
-          builder.relativeInstalledPackagesPath,
-          packageName
-        )}`
+        `sf project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
       );
       expect(command.description).to.equal(
-        nls.localize(
-          'isv_debug_bootstrap_step7_convert_package_source',
-          packageName
-        )
+        nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
       );
     });
 
@@ -367,7 +322,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const projectPath = path.join(PROJECT_DIR[0].fsPath, PROJECT_NAME);
       const projectMetadataTempPath = path.join(
         projectPath,
-        executor.relativeMetdataTempPath
+        executor.relativeMetadataTempPath
       );
       const projectInstalledPackagesPath = path.join(
         projectPath,
@@ -393,15 +348,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           '{"status":0,"result":{"totalSize":1,"done":true,"records":[{"attributes":{"type":"Organization","url":"/services/data/v42.0/sobjects/Organization/00D1F0000008gTUUAY"},"NamespacePrefix":null}]}}'
         );
 
-      // fake org source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(3).callsFake(() => {
-        const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
-        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      });
-
       // fake package list retrieval
-      executeCommandSpy.onCall(5).returns(
+      executeCommandSpy.onCall(4).returns(
         JSON.stringify({
           status: 0,
           result: [
@@ -418,15 +366,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         })
       );
 
-      // fake package source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(6).callsFake(() => {
-        const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
-        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
-      });
-
       // fake package metadata convert
-      executeCommandSpy.onCall(7).callsFake(() => {
+      executeCommandSpy.onCall(5).callsFake(() => {
         shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'mypackage'));
       });
 
@@ -440,7 +381,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       } as ContinueResponse<IsvDebugBootstrapConfig>;
       await executor.execute(input);
-      expect(executeCommandSpy.callCount).to.equal(8);
+      expect(executeCommandSpy.callCount).to.equal(6);
       expect(vscodeCommandSpy.callCount).to.equal(1);
 
       // there should be a launch config

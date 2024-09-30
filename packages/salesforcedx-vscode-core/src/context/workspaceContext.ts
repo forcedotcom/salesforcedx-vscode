@@ -5,18 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { workspaceContextUtils } from '.';
 import { decorators } from '../decorators';
-import { setIsScratchOrg } from './contextVariables';
+import { workspaceContextUtils } from '.';
 
 /**
- * Manages the context of a workspace during a session with an open SFDX project.
+ * Manages the context of a workspace during a session with an open SFDX Project.
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
@@ -52,8 +51,6 @@ export class WorkspaceContext {
         console.error(e)
       );
 
-    await setIsScratchOrg();
-
     await decorators.showOrg();
   }
 
@@ -63,5 +60,9 @@ export class WorkspaceContext {
 
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
+  }
+
+  get orgId(): string | undefined {
+    return WorkspaceContextUtil.getInstance().orgId;
   }
 }

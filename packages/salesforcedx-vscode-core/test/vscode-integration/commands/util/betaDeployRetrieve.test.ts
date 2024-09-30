@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { createComponentCount } from '../../../../src/commands/util';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 
 const env = createSandbox();
 

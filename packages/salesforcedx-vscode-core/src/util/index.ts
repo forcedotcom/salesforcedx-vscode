@@ -10,14 +10,24 @@ export {
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
-  isSFDXContainerMode,
+  setNodeExtraCaCerts,
+  setSfLogLevel,
   showCLINotInstalledMessage
 } from './cliConfiguration';
 export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 export {
-  checkForExpiredOrgs,
+  checkForSoonToBeExpiredOrgs,
   getAuthFieldsFor,
-  getDefaultDevHubUsernameOrAlias,
+  getTargetDevHubOrAlias,
   setUpOrgExpirationWatcher
 } from './orgUtil';
+
+export {
+  ComponentName,
+  ContinueOrCancel,
+  OneOrMany,
+  isContinue
+} from './types';
+
+export * from './componentUtils';

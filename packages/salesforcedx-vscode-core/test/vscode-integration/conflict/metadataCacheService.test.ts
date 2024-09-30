@@ -12,25 +12,25 @@ import {
   MetadataApiRetrieve,
   RetrieveResult,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve';
+} from '@salesforce/source-deploy-retrieve-bundle';
 import {
   MetadataApiRetrieveStatus,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
+import * as sinon from 'sinon';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
   MetadataCacheService,
   PathType
 } from '../../../src/conflict/metadataCacheService';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
-import sinon = require('sinon');
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -135,7 +135,7 @@ describe('Metadata Cache', () => {
     beforeEach(() => {
       service = new MetadataCacheService(usernameOrAlias);
       packageStub = sinon
-        .stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths')
+        .stub(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths')
         .resolves([]);
       workspaceStub = stubRootWorkspace(PROJECT_DIR);
     });
@@ -256,7 +256,7 @@ describe('Metadata Cache', () => {
       if (cache?.cachePropPath) {
         const propObj = JSON.parse(
           fs.readFileSync(cache?.cachePropPath, {
-            encoding: 'UTF-8'
+            encoding: 'utf-8'
           })
         );
 
@@ -269,12 +269,14 @@ describe('Metadata Cache', () => {
     });
   });
 
-  async function handleCacheResults(
+  const handleCacheResults = (
     username: string,
     cache?: MetadataCacheResult
-  ): Promise<void> {}
+  ): Promise<void> => {
+    return Promise.resolve();
+  };
 
-  function loadMockCache(cachePath: string): RetrieveResult {
+  const loadMockCache = (cachePath: string): RetrieveResult => {
     const props: FileProperties[] = [
       {
         id: '1',
@@ -302,7 +304,7 @@ describe('Metadata Cache', () => {
     const cacheComps = ComponentSet.fromSource(cachePath);
     const results = new RetrieveResult(response, cacheComps);
     return results;
-  }
+  };
 
   describe('Static Methods', () => {
     const compOne = {

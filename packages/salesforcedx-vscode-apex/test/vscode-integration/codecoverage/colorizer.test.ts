@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import { Range, RelativePattern, Uri, window, workspace } from 'vscode';
 import {
-  CodeCoverage,
+  CodeCoverageHandler,
   getLineRange
 } from '../../../src/codecoverage/colorizer';
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
@@ -16,7 +16,7 @@ import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 describe('Code coverage colorizer', () => {
   let testCoverage: Uri[];
 
-  before(async () => {
+  beforeEach(async () => {
     testCoverage = await workspace.findFiles(
       new RelativePattern(
         workspace.workspaceFolders![0],
@@ -31,7 +31,7 @@ describe('Code coverage colorizer', () => {
 
   it('Should report correct status on statusbaritem', async () => {
     const statusBarToggle = new StatusBarToggle();
-    const colorizer = new CodeCoverage(statusBarToggle);
+    const colorizer = new CodeCoverageHandler(statusBarToggle);
 
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
     colorizer.toggleCoverage();
@@ -45,12 +45,10 @@ describe('Code coverage colorizer', () => {
     await window.showTextDocument(apexDocument);
 
     const statusBarToggle = new StatusBarToggle();
-    const colorizer = new CodeCoverage(statusBarToggle);
+    const colorizer = new CodeCoverageHandler(statusBarToggle);
 
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
     expect(colorizer.uncoveredLines).to.be.empty;
 
     colorizer.toggleCoverage();
@@ -82,7 +80,7 @@ describe('Code coverage colorizer', () => {
     await window.showTextDocument(apexTestDoc);
 
     const statusBarToggle = new StatusBarToggle();
-    const colorizer = new CodeCoverage(statusBarToggle);
+    const colorizer = new CodeCoverageHandler(statusBarToggle);
 
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
     // tslint:disable-next-line:no-unused-expression

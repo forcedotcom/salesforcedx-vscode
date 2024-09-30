@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -14,11 +15,11 @@ import {
   workspace
 } from 'vscode';
 
-export function activateTagClosing(
+export const activateTagClosing = (
   tagProvider: (document: TextDocument, position: Position) => Thenable<string>,
   supportedLanguages: { [id: string]: boolean },
   configName: string
-): Disposable {
+): Disposable => {
   const disposables: Disposable[] = [];
   workspace.onDidChangeTextDocument(
     event => onDidChangeTextDocument(event.document, event.contentChanges),
@@ -27,12 +28,9 @@ export function activateTagClosing(
   );
 
   let isEnabled = false;
-  updateEnabledState();
-  window.onDidChangeActiveTextEditor(updateEnabledState, null, disposables);
+  let timeout: ReturnType<typeof setTimeout> | undefined = void 0;
 
-  let timeout: NodeJS.Timer | undefined = void 0;
-
-  function updateEnabledState() {
+  const updateEnabledState = () => {
     isEnabled = false;
     const editor = window.activeTextEditor;
     if (!editor) {
@@ -48,12 +46,12 @@ export function activateTagClosing(
       return;
     }
     isEnabled = true;
-  }
+  };
 
-  function onDidChangeTextDocument(
+  const onDidChangeTextDocument = (
     document: TextDocument,
-    changes: ReadonlyArray<TextDocumentContentChangeEvent>
-  ) {
+    changes: readonly TextDocumentContentChangeEvent[]
+  ) => {
     if (!isEnabled) {
       return;
     }
@@ -105,6 +103,8 @@ export function activateTagClosing(
       });
       timeout = void 0;
     }, 100);
-  }
+  };
+  updateEnabledState();
+  window.onDidChangeActiveTextEditor(updateEnabledState, null, disposables);
   return Disposable.from(...disposables);
-}
+};

@@ -6,7 +6,7 @@
  */
 
 // tslint:disable:no-unused-expression
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
@@ -21,10 +21,10 @@ import {
 import {
   ClientStatus,
   LanguageClientUtils
-} from '../../../src/languageClientUtils/languageClientUtils';
+} from '../../../src/languageUtils/languageClientUtils';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
-import { forceApexTestRunCacheService } from '../../../src/testRunCache';
+import { apexTestRunCacheService } from '../../../src/testRunCache';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
@@ -39,9 +39,7 @@ import {
   apexLibTestInfo
 } from './testJSONOutputs';
 
-const NO_TESTS_DESCRIPTION = nls.localize(
-  'force_test_view_no_tests_description'
-);
+const NO_TESTS_DESCRIPTION = nls.localize('test_view_no_tests_description');
 
 describe('TestView', () => {
   let testOutline: ApexTestOutlineProvider;
@@ -58,7 +56,7 @@ describe('TestView', () => {
     let languageClientUtils: LanguageClientUtils;
 
     beforeEach(() => {
-      commandletSpy = sb.spy(SfdxCommandlet.prototype, 'run');
+      commandletSpy = sb.spy(SfCommandlet.prototype, 'run');
       getCoverageStub = sb.stub(settings, 'retrieveTestCodeCoverage');
       languageClientUtils = LanguageClientUtils.getInstance();
       languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
@@ -92,34 +90,30 @@ describe('TestView', () => {
     });
 
     it('Should cache the last run test method', async () => {
-      // forceApexTestRunCacheService is a singleton which means the values need to be
+      // apexTestRunCacheService is a singleton which means the values need to be
       // reset back to their default values otherwise they'll be set by the earlier
       // calls testRunner.runApexTests in this test suite
-      await forceApexTestRunCacheService.setCachedClassTestParam('');
-      await forceApexTestRunCacheService.setCachedMethodTestParam('');
+      await apexTestRunCacheService.setCachedClassTestParam('');
+      await apexTestRunCacheService.setCachedMethodTestParam('');
       await testRunner.runApexTests([`${testMethod}`], TestRunType.Method);
-      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+      expect(apexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
       );
       // the test class value should remain unchanged
-      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq('');
+      expect(apexTestRunCacheService.getLastClassTestParam()).to.eq('');
     });
     it('Should cache the last run test class', async () => {
       await testRunner.runApexTests([`${testClass}`], TestRunType.Class);
-      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq(
-        testClass
-      );
+      expect(apexTestRunCacheService.getLastClassTestParam()).to.eq(testClass);
       // the test method value should remain unchanged
-      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+      expect(apexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
       );
     });
     it('Should not change last run class or method when all tests are selected', async () => {
       await testRunner.runApexTests([`${testRunAll}`], TestRunType.All);
-      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq(
-        testClass
-      );
-      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+      expect(apexTestRunCacheService.getLastClassTestParam()).to.eq(testClass);
+      expect(apexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
       );
     });
@@ -336,7 +330,7 @@ describe('TestView', () => {
 
       // make sure we emit the update_selection event with the correct position
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         testRange
       ]);
     });
@@ -350,7 +344,7 @@ describe('TestView', () => {
       await testRunner.showErrorMessage(testNode);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         lineFailure - 1
       ]);
     });
@@ -362,7 +356,7 @@ describe('TestView', () => {
       await testRunner.showErrorMessage(testClass);
 
       expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sfdx:update_selection',
+        'sf:update_selection',
         lineFailure - 1
       ]);
     });

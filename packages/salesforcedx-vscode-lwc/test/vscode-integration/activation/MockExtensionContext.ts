@@ -8,9 +8,13 @@ import * as path from 'path';
 import {
   EnvironmentVariableCollection,
   EnvironmentVariableMutator,
+  EnvironmentVariableScope,
+  EventEmitter,
   Extension,
   ExtensionContext,
   ExtensionMode,
+  LanguageModelAccessInformation,
+  LanguageModelChat,
   Memento,
   SecretStorage,
   Uri
@@ -48,6 +52,7 @@ class MockEnvironmentVariableCollection
     throw new Error('Method not implemented.');
   }
   public persistent = true;
+  public description = 'Mock Environment Variable Collection';
   public replace(variable: string, value: string): void {
     throw new Error('Method not implemented.');
   }
@@ -76,47 +81,72 @@ class MockEnvironmentVariableCollection
   public clear(): void {
     throw new Error('Method not implemented.');
   }
+  public getScoped(scope: EnvironmentVariableScope): EnvironmentVariableCollection {
+    const envVar: any = null;
+    return envVar;
+  }
 }
 
 export class MockExtensionContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
+    this.workspaceState = new MockMemento(false);
     this.secrets = {
       onDidChange: {} as any,
-      get(key: string): Thenable<string | undefined> {
+      get: (key: string): Thenable<string | undefined> => {
         return Promise.resolve(undefined);
       },
-      store(key: string, value: string): Thenable<void> {
+      store: (key: string, value: string): Thenable<void> => {
         return Promise.resolve();
       },
-      delete(key: string): Thenable<void> {
+      delete: (key: string): Thenable<void> => {
         return Promise.resolve();
-      },
+      }
     };
     this.extension = {
       packageJSON: {
         version: 'v55.5.5',
         aiKey: 'fakeAIKey',
-        name: 'salesforcedx-vscode-lwc'
+        name: 'salesforcedx-vscode-lwc',
+        serverPath: [
+          'node_modules',
+          '@salesforce',
+          'lwc-language-server',
+          'lib',
+          'server.js'
+        ]
       }
     } as any;
+
   }
-  secrets: SecretStorage;
-  extension: Extension<any>;
-  public storageUri: Uri | undefined;
-  public globalStorageUri: Uri = Uri.parse('file://globalStorage');
-  public logUri = Uri.parse('file://logUri');
-  public extensionMode = ExtensionMode.Test;
-  public extensionUri = Uri.parse('file://test');
-  public environmentVariableCollection = new MockEnvironmentVariableCollection();
-  public subscriptions: Array<{ dispose(): any }> = [];
-  public workspaceState!: Memento;
-  public globalState: Memento & { setKeysForSync(keys: readonly string[]): void; };
-  public extensionPath: string = 'myExtensionPath';
-  public globalStoragePath = 'globalStatePath';
-  public logPath = 'logPath';
   public asAbsolutePath(relativePath: string): string {
     return path.join('../../package.json'); // this should point to the src/package.json
   }
+  public environmentVariableCollection =
+    new MockEnvironmentVariableCollection();
+  public extension: Extension<any>;
+  public extensionMode = ExtensionMode.Test;
+  public extensionPath: string = 'myExtensionPath';
+  public extensionUri = Uri.parse('file://test');
+  public globalState: Memento & {
+    setKeysForSync(keys: readonly string[]): void;
+  };
+  public globalStoragePath = 'globalStatePath';
+  public globalStorageUri = Uri.parse('file://globalStorage');
+  public languageModelAccessInformation: LanguageModelAccessInformation = {
+    onDidChange: new EventEmitter<void>().event,
+    canSendRequest: (chat: LanguageModelChat) => {
+      // Implement your logic here
+      // For example, return true, false, or undefined based on some condition
+      return true; // or false or undefined
+    }
+  };
+  public logPath = 'logPath';
+  public logUri = Uri.parse('file://logUri');
+  public secrets: SecretStorage;
   public storagePath: string = 'myStoragePath';
+  public storageUri: Uri | undefined;
+  public subscriptions: { dispose(): any }[] = [];
+  public workspaceState: Memento;
 }
+

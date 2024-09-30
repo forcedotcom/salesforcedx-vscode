@@ -67,7 +67,7 @@ describe('Task Service Unit Tests', () => {
     problemMatchers: [],
     runOptions: {},
     definition: {
-      type: 'sfdxLwcTest'
+      type: 'sfLwcTest'
     },
     scope: undefined
   };
@@ -100,24 +100,24 @@ describe('Task Service Unit Tests', () => {
     it('Should notify start task', async () => {
       const mockTaskId = 'mockTask1';
       const mockTaskName = 'mockTaskName';
-      const sfdxTask = taskService.createTask(
+      const sfTask = taskService.createTask(
         mockTaskId,
         mockTaskName,
         vscode.workspace.workspaceFolders![0],
         'mockCommand',
         []
       );
-      return new Promise(async resolve => {
-        sfdxTask.onDidStart(startedTask => {
-          expect(startedTask).to.equal(sfdxTask);
+      return new Promise<void>(async resolve => {
+        sfTask.onDidStart(startedTask => {
+          expect(startedTask).to.equal(sfTask);
           resolve();
         });
-        await sfdxTask.execute();
+        await sfTask.execute();
         onDidStartTaskEmitter.fire({
           execution: {
             task: {
               ...mockVscodeTask,
-              ...{ definition: { type: 'sfdxLwcTest', sfdxTaskId: mockTaskId } }
+              ...{ definition: { type: 'sfLwcTest', sfTaskId: mockTaskId } }
             },
             terminate: () => {}
           }
@@ -128,24 +128,24 @@ describe('Task Service Unit Tests', () => {
     it('Should notify end task', async () => {
       const mockTaskId = 'mockTask2';
       const mockTaskName = 'mockTaskName';
-      const sfdxTask = taskService.createTask(
+      const sfTask = taskService.createTask(
         mockTaskId,
         mockTaskName,
         vscode.workspace.workspaceFolders![0],
         'mockCommand',
         []
       );
-      return new Promise(async resolve => {
-        sfdxTask.onDidEnd(endedTask => {
-          expect(endedTask).to.equal(sfdxTask);
+      return new Promise<void>(async resolve => {
+        sfTask.onDidEnd(endedTask => {
+          expect(endedTask).to.equal(sfTask);
           resolve();
         });
-        await sfdxTask.execute();
+        await sfTask.execute();
         onDidEndTaskEmitter.fire({
           execution: {
             task: {
               ...mockVscodeTask,
-              ...{ definition: { type: 'sfdxLwcTest', sfdxTaskId: mockTaskId } }
+              ...{ definition: { type: 'sfLwcTest', sfTaskId: mockTaskId } }
             },
             terminate: () => {}
           }
@@ -156,29 +156,29 @@ describe('Task Service Unit Tests', () => {
     it('Should dispose task on finishing execution', async () => {
       const mockTaskId = 'mockTask3';
       const mockTaskName = 'mockTaskName';
-      const sfdxTask = taskService.createTask(
+      const sfTask = taskService.createTask(
         mockTaskId,
         mockTaskName,
         vscode.workspace.workspaceFolders![0],
         'mockCommand',
         []
       );
-      const disposeStub = stub(sfdxTask, 'dispose');
-      return new Promise(async resolve => {
-        sfdxTask.onDidEnd(endedTask => {
-          expect(endedTask).to.equal(sfdxTask);
+      const disposeStub = stub(sfTask, 'dispose');
+      return new Promise<void>(async resolve => {
+        sfTask.onDidEnd(endedTask => {
+          expect(endedTask).to.equal(sfTask);
           process.nextTick(() => {
             assert.calledOnce(disposeStub);
             disposeStub.restore();
             resolve();
           });
         });
-        await sfdxTask.execute();
+        await sfTask.execute();
         onDidEndTaskEmitter.fire({
           execution: {
             task: {
               ...mockVscodeTask,
-              ...{ definition: { type: 'sfdxLwcTest', sfdxTaskId: mockTaskId } }
+              ...{ definition: { type: 'sfLwcTest', sfTaskId: mockTaskId } }
             },
             terminate: () => {}
           }

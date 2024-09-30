@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as sinon from 'sinon';
@@ -547,11 +547,13 @@ function testCompletion(
     let passed = false;
     for (let tries = 3; !passed && tries > 0; tries--) {
       try {
-        const actualCompletionItems = ((await vscode.commands.executeCommand(
-          'vscode.executeCompletionItemProvider',
-          docUri,
-          position
-        )) as vscode.CompletionList).items;
+        const actualCompletionItems = (
+          (await vscode.commands.executeCommand(
+            'vscode.executeCompletionItemProvider',
+            docUri,
+            position
+          )) as vscode.CompletionList
+        ).items;
 
         const pickMainItemKeys = (item: CompletionItem) => ({
           label: item.label,
@@ -561,9 +563,8 @@ function testCompletion(
         const simplifiedActualCompletionItems = actualCompletionItems
           .filter(shouldIgnoreCompletionItem)
           .map(pickMainItemKeys);
-        const simplifiedExpectedCompletionItems = expectedCompletionItems.map(
-          pickMainItemKeys
-        );
+        const simplifiedExpectedCompletionItems =
+          expectedCompletionItems.map(pickMainItemKeys);
 
         if (options.allowExtraCompletionItems) {
           expect(simplifiedActualCompletionItems).to.include.deep.members(

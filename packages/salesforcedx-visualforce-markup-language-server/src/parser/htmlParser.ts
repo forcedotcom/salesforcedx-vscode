@@ -68,11 +68,11 @@ export class Node {
   }
 }
 
-export interface HTMLDocument {
+export type HTMLDocument = {
   roots: Node[];
   findNodeBefore(offset: number): Node;
   findNodeAt(offset: number): Node;
-}
+};
 
 export function parse(text: string): HTMLDocument {
   const scanner = createScanner(text);

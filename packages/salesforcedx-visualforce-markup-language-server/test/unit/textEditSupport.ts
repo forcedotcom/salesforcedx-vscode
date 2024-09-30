@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -7,7 +8,7 @@
 import * as assert from 'assert';
 import { TextDocument, TextEdit } from 'vscode-languageserver-types';
 
-export function applyEdits(document: TextDocument, edits: TextEdit[]): string {
+export const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
   const sortedEdits = edits.sort(
     (a, b) =>
@@ -26,4 +27,4 @@ export function applyEdits(document: TextDocument, edits: TextEdit[]): string {
     lastOffset = startOffset;
   });
   return text;
-}
+};

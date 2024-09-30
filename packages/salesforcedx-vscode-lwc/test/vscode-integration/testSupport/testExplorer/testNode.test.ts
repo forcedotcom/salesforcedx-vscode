@@ -10,8 +10,8 @@ import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { nls } from '../../../../src/messages';
 import {
-  SfdxTestGroupNode,
-  SfdxTestNode,
+  SfTestGroupNode,
+  SfTestNode,
   sortTestNodeByLabel
 } from '../../../../src/testSupport/testExplorer/testNode';
 import {
@@ -22,27 +22,27 @@ import {
   TestType
 } from '../../../../src/testSupport/types';
 
-describe('Sfdx Test Node', () => {
+describe('Sf Test Node', () => {
   const mockDirectory = /^win32/.test(process.platform)
     ? `C:\\Users\\tester`
     : `/Users/tester`;
   const mockTestFile = 'mockTest.test.js';
   const mockTestFilePath = path.join(mockDirectory, mockTestFile);
   describe('Should set correct values for test nodes', () => {
-    it('Should set correct values for SfdxTestGroupNode', () => {
+    it('Should set correct values for SfTestGroupNode', () => {
       const testExecutionInfo: TestFileInfo = {
         kind: TestInfoKind.TEST_FILE,
         testType: TestType.LWC,
         testUri: URI.file(mockTestFilePath)
       };
       const mockLabel = 'mockTest';
-      const groupNode = new SfdxTestGroupNode(mockLabel, testExecutionInfo);
+      const groupNode = new SfTestGroupNode(mockLabel, testExecutionInfo);
       const expectedCollpasibleState =
         vscode.TreeItemCollapsibleState.Collapsed;
       const expectedContextValue = 'lwcTestGroup';
       const expectedCommand = {
-        command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-        title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+        command: 'sf.lightning.lwc.test.navigateToTest',
+        title: nls.localize('lightning_lwc_test_navigate_to_test'),
         arguments: [groupNode]
       };
       const expectedDescription = mockLabel;
@@ -52,7 +52,7 @@ describe('Sfdx Test Node', () => {
       expect(groupNode.contextValue).equal(expectedContextValue);
     });
 
-    it('Should set correct values for SfdxTestNode', () => {
+    it('Should set correct values for SfTestNode', () => {
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
@@ -60,12 +60,12 @@ describe('Sfdx Test Node', () => {
         testName: 'mockTestName'
       };
       const mockLabel = 'mockTestName';
-      const testNode = new SfdxTestNode(mockLabel, testExecutionInfo);
+      const testNode = new SfTestNode(mockLabel, testExecutionInfo);
       const expectedCollpasibleState = vscode.TreeItemCollapsibleState.None;
       const expectedContextValue = 'lwcTest';
       const expectedCommand = {
-        command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-        title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+        command: 'sf.lightning.lwc.test.navigateToTest',
+        title: nls.localize('lightning_lwc_test_navigate_to_test'),
         arguments: [testNode]
       };
       const expectedDescription = mockLabel;
@@ -87,7 +87,7 @@ describe('Sfdx Test Node', () => {
     it('Should set correct icon paths for tests not run', () => {
       testExecutionInfo.testResult = undefined;
       const mockLabel = 'mockTest';
-      const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
+      const groupNode = new SfTestNode(mockLabel, testExecutionInfo);
       expect(
         groupNode.iconPath.dark.toString().endsWith('testNotRun.svg')
       ).to.equal(true);
@@ -99,7 +99,7 @@ describe('Sfdx Test Node', () => {
     it('Should set correct icon paths for passed tests', () => {
       testExecutionInfo.testResult = { status: TestResultStatus.PASSED };
       const mockLabel = 'mockTest';
-      const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
+      const groupNode = new SfTestNode(mockLabel, testExecutionInfo);
       expect(
         groupNode.iconPath.dark.toString().endsWith('testPass.svg')
       ).to.equal(true);
@@ -111,7 +111,7 @@ describe('Sfdx Test Node', () => {
     it('Should set correct icon paths for failed tests', () => {
       testExecutionInfo.testResult = { status: TestResultStatus.FAILED };
       const mockLabel = 'mockTest';
-      const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
+      const groupNode = new SfTestNode(mockLabel, testExecutionInfo);
       expect(
         groupNode.iconPath.dark.toString().endsWith('testFail.svg')
       ).to.equal(true);
@@ -123,7 +123,7 @@ describe('Sfdx Test Node', () => {
     it('Should set correct icon paths for skipped tests', () => {
       testExecutionInfo.testResult = { status: TestResultStatus.SKIPPED };
       const mockLabel = 'mockTest';
-      const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
+      const groupNode = new SfTestNode(mockLabel, testExecutionInfo);
       expect(
         groupNode.iconPath.dark.toString().endsWith('testSkip.svg')
       ).to.equal(true);
@@ -137,7 +137,7 @@ describe('Sfdx Test Node', () => {
         status: TestResultStatus.UNKNOWN
       };
       const mockLabel = 'mockTest';
-      const groupNode = new SfdxTestNode(mockLabel, testExecutionInfo);
+      const groupNode = new SfTestNode(mockLabel, testExecutionInfo);
       expect(
         groupNode.iconPath.dark.toString().endsWith('testNotRun.svg')
       ).to.equal(true);
@@ -155,22 +155,22 @@ describe('Sfdx Test Node', () => {
     };
 
     it('Comparator should return -1 when first node does not have label', () => {
-      const groupNode1 = new SfdxTestGroupNode('file1', testExecutionInfo);
-      const groupNode2 = new SfdxTestGroupNode('file2', testExecutionInfo);
+      const groupNode1 = new SfTestGroupNode('file1', testExecutionInfo);
+      const groupNode2 = new SfTestGroupNode('file2', testExecutionInfo);
       groupNode1.label = undefined;
       groupNode2.label = 'mock';
       expect(sortTestNodeByLabel(groupNode1, groupNode2)).to.equal(-1);
     });
     it('Comparator should return 1 when second node does not have label', () => {
-      const groupNode1 = new SfdxTestGroupNode('file1', testExecutionInfo);
-      const groupNode2 = new SfdxTestGroupNode('file2', testExecutionInfo);
+      const groupNode1 = new SfTestGroupNode('file1', testExecutionInfo);
+      const groupNode2 = new SfTestGroupNode('file2', testExecutionInfo);
       groupNode1.label = 'mock';
       groupNode2.label = undefined;
       expect(sortTestNodeByLabel(groupNode1, groupNode2)).to.equal(1);
     });
     it('Comparator should compare alphabetically', () => {
-      const groupNode1 = new SfdxTestGroupNode('file1', testExecutionInfo);
-      const groupNode2 = new SfdxTestGroupNode('file2', testExecutionInfo);
+      const groupNode1 = new SfTestGroupNode('file1', testExecutionInfo);
+      const groupNode2 = new SfTestGroupNode('file2', testExecutionInfo);
       groupNode1.label = 'apple';
       groupNode2.label = 'cheese';
       expect(sortTestNodeByLabel(groupNode1, groupNode2)).to.equal(-1);

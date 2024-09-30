@@ -8,7 +8,6 @@
  */
 
 import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
 import * as path from 'path';
 import { SpectronApplication } from '../spectron/application';
 import { sanitize } from './utilities';
@@ -46,7 +45,7 @@ export class Screenshot {
         console.log('Error creating test snapshot');
       });
     await new Promise<void>((c, e) =>
-      mkdirp(path.dirname(screenshotPath), err => (err ? e(err) : c()))
+      fs.mkdir(path.dirname(screenshotPath), { recursive: true }, err => (err ? e(err) : c()))
     );
     await new Promise<void>((c, e) =>
       fs.writeFile(screenshotPath, image, err => (err ? e(err) : c()))

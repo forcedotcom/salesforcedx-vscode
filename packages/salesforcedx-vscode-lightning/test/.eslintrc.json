@@ -1,0 +1,6 @@
+{
+  "extends": [
+    "../.eslintrc.json",
+    "../../../config/common-test-lint-rules.json"
+  ]
+}

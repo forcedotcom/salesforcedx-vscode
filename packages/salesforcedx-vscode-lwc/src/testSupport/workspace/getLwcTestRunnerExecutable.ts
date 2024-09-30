@@ -13,11 +13,11 @@ import { telemetryService } from '../../telemetry';
 import { workspaceService } from './workspaceService';
 
 /**
- * Get the absolute path to LWC Test runner executable, installed in an SFDX project.
+ * Get the absolute path to LWC Test runner executable, installed in a SFDX Project.
  * @param cwd path to the workspace folder
  * @returns path to LWC Test runner
  */
-export function getLwcTestRunnerExecutable(cwd: string) {
+export const getLwcTestRunnerExecutable = (cwd: string) => {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
   if (workspaceService.isSFDXWorkspace(workspaceType)) {
     const lwcTestRunnerExecutable = path.join(
@@ -59,4 +59,4 @@ export function getLwcTestRunnerExecutable(cwd: string) {
       'Unsupported workspace'
     );
   }
-}
+};

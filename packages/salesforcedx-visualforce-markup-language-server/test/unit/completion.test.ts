@@ -3,10 +3,7 @@
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
- * Derived from https://github.com/Microsoft/vscode-html-languageservice/blob/a607328b6c1532b87cfb2ba532f27b297465d7e4/src/test/completion.test.ts
  */
-// tslint:disable:no-unused-expression
 
 import * as assert from 'assert';
 import { expect } from 'chai';
@@ -18,13 +15,13 @@ import {
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
-export interface ItemDescription {
+export type ItemDescription = {
   label: string;
   documentation?: string;
   kind?: CompletionItemKind;
   resultText?: string;
   notAvailable?: boolean;
-}
+};
 
 describe('HTML Completion', () => {
   const assertCompletion = (
@@ -112,7 +109,7 @@ describe('HTML Completion', () => {
     assert.equal(actual, expected);
   };
 
-  function run(tests: Array<PromiseLike<void>>, testDone) {
+  const run = (tests: PromiseLike<void>[], testDone) => {
     // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {
@@ -122,7 +119,7 @@ describe('HTML Completion', () => {
         testDone(error);
       }
     );
-  }
+  };
 
   it('Complete', testDone => {
     run(
@@ -574,7 +571,7 @@ describe('HTML Completion', () => {
   // Visualforce
   //////////////
 
-  function getCompletionSuggestions(value: string): CompletionList {
+  const getCompletionSuggestions = (value: string): CompletionList => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -590,7 +587,7 @@ describe('HTML Completion', () => {
     const vfDoc = ls.parseHTMLDocument(document);
     const list = ls.doComplete(document, position, vfDoc);
     return list;
-  }
+  };
 
   describe('Visualforce Completions', () => {
     // This list is from https://developer.salesforce.com/docs/atlas.en-us.pages.meta/pages/pages_compref_map.htm

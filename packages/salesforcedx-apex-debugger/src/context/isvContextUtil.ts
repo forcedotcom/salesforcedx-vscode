@@ -6,25 +6,25 @@
  */
 
 import {
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL,
-  ForceConfigGet,
+  ENV_SF_ORG_INSTANCE_URL,
+  ENV_SF_TARGET_ORG,
+  ConfigGet,
   GlobalCliEnvironment,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
     let isvDebugProject = false;
     if (projectWorkspacePath) {
-      const forceConfig = await new ForceConfigGet().getConfig(
+      const config = await new ConfigGet().getConfig(
         projectWorkspacePath,
-        SFDX_CONFIG_ISV_DEBUGGER_SID,
-        SFDX_CONFIG_ISV_DEBUGGER_URL
+        SF_CONFIG_ISV_DEBUGGER_SID,
+        SF_CONFIG_ISV_DEBUGGER_URL
       );
-      const isvDebuggerSid = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-      const isvDebuggerUrl = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+      const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
+      const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
 
       if (
         typeof isvDebuggerSid !== 'undefined' &&
@@ -32,11 +32,11 @@ export class IsvContextUtil {
       ) {
         // set auth context
         GlobalCliEnvironment.environmentVariables.set(
-          ENV_SFDX_DEFAULTUSERNAME,
+          ENV_SF_TARGET_ORG,
           isvDebuggerSid
         );
         GlobalCliEnvironment.environmentVariables.set(
-          ENV_SFDX_INSTANCE_URL,
+          ENV_SF_ORG_INSTANCE_URL,
           isvDebuggerUrl
         );
         isvDebugProject = true;
@@ -47,10 +47,10 @@ export class IsvContextUtil {
 
   public resetCliEnvironmentVars() {
     // reset any auth
-    GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_DEFAULTUSERNAME);
-    GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_INSTANCE_URL);
+    GlobalCliEnvironment.environmentVariables.delete(ENV_SF_TARGET_ORG);
+    GlobalCliEnvironment.environmentVariables.delete(ENV_SF_ORG_INSTANCE_URL);
     console.log(
-      `Deleted environment variables ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL}`
+      `Deleted environment variables ${ENV_SF_TARGET_ORG} and ${ENV_SF_ORG_INSTANCE_URL}`
     );
   }
 }

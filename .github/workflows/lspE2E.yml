@@ -1,0 +1,140 @@
+name: LSP End to End Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      auraLsp:
+        description: 'Aura LSP'
+        required: false
+        default: true
+        type: boolean
+      lwcLsp:
+        description: 'LWC LSP'
+        required: false
+        default: true
+        type: boolean
+      visualforceLsp:
+        description: 'Visualforce LSP'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.92.2'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      auraLsp:
+        description: 'Aura LSP'
+        required: false
+        default: true
+        type: boolean
+      lwcLsp:
+        description: 'LWC LSP'
+        required: false
+        default: true
+        type: boolean
+      visualforceLsp:
+        description: 'Visualforce LSP'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.92.2'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: false
+        type: string
+
+jobs:
+  auraLSP:
+    if: ${{ inputs.auraLsp }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'auraLsp.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  lwcLSP:
+    if: ${{ inputs.lwcLsp }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'lwcLsp.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  visualforceLSP:
+    if: ${{ inputs.visualforceLsp }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'visualforceLsp.e2e.ts'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+      os: '["macos-latest", "ubuntu-latest"]'
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs: [auraLSP, lwcLSP, visualforceLSP]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LSP E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'

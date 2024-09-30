@@ -9,9 +9,9 @@ import { expect } from 'chai';
 import { developerLogTraceFlag } from '../../../src/commands';
 
 // tslint:disable:no-unused-expression
-describe('Force Start Apex Debug Logging', () => {
+describe('Start Apex Debug Logging', () => {
   describe('Invalid start and end date', () => {
-    before(() => {
+    beforeEach(() => {
       developerLogTraceFlag.setTraceFlagDebugLevelInfo(
         'fakeTraceFlagId',
         new Date().toUTCString(),

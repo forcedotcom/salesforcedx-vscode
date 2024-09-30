@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestResult } from '@salesforce/apex-node';
+import { TestResult } from '@salesforce/apex-node-bundle';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -15,30 +15,28 @@ import {
   PASS_RESULT,
   SKIP_RESULT
 } from '../constants';
-import {
-  getApexTests,
-  LanguageClientStatus,
-  languageClientUtils
-} from '../languageClientUtils';
+import { getApexTests, languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
-import { iconHelpers, IconsEnum } from './icons';
+import { IconsEnum, iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+const safeLocalize = (val: string) => nls.localize(val);
+
 // Message
-const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
-const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
-const NO_TESTS_DESCRIPTION = nls.localize(
-  'force_test_view_no_tests_description'
-);
+const LOADING_MESSAGE = safeLocalize('test_view_loading_message');
+const NO_TESTS_MESSAGE = safeLocalize('test_view_no_tests_message');
+const NO_TESTS_DESCRIPTION = safeLocalize('test_view_no_tests_description');
 
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
+const BASE_ID = 'sf.test.view';
 
 export class ApexTestOutlineProvider
-  implements vscode.TreeDataProvider<TestNode> {
-  private onDidChangeTestData: vscode.EventEmitter<
-    TestNode | undefined
-  > = new vscode.EventEmitter<TestNode | undefined>();
+  implements vscode.TreeDataProvider<TestNode>
+{
+  private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> =
+    new vscode.EventEmitter<TestNode | undefined>();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
 
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
@@ -62,6 +60,10 @@ export class ApexTestOutlineProvider
     }
   }
 
+  public getId(): string {
+    return BASE_ID;
+  }
+
   public getChildren(element: TestNode): TestNode[] {
     if (element) {
       return element.children;
@@ -71,10 +73,10 @@ export class ApexTestOutlineProvider
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+        const languageClientStatus = languageClientUtils.getStatus();
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
-            vscode.window.showInformationMessage(
+            void vscode.window.showInformationMessage(
               languageClientStatus.getStatusMessage()
             );
             return new Array<ApexTestNode>();
@@ -116,13 +118,16 @@ export class ApexTestOutlineProvider
     this.rootNode = null; // Reset tests
     this.apexTestMap.clear();
     this.testStrings.clear();
-    this.apexTestInfo = null;
-    if (languageClientUtils.getStatus().isReady()) {
-      this.apexTestInfo = await getApexTests();
-      this.createTestIndex();
-    }
+    this.apexTestInfo = await getApexTests();
+    this.createTestIndex();
     this.getAllApexTests();
     this.onDidChangeTestData.fire(undefined);
+  }
+
+  public async collapseAll(): Promise<void> {
+    return vscode.commands.executeCommand(
+      `workbench.actions.treeView.${this.getId()}.collapseAll`
+    );
   }
 
   public async onResultFileCreate(
@@ -130,16 +135,12 @@ export class ApexTestOutlineProvider
     testResultFile: string
   ) {
     const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
-    const testRunId = readFileSync(testRunIdFile);
-    let testResultFilePath;
-    if (testRunId.toString() === '') {
-      testResultFilePath = path.join(apexTestPath, TEST_RESULT_JSON_FILE);
-    } else {
-      testResultFilePath = path.join(
-        apexTestPath,
-        `test-result-${testRunId}.json`
-      );
-    }
+    const testRunId = readFileSync(testRunIdFile).toString();
+    const testResultFilePath = path.join(
+      apexTestPath,
+      !testRunId ? TEST_RESULT_JSON_FILE : `test-result-${testRunId}.json`
+    );
+
     if (testResultFile === testResultFilePath) {
       await this.refresh();
       this.updateTestResults(testResultFile);
@@ -163,7 +164,7 @@ export class ApexTestOutlineProvider
   }
 
   private getAllApexTests(): TestNode {
-    if (this.rootNode == null) {
+    if (this.rootNode === null) {
       // Starting Out
       this.rootNode = new ApexTestGroupNode(APEX_TESTS, null);
     }
@@ -182,6 +183,7 @@ export class ApexTestOutlineProvider
           this.apexTestMap.set(test.definingType, apexGroup);
         }
         const apexTest = new ApexTestNode(test.methodName, test.location);
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         apexTest.name = apexGroup.label + '.' + apexTest.label;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
@@ -230,7 +232,7 @@ export class ApexTestOutlineProvider
       if (apexTestNode) {
         apexTestNode.outcome = test.outcome;
         apexTestNode.updateOutcome();
-        if (test.outcome === FAIL_RESULT) {
+        if (test.outcome.toString() === FAIL_RESULT) {
           apexTestNode.errorMessage = test.message || '';
           apexTestNode.stackTrace = test.stackTrace || '';
           apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
@@ -259,8 +261,8 @@ export abstract class TestNode extends vscode.TreeItem {
     this.description = label;
     this.name = label;
     this.command = {
-      command: 'sfdx.force.test.view.showError',
-      title: nls.localize('force_test_view_show_error_title'),
+      command: `${BASE_ID}.showError`,
+      title: safeLocalize('test_view_show_error_title'),
       arguments: [this]
     };
   }
@@ -271,6 +273,7 @@ export abstract class TestNode extends vscode.TreeItem {
   };
 
   // TODO: create a ticket to address this particular issue.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   get tooltip(): string {
     return this.description;
@@ -320,12 +323,10 @@ export class ApexTestGroupNode extends TestNode {
     this.failing = 0;
     this.skipping = 0;
     this.children.forEach(child => {
-      if ((child as ApexTestNode).outcome === PASS_RESULT) {
-        this.passing++;
-      } else if ((child as ApexTestNode).outcome === FAIL_RESULT) {
-        this.failing++;
-      } else if ((child as ApexTestNode).outcome === SKIP_RESULT) {
-        this.skipping++;
+      if (child instanceof ApexTestNode) {
+        this.passing += child.outcome === PASS_RESULT ? 1 : 0;
+        this.failing += child.outcome === FAIL_RESULT ? 1 : 0;
+        this.skipping += child.outcome === SKIP_RESULT ? 1 : 0;
       }
     });
 

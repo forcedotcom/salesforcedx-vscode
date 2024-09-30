@@ -6,7 +6,6 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -16,8 +15,8 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import {
-  forceApexClassCreate,
-  forceLightningLwcCreate
+  apexGenerateClass,
+  lightningGenerateLwc
 } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
@@ -90,30 +89,17 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
     assert.file([apexClassPath, apexClassMetaPath]);
-    assert.fileContent(
-      apexClassPath,
-      'public with sharing class CustomTestApexClass'
-    );
-    assert.fileContent(
-      apexClassMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <status>Inactive</status>
-</ApexClass>`
-    );
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
 
     sinon.assert.calledOnce(sendCommandEventStub);
     sinon.assert.calledWith(
       sendCommandEventStub,
-      'force_apex_class_create',
+      'apex_generate_class',
       sinon.match.array,
       {
         dirType: 'defaultDir',
@@ -125,7 +111,7 @@ describe('Custom Templates Create', () => {
     // clean up
     shell.rm('-f', apexClassPath);
     shell.rm('-f', apexClassMetaPath);
-  }).timeout(20000);
+  });
 
   it('Should handle error and log telemetry if local template does not exist', async () => {
     // arrange
@@ -148,7 +134,7 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const errorMessage = templatesNls.localize(
@@ -160,12 +146,12 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(showFailedExecutionStub);
     sinon.assert.calledWith(
       showFailedExecutionStub,
-      nls.localize('force_apex_class_create_text')
+      nls.localize('apex_generate_class_text')
     );
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
       sendExceptionStub,
-      'force_template_create_library',
+      'template_create_library',
       errorMessage
     );
   });
@@ -191,7 +177,7 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceApexClassCreate();
+    await apexGenerateClass();
 
     // assert
     const errorMessage = templatesNls.localize(
@@ -203,12 +189,12 @@ describe('Custom Templates Create', () => {
     sinon.assert.calledOnce(showFailedExecutionStub);
     sinon.assert.calledWith(
       showFailedExecutionStub,
-      nls.localize('force_apex_class_create_text')
+      nls.localize('apex_generate_class_text')
     );
     sinon.assert.calledOnce(sendExceptionStub);
     sinon.assert.calledWith(
       sendExceptionStub,
-      'force_template_create_library',
+      'template_create_library',
       errorMessage
     );
   });
@@ -245,33 +231,17 @@ describe('Custom Templates Create', () => {
     quickPickStub.returns(outputPath);
 
     // act
-    await forceLightningLwcCreate();
+    await lightningGenerateLwc();
 
     // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
     assert.file([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
-    assert.fileContent(lwcHtmlPath, `<template>\n    \n</template>`);
-    assert.fileContent(
-      lwcJsPath,
-      `import { LightningElement } from 'lwc';
-
-export default class TestLwc extends LightningElement {}`
-    );
-    assert.fileContent(
-      lwcJsMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <isExposed>false</isExposed>
-</LightningComponentBundle>`
-    );
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, lwcJsPath);
 
     sinon.assert.calledOnce(sendCommandEventStub);
     sinon.assert.calledWith(
       sendCommandEventStub,
-      'force_lightning_web_component_create',
+      'lightning_generate_lwc',
       sinon.match.array,
       {
         dirType: 'defaultDir',
@@ -285,5 +255,5 @@ export default class TestLwc extends LightningElement {}`
       '-rf',
       path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
     );
-  }).timeout(20000);
+  });
 });

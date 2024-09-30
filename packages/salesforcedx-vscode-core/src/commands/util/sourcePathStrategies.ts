@@ -15,6 +15,7 @@ class DefaultPathStrategy implements SourcePathStrategy {
     return join(dirPath, `${fileName}${fileExt}`);
   }
 }
+
 class BundlePathStrategy implements SourcePathStrategy {
   public getPathToSource(
     dirPath: string,
@@ -78,9 +79,9 @@ class LwcTestPathStrategy implements SourcePathStrategy {
   }
 }
 
-export interface SourcePathStrategy {
+export type SourcePathStrategy = {
   getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
-}
+};
 
 export class PathStrategyFactory {
   public static createDefaultStrategy(): DefaultPathStrategy {

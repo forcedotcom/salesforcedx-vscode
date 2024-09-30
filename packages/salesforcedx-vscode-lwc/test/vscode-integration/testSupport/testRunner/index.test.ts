@@ -46,9 +46,13 @@ describe('LWC Test Runner', () => {
     });
 
     const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
-    const sfdxProjectPath = path.join(root, 'project', 'mockSfdxProject');
+    const salesforceProjectPath = path.join(
+      root,
+      'project',
+      'mockSalesforceProject'
+    );
     const testFsPath = path.join(
-      sfdxProjectPath,
+      salesforceProjectPath,
       'force-app',
       'main',
       'default',
@@ -57,7 +61,7 @@ describe('LWC Test Runner', () => {
       '__tests__',
       'mockTest.test.js'
     );
-    const mockWorkspaceFolder = { uri: URI.file(sfdxProjectPath) };
+    const mockWorkspaceFolder = { uri: URI.file(salesforceProjectPath) };
     it('Should get jest execution info for test case', () => {
       const testName = 'mockTestName';
       const testUri = URI.file(testFsPath);
@@ -75,7 +79,7 @@ describe('LWC Test Runner', () => {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
           '--outputFile',
-          'c:\\project\\mockSfdxProject\\.sfdx\\tools\\testresults\\lwc\\test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
+          'c:\\project\\mockSalesforceProject\\.sfdx\\tools\\testresults\\lwc\\test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
           '--testLocationInResults',
           '--runTestsByPath',
           'force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js',
@@ -86,10 +90,10 @@ describe('LWC Test Runner', () => {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
           '--outputFile',
-          '/var/project/mockSfdxProject/.sfdx/tools/testresults/lwc/test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
+          '/var/project/mockSalesforceProject/.sfdx/tools/testresults/lwc/test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
           '--testLocationInResults',
           '--runTestsByPath',
-          '/var/project/mockSfdxProject/force-app/main/default/lwc/mockComponent/__tests__/mockTest.test.js',
+          '/var/project/mockSalesforceProject/force-app/main/default/lwc/mockComponent/__tests__/mockTest.test.js',
           '--testNamePattern',
           'mockTestName'
         ]);
@@ -114,7 +118,7 @@ describe('LWC Test Runner', () => {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
           '--outputFile',
-          'c:\\project\\mockSfdxProject\\.sfdx\\tools\\testresults\\lwc\\test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
+          'c:\\project\\mockSalesforceProject\\.sfdx\\tools\\testresults\\lwc\\test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
           '--testLocationInResults',
           '--runTestsByPath',
           'force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js',
@@ -125,10 +129,10 @@ describe('LWC Test Runner', () => {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
           '--outputFile',
-          '/var/project/mockSfdxProject/.sfdx/tools/testresults/lwc/test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
+          '/var/project/mockSalesforceProject/.sfdx/tools/testresults/lwc/test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
           '--testLocationInResults',
           '--runTestsByPath',
-          '/var/project/mockSfdxProject/force-app/main/default/lwc/mockComponent/__tests__/mockTest.test.js',
+          '/var/project/mockSalesforceProject/force-app/main/default/lwc/mockComponent/__tests__/mockTest.test.js',
           '--testNamePattern',
           `${escapedMockTestName}`
         ]);

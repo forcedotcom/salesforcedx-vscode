@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -15,25 +16,25 @@ import { Position, Range, TextDocument } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
 import { LanguageMode, Settings } from './languageModes';
 
-export function getHTMLMode(
+export const getHTMLMode = (
   htmlLanguageService: HTMLLanguageService
-): LanguageMode {
+): LanguageMode => {
   let globalSettings: Settings = {};
   const htmlDocuments = getLanguageModelCache<HTMLDocument>(10, 60, document =>
     htmlLanguageService.parseHTMLDocument(document)
   );
   return {
-    getId() {
+    getId: () => {
       return 'html';
     },
-    configure(options: any) {
+    configure: (options: any) => {
       globalSettings = options;
     },
-    doComplete(
+    doComplete: (
       document: TextDocument,
       position: Position,
       settings: Settings = globalSettings
-    ) {
+    ) => {
       const options =
         settings && settings.visualforce && settings.visualforce.suggest;
       const doAutoComplete =
@@ -50,38 +51,38 @@ export function getHTMLMode(
         options
       );
     },
-    doHover(document: TextDocument, position: Position) {
+    doHover: (document: TextDocument, position: Position) => {
       return htmlLanguageService.doHover(
         document,
         position,
         htmlDocuments.get(document)
       );
     },
-    findDocumentHighlight(document: TextDocument, position: Position) {
+    findDocumentHighlight: (document: TextDocument, position: Position) => {
       return htmlLanguageService.findDocumentHighlights(
         document,
         position,
         htmlDocuments.get(document)
       );
     },
-    findDocumentLinks(
+    findDocumentLinks: (
       document: TextDocument,
       documentContext: DocumentContext
-    ) {
+    ) => {
       return htmlLanguageService.findDocumentLinks(document, documentContext);
     },
-    findDocumentSymbols(document: TextDocument) {
+    findDocumentSymbols: (document: TextDocument) => {
       return htmlLanguageService.findDocumentSymbols(
         document,
         htmlDocuments.get(document)
       );
     },
-    format(
+    format: (
       document: TextDocument,
       range: Range,
       formatParams: FormattingOptions,
       settings: Settings = globalSettings
-    ) {
+    ) => {
       let formatSettings: HTMLFormatConfiguration =
         settings && settings.visualforce && settings.visualforce.format;
       if (formatSettings) {
@@ -98,7 +99,7 @@ export function getHTMLMode(
       formatSettings = merge(formatParams, formatSettings);
       return htmlLanguageService.format(document, range, formatSettings);
     },
-    doAutoClose(document: TextDocument, position: Position) {
+    doAutoClose: (document: TextDocument, position: Position) => {
       const offset = document.offsetAt(position);
       const text = document.getText();
       if (offset > 0 && text.charAt(offset - 1).match(/[>\/]/g)) {
@@ -110,20 +111,20 @@ export function getHTMLMode(
       }
       return null;
     },
-    onDocumentRemoved(document: TextDocument) {
+    onDocumentRemoved: (document: TextDocument) => {
       htmlDocuments.onDocumentRemoved(document);
     },
-    dispose() {
+    dispose: () => {
       htmlDocuments.dispose();
     }
   };
-}
+};
 
-function merge(src: any, dst: any): any {
+const merge = (src: any, dst: any): any => {
   for (const key in src) {
     if (src.hasOwnProperty(key)) {
       dst[key] = src[key];
     }
   }
   return dst;
-}
+};

@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   CommandOutput,
   RequestService,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
@@ -17,16 +17,14 @@ import {
   LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
 
+export const DEBUGGER_BREAKPOINT_ID_PREFIX = '07b';
+
 export class BreakpointService {
-  private lineNumberMapping: Map<
-    string,
-    LineBreakpointsInTyperef[]
-  > = new Map();
+  private lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> =
+    new Map();
   private typerefMapping: Map<string, string> = new Map();
-  private lineBreakpointCache: Map<
-    string,
-    ApexBreakpointLocation[]
-  > = new Map();
+  private lineBreakpointCache: Map<string, ApexBreakpointLocation[]> =
+    new Map();
   private exceptionBreakpointCache: Map<string, string> = new Map();
   private readonly requestService: RequestService;
 
@@ -47,7 +45,7 @@ export class BreakpointService {
   }
 
   public isApexDebuggerBreakpointId(id: string): boolean {
-    return id != null && id.startsWith('07b');
+    return id != null && id.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX);
   }
 
   public getTyperefFor(uri: string, line: number): string | undefined {
@@ -115,14 +113,14 @@ export class BreakpointService {
     line: number
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:data:record:create')
-        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
+      new SfCommandBuilder()
+        .withArg('data:create:record')
+        .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag(
           '--values',
           `SessionId='${sessionId}' FileName='${typeref}' Line=${line} IsEnabled='true' Type='Line'`
         )
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
@@ -147,11 +145,11 @@ export class BreakpointService {
     breakpointId: string
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:data:record:delete')
-        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
-        .withFlag('--sobjectid', breakpointId)
-        .withArg('--usetoolingapi')
+      new SfCommandBuilder()
+        .withArg('data:delete:record')
+        .withFlag('--sobject', 'ApexDebuggerBreakpoint')
+        .withFlag('--record-id', breakpointId)
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
@@ -231,14 +229,14 @@ export class BreakpointService {
     typeref: string
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:data:record:create')
-        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
+      new SfCommandBuilder()
+        .withArg('data:create:record')
+        .withFlag('--sobject', 'ApexDebuggerBreakpoint')
         .withFlag(
           '--values',
           `SessionId='${sessionId}' FileName='${typeref}' IsEnabled='true' Type='Exception'`
         )
-        .withArg('--usetoolingapi')
+        .withArg('--use-tooling-api')
         .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }

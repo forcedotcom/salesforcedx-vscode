@@ -9,13 +9,13 @@ import * as util from '@salesforce/salesforcedx-test-utils-vscode/out/src/orgUti
 import {
   CliCommandExecutor,
   CommandExecution,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
+import { DebugClient } from '@vscode/debugadapter-testsupport';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-import { DebugClient } from 'vscode-debugadapter-testsupport';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';
@@ -37,7 +37,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
 
 /**
  * These integration tests assume the environment has authenticated to
- * a Dev Hub and it is set as the default Dev Hub.
+ * a Dev Hub and it is set as the target Dev Hub.
  */
 describe.skip('Interactive debugger adapter - integration', () => {
   jest.setTimeout(320000);
@@ -47,10 +47,10 @@ describe.skip('Interactive debugger adapter - integration', () => {
   let apexClassUri: string;
 
   beforeAll(async () => {
-    // Create SFDX project
+    // Generate SFDX Project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
-    await util.createSFDXProject(PROJECT_NAME);
+    await util.generateSFProject(PROJECT_NAME);
     // Create scratch org with Debug Apex enabled
     util.addFeatureToScratchOrgConfig(PROJECT_NAME, 'DebugApex');
     apexClassUri = Uri.file(
@@ -64,30 +64,8 @@ describe.skip('Interactive debugger adapter - integration', () => {
       uri: apexClassUri,
       typeref: 'BasicVariables',
       lines: [
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        27,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        36,
-        37,
-        39,
-        40,
-        42
+        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33,
+        34, 36, 37, 39, 40, 42
       ]
     });
     LINE_BREAKPOINT_INFO.push({
@@ -129,7 +107,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
   it('End-to-end flow', async () => {
     // Launch Apex Debugger session
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath
+      salesforceProject: projectPath
     } as LaunchRequestArguments);
     expect(launchResponse.success).to.equal(true);
     try {
@@ -218,17 +196,17 @@ describe.skip('Interactive debugger adapter - integration', () => {
   });
 });
 
-function execApexNoWait(
+const execApexNoWait = (
   apexExecFilePath: string,
   userName: string
-): CommandExecution {
+): CommandExecution => {
   return new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:apex:execute')
-      .withFlag('--apexcodefile', apexExecFilePath)
-      .withFlag('--targetusername', userName)
+    new SfCommandBuilder()
+      .withArg('apex:run')
+      .withFlag('--file', apexExecFilePath)
+      .withFlag('--target-org', userName)
       .withJson()
       .build(),
     { cwd: process.cwd() }
   ).execute();
-}
+};

@@ -6,7 +6,7 @@
  */
 
 import { basename } from 'path';
-import { Source, StackFrame } from 'vscode-debugadapter';
+import { Source, StackFrame } from '@vscode/debugadapter';
 import Uri from 'vscode-uri';
 import { ApexDebugStackFrameInfo } from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';

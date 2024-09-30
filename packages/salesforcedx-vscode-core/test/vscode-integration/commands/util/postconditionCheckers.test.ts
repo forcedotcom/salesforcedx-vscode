@@ -12,7 +12,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
-import { join, normalize } from 'path';
+import { join } from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import {
@@ -21,19 +21,20 @@ import {
   EmptyPostChecker,
   OverwriteComponentPrompt,
   PathStrategyFactory,
-  SfdxCommandlet
+  SfCommandlet
 } from '../../../../src/commands/util';
-import {
-  CompositePostconditionChecker,
-  TimestampConflictChecker
-} from '../../../../src/commands/util/postconditionCheckers';
+import { CompositePostconditionChecker } from '../../../../src/commands/util/compositePostconditionChecker';
+import { TimestampConflictChecker } from '../../../../src/commands/util/timestampConflictChecker';
 import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
+import { WorkspaceContext } from '../../../../src/context';
+import * as workspaceUtil from '../../../../src/context/workspaceOrgType';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
-import { sfdxCoreSettings } from '../../../../src/settings';
-import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
+import { salesforceCoreSettings } from '../../../../src/settings';
 import { MetadataDictionary, workspaceUtils } from '../../../../src/util';
+import { OrgType } from './../../../../src/context/workspaceOrgType';
+
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
@@ -123,7 +124,7 @@ describe('Postcondition Checkers', () => {
     // tslint:disable:no-unused-expression
     it('Should call executor if composite checker is ContinueResponse', async () => {
       let executed = false;
-      const commandlet = new SfdxCommandlet(
+      const commandlet = new SfCommandlet(
         new (class {
           public check(): boolean {
             return true;
@@ -158,7 +159,7 @@ describe('Postcondition Checkers', () => {
     });
 
     it('Should not call executor if composite checker is CancelResponse', async () => {
-      const commandlet = new SfdxCommandlet(
+      const commandlet = new SfCommandlet(
         new (class {
           public check(): boolean {
             return true;
@@ -234,7 +235,7 @@ describe('Postcondition Checkers', () => {
       it('Should prompt overwrite for EPT components that exist', async () => {
         existsStub.returns(false);
         const data = {
-          fileName: `Test1`,
+          fileName: 'Test1',
           outputdir: 'package/tests',
           type: 'ExperiencePropertyTypeBundle',
           suffix: 'json'
@@ -249,7 +250,7 @@ describe('Postcondition Checkers', () => {
       it('Should prompt overwrite for EPT components that does not exist', async () => {
         existsStub.returns(false);
         const data = {
-          fileName: `Test1`,
+          fileName: 'Test1',
           outputdir: 'package/tests',
           type: 'ExperiencePropertyTypeBundle',
           suffix: 'json'
@@ -415,7 +416,7 @@ describe('Postcondition Checkers', () => {
       });
     });
 
-    async function doPrompt(components: LocalComponent[], actions: any[]) {
+    const doPrompt = async (components: LocalComponent[], actions: any[]) => {
       components.forEach((component, index) => {
         pathExists(true, component, '.t-meta.xml');
         if (index < actions.length) {
@@ -427,9 +428,9 @@ describe('Postcondition Checkers', () => {
         type: 'CONTINUE',
         data: components
       });
-    }
+    };
 
-    function generateComponents(count: number) {
+    const generateComponents = (count: number) => {
       const data = [];
       for (let i = 1; i <= count; i++) {
         data.push({
@@ -440,22 +441,23 @@ describe('Postcondition Checkers', () => {
         });
       }
       return data;
-    }
+    };
 
-    function pathExists(
+    const pathExists = (
       value: boolean,
       forComponent: LocalComponent,
       withExtension: string
-    ) {
+    ) => {
       const path = join(
         workspaceUtils.getRootWorkspacePath(),
         `package/tests/${forComponent.fileName}${withExtension}`
       );
       existsStub.withArgs(path).returns(value);
-    }
+    };
   });
 
   describe('TimestampConflictChecker', () => {
+    const mockWorkspaceContext = { getConnection: () => {} } as any;
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let conflictViewStub: SinonStub;
@@ -466,9 +468,16 @@ describe('Postcondition Checkers', () => {
       env = createSandbox();
       channelOutput = [];
       modalStub = env.stub(notificationService, 'showWarningModal');
-      settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
+      settingsStub = env.stub(
+        salesforceCoreSettings,
+        'getConflictDetectionEnabled'
+      );
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
+      env.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
+      env
+        .stub(workspaceUtil, 'getWorkspaceOrgType')
+        .returns(OrgType.NonSourceTracked);
       appendLineStub.callsFake(line => channelOutput.push(line));
     });
 

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogService, TestService } from '@salesforce/apex-node';
+import { LogService, TestService } from '@salesforce/apex-node-bundle';
 import {
   TestLevel,
   TestResult
-} from '@salesforce/apex-node/lib/src/tests/types';
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+} from '@salesforce/apex-node-bundle/lib/src/tests/types';
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core-bundle';
+import { MockTestOrgData, TestContext } from '@salesforce/core-bundle';
 import {
   ContinueResponse,
   notificationService,
@@ -29,10 +29,9 @@ import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-const $$ = testSetup();
-
 // tslint:disable:no-unused-expression
 describe('Quick launch apex tests', () => {
+  const $$ = new TestContext();
   const testData = new MockTestOrgData();
   let testDebuggerExec: TestDebuggerExecutor;
   const APEX_LOG_ID = 'abcd';
@@ -67,7 +66,7 @@ describe('Quick launch apex tests', () => {
       })
     });
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
+      .withArgs('target-org')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
@@ -76,7 +75,7 @@ describe('Quick launch apex tests', () => {
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] });
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
-    createCheckpointStub = sb.stub(CheckpointService, 'sfdxCreateCheckpoints');
+    createCheckpointStub = sb.stub(CheckpointService, 'sfCreateCheckpoints');
     oneOrMoreActiveCheckpointsStub = sb.stub(
       CheckpointService.prototype,
       'hasOneOrMoreActiveCheckpoints'

@@ -9,14 +9,14 @@ const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';
 const HEADER_FILLER = '─';
 
-export interface Row {
+export type Row = {
   [column: string]: string;
-}
+};
 
-export interface Column {
+export type Column = {
   key: string;
   label: string;
-}
+};
 
 export class Table {
   public createTable(rows: Row[], cols: Column[], title?: string): string {

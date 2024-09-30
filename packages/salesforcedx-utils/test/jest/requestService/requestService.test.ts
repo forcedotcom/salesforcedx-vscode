@@ -1,11 +1,17 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as requestLight from 'request-light';
 import { XHROptions, XHRResponse } from 'request-light';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_HTTPS_PROXY,
   ENV_HTTP_PROXY,
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL
+  ENV_SF_TARGET_ORG,
+  ENV_SF_ORG_INSTANCE_URL
 } from '../../../src/constants';
 import {
   BaseCommand,
@@ -60,8 +66,8 @@ describe('RequestService unit tests.', () => {
       const envVars = requestService.getEnvVars();
       expect(envVars[ENV_HTTP_PROXY]).toBeUndefined();
       expect(envVars[ENV_HTTPS_PROXY]).toBeUndefined();
-      expect(envVars[ENV_SFDX_INSTANCE_URL]).toBeUndefined();
-      expect(envVars[ENV_SFDX_DEFAULTUSERNAME]).toBeUndefined();
+      expect(envVars[ENV_SF_ORG_INSTANCE_URL]).toBeUndefined();
+      expect(envVars[ENV_SF_TARGET_ORG]).toBeUndefined();
     });
 
     it('Should include request specific properties if defined.', () => {
@@ -74,8 +80,8 @@ describe('RequestService unit tests.', () => {
 
       expect(envVars[ENV_HTTP_PROXY]).toEqual(testProxyUrl);
       expect(envVars[ENV_HTTPS_PROXY]).toEqual(testProxyUrl);
-      expect(envVars[ENV_SFDX_INSTANCE_URL]).toEqual(testInstanceUrl);
-      expect(envVars[ENV_SFDX_DEFAULTUSERNAME]).toEqual(testAccessToken);
+      expect(envVars[ENV_SF_ORG_INSTANCE_URL]).toEqual(testInstanceUrl);
+      expect(envVars[ENV_SF_TARGET_ORG]).toEqual(testAccessToken);
     });
   });
 

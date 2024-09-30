@@ -52,6 +52,7 @@ export class ConflictNode extends vscode.TreeItem {
   }
 
   // TODO: create issue to track this
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   get tooltip() {
     if (this._conflict) {
@@ -85,7 +86,7 @@ export class ConflictFileNode extends ConflictNode {
     this.contextValue = 'conflict-actions';
     this.command = {
       title: nls.localize('conflict_detect_diff_command_title'),
-      command: 'sfdx.force.conflict.diff',
+      command: 'sf.conflict.diff',
       arguments: [this._conflict]
     };
   }
@@ -112,7 +113,7 @@ export class ConflictGroupNode extends ConflictNode {
     conflicts.forEach(entry => {
       const child = new ConflictFileNode(entry, this);
       child.attachCommands();
-      this.children!.push(child);
+      this.children.push(child);
     });
   }
 }

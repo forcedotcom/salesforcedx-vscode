@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import {
   OrgUserInfo,
   WorkspaceContextUtil
@@ -16,9 +22,9 @@ const env = createSandbox();
 
 class MockFileWatcher implements vscode.Disposable {
   private watchUri: vscode.Uri;
-  private changeSubscribers: Array<(uri: vscode.Uri) => void> = [];
-  private createSubscribers: Array<(uri: vscode.Uri) => void> = [];
-  private deleteSubscribers: Array<(uri: vscode.Uri) => void> = [];
+  private changeSubscribers: ((uri: vscode.Uri) => void)[] = [];
+  private createSubscribers: ((uri: vscode.Uri) => void)[] = [];
+  private deleteSubscribers: ((uri: vscode.Uri) => void)[] = [];
 
   constructor(fsPath: string) {
     this.watchUri = vscode.Uri.file(fsPath);
@@ -120,9 +126,9 @@ describe('WorkspaceContext', () => {
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
     showOrgStub = env.stub(decorators, 'showOrg').resolves();
 
-    const extensionContext = ({
+    const extensionContext = {
       subscriptions: []
-    } as unknown) as vscode.ExtensionContext;
+    } as unknown as vscode.ExtensionContext;
 
     workspaceContext = WorkspaceContext.getInstance(true);
     await workspaceContext.initialize(extensionContext);
@@ -130,13 +136,13 @@ describe('WorkspaceContext', () => {
 
   afterEach(() => env.restore());
 
-  it('should load the default username and alias upon initialization', () => {
+  it('should load the target org and alias upon initialization', () => {
     expect(workspaceContext.username).to.equal(testUser);
     expect(workspaceContext.alias).to.equal(testAlias);
     expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
   });
 
-  it('should update default username and alias upon config change', async () => {
+  it('should update target org and alias upon config change', async () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
@@ -149,7 +155,7 @@ describe('WorkspaceContext', () => {
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  it('should update default username and alias to undefined if one is not set', async () => {
+  it('should update target org and alias to undefined if one is not set', async () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
@@ -163,25 +169,30 @@ describe('WorkspaceContext', () => {
   });
 
   // tslint:disable-next-line:only-arrow-functions
-  it('should notify subscribers that the default org may have changed', async function() {
+  it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);
     });
 
     // awaiting to ensure subscribers run their logic
-    const fileChangedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileChangedPromise = (
+      workspaceContextUtil as TestWorkspaceContextUtil
+    )
       .getFileWatcher()
       .fire('change');
-    const fileCreatedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileCreatedPromise = (
+      workspaceContextUtil as TestWorkspaceContextUtil
+    )
       .getFileWatcher()
       .fire('create');
-    const fileDeletedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileDeletedPromise = (
+      workspaceContextUtil as TestWorkspaceContextUtil
+    )
       .getFileWatcher()
       .fire('delete');
 
     // Test runs in CI build in approx: 45000ms
-    this.timeout(60000);
     await Promise.all([
       fileChangedPromise,
       fileCreatedPromise,

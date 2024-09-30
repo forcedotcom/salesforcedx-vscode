@@ -8,10 +8,7 @@
 # the repo. Unless a later match takes precedence,
 # @forcedotcom/ide-experience will be requested for
 # review when someone opens a pull request.
-*       @forcedotcom/ide-experience
 
-# If the change occurs within the docs directory, add the doc maintainers.
-
-/docs/ @forcedotcom/doc-maintainers
 #ECCN:Open Source
 #GUSINFO: Platform Dev Tools Scrum Team, IDE Experience Team
+*       @forcedotcom/ide-experience
