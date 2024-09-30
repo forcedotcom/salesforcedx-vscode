@@ -1,3 +1,11 @@
+# 61.16.0 - October 2, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- Add back soql toggle ([PR #5868](https://github.com/forcedotcom/salesforcedx-vscode/pull/5868))
+
 # 61.15.0 - September 25, 2024
 
 ## Added
