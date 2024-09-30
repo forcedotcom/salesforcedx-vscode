@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-soql
 
-- Add back soql toggle ([PR #5868](https://github.com/forcedotcom/salesforcedx-vscode/pull/5868))
+- We fixed an issue where the "Switch Between SOQL Builder and Text Editor" icon went missing. ([PR #5868](https://github.com/forcedotcom/salesforcedx-vscode/pull/5868), [ISSUE #5841](https://github.com/forcedotcom/salesforcedx-vscode/issues/5841))
 
 # 61.15.0 - September 25, 2024
 
@@ -28,13 +28,11 @@
 
 - We made some changes under the hood. ([PR #5857](https://github.com/forcedotcom/salesforcedx-vscode/pull/5857)), ([PR #5830](https://github.com/forcedotcom/salesforcedx-vscode/pull/5830)), ([PR #5786](https://github.com/forcedotcom/salesforcedx-vscode/pull/5786))
 
-
 #### salesforcedx-vscode-lightning
 
 #### salesforcedx-vscode-lwc
 
 - We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821))
-
 
 # 61.12.0 - September 4, 2024
 
