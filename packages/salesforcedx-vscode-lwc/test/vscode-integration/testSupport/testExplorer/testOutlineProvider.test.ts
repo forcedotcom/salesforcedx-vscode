@@ -9,21 +9,20 @@ import { assert, match, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { nls } from '../../../../src/messages';
-import { forceLwcTestNavigateToTest } from '../../../../src/testSupport/commands/forceLwcTestNavigateToTest';
-import { forceLwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/forceLwcTestRefreshTestExplorer';
+import { lwcTestNavigateToTest } from '../../../../src/testSupport/commands/lwcTestNavigateToTest';
+import { lwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/lwcTestRefreshTestExplorer';
 import {
-  forceLwcTestCaseRun,
-  forceLwcTestFileRun,
-  forceLwcTestRun,
-  forceLwcTestRunAllTests
-} from '../../../../src/testSupport/commands/forceLwcTestRunAction';
+  lwcTestCaseRun,
+  lwcTestFileRun,
+  lwcTestRunAllTests
+} from '../../../../src/testSupport/commands/lwcTestRunAction';
 import {
-  SfdxTestGroupNode,
-  SfdxTestNode
+  SfTestGroupNode,
+  SfTestNode
 } from '../../../../src/testSupport/testExplorer/testNode';
-import { SfdxTestOutlineProvider } from '../../../../src/testSupport/testExplorer/testOutlineProvider';
+import { SfTestOutlineProvider } from '../../../../src/testSupport/testExplorer/testOutlineProvider';
 import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
-import { SfdxTask } from '../../../../src/testSupport/testRunner/taskService';
+import { SfTask } from '../../../../src/testSupport/testRunner/taskService';
 import {
   TestExecutionInfo,
   TestInfoKind,
@@ -33,9 +32,9 @@ import {
 } from '../../../../src/testSupport/types';
 import {
   mockGetLwcTestRunnerExecutable,
-  mockSfdxTaskExecute,
+  mockSfTaskExecute,
   unmockGetLwcTestRunnerExecutable,
-  unmockSfdxTaskExecute
+  unmockSfTaskExecute
 } from '../mocks';
 import {
   testCaseFailureResult,
@@ -58,7 +57,7 @@ describe('LWC Test Outline Provider', () => {
         ? `C:\\Users\\tester\\mockTest${i + 1}.test.js`
         : `/Users/tester/mockTest${i + 1}.test.js`;
     });
-    const outlineProvder = new SfdxTestOutlineProvider();
+    const outlineProvder = new SfTestOutlineProvider();
     it('Should provide test group nodes', async () => {
       const mockAllTestFileInfo = mockFilePaths.map(mockFilePath => ({
         kind: TestInfoKind.TEST_FILE,
@@ -106,10 +105,10 @@ describe('LWC Test Outline Provider', () => {
   describe.skip('Test Explorer Integration Tests', () => {
     let lwcTests: URI[];
     let lwcTestUri: URI;
-    let outlineProvder: SfdxTestOutlineProvider;
-    let actualFileNodes: SfdxTestGroupNode[];
-    let actualFileNode: SfdxTestGroupNode;
-    let actualTestCaseNodes: SfdxTestNode[];
+    let outlineProvder: SfTestOutlineProvider;
+    let actualFileNodes: SfTestGroupNode[];
+    let actualFileNode: SfTestGroupNode;
+    let actualTestCaseNodes: SfTestNode[];
     before(async () => {
       lwcTests = await vscode.workspace.findFiles(
         new vscode.RelativePattern(
@@ -122,7 +121,7 @@ describe('LWC Test Outline Provider', () => {
       testFileResult.testResults[0].name = lwcTestUri.fsPath;
       testCaseSuccessResult.testResults[0].name = lwcTestUri.fsPath;
       testCaseFailureResult.testResults[0].name = lwcTestUri.fsPath;
-      outlineProvder = new SfdxTestOutlineProvider();
+      outlineProvder = new SfTestOutlineProvider();
       actualFileNodes = await outlineProvder.getChildren();
       actualFileNode = actualFileNodes.find(
         node => node.description === 'demoLwcComponent'
@@ -150,7 +149,7 @@ describe('LWC Test Outline Provider', () => {
     };
     beforeEach(() => {
       mockGetLwcTestRunnerExecutable();
-      mockSfdxTaskExecute();
+      mockSfTaskExecute();
       showTextDocumentStub = stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.callsFake(() => Promise.resolve());
       activeTextEditorStub = stub(vscode.window, 'activeTextEditor').get(() => {
@@ -163,7 +162,7 @@ describe('LWC Test Outline Provider', () => {
     });
     afterEach(() => {
       unmockGetLwcTestRunnerExecutable();
-      unmockSfdxTaskExecute();
+      unmockSfTaskExecute();
       showTextDocumentStub.restore();
       activeTextEditorStub.restore();
       revealRangeStub.restore();
@@ -176,8 +175,8 @@ describe('LWC Test Outline Provider', () => {
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         contextValue: 'lwcTestGroup',
         command: {
-          command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-          title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+          command: 'sf.lightning.lwc.test.navigateToTest',
+          title: nls.localize('lightning_lwc_test_navigate_to_test'),
           arguments: [actualFileNode]
         }
       };
@@ -190,8 +189,8 @@ describe('LWC Test Outline Provider', () => {
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           contextValue: 'lwcTest',
           command: {
-            command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-            title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+            command: 'sf.lightning.lwc.test.navigateToTest',
+            title: nls.localize('lightning_lwc_test_navigate_to_test'),
             arguments: [actualTestCaseNodes[0]]
           }
         },
@@ -201,8 +200,8 @@ describe('LWC Test Outline Provider', () => {
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           contextValue: 'lwcTest',
           command: {
-            command: 'sfdx.force.lightning.lwc.test.navigateToTest',
-            title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
+            command: 'sf.lightning.lwc.test.navigateToTest',
+            title: nls.localize('lightning_lwc_test_navigate_to_test'),
             arguments: [actualTestCaseNodes[1]]
           }
         }
@@ -213,17 +212,16 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run all tests', async () => {
-      const commandResult = (await forceLwcTestRunAllTests()) as SfdxTask;
+      const commandResult = (await lwcTestRunAllTests()) as SfTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -241,21 +239,20 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run tests from test file nodes', async () => {
-      const commandResult = (await forceLwcTestFileRun(
+      const commandResult = (await lwcTestFileRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
-      )) as SfdxTask;
+      )) as SfTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testFileResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -273,7 +270,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should navigate to test file from test file nodes', () => {
-      forceLwcTestNavigateToTest(actualFileNode);
+      lwcTestNavigateToTest(actualFileNode);
       assert.calledOnce(showTextDocumentStub);
       assert.calledOnce(revealRangeStub);
       assert.calledWith(
@@ -285,7 +282,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should navigate to test case from test case nodes', () => {
-      forceLwcTestNavigateToTest(actualTestCaseNodes[0]);
+      lwcTestNavigateToTest(actualTestCaseNodes[0]);
       assert.calledOnce(showTextDocumentStub);
       assert.calledOnce(revealRangeStub);
       assert.calledWith(
@@ -300,21 +297,20 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a successful test case node', async () => {
-      const commandResult = (await forceLwcTestCaseRun(
+      const commandResult = (await lwcTestCaseRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
-      )) as SfdxTask;
+      )) as SfTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseSuccessResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.PASSED);
@@ -332,21 +328,20 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a failed test case node and generates diagnostics for the test uri', async () => {
-      const commandResult = (await forceLwcTestCaseRun(
+      const commandResult = (await lwcTestCaseRun(
         actualFileNode as {
           testExecutionInfo: TestExecutionInfo;
         }
-      )) as SfdxTask;
+      )) as SfTask;
       commandResult.onDidEnd(() => {
         lwcTestIndexer.updateTestResults(testCaseFailureResult);
       });
-      return new Promise(resolve => {
+      return new Promise<void>(resolve => {
         const handleDidChangeTreeData = outlineProvder.onDidChangeTreeData(
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
-            actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNode
-            );
+            actualTestCaseNodes =
+              await outlineProvder.getChildren(actualFileNode);
             expect(
               actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
@@ -370,7 +365,7 @@ describe('LWC Test Outline Provider', () => {
       });
     });
 
-    it('Should refresh test explorer', async function(testDone) {
+    it('Should refresh test explorer', async function () {
       this.timeout(10000);
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
 
@@ -383,7 +378,7 @@ describe('LWC Test Outline Provider', () => {
       expect(
         actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
       ).to.equal(TestResultStatus.PASSED);
-      forceLwcTestRefreshTestExplorer();
+      lwcTestRefreshTestExplorer();
 
       actualFileNodes = await outlineProvder.getChildren();
       actualFileNode = actualFileNodes.find(
@@ -398,7 +393,6 @@ describe('LWC Test Outline Provider', () => {
       expect(actualTestCaseNodes[1].testExecutionInfo!.testResult).to.equal(
         undefined
       );
-      testDone();
     });
   });
 });

@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -58,9 +59,9 @@ import { LanguageMode, Settings } from './languageModes';
 const FILE_NAME = 'vscode://javascript/1'; // the same 'file' is used for all contents
 const JS_WORD_REGEX = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
-export function getJavascriptMode(
+export const getJavascriptMode = (
   documentRegions: LanguageModelCache<HTMLDocumentRegions>
-): LanguageMode {
+): LanguageMode => {
   const jsDocuments = getLanguageModelCache<TextDocument>(10, 60, document =>
     documentRegions.get(document).getEmbeddedDocument('javascript')
   );
@@ -74,7 +75,7 @@ export function getJavascriptMode(
   };
   let currentTextDocument: TextDocument;
   let scriptFileVersion = 0;
-  function updateCurrentTextDocument(doc: TextDocument) {
+  const updateCurrentTextDocument = (doc: TextDocument) => {
     if (
       !currentTextDocument ||
       doc.uri !== currentTextDocument.uri ||
@@ -83,7 +84,7 @@ export function getJavascriptMode(
       currentTextDocument = jsDocuments.get(doc);
       scriptFileVersion++;
     }
-  }
+  };
 
   const host: LanguageServiceHost = {
     getCompilationSettings: () => compilerOptions,
@@ -124,13 +125,13 @@ export function getJavascriptMode(
   let globalSettings: Settings = {};
 
   return {
-    getId() {
+    getId: () => {
       return 'javascript';
     },
-    configure(options: any) {
+    configure: (options: any) => {
       globalSettings = options;
     },
-    doValidation(document: TextDocument): Diagnostic[] {
+    doValidation: (document: TextDocument): Diagnostic[] =>{
       updateCurrentTextDocument(document);
       const syntaxDiagnostics = jsLanguageService.getSyntacticDiagnostics(
         FILE_NAME
@@ -148,7 +149,7 @@ export function getJavascriptMode(
         }
       );
     },
-    doComplete(document: TextDocument, position: Position): CompletionList {
+    doComplete: (document: TextDocument, position: Position): CompletionList => {
       updateCurrentTextDocument(document);
       const offset = currentTextDocument.offsetAt(position);
       const completions = jsLanguageService.getCompletionsAtPosition(
@@ -183,7 +184,7 @@ export function getJavascriptMode(
         })
       };
     },
-    doResolve(document: TextDocument, item: CompletionItem): CompletionItem {
+    doResolve: (document: TextDocument, item: CompletionItem): CompletionItem => {
       updateCurrentTextDocument(document);
       const details = jsLanguageService.getCompletionEntryDetails(
         FILE_NAME,
@@ -201,7 +202,7 @@ export function getJavascriptMode(
       }
       return item;
     },
-    doHover(document: TextDocument, position: Position): Hover {
+    doHover: (document: TextDocument, position: Position): Hover => {
       updateCurrentTextDocument(document);
       const info = jsLanguageService.getQuickInfoAtPosition(
         FILE_NAME,
@@ -216,7 +217,7 @@ export function getJavascriptMode(
       }
       return null;
     },
-    doSignatureHelp(document: TextDocument, position: Position): SignatureHelp {
+    doSignatureHelp: (document: TextDocument, position: Position): SignatureHelp => {
       updateCurrentTextDocument(document);
       const signHelp = jsLanguageService.getSignatureHelpItems(
         FILE_NAME,
@@ -258,28 +259,32 @@ export function getJavascriptMode(
       }
       return null;
     },
-    findDocumentHighlight(
+    findDocumentHighlight: (
       document: TextDocument,
       position: Position
-    ): DocumentHighlight[] {
+    ): DocumentHighlight[] => {
       updateCurrentTextDocument(document);
-      const occurrences = jsLanguageService.getOccurrencesAtPosition(
+      const highlights = jsLanguageService.getDocumentHighlights(
         FILE_NAME,
-        currentTextDocument.offsetAt(position)
+        currentTextDocument.offsetAt(position),
+        [document.uri]
       );
-      if (occurrences) {
-        return occurrences.map(entry => {
+
+      if (highlights.length > 0) {
+        // Only one file to search above so there should only be one result
+        return highlights[0].highlightSpans.map(entry => {
           return {
             range: convertRange(currentTextDocument, entry.textSpan),
-            kind: (entry.isWriteAccess
-              ? DocumentHighlightKind.Write
-              : DocumentHighlightKind.Text) as DocumentHighlightKind
+            kind:
+              entry.kind === 'writtenReference'
+                ? DocumentHighlightKind.Write
+                : DocumentHighlightKind.Text
           };
         });
       }
       return null;
     },
-    findDocumentSymbols(document: TextDocument): SymbolInformation[] {
+    findDocumentSymbols: (document: TextDocument): SymbolInformation[] => {
       updateCurrentTextDocument(document);
       const items = jsLanguageService.getNavigationBarItems(FILE_NAME);
       if (items) {
@@ -317,7 +322,7 @@ export function getJavascriptMode(
       }
       return null;
     },
-    findDefinition(document: TextDocument, position: Position): Definition {
+    findDefinition: (document: TextDocument, position: Position): Definition => {
       updateCurrentTextDocument(document);
       const definition = jsLanguageService.getDefinitionAtPosition(
         FILE_NAME,
@@ -335,7 +340,7 @@ export function getJavascriptMode(
       }
       return null;
     },
-    findReferences(document: TextDocument, position: Position): Location[] {
+    findReferences: (document: TextDocument, position: Position): Location[] => {
       updateCurrentTextDocument(document);
       const references = jsLanguageService.getReferencesAtPosition(
         FILE_NAME,
@@ -353,12 +358,12 @@ export function getJavascriptMode(
       }
       return null;
     },
-    format(
+    format: (
       document: TextDocument,
       range: Range,
       formatParams: FormattingOptions,
       settings: Settings = globalSettings
-    ): TextEdit[] {
+    ): TextEdit[] => {
       currentTextDocument = documentRegions
         .get(document)
         .getEmbeddedDocument('javascript', true);
@@ -423,26 +428,26 @@ export function getJavascriptMode(
       }
       return null;
     },
-    onDocumentRemoved(document: TextDocument) {
+    onDocumentRemoved: (document: TextDocument) => {
       jsDocuments.onDocumentRemoved(document);
     },
-    dispose() {
+    dispose: () => {
       jsLanguageService.dispose();
       jsDocuments.dispose();
     }
   };
-}
+};
 
-function convertRange(
+const convertRange = (
   document: TextDocument,
   span: { start: number; length: number }
-): Range {
+): Range => {
   const startPosition = document.positionAt(span.start);
   const endPosition = document.positionAt(span.start + span.length);
   return Range.create(startPosition, endPosition);
-}
+};
 
-function convertKind(kind: string): CompletionItemKind {
+const convertKind = (kind: string): CompletionItemKind => {
   switch (kind) {
     case 'primitive type':
     case 'keyword':
@@ -473,9 +478,9 @@ function convertKind(kind: string): CompletionItemKind {
   }
 
   return CompletionItemKind.Property;
-}
+};
 
-function convertSymbolKind(kind: string): SymbolKind {
+const convertSymbolKind = (kind: string): SymbolKind => {
   switch (kind) {
     case 'var':
     case 'local var':
@@ -500,13 +505,13 @@ function convertSymbolKind(kind: string): SymbolKind {
       return SymbolKind.Property;
   }
   return SymbolKind.Variable;
-}
+};
 
-function convertOptions(
+const convertOptions = (
   options: FormattingOptions,
   formatSettings: any,
   initialIndentLevel: number
-): FormatCodeOptions {
+): FormatCodeOptions => {
   return {
     ConvertTabsToSpaces: options.insertSpaces,
     TabSize: options.tabSize,
@@ -554,13 +559,13 @@ function convertOptions(
       formatSettings && formatSettings.placeOpenBraceOnNewLineForControlBlocks
     )
   };
-}
+};
 
-function computeInitialIndent(
+const computeInitialIndent = (
   document: TextDocument,
   range: Range,
   options: FormattingOptions
-) {
+) => {
   const lineStart = document.offsetAt(Position.create(range.start.line, 0));
   const content = document.getText();
 
@@ -579,12 +584,12 @@ function computeInitialIndent(
     i++;
   }
   return Math.floor(nChars / tabSize);
-}
+};
 
-function generateIndent(level: number, options: FormattingOptions) {
+const generateIndent = (level: number, options: FormattingOptions) => {
   if (options.insertSpaces) {
     return repeat(' ', level * options.tabSize);
   } else {
     return repeat('\t', level);
   }
-}
+};

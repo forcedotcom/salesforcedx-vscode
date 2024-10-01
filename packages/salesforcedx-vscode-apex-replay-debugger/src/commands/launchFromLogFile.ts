@@ -8,10 +8,10 @@
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../adapter/debugConfigurationProvider';
 
-export function launchFromLogFile(
+export const launchFromLogFile = (
   logFile?: string,
   stopOnEntry: boolean = true
-) {
+) => {
   if (
     !vscode.debug.activeDebugSession &&
     vscode.workspace.workspaceFolders &&
@@ -22,4 +22,4 @@ export function launchFromLogFile(
       DebugConfigurationProvider.getConfig(logFile, stopOnEntry)
     );
   }
-}
+};

@@ -1,14 +1,15 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-export function getWordAtText(
+export const getWordAtText = (
   text: string,
   offset: number,
   wordDefinition: RegExp
-): { start: number; length: number } {
+): { start: number; length: number } => {
   let lineStart = offset;
   while (lineStart > 0 && !isNewlineCharacter(text.charCodeAt(lineStart - 1))) {
     lineStart--;
@@ -29,24 +30,17 @@ export function getWordAtText(
   }
 
   return { start: offset, length: 0 };
-}
+};
 
-export function startsWith(haystack: string, needle: string): boolean {
+export const startsWith = (haystack: string, needle: string): boolean => {
   if (haystack.length < needle.length) {
     return false;
   }
 
-  for (let i = 0; i < needle.length; i++) {
-    if (haystack[i] !== needle[i]) {
-      return false;
-    }
-  }
+  return haystack.startsWith(needle);
+};
 
-  return true;
-}
-
-// tslint:disable:no-bitwise
-export function repeat(value: string, count: number) {
+export const repeat = (value: string, count: number): string => {
   let s = '';
   while (count > 0) {
     if ((count & 1) === 1) {
@@ -56,19 +50,18 @@ export function repeat(value: string, count: number) {
     count = count >>> 1;
   }
   return s;
-}
-// tslint:enable:no-bitwise
+};
 
-export function isWhitespaceOnly(str: string) {
+export const isWhitespaceOnly = (str: string): boolean => {
   return /^\s*$/.test(str);
-}
+};
 
-export function isEOL(content: string, offset: number) {
+export const isEOL = (content: string, offset: number): boolean => {
   return isNewlineCharacter(content.charCodeAt(offset));
-}
+};
 
 const CR = '\r'.charCodeAt(0);
 const NL = '\n'.charCodeAt(0);
-export function isNewlineCharacter(charCode: number) {
+export const isNewlineCharacter = (charCode: number): boolean => {
   return charCode === CR || charCode === NL;
-}
+};

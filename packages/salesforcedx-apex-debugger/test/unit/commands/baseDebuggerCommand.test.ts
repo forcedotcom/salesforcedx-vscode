@@ -27,15 +27,15 @@ class DummyCommand extends BaseDebuggerCommand {
   }
 }
 
-export function getDefaultHeaders(contentLength: number): any {
+export const getDefaultHeaders = (contentLength: number): any => {
   return {
     'Content-Type': 'application/json;charset=utf-8',
     Accept: 'application/json',
-    Authorization: `OAuth 123`,
-    'Content-Length': contentLength,
+    Authorization: 'OAuth 123',
+    'Content-Length': String(contentLength),
     'Sforce-Call-Options': `client=${CLIENT_ID}`
   };
-}
+};
 
 describe('Base command', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -85,8 +85,7 @@ describe('Base command', () => {
       );
     const expectedOptions: XHROptions = {
       type: 'POST',
-      url:
-        'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
+      url: 'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: getDefaultHeaders(0),
       data: undefined
@@ -119,8 +118,7 @@ describe('Base command', () => {
     const requestBody = JSON.stringify(myRequest);
     const expectedOptions: XHROptions = {
       type: 'POST',
-      url:
-        'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
+      url: 'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: getDefaultHeaders(Buffer.byteLength(requestBody, 'utf-8')),
       data: requestBody

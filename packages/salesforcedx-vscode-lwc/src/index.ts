@@ -6,23 +6,23 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   commands,
   ConfigurationTarget,
   Disposable,
   ExtensionContext,
-  Uri,
   workspace,
   WorkspaceConfiguration
 } from 'vscode';
 import {
-  forceLightningLwcOpen,
-  forceLightningLwcPreview,
-  forceLightningLwcStart,
-  forceLightningLwcStop
+  lightningLwcOpen,
+  lightningLwcPreview,
+  lightningLwcStart,
+  lightningLwcStop
 } from './commands';
-import { ESLINT_NODEPATH_CONFIG, log, LWC_EXTENSION_NAME } from './constants';
+import { ESLINT_NODEPATH_CONFIG, log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -33,23 +33,9 @@ import {
 } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: Uri) {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-}
+export const activate = async (extensionContext: ExtensionContext) => {
+  const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
-function protocol2CodeConverter(value: string) {
-  return Uri.parse(value);
-}
-
-export async function activate(extensionContext: ExtensionContext) {
-  const extensionHRStart = process.hrtime();
   log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
@@ -59,13 +45,7 @@ export async function activate(extensionContext: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  const { aiKey, version } = extensionContext.extension.packageJSON;
-  await telemetryService.initializeService(
-    extensionContext,
-    LWC_EXTENSION_NAME,
-    aiKey,
-    version
-  );
+  await telemetryService.initializeService(extensionContext);
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
@@ -102,17 +82,12 @@ export async function activate(extensionContext: ExtensionContext) {
   log('WorkspaceType detected: ' + workspaceType);
 
   // Start the LWC Language Server
-  const client = createLanguageClient(
-    extensionContext.asAbsolutePath(
-      path.join(
-        'node_modules',
-        '@salesforce',
-        'lwc-language-server',
-        'lib',
-        'server.js'
-      )
-    )
+  const serverPath = extensionContext.extension.packageJSON.serverPath;
+  const serverModule = extensionContext.asAbsolutePath(
+    path.join(...serverPath)
   );
+  const client = createLanguageClient(serverModule);
+
   extensionContext.subscriptions.push(client.start());
 
   // Creates resources for js-meta.xml to work
@@ -123,7 +98,7 @@ export async function activate(extensionContext: ExtensionContext) {
     // which points at our LWC extension node_modules path
     const config: WorkspaceConfiguration = workspace.getConfiguration('');
     const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-    if (currentNodePath && currentNodePath.includes(LWC_EXTENSION_NAME)) {
+    if (currentNodePath && currentNodePath.includes(SFDX_LWC_EXTENSION_NAME)) {
       try {
         log(
           'Removing eslint.nodePath setting as the LWC Extension no longer manages this value'
@@ -151,39 +126,28 @@ export async function activate(extensionContext: ExtensionContext) {
   WorkspaceUtils.instance.init(extensionContext);
 
   // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
+  void activateTracker.markActivationStop();
+};
 
-export async function deactivate() {
+export const deactivate = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     await DevServerService.instance.stopServer();
   }
   log('Lightning Web Components Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
-}
+};
 
-function getActivationMode(): string {
+const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
   return config.get('activationMode') || 'autodetect'; // default to autodetect
-}
+};
 
-function registerCommands(_extensionContext: ExtensionContext): Disposable {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.start',
-      forceLightningLwcStart
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.stop',
-      forceLightningLwcStop
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.open',
-      forceLightningLwcOpen
-    ),
-    commands.registerCommand(
-      'sfdx.force.lightning.lwc.preview',
-      forceLightningLwcPreview
-    )
+    commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
+    commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
+    commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
+    commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
-}
+};

@@ -5,19 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
-import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
-import { SObjectShortDescription } from '.';
+import {
+  DescribeGlobalResult,
+  DescribeSObjectResult,
+  Field
+} from '@jsforce/jsforce-node';
+import { Connection } from '@salesforce/core-bundle';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';
+import { SObjectShortDescription } from '.';
 export const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {
   private connection: Connection;
   private readonly servicesPath: string = 'services/data';
-  // the targetVersion should be consistent with the Cli even if only using REST calls
-  private readonly targetVersion = '46.0';
   private readonly versionPrefix = 'v';
   private readonly sobjectsPart: string = 'sobjects';
   private readonly batchPart: string = 'composite/batch';
@@ -32,7 +34,8 @@ export class SObjectDescribe {
    * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
    */
   public async describeGlobal(): Promise<SObjectShortDescription[]> {
-    const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
+    const allDescriptions: DescribeGlobalResult =
+      await this.connection.describeGlobal();
     const requestedDescriptions = allDescriptions.sobjects.map(sobject => {
       return { name: sobject.name, custom: sobject.custom };
     });
@@ -40,7 +43,7 @@ export class SObjectDescribe {
   }
 
   public getVersion(): string {
-    return `${this.versionPrefix}${this.targetVersion}`;
+    return `${this.versionPrefix}${this.connection.getApiVersion()}`;
   }
 
   public buildSObjectDescribeURL(sObjectName: string): string {
@@ -77,7 +80,7 @@ export class SObjectDescribe {
   }
 
   public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
-    return (this.connection.request({
+    return this.connection.request({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -85,7 +88,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    }) as unknown) as BatchResponse;
+    }) as unknown as BatchResponse;
   }
 
   public async describeSObjectBatchRequest(
@@ -103,6 +106,7 @@ export class SObjectDescribe {
       batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
           if (sr.result[0].errorCode && sr.result[0].message) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
           }
         } else fetchedObjects.push(toMinimalSObject(sr.result));
@@ -110,9 +114,7 @@ export class SObjectDescribe {
 
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const errorMsg = error.hasOwnProperty('body')
-        ? error.body
-        : error.message;
+      const errorMsg = Reflect.has(error, 'body') ? error.body : error.message;
       return Promise.reject(errorMsg);
     }
   }
@@ -137,9 +139,9 @@ export class SObjectDescribe {
  * @param describeSObject full metadata of an sobject, as returned by the jsforce's sobject/describe api
  * @returns SObject containing a subset of DescribeSObjectResult information
  */
-export function toMinimalSObject(
+export const toMinimalSObject = (
   describeSObject: DescribeSObjectResult
-): SObject {
+): SObject => {
   return {
     fields: describeSObject.fields
       ? describeSObject.fields.map(toMinimalSObjectField)
@@ -153,9 +155,9 @@ export function toMinimalSObject(
       'queryable'
     )
   };
-}
+};
 
-function toMinimalSObjectField(describeField: Field): SObjectField {
+const toMinimalSObjectField = (describeField: Field): SObjectField => {
   return pick(
     describeField,
     'aggregatable',
@@ -174,12 +176,12 @@ function toMinimalSObjectField(describeField: Field): SObjectField {
     'sortable',
     'type'
   );
-}
+};
 
-function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+const pick = <T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> => {
   const ret: any = {};
   keys.forEach(key => {
     ret[key] = obj[key];
   });
   return ret;
-}
+};

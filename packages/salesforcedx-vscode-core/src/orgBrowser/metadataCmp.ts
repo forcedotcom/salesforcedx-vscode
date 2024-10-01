@@ -4,17 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { ListMetadataQuery } from '@jsforce/jsforce-node/lib/api/metadata';
+import { Connection } from '@salesforce/core-bundle';
 import {
   isNullOrUndefined,
   projectPaths,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
 import * as fs from 'fs';
-import { ListMetadataQuery } from 'jsforce/api/metadata';
 import * as path from 'path';
-import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -67,12 +67,14 @@ export class ComponentUtils {
       if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
-          const { fullName, manageableState } = cmp;
+          const { fullName, manageableState, namespacePrefix } = cmp;
           if (
             !isNullOrUndefined(fullName) &&
             validManageableStates.has(manageableState)
           ) {
-            components.push(fullName);
+            components.push(
+              namespacePrefix ? `${namespacePrefix}__${fullName}` : fullName
+            );
           }
         }
       }
@@ -128,9 +130,8 @@ export class ComponentUtils {
     if (folderName) {
       metadataQuery.folder = folderName;
     }
-    const metadataFileProperties = await connection.metadata.list(
-      metadataQuery
-    );
+    const metadataFileProperties =
+      await connection.metadata.list(metadataQuery);
     const result = { status: 0, result: metadataFileProperties };
     const jsonResult = JSON.stringify(result, null, 2);
     fs.writeFileSync(componentsPath, jsonResult);
@@ -150,7 +151,7 @@ export class ComponentUtils {
     return jsonResult;
   }
 
-  // todo: remove defaultOrg (default username) arg
+  // todo: remove defaultOrg (target org) arg
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,
@@ -163,7 +164,7 @@ export class ComponentUtils {
     );
     let componentsList: string[];
     const freshFetch = forceRefresh || !fs.existsSync(componentsPath);
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
       if (freshFetch) {
         componentsList = await this.fetchCustomObjectsFields(

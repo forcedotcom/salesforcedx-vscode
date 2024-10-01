@@ -9,12 +9,14 @@ import { join, relative } from 'path';
 import {
   DirectoryDiffResults,
   MetadataCacheResult,
-  MetadataCacheService,
   PersistentStorageService
 } from './';
 import { diffComponents } from './componentDiffer';
 import { TimestampFileProperties } from './directoryDiffer';
-import { CorrelatedComponent } from './metadataCacheService';
+import {
+  CorrelatedComponent,
+  MetadataCacheService
+} from './metadataCacheService';
 
 export class TimestampConflictDetector {
   private diffs: DirectoryDiffResults;
@@ -44,15 +46,12 @@ export class TimestampConflictDetector {
       TimestampFileProperties
     >();
     components.forEach(component => {
-      let lastModifiedInOrg: string | undefined;
-      let lastModifiedInCache: string | undefined;
-
-      lastModifiedInOrg = component.lastModifiedDate;
+      const lastModifiedInOrg = component.lastModifiedDate;
       const key = cache.makeKey(
         component.cacheComponent.type.name,
         component.cacheComponent.fullName
       );
-      lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
+      const lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (
         !lastModifiedInCache ||
         this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)

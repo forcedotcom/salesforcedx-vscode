@@ -4,68 +4,57 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
+import { VSCODE_LWC_EXTENSION_NAME } from '../../constants';
 import { TestResult, TestResultStatus } from '../types';
 
-const extensionPath = path.join(__filename, '..', '..', '..', '..', '..');
-const LIGHT_BLUE_BUTTON = path.join(
+const extensionPath = extensionUris.extensionUri(VSCODE_LWC_EXTENSION_NAME);
+const LIGHT_BLUE_BUTTON = extensionUris.join(
   extensionPath,
-  'resources',
-  'light',
-  'testNotRun.svg'
+  path.join('resources', 'light', 'testNotRun.svg')
 );
 
-const LIGHT_RED_BUTTON = path.join(
+const LIGHT_RED_BUTTON = extensionUris.join(
   extensionPath,
-  'resources',
-  'light',
-  'testFail.svg'
-);
-const LIGHT_GREEN_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'light',
-  'testPass.svg'
-);
-const LIGHT_ORANGE_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'light',
-  'testSkip.svg'
+  path.join('resources', 'light', 'testFail.svg')
 );
 
-const DARK_BLUE_BUTTON = path.join(
+const LIGHT_GREEN_BUTTON = extensionUris.join(
   extensionPath,
-  'resources',
-  'dark',
-  'testNotRun.svg'
+  path.join('resources', 'light', 'testPass.svg')
 );
-const DARK_RED_BUTTON = path.join(
+const LIGHT_ORANGE_BUTTON = extensionUris.join(
   extensionPath,
-  'resources',
-  'dark',
-  'testFail.svg'
-);
-const DARK_GREEN_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'dark',
-  'testPass.svg'
-);
-const DARK_ORANGE_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'dark',
-  'testSkip.svg'
+  path.join('resources', 'light', 'testSkip.svg')
 );
 
-type IconPath = { light: string; dark: string };
+const DARK_BLUE_BUTTON = extensionUris.join(
+  extensionPath,
+  path.join('resources', 'dark', 'testNotRun.svg')
+);
+const DARK_RED_BUTTON = extensionUris.join(
+  extensionPath,
+  path.join('resources', 'dark', 'testFail.svg')
+);
+const DARK_GREEN_BUTTON = extensionUris.join(
+  extensionPath,
+  path.join('resources', 'dark', 'testPass.svg')
+);
+const DARK_ORANGE_BUTTON = extensionUris.join(
+  extensionPath,
+  path.join('resources', 'dark', 'testSkip.svg')
+);
+
+type IconPath = { light: vscode.Uri; dark: vscode.Uri };
 
 /**
  * Get icon path in the test explorer for test result
  * @param testResult test result
  */
-export function getIconPath(testResult?: TestResult): IconPath {
+export const getIconPath = (testResult?: TestResult): IconPath => {
   if (testResult) {
     if (testResult.status === TestResultStatus.PASSED) {
       return {
@@ -94,4 +83,4 @@ export function getIconPath(testResult?: TestResult): IconPath {
       dark: DARK_BLUE_BUTTON
     };
   }
-}
+};

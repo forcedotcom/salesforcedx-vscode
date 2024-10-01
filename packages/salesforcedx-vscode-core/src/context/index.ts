@@ -4,19 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { WorkspaceContext } from './workspaceContext';
 import {
-  getDefaultUsernameOrAlias,
+  getTargetOrgOrAlias,
   getWorkspaceOrgType,
   OrgType,
   setupWorkspaceOrgType,
   setWorkspaceOrgTypeWithOrgType
 } from './workspaceOrgType';
 
-export const workspaceContext = WorkspaceContext.getInstance();
+export { WorkspaceContext } from './workspaceContext';
 export const workspaceContextUtils = {
   setWorkspaceOrgTypeWithOrgType,
-  getDefaultUsernameOrAlias,
+  getTargetOrgOrAlias,
   getWorkspaceOrgType,
   OrgType,
   setupWorkspaceOrgType

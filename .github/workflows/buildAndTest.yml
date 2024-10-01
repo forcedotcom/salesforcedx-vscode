@@ -15,10 +15,6 @@ jobs:
     uses: ./.github/workflows/unitTests.yml
     with:
       branch: ${{ inputs.branch }}
-  integration-tests:
-    uses: ./.github/workflows/integrationTests.yml
-    with:
-      branch: ${{ inputs.branch }}
   build-all:
     uses: ./.github/workflows/buildAll.yml
     with:

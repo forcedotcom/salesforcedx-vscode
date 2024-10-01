@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { WorkspaceContextUtil } from '../../../src';
@@ -19,13 +25,17 @@ import {
   TOOLS
 } from '../../../src/helpers/paths';
 
-jest.mock('@salesforce/core', () => {
+jest.mock('@salesforce/core-bundle', () => {
   return {
     Global: {
       SFDX_STATE_FOLDER: '.sfdx',
       STATE_FOLDER: '.sfdx'
     }
   };
+});
+
+jest.mock('@salesforce/source-tracking-bundle', () => {
+  return {};
 });
 
 describe('test project paths', () => {
@@ -57,7 +67,7 @@ describe('test project paths', () => {
       expect(projectPaths.stateFolder()).toEqual('');
     });
   });
-  describe('test sfdxProjectConfig', () => {
+  describe('test salesforceProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
     const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
 
@@ -68,12 +78,12 @@ describe('test project paths', () => {
     });
 
     it('should be defined', () => {
-      expect(projectPaths.sfdxProjectConfig).toBeDefined();
+      expect(projectPaths.salesforceProjectConfig).toBeDefined();
     });
 
     it('should return a path to the config file based on root workspace', () => {
-      const sfdxProjectConfig = projectPaths.sfdxProjectConfig();
-      expect(sfdxProjectConfig).toEqual(FAKE_CONFIG);
+      const salesforceProjectConfig = projectPaths.salesforceProjectConfig();
+      expect(salesforceProjectConfig).toEqual(FAKE_CONFIG);
     });
   });
 
@@ -176,7 +186,8 @@ describe('test project paths', () => {
     });
 
     it('should return a path to the apex Language Server Database folder based on root workspace', () => {
-      const apexLanguageServerDatabase = projectPaths.apexLanguageServerDatabase();
+      const apexLanguageServerDatabase =
+        projectPaths.apexLanguageServerDatabase();
       expect(apexLanguageServerDatabase).toEqual(
         path.join(FAKE_WORKSPACE, TOOLS, APEX_DB)
       );

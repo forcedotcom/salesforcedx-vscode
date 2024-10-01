@@ -24,7 +24,7 @@ import {
   checkpointUtils,
   parseCheckpointInfoFromBreakpoint,
   processBreakpointChangedForCheckpoints,
-  sfdxToggleCheckpoint
+  sfToggleCheckpoint
 } from '../../../src/breakpoints/checkpointService';
 
 describe('Checkpoint Service - unit', () => {
@@ -199,7 +199,6 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -209,7 +208,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -232,8 +231,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    const breakpointId1 = breakpointId + '1';
-    (breakpoint1 as any)._id = breakpointId1;
+
     bpAdd.push(breakpoint1);
     const breakpoint2 = new vscode.SourceBreakpoint(
       location,
@@ -241,8 +239,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    const breakpointId2 = breakpointId + '2';
-    (breakpoint2 as any)._id = breakpointId2;
+
     bpAdd.push(breakpoint2);
 
     await processBreakpointChangedForCheckpoints({
@@ -253,22 +250,22 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     const theNode1 = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId1
+      breakpoint1.id
     );
     if (!theNode1) {
       assert.fail(
         'Should have created a node in the checkpointService with id: ' +
-          breakpointId1
+          breakpoint1.id
       );
     }
 
     const theNode2 = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId2
+      breakpoint2.id
     );
     if (!theNode2) {
       assert.fail(
         'Should have created a node in the checkpointService with id: ' +
-          breakpointId2
+          breakpoint1.id
       );
     }
     expect(lockSpy.calledTwice).to.equal(true);
@@ -286,7 +283,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -296,7 +293,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // Verify that a single checkpoint has been added to the checkpoint service
     const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (!theNode) {
       assert.fail(
@@ -313,195 +310,13 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     });
 
     const deletedNote = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     // The node should be undefined as it was deleted
     if (deletedNote) {
       assert.fail('Should have removed the checkpoint node and did not.');
     }
     // Expect one lock call for add and one for delete
-    expect(lockSpy.calledTwice).to.equal(true);
-    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
-    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
-  });
-
-  it('add and then change checkpoint', async () => {
-    const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
-    const uri = vscode.Uri.parse(uriInput);
-    const location = new vscode.Location(uri, range);
-    const breakpoint = new vscode.SourceBreakpoint(
-      location,
-      true,
-      CHECKPOINT,
-      undefined
-    );
-    (breakpoint as any)._id = breakpointId;
-    bpAdd.push(breakpoint);
-    await processBreakpointChangedForCheckpoints({
-      added: bpAdd,
-      removed: bpRemove,
-      changed: bpChange
-    });
-
-    // Verify that a single checkpoint has been added to the checkpoint service
-    let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
-    );
-    if (!theNode) {
-      assert.fail(
-        'Should have created a single node in the checkpointService and did not.'
-      );
-    } else {
-      expect(theNode.isCheckpointEnabled()).to.be.equal(true);
-      expect(theNode.getIteration()).to.be.equal(1);
-    }
-
-    // Create the changed breakpoint which is the same breakpoint but has just been disabled
-    const breakpoint2 = new vscode.SourceBreakpoint(
-      location,
-      false,
-      CHECKPOINT,
-      '4'
-    );
-    (breakpoint2 as any)._id = breakpointId;
-    bpChange.push(breakpoint2);
-    await processBreakpointChangedForCheckpoints({
-      added: bpEmpty,
-      removed: bpRemove,
-      changed: bpChange
-    });
-
-    // Verify that the checkpoint has been updated, that the enabled flag is set to false and
-    // the iterations has been updated from 1 to 4
-    theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
-    );
-    if (!theNode) {
-      assert.fail(
-        'Should have created a single node in the checkpointService and did not.'
-      );
-    } else {
-      expect(theNode.isCheckpointEnabled()).to.be.equal(false);
-      expect(theNode.getIteration()).to.be.equal(4);
-    }
-
-    // Expect one lock call for add and one for change
-    expect(lockSpy.calledTwice).to.equal(true);
-    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
-    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
-  });
-
-  it('changing a checkpoint by removing the checkpoint condition removes the checkpoint', async () => {
-    const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
-    const uri = vscode.Uri.parse(uriInput);
-    const location = new vscode.Location(uri, range);
-    const breakpoint = new vscode.SourceBreakpoint(
-      location,
-      true,
-      CHECKPOINT,
-      undefined
-    );
-    (breakpoint as any)._id = breakpointId;
-    bpAdd.push(breakpoint);
-    await processBreakpointChangedForCheckpoints({
-      added: bpAdd,
-      removed: bpRemove,
-      changed: bpChange
-    });
-
-    // Verify that a single checkpoint has been added to the checkpoint service
-    let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
-    );
-    if (!theNode) {
-      assert.fail(
-        'Should have created a single node in the checkpointService and did not.'
-      );
-    }
-
-    // Create the changed breakpoint which is the same breakpoint but has just been disabled
-    const breakpoint2 = new vscode.SourceBreakpoint(
-      location,
-      false,
-      undefined, // change the condition from 'checkpoint' to undefined
-      undefined
-    );
-    (breakpoint2 as any)._id = breakpointId;
-    bpChange.push(breakpoint2);
-    await processBreakpointChangedForCheckpoints({
-      added: bpEmpty,
-      removed: bpRemove,
-      changed: bpChange
-    });
-
-    // Verify that the checkpoint has been updated and that the enabled flag is set to false
-    theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
-    );
-    if (theNode) {
-      assert.fail(
-        'Removing the checkpoint condition should have caused the checkpoint to be removed and did not'
-      );
-    }
-    // Expect one lock call for add and one for change
-    expect(lockSpy.calledTwice).to.equal(true);
-    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
-    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
-  });
-
-  it('changing a checkpoint by changing the breakpoint type removes the checkpoint', async () => {
-    const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
-    const uri = vscode.Uri.parse(uriInput);
-    const location = new vscode.Location(uri, range);
-    const breakpoint = new vscode.SourceBreakpoint(
-      location,
-      true,
-      CHECKPOINT,
-      undefined
-    );
-    (breakpoint as any)._id = breakpointId;
-    bpAdd.push(breakpoint);
-    await processBreakpointChangedForCheckpoints({
-      added: bpAdd,
-      removed: bpRemove,
-      changed: bpChange
-    });
-
-    // Verify that a single checkpoint has been added to the checkpoint service
-    let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
-    );
-    if (!theNode) {
-      assert.fail(
-        'Should have created a single node in the checkpointService and did not.'
-      );
-    }
-
-    // Create the changed breakpoint which is the same breakpoint but has just been disabled
-    const breakpoint2 = new vscode.FunctionBreakpoint(
-      'FunctionName',
-      false,
-      CHECKPOINT, // keep the checkpoint condition
-      undefined
-    );
-    (breakpoint2 as any)._id = breakpointId;
-    bpChange.push(breakpoint2);
-    await processBreakpointChangedForCheckpoints({
-      added: bpEmpty,
-      removed: bpRemove,
-      changed: bpChange
-    });
-
-    // Verify that the checkpoint has been updated and that the enabled flag is set to false
-    theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
-    );
-    if (theNode) {
-      assert.fail(
-        'Changing the breakpoint type from SourceBreakpoint to another breakpoint type should have caused the checkpoint to be removed and did not'
-      );
-    }
-    // Expect one lock call for add and one for change
     expect(lockSpy.calledTwice).to.equal(true);
     expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
     expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
@@ -517,7 +332,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       CHECKPOINT,
       undefined
     );
-    (breakpoint as any)._id = breakpointId;
+
     bpAdd.push(breakpoint);
     await processBreakpointChangedForCheckpoints({
       added: bpAdd,
@@ -527,7 +342,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
     // The first breakpoint should have no ActionScript or ActionScriptType
     let theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       expect(theNode.getActionScriptType()).to.be.equal(ActionScriptEnum.None);
@@ -547,7 +362,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     });
 
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       expect(theNode.getActionScriptType()).to.be.equal(ActionScriptEnum.Apex);
@@ -568,7 +383,7 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     });
 
     theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-      breakpointId
+      breakpoint.id
     );
     if (theNode) {
       expect(theNode.getActionScriptType()).to.be.equal(ActionScriptEnum.SOQL);
@@ -682,7 +497,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
   });
 });
 
-describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
+describe('Verify SFDX Toggle Checkpoint callback, sfToggleCheckpoint', () => {
   const breakpointEnabled = true;
   const uriInput = vscode.Uri.parse('file:///bar.cls');
   const lineInput = 5;
@@ -719,7 +534,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
     // With no existing breakpoints the toggle will create one
     // and call addBreakpoints.
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
     // Nothing should be deleted
     expect(removeBreakpointsStub.notCalled).to.be.equal(true);
     // Add should be called once with a single argument
@@ -756,7 +571,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
     addBreakpointsStub = sinon.stub(vscode.debug, 'addBreakpoints');
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
     // With an existing breakpoints the old one will have to be deleted before the and call addBreakpoints.
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
 
     // Verify the remove arguments
     expect(removeBreakpointsStub.calledOnce).to.be.equal(true);
@@ -800,7 +615,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
     addBreakpointsStub = sinon.stub(vscode.debug, 'addBreakpoints');
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
     // With an existing breakpoints the old one will have to be deleted before the and call addBreakpoints.
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
 
     // Verify the remove arguments
     expect(removeBreakpointsStub.calledOnce).to.be.equal(true);
@@ -846,7 +661,7 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
 
     addBreakpointsStub = sinon.stub(vscode.debug, 'addBreakpoints');
     removeBreakpointsStub = sinon.stub(vscode.debug, 'removeBreakpoints');
-    await sfdxToggleCheckpoint();
+    await sfToggleCheckpoint();
 
     // Add should not have been called
     expect(addBreakpointsStub.notCalled).to.be.equal(true);
@@ -865,10 +680,10 @@ describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
   });
 });
 
-function breakpointsHaveSameUriAndSourceLine(
+const breakpointsHaveSameUriAndSourceLine = (
   bp1: vscode.Breakpoint,
   bp2: vscode.Breakpoint
-): boolean {
+): boolean => {
   // both breakpoints are source breakpoints
   if (
     bp1 instanceof vscode.SourceBreakpoint &&
@@ -883,15 +698,15 @@ function breakpointsHaveSameUriAndSourceLine(
     }
   }
   return false;
-}
+};
 
-async function clearExistingBreakpoints() {
-  await vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
-}
+const clearExistingBreakpoints = () => {
+  vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
+};
 
 // Clean out the checkpoints from the checkpointService (has the added bonus of beating
 // on deleteCheckpointNode)
-function clearOutCheckpoints() {
+const clearOutCheckpoints = () => {
   for (const checkpoint of checkpointService.getChildren()) {
     // While every child here is a CheckpointNode, getChildren returns an
     // array of BaseNode and if we want to get at the methods on an actual
@@ -902,4 +717,4 @@ function clearOutCheckpoints() {
       );
     }
   }
-}
+};

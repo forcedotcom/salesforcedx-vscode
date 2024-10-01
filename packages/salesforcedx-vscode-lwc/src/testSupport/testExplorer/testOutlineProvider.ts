@@ -10,33 +10,33 @@ import * as vscode from 'vscode';
 import { lwcTestIndexer } from '../testIndexer';
 import { TestCaseInfo, TestFileInfo } from '../types';
 import {
-  SfdxTestGroupNode,
-  SfdxTestNode,
+  SfTestGroupNode,
+  SfTestNode,
   sortTestNodeByLabel,
   TestNode
 } from './testNode';
 
-function getLabelFromTestCaseInfo(testCaseInfo: TestCaseInfo) {
+const getLabelFromTestCaseInfo = (testCaseInfo: TestCaseInfo) => {
   const { testName } = testCaseInfo;
   return testName;
-}
+};
 
-function getLabelFromTestFileInfo(testFileInfo: TestFileInfo) {
+const getLabelFromTestFileInfo = (testFileInfo: TestFileInfo) => {
   const { testUri } = testFileInfo;
   const { fsPath } = testUri;
   const ext = '.test.js';
   const testGroupLabel = path.basename(fsPath, ext);
   return testGroupLabel;
-}
+};
 
 /**
  * Test Explorer Tree Data Provider implementation
  */
-export class SfdxTestOutlineProvider
-  implements vscode.TreeDataProvider<TestNode>, vscode.Disposable {
-  private onDidChangeTestData: vscode.EventEmitter<
-    TestNode | undefined
-  > = new vscode.EventEmitter<TestNode | undefined>();
+export class SfTestOutlineProvider
+  implements vscode.TreeDataProvider<TestNode>, vscode.Disposable
+{
+  private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> =
+    new vscode.EventEmitter<TestNode | undefined>();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
   private disposables: vscode.Disposable[];
 
@@ -56,6 +56,16 @@ export class SfdxTestOutlineProvider
       },
       null,
       this.disposables
+    );
+  }
+
+  public getId(): string {
+    return 'sf.lightning.lwc.test.view';
+  }
+
+  public async collapseAll(): Promise<void> {
+    return vscode.commands.executeCommand(
+      `workbench.actions.treeView.${this.getId()}.collapseAll`
     );
   }
 
@@ -88,7 +98,7 @@ export class SfdxTestOutlineProvider
    */
   public async getChildren(element?: TestNode): Promise<TestNode[]> {
     if (element) {
-      if (element instanceof SfdxTestGroupNode) {
+      if (element instanceof SfTestGroupNode) {
         if (element.location) {
           const testInfo = await lwcTestIndexer.findTestInfoFromLwcJestTestFile(
             element.location.uri
@@ -96,7 +106,7 @@ export class SfdxTestOutlineProvider
           if (testInfo) {
             return testInfo.map(testCaseInfo => {
               const testNodeLabel = getLabelFromTestCaseInfo(testCaseInfo);
-              return new SfdxTestNode(testNodeLabel, testCaseInfo);
+              return new SfTestNode(testNodeLabel, testCaseInfo);
             });
           }
         }
@@ -108,7 +118,7 @@ export class SfdxTestOutlineProvider
         return allTestFileInfo
           .map(testFileInfo => {
             const testNodeLabel = getLabelFromTestFileInfo(testFileInfo);
-            const testGroupNode = new SfdxTestGroupNode(
+            const testGroupNode = new SfTestGroupNode(
               testNodeLabel,
               testFileInfo
             );
@@ -127,14 +137,20 @@ export class SfdxTestOutlineProvider
  * Register test explorer with extension context
  * @param extensionContext extension context
  */
-export function registerLwcTestExplorerTreeView(
+export const registerLwcTestExplorerTreeView = (
   extensionContext: vscode.ExtensionContext
-) {
-  const testOutlineProvider = new SfdxTestOutlineProvider();
+) => {
+  const testOutlineProvider = new SfTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.lightning.lwc.test.view',
+    testOutlineProvider.getId(),
     testOutlineProvider
   );
   extensionContext.subscriptions.push(testOutlineProvider);
   extensionContext.subscriptions.push(testProvider);
-}
+
+  const collapseAllTestCommand = vscode.commands.registerCommand(
+    `${testOutlineProvider.getId()}.collapseAll`,
+    () => testOutlineProvider.collapseAll()
+  );
+  extensionContext.subscriptions.push(collapseAllTestCommand);
+};

@@ -4,24 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
   stubContext
-} from '@salesforce/core/lib/testSetup';
+} from '@salesforce/core-bundle';
 import {
   projectPaths,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { workspaceContext } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo } from '../../../src/util';
 
@@ -96,9 +96,7 @@ describe('get metadata components path', () => {
     metadataFolderStub.restore();
   });
 
-  function expectedPath(fileName: string) {
-    return path.join(metadataDirectoryPath, fileName + '.json');
-  }
+  const expectedPath = (fileName: string) => path.join(metadataDirectoryPath, fileName + '.json');
 
   it('should return the path for a given username and metadata type', async () => {
     const metadataType = 'ApexClass';
@@ -149,6 +147,12 @@ describe('build metadata components list', () => {
           fullName: 'fakeName1',
           type: 'ApexClass',
           manageableState: 'unmanaged'
+        },
+        {
+          fullName: 'fakeName3',
+          type: 'ApexClass',
+          manageableState: 'unmanaged',
+          namespacePrefix: 'sf_namespace'
         }
       ]
     });
@@ -160,6 +164,7 @@ describe('build metadata components list', () => {
     if (!isNullOrUndefined(fullNames)) {
       expect(fullNames[0]).to.equal('fakeName1');
       expect(fullNames[1]).to.equal('fakeName2');
+      expect(fullNames[2]).to.equal('sf_namespace__fakeName3');
       expect(readFileStub.called).to.equal(false);
     }
   });
@@ -179,6 +184,12 @@ describe('build metadata components list', () => {
           fullName: 'fakeName1',
           type: 'ApexClass',
           manageableState: 'unmanaged'
+        },
+        {
+          fullName: 'fakeName3',
+          type: 'ApexClass',
+          manageableState: 'unmanaged',
+          namespacePrefix: 'sf_namespace'
         }
       ]
     });
@@ -192,6 +203,7 @@ describe('build metadata components list', () => {
     if (!isNullOrUndefined(fullNames)) {
       expect(fullNames[0]).to.equal('fakeName1');
       expect(fullNames[1]).to.equal('fakeName2');
+      expect(fullNames[2]).to.equal('sf_namespace__fakeName3');
       expect(readFileStub.called).to.equal(true);
     }
   });
@@ -287,7 +299,7 @@ describe('load metadata components and custom objects fields list', () => {
       .stub(ComponentUtils.prototype, 'getComponentsPath')
       .returns(filePath);
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
     getUsernameStub = sb
       .stub(OrgAuthInfo, 'getUsername')
@@ -515,7 +527,7 @@ describe('fetch metadata components and custom objects fields list', () => {
     mockConnection = await testData.getConnection();
     fileExistsStub = sb.stub(fs, 'existsSync');
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
     getComponentsPathStub = sb
       .stub(ComponentUtils.prototype, 'getComponentsPath')
@@ -646,7 +658,7 @@ describe('fetch fields of a standard or custom object', () => {
       .stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList')
       .returns(fieldsList);
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
   });
 
@@ -703,7 +715,7 @@ describe('retrieve fields data of a sobject to write in a json file designated f
     });
     mockConnection = await testData.getConnection();
     connectionStub = sb
-      .stub(workspaceContext, 'getConnection')
+      .stub(WorkspaceContext.prototype, 'getConnection')
       .resolves(mockConnection);
     describeSObjectFieldsStub = sb
       .stub(mockConnection, 'describe')

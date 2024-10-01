@@ -14,14 +14,13 @@ jobs:
       type: "notification"
       workflow: "release.yml"
   
-  prepare_environment:
+  get_release_version:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
-    environment: publish
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'main'
       - id: getMainVersion
@@ -30,8 +29,8 @@ jobs:
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
 
   release:
-    needs: [prepare_environment]
+    needs: [get_release_version]
     uses: ./.github/workflows/tagAndRelease.yml
     with: 
-      version: ${{ needs.prepare_environment.outputs.RELEASE_VERSION }}
+      version: ${{ needs.get_release_version.outputs.RELEASE_VERSION }}
     secrets: inherit

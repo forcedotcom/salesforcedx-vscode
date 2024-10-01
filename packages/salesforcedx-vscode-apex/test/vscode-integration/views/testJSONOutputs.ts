@@ -7,11 +7,12 @@
 import {
   ApexTestResultData,
   ApexTestResultOutcome
-} from '@salesforce/apex-node';
+} from '@salesforce/apex-node-bundle';
 import * as vscode from 'vscode';
+import { FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
 
 export const apexLibOneFileSummary = {
-  outcome: 'Pass',
+  outcome: PASS_RESULT,
   testsRan: 1,
   passing: 1,
   failing: 0,
@@ -31,7 +32,7 @@ export const apexLibOneFileSummary = {
 };
 
 export const apexLibMultipleSummary = {
-  outcome: 'Fail',
+  outcome: FAIL_RESULT,
   testsRan: 3,
   passing: 2,
   failing: 1,

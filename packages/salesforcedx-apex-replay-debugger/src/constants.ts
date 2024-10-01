@@ -28,6 +28,7 @@ export const EVENT_VARIABLE_ASSIGNMENT = 'VARIABLE_ASSIGNMENT';
 export const EXEC_ANON_SIGNATURE = 'execute_anonymous_apex';
 export const FIELD_INTEGRITY_EXCEPTION = 'FIELD_INTEGRITY_EXCEPTION';
 export const INVALID_CROSS_REFERENCE_KEY = 'INVALID_CROSS_REFERENCE_KEY';
+export const SEND_METRIC_GENERAL_EVENT = 'sendMetricGeneral';
 export const SEND_METRIC_ERROR_EVENT = 'sendMetricError';
 export const SEND_METRIC_LAUNCH_EVENT = 'sendMetricLaunch';
 export const LAST_OPENED_LOG_FOLDER_KEY = 'LAST_OPENED_LOG_FOLDER_KEY';

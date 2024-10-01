@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult, Field } from 'jsforce';
-
 import {
   CUSTOMOBJECTS_DIR,
   SObject,
@@ -20,14 +18,14 @@ import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nls } from '../messages';
-import { channelService, retrieveSObject, retrieveSObjects } from '../sfdx';
+import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
 
 export { SObject, SObjectField };
 
-export interface OrgDataSource {
+export type OrgDataSource = {
   retrieveSObjectsList(): Promise<string[]>;
   retrieveSObject(sobjectName: string): Promise<SObject | undefined>;
-}
+};
 
 export class FileSystemOrgDataSource implements OrgDataSource {
   private getLocalDatapath(): string | undefined {

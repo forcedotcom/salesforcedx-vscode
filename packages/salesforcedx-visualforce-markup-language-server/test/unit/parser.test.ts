@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -8,7 +9,7 @@ import * as assert from 'assert';
 import { HTMLDocument, Node, parse } from '../../src/parser/htmlParser';
 
 describe('HTML Parser', () => {
-  function toJSON(node: Node) {
+  const toJSON = (node: Node) => {
     return {
       tag: node.tag,
       start: node.start,
@@ -17,35 +18,35 @@ describe('HTML Parser', () => {
       closed: node.closed,
       children: node.children.map(toJSON)
     };
-  }
+  };
 
-  function toJSONWithAttributes(node: Node) {
+  const toJSONWithAttributes = (node: Node) => {
     return {
       tag: node.tag,
       attributes: node.attributes,
       children: node.children.map(toJSONWithAttributes)
     };
-  }
+  };
 
-  function assertDocument(input: string, expected: any) {
+  const assertDocument = (input: string, expected: any) => {
     const document = parse(input);
     assert.deepEqual(document.roots.map(toJSON), expected);
-  }
+  };
 
-  function assertNodeBefore(
+  const assertNodeBefore = (
     input: string,
     offset: number,
     expectedTag: string
-  ) {
+  ) => {
     const document = parse(input);
     const node = document.findNodeBefore(offset);
     assert.equal(node ? node.tag : '', expectedTag, 'offset ' + offset);
-  }
+  };
 
-  function assertAttributes(input: string, expected: any) {
+  const assertAttributes = (input: string, expected: any) => {
     const document = parse(input);
     assert.deepEqual(document.roots.map(toJSONWithAttributes), expected);
-  }
+  };
 
   it('Simple', () => {
     assertDocument('<html></html>', [

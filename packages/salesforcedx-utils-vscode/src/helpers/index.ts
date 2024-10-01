@@ -13,11 +13,13 @@ export {
   getRelativeProjectPath,
   projectPaths
 } from './paths';
+export * from './extensionUris';
 export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
   asyncFilter,
   extractJsonObject,
+  getMessageFromError,
   isNullOrUndefined,
   fileUtils
 } from './utils';
@@ -28,3 +30,9 @@ export {
   isIntegerInRange,
   isRecordIdFormat
 } from './validations';
+export { isSFContainerMode } from './env';
+export {
+  ActivationTracker
+} from './activationTracker';
+
+

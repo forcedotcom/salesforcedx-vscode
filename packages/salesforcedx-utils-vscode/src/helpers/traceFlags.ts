@@ -4,33 +4,33 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core-bundle';
 import { TraceFlagsRemover } from '../helpers';
 import { nls } from '../messages';
 
-interface UserRecord {
+type UserRecord = {
   Id: string;
-}
+};
 
-interface DebugLevelRecord {
+type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
-}
+};
 
-interface TraceFlagRecord {
+type TraceFlagRecord = {
   Id: string;
   LogType: string;
   DebugLevelId: string;
   StartDate: Date | undefined;
   ExpirationDate: Date | undefined;
   DebugLevel: DebugLevelRecord;
-}
+};
 
-interface DataRecordResult {
+type DataRecordResult = {
   id?: string;
   errors?: any[];
   success: boolean;
-}
+};
 
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
@@ -44,7 +44,7 @@ export class TraceFlags {
   public async ensureTraceFlags(): Promise<boolean> {
     const username = this.connection.getUsername();
     if (!username) {
-      throw new Error(nls.localize('error_no_default_username'));
+      throw new Error(nls.localize('error_no_target_org'));
     }
 
     const userRecord = await this.getUserIdOrThrow(username);
@@ -144,7 +144,9 @@ export class TraceFlags {
     )) as DataRecordResult;
 
     if (result.success && result.id) {
-      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
+      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(
+        result.id
+      );
       return result.id;
     } else {
       return undefined;
@@ -187,9 +189,8 @@ export class TraceFlags {
       FROM TraceFlag
       WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'
     `;
-    const traceFlagResult = await this.connection.tooling.query<
-      TraceFlagRecord
-    >(traceFlagQuery);
+    const traceFlagResult =
+      await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
     if (traceFlagResult.totalSize > 0) {
       return traceFlagResult.records[0];

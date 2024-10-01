@@ -10,9 +10,9 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { TestExecutionInfo, TestInfoKind } from '../types';
+import { isTestCaseInfo, TestExecutionInfo, TestInfoKind } from '../types';
 import { workspace, workspaceService } from '../workspace';
-import { SfdxTask, taskService } from './taskService';
+import { SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
 export const enum TestRunType {
@@ -27,12 +27,20 @@ export const enum TestRunType {
  * @param cwd
  * @param testFsPath
  */
-export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
+export const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
   if (/^win32/.test(process.platform)) {
     return path.relative(cwd, testFsPath);
   }
   return testFsPath;
-}
+};
+
+/**
+ * Returns testNamePattern flag and escaped test name
+ * @param TestExecutionInfo
+ */
+export const getTestNamePatternArgs = (testName: string) => {
+  return ['--testNamePattern', `${escapeStrForRegex(testName)}`];
+};
 
 type JestExecutionInfo = {
   jestArgs: string[];
@@ -65,15 +73,13 @@ export class TestRunner {
   }
 
   /**
-   * Deterine jest command line arguments and output file path.
+   * Determine jest command line arguments and output file path.
    * @param workspaceFolder workspace folder of the test
    */
   public getJestExecutionInfo(
     workspaceFolder: vscode.WorkspaceFolder
   ): JestExecutionInfo | undefined {
     const { testRunId, testRunType, testExecutionInfo } = this;
-    const testName =
-      'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
     const tempFolder = testResultsWatcher.getTempFolder(
@@ -94,9 +100,10 @@ export class TestRunner {
     } else {
       runTestsByPathArgs = [];
     }
-    const testNamePatternArgs = testName
-      ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
-      : [];
+    const testNamePatternArgs =
+      isTestCaseInfo(testExecutionInfo) && testExecutionInfo.testName
+        ? getTestNamePatternArgs(testExecutionInfo.testName)
+        : [];
 
     let runModeArgs: string[];
     if (testRunType === TestRunType.WATCH) {
@@ -131,9 +138,8 @@ export class TestRunner {
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
-        const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
-          cwd
-        );
+        const lwcTestRunnerExecutable =
+          workspace.getLwcTestRunnerExecutable(cwd);
         const cliArgs: string[] = workspace.getCliArgsFromJestArgs(
           jestArgs,
           this.testRunType
@@ -174,18 +180,14 @@ export class TestRunner {
    * Create and start a task for test execution.
    * Returns the task wrapper on task creation if successful.
    */
-  public async executeAsSfdxTask(): Promise<SfdxTask | undefined> {
+  public async executeAsSfTask(): Promise<SfTask | undefined> {
     const shellExecutionInfo = this.getShellExecutionInfo();
     if (shellExecutionInfo) {
-      const {
-        command,
-        args,
-        workspaceFolder,
-        testResultFsPath
-      } = shellExecutionInfo;
+      const { command, args, workspaceFolder, testResultFsPath } =
+        shellExecutionInfo;
       this.startWatchingTestResults(testResultFsPath);
       const taskName = this.getTaskName();
-      const sfdxTask = taskService.createTask(
+      const sfTask = taskService.createTask(
         this.testRunId,
         taskName,
         workspaceFolder,
@@ -194,13 +196,14 @@ export class TestRunner {
       );
       if (this.logName) {
         const startTime = process.hrtime();
-        sfdxTask.onDidEnd(() => {
+        sfTask.onDidEnd(() => {
           telemetryService.sendCommandEvent(this.logName, startTime, {
-            workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
+            workspaceType:
+              workspaceService.getCurrentWorkspaceTypeForTelemetry()
           });
         });
       }
-      return sfdxTask.execute();
+      return sfTask.execute();
     }
   }
 }

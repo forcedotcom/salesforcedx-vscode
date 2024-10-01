@@ -6,7 +6,7 @@
   ],
   "version": "https://github.com/textmate/html.tmbundle/commit/a723f08ebd49c67c22aca08dd8f17d0bf836ec93",
   "name": "HTML",
-  "scopeName": "text.html.basic",
+  "scopeName": "aura.html",
   "injections": {
     "R:text.html - (comment.block, text.html source)": {
       "comment": "Use R: to ensure this matches after any other injections.",
@@ -354,7 +354,7 @@
                       "name": "punctuation.definition.tag.begin.html"
                     },
                     "2": {
-                      "name": "text.html.basic"
+                      "name": "aura.html"
                     }
                   },
                   "patterns": [
@@ -376,10 +376,10 @@
                     {
                       "begin": "(?!\\G)",
                       "end": "(?=</(?i:script))",
-                      "name": "text.html.basic",
+                      "name": "aura.html",
                       "patterns": [
                         {
-                          "include": "text.html.basic"
+                          "include": "aura.html"
                         }
                       ]
                     }

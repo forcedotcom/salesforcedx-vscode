@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -26,12 +26,12 @@ export const enum TestResultStatus {
 }
 
 /**
- * Test Result interface contains the test result status.
+ * Test Result type contains the test result status.
  * For now, failure messages are stored in DiagnosticCollection instead of here.
  */
-export interface TestResult {
+export type TestResult = {
   status: TestResultStatus;
-}
+};
 
 /**
  * The discriminant enum for the TestExecutionInfo discriminated union.
@@ -43,22 +43,31 @@ export const enum TestInfoKind {
 }
 
 /**
+ * Confirms if the TestExecutionInfo kind is TestCaseInfo
+ */
+export const isTestCaseInfo = (
+  testExecutionInfo: TestExecutionInfo
+): testExecutionInfo is TestCaseInfo => {
+  return testExecutionInfo.kind === TestInfoKind.TEST_CASE;
+};
+
+/**
  * Raw Test Results generated from Jest output.
  * The title and ancestorTitles will be used to match and merge with the existing test cases
  * created by test file parser.
  */
-export interface RawTestResult {
+export type RawTestResult = {
   title: string;
   ancestorTitles?: string[];
   status: TestResultStatus;
-}
+};
 
 /**
  * Test File Information.
  * It contains the test's URI, location (The beginning of the documentation by default),
  * test results and associated test cases information.
  */
-export interface TestFileInfo {
+export type TestFileInfo = {
   kind: TestInfoKind.TEST_FILE;
   testType: TestType;
   testUri: Uri;
@@ -66,14 +75,14 @@ export interface TestFileInfo {
   testResult?: TestResult;
   testCasesInfo?: TestCaseInfo[];
   rawTestResults?: RawTestResult[];
-}
+};
 
 /**
  * Test Case Information.
  * It contains the test case's URI, location, and
  * test name and ancestor titles, which are used for matching with test results.
  */
-export interface TestCaseInfo {
+export type TestCaseInfo = {
   kind: TestInfoKind.TEST_CASE;
   testType: TestType;
   testUri: Uri;
@@ -81,18 +90,18 @@ export interface TestCaseInfo {
   testResult?: TestResult;
   testName: string;
   ancestorTitles?: string[];
-}
+};
 
 /**
  * Test Directory Information.
  * It contains the test directory Uri.
  */
-export interface TestDirectoryInfo {
+export type TestDirectoryInfo = {
   kind: TestInfoKind.TEST_DIRECTORY;
   testType: TestType;
   testUri: Uri;
   testResult?: TestResult;
-}
+};
 
 /**
  * Test Execution Information.
@@ -103,7 +112,7 @@ export type TestExecutionInfo = TestCaseInfo | TestFileInfo | TestDirectoryInfo;
 /**
  * Top level Jest output JSON object shape
  */
-export interface LwcJestTestResults {
+export type LwcJestTestResults = {
   numFailedTestSuites: number;
   numFailedTests: number;
   numPassedTestSuites: number;
@@ -114,7 +123,7 @@ export interface LwcJestTestResults {
   numTotalTestSuites: number;
   numTotalTests: number;
   testResults: LwcJestTestFileResult[];
-}
+};
 
 /**
  * Jest Test Assertion Result status.
@@ -127,25 +136,24 @@ type LwcJestTestResultStatus =
   | 'failed'
   | 'pending'
   | 'skipped'
-  | 'pending'
   | 'todo'
   | 'disabled';
 
 /**
  * Jest Test File Result
  */
-export interface LwcJestTestFileResult {
+export type LwcJestTestFileResult = {
   status: 'passed' | 'failed';
   startTime: number;
   endTime: number;
   name: string;
   assertionResults: LwcJestTestAssertionResult[];
-}
+};
 
 /**
  * Jest Test Assertion Result
  */
-export interface LwcJestTestAssertionResult {
+export type LwcJestTestAssertionResult = {
   status: LwcJestTestResultStatus;
   title: string;
   ancestorTitles: string[];
@@ -155,4 +163,4 @@ export interface LwcJestTestAssertionResult {
     column: number;
     line: number;
   };
-}
+};

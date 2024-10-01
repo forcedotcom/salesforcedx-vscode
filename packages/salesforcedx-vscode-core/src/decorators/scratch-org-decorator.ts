@@ -12,22 +12,22 @@ import { nls } from '../messages';
 
 let statusBarItem: StatusBarItem | undefined;
 
-export async function showOrg() {
-  await displayBrowserIcon();
-}
+export const showOrg = (): Promise<void> => {
+  return displayBrowserIcon();
+};
 
-async function displayBrowserIcon() {
-  const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
-  if (defaultUsernameOrAlias) {
+const displayBrowserIcon = async () => {
+  const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
+  if (targetOrgOrAlias) {
     if (!statusBarItem) {
       statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
       statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
       statusBarItem.command = ORG_OPEN_COMMAND;
       statusBarItem.show();
     }
-    statusBarItem.text = `$(browser)`;
-  } else if (!defaultUsernameOrAlias && statusBarItem) {
+    statusBarItem.text = '$(browser)';
+  } else if (!targetOrgOrAlias && statusBarItem) {
     statusBarItem.dispose();
     statusBarItem = undefined;
   }
-}
+};

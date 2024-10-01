@@ -16,12 +16,13 @@ import {
 import { messages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
-function loadMessageBundle(config?: Config): Message {
-  function resolveFileName(locale: string): string {
+const loadMessageBundle = (config?: Config): Message => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const resolveFileName = (locale: string): string => {
     return locale === DEFAULT_LOCALE
       ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
-  }
+  };
 
   const base = new Message(messages);
 
@@ -35,7 +36,7 @@ function loadMessageBundle(config?: Config): Message {
   }
 
   return base;
-}
+};
 
 export const nls = new Localization(
   loadMessageBundle(

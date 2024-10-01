@@ -29,17 +29,14 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   private disposables: vscode.Disposable[] = [];
   private hasIndexedTestFiles = false;
   private testFileInfoMap = new Map<string, TestFileInfo>();
-  private diagnosticCollection = vscode.languages.createDiagnosticCollection(
-    'lwcTestErrors'
-  );
-  private onDidUpdateTestResultsIndexEventEmitter = new vscode.EventEmitter<
-    undefined
-  >();
-  private onDidUpdateTestIndexEventEmitter = new vscode.EventEmitter<
-    undefined
-  >();
-  public onDidUpdateTestResultsIndex = this
-    .onDidUpdateTestResultsIndexEventEmitter.event;
+  private diagnosticCollection =
+    vscode.languages.createDiagnosticCollection('lwcTestErrors');
+  private onDidUpdateTestResultsIndexEventEmitter =
+    new vscode.EventEmitter<undefined>();
+  private onDidUpdateTestIndexEventEmitter =
+    new vscode.EventEmitter<undefined>();
+  public onDidUpdateTestResultsIndex =
+    this.onDidUpdateTestResultsIndexEventEmitter.event;
   public onDidUpdateTestIndex = this.onDidUpdateTestIndexEventEmitter.event;
 
   /**
@@ -197,7 +194,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * This does not start parsing the test files.
    */
   private async indexAllTestFiles(): Promise<TestFileInfo[]> {
-    // TODO, infer package directory from sfdx project json
+    // TODO, infer package directory from sfdx-project.json
     const lwcJestTestFiles = await vscode.workspace.findFiles(
       LWC_TEST_GLOB_PATTERN,
       '**/node_modules/**'

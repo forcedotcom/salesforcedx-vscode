@@ -5,18 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
+import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { workspaceContext, channelService } from './sfdx';
-import { startTelemetry, stopTelemetry } from './telemetry';
+import { workspaceContext, channelService } from './sf';
+import { telemetryService } from './telemetry';
 
-export async function activate(
+export const activate = async (
   extensionContext: vscode.ExtensionContext
-): Promise<any> {
-  const extensionHRStart = process.hrtime();
+): Promise<any> => {
+  await telemetryService.initializeService(extensionContext);
+  const activationTracker = new ActivationTracker(
+    extensionContext,
+    telemetryService
+  );
+
   extensionContext.subscriptions.push(
     SOQLEditorProvider.register(extensionContext)
   );
@@ -31,12 +37,12 @@ export async function activate(
   );
 
   await startLanguageClient(extensionContext);
-  startTelemetry(extensionContext, extensionHRStart).catch();
+  void activationTracker.markActivationStop();
   console.log('SOQL Extension Activated');
   return { workspaceContext, channelService };
-}
+};
 
-export function deactivate(): Thenable<void> | undefined {
-  stopTelemetry().catch();
+export const deactivate = (): Thenable<void> => {
+  telemetryService.sendExtensionDeactivationEvent();
   return stopLanguageClient();
-}
+};

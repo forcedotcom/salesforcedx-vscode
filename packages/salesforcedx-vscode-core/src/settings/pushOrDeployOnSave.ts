@@ -5,18 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
+import { setTimeout } from 'timers';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SalesforcePackageDirectories } from '../salesforceProject';
+import { salesforceCoreSettings } from '../settings';
 
-import * as path from 'path';
-import { setTimeout } from 'timers';
-import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds
@@ -24,7 +23,7 @@ export class DeployQueue {
   private static instance: DeployQueue;
 
   private readonly queue = new Set<vscode.Uri>();
-  private timer: NodeJS.Timer | undefined;
+  private timer: ReturnType<typeof setTimeout> | undefined;
   private locked = false;
   private deployWaitStart?: [number, number];
 
@@ -67,38 +66,46 @@ export class DeployQueue {
     });
   }
 
+  private async executeDeployCommand(toDeploy: vscode.Uri[]) {
+    vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy);
+  }
+
+  private async executePushCommand() {
+    const ignoreConflictsCommand =
+      salesforceCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
+        ? '.ignore.conflicts'
+        : '';
+    const command = `sf.project.deploy.start${ignoreConflictsCommand}`;
+    vscode.commands.executeCommand(command);
+  }
+
   private async doDeploy(): Promise<void> {
     if (!this.locked && this.queue.size > 0) {
       this.locked = true;
       const toDeploy = Array.from(this.queue);
       this.queue.clear();
+      let deployType: string = '';
       try {
-        let defaultUsernameorAlias: string | undefined;
-        if (workspaceUtils.hasRootWorkspace()) {
-          defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-            false
-          );
-        }
-        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
-          defaultUsernameorAlias
-        );
-        if (orgType === OrgType.SourceTracked) {
-          const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
-            ? '.force'
-            : '';
-          const command = `sfdx.force.source.push${forceCommand}`;
-          vscode.commands.executeCommand(command);
+        const preferDeployOnSaveEnabled =
+          salesforceCoreSettings.getPreferDeployOnSaveEnabled();
+        if (preferDeployOnSaveEnabled) {
+          await this.executeDeployCommand(toDeploy);
+          deployType = 'Deploy';
         } else {
-          vscode.commands.executeCommand(
-            'sfdx.force.source.deploy.multiple.source.paths',
-            toDeploy
-          );
+          const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+          if (orgType === OrgType.SourceTracked) {
+            await this.executePushCommand();
+            deployType = 'Push';
+          } else {
+            await this.executeDeployCommand(toDeploy);
+            deployType = 'Deploy';
+          }
         }
 
         telemetryService.sendEventData(
           'deployOnSave',
           {
-            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
+            deployType
           },
           {
             documentsToDeploy: toDeploy.length,
@@ -112,14 +119,15 @@ export class DeployQueue {
           case 'NamedOrgNotFound':
             displayError(nls.localize('error_fetching_auth_info_text'));
             break;
-          case 'NoDefaultusernameSet':
+          case 'NoTargetOrgSet':
             displayError(
-              nls.localize('error_push_or_deploy_on_save_no_default_username')
+              nls.localize('error_push_or_deploy_on_save_no_target_org')
             );
             break;
           default:
             displayError(e.message);
         }
+      } finally {
         this.locked = false;
       }
       this.deployWaitStart = undefined;
@@ -129,42 +137,41 @@ export class DeployQueue {
   }
 }
 
-export async function registerPushOrDeployOnSave() {
+export const registerPushOrDeployOnSave = () => {
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
       const documentUri = textDocument.uri;
       if (
-        sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
+        salesforceCoreSettings.getPushOrDeployOnSaveEnabled() &&
         !(await ignorePath(documentUri.fsPath))
       ) {
         await DeployQueue.get().enqueue(documentUri);
       }
     }
   );
-}
+};
 
-function displayError(message: string) {
-  notificationService.showErrorMessage(message);
+const displayError = (message: string) => {
+  void notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
   telemetryService.sendException(
     'push_deploy_on_save_queue',
-    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+    'DeployOnSaveError: Documents were queued but a deployment was not triggered'
   );
-}
+};
 
-async function ignorePath(documentPath: string) {
-  return (
-    fileShouldNotBeDeployed(documentPath) ||
-    !(await pathIsInPackageDirectory(documentPath))
-  );
-}
+const ignorePath = async (documentPath: string): Promise<boolean> =>
+  fileShouldNotBeDeployed(documentPath) ||
+  !(await pathIsInPackageDirectory(documentPath));
 
-export async function pathIsInPackageDirectory(
+export const pathIsInPackageDirectory = async (
   documentPath: string
-): Promise<boolean> {
+): Promise<boolean> => {
   try {
-    return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
+    return await SalesforcePackageDirectories.isInPackageDirectory(
+      documentPath
+    );
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':
@@ -181,20 +188,16 @@ export async function pathIsInPackageDirectory(
     displayError(error.message);
     throw error;
   }
-}
+};
 
-export function fileShouldNotBeDeployed(fsPath: string) {
-  return isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
-}
+export const fileShouldNotBeDeployed = (fsPath: string): boolean =>
+  isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 
-function isDotFile(fsPath: string) {
-  return path.basename(fsPath).startsWith('.');
-}
+const isDotFile = (fsPath: string): boolean =>
+  path.basename(fsPath).startsWith('.');
 
-function isSoql(fsPath: string) {
-  return path.basename(fsPath).endsWith('.soql');
-}
+const isSoql = (fsPath: string): boolean =>
+  path.basename(fsPath).endsWith('.soql');
 
-function isAnonApex(fsPath: string) {
-  return path.basename(fsPath).endsWith('.apex');
-}
+const isAnonApex = (fsPath: string): boolean =>
+  path.basename(fsPath).endsWith('.apex');

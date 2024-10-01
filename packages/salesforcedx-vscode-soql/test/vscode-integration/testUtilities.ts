@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core-bundle';
 import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
+import { QueryResult } from '@jsforce/jsforce-node';
 import { SinonSandbox, SinonSpy } from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -322,7 +322,7 @@ export function getMockConnection(
     username: 'test'
   });
 
-  const mockConnection = ({
+  const mockConnection = {
     authInfo: mockAuthInfo,
     describeGlobal$: () => {
       return Promise.resolve(mockDescribeGlobalResponse);
@@ -332,7 +332,7 @@ export function getMockConnection(
       return Promise.resolve(sobjectMetadata);
     },
     query: () => Promise.resolve(mockQueryData)
-  } as unknown) as Connection;
+  } as unknown as Connection;
 
   return mockConnection;
 }
@@ -352,11 +352,12 @@ export function getFailingMockConnection(
     },
     query: () => Promise.reject(new Error('Unexpected error'))
   };
-  return (mockConnection as unknown) as Connection;
+  return mockConnection as unknown as Connection;
 }
 
 export class MockTextDocumentProvider
-  implements vscode.TextDocumentContentProvider {
+  implements vscode.TextDocumentContentProvider
+{
   public provideTextDocumentContent(
     uri: vscode.Uri,
     token: vscode.CancellationToken

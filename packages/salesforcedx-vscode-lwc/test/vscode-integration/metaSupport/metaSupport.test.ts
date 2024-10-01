@@ -36,7 +36,7 @@ describe('MetaSupport: Extension version supported', () => {
       .returns(new MockRedhatExtension('0.13.0'));
     await metaSupport.getMetaSupport();
     expect(appendLineSpy).to.have.calledOnceWith(
-      nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+      nls.localize('lightning_lwc_deprecated_redhat_extension')
     );
   });
 
@@ -46,7 +46,7 @@ describe('MetaSupport: Extension version supported', () => {
       .returns(new MockRedhatExtension('0.13.2'));
     await metaSupport.getMetaSupport();
     expect(appendLineSpy).to.have.calledOnceWith(
-      nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+      nls.localize('lightning_lwc_deprecated_redhat_extension')
     );
   });
 
@@ -56,7 +56,7 @@ describe('MetaSupport: Extension version supported', () => {
       .returns(new MockRedhatExtension('0.15.0'));
     await metaSupport.getMetaSupport();
     expect(appendLineSpy).to.have.calledOnceWith(
-      nls.localize('force_lightning_lwc_redhat_extension_regression')
+      nls.localize('lightning_lwc_redhat_extension_regression')
     );
   });
 });
@@ -77,7 +77,7 @@ describe('MetaSupport: Extension not found', () => {
   it('Should provide information to install XML plugin if not found', async () => {
     await metaSupport.getMetaSupport();
     expect(appendLineSpy).to.have.calledOnceWith(
-      nls.localize('force_lightning_lwc_no_redhat_extension_found')
+      nls.localize('lightning_lwc_no_redhat_extension_found')
     );
   });
 });

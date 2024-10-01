@@ -23,16 +23,17 @@ import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
  * @param document text document
  * @param token cancellation token
  */
-export async function provideLwcTestCodeLens(
+export const provideLwcTestCodeLens = async (
   document: TextDocument,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   token: CancellationToken
-): Promise<CodeLens[]> {
+): Promise<CodeLens[]> => {
   const fsPath = document.uri.fsPath;
   const parseResults = parse(fsPath, document.getText());
   const { itBlocks } = parseResults;
   return itBlocks
     .map(itBlock => {
-      const { name, nameRange, start, end } = itBlock;
+      const { name, nameRange } = itBlock;
       // VS Code position is zero-based
       const range = new Range(
         new Position(nameRange.start.line - 1, nameRange.start.column - 1),
@@ -47,7 +48,7 @@ export async function provideLwcTestCodeLens(
       };
       const runTestTitle = nls.localize('run_test_title');
       const runTestCaseCommand: Command = {
-        command: 'sfdx.force.lightning.lwc.test.case.run',
+        command: 'sf.lightning.lwc.test.case.run',
         title: runTestTitle,
         tooltip: runTestTitle,
         arguments: [{ testExecutionInfo }]
@@ -56,7 +57,7 @@ export async function provideLwcTestCodeLens(
 
       const debugTestTitle = nls.localize('debug_test_title');
       const debugTestCaseCommand: Command = {
-        command: 'sfdx.force.lightning.lwc.test.case.debug',
+        command: 'sf.lightning.lwc.test.case.debug',
         title: debugTestTitle,
         tooltip: debugTestTitle,
         arguments: [{ testExecutionInfo }]
@@ -65,4 +66,4 @@ export async function provideLwcTestCodeLens(
       return [runTestCaseCodeLens, debugTestCaseCodeLens];
     })
     .reduce((xs, x) => xs.concat(x), []);
-}
+};

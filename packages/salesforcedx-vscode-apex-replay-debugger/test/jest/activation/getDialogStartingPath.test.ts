@@ -10,7 +10,7 @@ import {
   projectPaths,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as pathExists from 'path-exists';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
 
@@ -30,7 +30,7 @@ describe('getDialogStartingPath', () => {
     mockExtensionContext = {
       workspaceState: { get: mockGet }
     };
-    pathExistsMock = jest.spyOn(pathExists, 'sync').mockReturnValue(true);
+    pathExistsMock = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     vsCodeUriMock = jest.spyOn(vscode.Uri, 'file');
     debugLogsFolderMock = jest.spyOn(projectPaths, 'debugLogsFolder');
     stateFolderMock = jest.spyOn(projectPaths, 'stateFolder');

@@ -14,15 +14,14 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "57.2.1",
+  "version": "61.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.86.0"
   },
   "scripts": {
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
@@ -33,15 +32,19 @@
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-debugger",
     "salesforce.salesforcedx-vscode-apex-replay-debugger",
+    "salesforce.salesforcedx-einstein-gpt",
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
     "salesforce.salesforcedx-vscode-visualforce",
     "salesforce.salesforcedx-vscode-lwc",
+    "salesforce.salesforcedx-vscode-soql",
     "salesforce.salesforce-vscode-slds",
+    "salesforce.sfdx-code-analyzer-vscode",
     "redhat.vscode-xml",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "chuckjonas.apex-pmd",
+    "pmd.apex-pmd",
     "financialforce.lana"
   ]
 }

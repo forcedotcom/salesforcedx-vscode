@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -14,13 +15,13 @@ import {
 } from '../../src/parser/htmlScanner';
 
 describe('HTML Scanner', () => {
-  interface Token {
+  type Token = {
     offset: number;
     type: TokenType;
     content?: string;
-  }
+  };
 
-  function assertTokens(tests: Array<{ input: string; tokens: Token[] }>) {
+  const assertTokens = (tests: { input: string; tokens: Token[] }[]) => {
     let scannerState = ScannerState.WithinContent;
     for (const t of tests) {
       const scanner = createScanner(t.input, 0, scannerState);
@@ -46,7 +47,7 @@ describe('HTML Scanner', () => {
       assert.deepEqual(actual, t.tokens);
       scannerState = scanner.getScannerState();
     }
-  }
+  };
 
   it('Open Start Tag #1', () => {
     assertTokens([

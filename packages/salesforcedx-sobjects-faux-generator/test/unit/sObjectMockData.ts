@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult } from 'jsforce';
+import { DescribeSObjectResult } from '@jsforce/jsforce-node';
 import { SObject } from '../../src/types';
 
 // This is mock data of the raw response we get from SF's API
@@ -871,6 +871,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     }
   ],
   hasSubtypes: false,
+  idEnabled: false,
   isInterface: false,
   isSubtype: false,
   keyPrefix: 'a07',

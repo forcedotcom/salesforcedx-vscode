@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { QueryResult } from '@jsforce/jsforce-node';
 import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
@@ -24,7 +24,7 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { nls } from '../messages';
-import { channelService } from '../sfdx';
+import { channelService } from '../sf';
 import {
   FileFormat,
   QueryDataFileService as FileService
@@ -32,10 +32,10 @@ import {
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
-export interface DataViewEvent {
+export type DataViewEvent = {
   type: string;
   format?: FileFormat;
-}
+};
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -133,11 +133,10 @@ export class QueryDataViewService {
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format as FileFormat);
+        this.handleSaveRecords(format);
         break;
       default:
-        const errorMessage = nls.localize('error_unknown_error', type);
-        channelService.appendLine(errorMessage);
+        channelService.appendLine(nls.localize('error_unknown_error', type));
         trackErrorWithTelemetry('data_view_message_type', type).catch(
           console.error
         );

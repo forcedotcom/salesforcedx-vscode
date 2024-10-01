@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface Command {
+export type Command = {
   readonly command: string;
   readonly description?: string;
   readonly args: string[];
@@ -13,40 +13,44 @@ export interface Command {
 
   toString(): string;
   toCommand(): string;
-}
+};
 
-export { CommandBuilder, SfdxCommandBuilder } from './commandBuilder';
+export { CommandBuilder, SfCommandBuilder } from './commandBuilder';
 export {
-  CliCommandExecutor,
   CliCommandExecution,
+  CliCommandExecutor,
   CommandExecution,
-  CompositeCliCommandExecutor,
   CompositeCliCommandExecution,
+  CompositeCliCommandExecutor,
   GlobalCliEnvironment
 } from './commandExecutor';
 export { CommandOutput } from './commandOutput';
-export { ForceConfigGet } from './forceConfigGet';
-export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
-export { LocalCommandExecution } from './localCommandExecutor';
-export {
-  ForceDeployResultParser,
-  ForceSourceDeployErrorResponse,
-  ForceSourceDeploySuccessResponse,
-  DeployResult,
-  CONFLICT_ERROR_NAME
-} from './deployResultParser';
-export {
-  OrgCreateSuccessResult,
-  OrgCreateErrorResult,
-  OrgCreateResultParser
-} from './orgCreateResultParser';
-export {
-  OrgOpenSuccessResult,
-  OrgOpenContainerResultParser,
-  OrgOpenErrorResult
-} from './orgOpenContainerResultParser';
 export {
   DiffErrorResponse,
   DiffResultParser,
   DiffSuccessResponse
 } from './diffResultParser';
+export { ConfigGet } from './configGet';
+export { LocalCommandExecution } from './localCommandExecutor';
+export {
+  OrgCreateErrorResult,
+  OrgCreateResultParser,
+  OrgCreateSuccessResult
+} from './orgCreateResultParser';
+export { OrgDisplay, OrgInfo } from './orgDisplay';
+export {
+  OrgOpenContainerResultParser,
+  OrgOpenErrorResult,
+  OrgOpenSuccessResult
+} from './orgOpenContainerResultParser';
+export {
+  ProjectRetrieveStartResultParser,
+  ProjectRetrieveStartResult
+} from './parsers/projectRetrieveStartResultParser';
+export {
+  CONFLICT_ERROR_NAME,
+  ProjectDeployStartResultParser,
+  ProjectDeployStartErrorResponse,
+  ProjectDeployStartSuccessResponse,
+  ProjectDeployStartResult
+} from './parsers/projectDeployStartResultParser';

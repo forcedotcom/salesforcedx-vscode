@@ -12,7 +12,7 @@ NOTICE: While GitHub is the preferred channel for reporting issues/feedback, thi
 -->
 
 <!--
-FOR BUGS RELATED TO THE SALEFORCE CLI, please use this repository: https://github.com/forcedotcom/cli
+FOR BUGS RELATED TO THE SALESFORCE CLI, please use this repository: https://github.com/forcedotcom/cli
 -->
 
 ### Summary
@@ -38,6 +38,10 @@ _Feel free to attach a screenshot_.
 
 **Salesforce Extension Version in VS Code**:
 
-**SFDX CLI Version**:
+**Salesforce CLI Version**:
 
 **OS and version**:
+
+**VS Code version**:
+
+**Most recent version of the extensions where this was working**:

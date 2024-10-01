@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DebugClient } from '@vscode/debugadapter-testsupport';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as path from 'path';
-import { DebugClient } from 'vscode-debugadapter-testsupport';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import {
   ApexReplayDebug,
@@ -112,7 +112,7 @@ describe('Replay debugger adapter - integration', () => {
     );
 
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath,
+      salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
@@ -209,7 +209,7 @@ describe('Replay debugger adapter - integration', () => {
     );
 
     const launchResponse = await dc.launchRequest({
-      sfdxProject: projectPath,
+      salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
@@ -256,10 +256,10 @@ describe('Replay debugger adapter - integration', () => {
   });
 });
 
-function createBreakpointsArgs(
+const createBreakpointsArgs = (
   classPath: string,
   lineNumbers: number[]
-): DebugProtocol.SetBreakpointsArguments {
+): DebugProtocol.SetBreakpointsArguments => {
   const result: DebugProtocol.SetBreakpointsArguments = {
     source: {
       path: classPath
@@ -271,14 +271,14 @@ function createBreakpointsArgs(
     result.breakpoints!.push({ line: lineNumber })
   );
   return result;
-}
+};
 
-function assertBreakpointsCreated(
+const assertBreakpointsCreated = (
   response: DebugProtocol.SetBreakpointsResponse,
   expectedNumOfBreakpoints: number,
   expectedSourcePath: string,
   expectedLineNumbers: number[]
-) {
+) => {
   expect(response.success).to.equal(true);
   expect(response.body.breakpoints.length).to.equal(expectedNumOfBreakpoints);
   response.body.breakpoints.forEach(bp => {
@@ -286,4 +286,4 @@ function assertBreakpointsCreated(
     expect(bp.source!.path).to.equal(expectedSourcePath);
     expect(expectedLineNumbers).to.include(bp.line!);
   });
-}
+};

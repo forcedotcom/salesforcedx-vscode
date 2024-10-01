@@ -1,0 +1,29 @@
+name: Generate Changelog
+
+on:
+  workflow_call:
+
+jobs:
+  generate_changelog:
+    name: 'Generate Changelog'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 'develop'
+          ssh-strict: false
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+          fetch-depth: '0' # Fetching tags will fail if it is not 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.IDEE_GH_EMAIL }}
+      - run: npm ci
+      - name: Generate CHANGELOG
+        run: npm run changelog
+      - id: result
+        run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT

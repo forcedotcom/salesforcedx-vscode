@@ -11,6 +11,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   commands,
+  CompletionContext,
   CompletionItem,
   CompletionItemKind,
   CompletionList,
@@ -22,32 +23,32 @@ import {
   window,
   workspace
 } from 'vscode';
-import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 import {
   CancellationToken,
   ProvideCompletionItemsSignature
 } from 'vscode-languageclient';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import { soqlMiddleware } from '../../../src/embeddedSoql';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
-interface JavaApexLocation {
+type JavaApexLocation = {
   startIndex: number;
   endIndex: number;
   line: number;
   column: number;
-}
-function createApexLSPSpecialSOQLCompletionItem(
+};
+const createApexLSPSpecialSOQLCompletionItem = (
   soqlText: string,
   location: JavaApexLocation
-): CompletionItem {
+): CompletionItem => {
   const item = new ProtocolCompletionItem(SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
   item.kind = CompletionItemKind.Snippet;
   item.detail = soqlText;
   item.data = location;
   return item;
-}
+};
 const FAKE_APEX_COMPLETION_ITEM = new CompletionItem(
   'ApexCompletionItem',
   CompletionItemKind.Class
@@ -57,7 +58,7 @@ const FAKE_SOQL_COMPLETION_ITEM = new CompletionItem(
   CompletionItemKind.Class
 );
 
-describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completion', async () => {
+describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completion', () => {
   let sandbox: sinon.SinonSandbox;
   let tempDoc: Uri;
 
@@ -67,11 +68,11 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
 
   afterEach(async () => {
     sandbox.restore();
-    commands.executeCommand('workbench.action.closeActiveEditor');
+    await commands.executeCommand('workbench.action.closeActiveEditor');
     await workspace.fs.delete(tempDoc);
   });
 
-  describe('When outside SOQL block', async () => {
+  describe('When outside SOQL block', () => {
     it('Should return Apex completion items unchanged', async () => {
       const executeCommandSpy = sandbox.spy(commands, 'executeCommand');
       const { doc, position } = await prepareFile('class Test { | }');
@@ -81,12 +82,12 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       ]);
 
       expect(items.length).to.equal(1);
-      // tslint:disable:no-unused-expression
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(executeCommandSpy.called).to.be.false;
     });
   });
 
-  describe('When inside SOQL block', async () => {
+  describe('When inside SOQL block', () => {
     it('Should drop Apex LSP items, invoke SOQL completion and return SOQL LSP items', async () => {
       const lines: string[] = [
         'class Test {',
@@ -118,25 +119,24 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
         })
       ]);
 
-      // tslint:disable:no-unused-expression
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(executeCommandSpy.called).to.be.true;
       expect(items.length).to.equal(1);
       expect(items[0]).to.equal(FAKE_SOQL_COMPLETION_ITEM);
       const virtualDocUri = executeCommandSpy.lastCall.args[1];
-      const soqlVirtualDoc = await vscode.workspace.openTextDocument(
-        virtualDocUri
-      );
+      const soqlVirtualDoc =
+        await vscode.workspace.openTextDocument(virtualDocUri);
       expect(soqlVirtualDoc.getText()).to.equal(soqlCode.replace('|', ''));
     });
   });
 });
 
-async function invokeSoqlMiddleware(
+const invokeSoqlMiddleware = async (
   doc: TextDocument,
   position: Position,
   itemsReturnedByApexLsp: CompletionItem[]
-): Promise<CompletionItem[]> {
-  const context = {
+): Promise<CompletionItem[]> => {
+  const context: CompletionContext = {
     triggerKind: CompletionTriggerKind.Invoke,
     triggerCharacter: undefined
   };
@@ -163,11 +163,11 @@ async function invokeSoqlMiddleware(
     finalItems.push(...items);
   }
   return finalItems;
-}
+};
 
-async function prepareFile(
+const prepareFile = async (
   text: string
-): Promise<{ doc: TextDocument; position: Position }> {
+): Promise<{ doc: TextDocument; position: Position }> => {
   const position = getCursorPosition(text);
   const finalText = text.replace('|', '');
 
@@ -179,17 +179,20 @@ async function prepareFile(
   );
   await workspace.fs.writeFile(fileUri, encoder.encode(finalText));
   return { doc: await activate(fileUri), position };
-}
+};
 
-function getCursorPosition(text: string, cursorChar: string = '|'): Position {
+const getCursorPosition = (
+  text: string,
+  cursorChar: string = '|'
+): Position => {
   for (const [line, lineText] of text.split('\n').entries()) {
     const column = lineText.indexOf(cursorChar);
     if (column >= 0) return new Position(line, column);
   }
   throw new Error(`Cursor ${cursorChar} not found in ${text} !`);
-}
+};
 
-export async function activate(docUri: Uri): Promise<TextDocument> {
+export const activate = async (docUri: Uri): Promise<TextDocument> => {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-apex')!;
   await ext.activate();
   try {
@@ -200,8 +203,8 @@ export async function activate(docUri: Uri): Promise<TextDocument> {
     console.error(e);
     throw e;
   }
-}
+};
 
-function generateRandomInt() {
+const generateRandomInt = () => {
   return Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));
-}
+};

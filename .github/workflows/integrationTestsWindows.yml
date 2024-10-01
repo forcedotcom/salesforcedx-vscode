@@ -11,17 +11,16 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     env:
-      CODE_VERSION: 1.74.3
+      CODE_VERSION: stable
     steps:
       - run: git config --global core.autocrlf false
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-      - run: npm config set scripts-prepend-node-path true
       - run: npm install -g sfdx-cli
       - run: npm install -g junit-merge
       - run: npm ci

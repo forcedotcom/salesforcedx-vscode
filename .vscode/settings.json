@@ -13,5 +13,26 @@
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.tabSize": 2,
   "editor.formatOnSave": true,
-  "rewrap.wrappingColumn": 80
+  "rewrap.wrappingColumn": 80,
+  "eslint.workingDirectories": [
+    "./packages/salesforcedx-apex-replay-debugger",
+    "./packages/salesforcedx-vscode-visualforce",
+    "./packages/salesforcedx-vscode-apex-replay-debugger",
+    "./packages/salesforcedx-vscode-core",
+    "./packages/salesforcedx-vscode-apex",
+    "./packages/salesforcedx-utils-vscode",
+    "./packages/salesforcedx-visualforce-markup-language-server",
+    "./packages/salesforcedx-visualforce-language-server",
+    "./@typescript-eslint/no-unsafe-return",
+    "./packages/salesforcedx-test-utils-vscode",
+    "./packages/system-tests",
+    "./packages/salesforcedx-vscode-apex-debugger",
+    "./packages/salesforcedx-vscode-lwc",
+    "./packages/salesforcedx-apex-debugger",
+    "./packages/salesforcedx-vscode-soql",
+    "./packages/salesforcedx-utils",
+    "./packages/salesforcedx-vscode-lightning",
+    "./packages/salesforcedx-sobjects-faux-generator"
+  ],
+  "files.insertFinalNewline": true
 }

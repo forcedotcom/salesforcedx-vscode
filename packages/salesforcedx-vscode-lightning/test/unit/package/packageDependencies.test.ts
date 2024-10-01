@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -9,13 +15,13 @@ const checkedPackagePatterns: RegExp[] = [
   /^@salesforce\/salesforcedx/i
 ];
 
-function readJsonFile(jsonFilePath: string) {
+const readJsonFile = (jsonFilePath: string): any => {
   try {
     return JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
   } catch (e) {
     throw new Error(`Error reading json file from ${jsonFilePath}: ${e}`);
   }
-}
+};
 
 const packageJsonPath = path.join(
   __dirname,

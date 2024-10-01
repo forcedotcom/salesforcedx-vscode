@@ -14,9 +14,9 @@ import {
   Uri,
   workspace
 } from 'vscode';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
-import { Middleware } from 'vscode-languageclient/lib/main';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import { Middleware } from 'vscode-languageclient/node';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';
 
@@ -29,39 +29,40 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
   }
 });
 
-function insideSOQLBlock(
+const insideSOQLBlock = (
   apexItems: ProtocolCompletionItem[]
-): { queryText: string; location: any } | undefined {
+): { queryText: string; location: any } | undefined => {
   const soqlItem = apexItems.find(
     i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL
   );
   return soqlItem
     ? { queryText: soqlItem.detail as string, location: soqlItem.data }
     : undefined;
-}
-function insideApexBindingExpression(
+};
+
+const insideApexBindingExpression = (
   document: TextDocument,
   soqlQuery: string,
   position: Position
-): boolean {
+): boolean => {
   // Simple heuristic to detect when cursor is on a binding expression
   // (which might have been missed by Apex LSP)
   const rangeAtCursor = document.getWordRangeAtPosition(
     position,
-    /[:(_\.\w)]+/
+    /[:(_.\w)]+/
   );
   const wordAtCursor = rangeAtCursor
     ? document.getText(rangeAtCursor)
     : undefined;
 
   return !!wordAtCursor && wordAtCursor.startsWith(':');
-}
+};
 
-function getSOQLVirtualContent(
+const getSOQLVirtualContent = (
   document: TextDocument,
   position: Position,
   soqlBlock: { queryText: string; location: any }
-): string {
+): string => {
   const eol = eolForDocument(document);
   const blankedContent = document
     .getText()
@@ -81,9 +82,11 @@ function getSOQLVirtualContent(
     );
 
   return content;
-}
+};
 
 export const soqlMiddleware: Middleware = {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);
     if (!apexCompletionItems) {
@@ -92,8 +95,8 @@ export const soqlMiddleware: Middleware = {
 
     const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
       ? (apexCompletionItems as ProtocolCompletionItem[])
-      : ((apexCompletionItems as CompletionList)
-          .items as ProtocolCompletionItem[]);
+      : ((apexCompletionItems )
+        .items as ProtocolCompletionItem[]);
 
     const soqlBlock = insideSOQLBlock(items);
     if (soqlBlock) {
@@ -115,12 +118,12 @@ export const soqlMiddleware: Middleware = {
   }
 };
 
-async function doSOQLCompletion(
+const doSOQLCompletion = async (
   document: TextDocument,
   position: Position,
   context: any,
   soqlBlock: any
-): Promise<CompletionItem[] | CompletionList<CompletionItem>> {
+): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
   virtualDocumentContents.set(
     originalUri,
@@ -136,14 +139,13 @@ async function doSOQLCompletion(
     context.triggerCharacter
   );
   return soqlCompletions || [];
-}
+};
 
-function eolForDocument(doc: TextDocument) {
+const eolForDocument = (doc: TextDocument) => {
   switch (doc.eol) {
     case EndOfLine.LF:
       return '\n';
     case EndOfLine.CRLF:
       return '\r\n';
   }
-  return '\n';
-}
+};

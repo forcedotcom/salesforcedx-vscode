@@ -14,12 +14,12 @@ import {
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
-  SfdxCommandBuilder
+  SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
+import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
@@ -32,39 +32,37 @@ import {
   ProjectNameAndPathAndTemplate,
   SelectProjectFolder,
   SelectProjectName
-} from '../forceProjectCreate';
+} from '../projectGenerate';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
-  SfdxCommandlet,
-  SfdxCommandletExecutor
+  SfCommandlet,
+  SfCommandletExecutor
 } from '../util';
-import sanitizeFilename = require('sanitize-filename');
 // below uses require due to bundling restrictions
-/* tslint:disable */
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
 const AdmZip = require('adm-zip');
-/* tslint:enable */
 
-export interface InstalledPackageInfo {
+export type InstalledPackageInfo = {
   id: string;
   name: string;
   namespace: string;
   versionId: string;
   versionName: string;
   versionNumber: string;
-}
+};
 
 export const ISVDEBUGGER = 'isvdebuggermdapitmp';
 export const INSTALLED_PACKAGES = 'installed-packages';
 export const PACKAGE_XML = 'package.xml';
 
-export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
-  public readonly relativeMetdataTempPath = path.join(
+export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
+  public readonly relativeMetadataTempPath = path.join(
     projectPaths.relativeToolsFolder(),
     ISVDEBUGGER
   );
   public readonly relativeApexPackageXmlPath = path.join(
-    this.relativeMetdataTempPath,
+    this.relativeMetadataTempPath,
     PACKAGE_XML
   );
   public readonly relativeInstalledPackagesPath = path.join(
@@ -72,30 +70,29 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     INSTALLED_PACKAGES
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     throw new Error('not in use');
   }
 
   public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_step1_create_project'))
-      .withArg('force:project:create')
-      .withFlag('--projectname', data.projectName)
-      .withFlag('--outputdir', data.projectUri)
+    return new SfCommandBuilder()
+      .withDescription(nls.localize('isv_debug_bootstrap_create_project'))
+      .withArg('project:generate')
+      .withFlag('--name', data.projectName)
+      .withFlag('--output-dir', data.projectUri)
       .withFlag('--template', 'standard')
       .withLogName('isv_debug_bootstrap_create_project')
       .build();
   }
 
   public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_step2_configure_project')
-      )
-      .withArg('force:config:set')
-      .withArg(`isvDebuggerSid=${data.sessionId}`)
-      .withArg(`isvDebuggerUrl=${data.loginUrl}`)
-      .withArg(`instanceUrl=${data.loginUrl}`)
+    return new SfCommandBuilder()
+      .withDescription(nls.localize('isv_debug_bootstrap_configure_project'))
+      .withArg('config:set')
+      .withArg(`org-isv-debugger-sid=${data.sessionId}`)
+      .withArg(`org-isv-debugger-url=${data.loginUrl}`)
+      .withArg(`org-instance-url=${data.loginUrl}`)
       .withLogName('isv_debug_bootstrap_configure_project')
       .build();
   }
@@ -103,15 +100,13 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public buildQueryForOrgNamespacePrefixCommand(
     data: IsvDebugBootstrapConfig
   ): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_step2_configure_project_retrieve_namespace'
-        )
+        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
       )
-      .withArg('force:data:soql:query')
+      .withArg('data:query')
       .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
-      .withFlag('--targetusername', data.sessionId)
+      .withFlag('--target-org', data.sessionId)
       .withJson()
       .withLogName('isv_debug_bootstrap_configure_project_retrieve_namespace')
       .build();
@@ -134,85 +129,44 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public buildRetrieveOrgSourceCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
-      )
-      .withArg('force:mdapi:retrieve')
-      .withFlag('--retrievetargetdir', this.relativeMetdataTempPath)
-      .withFlag('--unpackaged', this.relativeApexPackageXmlPath)
-      .withFlag('--targetusername', data.sessionId)
+    return new SfCommandBuilder()
+      .withDescription(nls.localize('isv_debug_bootstrap_retrieve_org_source'))
+      .withArg('project:retrieve:start')
+      .withFlag('--manifest', this.relativeApexPackageXmlPath)
+      .withFlag('--target-org', data.sessionId)
       .withLogName('isv_debug_bootstrap_retrieve_org_source')
-      .build();
-  }
-
-  public buildMetadataApiConvertOrgSourceCommand(
-    data: IsvDebugBootstrapConfig
-  ): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_step4_convert_org_source')
-      )
-      .withArg('force:mdapi:convert')
-      .withFlag(
-        '--rootdir',
-        path.join(this.relativeMetdataTempPath, 'unpackaged')
-      )
-      .withFlag('--outputdir', 'force-app')
-      .withLogName('isv_debug_bootstrap_convert_org_source')
       .build();
   }
 
   public buildPackageInstalledListAsJsonCommand(
     data: IsvDebugBootstrapConfig
   ): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(
-        nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
+        nls.localize('isv_debug_bootstrap_list_installed_packages')
       )
-      .withArg('force:package:installed:list')
-      .withFlag('--targetusername', data.sessionId)
+      .withArg('package:installed:list')
+      .withFlag('--target-org', data.sessionId)
       .withJson()
       .withLogName('isv_debug_bootstrap_list_installed_packages')
       .build();
   }
 
-  public buildRetrievePackagesSourceCommand(
+  public buildRetrievePackageSourceCommand(
     data: IsvDebugBootstrapConfig,
-    packageNames: string[]
-  ): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
-      )
-      .withArg('force:mdapi:retrieve')
-      .withFlag('--retrievetargetdir', this.relativeMetdataTempPath)
-      .withFlag('--packagenames', packageNames.join(','))
-      .withFlag('--targetusername', data.sessionId)
-      .withLogName('isv_debug_bootstrap_retrieve_packages_source')
-      .build();
-  }
-
-  public buildMetadataApiConvertPackageSourceCommand(
     packageName: string
   ): Command {
-    return new SfdxCommandBuilder()
+    return new SfCommandBuilder()
       .withDescription(
-        nls.localize(
-          'isv_debug_bootstrap_step7_convert_package_source',
-          packageName
-        )
+        nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
       )
-      .withArg('force:mdapi:convert')
-      .withFlag(
-        '--rootdir',
-        path.join(this.relativeMetdataTempPath, 'packages', packageName)
-      )
-      .withFlag(
-        '--outputdir',
-        path.join(this.relativeInstalledPackagesPath, packageName)
-      )
-      .withLogName('isv_debug_bootstrap_convert_package_source')
+      .withArg('project:retrieve:start')
+      .withFlag('--package-name', packageName)
+      .withFlag('--target-org', data.sessionId)
+      .withFlag('--target-metadata-dir', this.relativeInstalledPackagesPath)
+      .withArg('--unzip')
+      .withFlag('--zip-file-name', packageName.replaceAll('.', '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
+      .withLogName('isv_debug_bootstrap_retrieve_packages_source')
       .build();
   }
 
@@ -242,7 +196,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const projectPath = path.join(projectParentPath, response.data.projectName);
     const projectMetadataTempPath = path.join(
       projectPath,
-      this.relativeMetdataTempPath
+      this.relativeMetadataTempPath
     );
     const apexRetrievePackageXmlPath = path.join(
       projectPath,
@@ -280,25 +234,28 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       cancellationToken
     );
     try {
-      const sfdxProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
-      const sfdxProjectConfig = JSON.parse(
-        fs.readFileSync(sfdxProjectJsonFile, { encoding: 'utf-8' })
+      const salesforceProjectJsonFile = path.join(
+        projectPath,
+        'sfdx-project.json'
       );
-      sfdxProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(
+      const salesforceProjectConfig = JSON.parse(
+        fs.readFileSync(salesforceProjectJsonFile, { encoding: 'utf-8' })
+      );
+      salesforceProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(
         orgNamespaceInfoResponseJson
       );
       fs.writeFileSync(
-        sfdxProjectJsonFile,
-        JSON.stringify(sfdxProjectConfig, null, 2),
+        salesforceProjectJsonFile,
+        JSON.stringify(salesforceProjectConfig, null, 2),
         { encoding: 'utf-8' }
       );
     } catch (error) {
       console.error(error);
       channelService.appendLine(
-        nls.localize('error_updating_sfdx_project', error.toString())
+        nls.localize('error_updating_salesforce_project', error.toString())
       );
       notificationService.showErrorMessage(
-        nls.localize('error_updating_sfdx_project', error.toString())
+        nls.localize('error_updating_salesforce_project', error.toString())
       );
       return;
     }
@@ -332,7 +289,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       return;
     }
 
-    // 3b: retrieve unmanged org source
+    // 3b: retrieve unmanaged org source
     await this.executeCommand(
       this.buildRetrieveOrgSourceCommand(response.data),
       { cwd: projectPath },
@@ -340,32 +297,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       cancellationToken
     );
 
-    // 4a: unzip retrieved source
-    try {
-      const zip = new AdmZip(
-        path.join(projectMetadataTempPath, 'unpackaged.zip')
-      );
-      zip.extractAllTo(projectMetadataTempPath, true);
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(
-        nls.localize('error_extracting_org_source', error.toString())
-      );
-      notificationService.showErrorMessage(
-        nls.localize('error_extracting_org_source', error.toString())
-      );
-      return;
-    }
-
-    // 4b: convert org source
-    await this.executeCommand(
-      this.buildMetadataApiConvertOrgSourceCommand(response.data),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
-
-    // 5: get list of installed packages
+    // 4: get list of installed packages
     const packagesJson = await this.executeCommand(
       this.buildPackageInstalledListAsJsonCommand(response.data),
       { cwd: projectPath },
@@ -374,47 +306,24 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     );
     const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
-    // 6: fetch packages
-    await this.executeCommand(
-      this.buildRetrievePackagesSourceCommand(
-        response.data,
-        packageInfos.map(entry => entry.name)
-      ),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
+    // 5a: create directory where packages are to be retrieved
+    shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
+    const packageNames = packageInfos.map(entry => entry.name);
 
-    // 7a: unzip downloaded packages into temp location
-    try {
-      const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
-      shell.mkdir('-p', packagesTempPath);
-      shell.mkdir('-p', projectInstalledPackagesPath);
-      const zip = new AdmZip(
-        path.join(projectMetadataTempPath, 'unpackaged.zip')
-      );
-      zip.extractAllTo(packagesTempPath, true);
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(
-        nls.localize('error_extracting_packages', error.toString())
-      );
-      notificationService.showErrorMessage(
-        nls.localize('error_extracting_packages', error.toString())
-      );
-      return;
-    }
-
-    // 7b: convert packages into final location
-    for (const packageInfo of packageInfos) {
-      channelService.appendLine(
-        nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name)
-      );
+    // 5b: retrieve packages
+    // TODO: what if packageNames.length is 0?
+    for (const packageName of packageNames) {
       await this.executeCommand(
-        this.buildMetadataApiConvertPackageSourceCommand(packageInfo.name),
+        this.buildRetrievePackageSourceCommand(response.data, packageName),
         { cwd: projectPath },
         cancellationTokenSource,
         cancellationToken
+      );
+    }
+
+    for (const packageInfo of packageInfos) {
+      channelService.appendLine(
+        nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name)
       );
 
       // generate installed-package.json file
@@ -422,7 +331,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         fs.writeFileSync(
           path.join(
             projectInstalledPackagesPath,
-            packageInfo.name,
+            packageInfo.name.replaceAll('.', '-'),
             'installed-package.json'
           ),
           JSON.stringify(packageInfo, null, 2),
@@ -440,7 +349,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       }
     }
 
-    // 7c: cleanup temp files
+    // 5c: cleanup temp files
     try {
       shell.rm('-rf', projectMetadataTempPath);
     } catch (error) {
@@ -454,7 +363,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       return;
     }
 
-    // 8: generate launch configuration
+    // 6: generate launch configuration
     channelService.appendLine(
       nls.localize('isv_debug_bootstrap_generate_launchjson')
     );
@@ -475,7 +384,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
                 userIdFilter: [],
                 requestTypeFilter: [],
                 entryPointFilter: '',
-                sfdxProject: '${workspaceRoot}',
+                salesforceProject: '${workspaceRoot}',
                 connectType: 'ISV_DEBUGGER'
               }
             ]
@@ -525,16 +434,18 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     return result;
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
@@ -544,11 +455,11 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate &
   ForceIdeUri;
 
-export interface ForceIdeUri {
+export type ForceIdeUri = {
   loginUrl: string;
   sessionId: string;
   orgName: string;
-}
+};
 
 export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public static readonly uriValidator = (value: string) => {
@@ -619,8 +530,8 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl &&
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
-      return sanitizeFilename(
-        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+      return sanitize(
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_')
       );
     }
     return '';
@@ -630,13 +541,13 @@ const parameterGatherer = new CompositeParametersGatherer(
 const pathExistsChecker = new PathExistsChecker();
 
 const executor = new IsvDebugBootstrapExecutor();
-const commandlet = new SfdxCommandlet(
+const commandlet = new SfCommandlet(
   workspaceChecker,
   parameterGatherer,
   executor,
   pathExistsChecker
 );
 
-export async function isvDebugBootstrap() {
+export const isvDebugBootstrap = async (): Promise<void> => {
   await commandlet.run();
-}
+};

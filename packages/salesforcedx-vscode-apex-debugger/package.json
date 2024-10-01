@@ -14,30 +14,44 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "57.2.1",
+  "version": "61.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.61.2"
+    "vscode": "^1.86.0"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "57.2.1",
-    "vscode-debugprotocol": "1.28.0",
+    "@salesforce/salesforcedx-apex-debugger": "61.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "61.16.0",
+    "@vscode/debugprotocol": "1.65.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "57.2.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "61.16.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
-    "@types/node": "12.0.12",
+    "@types/node": "^18.11.9",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.61.2",
+    "@types/vscode": "^1.86.0",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "esbuild": "^0.19.5",
+    "esbuild-plugin-pino": "^2.1.0",
+    "eslint": "8.52.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-jest": "27.5.0",
+    "eslint-plugin-jest-formatting": "3.1.0",
+    "eslint-plugin-jsdoc": "46.8.2",
+    "eslint-plugin-prefer-arrow": "1.2.3",
     "mocha": "^10",
+    "prettier": "3.0.3",
     "sinon": "^13.0.1"
   },
   "extensionDependencies": [
@@ -47,13 +61,13 @@
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexdebug.js ./dist/",
-    "bundle:extension:build": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --external:@salesforce/core --minify",
+    "bundle:extension:build": "node ./esbuild.config.js",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
@@ -83,8 +97,7 @@
     "packageUpdates": {
       "main": "dist/index.js",
       "dependencies": {
-        "applicationinsights": "1.0.7",
-        "@salesforce/core": "3.31.18"
+        "applicationinsights": "1.0.7"
       },
       "devDependencies": {}
     }
@@ -128,7 +141,7 @@
               "userIdFilter": [],
               "requestTypeFilter": [],
               "entryPointFilter": "",
-              "sfdxProject": "^\"\\${workspaceRoot}\""
+              "salesforceProject": "^\"\\${workspaceRoot}\""
             }
           }
         ],
@@ -136,7 +149,7 @@
           "launch": {
             "properties": {
               "required": [
-                "sfdxProject"
+                "salesforceProject"
               ],
               "userIdFilter": {
                 "type": "array",
@@ -178,9 +191,9 @@
                 "description": "%entry_point_filter_text%",
                 "default": ""
               },
-              "sfdxProject": {
+              "salesforceProject": {
                 "type": "string",
-                "description": "%sfdx_project_text%",
+                "description": "%salesforce_project_text%",
                 "default": "${workspaceRoot}"
               },
               "trace": {
@@ -207,14 +220,14 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint",
-          "when": "sfdx:project_opened"
+          "command": "sf.debug.exception.breakpoint",
+          "when": "sf:project_opened"
         }
       ]
     },
     "commands": [
       {
-        "command": "sfdx.debug.exception.breakpoint",
+        "command": "sf.debug.exception.breakpoint",
         "title": "%exception_breakpoint_command_text%"
       }
     ]

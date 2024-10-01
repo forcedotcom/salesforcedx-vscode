@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '16.13.x'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
       - run: npm install -g lerna
       - run: npm install
       - run: npm run compile
@@ -25,7 +25,7 @@ jobs:
           find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
           cp ./packages/salesforcedx-vscode/CHANGELOG.md ./extensions
       - name: Upload Extensions
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: VS Code Extensions
           path: ./extensions/
@@ -37,7 +37,7 @@ jobs:
     outputs:
       RELEASE_VERSION: ${{ steps.getVersion.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: getVersion
         run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
       - run: echo "Release Version is ${{ steps.getVersion.outputs.version }}"
@@ -54,8 +54,8 @@ jobs:
       VERSION: ${{ needs.get_release_variables.outputs.RELEASE_VERSION }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         id: download
         with:
           name: VS Code Extensions
@@ -84,9 +84,9 @@ jobs:
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
-      title: "Beta release v${{ needs.create_git_tag.outputs.version }}"
-      failedEvent: "Beta Release Publish"
-      successfulEvent: "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}"
-      type: "published"
+      title: 'Beta release v${{ needs.create_git_tag.outputs.version }}'
+      failedEvent: 'Beta Release Publish'
+      successfulEvent: '${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}'
+      type: 'published'
       result: ${{ needs.create_git_tag.outputs.result }}
-      workflow: "publish-beta-release.yml"
+      workflow: 'publish-beta-release.yml'

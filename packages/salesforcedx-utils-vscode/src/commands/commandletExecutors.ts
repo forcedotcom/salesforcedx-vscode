@@ -4,32 +4,30 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import {
+  Properties,
+  Measurements,
+  TelemetryData
+} from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { CliCommandExecutor, Command, CommandExecution } from '../cli';
-import {
-  Measurements,
-  Properties,
-  TelemetryBuilder,
-  TelemetryData,
-  TelemetryService
-} from '../index';
+import { TelemetryBuilder, TelemetryService } from '../index';
 import { nls } from '../messages';
-import { SfdxSettingsService } from '../settings';
+import { SettingsService } from '../settings';
 import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
-import { notificationService, ProgressNotification } from './index';
+import { ProgressNotification, notificationService } from './index';
 
-export abstract class SfdxCommandletExecutor<T>
-  implements CommandletExecutor<T> {
+export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
-    .onDidFinishExecutionEventEmitter.event;
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> =
+    this.onDidFinishExecutionEventEmitter.event;
 
   constructor(outputChannel?: vscode.OutputChannel) {
     this.outputChannel = outputChannel;
@@ -76,7 +74,7 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     let output = '';
@@ -108,9 +106,11 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   protected getTelemetryData(
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     success: boolean,
     response: ContinueResponse<T>,
     output: string
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }
@@ -119,7 +119,8 @@ export abstract class SfdxCommandletExecutor<T>
 }
 
 export abstract class LibraryCommandletExecutor<T>
-  implements CommandletExecutor<T> {
+  implements CommandletExecutor<T>
+{
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
   private readonly executionName: string;
@@ -162,7 +163,7 @@ export abstract class LibraryCommandletExecutor<T>
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
-    if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
+    if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
       channelService.clear();
     }
 
@@ -220,7 +221,10 @@ export abstract class LibraryCommandletExecutor<T>
       );
     } catch (e) {
       if (e instanceof Error) {
-        telemetryService.sendException(e.name, e.message);
+        telemetryService.sendException(
+          `LibraryCommandletExecutor - ${this.logName}`,
+          `Error: name = ${e.name} message = ${e.message}`
+        );
         notificationService.showFailedExecution(this.executionName);
         channelService.appendLine(e.message);
       }

@@ -20,7 +20,7 @@ export class HtmlUtils {
    * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
    * And store just the filename section of the script tag as group[1]
    */
-  protected static readonly scriptRegex = /script defer="defer"\ssrc=\"\.\/(?<app>[^\"]*app.js)\"/g;
+  protected static readonly scriptRegex = /script defer="defer"\ssrc="\.\/(?<app>[^"]*app.js)"/g;
 
   /**
    *
@@ -61,9 +61,8 @@ export class HtmlUtils {
     pathToLwcDist: string,
     webview: vscode.Webview
   ): string {
-    let matches;
-    let newScriptSrc;
-    // tslint:disable-next-line:no-conditional-assignment
+    let matches: string[] | null;
+    let newScriptSrc: vscode.Uri;
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
       newScriptSrc = webview.asWebviewUri(
         vscode.Uri.file(path.join(pathToLwcDist, matches[1]))

@@ -4,14 +4,11 @@
 # precedence. When someone opens a pull request that only
 # modifies JS files, only @js-owner and not the global
 # owner(s) will be requested for a review.
-
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-# @forcedotcom/pdt will be requested for
+# @forcedotcom/ide-experience will be requested for
 # review when someone opens a pull request.
-*       @forcedotcom/pdt
 
-# If the change occurs within the docs directory, add the doc maintainers.
-/docs/ @forcedotcom/doc-maintainers
 #ECCN:Open Source
-#GUSINFO: Platform Dev Tools Scrum Team, Platform Dev Tools
+#GUSINFO: Platform Dev Tools Scrum Team, IDE Experience Team
+*       @forcedotcom/ide-experience

@@ -1,3 +1,4 @@
+/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -14,12 +15,12 @@ import {
   TokenType
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 
-export interface LanguageRange extends Range {
+export type LanguageRange = Range & {
   languageId: string;
   attributeValue?: boolean;
-}
+};
 
-export interface HTMLDocumentRegions {
+export type HTMLDocumentRegions = {
   getEmbeddedDocument(
     languageId: string,
     ignoreAttributeValues?: boolean
@@ -28,21 +29,21 @@ export interface HTMLDocumentRegions {
   getLanguageAtPosition(position: Position): string;
   getLanguagesInDocument(): string[];
   getImportedScripts(): string[];
-}
+};
 
 export const CSS_STYLE_RULE = '__';
 
-interface EmbeddedRegion {
+type EmbeddedRegion = {
   languageId: string;
   start: number;
   end: number;
   attributeValue?: boolean;
-}
+};
 
-export function getDocumentRegions(
+export const getDocumentRegions = (
   languageService: LanguageService,
   document: TextDocument
-): HTMLDocumentRegions {
+): HTMLDocumentRegions => {
   const regions: EmbeddedRegion[] = [];
   const scanner = languageService.createScanner(document.getText());
   let lastTagName: string;
@@ -131,13 +132,12 @@ export function getDocumentRegions(
     getLanguagesInDocument: () => getLanguagesInDocument(document, regions),
     getImportedScripts: () => importedScripts
   };
-}
-
-function getLanguageRanges(
+};
+const getLanguageRanges = (
   document: TextDocument,
   regions: EmbeddedRegion[],
   range: Range
-): LanguageRange[] {
+): LanguageRange[] => {
   const result: LanguageRange[] = [];
   let currentPos = range ? range.start : Position.create(0, 0);
   let currentOffset = range ? document.offsetAt(range.start) : 0;
@@ -178,12 +178,12 @@ function getLanguageRanges(
     });
   }
   return result;
-}
+};
 
-function getLanguagesInDocument(
+const getLanguagesInDocument = (
   document: TextDocument,
   regions: EmbeddedRegion[]
-): string[] {
+): string[] => {
   const result = [];
   for (const region of regions) {
     if (region.languageId && result.indexOf(region.languageId) === -1) {
@@ -195,13 +195,13 @@ function getLanguagesInDocument(
   }
   result.push('html');
   return result;
-}
+};
 
-function getLanguageAtPosition(
+const getLanguageAtPosition = (
   document: TextDocument,
   regions: EmbeddedRegion[],
   position: Position
-): string {
+): string => {
   const offset = document.offsetAt(position);
   for (const region of regions) {
     if (region.start <= offset) {
@@ -213,14 +213,14 @@ function getLanguageAtPosition(
     }
   }
   return 'html';
-}
+};
 
-function getEmbeddedDocument(
+const getEmbeddedDocument = (
   document: TextDocument,
   contents: EmbeddedRegion[],
   languageId: string,
   ignoreAttributeValues: boolean
-): TextDocument {
+): TextDocument => {
   let currentPos = 0;
   const oldContent = document.getText();
   let result = '';
@@ -257,9 +257,9 @@ function getEmbeddedDocument(
     document.version,
     result
   );
-}
+};
 
-function getPrefix(c: EmbeddedRegion) {
+const getPrefix = (c: EmbeddedRegion) => {
   if (c.attributeValue) {
     switch (c.languageId) {
       case 'css':
@@ -267,8 +267,9 @@ function getPrefix(c: EmbeddedRegion) {
     }
   }
   return '';
-}
-function getSuffix(c: EmbeddedRegion) {
+};
+
+const getSuffix = (c: EmbeddedRegion) => {
   if (c.attributeValue) {
     switch (c.languageId) {
       case 'css':
@@ -278,16 +279,16 @@ function getSuffix(c: EmbeddedRegion) {
     }
   }
   return '';
-}
+};
 
-function substituteWithWhitespace(
+const substituteWithWhitespace = (
   result: string,
   start: number,
   end: number,
   oldContent: string,
   before: string,
   after: string
-) {
+) => {
   let accumulatedWS = 0;
   result += before;
   for (let i = start + before.length; i < end; i++) {
@@ -303,10 +304,9 @@ function substituteWithWhitespace(
   result = append(result, ' ', accumulatedWS - after.length);
   result += after;
   return result;
-}
+};
 
-// tslint:disable:no-bitwise
-function append(result: string, str: string, n: number): string {
+const append = (result: string, str: string, n: number): string => {
   while (n > 0) {
     if (n & 1) {
       result += str;
@@ -315,13 +315,12 @@ function append(result: string, str: string, n: number): string {
     str += str;
   }
   return result;
-}
-// tslint:enable:no-bitwise
+};
 
-function getAttributeLanguage(attributeName: string): string {
+const getAttributeLanguage = (attributeName: string): string => {
   const match = attributeName.match(/^(style)$|^(on\w+)$/i);
   if (!match) {
     return null;
   }
   return match[1] ? 'css' : 'javascript';
-}
+};

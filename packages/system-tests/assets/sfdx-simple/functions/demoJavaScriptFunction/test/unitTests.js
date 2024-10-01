@@ -35,17 +35,17 @@ const execute = require('../');
             'records':[
                 {
                     'attributes':
-                        {'type':'Account','url':'/services/data/v48.0/sobjects/Account/001xx000003GYNjAAO'},
+                        {'type':'Account','url':'/services/data/v50.0/sobjects/Account/001xx000003GYNjAAO'},
                         'Name':'Global Media'
                 },
                 {
                     'attributes':
-                        {'type':'Account','url':'/services/data/v48.0/sobjects/Account/001xx000003GYNkAAO'},
+                        {'type':'Account','url':'/services/data/v50.0/sobjects/Account/001xx000003GYNkAAO'},
                         'Name':'Acme'
                 },
                 {
                     'attributes':
-                    {'type':'Account','url':'/services/data/v48.0/sobjects/Account/001xx000003GYNlAAO'},
+                    {'type':'Account','url':'/services/data/v50.0/sobjects/Account/001xx000003GYNlAAO'},
                     'Name':'salesforce.com'
                 }
             ]
