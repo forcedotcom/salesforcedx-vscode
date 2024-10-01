@@ -20,7 +20,7 @@
   "configuration_title": "Salesforce Apex Configuration",
   "collapse_tests_title": "SFDX: Collapse All Apex Tests",
   "go_to_definition_title": "Go to Definition",
-  "java_home_description": "Specifies the folder path to the Java 11 or Java 17 runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-17-openjdk-amd64`",
+  "java_home_description": "Specifies the folder path to the Java 11, Java 17, or Java 21 runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-21-openjdk-amd64`",
   "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB, or null to use the system default value.",
   "refresh_test_title": "Refresh Tests",
   "run_single_test_title": "Run Single Test",
