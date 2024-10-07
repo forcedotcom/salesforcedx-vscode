@@ -6,6 +6,20 @@ on:
 jobs:
   unit-tests:
     uses: salesforcecli/github-workflows/.github/workflows/unitTest.yml@main
+  test-bundle:
+    runs-on: ubuntu-latest
+    name: test bundling
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: 
+          node-version: lts/*
+          cache: yarn
+      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
+      - name: Build the project
+        run: yarn build
+      - name: check if bundling runs into failures
+        run: node scripts/testEsbuild.js
   xNuts:
     needs: unit-tests
     name: external NUTs

@@ -38,6 +38,10 @@ import { Transform } from 'stream';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
 
+/**
+ * The library jsonpath that bfj depends on cannot be bundled through esbuild.
+ * Please pay attention whenever you deal with bfj
+ */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bfj = require('bfj');
 
