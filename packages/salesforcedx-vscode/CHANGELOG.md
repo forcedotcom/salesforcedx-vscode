@@ -1,3 +1,11 @@
+# 61.17.0 - October 9, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Java home setting description includes java 21 ([PR #5878](https://github.com/forcedotcom/salesforcedx-vscode/pull/5878))
+
 # 61.16.0 - October 2, 2024
 
 ## Fixed
