@@ -63,7 +63,7 @@ describe('WorkspaceContextUtil', () => {
   const dummyOrgId = '000dummyOrgId';
   const dummyOrgId2 = '000dummyOrgId2';
   const context = {
-    subscriptions: []
+    subscriptions: [] as vscode.Disposable[]
   };
 
   let getUsernameStub: jest.SpyInstance;
