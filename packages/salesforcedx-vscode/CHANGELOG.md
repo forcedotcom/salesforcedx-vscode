@@ -1,3 +1,28 @@
+# 62.0.0 - October 9, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We modified the Java Home Setting description to include Java 21. ([PR #5878](https://github.com/forcedotcom/salesforcedx-vscode/pull/5878))
+- Apex Language Server has been updated to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, there might be a noticeable delay while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
+
+#### salesforcedx-vscode-core
+
+- We fixed some labels in the Org Browser. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888))
+- We bumped SDR to catch up with latest and fix an issue where `SFDX: Retrieve Source from Org` nested duplicate parent folder. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889), ISSUE #forcedotcom/cli#2997 (https://github.com/forcedotcom/cli/issues/2977))
+
+## Added
+
+### salesforcedx-vscode-apex
+### salesforcedx-vscode-apex-replay-debugger
+### salesforcedx-vscode-core
+### salesforcedx-vscode-lightning
+### salesforcedx-vscode-lwc
+### salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889)).
+
 # 61.16.0 - October 2, 2024
 
 ## Fixed
