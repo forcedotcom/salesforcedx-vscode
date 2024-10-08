@@ -10,7 +10,7 @@
 #### salesforcedx-vscode-core
 
 - We fixed some labels in the Org Browser. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888))
-- We bumped SDR to catch up with the latest and fixed an issue where the `SFDX: Retrieve Source from Org` command nested a duplicate parent folder. Thank you [Alan Reader](https://github.com/readeral) for creating the issue. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889), ISSUE #forcedotcom/cli#2997 (https://github.com/forcedotcom/cli/issues/2977))
+- We bumped SDR to catch up with the latest and fixed an issue where the `SFDX: Retrieve Source from Org` command nested a duplicate parent folder. Thank you [Alan Reader](https://github.com/readeral) for creating the issue. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889), [ISSUE #2997](https://github.com/forcedotcom/cli/issues/2977))
 
 ## Added
 
