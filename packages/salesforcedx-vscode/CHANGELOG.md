@@ -1,3 +1,36 @@
+# 62.0.0 - October 9, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We updated the Java Home Setting description to include Java 21. ([PR #5878](https://github.com/forcedotcom/salesforcedx-vscode/pull/5878))
+- We updated the Apex Language Server to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, you could experience some lag while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
+
+#### salesforcedx-vscode-core
+
+- We fixed some labels in the Org Browser. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888))
+- We bumped SDR to catch up with the latest and fixed an issue where the `SFDX: Retrieve Source from Org` command nested a duplicate parent folder. Thank you [Alan Reader](https://github.com/readeral) for creating the issue. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889), [ISSUE #2997](https://github.com/forcedotcom/cli/issues/2977))
+
+## Added
+
+### salesforcedx-vscode-apex
+### salesforcedx-vscode-apex-replay-debugger
+### salesforcedx-vscode-core
+### salesforcedx-vscode-lightning
+### salesforcedx-vscode-lwc
+### salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889)).
+
+# 61.16.0 - October 2, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- We fixed an issue where the "Switch Between SOQL Builder and Text Editor" icon went missing. ([PR #5868](https://github.com/forcedotcom/salesforcedx-vscode/pull/5868), [ISSUE #5841](https://github.com/forcedotcom/salesforcedx-vscode/issues/5841))
+
 # 61.15.0 - September 25, 2024
 
 ## Added
@@ -20,13 +53,11 @@
 
 - We made some changes under the hood. ([PR #5857](https://github.com/forcedotcom/salesforcedx-vscode/pull/5857)), ([PR #5830](https://github.com/forcedotcom/salesforcedx-vscode/pull/5830)), ([PR #5786](https://github.com/forcedotcom/salesforcedx-vscode/pull/5786))
 
-
 #### salesforcedx-vscode-lightning
 
 #### salesforcedx-vscode-lwc
 
 - We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821))
-
 
 # 61.12.0 - September 4, 2024
 

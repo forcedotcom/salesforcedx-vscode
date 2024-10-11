@@ -20,7 +20,7 @@
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.4.4",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.9.0",
-    "@octokit/core": "4.0.5",
+    "@octokit/core": "4.2.4",
     "@octokit/webhooks-definitions": "^3.67.3",
     "@salesforce/dev-config": "^3.1.0",
     "@tsconfig/node18": "18.2.2",
