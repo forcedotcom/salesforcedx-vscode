@@ -1,14 +1,14 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "62.0.0",
+  "version": "62.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.86.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "62.0.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "62.1.0",
     "typescript": "^5.2.2",
     "vscode-css-languageservice": "2.1.9",
     "vscode-languageserver": "5.2.1",
