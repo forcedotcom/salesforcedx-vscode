@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'main'
+        default: 'cristi/poc'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
@@ -41,11 +41,12 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: true
+        default: '11340376864'
         type: string
 
   workflow_call:
@@ -53,46 +54,47 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'main'
+        default: 'cristi/poc'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
         required: false
-        default: true
+        default: false
         type: boolean
       authentication:
         description: 'Authentication'
         required: false
-        default: true
+        default: false
         type: boolean
       miscellaneous:
         description: 'Miscellaneous Commands'
         required: false
-        default: true
+        default: false
         type: boolean
       sObjectsDefinitions:
         description: 'sObjects Definitions'
         required: false
-        default: true
+        default: false
         type: boolean
       templates:
         description: 'Create Commands'
         required: false
-        default: true
+        default: false
         type: boolean
       sfdxProjectJson:
         description: 'sfdx-project.json'
         required: false
-        default: true
+        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: false
+        default: '11340376864'
         type: string
 
 jobs:
@@ -155,7 +157,7 @@ jobs:
       testToRun: 'sfdxProjectJson.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-  
+
   createProjectTest:
     if: ${{ inputs.miscellaneous }}
     uses: ./.github/workflows/runE2ETest.yml
