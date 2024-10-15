@@ -16,27 +16,27 @@ on:
       authentication:
         description: 'Authentication'
         required: false
-        default: true
+        default: false
         type: boolean
       miscellaneous:
         description: 'Miscellaneous Commands'
         required: false
-        default: true
+        default: false
         type: boolean
       sObjectsDefinitions:
         description: 'sObjects Definitions'
         required: false
-        default: true
+        default: false
         type: boolean
       templates:
         description: 'Create Commands'
         required: false
-        default: true
+        default: false
         type: boolean
       sfdxProjectJson:
         description: 'sfdx-project.json'
         required: false
-        default: true
+        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
