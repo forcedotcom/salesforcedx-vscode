@@ -11,9 +11,6 @@
     "**/out": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "editor.tabSize": 2,
-  "editor.formatOnSave": true,
-  "rewrap.wrappingColumn": 80,
   "eslint.workingDirectories": [
     "./packages/salesforcedx-apex-replay-debugger",
     "./packages/salesforcedx-vscode-visualforce",
@@ -34,5 +31,25 @@
     "./packages/salesforcedx-vscode-lightning",
     "./packages/salesforcedx-sobjects-faux-generator"
   ],
-  "files.insertFinalNewline": true
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "editor.formatOnSave": true,
+  "eslint.enable": true,
+  "eslint.run": "onSave",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "none",
+  "prettier.tabWidth": 2,
+  "prettier.useTabs": false,
+  "prettier.printWidth": 120,
+  "prettier.arrowParens": "avoid",
+  "editor.rulers": [
+    120
+  ]
 }
