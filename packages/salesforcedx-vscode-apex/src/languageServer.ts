@@ -167,6 +167,7 @@ export const buildClientOptions = (): LanguageClientOptions => {
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
+        vscode.workspace.createFileSystemWatcher('**/', true, true, false), // only events for folder deletions
         vscode.workspace.createFileSystemWatcher('**/*.{cls,trigger,apex}'), // Apex classes
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
