@@ -129,7 +129,6 @@ jobs:
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
           run: |
-            npm run setup
             npm run automation-tests
           working-directory: salesforcedx-vscode-automation-tests-redhat
         env:
