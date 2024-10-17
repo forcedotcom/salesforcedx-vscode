@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'cristi/poc'
+        default: 'main'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
@@ -16,27 +16,27 @@ on:
       authentication:
         description: 'Authentication'
         required: false
-        default: false
+        default: true
         type: boolean
       miscellaneous:
         description: 'Miscellaneous Commands'
         required: false
-        default: false
+        default: true
         type: boolean
       sObjectsDefinitions:
         description: 'sObjects Definitions'
         required: false
-        default: false
+        default: true
         type: boolean
       templates:
         description: 'Create Commands'
         required: false
-        default: false
+        default: true
         type: boolean
       sfdxProjectJson:
         description: 'sfdx-project.json'
         required: false
-        default: false
+        default: true
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -46,7 +46,6 @@ on:
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: true
-        default: '11340376864'
         type: string
 
   workflow_call:
@@ -54,37 +53,37 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'cristi/poc'
+        default: 'main'
         type: string
       anInitialSuite:
         description: 'Verify Extensions'
         required: false
-        default: false
+        default: true
         type: boolean
       authentication:
         description: 'Authentication'
         required: false
-        default: false
+        default: true
         type: boolean
       miscellaneous:
         description: 'Miscellaneous Commands'
         required: false
-        default: false
+        default: true
         type: boolean
       sObjectsDefinitions:
         description: 'sObjects Definitions'
         required: false
-        default: false
+        default: true
         type: boolean
       templates:
         description: 'Create Commands'
         required: false
-        default: false
+        default: true
         type: boolean
       sfdxProjectJson:
         description: 'sfdx-project.json'
         required: false
-        default: false
+        default: true
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -94,7 +93,6 @@ on:
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: false
-        default: '11340376864'
         type: string
 
 jobs:
@@ -164,7 +162,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'createProjectTest.e2e.ts'
+      testToRun: 'createProject.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
