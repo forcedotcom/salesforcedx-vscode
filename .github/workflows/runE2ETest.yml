@@ -5,38 +5,11 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'cristi/poc'
+        default: 'main'
         type: string
       testToRun:
         description: 'Run this E2E test'
         required: false
-        type: string
-      vscodeVersion:
-        description: 'VSCode Version'
-        required: false
-        default: '1.86.0'
-        type: string
-      runId:
-        description: 'Run ID of the workflow run that created the vsixes'
-        required: false
-        type: string
-      os:
-        description: 'Operating System(s) to run the E2E tests on'
-        required: false
-        default: '["macos-latest", "ubuntu-latest", "windows-latest"]'
-        type: string
-
-  workflow_dispatch:
-    inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'cristi/poc'
-        type: string
-      testToRun:
-        description: 'Run this E2E test'
-        required: false
-        default: 'authentication.e2e.ts'
         type: string
       vscodeVersion:
         description: 'VSCode Version'
@@ -46,7 +19,6 @@ on:
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
         required: false
-        default: '11340376864'
         type: string
       os:
         description: 'Operating System(s) to run the E2E tests on'
