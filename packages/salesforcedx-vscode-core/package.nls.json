@@ -56,6 +56,7 @@
   "project_retrieve_start_default_org_text": "SFDX: Pull Source from Default Org",
   "project_retrieve_start_ignore_conflicts_default_org_text": "SFDX: Pull Source from Default Org and Ignore Conflicts",
   "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically push (for source-tracked orgs) or deploy (for non-source-tracked orgs) when a local source file is saved.",
+  "push_or_deploy_on_save_show_output_panel": "Specifies whether to switch to the Output panel when a local source file is saved.",
   "refresh_components_text": "SFDX: Refresh Components",
   "refresh_types_text": "SFDX: Refresh Types",
   "rename_lightning_component_text": "SFDX: Rename Component",

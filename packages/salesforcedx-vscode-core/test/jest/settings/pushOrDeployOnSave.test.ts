@@ -51,7 +51,7 @@ describe('DeployQueue', () => {
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
-      expect(executePushCommandSpy).toHaveBeenCalled();
+      expect(executePushCommandSpy).toHaveBeenCalledWith(true);
       expect(executeDeployCommandSpy).not.toHaveBeenCalled();
     });
 
@@ -62,7 +62,7 @@ describe('DeployQueue', () => {
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
-      expect(executeDeployCommandSpy).toHaveBeenCalled();
+      expect(executeDeployCommandSpy).toHaveBeenCalledWith([undefined], true);
       expect(executePushCommandSpy).not.toHaveBeenCalled();
     });
   });
