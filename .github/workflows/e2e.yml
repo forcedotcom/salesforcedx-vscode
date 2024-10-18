@@ -74,6 +74,15 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
+  Core_E2E_tests_RedHat:
+    if: ${{ inputs.coreE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/coreE2EredHat.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
   DeployAndRetrieve_E2E_tests:
     if: ${{ inputs.deployAndRetrieveE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/deployRetrieveE2E.yml
@@ -122,6 +131,15 @@ jobs:
   Core_E2E_tests_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/coreE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  Core_E2E_tests_RedHat_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/coreE2EredHat.yml
     secrets: inherit
     with:
       automationBranch: 'main'

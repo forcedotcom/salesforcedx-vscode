@@ -5,7 +5,12 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'develop'
+        default: 'main'
+        type: string
+      automationRepo:
+        description: 'Set the repo to use for automation tests'
+        required: false
+        default: 'salesforcedx-vscode-automation-tests'
         type: string
       testToRun:
         description: 'Run this E2E test'
@@ -14,7 +19,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.85.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -25,7 +30,6 @@ on:
         required: false
         default: '["macos-latest", "ubuntu-latest", "windows-latest"]'
         type: string
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -61,7 +65,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
-            salesforcedx-vscode-automation-tests/package-lock.json
+            ${{ inputs.automationRepo }}/package-lock.json
       - name: Setup java
         uses: actions/setup-java@v4
         with:
@@ -70,13 +74,13 @@ jobs:
       - name: Clone automation tests
         uses: actions/checkout@v4
         with:
-          repository: forcedotcom/salesforcedx-vscode-automation-tests
-          path: salesforcedx-vscode-automation-tests
+          repository: forcedotcom/${{ inputs.automationRepo }}
+          path: ${{ inputs.automationRepo }}
           ref: ${{ inputs.automationBranch }}
       - name: Install Test Dependencies
         run: |
           npm install
-        working-directory: salesforcedx-vscode-automation-tests
+        working-directory: ${{ inputs.automationRepo }}
       - name: Install the Salesforce CLI
         run: npm install -g @salesforce/cli
       - name: Verify CLI
@@ -102,9 +106,8 @@ jobs:
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
           run: |
-            npm run setup
             npm run automation-tests
-          working-directory: salesforcedx-vscode-automation-tests
+          working-directory: ${{ inputs.automationRepo }}
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ inputs.testToRun }}
@@ -115,4 +118,4 @@ jobs:
         if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}
-          path: ./salesforcedx-vscode-automation-tests/screenshots
+          path: ./${{ inputs.automationRepo }}/screenshots

@@ -1,0 +1,248 @@
+name: Core End to End Tests - Redhat
+
+on:
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      anInitialSuite:
+        description: 'Verify Extensions'
+        required: false
+        default: true
+        type: boolean
+      createProject:
+        description: 'Create Project'
+        required: false
+        default: true
+        type: boolean
+      # authentication:
+      #   description: 'Authentication'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # miscellaneous:
+      #   description: 'Miscellaneous Commands'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # sObjectsDefinitions:
+      #   description: 'sObjects Definitions'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # templates:
+      #   description: 'Create Commands'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # sfdxProjectJson:
+      #   description: 'sfdx-project.json'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      anInitialSuite:
+        description: 'Verify Extensions'
+        required: false
+        default: true
+        type: boolean
+      createProject:
+        description: 'Create Project'
+        required: false
+        default: true
+        type: boolean
+      # authentication:
+      #   description: 'Authentication'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # miscellaneous:
+      #   description: 'Miscellaneous Commands'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # sObjectsDefinitions:
+      #   description: 'sObjects Definitions'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # templates:
+      #   description: 'Create Commands'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      # sfdxProjectJson:
+      #   description: 'sfdx-project.json'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: false
+        type: string
+
+jobs:
+  anInitialSuite:
+    if: ${{ inputs.anInitialSuite }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'anInitialSuite.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  createProject:
+    if: ${{ inputs.createProject }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'createProject.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # authentication:
+  #   if: ${{ inputs.authentication }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: 'authentication.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+
+  # miscellaneous:
+  #   if: ${{ inputs.miscellaneous }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: 'miscellaneous.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+
+  # sObjectsDefinitions:
+  #   if: ${{ inputs.sObjectsDefinitions }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: 'sObjectsDefinitions.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+
+  # templates:
+  #   if: ${{ inputs.templates }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: 'templates.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+
+  # sfdxProjectJson:
+  #   if: ${{ inputs.sfdxProjectJson }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     testToRun: 'sfdxProjectJson.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs: [
+        anInitialSuite,
+        createProject
+        # authentication,
+        # miscellaneous,
+        # sObjectsDefinitions,
+        # templates,
+        # sfdxProjectJson
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'Core E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Create Project: ${{ needs.createProject.result }}'
+      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_failure_notification:
+    if: ${{ failure()}}
+    needs: [
+        anInitialSuite,
+        createProject
+        # authentication,
+        # miscellaneous,
+        # sObjectsDefinitions,
+        # templates,
+        # sfdxProjectJson
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'Core E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Create Project: ${{ needs.createProject.result }}'
+      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs: [
+        anInitialSuite,
+        createProject
+        # authentication,
+        # miscellaneous,
+        # sObjectsDefinitions,
+        # templates,
+        # sfdxProjectJson
+      ]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'Core E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Create Project: ${{ needs.createProject.result }}'
+      # summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- Templates: ${{ needs.templates.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
