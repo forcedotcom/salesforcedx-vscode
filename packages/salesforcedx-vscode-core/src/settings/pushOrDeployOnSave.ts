@@ -67,7 +67,12 @@ export class DeployQueue {
   }
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy);
+    await vscode.commands.executeCommand(
+      'sf.deploy.multiple.source.paths',
+      toDeploy,
+      null,
+      true
+    );
   }
 
   private async executePushCommand() {
@@ -76,7 +81,7 @@ export class DeployQueue {
         ? '.ignore.conflicts'
         : '';
     const command = `sf.project.deploy.start${ignoreConflictsCommand}`;
-    vscode.commands.executeCommand(command);
+    vscode.commands.executeCommand(command, true);
   }
 
   private async doDeploy(): Promise<void> {
