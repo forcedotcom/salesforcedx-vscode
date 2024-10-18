@@ -24,6 +24,7 @@ import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
+import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
 import {
@@ -53,10 +54,12 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
   public constructor(
     flag?: string,
-    public params: CommandParams = pushCommand
+    public params: CommandParams = pushCommand,
+    showChannelOutput: boolean = true
   ) {
     super();
     this.flag = flag;
+    this.showChannelOutput = showChannelOutput;
   }
 
   protected getDeployType() {
@@ -263,9 +266,21 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function projectDeployStart(this: FlagParameter<string>) {
+export async function projectDeployStart(
+  this: FlagParameter<string>,
+  isDeployOnSave: boolean
+) {
+  const showOutputPanel = !(
+    isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel()
+  );
+
   const { flag } = this || {};
-  const executor = new ProjectDeployStartExecutor(flag, pushCommand);
+  const executor = new ProjectDeployStartExecutor(
+    flag,
+    pushCommand,
+    showOutputPanel
+  );
+
   const commandlet = new SfCommandlet(
     workspaceChecker,
     parameterGatherer,
