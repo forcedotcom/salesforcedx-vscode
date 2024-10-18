@@ -66,17 +66,25 @@ export class DeployQueue {
     });
   }
 
-  private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy);
+  private async executeDeployCommand(
+    toDeploy: vscode.Uri[],
+    isDeployOnSave = false
+  ) {
+    await vscode.commands.executeCommand(
+      'sf.deploy.multiple.source.paths',
+      toDeploy,
+      null,
+      isDeployOnSave
+    );
   }
 
-  private async executePushCommand() {
+  private async executePushCommand(isDeployOnSave: boolean) {
     const ignoreConflictsCommand =
       salesforceCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
         ? '.ignore.conflicts'
         : '';
     const command = `sf.project.deploy.start${ignoreConflictsCommand}`;
-    vscode.commands.executeCommand(command);
+    vscode.commands.executeCommand(command, isDeployOnSave);
   }
 
   private async doDeploy(): Promise<void> {
@@ -89,15 +97,15 @@ export class DeployQueue {
         const preferDeployOnSaveEnabled =
           salesforceCoreSettings.getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
-          await this.executeDeployCommand(toDeploy);
+          await this.executeDeployCommand(toDeploy, true);
           deployType = 'Deploy';
         } else {
           const orgType = await workspaceContextUtils.getWorkspaceOrgType();
           if (orgType === OrgType.SourceTracked) {
-            await this.executePushCommand();
+            await this.executePushCommand(true);
             deployType = 'Push';
           } else {
-            await this.executeDeployCommand(toDeploy);
+            await this.executeDeployCommand(toDeploy, true);
             deployType = 'Deploy';
           }
         }
