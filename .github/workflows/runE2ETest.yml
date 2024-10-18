@@ -7,6 +7,11 @@ on:
         required: false
         default: 'main'
         type: string
+      automationRepo:
+        description: 'Set the repo to use for automation tests'
+        required: false
+        default: 'salesforcedx-vscode-automation-tests'
+        type: string
       testToRun:
         description: 'Run this E2E test'
         required: false
@@ -60,7 +65,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
-            salesforcedx-vscode-automation-tests-redhat/package-lock.json
+            ${{ inputs.automationRepo }}/package-lock.json
       - name: Setup java
         uses: actions/setup-java@v4
         with:
@@ -69,13 +74,13 @@ jobs:
       - name: Clone automation tests
         uses: actions/checkout@v4
         with:
-          repository: forcedotcom/salesforcedx-vscode-automation-tests-redhat
-          path: salesforcedx-vscode-automation-tests-redhat
+          repository: forcedotcom/${{ inputs.automationRepo }}
+          path: ${{ inputs.automationRepo }}
           ref: ${{ inputs.automationBranch }}
       - name: Install Test Dependencies
         run: |
           npm install
-        working-directory: salesforcedx-vscode-automation-tests-redhat
+        working-directory: ${{ inputs.automationRepo }}
       - name: Install the Salesforce CLI
         run: npm install -g @salesforce/cli
       - name: Verify CLI
@@ -102,7 +107,7 @@ jobs:
         with:
           run: |
             npm run automation-tests
-          working-directory: salesforcedx-vscode-automation-tests-redhat
+          working-directory: ${{ inputs.automationRepo }}
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ inputs.testToRun }}
@@ -113,4 +118,4 @@ jobs:
         if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}
-          path: ./salesforcedx-vscode-automation-tests-redhat/screenshots
+          path: ./${{ inputs.automationRepo }}/screenshots
