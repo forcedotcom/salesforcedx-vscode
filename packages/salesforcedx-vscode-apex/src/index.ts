@@ -110,6 +110,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   };
 
   void activationTracker.markActivationStop(new Date());
+
+  setImmediate(() => {
+    // Resolve any found orphan language servers in the background
+    void lsoh.resolveAnyFoundOrphanLanguageServers();
+  });
+
   return exportedApi;
 };
 
@@ -308,8 +314,6 @@ const createLanguageClient = async (
   languageServerStatusBarItem: ApexLSPStatusBarItem
 ): Promise<void> => {
   const telemetryService = await getTelemetryService();
-  // Resolve any found orphan language servers
-  void lsoh.resolveAnyFoundOrphanLanguageServers();
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
