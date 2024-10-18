@@ -1,0 +1,73 @@
+name: End to End Tests - Redhat
+on:
+  workflow_run:
+    workflows:
+      - Nightly Build Develop
+      - Test, Build, and Release
+      - Create and Test Beta Release Branch
+    types:
+      - completed
+
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests in ESM'
+        required: false
+        default: 'main'
+        type: string
+      apexE2ETests:
+        description: 'Apex E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      coreE2ETests:
+        description: 'Core E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version for ESM branches'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+jobs:
+  Apex_E2E_tests_Redhat:
+    if: ${{ inputs.apexE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/apexE2EredHat.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  Core_E2E_tests_RedHat:
+    if: ${{ inputs.coreE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/coreE2EredHat.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  Apex_E2E_tests_Redhat_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/apexE2EredHat.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  Core_E2E_tests_RedHat_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/coreE2EredHat.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
