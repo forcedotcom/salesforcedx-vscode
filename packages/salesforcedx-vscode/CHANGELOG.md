@@ -1,3 +1,11 @@
+# 62.2.0 - October 23, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Signed JAR for the code change to add telemetry to Apex LSP error cases ([PR #5897](https://github.com/forcedotcom/salesforcedx-vscode/pull/5897))
+
 # 62.0.0 - October 9, 2024
 
 ## Fixed
