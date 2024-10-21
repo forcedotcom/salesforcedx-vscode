@@ -110,6 +110,7 @@ jobs:
             npm run setup
           working-directory: 'salesforcedx-vscode-automation-tests'
         env:
+          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
       - name: Run headless test
