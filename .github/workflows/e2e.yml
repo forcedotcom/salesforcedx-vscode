@@ -40,11 +40,6 @@ on:
         required: false
         default: true
         type: boolean
-      soqlE2ETests:
-        description: 'SOQL E2E Tests'
-        required: false
-        default: true
-        type: boolean
       vscodeVersion:
         description: 'VSCode Version for ESM branches'
         required: false
@@ -101,15 +96,6 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  SOQL_E2E_tests:
-    if: ${{ inputs.soqlE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/soqlE2E.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.92.2' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.id }}
-
   Apex_E2E_tests_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/apexE2E.yml
@@ -149,15 +135,6 @@ jobs:
   LWC_E2E_tests_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/lwcE2E.yml
-    secrets: inherit
-    with:
-      automationBranch: 'main'
-      vscodeVersion: '1.86.0'
-      runId: ${{ github.event.workflow_run.id }}
-
-  SOQL_E2E_tests_min_vscode_version:
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'

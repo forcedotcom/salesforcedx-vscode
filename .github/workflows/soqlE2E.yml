@@ -16,7 +16,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -38,7 +38,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -52,6 +52,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'soql.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
