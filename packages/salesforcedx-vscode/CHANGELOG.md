@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We added telemetry to the Apex Language Server for all the errors and exceptions in the "Apex Language Server" dropdown of the Output tab. External users can choose to turn this telemetry on/off using the **Salesforcedx-vscode-core › Telemetry: Enabled** VSCode setting. ([PR #5897](https://github.com/forcedotcom/salesforcedx-vscode/pull/5897))
+- We added telemetry to the Apex Language Server, so you can track all errors and exceptions. To see them, select the "Apex Language Server" dropdown in the Output tab. Want to enable or disable telemetry? Use the **Salesforcedx-vscode-core › Telemetry** setting. ([PR #5897](https://github.com/forcedotcom/salesforcedx-vscode/pull/5897))
 
 # 62.0.0 - October 9, 2024
 
