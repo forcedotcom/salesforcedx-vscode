@@ -118,3 +118,6 @@ packages/dbaeumer*
 # Extension build directory
 packages/**/extension
 tsconfig.tsbuildinfo
+
+#Extensions folder for local E2E Testing
+extensions/
