@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Signed JAR for the code change to add telemetry to Apex LSP error cases ([PR #5897](https://github.com/forcedotcom/salesforcedx-vscode/pull/5897))
+- We added telemetry to the Apex Language Server for all the errors and exceptions in the "Apex Language Server" dropdown of the Output tab. External users can choose to turn this telemetry on/off using the **Salesforcedx-vscode-core › Telemetry: Enabled** VSCode setting. ([PR #5897](https://github.com/forcedotcom/salesforcedx-vscode/pull/5897))
 
 # 62.0.0 - October 9, 2024
 
