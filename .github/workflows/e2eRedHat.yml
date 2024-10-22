@@ -66,7 +66,7 @@ jobs:
 
   LSP:
     if: ${{ inputs.lspE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/lspE2EredHat.yml
+    uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
@@ -102,7 +102,7 @@ jobs:
 
   LSP_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/lspE2EredHat.yml
+    uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'
