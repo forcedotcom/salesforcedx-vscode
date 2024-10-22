@@ -13,11 +13,11 @@ on:
         required: false
         default: true
         type: boolean
-      # lwcLsp:
-      #   description: 'LWC LSP'
-      #   required: false
-      #   default: true
-      #   type: boolean
+      lwcLsp:
+        description: 'LWC LSP'
+        required: false
+        default: true
+        type: boolean
       # visualforceLsp:
       #   description: 'Visualforce LSP'
       #   required: false
@@ -45,11 +45,11 @@ on:
         required: false
         default: true
         type: boolean
-      # lwcLsp:
-      #   description: 'LWC LSP'
-      #   required: false
-      #   default: true
-      #   type: boolean
+      lwcLsp:
+        description: 'LWC LSP'
+        required: false
+        default: true
+        type: boolean
       # visualforceLsp:
       #   description: 'Visualforce LSP'
       #   required: false
@@ -77,15 +77,15 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  # lwcLSP:
-  #   if: ${{ inputs.lwcLsp }}
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     automationBranch: ${{ inputs.automationBranch }}
-  #     testToRun: 'lwcLsp.e2e.ts'
-  #     vscodeVersion: ${{ inputs.vscodeVersion }}
-  #     runId: ${{ inputs.runId }}
+  lwcLSP:
+    if: ${{ inputs.lwcLsp }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      testToRun: 'lwcLsp.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
 
   # visualforceLSP:
   #   if: ${{ inputs.visualforceLsp }}
@@ -100,7 +100,7 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [auraLSP]
+    needs: [auraLSP, lwcLSP]
     # needs: [auraLSP, lwcLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -108,7 +108,7 @@ jobs:
       title: 'LSP E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}'
       # summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -116,7 +116,7 @@ jobs:
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [auraLSP]
+    needs: [auraLSP, lwcLSP]
     # needs: [auraLSP, lwcLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -124,7 +124,7 @@ jobs:
       title: 'LSP E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}'
       # summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -132,7 +132,7 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [auraLSP]
+    needs: [auraLSP, lwcLSP]
     # needs: [auraLSP, lwcLSP, visualforceLSP]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -140,7 +140,7 @@ jobs:
       title: 'LSP E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}'
+      summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}'
       # summary: '\n- Aura LSP: ${{ needs.auraLSP.result }}\n- LWC LSP: ${{ needs.lwcLSP.result }}\n- Visualforce LSP: ${{ needs.visualforceLSP.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
