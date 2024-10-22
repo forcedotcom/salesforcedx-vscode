@@ -25,6 +25,16 @@ on:
         required: false
         default: true
         type: boolean
+      lspE2ETests:
+        description: 'LSP E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      soqlE2ETests:
+        description: 'SOQL E2E Tests'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
         description: 'VSCode Version for ESM branches'
         required: false
@@ -36,7 +46,7 @@ on:
         type: string
 
 jobs:
-  Apex_E2E_tests_Redhat:
+  Apex:
     if: ${{ inputs.apexE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/apexE2EredHat.yml
     secrets: inherit
@@ -45,7 +55,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  Core_E2E_tests_RedHat:
+  Core:
     if: ${{ inputs.coreE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/coreE2EredHat.yml
     secrets: inherit
@@ -54,7 +64,25 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  Apex_E2E_tests_Redhat_min_vscode_version:
+  LSP:
+    if: ${{ inputs.lspE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/lspE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  SOQL:
+    if: ${{ inputs.soqlE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/soqlE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  Apex_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/apexE2EredHat.yml
     secrets: inherit
@@ -63,9 +91,27 @@ jobs:
       vscodeVersion: '1.86.0'
       runId: ${{ github.event.workflow_run.id }}
 
-  Core_E2E_tests_RedHat_min_vscode_version:
+  Core_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/coreE2EredHat.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  LSP_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/lspE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.86.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  SOQL_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'
