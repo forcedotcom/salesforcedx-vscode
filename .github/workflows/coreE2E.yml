@@ -155,7 +155,7 @@ jobs:
       testToRun: 'sfdxProjectJson.e2e.ts'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-  
+
   createProjectTest:
     if: ${{ inputs.miscellaneous }}
     uses: ./.github/workflows/runE2ETest.yml
