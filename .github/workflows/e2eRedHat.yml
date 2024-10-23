@@ -62,7 +62,7 @@ jobs:
 
   Core:
     if: ${{ inputs.coreE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/coreE2EredHat.yml
+    uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
@@ -107,7 +107,7 @@ jobs:
 
   Core_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/coreE2EredHat.yml
+    uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'
