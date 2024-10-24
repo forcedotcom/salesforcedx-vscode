@@ -126,7 +126,12 @@ jobs:
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}
           path: ./${{ inputs.automationRepo }}/screenshots
+      - uses: actions/upload-artifact@v4
+        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests-redhat'
+        with:
+          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}
+          path: ./salesforcedx-vscode/extensions/screenshots
