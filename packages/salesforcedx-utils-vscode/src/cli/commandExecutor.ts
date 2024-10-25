@@ -174,18 +174,14 @@ export class CompositeCliCommandExecution implements CommandExecution {
   }
 
   public successfulExit() {
-    CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode: 0 });
     this.exitSubject.next(0);
   }
 
   public failureExit(e?: {}) {
     if (e) {
       // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
-      CommandEventStream.getInstance().post({ type: CommandEventType.ERROR, error: `${e}` });
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
       this.stderr.next(`${e}${os.EOL}`);
     }
-    CommandEventStream.getInstance().post({ type: CommandEventType.EXIT_CODE, exitCode: 1 });
     this.exitSubject.next(1);
   }
 }
