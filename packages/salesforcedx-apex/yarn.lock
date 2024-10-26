@@ -595,10 +595,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@jsforce/jsforce-node@^3.4.1", "@jsforce/jsforce-node@^3.5.2":
-  version "3.5.2"
-  resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.5.2.tgz#003142f1b8f6e452cb41adfd685626d97b263f6e"
-  integrity sha512-WZZo7HVFQsTeHRfykMJBrEK3ACr9sQnWSm3EVLasAnAUxjh+hjU4SfJ7HB1UaPRliHjLVZcSCUwF+OoJqjbfoA==
+"@jsforce/jsforce-node@^3.4.1", "@jsforce/jsforce-node@^3.6.1":
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.6.1.tgz#cdd112a33b8139ca798dd4eef91d3dc2a5a0f291"
+  integrity sha512-N294vrCY7bIdHzTNAHe0t20riTxozEyvCmYPM4rp/C7uGdBX3AYrPDBdojw7rsXOBsRtoFqr7L/tUwMbw1hRTg==
   dependencies:
     "@sindresorhus/is" "^4"
     base64url "^3.0.1"
@@ -609,7 +609,6 @@
     https-proxy-agent "^5.0.0"
     multistream "^3.1.0"
     node-fetch "^2.6.1"
-    strip-ansi "^6.0.0"
     xml2js "^0.6.2"
 
 "@nodelib/fs.scandir@2.1.5":
