@@ -66,7 +66,6 @@ jobs:
   #     testToRun: 'debugLwcTests.e2e.ts'
   #     vscodeVersion: ${{ inputs.vscodeVersion }}
   #     runId: ${{ inputs.runId }}
-  #     os: '["macos-latest"]'
 
   runLwcTests:
     if: ${{ inputs.runLwcTests }}
@@ -78,7 +77,6 @@ jobs:
       testToRun: 'runLwcTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-      # os: '["macos-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
