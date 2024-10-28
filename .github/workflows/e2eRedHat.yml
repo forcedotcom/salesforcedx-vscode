@@ -94,7 +94,7 @@ jobs:
 
   LWC:
     if: ${{ inputs.lwcE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/lwcE2EredHat.yml
+    uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
@@ -148,7 +148,7 @@ jobs:
 
   LWC_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/lwcE2EredHat.yml
+    uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'
