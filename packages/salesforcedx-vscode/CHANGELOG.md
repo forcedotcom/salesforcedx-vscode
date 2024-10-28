@@ -1,3 +1,11 @@
+# 62.3.0 - October 30, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Move resolve orphan apex lang server ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+
 # 62.2.0 - October 23, 2024
 
 ## Added
