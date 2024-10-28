@@ -28,11 +28,11 @@ on:
         required: false
         default: true
         type: boolean
-      # pushAndPull:
-      #   description: 'Push and Pull'
-      #   required: false
-      #   default: true
-      #   type: boolean
+      pushAndPull:
+        description: 'Push and Pull'
+        required: false
+        default: true
+        type: boolean
       # mdDeployRetrieve:
       #   description: 'Metadata Deploy and Retrieve'
       #   required: false
@@ -75,11 +75,11 @@ on:
         required: false
         default: true
         type: boolean
-      # pushAndPull:
-      #   description: 'Push and Pull'
-      #   required: false
-      #   default: true
-      #   type: boolean
+      pushAndPull:
+        description: 'Push and Pull'
+        required: false
+        default: true
+        type: boolean
       # mdDeployRetrieve:
       #   description: 'Metadata Deploy and Retrieve'
       #   required: false
@@ -139,15 +139,16 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  # pushAndPull:
-  #   if: ${{ inputs.pushAndPull }}
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     automationBranch: ${{ inputs.automationBranch }}
-  #     testToRun: 'pushAndPull.e2e.js'
-  #     vscodeVersion: ${{ inputs.vscodeVersion }}
-  #     runId: ${{ inputs.runId }}
+  pushAndPull:
+    if: ${{ inputs.pushAndPull }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'pushAndPull.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
 
   # mdDeployRetrieve:
   #   if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == '1.92.2'}}
@@ -166,8 +167,8 @@ jobs:
         deployAndRetrieve,
         # diffAndConflictDetection,
         manifestBuilder,
-        orgBrowser
-        # pushAndPull,
+        orgBrowser,
+        pushAndPull
         # mdDeployRetrieve
       ]
     uses: ./.github/workflows/slackNotification.yml
@@ -176,8 +177,7 @@ jobs:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -188,8 +188,8 @@ jobs:
         deployAndRetrieve,
         # diffAndConflictDetection,
         manifestBuilder,
-        orgBrowser
-        # pushAndPull,
+        orgBrowser,
+        pushAndPull
         # mdDeployRetrieve
       ]
     uses: ./.github/workflows/slackNotification.yml
@@ -198,8 +198,7 @@ jobs:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
@@ -210,8 +209,8 @@ jobs:
         deployAndRetrieve,
         # diffAndConflictDetection,
         manifestBuilder,
-        orgBrowser
-        # pushAndPull,
+        orgBrowser,
+        pushAndPull
         # mdDeployRetrieve
       ]
     uses: ./.github/workflows/slackNotification.yml
@@ -220,8 +219,7 @@ jobs:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
-      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}'
+      summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
