@@ -1,0 +1,127 @@
+name: LWC End to End Tests - Redhat
+
+on:
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      # debugLwcTests:
+      #   description: 'Debug LWC Tests'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      runLwcTests:
+        description: 'Run LWC Tests'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'develop'
+        type: string
+      # debugLwcTests:
+      #   description: 'Debug LWC Tests'
+      #   required: false
+      #   default: true
+      #   type: boolean
+      runLwcTests:
+        description: 'Run LWC Tests'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+jobs:
+  # debugLwcTests:
+  #   if: ${{ inputs.debugLwcTests }}
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     automationBranch: ${{ inputs.automationBranch }}
+  #     automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+  #     testToRun: 'debugLwcTests.e2e.ts'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
+
+  runLwcTests:
+    if: ${{ inputs.runLwcTests }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'runLwcTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  slack_success_notification:
+    if: ${{ success() }}
+    # needs: [debugLwcTests, runLwcTests]
+    needs: [runLwcTests]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LWC E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      # summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    # needs: [debugLwcTests, runLwcTests]
+    needs: [runLwcTests]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LWC E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      # summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    # needs: [debugLwcTests, runLwcTests]
+    needs: [runLwcTests]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'LWC E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      # summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
