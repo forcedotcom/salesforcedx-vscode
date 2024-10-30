@@ -1,3 +1,15 @@
+# 62.3.1 - November 1, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Remove internal classes and methods from apex ls ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
+
+- Add file watcher for folder deletes ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
+
+- Move resolve orphan apex lang server ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+
 # 62.2.0 - October 23, 2024
 
 ## Added
