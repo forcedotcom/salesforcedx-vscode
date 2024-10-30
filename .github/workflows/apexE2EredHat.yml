@@ -13,11 +13,11 @@ on:
         required: false
         default: true
         type: boolean
-      # apexReplayDebugger:
-      #   description: 'Apex Replay Debugger'
-      #   required: false
-      #   default: true
-      #   type: boolean
+      apexReplayDebugger:
+        description: 'Apex Replay Debugger'
+        required: false
+        default: true
+        type: boolean
       # debugApexTests:
       #   description: 'Debug Apex Tests'
       #   required: false
@@ -55,11 +55,11 @@ on:
         required: false
         default: true
         type: boolean
-      # apexReplayDebugger:
-      #   description: 'Apex Replay Debugger'
-      #   required: false
-      #   default: true
-      #   type: boolean
+      apexReplayDebugger:
+        description: 'Apex Replay Debugger'
+        required: false
+        default: true
+        type: boolean
       # debugApexTests:
       #   description: 'Debug Apex Tests'
       #   required: false
@@ -97,15 +97,16 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  # apexReplayDebugger:
-  #   if: ${{ inputs.apexReplayDebugger }}
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     automationBranch: ${{ inputs.automationBranch }}
-  #     testToRun: 'apexReplayDebugger.e2e.ts'
-  #     vscodeVersion: ${{ inputs.vscodeVersion }}
-  #     runId: ${{ inputs.runId }}
+  apexReplayDebugger:
+    if: ${{ inputs.apexReplayDebugger }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'apexReplayDebugger.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
 
   # debugApexTests:
   #   if: ${{ inputs.debugApexTests }}
@@ -140,23 +141,23 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [apexLSP, runApexTests]
-    # needs: [apexReplayDebugger, debugApexTests, trailApexReplayDebugger]
+    needs: [apexLSP, apexReplayDebugger, runApexTests]
+    # needs: [debugApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
-      # summary: '\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      # summary: '\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [apexLSP, runApexTests]
+    needs: [apexLSP, apexReplayDebugger, runApexTests]
     # needs: [apexReplayDebugger, debugApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -164,7 +165,7 @@ jobs:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       # summary: '\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -172,7 +173,7 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [apexLSP, runApexTests]
+    needs: [apexLSP, apexReplayDebugger, runApexTests]
     # needs: [apexReplayDebugger, debugApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
@@ -180,7 +181,7 @@ jobs:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
+      summary: '\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}'
       # summary: '\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
