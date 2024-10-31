@@ -13,6 +13,7 @@ exec('npm run vscode:bundle', (error, stdout, stderr) => {
     console.error('Error: A dependency that has to be externalized in esbuild process is found. Please resolve it!');
     process.exit(1); // Exit with an error code
   } else {
+    console.log(output);
     process.exit(0); // Exit with success code
   }
 });
