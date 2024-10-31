@@ -1,3 +1,15 @@
+# 62.3.1 - November 1, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where deleted folders still showed Apex tests in the Testing sidebar. Now, when you delete a folder, it will be completely removed. No more pesky leftover tests! We did this by adding a new file watcher that triggers when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
+
+- 🚀 We improved the startup time of the Apex extension by 30%. This was achieved by moving our check for orphaned Apex Language Server instances outside the activation loop. This means that Apex extensions start up faster, so you can get to work more quickly. ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+
+- We made some changes under the hood. ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
+
 # 62.2.0 - October 23, 2024
 
 ## Added
@@ -23,10 +35,15 @@
 ## Added
 
 ### salesforcedx-vscode-apex
+
 ### salesforcedx-vscode-apex-replay-debugger
+
 ### salesforcedx-vscode-core
+
 ### salesforcedx-vscode-lightning
+
 ### salesforcedx-vscode-lwc
+
 ### salesforcedx-vscode-soql
 
 - We made some changes under the hood. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889)).
