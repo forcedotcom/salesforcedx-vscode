@@ -19,7 +19,8 @@ const sharedConfig = {
     'applicationinsights',
     '@salesforce/lightning-lsp-common',
     '@salesforce/lwc-language-server',
-    '@babel/preset-typescript/package.json'
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support'
   ],
   minify: true,
   keepNames: true,
