@@ -117,6 +117,7 @@ jobs:
       testToRun: 'debugApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest", "windows-latest"]'
 
   runApexTests:
     if: ${{ inputs.runApexTests }}
