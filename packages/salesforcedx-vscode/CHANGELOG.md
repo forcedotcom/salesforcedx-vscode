@@ -4,11 +4,9 @@
 
 #### salesforcedx-vscode-apex
 
-- We fixed a bug where deleting an entire folder still causes the Apex tests in that folder to be visible in the Testing sidebar. In our fix, we added an additional file watcher that will trigger when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
-- We've fixed a bug where deleted folders still showed Apex tests in the Testing sidebar. Now, when you delete a folder, it will be completely removed. No more pesky leftover tests! We did this by adding a new file watcher that triggers when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
+- We fixed a bug where deleted folders still showed Apex tests in the Testing sidebar. Now, when you delete a folder, it will be completely removed. No more pesky leftover tests! We did this by adding a new file watcher that triggers when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
 
-- 🚀 We made a 30% improvement to Apex extension startup time by moving the check for orphaned Apex Language Server instances outside the activation loop. ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
-- 🚀 We improved the startup time of Apex extensions by 30%. We did this by moving our check for orphaned Apex Language Server instances outside the activation loop. This means that Apex extensions start up faster, so you can get to work more quickly.([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+- 🚀 We improved the startup time of the Apex extension by 30%. We did this by moving our check for orphaned Apex Language Server instances outside the activation loop. This means that Apex extensions start up faster, so you can get to work more quickly. ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
 
 - We made some changes under the hood. ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
 
