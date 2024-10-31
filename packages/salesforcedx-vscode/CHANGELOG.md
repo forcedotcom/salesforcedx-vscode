@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Remove internal classes and methods from apex ls ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
+- We fixed a bug where deleting an entire folder still causes the Apex tests in that folder to be visible in the Testing sidebar. In our fix, we added an additional file watcher that will trigger when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
 
-- Add file watcher for folder deletes ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
+- 🚀 We made a 30% improvement to Apex extension startup time by moving the check for orphaned Apex Language Server instances outside the activation loop. ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
 
-- Move resolve orphan apex lang server ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+- We made some changes under the hood. ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
 
 # 62.2.0 - October 23, 2024
 
@@ -35,10 +35,15 @@
 ## Added
 
 ### salesforcedx-vscode-apex
+
 ### salesforcedx-vscode-apex-replay-debugger
+
 ### salesforcedx-vscode-core
+
 ### salesforcedx-vscode-lightning
+
 ### salesforcedx-vscode-lwc
+
 ### salesforcedx-vscode-soql
 
 - We made some changes under the hood. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889)).
