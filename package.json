@@ -52,6 +52,7 @@
     "lerna": "5.5.4",
     "markdown-link-check": "^3.9.3",
     "ncp": "^2.0.0",
+    "nyc": "15.1.0",
     "ovsx": "0.8.0",
     "prettier": "3.0.3",
     "shelljs": "0.8.5",
