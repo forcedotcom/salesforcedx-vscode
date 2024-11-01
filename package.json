@@ -90,6 +90,8 @@
     "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream -- --if-present",
     "test:vscode-insiders-system-tests": "lerna run test:vscode-insiders-system-tests --scope system-tests --concurrency 1 --stream",
     "coverage:system-tests": "lerna exec --scope system-tests --concurrency 1 --stream --bail=false -- npm run coverage:system-tests",
+    "coverage:report": "nyc report --reporter=html --report-dir=coverage-report --temp-dir=coverage",
+    "coverage:merge": "node scripts/copyCoverageJson.js",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
