@@ -26,7 +26,13 @@ const sharedConfig = {
   keepNames: true,
   plugins: [
     esbuildPluginPino({ transports: ['pino-pretty'] })
-  ]
+  ],
+  supported: {
+    'dynamic-import': false
+  },
+  logOverride: {
+    'unsupported-dynamic-import': 'error'
+  }
 };
 
 // copy core-bundle/lib/transformStream.js to dist if core-bundle is included

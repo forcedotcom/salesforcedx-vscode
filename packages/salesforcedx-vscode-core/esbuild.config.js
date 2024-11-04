@@ -22,7 +22,13 @@ const sharedConfig = {
   keepNames: true,
   plugins: [
     esbuildPluginPino({ transports: ['pino-pretty'] })
-  ]
+  ],
+  supported: {
+    'dynamic-import': false
+  },
+  logOverride: {
+    'unsupported-dynamic-import': 'error'
+  }
 };
 
 const copyFiles = (src, dest) => {
