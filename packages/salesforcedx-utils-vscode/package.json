@@ -24,7 +24,7 @@
     "@types/jest": "^29.5.5",
     "@types/node": "^18.11.9",
     "@types/shelljs": "0.7.9",
-    "@types/vscode": "^1.86.0",
+    "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "6.9.0",
     "@typescript-eslint/parser": "6.9.0",
     "eslint": "8.52.0",
@@ -42,7 +42,7 @@
     "typescript": "^5.2.2"
   },
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "scripts": {
     "compile": "tsc -p ./",

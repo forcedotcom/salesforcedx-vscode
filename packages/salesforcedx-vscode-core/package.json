@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other"
@@ -52,7 +52,7 @@
     "@types/proxyquire": "1.3.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.86.0",
+    "@types/vscode": "^1.90.0",
     "@types/yeoman-assert": "^3.1.1",
     "@typescript-eslint/eslint-plugin": "6.9.0",
     "@typescript-eslint/parser": "6.9.0",

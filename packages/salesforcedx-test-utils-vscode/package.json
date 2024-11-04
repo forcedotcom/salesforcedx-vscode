@@ -44,7 +44,7 @@
     "typescript": "^5.2.2"
   },
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out",
