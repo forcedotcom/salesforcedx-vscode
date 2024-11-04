@@ -5,8 +5,11 @@ const glob = require('glob');
 // Source pattern to find all coverage-final.json files
 const sourcePattern = './packages/**/coverage/coverage-final.json';
 
+// Get the output directory from the command line arguments or default to 'coverage'
+const outputDir = process.argv[2] || 'coverage';
+
 // Destination file
-const destinationFile = './coverage/combined-coverage-final.json';
+const destinationFile = path.join(outputDir, 'combined-coverage-final.json');
 
 // Function to merge coverage files
 function mergeCoverageFiles() {
