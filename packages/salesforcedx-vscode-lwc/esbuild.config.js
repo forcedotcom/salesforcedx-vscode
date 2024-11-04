@@ -19,13 +19,20 @@ const sharedConfig = {
     'applicationinsights',
     '@salesforce/lightning-lsp-common',
     '@salesforce/lwc-language-server',
-    '@babel/preset-typescript/package.json'
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support'
   ],
   minify: true,
   keepNames: true,
   plugins: [
     esbuildPluginPino({ transports: ['pino-pretty'] })
-  ]
+  ],
+  supported: {
+    'dynamic-import': false
+  },
+  logOverride: {
+    'unsupported-dynamic-import': 'error'
+  }
 };
 
 // copy core-bundle/lib/transformStream.js to dist if core-bundle is included
