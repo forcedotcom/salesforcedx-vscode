@@ -13,11 +13,6 @@ on:
         required: false
         default: true
         type: boolean
-      # diffAndConflictDetection:
-      #   description: "Diff and Conflict Detection"
-      #   required: false
-      #   default: true
-      #   type: boolean
       manifestBuilder:
         description: 'Manifest Builder'
         required: false
@@ -41,7 +36,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -60,11 +55,6 @@ on:
         required: false
         default: true
         type: boolean
-      # diffAndConflictDetection:
-      #   description: "Diff and Conflict Detection"
-      #   required: false
-      #   default: true
-      #   type: boolean
       manifestBuilder:
         description: 'Manifest Builder'
         required: false
@@ -88,7 +78,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -102,19 +92,10 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'deployAndRetrieve.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'deployAndRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-
-  # diffAndConflictDetection:
-  #   if: ${{ inputs.diffAndConflictDetection }}
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     automationBranch: ${{ inputs.automationBranch }}
-  #     testToRun: "diffAndConflictDetection.e2e.ts"
-  #     vscodeVersion: ${{ inputs.vscodeVersion }}
-  #     runId: ${{ inputs.runId }}
 
   manifestBuilder:
     if: ${{ inputs.manifestBuilder }}
@@ -122,7 +103,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'manifestBuilder.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'manifestBuilder.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -132,7 +114,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'orgBrowser.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'orgBrowser.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -142,38 +125,32 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'pushAndPull.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'pushAndPull.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   mdDeployRetrieve:
-    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == '1.92.2'}}
+    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == 'stable'}}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'metadataDeployRetrieve.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'metadataDeployRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
       os: '["ubuntu-latest", "windows-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [
-        deployAndRetrieve,
-        # diffAndConflictDetection,
-        manifestBuilder,
-        orgBrowser,
-        pushAndPull,
-        mdDeployRetrieve
-      ]
+    needs: [deployAndRetrieve, manifestBuilder, orgBrowser, pushAndPull, mdDeployRetrieve]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -181,21 +158,13 @@ jobs:
 
   slack_failure_notification:
     if: ${{ failure()}}
-    needs: [
-        deployAndRetrieve,
-        # diffAndConflictDetection,
-        manifestBuilder,
-        orgBrowser,
-        pushAndPull,
-        mdDeployRetrieve
-      ]
+    needs: [deployAndRetrieve, manifestBuilder, orgBrowser, pushAndPull, mdDeployRetrieve]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -203,21 +172,13 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [
-        deployAndRetrieve,
-        # diffAndConflictDetection,
-        manifestBuilder,
-        orgBrowser,
-        pushAndPull,
-        mdDeployRetrieve
-      ]
+    needs: [deployAndRetrieve, manifestBuilder, orgBrowser, pushAndPull, mdDeployRetrieve]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      # summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Diff and Conflict Detection: ${{ needs.diffAndConflictDetection.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}'
       summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
