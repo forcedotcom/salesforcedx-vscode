@@ -140,7 +140,6 @@ jobs:
       testToRun: 'metadataDeployRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-      os: '["ubuntu-latest", "windows-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
