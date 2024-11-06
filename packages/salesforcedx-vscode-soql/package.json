@@ -151,7 +151,6 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/apex-tmlanguage": "1.6.0",
         "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "1.0.0",
         "@salesforce/soql-data-view": "0.1.0",
