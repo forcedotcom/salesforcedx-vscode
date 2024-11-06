@@ -8,7 +8,7 @@
   "main": "out/src",
   "scripts": {
     "compile": "tsc -p ./",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",

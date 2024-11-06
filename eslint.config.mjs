@@ -11,6 +11,7 @@ import eslintPluginImport from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslintPluginJest from 'eslint-plugin-jest';
 
 export default [
@@ -21,11 +22,15 @@ export default [
       parser: '@typescript-eslint/parser',
       parserOptions: {
         project: './tsconfig.json',
-        sourceType: 'module'
+        sourceType: 'module',
+        ecmaVersion: 2020,
+        globals: {
+          // For Browser environment
+          window: 'readonly',
+          document: 'readonly',
+          fetch: 'readonly'
+        }
       }
-    },
-    env: {
-      browser: true
     },
     plugins: {
       '@typescript-eslint': typescriptEslint,
@@ -258,28 +263,32 @@ export default [
       ],
       'use-isnan': 'error',
       'valid-typeof': 'off'
-    },
-    extends: [
-      eslintRecommended,
-      typescriptEslintRecommended.configs.recommended,
-      typescriptEslintRecommended.configs['recommended-requiring-type-checking'],
-      prettierConfig
-    ]
+    }
   },
-  // {
-  //   rules: {
-  //     '@typescript-eslint/no-duplicate-type-constituents': 'warn',
-  //     '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
-  //     'guard-for-in': 'warn',
-  //     'no-prototype-builtins': 'warn',
-  //     'no-useless-escape': 'warn'
-  //   }
-  // },
+  {
+    rules: {
+      // '@typescript-eslint/no-duplicate-type-constituents': 'warn',
+      // '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
+      'guard-for-in': 'warn',
+      'no-prototype-builtins': 'warn',
+      'no-useless-escape': 'warn'
+    }
+  },
+  eslintPluginPrettierRecommended,
   {
     root: true,
-    env: {
-      node: true,
-      browser: true
+    languageOptions: {
+      globals: {
+        // For Node environment
+        process: 'readonly',
+        __dirname: 'readonly',
+        module: 'readonly',
+
+        // For Browser environment
+        window: 'readonly',
+        document: 'readonly',
+        fetch: 'readonly'
+      }
     },
     files: ['packages/salesforcedx-vscode-**/src/**/*.ts', 'packages/salesforcedx-vscode-**/test/**/*.ts']
   },
@@ -305,5 +314,21 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error'
     }
+  },
+  {
+    files: ['packages/salesforcedx-vscode-soql/', 'packages/salesforcedx-vscode-lwc/'],
+    ignores: ['test/vscode-integration']
+  },
+  {
+    files: ['packages/salesforcedx-apex-replay-debugger/', 'packages/salesforcedx-visualforce-markup-language-server/'],
+    ignores: ['src/**']
+  },
+  {
+    files: ['packages/system-tests/'],
+    ignores: ['assets', 'scenarios', 'src']
+  },
+  {
+    files: ['packages/salesforcedx-sobjects-faux-generator/'],
+    ignores: ['scripts/**', 'coverage/**']
   }
 ];
