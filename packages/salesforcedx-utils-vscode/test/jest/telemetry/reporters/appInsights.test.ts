@@ -31,7 +31,9 @@ describe('AppInsights', () => {
       getInstanceMock = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue({
-          orgId: dummyOrgId
+          devHubId: '',
+          orgId: dummyOrgId,
+          orgShape: ''
         } as any);
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
@@ -52,7 +54,7 @@ describe('AppInsights', () => {
       appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
+      expect(getInstanceMock).toHaveBeenCalledTimes(3);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock.mock.calls[0][0]).toMatchSnapshot();
     });
@@ -65,7 +67,7 @@ describe('AppInsights', () => {
       );
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
+      expect(getInstanceMock).toHaveBeenCalledTimes(3);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
     });
@@ -206,7 +208,7 @@ describe('AppInsights', () => {
       const commonProps = appInsights['getCommonProperties']();
       const internalProps = appInsights['getInternalProperties']();
       const result = appInsights['aggregateLoggingProperties']();
-      expect(result).toEqual({...commonProps, ...internalProps});
+      expect(result).toEqual({ ...commonProps, ...internalProps });
     });
 
     it('should return common properties when is not internal user', () => {
