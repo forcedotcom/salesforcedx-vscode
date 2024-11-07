@@ -28,6 +28,7 @@
     "@tsconfig/node20": "20.1.4",
     "@types/cross-spawn": "6.0.2",
     "@types/jest": "^29.5.5",
+    "@types/semver": "7.5.8",
     "@types/shelljs": "0.8.11",
     "@typescript-eslint/eslint-plugin": "8.13.0",
     "@typescript-eslint/parser": "8.13.0",
